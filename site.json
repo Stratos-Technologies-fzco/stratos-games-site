@@ -9,47 +9,66 @@
     {
       "id": "new",
       "label": "New",
-      "icon": "sparkle"
-    },
-    {
-      "id": "popular",
-      "label": "Popular",
-      "icon": "fire"
+      "icon": "sparkle",
+      "mood": "Fresh this week",
+      "emoji": "✨",
+      "hue": 190
     },
     {
       "id": "arcade",
       "label": "Arcade",
-      "icon": "joystick"
+      "icon": "joystick",
+      "mood": "Adrenaline rush",
+      "emoji": "🕹️",
+      "hue": 335
     },
     {
       "id": "puzzle",
       "label": "Puzzle",
-      "icon": "puzzle"
+      "icon": "puzzle",
+      "mood": "Train your brain",
+      "emoji": "🧩",
+      "hue": 180
     },
     {
       "id": "word",
       "label": "Word",
-      "icon": "word"
+      "icon": "word",
+      "mood": "Word nerds",
+      "emoji": "🔤",
+      "hue": 45
     },
     {
       "id": "party",
       "label": "Party",
-      "icon": "party"
+      "icon": "party",
+      "mood": "With friends",
+      "emoji": "🎉",
+      "hue": 140
     },
     {
       "id": "sports",
       "label": "Sports",
-      "icon": "ball"
+      "icon": "ball",
+      "mood": "Get moving",
+      "emoji": "⚽",
+      "hue": 25
     },
     {
       "id": "kids",
       "label": "Kids",
-      "icon": "star"
+      "icon": "star",
+      "mood": "For the kids",
+      "emoji": "🧸",
+      "hue": 95
     },
     {
       "id": "studio",
       "label": "Studio titles",
-      "icon": "studio"
+      "icon": "studio",
+      "mood": "Stratos originals",
+      "emoji": "🚀",
+      "hue": 265
     }
   ],
   "studio_games": [

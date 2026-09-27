@@ -20,7 +20,7 @@ Claude Code asks "do you trust this folder?" once. Say yes. Already have the fol
 
 Then paste this, in plain English:
 
-    Add my game to stratos.games. My GitHub username is <your-username>. Make a folder games/<your-username>/ and put my game in it as index.html (build it with me if I do not have one yet: ask me what game I want, then make it, single file, works on a phone, no scripts loaded from other sites). Add games/<your-username>/game.json with title, maker (my name), one_line (what it is), category (one of: arcade, puzzle, word, party, sports, kids), github (my username), and a thumbnail.png you make from the game, 800 by 500. Never touch any other folder. When it runs and I say publish, pull, commit and push it.
+    Add my game to stratos.games. My GitHub username is <your-username>. Make a folder games/<your-username>/ and put my game in it as index.html (build it with me if I do not have one yet: ask me what game I want, then make it, single file, works on a phone, no scripts loaded from other sites). Add games/<your-username>/game.json with title, maker (my name), one_line (what it is), category (one of: arcade, puzzle, word, party, sports, kids), github (my username), how_to_play (one line on the controls), and a thumbnail.png you make from the game, 800 by 500. Never touch any other folder. When it runs and I say publish, pull, commit and push it.
 
 Say "publish" when you are happy. About a minute later your game is on the front page and has its own play page.
 
@@ -28,7 +28,8 @@ Say "publish" when you are happy. About a minute later your game is on the front
 
     games/<your-username>/
         index.html      the game, one file if you can, everything it needs inside the folder
-        game.json       {"title": "...", "maker": "Your Name", "one_line": "what it is", "category": "arcade", "github": "your-username"}
+        game.json       {"title": "...", "maker": "Your Name", "one_line": "what it is", "category": "arcade", "github": "your-username", "how_to_play": "Tap to jump"}
+                        optional: "description" (a paragraph for the play page)
         thumbnail.png   a picture of it, 16:10, about 800 by 500 (if you skip it, the site makes a cover from the title)
 
 Categories: arcade, puzzle, word, party, sports, kids.
@@ -42,4 +43,4 @@ Categories: arcade, puzzle, word, party, sports, kids.
 
 ## How the site builds itself
 
-`tools/build.py` reads every `games/*/game.json` and writes the front page, a play page per game, the category pages, `games.json`, the sitemap and `llms.txt`. A GitHub Action runs it on every push, so nobody edits those pages by hand. A folder without both files, or with broken JSON, is skipped and named in the build log; everyone else's game still shows.
+`tools/build.py` reads every `games/*/game.json` and writes the front page (mood cards, the wall of big and small tiles, rows), a play page per game (frame, fullscreen, share, side column), the category pages, `games.json`, the sitemap and `llms.txt`. The newest family game is always the first big tile on the wall. A GitHub Action runs it on every push, so nobody edits those pages by hand. A folder without both files, or with broken JSON, is skipped and named in the build log; everyone else's game still shows.
