@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 8,
+ "count": 5,
  "games": [
   {
    "slug": "mody-sahariar1",
@@ -14,45 +14,6 @@
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
-  },
-  {
-   "slug": "test-a",
-   "title": "Test Game A",
-   "maker": "Tester A",
-   "one_line": "A burst-test placeholder.",
-   "category": "arcade",
-   "url": "play/test-a/",
-   "thumb": "assets/covers/generated/test-a.svg",
-   "added": "2026-09-27",
-   "github": "test-a",
-   "kind": "family",
-   "soon": true
-  },
-  {
-   "slug": "test-b",
-   "title": "Test Game B",
-   "maker": "Tester B",
-   "one_line": "A burst-test placeholder.",
-   "category": "arcade",
-   "url": "play/test-b/",
-   "thumb": "assets/covers/generated/test-b.svg",
-   "added": "2026-09-27",
-   "github": "test-b",
-   "kind": "family",
-   "soon": true
-  },
-  {
-   "slug": "test-c",
-   "title": "Test Game C",
-   "maker": "Tester C",
-   "one_line": "A burst-test placeholder.",
-   "category": "arcade",
-   "url": "play/test-c/",
-   "thumb": "assets/covers/generated/test-c.svg",
-   "added": "2026-09-27",
-   "github": "test-c",
-   "kind": "family",
-   "soon": true
   },
   {
    "slug": "bloxplode",
