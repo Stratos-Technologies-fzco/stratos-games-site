@@ -25,7 +25,7 @@ def clean(fragment):
         if name == "a":
             href = re.search(r'href\s*=\s*"([^"]*)"', attrs)
             if href:
-                h = href.group(1).replace("https://stratos.games/", "../").replace("http://stratos.games/", "../")
+                h = href.group(1).replace("https://stratos.games/", "../").replace("http://stratos.games/", "../").replace("https://mody-sahariar1.github.io/arrow-puzzle-testing/", "../games-arrow-puzzle/")
                 keep.append(f'href="{html.escape(h, quote=True)}"')
                 if h.startswith("http"): keep.append('target="_blank" rel="noopener"')
         if name == "img":

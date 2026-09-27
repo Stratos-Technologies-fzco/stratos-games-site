@@ -1,15 +1,65 @@
 {
- "generated": "2026-09-27T18:09:56.373788Z",
+ "generated": "2026-09-27T18:22:35.536350+00:00",
  "games": [
   {
    "slug": "mody-sahariar1",
    "title": "Flappy Bird",
    "maker": "Sahariar Mody",
    "one_line": "Tap to flap, dodge the pipes, beat your best. One file, no libraries.",
-   "url": "games/mody-sahariar1/",
-   "thumb_url": "games/mody-sahariar1/thumbnail.png",
+   "category": "arcade",
+   "url": "play/mody-sahariar1/",
+   "thumb": "games/mody-sahariar1/thumbnail.png",
    "added": "2026-09-27",
-   "github": "mody-sahariar1"
+   "github": "mody-sahariar1",
+   "kind": "family"
+  },
+  {
+   "slug": "bloxplode",
+   "title": "BLOXPLODE",
+   "maker": "Stratos Games",
+   "one_line": "Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.",
+   "category": "puzzle",
+   "url": "games-bloxplode/",
+   "thumb": "assets/covers/bloxplode.png",
+   "added": null,
+   "github": null,
+   "kind": "studio"
+  },
+  {
+   "slug": "arrow-puzzle",
+   "title": "Arrow Puzzle",
+   "maker": "Stratos Games",
+   "one_line": "Every arrow points somewhere. Clear the board without a collision.",
+   "category": "puzzle",
+   "url": "games-arrow-puzzle/",
+   "thumb": "assets/covers/arrow-puzzle.svg",
+   "added": null,
+   "github": null,
+   "kind": "studio"
+  },
+  {
+   "slug": "house-mafia",
+   "title": "House Mafia",
+   "maker": "Stratos Games",
+   "one_line": "Mafia and Werewolf, set at a house party. 4 to 8 players, 3 to 5 minute rounds.",
+   "category": "party",
+   "url": "games-house-mafia/",
+   "thumb": "assets/covers/house-mafia.svg",
+   "added": null,
+   "github": null,
+   "kind": "studio"
+  },
+  {
+   "slug": "word-quest",
+   "title": "Word Quest",
+   "maker": "Stratos Games",
+   "one_line": "Drag across the grid, find the words, win the minute.",
+   "category": "word",
+   "url": "games-word-quest/",
+   "thumb": "assets/covers/word-quest.svg",
+   "added": null,
+   "github": null,
+   "kind": "studio"
   }
  ]
 }

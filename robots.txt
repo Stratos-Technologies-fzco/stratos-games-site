@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://stratos.games/sitemap.xml

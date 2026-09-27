@@ -6,30 +6,28 @@
 <title>Arrow Puzzle — every arrow points somewhere. Clear the board without a collision. | Stratos Games</title>
 <meta name="description" content="Arrow Puzzle is a free logic puzzle game from Stratos Games. The board is a grid of arrows, each pointing in a fixed direction. Tap an arrow and it slides ">
 <link rel="canonical" href="https://stratos.games/games-arrow-puzzle/">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Stratos Games"><meta property="og:title" content="Arrow Puzzle — every arrow points somewhere. Clear the board without a collision."><meta property="og:description" content="Arrow Puzzle is a free logic puzzle game from Stratos Games. The board is a grid of arrows, each pointing in a fixed direction. Tap an arrow and it slides "><meta property="og:url" content="https://stratos.games/games-arrow-puzzle/">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
 <style>
-:root{--bg:#0b0d12;--panel:#141824;--line:#232a3b;--text:#e9edf5;--muted:#9aa4b8;--accent:#7c5cff;--accent2:#22d3ee}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
-a{color:var(--accent2)}
-header{position:sticky;top:0;z-index:5;background:rgba(11,13,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.wrap{max-width:860px;margin:0 auto;padding:0 20px}
-.bar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
-.logo{font-weight:800;letter-spacing:.12em;font-size:15px;color:var(--text);text-decoration:none}.logo span{color:var(--accent2)}
-nav a{margin-left:18px;font-size:14px;color:var(--muted);text-decoration:none}nav a:hover{color:var(--text)}
-article{padding:40px 0 60px}
-article h1{font-size:clamp(26px,4.5vw,40px);line-height:1.15;letter-spacing:-.02em;margin:0 0 18px}
-article h2{font-size:22px;margin:34px 0 10px}article h3{font-size:18px;margin:26px 0 8px}
-article p,article li{color:#d5dbe8;font-size:16px}
-article table{border-collapse:collapse;width:100%;margin:14px 0;font-size:15px}
-article td,article th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
-article img{max-width:100%;height:auto;border-radius:10px}
-footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:13px}
-footer a{color:var(--muted);text-decoration:none;margin-right:18px}
+.doc{max-width:820px;padding:8px 4px 30px}
+.doc h1{font-size:clamp(26px,4vw,38px);line-height:1.15;font-weight:900;margin:6px 0 16px}
+.doc h2{font-size:22px;font-weight:900;margin:30px 0 8px}.doc h3{font-size:18px;font-weight:800;margin:22px 0 6px}
+.doc p,.doc li{color:#d5dbe8;font-size:16px;font-weight:600}
+.doc a{color:var(--accent2)}
+.doc table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+.doc td,.doc th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.doc img{max-width:100%;height:auto;border-radius:12px}
 </style>
 </head>
 <body>
-<header><div class="wrap bar"><a class="logo" href="../">STRATOS <span>GAMES</span></a><nav><a href="../#play">Play</a><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press</a></nav></div></header>
-<main class="wrap"><article>
+<header class="top"><a class="logo" href="../"><span class="lm">S</span> STRATOS <b>GAMES</b></a><a class="add" href="https://github.com/Stratos-Technologies-fzco/stratos-games-site#join-one-paste-then-talk" target="_blank" rel="noopener">+ Add your game</a></header>
+<div class="shell">
+<nav class="side"><a href="../"><span>Home</span></a><a href="../c/new/"><span>New</span></a><a href="../c/puzzle/"><span>Puzzle</span></a><a href="../c/arcade/"><span>Arcade</span></a><a href="../c/word/"><span>Word</span></a><a href="../c/party/"><span>Party</span></a><a href="../c/studio/"><span>Studio titles</span></a>
+<div class="side-foot"><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press</a></div></nav>
+<main class="main"><article class="doc">
 <h1>Arrow Puzzle — every arrow points somewhere. Clear the board without a collision.</h1>		
 		<p>Arrow Puzzle is a free logic puzzle game from Stratos Games. The board is a grid of arrows, each pointing in a fixed direction. Tap an arrow and it slides off the board — but only if the path is clear. Tap a blocked arrow and both arrows flash red, costing a life. Levels are procedurally generated, so the game ramps from a five-arrow opener to a dense multi-collision tangle without repeating itself. Free in any browser, with native Android and iOS builds in active development.</p>
 <h2>Quick facts</h2>
@@ -64,7 +62,8 @@ footer a{color:var(--muted);text-decoration:none;margin-right:18px}
 <p><strong>How many levels are in Arrow Puzzle?</strong> Levels are procedurally generated. The difficulty curve currently runs from level 1 (a five-arrow opener) through dozens of progressively denser boards. Each level is deterministic — replay level 47 tomorrow and it will be the same level 47.</p>
 <p><strong>Who makes Arrow Puzzle?</strong> Arrow Puzzle is made by Stratos Games. Production is human-tested and AI-built — Shahariar Mody plays every build on a real device before it ships.</p>
 <p><strong>Why are the levels procedurally generated instead of hand-designed?</strong> Hand-authoring a thousand levels is slow. A generator tuned by a difficulty config can ramp infinitely without losing the shape of a good level. We tune the generator until each difficulty bucket plays like a hand-authored set, and we keep tuning as players give us data on which levels feel fair vs which feel mechanical.</p>
-</article></main>
-<footer><div class="wrap"><a href="../terms-of-use/">Terms of use</a><a href="../privacy-policy/">Privacy Policy</a><a href="mailto:admin@stratos.games">Contact us</a><div style="margin-top:10px">© 2026 Stratos Games · admin@stratos.games</div></div></footer>
+</article>
+<footer class="foot"><div><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press kit</a><a href="../terms-of-use/">Terms of use</a><a href="../privacy-policy/">Privacy Policy</a><a href="mailto:admin@stratos.games">Contact</a></div><div class="fine">© 2026 Stratos Games · admin@stratos.games</div></footer>
+</main></div>
 </body>
 </html>

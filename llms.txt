@@ -1,0 +1,18 @@
+# Stratos Games
+
+Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.
+
+## Play (free browser games)
+- [Flappy Bird](https://stratos.games/play/mody-sahariar1/): Tap to flap, dodge the pipes, beat your best. One file, no libraries. Made by Sahariar Mody.
+
+## Studio titles
+- [BLOXPLODE](https://stratos.games/games-bloxplode/): Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.
+- [Arrow Puzzle](https://stratos.games/games-arrow-puzzle/): Every arrow points somewhere. Clear the board without a collision.
+- [House Mafia](https://stratos.games/games-house-mafia/): Mafia and Werewolf, set at a house party. 4 to 8 players, 3 to 5 minute rounds.
+- [Word Quest](https://stratos.games/games-word-quest/): Drag across the grid, find the words, win the minute.
+
+## Pages
+- About: https://stratos.games/about/
+- For publishers: https://stratos.games/for-publishers/
+- Press kit: https://stratos.games/press/
+- Contact: admin@stratos.games

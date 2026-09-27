@@ -1,23 +1,146 @@
 {
   "name": "Stratos Games",
   "url": "https://stratos.games",
-  "tagline": "Indie mobile game studio. Humans test, AI builds, games ship.",
+  "tagline": "Free browser games, made by humans with AI.",
+  "description": "Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.",
   "contact": "admin@stratos.games",
+  "twitter": "",
+  "categories": [
+    {
+      "id": "new",
+      "label": "New",
+      "icon": "sparkle"
+    },
+    {
+      "id": "popular",
+      "label": "Popular",
+      "icon": "fire"
+    },
+    {
+      "id": "arcade",
+      "label": "Arcade",
+      "icon": "joystick"
+    },
+    {
+      "id": "puzzle",
+      "label": "Puzzle",
+      "icon": "puzzle"
+    },
+    {
+      "id": "word",
+      "label": "Word",
+      "icon": "word"
+    },
+    {
+      "id": "party",
+      "label": "Party",
+      "icon": "party"
+    },
+    {
+      "id": "sports",
+      "label": "Sports",
+      "icon": "ball"
+    },
+    {
+      "id": "kids",
+      "label": "Kids",
+      "icon": "star"
+    },
+    {
+      "id": "studio",
+      "label": "Studio titles",
+      "icon": "studio"
+    }
+  ],
   "studio_games": [
-    {"title": "BLOXPLODE", "one_line": "Combo block puzzle, Classic endless mode and a 10-level Adventure.", "url": "https://play.google.com/store/apps/details?id=com.stratos.bloxplode", "cta": "Google Play", "image": "assets/bloxplode.png", "page": "games-bloxplode/"},
-    {"title": "Arrow Puzzle", "one_line": "Every arrow points somewhere. Clear the board without a collision.", "url": "https://mody-sahariar1.github.io/arrow-puzzle-testing/", "cta": "Play in browser", "image": "", "page": "games-arrow-puzzle/"},
-    {"title": "House Mafia", "one_line": "Mafia and Werewolf, set at a house party. Lighter, funnier, faster.", "url": "games-house-mafia/", "cta": "Coming soon", "image": "", "page": "games-house-mafia/"},
-    {"title": "Word Quest", "one_line": "Drag, find, win. A word-search puzzle built for a mobile minute.", "url": "games-word-quest/", "cta": "Coming soon", "image": "", "page": "games-word-quest/"}
+    {
+      "slug": "bloxplode",
+      "title": "BLOXPLODE",
+      "category": "puzzle",
+      "one_line": "Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.",
+      "play_url": "",
+      "store_url": "https://play.google.com/store/apps/details?id=com.stratos.bloxplode",
+      "cta": "Google Play",
+      "image": "assets/covers/bloxplode.png",
+      "page": "games-bloxplode/",
+      "featured": true
+    },
+    {
+      "slug": "arrow-puzzle",
+      "title": "Arrow Puzzle",
+      "category": "puzzle",
+      "one_line": "Every arrow points somewhere. Clear the board without a collision.",
+      "play_url": "",
+      "store_url": "",
+      "cta": "Coming soon",
+      "image": "assets/covers/arrow-puzzle.svg",
+      "page": "games-arrow-puzzle/",
+      "featured": false
+    },
+    {
+      "slug": "house-mafia",
+      "title": "House Mafia",
+      "category": "party",
+      "one_line": "Mafia and Werewolf, set at a house party. 4 to 8 players, 3 to 5 minute rounds.",
+      "play_url": "",
+      "store_url": "",
+      "cta": "Coming soon",
+      "image": "assets/covers/house-mafia.svg",
+      "page": "games-house-mafia/",
+      "featured": false
+    },
+    {
+      "slug": "word-quest",
+      "title": "Word Quest",
+      "category": "word",
+      "one_line": "Drag across the grid, find the words, win the minute.",
+      "play_url": "",
+      "store_url": "",
+      "cta": "Coming soon",
+      "image": "assets/covers/word-quest.svg",
+      "page": "games-word-quest/",
+      "featured": false
+    }
   ],
   "nav": [
-    {"label": "Play", "href": "#play"},
-    {"label": "About", "href": "about/"},
-    {"label": "For publishers", "href": "for-publishers/"},
-    {"label": "Press", "href": "press/"}
+    {
+      "label": "About",
+      "href": "about/"
+    },
+    {
+      "label": "For publishers",
+      "href": "for-publishers/"
+    },
+    {
+      "label": "Press",
+      "href": "press/"
+    }
   ],
   "footer": [
-    {"label": "Terms of use", "href": "terms-of-use/"},
-    {"label": "Privacy Policy", "href": "privacy-policy/"},
-    {"label": "Contact us", "href": "mailto:admin@stratos.games"}
-  ]
+    {
+      "label": "About",
+      "href": "about/"
+    },
+    {
+      "label": "For publishers",
+      "href": "for-publishers/"
+    },
+    {
+      "label": "Press kit",
+      "href": "press/"
+    },
+    {
+      "label": "Terms of use",
+      "href": "terms-of-use/"
+    },
+    {
+      "label": "Privacy Policy",
+      "href": "privacy-policy/"
+    },
+    {
+      "label": "Contact",
+      "href": "mailto:admin@stratos.games"
+    }
+  ],
+  "analytics_id": ""
 }
