@@ -18,6 +18,6 @@ jobs:
         run: |
           git config user.name "stratos-games-bot"
           git config user.email "bot@stratos.games"
-          git add index.html games.json
-          git diff --cached --quiet || git commit -m "build: front page [skip ci]"
+          git add index.html games.json sitemap.xml robots.txt llms.txt 404.html play c
+          git diff --cached --quiet || git commit -m "build: site pages [skip ci]"
           git push
