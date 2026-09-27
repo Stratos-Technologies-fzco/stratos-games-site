@@ -109,3 +109,4 @@ body.nav-open .side{transform:none;box-shadow:24px 0 48px rgba(0,0,0,.5)}
 .play iframe{height:62vh}}
 @media (max-width:540px){:root{--cols:2}.rail{grid-auto-columns:150px}.big .tt{font-size:17px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.soon-note{color:var(--yellow);font-weight:800}

@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-27T18:48:04.428239+00:00",
+ "generated": "2026-09-27T19:06:08.225698+00:00",
  "games": [
   {
    "slug": "mody-sahariar1",
@@ -11,7 +11,8 @@
    "thumb": "games/mody-sahariar1/thumbnail.png",
    "added": "2026-09-27",
    "github": "mody-sahariar1",
-   "kind": "family"
+   "kind": "family",
+   "soon": false
   },
   {
    "slug": "bloxplode",
@@ -23,7 +24,8 @@
    "thumb": "assets/covers/bloxplode.png",
    "added": null,
    "github": null,
-   "kind": "studio"
+   "kind": "studio",
+   "soon": null
   },
   {
    "slug": "arrow-puzzle",
@@ -35,7 +37,8 @@
    "thumb": "assets/covers/arrow-puzzle.svg",
    "added": null,
    "github": null,
-   "kind": "studio"
+   "kind": "studio",
+   "soon": null
   },
   {
    "slug": "house-mafia",
@@ -47,7 +50,8 @@
    "thumb": "assets/covers/house-mafia.svg",
    "added": null,
    "github": null,
-   "kind": "studio"
+   "kind": "studio",
+   "soon": null
   },
   {
    "slug": "word-quest",
@@ -59,7 +63,8 @@
    "thumb": "assets/covers/word-quest.svg",
    "added": null,
    "github": null,
-   "kind": "studio"
+   "kind": "studio",
+   "soon": null
   }
  ]
 }
