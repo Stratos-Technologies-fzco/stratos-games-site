@@ -72,9 +72,11 @@ def load_games():
         g["category"] = g.get("category") if g.get("category") in CATS and g.get("category") not in ("new", "studio") else "arcade"
         g["soon"] = str(g.get("status", "")).lower().replace("-", "_") in ("coming_soon", "placeholder", "soon", "wip")
         thumb = g.get("thumbnail") or next((f for f in ("thumbnail.png", "thumbnail.jpg", "thumbnail.webp", "thumbnail.svg") if os.path.exists(os.path.join(d, f))), None)
-        if not thumb or (g["soon"] and thumb == "thumbnail.svg"):
-            write(f"games/{slug}/thumbnail.svg", cover_svg(g["title"], slug, f"{g['maker']} is building this" if g["soon"] else "")); thumb = "thumbnail.svg"
-        g["thumb"] = f"games/{slug}/{thumb}"
+        if thumb and not g["soon"]:
+            g["thumb"] = f"games/{slug}/{thumb}"
+        else:
+            write(f"assets/covers/generated/{slug}.svg", cover_svg(g["title"], slug, f"{g['maker']} is building this" if g["soon"] else ""))
+            g["thumb"] = f"assets/covers/generated/{slug}.svg"
         g["game_url"] = f"games/{slug}/index.html"
         g["url"] = f"play/{slug}/"
         g["added"] = g.get("added") or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
@@ -250,8 +252,23 @@ def build_extras(fam, studio):
     json.dump({"generated": datetime.datetime.now(datetime.timezone.utc).isoformat(), "games": [{k: g.get(k) for k in ("slug", "title", "maker", "one_line", "category", "url", "thumb", "added", "github", "kind", "soon")} for g in fam + studio]},
               open(os.path.join(ROOT, "games.json"), "w", encoding="utf-8"), indent=1)
 
+import shutil
+def prune(fam):
+    keep = {g["slug"] for g in fam}
+    for d in ("play",):
+        base = os.path.join(ROOT, d)
+        for slug in (os.listdir(base) if os.path.isdir(base) else []):
+            if slug not in keep: shutil.rmtree(os.path.join(base, slug)); print("  pruned:", f"{d}/{slug}/")
+    cbase = os.path.join(ROOT, "c")
+    for cid in (os.listdir(cbase) if os.path.isdir(cbase) else []):
+        if cid not in CATS and os.path.isdir(os.path.join(cbase, cid)): shutil.rmtree(os.path.join(cbase, cid)); print("  pruned:", f"c/{cid}/")
+    gbase = os.path.join(ROOT, "assets", "covers", "generated")
+    used = {os.path.basename(g["thumb"]) for g in fam if g["thumb"].startswith("assets/covers/generated/")}
+    for f in (os.listdir(gbase) if os.path.isdir(gbase) else []):
+        if f not in used: os.remove(os.path.join(gbase, f)); print("  pruned:", f"assets/covers/generated/{f}")
+
 def main():
-    fam, problems = load_games(); studio = studio_games()
+    fam, problems = load_games(); studio = studio_games(); prune(fam)
     build_home(fam, studio)
     by_cat = {}
     for g in fam + studio:

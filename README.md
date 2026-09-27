@@ -22,7 +22,7 @@ Vercel serves this repo at https://stratos.games (Sahil runs the hosting). The G
 
 3. Paste this into Claude Code, in plain English:
 
-       Claim my box on stratos.games. My GitHub username is <your-username> and my name is <your name>. My game will be called <title> (help me pick a working title if I have none). Create games/<your-username>/game.json with title, maker (my name), one_line (one sentence on the idea), category (one of: arcade, puzzle, word, party, sports, kids), github (my username) and "status": "coming_soon". Create games/<your-username>/index.html as a placeholder page: dark background, the title big, "by <my name>", the words "coming soon", nothing loaded from other sites. Do not touch any other folder. Then pull, commit as "claim box: <your-username>" and push. If the push is rejected, pull the others' work and push mine again.
+       Claim my box on stratos.games. My GitHub username is <your-username> and my name is <your name>. My game will be called <title> (help me pick a working title if I have none). Create games/<your-username>/game.json with title, maker (my name), one_line (one sentence on the idea), category (one of: arcade, puzzle, word, party, sports, kids), github (my username) and "status": "coming_soon". Create games/<your-username>/index.html as a placeholder page: dark background, the title big, "by <my name>", the words "coming soon", nothing loaded from other sites. Do not touch any other folder, do not run tools/build.py, commit only my folder. Then pull with rebase, commit as "claim box: <your-username>" and push. If the push is rejected, pull with rebase again and push again until it lands.
 
 About a minute later your box is on the front page under "In the works", with your name on it.
 
@@ -30,7 +30,7 @@ About a minute later your box is on the front page under "In the works", with yo
 
 Open the folder again (`cd ~/Desktop/stratos-games-site` then `claude`) and paste:
 
-    Add my game to stratos.games. My GitHub username is <your-username>. My box is games/<your-username>/. Replace the placeholder index.html with my game (build it with me if I do not have one yet: ask me what game I want, then make it, single file, works on a phone, no scripts loaded from other sites). Update game.json: keep title, maker, one_line, category, github; add how_to_play (one line on the controls); remove "status". Make a thumbnail.png from the game, 800 by 500. Never touch any other folder. When it runs and I say publish, pull, commit and push it.
+    Add my game to stratos.games. My GitHub username is <your-username>. My box is games/<your-username>/. Replace the placeholder index.html with my game (build it with me if I do not have one yet: ask me what game I want, then make it, single file, works on a phone, no scripts loaded from other sites). Update game.json: keep title, maker, one_line, category, github; add how_to_play (one line on the controls); remove "status". Make a thumbnail.png from the game, 800 by 500. Never touch any other folder, never run tools/build.py, commit only my folder. When it runs and I say publish, pull with rebase, commit and push it; if the push is rejected, pull with rebase again and push again.
 
 Say "publish" when you are happy. About a minute later the "Soon" badge turns into "New", the game gets its own play page, and it is the first big tile on the wall.
 
@@ -47,7 +47,7 @@ Categories: arcade, puzzle, word, party, sports, kids.
 ## Rules
 
 1. Your folder is yours. Nobody edits another maker's folder, ever.
-2. Nobody types a git command. Claude Code pulls, commits and pushes. If it says the push was rejected: "someone else pushed, pull their work and push mine again."
+2. Nobody types a git command. Claude Code pulls (with rebase), commits and pushes. If it says the push was rejected: "someone else pushed, pull with rebase and push mine again." Nobody runs tools/build.py; the site builds itself.
 3. Keep it inside the folder: no scripts loaded from outside, no personal data, no passwords, keep the folder under 20 MB.
 4. If the page breaks, that is fine, we fix it live.
 

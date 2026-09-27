@@ -1,4 +1,4 @@
-name: build the front page
+name: build the site
 on:
   push:
     branches: [main]
@@ -6,18 +6,30 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: build-main
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: python3 tools/build.py
-      - name: commit the generated page
+      - name: build from the latest main, push, retry if someone pushed meanwhile
         run: |
           git config user.name "stratos-games-bot"
           git config user.email "bot@stratos.games"
-          git add index.html games.json sitemap.xml robots.txt llms.txt 404.html play c
-          git diff --cached --quiet || git commit -m "build: site pages [skip ci]"
-          git push
+          for i in 1 2 3 4 5 6; do
+            git fetch origin main
+            git reset --hard origin/main
+            python3 tools/build.py
+            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers
+            if git diff --cached --quiet; then echo "site already up to date"; exit 0; fi
+            git commit -m "build: site pages [skip ci]"
+            if git push origin HEAD:main; then echo "pushed"; exit 0; fi
+            echo "push rejected (someone pushed meanwhile), rebuilding from the new main"
+            sleep $((i * 3))
+          done
+          echo "gave up after 6 tries"; exit 1
