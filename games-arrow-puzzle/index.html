@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrow Puzzle — every arrow points somewhere. Clear the board without a collision. | Stratos Games</title>
+<meta name="description" content="Arrow Puzzle is a free logic puzzle game from Stratos Games. The board is a grid of arrows, each pointing in a fixed direction. Tap an arrow and it slides ">
+<link rel="canonical" href="https://stratos.games/games-arrow-puzzle/">
+<style>
+:root{--bg:#0b0d12;--panel:#141824;--line:#232a3b;--text:#e9edf5;--muted:#9aa4b8;--accent:#7c5cff;--accent2:#22d3ee}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+a{color:var(--accent2)}
+header{position:sticky;top:0;z-index:5;background:rgba(11,13,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+.bar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.logo{font-weight:800;letter-spacing:.12em;font-size:15px;color:var(--text);text-decoration:none}.logo span{color:var(--accent2)}
+nav a{margin-left:18px;font-size:14px;color:var(--muted);text-decoration:none}nav a:hover{color:var(--text)}
+article{padding:40px 0 60px}
+article h1{font-size:clamp(26px,4.5vw,40px);line-height:1.15;letter-spacing:-.02em;margin:0 0 18px}
+article h2{font-size:22px;margin:34px 0 10px}article h3{font-size:18px;margin:26px 0 8px}
+article p,article li{color:#d5dbe8;font-size:16px}
+article table{border-collapse:collapse;width:100%;margin:14px 0;font-size:15px}
+article td,article th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+article img{max-width:100%;height:auto;border-radius:10px}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:13px}
+footer a{color:var(--muted);text-decoration:none;margin-right:18px}
+</style>
+</head>
+<body>
+<header><div class="wrap bar"><a class="logo" href="../">STRATOS <span>GAMES</span></a><nav><a href="../#play">Play</a><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press</a></nav></div></header>
+<main class="wrap"><article>
+<h1>Arrow Puzzle — every arrow points somewhere. Clear the board without a collision.</h1>		
+		<p>Arrow Puzzle is a free logic puzzle game from Stratos Games. The board is a grid of arrows, each pointing in a fixed direction. Tap an arrow and it slides off the board — but only if the path is clear. Tap a blocked arrow and both arrows flash red, costing a life. Levels are procedurally generated, so the game ramps from a five-arrow opener to a dense multi-collision tangle without repeating itself. Free in any browser, with native Android and iOS builds in active development.</p>
+<h2>Quick facts</h2>
+<ul>
+<li><strong>Genre:</strong> Logic puzzle / brain teaser / single-player</li>
+<li><strong>Players:</strong> Solo</li>
+<li><strong>Levels:</strong> Procedurally generated, ramped by difficulty curve</li>
+<li><strong>Platforms:</strong> Web (live), Android + iOS (in development)</li>
+<li><strong>Price:</strong> Free</li>
+<li><strong>Studio:</strong> Stratos Games</li>
+<li><strong>Live URL:</strong> https://mody-sahariar1.github.io/arrow-puzzle-testing/</li>
+</ul>
+<h2>How Arrow Puzzle plays</h2>
+<p>The board is a grid. Every cell holds an arrow pointing in one of four directions. Each level has a fixed number of arrows; clearing them all wins the level.</p>
+<p>To clear an arrow you tap it. The arrow slides off the board in its own direction. If the path is clear, the arrow leaves and the move counts. If another arrow is in the way, both arrows flash red, you lose a life, and the board stays put.</p>
+<p>So the puzzle is order. Every board can be solved if you take the arrows in the right sequence. The wrong sequence locks you. The skill is reading the board fast — finding the arrow whose path is already clear, freeing it, and seeing which arrow that opens up next.</p>
+<h2>Why procedural levels</h2>
+<p>Most puzzle games hand-author every level. That is fine for the first hundred and miserable for the next thousand. Arrow Puzzle generates levels from a difficulty config — grid size, arrow density, collision count, twist count — so the level pipeline can ramp infinitely without burning weeks on hand-crafted content.</p>
+<p>The trade-off is that procedural levels can feel mechanical if the generator is naive. We tune the generator so each difficulty bucket has the same shape a hand-authored set would have: a fair opener, a couple of &#8220;huh, this is the move&#8221; reveal levels, and one stretch level near the top of the bucket. The generator runs deterministically so a &#8220;level 47&#8221; today is the same &#8220;level 47&#8221; you can replay tomorrow.</p>
+<h2>Why a logic puzzle</h2>
+<p>Logic puzzles are the genre that compounds. A player who likes Arrow Puzzle today is likely to play another logic puzzle from the same studio tomorrow — and another, and another. Casual players who fall in love with one logic puzzle tend to stay in the genre for years. We are betting that Arrow Puzzle is the studio&#8217;s first logic franchise, with more in the pipeline once the procedural level tooling proves itself.</p>
+<p>It also sits in a different niche than BLOXPLODE. BLOXPLODE is reflexes plus geometry. Arrow Puzzle is patience plus order. Together they let the studio cover both halves of the casual-puzzle audience — the score-chaser and the level-solver.</p>
+<h2>Play Arrow Puzzle</h2>
+<ul>
+<li><strong>In your browser (live):</strong> https://mody-sahariar1.github.io/arrow-puzzle-testing/</li>
+<li><strong>On stratos.games:</strong> https://stratos.games/games/arrow-puzzle</li>
+<li><strong>Android + iOS (native):</strong> in active development</li>
+</ul>
+<h2>FAQ</h2>
+<p><strong>Is Arrow Puzzle free?</strong> Yes, completely free. No paid levels, no paywall, no required ads.</p>
+<p><strong>Do I need to install anything to play?</strong> No. The web build runs in any modern browser on phone or desktop. Native Android and iOS apps are in development for offline play.</p>
+<p><strong>How many levels are in Arrow Puzzle?</strong> Levels are procedurally generated. The difficulty curve currently runs from level 1 (a five-arrow opener) through dozens of progressively denser boards. Each level is deterministic — replay level 47 tomorrow and it will be the same level 47.</p>
+<p><strong>Who makes Arrow Puzzle?</strong> Arrow Puzzle is made by Stratos Games. Production is human-tested and AI-built — Shahariar Mody plays every build on a real device before it ships.</p>
+<p><strong>Why are the levels procedurally generated instead of hand-designed?</strong> Hand-authoring a thousand levels is slow. A generator tuned by a difficulty config can ramp infinitely without losing the shape of a good level. We tune the generator until each difficulty bucket plays like a hand-authored set, and we keep tuning as players give us data on which levels feel fair vs which feel mechanical.</p>
+</article></main>
+<footer><div class="wrap"><a href="../terms-of-use/">Terms of use</a><a href="../privacy-policy/">Privacy Policy</a><a href="mailto:admin@stratos.games">Contact us</a><div style="margin-top:10px">© 2026 Stratos Games · admin@stratos.games</div></div></footer>
+</body>
+</html>

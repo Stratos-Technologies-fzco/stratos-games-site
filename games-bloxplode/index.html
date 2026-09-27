@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLOXPLODE — block puzzle, combos, and an Adventure that gets harder every level. | Stratos Games</title>
+<meta name="description" content="BLOXPLODE is a free combo-driven block-puzzle game from Stratos Games. You drop blocks onto a grid, clear lines and squares, and chain combos to score. Two">
+<link rel="canonical" href="https://stratos.games/games-bloxplode/">
+<style>
+:root{--bg:#0b0d12;--panel:#141824;--line:#232a3b;--text:#e9edf5;--muted:#9aa4b8;--accent:#7c5cff;--accent2:#22d3ee}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+a{color:var(--accent2)}
+header{position:sticky;top:0;z-index:5;background:rgba(11,13,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+.bar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.logo{font-weight:800;letter-spacing:.12em;font-size:15px;color:var(--text);text-decoration:none}.logo span{color:var(--accent2)}
+nav a{margin-left:18px;font-size:14px;color:var(--muted);text-decoration:none}nav a:hover{color:var(--text)}
+article{padding:40px 0 60px}
+article h1{font-size:clamp(26px,4.5vw,40px);line-height:1.15;letter-spacing:-.02em;margin:0 0 18px}
+article h2{font-size:22px;margin:34px 0 10px}article h3{font-size:18px;margin:26px 0 8px}
+article p,article li{color:#d5dbe8;font-size:16px}
+article table{border-collapse:collapse;width:100%;margin:14px 0;font-size:15px}
+article td,article th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+article img{max-width:100%;height:auto;border-radius:10px}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:13px}
+footer a{color:var(--muted);text-decoration:none;margin-right:18px}
+</style>
+</head>
+<body>
+<header><div class="wrap bar"><a class="logo" href="../">STRATOS <span>GAMES</span></a><nav><a href="../#play">Play</a><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press</a></nav></div></header>
+<main class="wrap"><article>
+<h1>BLOXPLODE — block puzzle, combos, and an Adventure that gets harder every level.</h1>		
+		<p>BLOXPLODE is a free combo-driven block-puzzle game from Stratos Games. You drop blocks onto a grid, clear lines and squares, and chain combos to score. Two modes: <strong>Classic</strong> (endless, score-chasing) and <strong>Adventure</strong> (a 10-level campaign with rising stakes). It is live on Google Play for Android, and a web preview build is playable in any browser.</p>
+<h2>Quick facts</h2>
+<ul>
+<li><strong>Genre:</strong> Block puzzle / combo / casual</li>
+<li><strong>Players:</strong> Solo, single-player</li>
+<li><strong>Modes:</strong> Classic (endless), Adventure (10 levels, with more in production)</li>
+<li><strong>Platforms:</strong> Android (Google Play), Web preview</li>
+<li><strong>Price:</strong> Free, with optional rewarded ads to revive a run</li>
+<li><strong>Studio:</strong> Stratos Games</li>
+<li><strong>Engine:</strong> Hybrid web + Capacitor</li>
+</ul>
+<h2>How BLOXPLODE plays</h2>
+<p>The board is a 9×9 grid. Each turn the game offers you a small set of pieces — Tetris-style shapes of different sizes. Drop them onto the grid wherever they fit. When a row, a column, or a 3×3 sub-square fills up, it clears and you score. Clear two of those in a single drop and you get a combo. Combos are where the game lives — chain three or four in a single placement and the screen pops, the score multiplier ramps, and the run starts to feel inevitable.</p>
+<p>You lose when no piece in the offered set fits anywhere on the board. The board is the clock; clearing lines is buying back time.</p>
+<h2>Two modes, two reasons to keep playing</h2>
+<h3>Classic — endless score-chase</h3>
+<p>Classic is the leaderboard mode. No level structure, no win condition, just a board, a piece queue, and the question of how long you can keep it alive. Players who like Tetris-style score chases or 1010!-lineage block puzzles will recognise the shape immediately. The ceiling is high; the floor is forgiving; the middle is where the game gets you.</p>
+<h3>Adventure — 10 levels, rising stakes</h3>
+<p>Adventure is a campaign mode. Ten levels, each with a different objective — clear N lines in M moves, hit a score threshold before the piece queue runs out, clear specific cells, beat a &#8220;boss&#8221; board with constraints. Adventure is where new mechanics get introduced one at a time, so a new player can learn the game without being thrown into the deep end.</p>
+<p>We add levels every few weeks. The roadmap currently has Adventure expanding past level 10 once the live data tells us what players actually find hard.</p>
+<h2>Why we built it</h2>
+<p>BLOXPLODE was the first game we shipped on Google Play — the proving ground for the full Stratos Games production model. Every part of the studio&#8217;s stack got tested by it: the AI build pipeline, the human play-test gate, the native Android wrap with Capacitor, the AdMob mediation through AppLovin MAX, the store-listing pipeline. Every other game we ship benefits from what BLOXPLODE taught the studio.</p>
+<h2>How ads work in BLOXPLODE</h2>
+<p>We monetise BLOXPLODE with <strong>rewarded ads</strong>, not interstitials. The deal is:</p>
+<ul>
+<li>Watch a 15–30 second ad → revive your run after a game-over, or unlock a one-shot bonus.</li>
+<li>You always opt in. The game never forces an ad on you between turns.</li>
+</ul>
+<p>This matters because rewarded ads are the model that keeps free casual games actually free without making them annoying. It is also the model Sahil has spent years inside on the adtech side, so we ship it correctly from the first build — no broken impressions, no fraud, no ad-stack misery.</p>
+<h2>Get BLOXPLODE</h2>
+<ul>
+<li><strong>Google Play (Android):</strong> https://play.google.com/store/apps/details?id=com.stratos.bloxplode</li>
+<li><strong>Play in your browser (preview):</strong> https://stratos.games (also at the GitHub Pages preview build)</li>
+<li><strong>iOS:</strong> in active development, queued behind iOS AdMob app registration</li>
+</ul>
+<h2>FAQ</h2>
+<p><strong>Is BLOXPLODE free?</strong> Yes, fully free. There are no paid unlocks. Ads are rewarded only — you opt in to revive a run.</p>
+<p><strong>Is BLOXPLODE on iPhone?</strong> The iOS build is in active development. Today the game is live on Google Play (Android) and as a web preview in any browser.</p>
+<p><strong>Who makes BLOXPLODE?</strong> BLOXPLODE is made by Stratos Games, the indie studio co-founded by Sahil Modi and Shahariar Mody. Production is human-tested and AI-built — Shahariar plays every build before it ships.</p>
+<p><strong>How is BLOXPLODE different from other block-puzzle games?</strong> Two answers. The mechanic answer: combos and the Adventure campaign — most block puzzles are endless-only, BLOXPLODE has a structured 10-level path so new players have a clear ramp. The studio answer: every release is play-tested by a person on a real phone before it reaches you, so the build you download is one a human actually played.</p>
+<p><strong>Where do I report a bug or suggest a feature?</strong> Email admin@stratos.games — feature ideas, bug reports, and &#8220;this level is broken on my device&#8221; notes all land in the same inbox and feed the studio&#8217;s build queue.</p>
+</article></main>
+<footer><div class="wrap"><a href="../terms-of-use/">Terms of use</a><a href="../privacy-policy/">Privacy Policy</a><a href="mailto:admin@stratos.games">Contact us</a><div style="margin-top:10px">© 2026 Stratos Games · admin@stratos.games</div></div></footer>
+</body>
+</html>

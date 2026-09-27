@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flappy Bird</title>
+<style>
+  /* ---------- Basic page styling ---------- */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: #4ec0ca;               /* the classic Flappy sky blue */
+    font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* The game canvas sits inside a rounded frame */
+  #game {
+    display: block;
+    background: #4ec0ca;
+    border: 4px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    max-width: 100%;
+    max-height: 100vh;
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- The whole game is drawn on this one canvas -->
+<canvas id="game" width="360" height="540"></canvas>
+
+<script>
+// =====================================================================
+//  FLAPPY BIRD  —  single-file, no libraries
+//  Controls: click / tap / press SPACE (or the up arrow) to flap.
+// =====================================================================
+
+// Grab the canvas and its 2D drawing context
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const W = canvas.width;   // 360
+const H = canvas.height;  // 540
+
+// ---------- Tunable game settings (change these to feel it out!) ----------
+const GRAVITY   = 0.45;   // how fast the bird accelerates downward
+const FLAP      = -7.5;   // upward push when you flap (negative = up)
+const PIPE_GAP  = 140;    // vertical space the bird flies through
+const PIPE_W    = 56;     // width of each pipe
+const PIPE_SPEED= 2.2;    // how fast pipes move left
+const PIPE_EVERY= 95;     // spawn a new pipe every N frames
+const GROUND_H  = 80;     // height of the ground strip at the bottom
+
+// ---------- The bird ----------
+const bird = {
+  x: 90,
+  y: H / 2,
+  r: 14,          // radius (used for drawing + collision)
+  vy: 0,          // vertical velocity
+  wing: 0         // used to animate the wing flap
+};
+
+// ---------- Game state ----------
+let pipes = [];         // list of pipe pairs on screen
+let frame = 0;          // frame counter (drives pipe spawning)
+let score = 0;
+let best = Number(localStorage.getItem('flappyBest') || 0);
+let state = 'ready';    // 'ready' | 'playing' | 'over'
+
+// ---------------------------------------------------------------------
+//  INPUT — one function handles click, tap, and keyboard
+// ---------------------------------------------------------------------
+function flap() {
+  if (state === 'ready') {
+    state = 'playing';          // first flap starts the game
+  }
+  if (state === 'playing') {
+    bird.vy = FLAP;             // push the bird up
+    bird.wing = 6;             // trigger wing animation
+  } else if (state === 'over') {
+    reset();                    // flap after game-over restarts
+  }
+}
+
+// Mouse / touch
+canvas.addEventListener('mousedown', flap);
+canvas.addEventListener('touchstart', function (e) { e.preventDefault(); flap(); }, { passive: false });
+
+// Keyboard (Space or Up arrow)
+document.addEventListener('keydown', function (e) {
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    e.preventDefault();
+    flap();
+  }
+});
+
+// ---------------------------------------------------------------------
+//  RESET — start a fresh game
+// ---------------------------------------------------------------------
+function reset() {
+  bird.y = H / 2;
+  bird.vy = 0;
+  pipes = [];
+  frame = 0;
+  score = 0;
+  state = 'ready';
+}
+
+// ---------------------------------------------------------------------
+//  SPAWN A PIPE — a top pipe + bottom pipe with a gap between them
+// ---------------------------------------------------------------------
+function spawnPipe() {
+  // Random gap position, kept away from the very top and the ground
+  const minTop = 40;
+  const maxTop = H - GROUND_H - PIPE_GAP - 40;
+  const topHeight = minTop + Math.random() * (maxTop - minTop);
+
+  pipes.push({
+    x: W,                 // start off the right edge
+    top: topHeight,       // bottom of the top pipe
+    passed: false         // have we scored this pipe yet?
+  });
+}
+
+// ---------------------------------------------------------------------
+//  UPDATE — move everything one step (called every frame while playing)
+// ---------------------------------------------------------------------
+function update() {
+  if (state !== 'playing') return;
+
+  // Gravity pulls the bird down
+  bird.vy += GRAVITY;
+  bird.y += bird.vy;
+  if (bird.wing > 0) bird.wing--;
+
+  // Spawn pipes on a timer
+  if (frame % PIPE_EVERY === 0) spawnPipe();
+  frame++;
+
+  // Move pipes left, score them, and drop off-screen ones
+  for (const p of pipes) {
+    p.x -= PIPE_SPEED;
+
+    // Score when the bird's x passes the pipe's right edge
+    if (!p.passed && p.x + PIPE_W < bird.x) {
+      p.passed = true;
+      score++;
+    }
+  }
+  pipes = pipes.filter(p => p.x + PIPE_W > 0);
+
+  // ---- Collision checks ----
+  // Hit the ground?
+  if (bird.y + bird.r >= H - GROUND_H) {
+    bird.y = H - GROUND_H - bird.r;
+    gameOver();
+  }
+  // Hit the ceiling? (just clamp, don't die)
+  if (bird.y - bird.r < 0) {
+    bird.y = bird.r;
+    bird.vy = 0;
+  }
+  // Hit a pipe?
+  for (const p of pipes) {
+    const inX = bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W;
+    const inGap = bird.y - bird.r > p.top && bird.y + bird.r < p.top + PIPE_GAP;
+    if (inX && !inGap) {
+      gameOver();
+    }
+  }
+}
+
+function gameOver() {
+  if (state !== 'playing') return;
+  state = 'over';
+  if (score > best) {
+    best = score;
+    localStorage.setItem('flappyBest', best);
+  }
+}
+
+// ---------------------------------------------------------------------
+//  DRAW — paint the current frame
+// ---------------------------------------------------------------------
+function draw() {
+  // Sky
+  ctx.fillStyle = '#4ec0ca';
+  ctx.fillRect(0, 0, W, H);
+
+  // Pipes (green with a darker outline + a lip)
+  for (const p of pipes) {
+    drawPipe(p.x, 0, PIPE_W, p.top, true);                                  // top pipe
+    drawPipe(p.x, p.top + PIPE_GAP, PIPE_W, H - GROUND_H - (p.top + PIPE_GAP), false); // bottom pipe
+  }
+
+  // Ground
+  ctx.fillStyle = '#ded895';
+  ctx.fillRect(0, H - GROUND_H, W, GROUND_H);
+  ctx.fillStyle = '#c0b968';
+  ctx.fillRect(0, H - GROUND_H, W, 10);
+
+  // Bird
+  drawBird();
+
+  // Score (big, centered, while playing/ready)
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 44px Segoe UI, Arial';
+  if (state === 'playing') {
+    ctx.strokeText(score, W / 2, 70);
+    ctx.fillText(score, W / 2, 70);
+  }
+
+  // Overlays for the ready + game-over screens
+  if (state === 'ready')  drawPanel('FLAPPY BIRD', 'Tap / Space to flap', null);
+  if (state === 'over')   drawPanel('GAME OVER', 'Score: ' + score + '   Best: ' + best, 'Tap to play again');
+}
+
+function drawPipe(x, y, w, h, isTop) {
+  if (h <= 0) return;
+  ctx.fillStyle = '#5ec741';
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = '#3a8c27';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x, y, w, h);
+  // The "lip" at the mouth of the pipe
+  const lipH = 16;
+  const lipY = isTop ? y + h - lipH : y;
+  ctx.fillStyle = '#5ec741';
+  ctx.fillRect(x - 4, lipY, w + 8, lipH);
+  ctx.strokeRect(x - 4, lipY, w + 8, lipH);
+}
+
+function drawBird() {
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+
+  // Tilt the bird based on how fast it's rising/falling
+  let angle = Math.max(-0.5, Math.min(1.2, bird.vy / 12));
+  ctx.rotate(angle);
+
+  // Body
+  ctx.fillStyle = '#ffd41f';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Wing (moves up briefly when you flap)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(-3, bird.wing > 0 ? -4 : 3, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Eye
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(6, -5, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(7, -5, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Beak
+  ctx.fillStyle = '#ff7a1f';
+  ctx.beginPath();
+  ctx.moveTo(bird.r - 2, -3);
+  ctx.lineTo(bird.r + 8, 0);
+  ctx.lineTo(bird.r - 2, 3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawPanel(title, line1, line2) {
+  // Dim the screen a little
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+
+  ctx.font = 'bold 34px Segoe UI, Arial';
+  ctx.strokeText(title, W / 2, H / 2 - 30);
+  ctx.fillText(title, W / 2, H / 2 - 30);
+
+  ctx.font = 'bold 20px Segoe UI, Arial';
+  ctx.strokeText(line1, W / 2, H / 2 + 6);
+  ctx.fillText(line1, W / 2, H / 2 + 6);
+
+  if (line2) {
+    ctx.font = '16px Segoe UI, Arial';
+    ctx.fillText(line2, W / 2, H / 2 + 40);
+  }
+}
+
+// ---------------------------------------------------------------------
+//  MAIN LOOP — update then draw, ~60 times a second
+// ---------------------------------------------------------------------
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+reset();   // set up the first game
+loop();    // start!
+</script>
+</body>
+</html>

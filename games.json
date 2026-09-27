@@ -1,0 +1,15 @@
+{
+ "generated": "2026-09-27T18:09:42.177546Z",
+ "games": [
+  {
+   "slug": "mody-sahariar1",
+   "title": "Flappy Bird",
+   "maker": "Sahariar Mody",
+   "one_line": "Tap to flap, dodge the pipes, beat your best. One file, no libraries.",
+   "url": "games/mody-sahariar1/",
+   "thumb_url": "games/mody-sahariar1/thumbnail.png",
+   "added": "2026-09-27",
+   "github": "mody-sahariar1"
+  }
+ ]
+}

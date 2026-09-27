@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stratos Games — humans test, AI builds, games ship. | Stratos Games</title>
+<meta name="description" content="Stratos Games is an indie mobile game studio. We make free casual, puzzle, word, and party games for Android, iOS, and the web. Our production model is unu">
+<link rel="canonical" href="https://stratos.games/about/">
+<style>
+:root{--bg:#0b0d12;--panel:#141824;--line:#232a3b;--text:#e9edf5;--muted:#9aa4b8;--accent:#7c5cff;--accent2:#22d3ee}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+a{color:var(--accent2)}
+header{position:sticky;top:0;z-index:5;background:rgba(11,13,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+.bar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.logo{font-weight:800;letter-spacing:.12em;font-size:15px;color:var(--text);text-decoration:none}.logo span{color:var(--accent2)}
+nav a{margin-left:18px;font-size:14px;color:var(--muted);text-decoration:none}nav a:hover{color:var(--text)}
+article{padding:40px 0 60px}
+article h1{font-size:clamp(26px,4.5vw,40px);line-height:1.15;letter-spacing:-.02em;margin:0 0 18px}
+article h2{font-size:22px;margin:34px 0 10px}article h3{font-size:18px;margin:26px 0 8px}
+article p,article li{color:#d5dbe8;font-size:16px}
+article table{border-collapse:collapse;width:100%;margin:14px 0;font-size:15px}
+article td,article th{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+article img{max-width:100%;height:auto;border-radius:10px}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:13px}
+footer a{color:var(--muted);text-decoration:none;margin-right:18px}
+</style>
+</head>
+<body>
+<header><div class="wrap bar"><a class="logo" href="../">STRATOS <span>GAMES</span></a><nav><a href="../#play">Play</a><a href="../about/">About</a><a href="../for-publishers/">For publishers</a><a href="../press/">Press</a></nav></div></header>
+<main class="wrap"><article>
+<h1>Stratos Games — humans test, AI builds, games ship.</h1>		
+		<p>Stratos Games is an indie mobile game studio. We make free casual, puzzle, word, and party games for Android, iOS, and the web. Our production model is unusual: an AI build pipeline writes the code, and one of us — Shahariar — plays every build on a real phone before it ships. No release reaches a player without a human play-test. The studio is co-founded by Sahil Modi and Shahariar Mody, runs lean, ships small and often, and treats every game as something to learn from, not just something to launch.</p>
+<h2>Why this studio exists</h2>
+<p>Both of us have spent years inside the mobile and adtech worlds. Sahil was at IndusOS when it was acquired by PhonePe, then ran mobile and gaming partnerships at Audiomob in the UK, and now helps scale the rewarded-ads ecosystem at MAF in Italy. Shahariar has been building software since he was a teenager and has been play-testing and shipping mobile and web games for years.</p>
+<p>What we kept seeing — from both sides of the table — was the same gap. Indie studios with great taste struggled to ship at a cadence that mattered. Big studios that could ship fast lost the taste. AI-coded games started appearing, but most were unplayable: shipped raw, full of bugs the developer never noticed because nobody had actually played them.</p>
+<p>Stratos Games is the studio we wanted to exist. Fast, because we use AI to build. Played, because we test every release on a real device. Honest, because we don&#8217;t ship things we wouldn&#8217;t want to play ourselves.</p>
+<h2>How we work: humans test, AI builds, games ship</h2>
+<p>Our production line has three roles, on purpose:</p>
+<ol>
+<li><strong>The play-tester (Shahariar).</strong> Plays every build on a real Android or iOS device. When something is broken or feels off, files it as a structured request — the bug, the moment, the device, the expectation. Reviews and merges every shipping change.</li>
+<li><strong>The AI build pipeline.</strong> Reads each request, picks up the code, makes the smallest possible change to address it, and opens a pull request with the result. Every change references the request that prompted it. Every change runs through automated quality checks before a human sees it.</li>
+<li><strong>The strategist (Sahil).</strong> Decides the milestone — what we are trying to ship and why. Owns monetization, distribution, and ecosystem decisions. Edits the rules the AI runs by, not the code itself.</li>
+</ol>
+<p>Three roles, one rule: <strong>no release reaches a player without a human play-test.</strong></p>
+<p>This is the critical line. AI-generated games made by people who don&#8217;t play their own builds are unfun. AI-generated games made by people who do play every build feel like games made by humans, because they were — humans defined the spec, humans played every build, humans approved every release. AI just collapsed the time from &#8220;I noticed this&#8221; to &#8220;the fix is on review.&#8221;</p>
+<h2>What we ship</h2>
+<p>We work across four genres on purpose. Different genres teach the studio different things. Puzzle teaches us level design. Logic teaches us solver math. Word search teaches us content pipelines. Party games teach us multiplayer plumbing. Together they form a portfolio that lets us learn faster than a single-genre studio.</p>
+<h3>BLOXPLODE — combo block puzzle</h3>
+<p>Drop blocks onto a grid, clear lines, chain combos. Two modes: <strong>Classic</strong> (endless score-chasing) and <strong>Adventure</strong> (a 10-level campaign). Live on Google Play, also playable in any browser. The first game we shipped natively; ad mediation is wired through AppLovin MAX with rewarded ads to revive a run.</p>
+<h3>Arrow Puzzle — logic puzzle</h3>
+<p>A board of arrows, each pointing in a fixed direction. Tap an arrow to slide it off — but only if the path is clear. Tap a blocked arrow and both arrows flash red, costing a life. Levels are procedurally generated by a difficulty curve, not authored by hand, so we can ramp from &#8220;five-arrow opener&#8221; to &#8220;fifty-arrow tangle&#8221; without burning weeks on hand-crafted content. Free in any browser; native mobile builds in development.</p>
+<h3>House Mafia — multiplayer social deduction</h3>
+<p>Mafia and Werewolf reframed as a house party. <strong>4 to 8 players, 3 to 5 minute rounds.</strong> Real-time multiplayer over Supabase, joinable from any phone in seconds — no install, just a URL. Lighter, funnier, faster than the genre standard. Currently in active development; native wrap planned after the web milestone closes.</p>
+<h3>Word Quest — word-search puzzle</h3>
+<p>Drag across a letter grid to find theme-related words — horizontal, vertical, diagonal, and reversed. Modes include <strong>Classic</strong>, <strong>Story Mode</strong>, <strong>Categories</strong>, <strong>Custom</strong> (your own word lists), and <strong>Daily Check-In</strong>. Designed for the casual mobile word-game audience that opens an app for ninety seconds at a time and wants a small win.</p>
+<h2>What we will not ship</h2>
+<p>We are explicit about the games we will not make. We do not ship:</p>
+<ul>
+<li><strong>Pay-to-win mechanics.</strong> No mechanic is gated behind paying — every game is fully playable for free.</li>
+<li><strong>Dark-pattern ads.</strong> No interstitials between every move, no &#8220;tap to close&#8221; ads with a hidden close button. Ads are rewarded — you opt in.</li>
+<li><strong>Fake scarcity timers.</strong> No &#8220;your run will be deleted in 30 seconds unless you buy gems.&#8221;</li>
+<li><strong>Cloned art or branded content.</strong> When we draw inspiration from a reference game, we ship our own assets, our own copy, our own categories. We don&#8217;t clone proprietary art or named brands.</li>
+</ul>
+<p>This list will get longer as we ship more, not shorter. Every studio drifts toward the things it told itself it would never do. Writing it down is how we slow that drift.</p>
+<h2>Where we are going</h2>
+<p>Today we are four games deep, with one of them — BLOXPLODE — fully shipped on Google Play. The next milestones, in order of how soon they ship:</p>
+<ol>
+<li><strong>House Mafia</strong> to public web beta. Multiplayer is the hardest plumbing in the portfolio, and once it works we can build any party game on top of the same foundation.</li>
+<li><strong>Arrow Puzzle</strong> Android + iOS native release. The web build is live; the native wrap and the store listings are next.</li>
+<li><strong>Word Quest</strong> v1 release. Web first, then Android + iOS via Capacitor, with publishing to web portals (Poki, CrazyGames) explored in parallel.</li>
+<li><strong>BLOXPLODE</strong> iOS release. Already on Google Play; iOS is queued behind the AdMob iOS app registration.</li>
+</ol>
+<p>Beyond the four current games, the studio&#8217;s job is to run the cycle faster. Each game we ship teaches the AI pipeline things that compound across the next game. By the end of 2026 we want the studio to be capable of shipping one playable, polished casual game per month — not as a stunt, but as a steady cadence that an AI-built studio with a human gate can sustain.</p>
+<h2>Who is this for</h2>
+<p>Three audiences, in order of how often we think about them:</p>
+<ol>
+<li><strong>Casual mobile players</strong> — anyone with a phone and four spare minutes who wants a small win. You are the reason every game is free.</li>
+<li><strong>Mobile-game publishers and aggregators</strong> — if you distribute casual games, we ship at a cadence that matters and we monetize without ruining the player experience. Email admin@stratos.games.</li>
+<li><strong>Press, partners, and operators tracking AI-built indie studios</strong> — what we are building is unusual. We are happy to share the production model in detail. Contact above.</li>
+</ol>
+<h2>Contact</h2>
+<p>Email: admin@stratos.games Studio repos: https://github.com/sahilmodi1965/stratos-games-factory (the build pipeline) Founder identity (canonical, used across all Stratos sites): <code>https://stratostech.academy/#person-sahil-modi</code></p>
+</article></main>
+<footer><div class="wrap"><a href="../terms-of-use/">Terms of use</a><a href="../privacy-policy/">Privacy Policy</a><a href="mailto:admin@stratos.games">Contact us</a><div style="margin-top:10px">© 2026 Stratos Games · admin@stratos.games</div></div></footer>
+</body>
+</html>

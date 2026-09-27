@@ -1,0 +1,23 @@
+{
+  "name": "Stratos Games",
+  "url": "https://stratos.games",
+  "tagline": "Indie mobile game studio. Humans test, AI builds, games ship.",
+  "contact": "admin@stratos.games",
+  "studio_games": [
+    {"title": "BLOXPLODE", "one_line": "Combo block puzzle, Classic endless mode and a 10-level Adventure.", "url": "https://play.google.com/store/apps/details?id=com.stratos.bloxplode", "cta": "Google Play", "image": "assets/bloxplode.png", "page": "games-bloxplode/"},
+    {"title": "Arrow Puzzle", "one_line": "Every arrow points somewhere. Clear the board without a collision.", "url": "https://mody-sahariar1.github.io/arrow-puzzle-testing/", "cta": "Play in browser", "image": "", "page": "games-arrow-puzzle/"},
+    {"title": "House Mafia", "one_line": "Mafia and Werewolf, set at a house party. Lighter, funnier, faster.", "url": "games-house-mafia/", "cta": "Coming soon", "image": "", "page": "games-house-mafia/"},
+    {"title": "Word Quest", "one_line": "Drag, find, win. A word-search puzzle built for a mobile minute.", "url": "games-word-quest/", "cta": "Coming soon", "image": "", "page": "games-word-quest/"}
+  ],
+  "nav": [
+    {"label": "Play", "href": "#play"},
+    {"label": "About", "href": "about/"},
+    {"label": "For publishers", "href": "for-publishers/"},
+    {"label": "Press", "href": "press/"}
+  ],
+  "footer": [
+    {"label": "Terms of use", "href": "terms-of-use/"},
+    {"label": "Privacy Policy", "href": "privacy-policy/"},
+    {"label": "Contact us", "href": "mailto:admin@stratos.games"}
+  ]
+}
