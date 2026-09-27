@@ -110,3 +110,10 @@ body.nav-open .side{transform:none;box-shadow:24px 0 48px rgba(0,0,0,.5)}
 @media (max-width:540px){:root{--cols:2}.rail{grid-auto-columns:150px}.big .tt{font-size:17px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .soon-note{color:var(--yellow);font-weight:800}
+/* cards mode: only the pushed games, nothing else */
+body.clean .main{margin-left:0;max-width:1480px;margin-inline:auto;padding-top:22px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:var(--gap)}
+body.clean .play-grid{grid-template-columns:minmax(0,1fr) 236px}
+@media (max-width:1100px){body.clean .play-grid{grid-template-columns:1fr}}
+@media (max-width:540px){.cards{grid-template-columns:repeat(2,1fr)}}
+.play-grid.solo{grid-template-columns:1fr}
