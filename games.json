@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 5,
+ "count": 6,
  "games": [
   {
    "slug": "mody-sahariar1",
@@ -14,6 +14,19 @@
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
+  },
+  {
+   "slug": "saiqulmodi",
+   "title": "Stratos_squirrel_vs_viper",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
+   "category": "arcade",
+   "url": "play/saiqulmodi/",
+   "thumb": "assets/covers/generated/saiqulmodi.svg",
+   "added": "2026-09-28",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": true
   },
   {
    "slug": "bloxplode",
