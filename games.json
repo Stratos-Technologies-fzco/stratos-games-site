@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 6,
+ "count": 7,
  "games": [
   {
    "slug": "saiqulmodi",
@@ -27,6 +27,19 @@
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
+  },
+  {
+   "slug": "shoaibul0926",
+   "title": "Skyfall Armada",
+   "maker": "Shoaibul Hoque",
+   "one_line": "Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles.",
+   "category": "arcade",
+   "url": "play/shoaibul0926/",
+   "thumb": "assets/covers/generated/shoaibul0926.svg",
+   "added": "2026-09-28",
+   "github": "shoaibul0926",
+   "kind": "family",
+   "soon": true
   },
   {
    "slug": "bloxplode",
