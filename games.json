@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 7,
+ "count": 8,
  "games": [
   {
    "slug": "saiqulmodi",
@@ -25,6 +25,19 @@
    "thumb": "games/shoaibul0926/thumbnail.png",
    "added": "2026-09-29",
    "github": "shoaibul0926",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sumaiyahsultana821-sys",
+   "title": "Match the Emoji",
+   "maker": "Sumaiyah Sultana",
+   "one_line": "A cozy emoji memory-matching game with 3 difficulty levels, live scoring, a timer, and saved best scores.",
+   "category": "puzzle",
+   "url": "play/sumaiyahsultana821-sys/",
+   "thumb": "games/sumaiyahsultana821-sys/thumbnail.png",
+   "added": "2026-09-29",
+   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
