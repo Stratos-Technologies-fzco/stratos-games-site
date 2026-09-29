@@ -1,7 +1,20 @@
 {
  "site": "https://stratos.games",
- "count": 9,
+ "count": 10,
  "games": [
+  {
+   "slug": "im-mohua-liza",
+   "title": "Magic Shot",
+   "maker": "Mohua Liza",
+   "one_line": "A magical liquid-sorting puzzle: pour glowing potions between enchanted bottles until every bottle holds one colour.",
+   "category": "puzzle",
+   "url": "play/im-mohua-liza/",
+   "thumb": "games/im-mohua-liza/thumbnail.png",
+   "added": "2026-09-29",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
   {
    "slug": "saiqulmodi",
    "title": "Stratos_squirrel_vs_viper",
