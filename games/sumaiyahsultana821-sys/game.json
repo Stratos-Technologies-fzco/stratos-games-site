@@ -1,9 +1,0 @@
-{
-  "title": "Garden Bonk",
-  "maker": "Sumaiyah Sultana",
-  "one_line": "A polished Whack-a-Mole game: 3 rounds of rising speed, a golden bonus critter, and a skunk you'd better not hit.",
-  "category": "arcade",
-  "github": "sumaiyahsultana821-sys",
-  "how_to_play": "Click or tap a critter before it ducks down, or press number keys 1-9 for the matching hole. Avoid the skunk!",
-  "description": "Garden Bonk is a beginner-friendly Whack-a-Mole game built with plain HTML, CSS and JavaScript, no libraries required. Critters pop out of 9 holes across 3 rounds that get progressively faster; whack regular moles for points, snag the rare golden critter for a big bonus, and steer clear of the skunk or lose points. Includes a live score, countdown timer, round indicator, an end-of-game scorecard with accuracy and rank, a saved best score, and a one-click restart. Works with mouse, touch, or keyboard on desktop and mobile browsers."
-}
