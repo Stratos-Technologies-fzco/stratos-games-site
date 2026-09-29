@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whack-a-Mole — Garden Bonk</title>
+<meta name="description" content="A beginner-friendly Whack-a-Mole game with 3 rounds, scoring, a timer, and a restart button. Plays on PC and mobile web.">
+<style>
+  /* ============================================================
+     COLOR THEME
+     Everything visual is controlled from these variables, so the
+     whole look can be re-skinned by editing just this block.
+  ============================================================ */
+  :root{
+    --sky-top:#8fd3f4;
+    --sky-bottom:#c9f2b0;
+    --dirt:#8a5a34;
+    --dirt-dark:#6e4526;
+    --hole:#2b1a10;
+    --panel:#ffffff;
+    --panel-line:#dfe7d6;
+    --ink:#2b2b2b;
+    --ink-dim:#6b6f66;
+    --brown:#7a4a24;
+    --green:#3f9142;
+    --red:#c0392b;
+    --gold:#e0b256;
+    --shadow: 0 10px 26px rgba(0,0,0,0.25);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom) 70%);
+    color:var(--ink);
+    font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: 20px 14px 50px;
+  }
+
+  #app{ width:100%; max-width:720px; }
+
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .brand h1{
+    font-size:1.7rem;
+    margin:0;
+    color:#4a2f16;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 0 rgba(0,0,0,0.08);
+  }
+  .brand p{ margin:2px 0 0; color:#3d5a34; font-size:0.85rem; font-weight:bold; }
+
+  .topbtns{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  button{
+    font-family: inherit;
+    background: var(--panel);
+    color:var(--ink);
+    border:2px solid var(--panel-line);
+    border-radius:8px;
+    padding:9px 16px;
+    cursor:pointer;
+    font-size:0.9rem;
+    font-weight:bold;
+    box-shadow: 0 3px 0 var(--panel-line);
+  }
+  button:hover{ border-color:#bcd; transform: translateY(1px); box-shadow: 0 2px 0 var(--panel-line); }
+  button:active{ transform: translateY(3px); box-shadow: none; }
+  button:focus-visible{ outline:3px solid #2b6cff; outline-offset:2px; }
+  button.primary{ background: linear-gradient(180deg, #ffd25e, #f4a52c); border-color:#c97e12; box-shadow: 0 3px 0 #c97e12; color:#4a2f16; }
+  button.primary:hover{ background: linear-gradient(180deg, #ffdb7a, #ffb347); }
+  button.danger{ background:#ffe0dd; border-color:#e0a39c; color:#8a2b20; box-shadow:0 3px 0 #e0a39c; }
+  button:disabled{ opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  #screen{
+    background: var(--panel);
+    border:3px solid var(--panel-line);
+    border-radius:16px;
+    padding:22px;
+    box-shadow: var(--shadow);
+    min-height: 380px;
+  }
+
+  h2{ margin-top:0; color:#4a2f16; font-size:1.3rem; }
+  p{ line-height:1.55; }
+  .lede{ color:var(--ink-dim); }
+
+  /* ---------- Menu screen ---------- */
+  .menu-stats{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin:14px 0 18px;
+  }
+  .stat-pill{
+    background:#f4f8ee;
+    border:2px solid var(--panel-line);
+    border-radius:20px;
+    padding:8px 16px;
+    font-weight:bold;
+    font-size:0.85rem;
+    color:#3d5a34;
+  }
+  ul.rules{ padding-left:20px; line-height:1.7; }
+
+  /* ---------- HUD (score / timer / round) during play ---------- */
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .hud-pill{
+    background:#f4f8ee;
+    border:2px solid var(--panel-line);
+    border-radius:10px;
+    padding:8px 14px;
+    font-weight:bold;
+    font-size:0.95rem;
+    text-align:center;
+    min-width:88px;
+  }
+  .hud-pill .label{ display:block; font-size:0.65rem; color:var(--ink-dim); font-weight:normal; text-transform:uppercase; letter-spacing:0.5px; }
+  .hud-pill.time-low{ background:#ffe3e0; border-color:#e0a39c; color:#8a2b20; }
+
+  .round-banner{
+    text-align:center;
+    font-size:1.1rem;
+    font-weight:bold;
+    color:#4a2f16;
+    background:#fff3cf;
+    border:2px dashed var(--gold);
+    border-radius:10px;
+    padding:8px;
+    margin-bottom:14px;
+  }
+
+  /* ---------- The mole field ---------- */
+  .field{
+    background: linear-gradient(180deg, var(--dirt), var(--dirt-dark));
+    border-radius:14px;
+    padding:18px;
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:14px;
+  }
+  .holewrap{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .keyhint{
+    font-size:0.7rem;
+    color:#f3e4c8;
+    font-weight:bold;
+    opacity:0.8;
+  }
+  .hole{
+    position:relative;
+    width:100%;
+    padding-top:100%; /* keep it square */
+    background: radial-gradient(ellipse at center, var(--hole) 55%, #4a3220 80%, #7a5636 100%);
+    border-radius:50%;
+    border:6px solid #5c3d24;
+    cursor:pointer;
+    overflow:hidden;
+    box-shadow: inset 0 8px 14px rgba(0,0,0,0.6);
+  }
+  .hole:focus-visible{ outline:3px solid #2b6cff; outline-offset:3px; }
+  .hole .critter{
+    position:absolute;
+    left:50%;
+    bottom:-100%;
+    transform:translateX(-50%);
+    font-size:2.6rem;
+    transition: bottom 0.12s ease-out;
+    user-select:none;
+    pointer-events:none;
+  }
+  .hole.up .critter{ bottom:8%; }
+  .hole.whacked .critter{ bottom:-100%; transition: bottom 0.08s ease-in; }
+
+  .floatscore{
+    position:absolute;
+    left:50%;
+    top:0;
+    transform:translateX(-50%);
+    font-weight:bold;
+    font-size:1.1rem;
+    pointer-events:none;
+    animation: floatUp 0.7s ease-out forwards;
+  }
+  .floatscore.good{ color:#2f7d32; }
+  .floatscore.great{ color:var(--gold); }
+  .floatscore.bad{ color:var(--red); }
+  @keyframes floatUp{
+    from{ opacity:1; top:35%; }
+    to{ opacity:0; top:-15%; }
+  }
+
+  /* ---------- End screen ---------- */
+  .end-title{ font-size:1.4rem; font-weight:bold; color:#4a2f16; margin-bottom:6px; }
+  .scorecard{
+    margin-top:16px;
+    padding:14px 16px;
+    background:#f4f8ee;
+    border:2px solid var(--panel-line);
+    border-radius:10px;
+    font-size:0.9rem;
+    display:grid;
+    gap:6px;
+  }
+  .scorecard .row{ display:flex; justify-content:space-between; }
+  .scorecard .total{ font-weight:bold; color:#4a2f16; border-top:1px dashed var(--panel-line); padding-top:6px; margin-top:4px; font-size:1.05rem; }
+
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(20,20,20,0.55);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .overlay .box{
+    background:var(--panel);
+    border-radius:14px;
+    max-width:520px;
+    width:100%;
+    max-height:80vh;
+    overflow-y:auto;
+    padding:22px;
+    box-shadow: var(--shadow);
+  }
+  .overlay .box h3{ margin-top:0; color:#4a2f16; }
+  .overlay .close-row{ display:flex; justify-content:flex-end; margin-top:16px; }
+
+  footer.hint{
+    margin-top:12px;
+    text-align:center;
+    color:#3d5a34;
+    font-size:0.8rem;
+    font-weight:bold;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <h1>🐹 Garden Bonk</h1>
+      <p>A Whack-a-Mole Game</p>
+    </div>
+    <div class="topbtns">
+      <button id="btnHelp" type="button">How to Play</button>
+      <button id="btnMenu" type="button">Main Menu</button>
+    </div>
+  </header>
+  <div id="screen"></div>
+  <footer class="hint" id="hint"></footer>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ==================================================================
+   GARDEN BONK — a beginner-friendly Whack-a-Mole game
+   ==================================================================
+   One plain JavaScript file, no libraries, no build tools. Read it
+   top to bottom:
+
+     1. CONFIG        - every number you'd want to tweak (timing,
+                         points, round difficulty) lives here
+     2. STATE         - the handful of variables tracking what is
+                         happening right now
+     3. SCORING       - turns a whack into points
+     4. SPAWNING      - the timers that make critters pop up and
+                         disappear
+     5. SCREEN DRAWING - builds the HTML for each screen and wires
+                          up its buttons
+     6. STARTUP        - wires the top bar and shows the first screen
+
+   The game has 9 holes (a 3x3 grid). Critters pop up at random,
+   and you click/tap them (or press number keys 1-9) before they
+   duck back down. Three rounds, each faster than the last.
+================================================================== */
+
+
+/* ==================================================================
+   1. CONFIG
+================================================================== */
+
+var HOLE_COUNT = 9;
+var ROUND_COUNT = 3;
+var ROUND_SECONDS = 15;               // each round lasts this long
+var TOTAL_SECONDS = ROUND_COUNT * ROUND_SECONDS;
+
+// Points awarded (or lost) per critter type.
+var POINTS = {
+  mole: 10,     // the everyday critter, worth showing up
+  golden: 30,   // rare and quick, worth extra
+  skunk: -15    // don't whack this one!
+};
+
+// Odds of each critter type spawning (must add up to 100).
+var SPAWN_ODDS = {
+  mole: 70,
+  golden: 15,
+  skunk: 15
+};
+
+// Difficulty ramps up each round: critters appear more often, stay
+// up for less time, and more of them can be up on screen at once.
+var ROUND_DIFFICULTY = [
+  { spawnEveryMs: 900, visibleMs: 1100, maxOnScreen: 1 }, // round 1
+  { spawnEveryMs: 700, visibleMs: 900,  maxOnScreen: 2 }, // round 2
+  { spawnEveryMs: 520, visibleMs: 750,  maxOnScreen: 2 }  // round 3
+];
+
+var CRITTER_EMOJI = { mole: "🐹", golden: "🌟", skunk: "🦨" };
+
+var SAVE_KEY_BEST = "gardenBonk_bestScore";
+
+
+/* ==================================================================
+   2. STATE
+================================================================== */
+
+var state = null; // null = show the main menu
+
+function newGameState(){
+  var holes = [];
+  for (var i = 0; i < HOLE_COUNT; i++){
+    holes.push({ occupied: false, type: null, hideTimer: null });
+  }
+  return {
+    screen: "playing",
+    holes: holes,
+    score: 0,
+    hits: 0,
+    misses: 0,        // critters that disappeared unwhacked
+    wrongHits: 0,      // skunks that got whacked
+    timeLeft: TOTAL_SECONDS,
+    currentRound: 1,
+    tickTimer: null,
+    spawnTimer: null,
+    finished: false
+  };
+}
+
+function difficultyForRound(roundNumber){
+  return ROUND_DIFFICULTY[Math.min(roundNumber, ROUND_DIFFICULTY.length) - 1];
+}
+
+
+/* ==================================================================
+   3. SCORING
+================================================================== */
+
+function getBestScore(){
+  try {
+    var v = parseInt(localStorage.getItem(SAVE_KEY_BEST), 10);
+    return isNaN(v) ? 0 : v;
+  } catch (err){ return 0; }
+}
+function saveBestScoreIfHigher(score){
+  var best = getBestScore();
+  if (score > best){
+    try { localStorage.setItem(SAVE_KEY_BEST, String(score)); } catch (err){ /* ignore */ }
+    return score;
+  }
+  return best;
+}
+
+function rankForScore(score){
+  if (score >= 400) return "Whack Master";
+  if (score >= 250) return "Mole Hunter";
+  if (score >= 120) return "Garden Rookie";
+  return "First Timer";
+}
+
+
+/* ==================================================================
+   4. SPAWNING
+   pickRandomCritterType() rolls the dice using SPAWN_ODDS.
+   spawnCritter() finds an empty hole and pops a critter into it.
+   whackHole() handles a click/tap/key press on a hole.
+   startRoundLoop() keeps calling spawnCritter() on a timer, and
+   re-reads the current round's difficulty each time it fires so the
+   game naturally gets harder as time passes.
+================================================================== */
+
+function pickRandomCritterType(){
+  var roll = Math.random() * 100;
+  if (roll < SPAWN_ODDS.golden) return "golden";
+  if (roll < SPAWN_ODDS.golden + SPAWN_ODDS.skunk) return "skunk";
+  return "mole";
+}
+
+function countOccupiedHoles(){
+  return state.holes.filter(function(h){ return h.occupied; }).length;
+}
+
+function spawnCritter(){
+  if (!state || state.finished) return;
+  var diff = difficultyForRound(state.currentRound);
+  if (countOccupiedHoles() >= diff.maxOnScreen) return;
+
+  var emptyIndexes = [];
+  state.holes.forEach(function(h, i){ if (!h.occupied) emptyIndexes.push(i); });
+  if (emptyIndexes.length === 0) return;
+
+  var holeIndex = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+  var type = pickRandomCritterType();
+  var hole = state.holes[holeIndex];
+  hole.occupied = true;
+  hole.type = type;
+
+  renderHole(holeIndex);
+
+  hole.hideTimer = setTimeout(function(){
+    // The critter wasn't whacked in time.
+    if (hole.occupied){
+      if (hole.type !== "skunk") state.misses += 1; // missing a skunk is not a miss, it's a save!
+      hole.occupied = false;
+      hole.type = null;
+      hole.hideTimer = null;
+      renderHole(holeIndex);
+      updateHud();
+    }
+  }, diff.visibleMs);
+}
+
+function whackHole(holeIndex){
+  if (!state || state.finished) return;
+  var hole = state.holes[holeIndex];
+  if (!hole.occupied) return; // clicked an empty hole, nothing happens
+
+  clearTimeout(hole.hideTimer);
+  var type = hole.type;
+  hole.occupied = false;
+  hole.type = null;
+  hole.hideTimer = null;
+
+  var points = POINTS[type];
+  state.score += points;
+  if (state.score < 0) state.score = 0;
+
+  if (type === "skunk") state.wrongHits += 1; else state.hits += 1;
+
+  showFloatingScore(holeIndex, points, type);
+  markWhacked(holeIndex);
+  updateHud();
+}
+
+function startRoundLoop(){
+  clearInterval(state.spawnTimer);
+  var diff = difficultyForRound(state.currentRound);
+  state.spawnTimer = setInterval(spawnCritter, diff.spawnEveryMs);
+}
+
+function startCountdown(){
+  clearInterval(state.tickTimer);
+  state.tickTimer = setInterval(function(){
+    state.timeLeft -= 1;
+
+    var newRound = Math.min(ROUND_COUNT, Math.floor((TOTAL_SECONDS - state.timeLeft) / ROUND_SECONDS) + 1);
+    if (newRound !== state.currentRound && state.timeLeft > 0){
+      state.currentRound = newRound;
+      startRoundLoop(); // pick up the new round's faster pace
+      flashRoundBanner("Round " + state.currentRound + "!");
+    }
+
+    if (state.timeLeft <= 0){
+      endGame();
+      return;
+    }
+    updateHud();
+  }, 1000);
+}
+
+function endGame(){
+  state.finished = true;
+  clearInterval(state.tickTimer);
+  clearInterval(state.spawnTimer);
+  state.holes.forEach(function(h){ clearTimeout(h.hideTimer); });
+  saveBestScoreIfHigher(state.score);
+  state.screen = "ended";
+  render();
+}
+
+
+/* ==================================================================
+   5. SCREEN DRAWING
+================================================================== */
+
+var screenEl = document.getElementById("screen");
+var hintEl = document.getElementById("hint");
+var modalRoot = document.getElementById("modalRoot");
+
+function setHint(text){ hintEl.textContent = text; }
+function closeModal(){ modalRoot.innerHTML = ""; }
+
+function showModal(html, onRender){
+  modalRoot.innerHTML =
+    '<div class="overlay" id="overlayEl">' +
+      '<div class="box" role="dialog" aria-modal="true">' + html + "</div>" +
+    "</div>";
+  var overlay = document.getElementById("overlayEl");
+  overlay.addEventListener("mousedown", function(e){
+    if (e.target.id === "overlayEl") closeModal();
+  });
+  if (onRender) onRender();
+}
+
+function render(){
+  if (state === null) return renderMenu();
+  if (state.screen === "playing") return renderPlaying();
+  if (state.screen === "ended") return renderEnded();
+}
+
+/* ---------------- Main menu ---------------- */
+
+function renderMenu(){
+  var best = getBestScore();
+  var html = "<h2>Garden Bonk</h2>" +
+    '<p class="lede">Whack the critters before they duck back down. Three rounds, each one faster than the last.</p>' +
+    '<div class="menu-stats">' +
+      '<div class="stat-pill">🏆 Best score: ' + best + "</div>" +
+      '<div class="stat-pill">⏱ ' + TOTAL_SECONDS + "s across " + ROUND_COUNT + " rounds</div>" +
+    "</div>" +
+    "<ul class=\"rules\">" +
+      "<li>🐹 Mole — worth " + POINTS.mole + " points</li>" +
+      "<li>🌟 Golden critter — rare, worth " + POINTS.golden + " points, but quick!</li>" +
+      "<li>🦨 Skunk — leave it alone! Whacking one costs " + Math.abs(POINTS.skunk) + " points</li>" +
+    "</ul>" +
+    '<div class="actions"><button class="primary" id="startBtn" type="button">Start Game</button></div>';
+
+  screenEl.innerHTML = html;
+  document.getElementById("startBtn").addEventListener("click", startGame);
+  setHint("Click Start Game, then click or tap the critters (or press 1-9)");
+}
+
+function startGame(){
+  state = newGameState();
+  render();
+  startRoundLoop();
+  startCountdown();
+}
+
+function goToMainMenu(){
+  if (state){
+    clearInterval(state.tickTimer);
+    clearInterval(state.spawnTimer);
+    state.holes.forEach(function(h){ clearTimeout(h.hideTimer); });
+  }
+  state = null;
+  render();
+}
+
+/* ---------------- Gameplay screen ---------------- */
+
+function renderPlaying(){
+  var html = '<div class="hud" id="hudRow">' +
+      '<div class="hud-pill">' + state.score + '<span class="label">Score</span></div>' +
+      '<div class="hud-pill" id="timePill">' + state.timeLeft + 's<span class="label">Time Left</span></div>' +
+      '<div class="hud-pill">' + state.currentRound + " / " + ROUND_COUNT + '<span class="label">Round</span></div>' +
+    "</div>" +
+    '<div id="roundBanner"></div>' +
+    '<div class="field" id="field">';
+
+  for (var i = 0; i < HOLE_COUNT; i++){
+    html += '<div class="holewrap">' +
+      '<span class="keyhint">' + (i + 1) + "</span>" +
+      '<div class="hole" data-idx="' + i + '" tabindex="0" role="button" aria-label="Hole ' + (i + 1) + '">' +
+        '<span class="critter"></span>' +
+      "</div>" +
+    "</div>";
+  }
+  html += "</div>";
+
+  screenEl.innerHTML = html;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".hole"), function(el){
+    var idx = parseInt(el.getAttribute("data-idx"), 10);
+    el.addEventListener("click", function(){ whackHole(idx); });
+    el.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); whackHole(idx); }
+    });
+  });
+
+  // Re-draw the current state of every hole in case a critter was
+  // already up when the screen redrew (e.g. right after a round change).
+  for (var j = 0; j < HOLE_COUNT; j++){ renderHole(j); }
+
+  setHint("Click/tap a critter or press 1-9 · avoid the skunk!");
+}
+
+// Update just one hole's little critter icon, instead of redrawing the
+// whole screen (redrawing everything would interrupt the pop-up animation).
+function renderHole(holeIndex){
+  var holeEl = document.querySelector('.hole[data-idx="' + holeIndex + '"]');
+  if (!holeEl) return;
+  var hole = state.holes[holeIndex];
+  var critterEl = holeEl.querySelector(".critter");
+
+  if (hole.occupied){
+    critterEl.textContent = CRITTER_EMOJI[hole.type];
+    holeEl.classList.remove("whacked");
+    holeEl.classList.add("up");
+  } else {
+    holeEl.classList.remove("up");
+  }
+}
+
+function markWhacked(holeIndex){
+  var holeEl = document.querySelector('.hole[data-idx="' + holeIndex + '"]');
+  if (!holeEl) return;
+  holeEl.classList.remove("up");
+  holeEl.classList.add("whacked");
+}
+
+function showFloatingScore(holeIndex, points, type){
+  var holeEl = document.querySelector('.hole[data-idx="' + holeIndex + '"]');
+  if (!holeEl) return;
+  var span = document.createElement("span");
+  span.className = "floatscore " + (type === "golden" ? "great" : (type === "skunk" ? "bad" : "good"));
+  span.textContent = (points > 0 ? "+" : "") + points;
+  holeEl.appendChild(span);
+  setTimeout(function(){ if (span.parentNode) span.parentNode.removeChild(span); }, 700);
+}
+
+function updateHud(){
+  if (!state || state.screen !== "playing") return;
+  var hud = document.getElementById("hudRow");
+  if (!hud) return;
+  hud.children[0].firstChild.textContent = state.score + "";
+  var timePill = document.getElementById("timePill");
+  timePill.firstChild.textContent = state.timeLeft + "s";
+  timePill.classList.toggle("time-low", state.timeLeft <= 5);
+  hud.children[2].firstChild.textContent = state.currentRound + " / " + ROUND_COUNT;
+}
+
+function flashRoundBanner(text){
+  var banner = document.getElementById("roundBanner");
+  if (!banner) return;
+  banner.innerHTML = '<div class="round-banner">' + text + "</div>";
+  setTimeout(function(){ if (banner) banner.innerHTML = ""; }, 1500);
+}
+
+/* ---------------- End screen ---------------- */
+
+function renderEnded(){
+  var best = getBestScore();
+  var rank = rankForScore(state.score);
+  var totalWhacks = state.hits + state.wrongHits;
+  var accuracy = totalWhacks + state.misses > 0
+    ? Math.round((state.hits / (state.hits + state.misses + state.wrongHits)) * 100)
+    : 0;
+
+  var html = '<div class="end-title">⏰ Time\'s Up!</div>' +
+    '<div class="scorecard">' +
+      '<div class="row"><span>Critters whacked</span><span>' + state.hits + "</span></div>" +
+      '<div class="row"><span>Missed critters</span><span>' + state.misses + "</span></div>" +
+      '<div class="row"><span>Skunks whacked (oops)</span><span>' + state.wrongHits + "</span></div>" +
+      '<div class="row"><span>Accuracy</span><span>' + accuracy + "%</span></div>" +
+      '<div class="row total"><span>Final score</span><span>' + state.score + "</span></div>" +
+      '<div class="row"><span>Best score (this device)</span><span>' + best + "</span></div>" +
+      '<div class="row"><span>Rank</span><span>' + rank + "</span></div>" +
+    "</div>" +
+    '<div class="actions">' +
+      '<button class="primary" id="againBtn" type="button">Play Again</button>' +
+      '<button id="menuBtn2" type="button">Main Menu</button>' +
+    "</div>";
+
+  screenEl.innerHTML = html;
+  document.getElementById("againBtn").addEventListener("click", startGame);
+  document.getElementById("menuBtn2").addEventListener("click", goToMainMenu);
+
+  setHint("Nice round! Play again to beat your best score.");
+}
+
+
+/* ---------------- Help popup (available any time) ---------------- */
+
+function openHelp(){
+  showModal(
+    "<h3>How to Play</h3>" +
+    "<p>Critters pop up at random out of the 9 holes. Click or tap one before it ducks back " +
+    "down — or press the number key shown above its hole (1 through 9).</p>" +
+    "<p>🐹 A regular mole is worth " + POINTS.mole + " points. 🌟 A golden critter is rare but " +
+    "worth " + POINTS.golden + " points if you're quick. 🦨 A skunk should be left alone — " +
+    "whacking one costs you " + Math.abs(POINTS.skunk) + " points!</p>" +
+    "<p>The game runs for " + TOTAL_SECONDS + " seconds across " + ROUND_COUNT + " rounds. Every " +
+    "new round, critters appear faster and more of them can be on screen at once.</p>" +
+    '<div class="close-row"><button class="primary" id="closeHelp" type="button">Got it</button></div>',
+    function(){
+      document.getElementById("closeHelp").addEventListener("click", closeModal);
+      document.getElementById("closeHelp").focus();
+    }
+  );
+}
+
+
+/* ==================================================================
+   6. STARTUP
+================================================================== */
+
+document.getElementById("btnHelp").addEventListener("click", openHelp);
+document.getElementById("btnMenu").addEventListener("click", goToMainMenu);
+
+document.addEventListener("keydown", function(e){
+  if (modalRoot.children.length > 0){
+    if (e.key === "Escape") closeModal();
+    return;
+  }
+  if (state && state.screen === "playing" && /^[1-9]$/.test(e.key)){
+    whackHole(parseInt(e.key, 10) - 1);
+  }
+});
+
+render();
+</script>
+</body>
+</html>
