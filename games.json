@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 8,
+ "count": 7,
  "games": [
   {
    "slug": "saiqulmodi",
@@ -25,19 +25,6 @@
    "thumb": "games/shoaibul0926/thumbnail.png",
    "added": "2026-09-29",
    "github": "shoaibul0926",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "sumaiyahsultana821-sys",
-   "title": "Garden Bonk",
-   "maker": "Sumaiyah Sultana",
-   "one_line": "A polished Whack-a-Mole game: 3 rounds of rising speed, a golden bonus critter, and a skunk you'd better not hit.",
-   "category": "arcade",
-   "url": "play/sumaiyahsultana821-sys/",
-   "thumb": "games/sumaiyahsultana821-sys/thumbnail.png",
-   "added": "2026-09-29",
-   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
