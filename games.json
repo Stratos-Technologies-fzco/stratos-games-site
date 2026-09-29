@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 8,
+ "count": 9,
  "games": [
   {
    "slug": "saiqulmodi",
@@ -53,6 +53,19 @@
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
+  },
+  {
+   "slug": "Mdsadee527",
+   "title": "Echo Grid",
+   "maker": "Mohammad Sadee",
+   "one_line": "Watch the tiles flash, then repeat the pattern back before it grows one step too far.",
+   "category": "puzzle",
+   "url": "play/Mdsadee527/",
+   "thumb": "assets/covers/generated/Mdsadee527.svg",
+   "added": "2026-09-29",
+   "github": "Mdsadee527",
+   "kind": "family",
+   "soon": true
   },
   {
    "slug": "bloxplode",
