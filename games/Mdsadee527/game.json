@@ -1,10 +1,10 @@
 {
-  "title": "Mind Match",
+  "title": "Car Racing Game",
   "maker": "Mohammad Sadee",
-  "one_line": "Watch the tiles flash, then repeat the pattern back before it grows one step too far.",
-  "category": "puzzle",
+  "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
+  "category": "arcade",
   "github": "Mdsadee527",
   "added": "2026-09-29",
-  "how_to_play": "Watch the tiles light up in a sequence, then tap them back in the same order. Each round adds one more step. Works with mouse, touch, or keys 1-9.",
-  "description": "A memory reflex game, one file, no libraries. A 3x3 grid flashes a growing pattern each round; repeat it correctly to advance, one wrong tap ends the run. Your best level is saved in the browser."
+  "how_to_play": "Steer left and right to dodge traffic and stay on the road. Arrow keys on desktop, on-screen left/right buttons on mobile.",
+  "description": "A lane-dodging car racer, one file, no libraries. Traffic gets faster the longer you survive, with a live score, high score, and a mute toggle."
 }
