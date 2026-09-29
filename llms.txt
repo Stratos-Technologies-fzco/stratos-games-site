@@ -5,6 +5,7 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 ## Play (free browser games)
 - [Stratos_squirrel_vs_viper](https://stratos.games/play/saiqulmodi/): A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper. Made by Md. Saiqul Haque Modi.
 - [Skyfall Armada](https://stratos.games/play/shoaibul0926/): Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles. Made by Shoaibul Hoque.
+- [Missing Minutes](https://stratos.games/play/sumaiyahsultana821-sys/): A cozy detective puzzle: investigate a blackout, rebuild the true timeline, and accuse the culprit across 3 cases. Made by Sumaiyah Sultana.
 - [Flappy Bird](https://stratos.games/play/mody-sahariar1/): Tap to flap, dodge the pipes, beat your best. One file, no libraries. Made by Sahariar Mody.
 
 ## Coming soon (claimed by family makers)

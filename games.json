@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 7,
+ "count": 8,
  "games": [
   {
    "slug": "saiqulmodi",
@@ -10,7 +10,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-09-28",
+   "added": "2026-09-29",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -23,8 +23,21 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-09-28",
+   "added": "2026-09-29",
    "github": "shoaibul0926",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sumaiyahsultana821-sys",
+   "title": "Missing Minutes",
+   "maker": "Sumaiyah Sultana",
+   "one_line": "A cozy detective puzzle: investigate a blackout, rebuild the true timeline, and accuse the culprit across 3 cases.",
+   "category": "puzzle",
+   "url": "play/sumaiyahsultana821-sys/",
+   "thumb": "games/sumaiyahsultana821-sys/thumbnail.png",
+   "added": "2026-09-29",
+   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
