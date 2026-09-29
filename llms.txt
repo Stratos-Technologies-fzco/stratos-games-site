@@ -11,6 +11,7 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 - [Flappy Bird](https://stratos.games/play/mody-sahariar1/): Tap to flap, dodge the pipes, beat your best. One file, no libraries. Made by Sahariar Mody.
 
 ## Coming soon (claimed by family makers)
+- COPROB by Sahid Modi: Plan sneaky routes past cops and guards to pull off colorful, Brawl-Stars-style heists in each puzzle level.
 
 ## Studio titles
 - [BLOXPLODE](https://stratos.games/games-bloxplode/): Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.
