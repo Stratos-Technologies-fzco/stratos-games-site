@@ -1,0 +1,9 @@
+{
+  "title": "Missing Minutes",
+  "maker": "Sumaiyah Sultana",
+  "one_line": "A cozy detective puzzle: investigate a blackout, rebuild the true timeline, and accuse the culprit across 3 cases.",
+  "category": "puzzle",
+  "github": "sumaiyahsultana821-sys",
+  "how_to_play": "Click locations to gather clues, use the up/down arrow buttons to reorder the timeline, then accuse a suspect. Works with mouse or touch.",
+  "description": "The power went out for a few minutes and something valuable vanished. Missing Minutes is a 3-level detective puzzle: explore each scene, collect witness accounts and hidden evidence, drag the timeline of events back into its true order, weigh the deductions, and name the culprit. Score points for a correct timeline, bonus clues, and a right accusation, unlock the next (harder) case, and chase a personal best rank from Trainee to Master Detective. Built with plain HTML, CSS and JavaScript, no libraries, works on desktop and mobile browsers."
+}
