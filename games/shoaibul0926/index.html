@@ -145,6 +145,14 @@ var UPGRADES={
   speed:'+10% Movement Speed',
   projectile_speed:'+10% Projectile Speed'
 };
+var UPGRADE_STYLE={
+  damage:{color:'#ff6a4d',icon:'damage'},
+  fire_rate:{color:'#66ffff',icon:'fire_rate'},
+  max_health:{color:'#4ee04e',icon:'max_health'},
+  shield:{color:'#4fa4ff',icon:'shield'},
+  speed:{color:'#ffd15a',icon:'speed'},
+  projectile_speed:{color:'#c084fc',icon:'projectile_speed'}
+};
 
 var PLAYER_SPEED=320, PLAYER_FIRE_RATE=0.15, PLAYER_DAMAGE=10, PLAYER_BULLET_SPEED=750;
 var SCORE_PER_KILL=10;
@@ -906,6 +914,102 @@ function drawButton(rect,label,sub,accent){
   ctx.textBaseline='top';
 }
 
+function drawUpgradeIcon(cx,cy,size,type,color){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.strokeStyle=color; ctx.fillStyle=color;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  if(type==='damage'){
+    ctx.lineWidth=size*0.16;
+    ctx.beginPath();
+    ctx.moveTo(-size*0.42,-size*0.42); ctx.lineTo(size*0.42,size*0.42);
+    ctx.moveTo(size*0.42,-size*0.42); ctx.lineTo(-size*0.42,size*0.42);
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,size*0.14,0,Math.PI*2); ctx.fill();
+  } else if(type==='fire_rate'){
+    ctx.beginPath();
+    ctx.moveTo(size*0.08,-size*0.55); ctx.lineTo(-size*0.32,size*0.08); ctx.lineTo(-size*0.02,size*0.08);
+    ctx.lineTo(-size*0.12,size*0.55); ctx.lineTo(size*0.36,-size*0.06); ctx.lineTo(size*0.05,-size*0.06);
+    ctx.closePath(); ctx.fill();
+  } else if(type==='max_health'){
+    ctx.lineWidth=size*0.2;
+    ctx.beginPath();
+    ctx.moveTo(0,-size*0.45); ctx.lineTo(0,size*0.45);
+    ctx.moveTo(-size*0.45,0); ctx.lineTo(size*0.45,0);
+    ctx.stroke();
+  } else if(type==='shield'){
+    ctx.lineWidth=size*0.13;
+    ctx.beginPath();
+    ctx.moveTo(0,-size*0.5);
+    ctx.lineTo(size*0.42,-size*0.24);
+    ctx.lineTo(size*0.42,size*0.18);
+    ctx.quadraticCurveTo(size*0.3,size*0.42,0,size*0.55);
+    ctx.quadraticCurveTo(-size*0.3,size*0.42,-size*0.42,size*0.18);
+    ctx.lineTo(-size*0.42,-size*0.24);
+    ctx.closePath();
+    ctx.stroke();
+  } else if(type==='speed'){
+    ctx.lineWidth=size*0.15;
+    ctx.beginPath();
+    ctx.moveTo(-size*0.3,-size*0.4); ctx.lineTo(size*0.1,0); ctx.lineTo(-size*0.3,size*0.4);
+    ctx.stroke();
+    ctx.globalAlpha=0.55;
+    ctx.beginPath();
+    ctx.moveTo(size*0.05,-size*0.4); ctx.lineTo(size*0.45,0); ctx.lineTo(size*0.05,size*0.4);
+    ctx.stroke();
+  } else if(type==='projectile_speed'){
+    ctx.lineWidth=size*0.14;
+    ctx.beginPath(); ctx.moveTo(-size*0.45,0); ctx.lineTo(size*0.3,0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(size*0.08,-size*0.3); ctx.lineTo(size*0.45,0); ctx.lineTo(size*0.08,size*0.3); ctx.stroke();
+  }
+  ctx.restore();
+}
+function fitText(text,maxW,fontSize,weight){
+  ctx.font=weight+' '+fontSize+'px system-ui, Segoe UI, Arial';
+  var w=ctx.measureText(text).width;
+  if(w>maxW){
+    fontSize=Math.max(9,Math.floor(fontSize*maxW/w));
+    ctx.font=weight+' '+fontSize+'px system-ui, Segoe UI, Arial';
+  }
+  return fontSize;
+}
+function drawUpgradeCard(rect,key){
+  var style=UPGRADE_STYLE[key]||{color:'#ffb43c',icon:'damage'};
+  var label=(UPGRADES[key]||'').replace('+10% ','');
+  var r=rect;
+
+  ctx.save();
+  ctx.shadowColor=style.color; ctx.shadowBlur=16;
+  roundRect(r.x,r.y,r.w,r.h,16);
+  var grad=ctx.createLinearGradient(r.x,r.y,r.x,r.y+r.h);
+  grad.addColorStop(0,'rgba(24,26,42,0.94)');
+  grad.addColorStop(1,'rgba(9,10,18,0.94)');
+  ctx.fillStyle=grad;
+  ctx.fill();
+  ctx.restore();
+
+  roundRect(r.x,r.y,r.w,r.h,16);
+  ctx.strokeStyle=style.color; ctx.lineWidth=1.6; ctx.globalAlpha=0.85; ctx.stroke(); ctx.globalAlpha=1;
+
+  roundRect(r.x+2,r.y+2,r.w-4,r.h*0.38,12);
+  ctx.fillStyle='rgba(255,255,255,0.05)'; ctx.fill();
+
+  drawUpgradeIcon(r.x+r.w/2,r.y+r.h*0.3,Math.min(r.h*0.32,r.w*0.28),style.icon,style.color);
+
+  ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  var pctSize=fitText('+10%',r.w*0.7,Math.round(r.h*0.2),'800');
+  ctx.fillStyle=style.color;
+  ctx.font='800 '+pctSize+'px system-ui, Segoe UI, Arial';
+  ctx.fillText('+10%',r.x+r.w/2,r.y+r.h*0.72);
+
+  var labelSize=fitText(label,r.w*0.84,Math.round(r.h*0.135),'600');
+  ctx.fillStyle='rgba(220,225,240,0.85)';
+  ctx.font='600 '+labelSize+'px system-ui, Segoe UI, Arial';
+  ctx.fillText(label,r.x+r.w/2,r.y+r.h*0.9);
+
+  ctx.textBaseline='top';
+}
+
 function drawStart(){
   ctx.fillStyle='rgba(3,3,10,0.35)'; ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
@@ -965,7 +1069,7 @@ function drawUpgrade(){
     var startX=W/2-totalW/2, y=H*0.42;
     for(var i=0;i<n;i++){
       var rect={x:startX+i*(bw+gap),y:y,w:bw,h:bh,action:(function(k){ return function(){ chooseUpgrade(k); }; })(upgradeChoices[i])};
-      drawButton(rect,UPGRADES[upgradeChoices[i]]);
+      drawUpgradeCard(rect,upgradeChoices[i]);
       uiButtons.push(rect);
     }
   } else {
@@ -974,7 +1078,7 @@ function drawUpgrade(){
     var y2=H/2-totalH/2, x2=W/2-bw2/2;
     for(var j=0;j<n;j++){
       var rect2={x:x2,y:y2+j*(bh2+gap2),w:bw2,h:bh2,action:(function(k){ return function(){ chooseUpgrade(k); }; })(upgradeChoices[j])};
-      drawButton(rect2,UPGRADES[upgradeChoices[j]]);
+      drawUpgradeCard(rect2,upgradeChoices[j]);
       uiButtons.push(rect2);
     }
   }
