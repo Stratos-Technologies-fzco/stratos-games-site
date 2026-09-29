@@ -4,5 +4,7 @@
   "one_line": "Watch the tiles flash, then repeat the pattern back before it grows one step too far.",
   "category": "puzzle",
   "github": "Mdsadee527",
-  "status": "coming_soon"
+  "added": "2026-09-29",
+  "how_to_play": "Watch the tiles light up in a sequence, then tap them back in the same order. Each round adds one more step. Works with mouse, touch, or keys 1-9.",
+  "description": "A memory reflex game, one file, no libraries. A 3x3 grid flashes a growing pattern each round; repeat it correctly to advance, one wrong tap ends the run. Your best level is saved in the browser."
 }
