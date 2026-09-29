@@ -1,0 +1,9 @@
+{
+  "title": "Match the Emoji",
+  "maker": "Sumaiyah Sultana",
+  "one_line": "A cozy emoji memory-matching game with 3 difficulty levels, live scoring, a timer, and saved best scores.",
+  "category": "puzzle",
+  "github": "sumaiyahsultana821-sys",
+  "how_to_play": "Click two cards to flip them face up. Matching emoji stay revealed; mismatches flip back. Find every pair to win.",
+  "description": "Match the Emoji is a beginner-friendly memory-matching game built with plain HTML, CSS and JavaScript, no libraries required. Choose Easy (6 pairs), Medium (8 pairs), or Hard (12 pairs), then flip cards two at a time to find every matching pair. Quick, low-guesswork matches earn more points; a live HUD tracks score, pairs found, moves, and elapsed time. The end screen shows a final score, move count, time, and a rank from Keep Practicing up to Legendary Matcher, with a best score saved per difficulty. Works with mouse, touch, or keyboard on desktop and mobile browsers."
+}

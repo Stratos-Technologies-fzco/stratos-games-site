@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match the Emoji — A Memory Matching Game</title>
+<meta name="description" content="A beginner-friendly emoji memory-matching game with 3 difficulty levels, scoring, a timer, and a restart button. Plays on PC and mobile web.">
+<style>
+  /* ============================================================
+     COLOR THEME
+     Everything visual is controlled from these variables, so the
+     whole look can be re-skinned by editing just this block.
+  ============================================================ */
+  :root{
+    --bg-1:#fdf2ff;
+    --bg-2:#e9f3ff;
+    --panel:#ffffff;
+    --panel-line:#e4defa;
+    --ink:#3a2f52;
+    --ink-dim:#7a7192;
+    --purple:#8a5cf6;
+    --purple-dark:#6a3fd6;
+    --pink:#ff7ab8;
+    --green:#3fae6b;
+    --red:#e0564f;
+    --card-back-1:#8a5cf6;
+    --card-back-2:#6a3fd6;
+    --shadow: 0 10px 26px rgba(90, 60, 150, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    color:var(--ink);
+    font-family: 'Segoe UI', Verdana, Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: 20px 14px 50px;
+  }
+
+  #app{ width:100%; max-width:720px; }
+
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .brand h1{ font-size:1.7rem; margin:0; color:var(--purple-dark); }
+  .brand p{ margin:2px 0 0; color:var(--ink-dim); font-size:0.85rem; }
+
+  .topbtns{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  button{
+    font-family: inherit;
+    background: var(--panel);
+    color:var(--ink);
+    border:2px solid var(--panel-line);
+    border-radius:10px;
+    padding:9px 16px;
+    cursor:pointer;
+    font-size:0.9rem;
+    font-weight:bold;
+    box-shadow: 0 3px 0 var(--panel-line);
+  }
+  button:hover{ border-color:#c9bdf2; transform: translateY(1px); box-shadow: 0 2px 0 var(--panel-line); }
+  button:active{ transform: translateY(3px); box-shadow: none; }
+  button:focus-visible{ outline:3px solid #2b6cff; outline-offset:2px; }
+  button.primary{ background: linear-gradient(180deg, var(--purple), var(--purple-dark)); border-color:var(--purple-dark); box-shadow: 0 3px 0 var(--purple-dark); color:#fff; }
+  button.primary:hover{ background: linear-gradient(180deg, #9a6ffb, #7a4fe0); }
+  button:disabled{ opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  #screen{
+    background: var(--panel);
+    border:3px solid var(--panel-line);
+    border-radius:18px;
+    padding:22px;
+    box-shadow: var(--shadow);
+    min-height: 380px;
+  }
+
+  h2{ margin-top:0; color:var(--purple-dark); font-size:1.3rem; }
+  p{ line-height:1.55; }
+  .lede{ color:var(--ink-dim); }
+
+  /* ---------- Menu screen ---------- */
+  .difficulty-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:14px;
+    margin:16px 0;
+  }
+  .diffcard{
+    background:#f8f5ff;
+    border:2px solid var(--panel-line);
+    border-radius:12px;
+    padding:16px;
+    text-align:left;
+    cursor:pointer;
+  }
+  .diffcard:hover{ border-color:var(--purple); }
+  .diffcard h4{ margin:0 0 6px; color:var(--ink); }
+  .diffcard p{ margin:0; font-size:0.82rem; color:var(--ink-dim); }
+  .diffcard .best{ margin-top:8px; font-size:0.78rem; color:var(--green); font-weight:bold; }
+
+  ul.rules{ padding-left:20px; line-height:1.7; }
+
+  /* ---------- HUD during play ---------- */
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .hud-pill{
+    background:#f8f5ff;
+    border:2px solid var(--panel-line);
+    border-radius:10px;
+    padding:8px 14px;
+    font-weight:bold;
+    font-size:0.95rem;
+    text-align:center;
+    min-width:76px;
+  }
+  .hud-pill .label{ display:block; font-size:0.62rem; color:var(--ink-dim); font-weight:normal; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* ---------- The card grid ---------- */
+  .grid{
+    display:grid;
+    gap:10px;
+    margin:0 auto;
+  }
+  .card{
+    aspect-ratio: 1 / 1;
+    perspective: 700px;
+    cursor:pointer;
+  }
+  .card-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition: transform 0.4s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner, .card.matched .card-inner{ transform: rotateY(180deg); }
+  .card-face{
+    position:absolute;
+    inset:0;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backface-visibility:hidden;
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+  }
+  .card-back{
+    background: linear-gradient(150deg, var(--card-back-1), var(--card-back-2));
+    color:#fff;
+    font-size: clamp(1.2rem, 4vw, 1.6rem);
+  }
+  .card-front{
+    background:#fff;
+    border:2px solid var(--panel-line);
+    transform: rotateY(180deg);
+  }
+  .card.matched .card-front{ border-color:var(--green); background:#eefaf1; }
+  .card:focus-visible .card-inner{ outline:3px solid #2b6cff; outline-offset:2px; }
+
+  /* ---------- End screen ---------- */
+  .end-title{ font-size:1.4rem; font-weight:bold; color:var(--purple-dark); margin-bottom:6px; }
+  .scorecard{
+    margin-top:16px;
+    padding:14px 16px;
+    background:#f8f5ff;
+    border:2px solid var(--panel-line);
+    border-radius:10px;
+    font-size:0.9rem;
+    display:grid;
+    gap:6px;
+  }
+  .scorecard .row{ display:flex; justify-content:space-between; }
+  .scorecard .total{ font-weight:bold; color:var(--purple-dark); border-top:1px dashed var(--panel-line); padding-top:6px; margin-top:4px; font-size:1.05rem; }
+
+  .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(40,20,60,0.5);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .overlay .box{
+    background:var(--panel);
+    border-radius:14px;
+    max-width:520px;
+    width:100%;
+    max-height:80vh;
+    overflow-y:auto;
+    padding:22px;
+    box-shadow: var(--shadow);
+  }
+  .overlay .box h3{ margin-top:0; color:var(--purple-dark); }
+  .overlay .close-row{ display:flex; justify-content:flex-end; margin-top:16px; }
+
+  footer.hint{
+    margin-top:12px;
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:0.8rem;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <h1>🎴 Match the Emoji</h1>
+      <p>A memory matching game</p>
+    </div>
+    <div class="topbtns">
+      <button id="btnHelp" type="button">How to Play</button>
+      <button id="btnMenu" type="button">Main Menu</button>
+    </div>
+  </header>
+  <div id="screen"></div>
+  <footer class="hint" id="hint"></footer>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ==================================================================
+   MATCH THE EMOJI — a beginner-friendly memory matching game
+   ==================================================================
+   One plain JavaScript file, no libraries, no build tools. Read it
+   top to bottom:
+
+     1. CONFIG        - the difficulty levels and emoji pool
+     2. STATE         - the handful of variables tracking what is
+                         happening right now
+     3. SCORING       - turns a match into points, and saves your
+                         best score per difficulty
+     4. GAME LOGIC    - flipping cards, checking for a match, timer
+     5. SCREEN DRAWING - builds the HTML for each screen and wires
+                          up its buttons
+     6. STARTUP        - wires the top bar and shows the first screen
+
+   The idea: cards start face down. Click two cards to flip them.
+   If their emoji match, they stay face up. If not, they flip back
+   after a short pause. Find every pair to win.
+================================================================== */
+
+
+/* ==================================================================
+   1. CONFIG
+================================================================== */
+
+// A pool of emoji to draw from. Hard mode needs 12 unique symbols
+// (12 pairs = 24 cards), so this list has to be at least that long.
+var EMOJI_POOL = ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮"];
+
+var DIFFICULTIES = {
+  easy:   { label: "Easy",   pairs: 6,  columns: 4, description: "6 pairs, 12 cards — a relaxed warm-up." },
+  medium: { label: "Medium", pairs: 8,  columns: 4, description: "8 pairs, 16 cards — a fair challenge." },
+  hard:   { label: "Hard",   pairs: 12, columns: 6, description: "12 pairs, 24 cards — for sharp memories." }
+};
+
+// How long flipped, non-matching cards stay visible before flipping
+// back down, in milliseconds. Long enough to read, short enough to
+// keep the game moving.
+var MISMATCH_DELAY_MS = 700;
+
+// Points for finding a match right after the previous one (or right
+// after the game starts) are highest, and shrink the more "moves"
+// (card-flip attempts) it took to find it. Never drops below a
+// small minimum, so every match still counts for something.
+var MAX_MATCH_SCORE = 100;
+var SCORE_DROP_PER_EXTRA_MOVE = 15;
+var MIN_MATCH_SCORE = 20;
+
+var SAVE_KEY_PREFIX = "matchEmoji_best_";
+
+
+/* ==================================================================
+   2. STATE
+================================================================== */
+
+var state = null; // null = show the main menu
+
+function newGameState(difficultyKey){
+  var diff = DIFFICULTIES[difficultyKey];
+  return {
+    screen: "playing",
+    difficultyKey: difficultyKey,
+    cards: buildShuffledDeck(diff.pairs),
+    flippedIndexes: [],     // currently face-up cards not yet matched (max 2)
+    busy: false,             // true while we're showing a mismatched pair
+    matchesFound: 0,
+    totalPairs: diff.pairs,
+    moves: 0,                // number of times two cards were compared
+    movesSinceLastMatch: 0,
+    score: 0,
+    startTime: null,         // set on the very first flip
+    elapsedSeconds: 0,
+    timerId: null,
+    finished: false
+  };
+}
+
+// Build a shuffled deck: pick `pairCount` emoji from the pool, make
+// two of each, then shuffle the whole deck into a random order.
+function buildShuffledDeck(pairCount){
+  var chosenEmoji = EMOJI_POOL.slice(0, pairCount);
+  var deck = [];
+  chosenEmoji.forEach(function(emoji, i){
+    deck.push({ id: i + "-a", emoji: emoji, flipped: false, matched: false });
+    deck.push({ id: i + "-b", emoji: emoji, flipped: false, matched: false });
+  });
+  return shuffle(deck);
+}
+
+function shuffle(list){
+  var arr = list.slice();
+  for (var i = arr.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+}
+
+
+/* ==================================================================
+   3. SCORING
+================================================================== */
+
+function getBestScore(difficultyKey){
+  try {
+    var v = parseInt(localStorage.getItem(SAVE_KEY_PREFIX + difficultyKey), 10);
+    return isNaN(v) ? 0 : v;
+  } catch (err){ return 0; }
+}
+function saveBestScoreIfHigher(difficultyKey, score){
+  var best = getBestScore(difficultyKey);
+  if (score > best){
+    try { localStorage.setItem(SAVE_KEY_PREFIX + difficultyKey, String(score)); } catch (err){ /* ignore */ }
+    return score;
+  }
+  return best;
+}
+
+function scoreForThisMatch(movesSinceLastMatch){
+  var extraMoves = Math.max(0, movesSinceLastMatch - 1);
+  var score = MAX_MATCH_SCORE - extraMoves * SCORE_DROP_PER_EXTRA_MOVE;
+  return Math.max(MIN_MATCH_SCORE, score);
+}
+
+function maxPossibleScore(difficultyKey){
+  return DIFFICULTIES[difficultyKey].pairs * MAX_MATCH_SCORE;
+}
+
+function rankForRatio(ratio){
+  if (ratio >= 0.9) return "Legendary Matcher";
+  if (ratio >= 0.7) return "Sharp Eye";
+  if (ratio >= 0.4) return "Getting There";
+  return "Keep Practicing";
+}
+
+
+/* ==================================================================
+   4. GAME LOGIC
+================================================================== */
+
+function startTimerIfNeeded(){
+  if (state.startTime !== null) return;
+  state.startTime = Date.now();
+  state.timerId = setInterval(function(){
+    state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+    updateHudTime();
+  }, 1000);
+}
+
+function stopTimer(){
+  clearInterval(state.timerId);
+  state.timerId = null;
+}
+
+function flipCard(index){
+  if (!state || state.finished || state.busy) return;
+  var card = state.cards[index];
+  if (card.flipped || card.matched) return;
+  if (state.flippedIndexes.indexOf(index) !== -1) return;
+
+  startTimerIfNeeded();
+
+  card.flipped = true;
+  state.flippedIndexes.push(index);
+  renderCard(index);
+
+  if (state.flippedIndexes.length === 2){
+    state.moves += 1;
+    state.movesSinceLastMatch += 1;
+    state.busy = true;
+    updateHudMoves();
+
+    var firstIdx = state.flippedIndexes[0];
+    var secondIdx = state.flippedIndexes[1];
+    var first = state.cards[firstIdx];
+    var second = state.cards[secondIdx];
+
+    if (first.emoji === second.emoji){
+      setTimeout(function(){ resolveMatch(firstIdx, secondIdx); }, 150);
+    } else {
+      setTimeout(function(){ resolveMismatch(firstIdx, secondIdx); }, MISMATCH_DELAY_MS);
+    }
+  }
+}
+
+function resolveMatch(firstIdx, secondIdx){
+  state.cards[firstIdx].matched = true;
+  state.cards[secondIdx].matched = true;
+  state.cards[firstIdx].flipped = false; // "matched" styling takes over from here
+  state.cards[secondIdx].flipped = false;
+
+  var gained = scoreForThisMatch(state.movesSinceLastMatch);
+  state.score += gained;
+  state.movesSinceLastMatch = 0;
+  state.matchesFound += 1;
+
+  state.flippedIndexes = [];
+  state.busy = false;
+
+  renderCard(firstIdx);
+  renderCard(secondIdx);
+  updateHudScore();
+  updateHudPairs();
+
+  if (state.matchesFound === state.totalPairs){
+    winGame();
+  }
+}
+
+function resolveMismatch(firstIdx, secondIdx){
+  state.cards[firstIdx].flipped = false;
+  state.cards[secondIdx].flipped = false;
+  state.flippedIndexes = [];
+  state.busy = false;
+
+  renderCard(firstIdx);
+  renderCard(secondIdx);
+}
+
+function winGame(){
+  state.finished = true;
+  stopTimer();
+  var best = saveBestScoreIfHigher(state.difficultyKey, state.score);
+  state.bestScoreAfterSave = best;
+  state.screen = "ended";
+  render();
+}
+
+
+/* ==================================================================
+   5. SCREEN DRAWING
+================================================================== */
+
+var screenEl = document.getElementById("screen");
+var hintEl = document.getElementById("hint");
+var modalRoot = document.getElementById("modalRoot");
+
+function setHint(text){ hintEl.textContent = text; }
+function closeModal(){ modalRoot.innerHTML = ""; }
+
+function showModal(html, onRender){
+  modalRoot.innerHTML =
+    '<div class="overlay" id="overlayEl">' +
+      '<div class="box" role="dialog" aria-modal="true">' + html + "</div>" +
+    "</div>";
+  var overlay = document.getElementById("overlayEl");
+  overlay.addEventListener("mousedown", function(e){
+    if (e.target.id === "overlayEl") closeModal();
+  });
+  if (onRender) onRender();
+}
+
+function render(){
+  if (state === null) return renderMenu();
+  if (state.screen === "playing") return renderPlaying();
+  if (state.screen === "ended") return renderEnded();
+}
+
+/* ---------------- Main menu ---------------- */
+
+function renderMenu(){
+  var html = "<h2>Choose a Difficulty</h2>" +
+    '<p class="lede">Flip two cards at a time. Find every matching pair to win.</p>' +
+    '<div class="difficulty-grid">';
+
+  Object.keys(DIFFICULTIES).forEach(function(key){
+    var diff = DIFFICULTIES[key];
+    var best = getBestScore(key);
+    html += '<div class="diffcard" data-key="' + key + '" tabindex="0">' +
+      "<h4>" + diff.label + "</h4>" +
+      "<p>" + diff.description + "</p>" +
+      '<p class="best">🏆 Best: ' + best + "</p>" +
+      "</div>";
+  });
+  html += "</div>";
+
+  html += "<ul class=\"rules\">" +
+    "<li>Click a card to flip it face up.</li>" +
+    "<li>Flip a second card — if the emoji match, they stay face up.</li>" +
+    "<li>If they don't match, both flip back down after a moment.</li>" +
+    "<li>Matching quickly, without wasted guesses, earns more points per pair.</li>" +
+    "</ul>";
+
+  screenEl.innerHTML = html;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".diffcard"), function(el){
+    var key = el.getAttribute("data-key");
+    el.addEventListener("click", function(){ startGame(key); });
+    el.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); startGame(key); }
+    });
+  });
+
+  setHint("Pick a difficulty to begin");
+}
+
+function startGame(difficultyKey){
+  state = newGameState(difficultyKey);
+  render();
+}
+
+function goToMainMenu(){
+  if (state) stopTimer();
+  state = null;
+  render();
+}
+
+/* ---------------- Gameplay screen ---------------- */
+
+function renderPlaying(){
+  var diff = DIFFICULTIES[state.difficultyKey];
+
+  var html = '<div class="hud" id="hudRow">' +
+      '<div class="hud-pill" id="scorePill">' + state.score + '<span class="label">Score</span></div>' +
+      '<div class="hud-pill" id="pairsPill">' + state.matchesFound + " / " + state.totalPairs + '<span class="label">Pairs</span></div>' +
+      '<div class="hud-pill" id="movesPill">' + state.moves + '<span class="label">Moves</span></div>' +
+      '<div class="hud-pill" id="timePill">' + state.elapsedSeconds + 's<span class="label">Time</span></div>' +
+    "</div>" +
+    '<div class="grid" id="grid" style="grid-template-columns: repeat(' + diff.columns + ', 1fr);">';
+
+  state.cards.forEach(function(card, i){
+    html += buildCardHtml(card, i);
+  });
+  html += "</div>";
+
+  html += '<div class="actions"><button id="restartBtn" type="button">Restart This Level</button>' +
+    '<button id="backMenuBtn" type="button">Main Menu</button></div>';
+
+  screenEl.innerHTML = html;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".card"), function(el){
+    var idx = parseInt(el.getAttribute("data-idx"), 10);
+    el.addEventListener("click", function(){ flipCard(idx); });
+    el.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); flipCard(idx); }
+    });
+  });
+
+  document.getElementById("restartBtn").addEventListener("click", function(){ startGame(state.difficultyKey); });
+  document.getElementById("backMenuBtn").addEventListener("click", goToMainMenu);
+
+  setHint("Click two cards to flip them · find every pair to win");
+}
+
+function buildCardHtml(card, index){
+  var cls = "card" + (card.flipped ? " flipped" : "") + (card.matched ? " matched" : "");
+  return '<div class="' + cls + '" data-idx="' + index + '" tabindex="0" role="button" aria-label="Card ' + (index + 1) + '">' +
+    '<div class="card-inner">' +
+      '<div class="card-face card-back">❓</div>' +
+      '<div class="card-face card-front">' + card.emoji + "</div>" +
+    "</div>" +
+  "</div>";
+}
+
+// Re-draw just one card (used after a flip/match/mismatch), instead of
+// redrawing the whole grid, so the flip animation plays smoothly.
+function renderCard(index){
+  var el = document.querySelector('.card[data-idx="' + index + '"]');
+  if (!el) return;
+  var card = state.cards[index];
+  el.classList.toggle("flipped", card.flipped);
+  el.classList.toggle("matched", card.matched);
+}
+
+function updateHudScore(){
+  var pill = document.getElementById("scorePill");
+  if (pill) pill.firstChild.textContent = state.score + "";
+}
+function updateHudPairs(){
+  var pill = document.getElementById("pairsPill");
+  if (pill) pill.firstChild.textContent = state.matchesFound + " / " + state.totalPairs;
+}
+function updateHudMoves(){
+  var pill = document.getElementById("movesPill");
+  if (pill) pill.firstChild.textContent = state.moves + "";
+}
+function updateHudTime(){
+  var pill = document.getElementById("timePill");
+  if (pill) pill.firstChild.textContent = state.elapsedSeconds + "s";
+}
+
+/* ---------------- End screen ---------------- */
+
+function renderEnded(){
+  var maxScore = maxPossibleScore(state.difficultyKey);
+  var ratio = maxScore > 0 ? state.score / maxScore : 0;
+  var rank = rankForRatio(ratio);
+
+  var html = '<div class="end-title">🎉 All Pairs Found!</div>' +
+    '<div class="scorecard">' +
+      '<div class="row"><span>Difficulty</span><span>' + DIFFICULTIES[state.difficultyKey].label + "</span></div>" +
+      '<div class="row"><span>Moves taken</span><span>' + state.moves + "</span></div>" +
+      '<div class="row"><span>Time</span><span>' + state.elapsedSeconds + "s</span></div>" +
+      '<div class="row total"><span>Final score</span><span>' + state.score + " / " + maxScore + "</span></div>" +
+      '<div class="row"><span>Best score (this device)</span><span>' + state.bestScoreAfterSave + "</span></div>" +
+      '<div class="row"><span>Rank</span><span>' + rank + "</span></div>" +
+    "</div>" +
+    '<div class="actions">' +
+      '<button class="primary" id="againBtn" type="button">Play Again</button>' +
+      '<button id="menuBtn2" type="button">Choose Difficulty</button>' +
+    "</div>";
+
+  screenEl.innerHTML = html;
+  document.getElementById("againBtn").addEventListener("click", function(){ startGame(state.difficultyKey); });
+  document.getElementById("menuBtn2").addEventListener("click", goToMainMenu);
+
+  setHint("Well matched! Play again to beat your best score.");
+}
+
+/* ---------------- Help popup (available any time) ---------------- */
+
+function openHelp(){
+  showModal(
+    "<h3>How to Play</h3>" +
+    "<p>Every card starts face down, showing a ❓. Click a card to flip it, then click a " +
+    "second card. If their emoji match, both cards stay face up. If they don't, they flip " +
+    "back down after a short pause, so take a mental note of what you saw.</p>" +
+    "<p>Find every pair to win. Fewer wasted flips means a higher score.</p>" +
+    "<h3>Scoring</h3>" +
+    "<p>Each match is worth up to " + MAX_MATCH_SCORE + " points. Every extra flip you make " +
+    "before finding that pair (beyond the one that revealed it) lowers the reward by " +
+    SCORE_DROP_PER_EXTRA_MOVE + " points, down to a floor of " + MIN_MATCH_SCORE + " points, " +
+    "so even a slow match still counts.</p>" +
+    "<p>There are three difficulty levels — Easy, Medium, and Hard — each with its own saved " +
+    "best score.</p>" +
+    '<div class="close-row"><button class="primary" id="closeHelp" type="button">Got it</button></div>',
+    function(){
+      document.getElementById("closeHelp").addEventListener("click", closeModal);
+      document.getElementById("closeHelp").focus();
+    }
+  );
+}
+
+
+/* ==================================================================
+   6. STARTUP
+================================================================== */
+
+document.getElementById("btnHelp").addEventListener("click", openHelp);
+document.getElementById("btnMenu").addEventListener("click", goToMainMenu);
+
+document.addEventListener("keydown", function(e){
+  if (modalRoot.children.length > 0 && e.key === "Escape"){ closeModal(); }
+});
+
+render();
+</script>
+</body>
+</html>
