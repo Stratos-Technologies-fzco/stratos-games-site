@@ -4,10 +4,10 @@
  "games": [
   {
    "slug": "Mdsadee527",
-   "title": "Mind Match",
+   "title": "Car Racing Game",
    "maker": "Mohammad Sadee",
-   "one_line": "Watch the tiles flash, then repeat the pattern back before it grows one step too far.",
-   "category": "puzzle",
+   "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
+   "category": "arcade",
    "url": "play/Mdsadee527/",
    "thumb": "assets/covers/generated/Mdsadee527.svg",
    "added": "2026-09-29",
