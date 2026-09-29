@@ -4,12 +4,12 @@
  "games": [
   {
    "slug": "Mdsadee527",
-   "title": "Car Racing Game",
+   "title": "Racing Mania",
    "maker": "Mohammad Sadee",
    "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
    "category": "arcade",
    "url": "play/Mdsadee527/",
-   "thumb": "assets/covers/generated/Mdsadee527.svg",
+   "thumb": "games/Mdsadee527/thumbnail.svg",
    "added": "2026-09-29",
    "github": "Mdsadee527",
    "kind": "family",
