@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 11,
+ "count": 12,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -12,6 +12,19 @@
    "thumb": "games/im-mohua-liza/thumbnail.png",
    "added": "2026-09-30",
    "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "nikhatenglish89",
+   "title": "Mystery Island",
+   "maker": "Nikhat",
+   "one_line": "Explore five islands, solve puzzles and mini-games, and collect the map pieces that unlock the treasure.",
+   "category": "kids",
+   "url": "play/nikhatenglish89/",
+   "thumb": "assets/covers/generated/nikhatenglish89.svg",
+   "added": "2026-09-30",
+   "github": "nikhatenglish89",
    "kind": "family",
    "soon": false
   },
