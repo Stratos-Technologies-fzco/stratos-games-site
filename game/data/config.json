@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "analytics": {
+    "enabled": false,
+    "endpoint": "",
+    "siteId": 1,
+    "_comment": "To count anonymous usage, install Matomo on your WordPress hosting in cookieless mode, then set enabled=true and endpoint to e.g. https://yourdomain.com/matomo/matomo.php. Parents can switch it off in the Parent Area."
+  },
+  "pwa": {
+    "enabled": true,
+    "_comment": "Registers service-worker.js so the game can be replayed offline after the first online visit. Set to false to disable."
+  },
+  "parentGate": {
+    "holdSeconds": 3
+  }
+}

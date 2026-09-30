@@ -1,0 +1,33 @@
+{
+  "achievements": [
+    { "id": "first-steps", "name": "First Steps", "emoji": "👣", "desc": "Finish your first level.", "gems": 1, "condition": { "type": "levels", "count": 1 } },
+    { "id": "levels-5", "name": "Explorer", "emoji": "🧭", "desc": "Finish 5 levels.", "gems": 1, "condition": { "type": "levels", "count": 5 } },
+    { "id": "levels-10", "name": "Trailblazer", "emoji": "🥾", "desc": "Finish 10 levels.", "gems": 2, "condition": { "type": "levels", "count": 10 } },
+    { "id": "levels-25", "name": "Globetrotter", "emoji": "🌍", "desc": "Finish 25 levels.", "gems": 3, "condition": { "type": "levels", "count": 25 } },
+    { "id": "levels-50", "name": "Legend of the Island", "emoji": "🏆", "desc": "Finish all 50 levels.", "gems": 5, "condition": { "type": "levels", "count": 50 } },
+    { "id": "stars-10", "name": "Star Catcher", "emoji": "⭐", "desc": "Collect 10 stars.", "gems": 1, "condition": { "type": "stars", "count": 10 } },
+    { "id": "stars-40", "name": "Shining Bright", "emoji": "🌟", "desc": "Collect 40 stars.", "gems": 2, "condition": { "type": "stars", "count": 40 } },
+    { "id": "stars-100", "name": "Superstar", "emoji": "💫", "desc": "Collect 100 stars.", "gems": 3, "condition": { "type": "stars", "count": 100 } },
+    { "id": "stars-150", "name": "Galaxy of Stars", "emoji": "🌌", "desc": "Collect all 150 stars.", "gems": 5, "condition": { "type": "stars", "count": 150 } },
+    { "id": "world-beach", "name": "Beach Buddy", "emoji": "🏖️", "desc": "Complete Pirate Beach.", "gems": 1, "condition": { "type": "world", "world": "beach" } },
+    { "id": "world-jungle", "name": "Jungle Friend", "emoji": "🌿", "desc": "Complete Mystery Jungle.", "gems": 1, "condition": { "type": "world", "world": "jungle" } },
+    { "id": "world-cave", "name": "Crystal Keeper", "emoji": "💎", "desc": "Complete Crystal Cave.", "gems": 1, "condition": { "type": "world", "world": "cave" } },
+    { "id": "world-temple", "name": "Temple Guardian", "emoji": "🏛️", "desc": "Complete the Ancient Temple.", "gems": 1, "condition": { "type": "world", "world": "temple" } },
+    { "id": "world-island", "name": "Treasure Finder", "emoji": "💰", "desc": "Find the treasure on Treasure Island!", "gems": 3, "condition": { "type": "world", "world": "island" } },
+    { "id": "map-complete", "name": "Map Master", "emoji": "🗺️", "desc": "Collect all four map pieces.", "gems": 2, "condition": { "type": "mapPieces", "count": 4 } },
+    { "id": "perfect-1", "name": "Perfect!", "emoji": "✨", "desc": "Finish a level with no mistakes and no hints.", "gems": 1, "condition": { "type": "perfect", "count": 1 } },
+    { "id": "perfect-10", "name": "Sharp Mind", "emoji": "🧠", "desc": "Finish 10 perfect levels.", "gems": 2, "condition": { "type": "perfect", "count": 10 } },
+    { "id": "nohint-10", "name": "I Can Do It!", "emoji": "💪", "desc": "Finish 10 levels without hints.", "gems": 1, "condition": { "type": "noHint", "count": 10 } },
+    { "id": "coins-200", "name": "Coin Collector", "emoji": "🪙", "desc": "Earn 200 coins.", "gems": 1, "condition": { "type": "coinsEarned", "count": 200 } },
+    { "id": "coins-1000", "name": "Treasure Hoarder", "emoji": "💰", "desc": "Earn 1000 coins.", "gems": 3, "condition": { "type": "coinsEarned", "count": 1000 } },
+    { "id": "shop-1", "name": "Camp Decorator", "emoji": "⛺", "desc": "Get your first Camp item.", "gems": 1, "condition": { "type": "itemsBought", "count": 1 } },
+    { "id": "shop-10", "name": "Style Star", "emoji": "🎩", "desc": "Collect 10 Camp items.", "gems": 2, "condition": { "type": "itemsBought", "count": 10 } },
+    { "id": "words-3", "name": "Word Wizard", "emoji": "🔤", "desc": "Finish 3 Word Builder levels.", "gems": 1, "condition": { "type": "engine", "engine": "word-builder", "count": 3 } },
+    { "id": "memory-5", "name": "Memory Master", "emoji": "🔮", "desc": "Finish 5 Memory levels.", "gems": 1, "condition": { "type": "engine", "engine": "memory-sequence", "count": 5 } },
+    { "id": "maze-5", "name": "Pathfinder", "emoji": "🧭", "desc": "Finish 5 Maze or Compass levels.", "gems": 1, "condition": { "type": "engine", "engine": "maze-path", "count": 5 } },
+    { "id": "science-4", "name": "Young Scientist", "emoji": "🔬", "desc": "Finish 4 Science levels.", "gems": 1, "condition": { "type": "engine", "engine": "science-choice", "count": 4 } },
+    { "id": "replay-5", "name": "Practice Makes Perfect", "emoji": "🔁", "desc": "Replay levels 5 times.", "gems": 1, "condition": { "type": "replays", "count": 5 } },
+    { "id": "beach-3star", "name": "Beach Champion", "emoji": "🥇", "desc": "Get 3 stars on every Pirate Beach level.", "gems": 2, "condition": { "type": "threeStarWorld", "world": "beach" } },
+    { "id": "time-30", "name": "Adventurer at Heart", "emoji": "⏳", "desc": "Play for 30 minutes in total.", "gems": 1, "condition": { "type": "playMinutes", "count": 30 } }
+  ]
+}
