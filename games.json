@@ -3,19 +3,6 @@
  "count": 11,
  "games": [
   {
-   "slug": "Mdsadee527",
-   "title": "Racing Mania",
-   "maker": "Mohammad Sadee",
-   "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
-   "category": "arcade",
-   "url": "play/Mdsadee527/",
-   "thumb": "games/Mdsadee527/thumbnail.svg",
-   "added": "2026-09-29",
-   "github": "Mdsadee527",
-   "kind": "family",
-   "soon": false
-  },
-  {
    "slug": "im-mohua-liza",
    "title": "Magic Shot",
    "maker": "Mohua Liza",
@@ -23,7 +10,7 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-09-29",
+   "added": "2026-09-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -36,7 +23,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-09-29",
+   "added": "2026-09-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -49,7 +36,7 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-09-29",
+   "added": "2026-09-30",
    "github": "shoaibul0926",
    "kind": "family",
    "soon": false
@@ -62,8 +49,21 @@
    "category": "puzzle",
    "url": "play/sumaiyahsultana821-sys/",
    "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
-   "added": "2026-09-29",
+   "added": "2026-09-30",
    "github": "sumaiyahsultana821-sys",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "Mdsadee527",
+   "title": "Racing Mania",
+   "maker": "Mohammad Sadee",
+   "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
+   "category": "arcade",
+   "url": "play/Mdsadee527/",
+   "thumb": "games/Mdsadee527/thumbnail.svg",
+   "added": "2026-09-29",
+   "github": "Mdsadee527",
    "kind": "family",
    "soon": false
   },
@@ -88,7 +88,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-09-29",
+   "added": "2026-09-30",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
