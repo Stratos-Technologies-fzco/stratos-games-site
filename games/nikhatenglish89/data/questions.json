@@ -1,0 +1,430 @@
+{
+  "themes": {
+    "beach": { "symbols": ["🐚", "🦀", "⭐", "🌴", "⚓", "🪙", "🐠", "🥥", "🐢", "⛵"] },
+    "jungle": { "symbols": ["🐒", "🍌", "🦋", "🌺", "🐸", "🍃", "🦜", "🐘", "🍍", "🌿"] },
+    "cave": { "symbols": ["💎", "🔮", "🦇", "🍄", "🕯️", "🪨", "⛏️", "🌟", "💠", "🔦"] },
+    "temple": { "symbols": ["🏺", "🗿", "📜", "🪔", "🔱", "👑", "🧭", "🗝️", "🌞", "🥁"] },
+    "island": {
+      "symbols": ["🏝️", "🗺️", "🧭", "🪙", "💰", "⛵", "🌋", "🐚", "🦜", "🗝️"],
+      "landmarks": ["💰", "🗝️", "📦", "👑", "💎"],
+      "mapLandmarks": [
+        { "name": "palm", "label": "Palm Tree", "emoji": "🌴" },
+        { "name": "hut", "label": "Hut", "emoji": "🛖" },
+        { "name": "volcano", "label": "Volcano", "emoji": "🌋" },
+        { "name": "boat", "label": "Boat", "emoji": "⛵" },
+        { "name": "tent", "label": "Tent", "emoji": "⛺" },
+        { "name": "castle", "label": "Castle", "emoji": "🏰" },
+        { "name": "tree", "label": "Big Tree", "emoji": "🌳" },
+        { "name": "rock", "label": "Rock", "emoji": "🪨" },
+        { "name": "fountain", "label": "Fountain", "emoji": "⛲" },
+        { "name": "mountain", "label": "Mountain", "emoji": "⛰️" }
+      ]
+    }
+  },
+
+  "wordLists": {
+    "jungle-0": [
+      { "w": "CAT", "e": "🐱", "c": "A pet that says meow." },
+      { "w": "DOG", "e": "🐶", "c": "A pet that says woof." },
+      { "w": "SUN", "e": "☀️", "c": "It shines in the sky." },
+      { "w": "BUG", "e": "🐞", "c": "A tiny creature with legs." },
+      { "w": "LEAF", "e": "🍃", "c": "It grows on a tree." },
+      { "w": "FROG", "e": "🐸", "c": "It jumps and says ribbit." },
+      { "w": "TREE", "e": "🌳", "c": "Tall and green with a trunk." },
+      { "w": "NUT", "e": "🌰", "c": "Squirrels love to eat it." },
+      { "w": "BEE", "e": "🐝", "c": "It makes honey." },
+      { "w": "EGG", "e": "🥚", "c": "A baby bird hatches from it." },
+      { "w": "ANT", "e": "🐜", "c": "A very small insect." },
+      { "w": "HAT", "e": "👒", "c": "You wear it on your head." }
+    ],
+    "jungle-1": [
+      { "w": "MONKEY", "e": "🐒", "c": "It swings from tree to tree." },
+      { "w": "BANANA", "e": "🍌", "c": "A long yellow fruit." },
+      { "w": "RIVER", "e": "🏞️", "c": "Water that flows to the sea." },
+      { "w": "PARROT", "e": "🦜", "c": "A colourful bird that can talk." },
+      { "w": "FLOWER", "e": "🌺", "c": "A pretty part of a plant." },
+      { "w": "TIGER", "e": "🐯", "c": "A big cat with stripes." },
+      { "w": "SNAIL", "e": "🐌", "c": "It carries its shell on its back." },
+      { "w": "FOREST", "e": "🌲", "c": "A place with many trees." },
+      { "w": "ZEBRA", "e": "🦓", "c": "A horse-like animal with stripes." },
+      { "w": "PLANT", "e": "🌱", "c": "It grows from a seed." },
+      { "w": "GARDEN", "e": "🏡", "c": "Where flowers and vegetables grow." },
+      { "w": "SPIDER", "e": "🕷️", "c": "It has eight legs and spins a web." }
+    ],
+    "jungle-2": [
+      { "w": "ELEPHANT", "e": "🐘", "c": "The largest land animal, with a trunk." },
+      { "w": "BUTTERFLY", "e": "🦋", "c": "An insect that was once a caterpillar." },
+      { "w": "WATERFALL", "e": "💦", "c": "A river dropping over a cliff." },
+      { "w": "RAINFOREST", "e": "🌧️", "c": "A thick, wet forest near the equator." },
+      { "w": "CHAMELEON", "e": "🦎", "c": "A lizard that can change colour." },
+      { "w": "ADVENTURE", "e": "🧭", "c": "An exciting journey." },
+      { "w": "HABITAT", "e": "🏞️", "c": "The natural home of an animal." },
+      { "w": "SQUIRREL", "e": "🐿️", "c": "A furry animal with a bushy tail." },
+      { "w": "PINEAPPLE", "e": "🍍", "c": "A spiky tropical fruit." },
+      { "w": "MUSHROOM", "e": "🍄", "c": "A fungus that grows on the forest floor." },
+      { "w": "GORILLA", "e": "🦍", "c": "The biggest ape." },
+      { "w": "OSTRICH", "e": "🐦", "c": "A large bird that cannot fly." }
+    ],
+    "animals-0": [
+      { "w": "PIG", "e": "🐷", "c": "A pink farm animal." },
+      { "w": "COW", "e": "🐮", "c": "It gives us milk." },
+      { "w": "FISH", "e": "🐟", "c": "It swims in water." },
+      { "w": "DUCK", "e": "🦆", "c": "It says quack." },
+      { "w": "BAT", "e": "🦇", "c": "It flies at night." },
+      { "w": "OWL", "e": "🦉", "c": "A bird that hoots at night." },
+      { "w": "HEN", "e": "🐔", "c": "A bird that lays eggs on a farm." },
+      { "w": "FOX", "e": "🦊", "c": "An orange animal with a bushy tail." },
+      { "w": "BEAR", "e": "🐻", "c": "A big furry animal that loves honey." },
+      { "w": "LION", "e": "🦁", "c": "The king of the jungle." }
+    ],
+    "animals-1": [
+      { "w": "TURTLE", "e": "🐢", "c": "It has a hard shell and swims." },
+      { "w": "RABBIT", "e": "🐰", "c": "It has long ears and hops." },
+      { "w": "GIRAFFE", "e": "🦒", "c": "The tallest animal." },
+      { "w": "PANDA", "e": "🐼", "c": "A black-and-white bear that eats bamboo." },
+      { "w": "CAMEL", "e": "🐫", "c": "It has a hump and lives in the desert." },
+      { "w": "KOALA", "e": "🐨", "c": "It sleeps in eucalyptus trees." },
+      { "w": "SHEEP", "e": "🐑", "c": "Its wool keeps us warm." },
+      { "w": "HORSE", "e": "🐴", "c": "You can ride it." },
+      { "w": "WHALE", "e": "🐳", "c": "A huge animal that lives in the sea." },
+      { "w": "EAGLE", "e": "🦅", "c": "A strong bird with sharp eyes." }
+    ],
+    "animals-2": [
+      { "w": "KANGAROO", "e": "🦘", "c": "It carries its baby in a pouch." },
+      { "w": "DOLPHIN", "e": "🐬", "c": "A clever sea mammal that clicks and whistles." },
+      { "w": "PENGUIN", "e": "🐧", "c": "A bird that swims but cannot fly." },
+      { "w": "OCTOPUS", "e": "🐙", "c": "A sea animal with eight arms." },
+      { "w": "LEOPARD", "e": "🐆", "c": "A spotted big cat that climbs trees." },
+      { "w": "FLAMINGO", "e": "🦩", "c": "A pink bird that stands on one leg." },
+      { "w": "PEACOCK", "e": "🦚", "c": "A bird with a beautiful fan of feathers." },
+      { "w": "TORTOISE", "e": "🐢", "c": "A slow land reptile with a shell." },
+      { "w": "CROCODILE", "e": "🐊", "c": "A large reptile that lives in rivers." },
+      { "w": "HEDGEHOG", "e": "🦔", "c": "A small animal covered in spines." }
+    ],
+    "spelling-0": [
+      { "w": "RED", "e": "🔴", "c": "The colour of a ripe tomato." },
+      { "w": "BLUE", "e": "🔵", "c": "The colour of the sky." },
+      { "w": "STAR", "e": "⭐", "c": "It twinkles at night." },
+      { "w": "MOON", "e": "🌙", "c": "It shines at night." },
+      { "w": "RAIN", "e": "🌧️", "c": "Water falling from clouds." },
+      { "w": "SHIP", "e": "🚢", "c": "A big boat." },
+      { "w": "BOOK", "e": "📖", "c": "You read it." },
+      { "w": "CAKE", "e": "🎂", "c": "A sweet treat for birthdays." },
+      { "w": "BALL", "e": "⚽", "c": "You kick or throw it." },
+      { "w": "KITE", "e": "🪁", "c": "It flies in the wind on a string." }
+    ],
+    "spelling-1": [
+      { "w": "BRIDGE", "e": "🌉", "c": "It helps you cross a river." },
+      { "w": "CASTLE", "e": "🏰", "c": "A big old building with towers." },
+      { "w": "ROCKET", "e": "🚀", "c": "It flies into space." },
+      { "w": "PENCIL", "e": "✏️", "c": "You write with it." },
+      { "w": "CLOUD", "e": "☁️", "c": "White and fluffy in the sky." },
+      { "w": "SCHOOL", "e": "🏫", "c": "Where you go to learn." },
+      { "w": "FRIEND", "e": "🤝", "c": "Someone you like to play with." },
+      { "w": "WINTER", "e": "❄️", "c": "The coldest season." },
+      { "w": "LADDER", "e": "🪜", "c": "You climb it to reach high places." },
+      { "w": "TRAIN", "e": "🚆", "c": "It runs on tracks." }
+    ],
+    "spelling-2": [
+      { "w": "KNOWLEDGE", "e": "📚", "c": "What you learn and understand." },
+      { "w": "NECESSARY", "e": "✅", "c": "Something that is needed." },
+      { "w": "BEAUTIFUL", "e": "🌸", "c": "Very pretty or lovely." },
+      { "w": "DIFFERENT", "e": "🔀", "c": "Not the same." },
+      { "w": "SEPARATE", "e": "✂️", "c": "To keep things apart." },
+      { "w": "TOMORROW", "e": "📅", "c": "The day after today." },
+      { "w": "SURPRISE", "e": "🎁", "c": "Something you did not expect." },
+      { "w": "FAVOURITE", "e": "💖", "c": "The one you like best." },
+      { "w": "DISCOVER", "e": "🔍", "c": "To find something for the first time." },
+      { "w": "MYSTERY", "e": "❓", "c": "Something strange that is hard to explain." }
+    ],
+    "island-0": [
+      { "w": "MAP", "e": "🗺️", "c": "It shows you where to go." },
+      { "w": "SEA", "e": "🌊", "c": "Lots of salty water." },
+      { "w": "BOAT", "e": "⛵", "c": "It floats on water." },
+      { "w": "SAND", "e": "🏖️", "c": "Tiny grains on the beach." },
+      { "w": "GOLD", "e": "🪙", "c": "A shiny yellow treasure." },
+      { "w": "KEY", "e": "🗝️", "c": "It opens a lock." },
+      { "w": "HILL", "e": "⛰️", "c": "A small mountain." },
+      { "w": "WAVE", "e": "🌊", "c": "Water rolling onto the beach." },
+      { "w": "NEST", "e": "🪺", "c": "A bird's home." },
+      { "w": "CHEST", "e": "🧰", "c": "A box that holds treasure." }
+    ],
+    "island-1": [
+      { "w": "ISLAND", "e": "🏝️", "c": "Land with water all around it." },
+      { "w": "COMPASS", "e": "🧭", "c": "It shows north, south, east and west." },
+      { "w": "OCEAN", "e": "🌊", "c": "A huge body of salt water." },
+      { "w": "VOLCANO", "e": "🌋", "c": "A mountain that can erupt." },
+      { "w": "DESERT", "e": "🏜️", "c": "A very dry, sandy place." },
+      { "w": "NORTH", "e": "⬆️", "c": "The direction at the top of a map." },
+      { "w": "SOUTH", "e": "⬇️", "c": "The opposite of north." },
+      { "w": "COAST", "e": "🏖️", "c": "Where the land meets the sea." },
+      { "w": "VALLEY", "e": "🏞️", "c": "Low land between hills." },
+      { "w": "PIRATE", "e": "🏴‍☠️", "c": "A sailor who hunts for treasure." }
+    ],
+    "island-2": [
+      { "w": "CONTINENT", "e": "🌍", "c": "One of the seven very large areas of land." },
+      { "w": "PENINSULA", "e": "🗺️", "c": "Land almost surrounded by water." },
+      { "w": "EQUATOR", "e": "🌐", "c": "An imaginary line around the middle of the Earth." },
+      { "w": "LATITUDE", "e": "📏", "c": "Lines that measure distance north or south." },
+      { "w": "GLACIER", "e": "🧊", "c": "A slow-moving river of ice." },
+      { "w": "ARCHIPELAGO", "e": "🏝️", "c": "A group of islands." },
+      { "w": "HEMISPHERE", "e": "🌎", "c": "Half of the Earth." },
+      { "w": "PLATEAU", "e": "⛰️", "c": "A high, flat area of land." },
+      { "w": "NAVIGATOR", "e": "🧭", "c": "A person who finds the way on a journey." },
+      { "w": "LAGOON", "e": "🏝️", "c": "A calm pool of sea water behind a reef." }
+    ]
+  },
+
+  "huntSets": {
+    "shells": { "label": "shells", "targets": ["🐚"], "distractors": ["🪨", "🦀", "🌿", "🥥"], "scene": "beach" },
+    "starfish": { "label": "starfish", "targets": ["⭐"], "distractors": ["🐚", "🦀", "🐠", "🪨"], "scene": "beach" },
+    "coins": { "label": "gold coins", "targets": ["🪙"], "distractors": ["🍪", "🟡", "🌕", "🐚"], "scene": "beach" },
+    "crabs": { "label": "crabs", "targets": ["🦀"], "distractors": ["🦞", "🐚", "🐙", "🦐"], "scene": "beach" },
+    "beach-mixed": { "label": "things from the sea", "targets": ["🐠", "🐙", "🐚", "🦀"], "distractors": ["🥥", "🌴", "🪁", "⛱️"], "scene": "beach" },
+    "monkeys": { "label": "monkeys", "targets": ["🐒"], "distractors": ["🦍", "🐻", "🦥", "🐿️"], "scene": "jungle" },
+    "bananas": { "label": "bananas", "targets": ["🍌"], "distractors": ["🌽", "🍋", "🥒", "🍐"], "scene": "jungle" },
+    "butterflies": { "label": "butterflies", "targets": ["🦋"], "distractors": ["🐝", "🐞", "🌸", "🍃"], "scene": "jungle" },
+    "fly": { "label": "things that can fly", "targets": ["🦋", "🐦", "🦅", "🐝"], "distractors": ["🐟", "🐢", "🐸", "🐘"], "scene": "jungle" },
+    "fruit": { "label": "fruits", "targets": ["🍎", "🍌", "🍇", "🍍"], "distractors": ["🥕", "🥦", "🌽", "🧅"], "scene": "jungle" },
+    "insects": { "label": "insects (6 legs)", "targets": ["🐞", "🐝", "🦋", "🐜"], "distractors": ["🕷️", "🐌", "🐸", "🪱"], "scene": "jungle" },
+    "mammals": { "label": "mammals", "targets": ["🐒", "🐘", "🐯", "🦇"], "distractors": ["🐊", "🐢", "🐸", "🐦"], "scene": "jungle" },
+    "gems": { "label": "blue gems", "targets": ["💎"], "distractors": ["🔮", "🪨", "🍄", "🧊"], "scene": "cave" },
+    "bats": { "label": "bats", "targets": ["🦇"], "distractors": ["🐦", "🦉", "🕊️", "🪰"], "scene": "cave" },
+    "cave-light": { "label": "things that give light", "targets": ["🕯️", "🔦", "💡", "🪔"], "distractors": ["💎", "🪨", "🍄", "⛏️"], "scene": "cave" },
+    "solids": { "label": "shapes with corners", "targets": ["🟥", "🔺", "🔷", "⬛"], "distractors": ["🔴", "⚪", "🟣", "🟠"], "scene": "cave" },
+    "sea-life": { "label": "ocean animals", "targets": ["🐠", "🐙", "🐳", "🐬"], "distractors": ["🐒", "🐘", "🦋", "🐿️"], "scene": "beach" }
+  },
+
+  "scienceBanks": {
+    "nature-0": [
+      { "q": "Which one is a living thing?", "o": ["Tree", "Rock", "Chair", "Cup"], "a": 0, "e": "🌳", "h": "Living things grow and need food and water." },
+      { "q": "What do plants need to grow?", "o": ["Water and sunlight", "Sweets", "Toys", "Shoes"], "a": 0, "e": "🌱", "h": "Think of what you give a plant in a pot." },
+      { "q": "Which animal lays eggs?", "o": ["Hen", "Cow", "Dog", "Cat"], "a": 0, "e": "🥚", "h": "It is a bird that lives on a farm." },
+      { "q": "Where does a fish live?", "o": ["In water", "In a tree", "In the sky", "In sand"], "a": 0, "e": "🐟", "h": "Fish swim." },
+      { "q": "Which animal can fly?", "o": ["Bird", "Fish", "Cow", "Snail"], "a": 0, "e": "🪶", "h": "It has wings and feathers." },
+      { "q": "What does a caterpillar become?", "o": ["Butterfly", "Frog", "Bird", "Bee"], "a": 0, "e": "🐛", "h": "It has colourful wings." },
+      { "q": "Which is the baby of a frog?", "o": ["Tadpole", "Puppy", "Chick", "Kitten"], "a": 0, "e": "🐸", "h": "It swims with a little tail." },
+      { "q": "Which part of the plant is under the ground?", "o": ["Root", "Flower", "Leaf", "Fruit"], "a": 0, "e": "🌿", "h": "It drinks water from the soil." },
+      { "q": "Put the plant's growth in order.", "type": "order", "items": ["Seed", "Sprout", "Plant", "Flower"], "h": "Everything starts with a tiny seed." }
+    ],
+    "nature-1": [
+      { "q": "What do plants make in their leaves using sunlight?", "o": ["Food", "Rocks", "Salt", "Plastic"], "a": 0, "e": "🍃", "h": "Plants make their own food." },
+      { "q": "Which animal is a mammal?", "o": ["Whale", "Shark", "Eagle", "Frog"], "a": 0, "e": "🐳", "h": "Mammals feed their babies milk." },
+      { "q": "Which animal is a herbivore (eats only plants)?", "o": ["Rabbit", "Lion", "Shark", "Eagle"], "a": 0, "e": "🥕", "h": "It loves carrots and grass." },
+      { "q": "How many legs does an insect have?", "o": ["6", "4", "8", "10"], "a": 0, "e": "🐜", "h": "Spiders have 8, insects have fewer." },
+      { "q": "What gas do we breathe in to live?", "o": ["Oxygen", "Smoke", "Helium", "Steam"], "a": 0, "e": "🫁", "h": "Plants give it out." },
+      { "q": "Which of these is a reptile?", "o": ["Lizard", "Frog", "Dolphin", "Parrot"], "a": 0, "e": "🦎", "h": "It has dry, scaly skin." },
+      { "q": "Where do bees make honey?", "o": ["In a hive", "In a nest of sticks", "Under water", "In a burrow"], "a": 0, "e": "🐝", "h": "It is full of wax cells." },
+      { "q": "What helps a fish breathe under water?", "o": ["Gills", "Lungs", "Feathers", "Fins"], "a": 0, "e": "🐠", "h": "They are on the sides of its head." },
+      { "q": "Put the butterfly's life cycle in order.", "type": "order", "items": ["Egg", "Caterpillar", "Chrysalis", "Butterfly"], "h": "It starts as a tiny egg on a leaf." },
+      { "q": "Put the frog's life cycle in order.", "type": "order", "items": ["Egg", "Tadpole", "Froglet", "Frog"], "h": "Frogspawn comes first." }
+    ],
+    "nature-2": [
+      { "q": "What is the process plants use to make food from sunlight called?", "o": ["Photosynthesis", "Evaporation", "Digestion", "Pollination"], "a": 0, "e": "🌞", "h": "'Photo' means light." },
+      { "q": "Which gas do plants take in from the air?", "o": ["Carbon dioxide", "Oxygen", "Nitrogen only", "Hydrogen"], "a": 0, "e": "🌳", "h": "It is the gas we breathe out." },
+      { "q": "A bat is a...", "o": ["Mammal", "Bird", "Insect", "Reptile"], "a": 0, "e": "🦇", "h": "It feeds its babies milk." },
+      { "q": "What do we call an animal that eats both plants and meat?", "o": ["Omnivore", "Herbivore", "Carnivore", "Insectivore"], "a": 0, "e": "🐻", "h": "'Omni' means all." },
+      { "q": "Which part of a flower makes seeds after pollination?", "o": ["Ovary", "Petal", "Stem", "Root"], "a": 0, "e": "🌸", "h": "It is at the base of the flower's centre." },
+      { "q": "In a food chain, what is usually at the start?", "o": ["A plant", "A lion", "An eagle", "A shark"], "a": 0, "e": "🔗", "h": "It makes its own food from sunlight." },
+      { "q": "What do we call animals that are active at night?", "o": ["Nocturnal", "Diurnal", "Aquatic", "Migratory"], "a": 0, "e": "🦉", "h": "Owls are a good example." },
+      { "q": "Which of these helps pollinate flowers?", "o": ["Bees", "Worms", "Fish", "Snails"], "a": 0, "e": "🐝", "h": "They carry pollen from flower to flower." },
+      { "q": "Order this food chain from start to top.", "type": "order", "items": ["Grass", "Grasshopper", "Frog", "Snake", "Eagle"], "h": "Start with the plant that makes its own food." },
+      { "q": "Order from smallest to largest.", "type": "order", "items": ["Cell", "Tissue", "Organ", "Body"], "h": "Tiny cells join to make tissue." }
+    ],
+    "space-0": [
+      { "q": "What gives us light in the day?", "o": ["The Sun", "The Moon", "A lamp", "A star fish"], "a": 0, "e": "☀️", "h": "It is big, bright and hot." },
+      { "q": "We live on planet...", "o": ["Earth", "Mars", "Moon", "Sun"], "a": 0, "e": "🌍", "h": "It has lots of water and land." },
+      { "q": "What can we see in the sky at night?", "o": ["Moon and stars", "Rainbows only", "The Sun", "Clouds only"], "a": 0, "e": "🌙", "h": "They twinkle and shine in the dark." },
+      { "q": "Which one goes to space?", "o": ["Rocket", "Bus", "Bicycle", "Boat"], "a": 0, "e": "🚀", "h": "It blasts off with fire." },
+      { "q": "What shape is the Earth?", "o": ["Round like a ball", "Flat like paper", "Square", "Like a star"], "a": 0, "e": "🌐", "h": "Think of a globe." },
+      { "q": "Put the Earth in the right place: what goes around the Sun?", "o": ["The Earth", "The Sun goes around a tree", "A car", "A cloud"], "a": 0, "e": "🌞", "h": "Our planet travels around the Sun once a year." },
+      { "q": "Put these in order from nearest to the Sun.", "type": "order", "items": ["Sun", "Earth", "Moon"], "h": "The Moon goes around the Earth." },
+      { "q": "Put day in order.", "type": "order", "items": ["Morning", "Afternoon", "Evening", "Night"], "h": "The day starts when the Sun rises." }
+    ],
+    "space-1": [
+      { "q": "How long does the Earth take to go around the Sun?", "o": ["One year", "One day", "One week", "One hour"], "a": 0, "e": "🌍", "h": "Think of how often your birthday comes." },
+      { "q": "Why do we have day and night?", "o": ["The Earth spins", "The Sun switches off", "Clouds cover the Sun", "The Moon hides the Sun"], "a": 0, "e": "🌗", "h": "The Earth turns like a top." },
+      { "q": "Which planet is called the Red Planet?", "o": ["Mars", "Venus", "Jupiter", "Neptune"], "a": 0, "e": "🔴", "h": "It is the fourth planet from the Sun." },
+      { "q": "Which is the biggest planet?", "o": ["Jupiter", "Earth", "Mars", "Mercury"], "a": 0, "e": "🪐", "h": "It has a Great Red Spot." },
+      { "q": "The Moon goes around the...", "o": ["Earth", "Sun directly", "Mars", "Stars"], "a": 0, "e": "🌙", "h": "It is our planet's companion." },
+      { "q": "What is the Sun?", "o": ["A star", "A planet", "A moon", "A comet"], "a": 0, "e": "☀️", "h": "It makes its own light." },
+      { "q": "Put the first four planets in order from the Sun.", "type": "order", "items": ["Mercury", "Venus", "Earth", "Mars"], "h": "Mercury is closest to the Sun." },
+      { "q": "Put the Moon's phases in order starting at New Moon.", "type": "order", "items": ["New Moon", "Half Moon", "Full Moon"], "h": "It grows from dark to fully lit." }
+    ],
+    "space-2": [
+      { "q": "What force keeps the planets moving around the Sun?", "o": ["Gravity", "Magnetism", "Friction", "Wind"], "a": 0, "e": "🧲", "h": "It also makes things fall to the ground." },
+      { "q": "Which planet has the most famous rings?", "o": ["Saturn", "Mars", "Venus", "Mercury"], "a": 0, "e": "🪐", "h": "It is the sixth planet." },
+      { "q": "Why do we have seasons?", "o": ["The Earth is tilted", "The Sun moves closer and further every week", "The Moon blocks sunlight", "Clouds change"], "a": 0, "e": "🍂", "h": "The Earth leans on its axis." },
+      { "q": "How long does light from the Sun take to reach Earth (about)?", "o": ["8 minutes", "8 seconds", "8 hours", "8 days"], "a": 0, "e": "💡", "h": "It is a few minutes." },
+      { "q": "Which is the hottest planet?", "o": ["Venus", "Mercury", "Mars", "Jupiter"], "a": 0, "e": "🔥", "h": "Its thick clouds trap heat, even though it is second from the Sun." },
+      { "q": "What causes a solar eclipse?", "o": ["The Moon passes between the Sun and Earth", "The Earth stops spinning", "The Sun goes out", "Mars blocks the Sun"], "a": 0, "e": "🌑", "h": "Something moves in front of the Sun." },
+      { "q": "Put all eight planets in order from the Sun.", "type": "order", "items": ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"], "h": "My Very Easy Method Just Speeds Up Naming." },
+      { "q": "Order from smallest to largest.", "type": "order", "items": ["Moon", "Earth", "Jupiter", "Sun"], "h": "The Sun is the biggest of all." }
+    ],
+    "water-0": [
+      { "q": "What falls from clouds?", "o": ["Rain", "Sand", "Leaves", "Stones"], "a": 0, "e": "🌧️", "h": "You need an umbrella for it." },
+      { "q": "What happens to ice when it gets warm?", "o": ["It melts", "It grows", "It burns", "It flies"], "a": 0, "e": "🧊", "h": "It turns into water." },
+      { "q": "What do you wear on a cold, snowy day?", "o": ["A warm coat", "Swimsuit", "Sandals only", "Sunglasses only"], "a": 0, "e": "❄️", "h": "Keep warm!" },
+      { "q": "What do we see after rain when the Sun comes out?", "o": ["A rainbow", "A snowman", "The Moon", "Fog"], "a": 0, "e": "🌈", "h": "It has many colours." },
+      { "q": "Which one floats on water?", "o": ["A leaf", "A stone", "A coin", "A key"], "a": 0, "e": "🍃", "h": "It is very light." },
+      { "q": "Water turns into ice when it is...", "o": ["Very cold", "Very hot", "Windy", "Sunny"], "a": 0, "e": "🥶", "h": "Think of the freezer." },
+      { "q": "Put these in order from coldest to hottest.", "type": "order", "items": ["Ice", "Water", "Steam"], "h": "Ice is frozen." },
+      { "q": "Which weather has strong wind?", "o": ["Storm", "Sunny day", "Calm day", "Fog"], "a": 0, "e": "🌪️", "h": "Trees shake and bend." }
+    ],
+    "water-1": [
+      { "q": "What do we call water turning into vapour?", "o": ["Evaporation", "Freezing", "Melting", "Raining"], "a": 0, "e": "♨️", "h": "Puddles disappear on sunny days." },
+      { "q": "Clouds are made of...", "o": ["Tiny water droplets", "Cotton", "Smoke only", "Sand"], "a": 0, "e": "☁️", "h": "When they get heavy it rains." },
+      { "q": "At what temperature does water freeze?", "o": ["0 °C", "10 °C", "50 °C", "100 °C"], "a": 0, "e": "🌡️", "h": "It is zero on the Celsius scale." },
+      { "q": "At what temperature does water boil?", "o": ["100 °C", "0 °C", "37 °C", "60 °C"], "a": 0, "e": "🫖", "h": "It is a hundred on the Celsius scale." },
+      { "q": "Which of these is a liquid?", "o": ["Milk", "Wood", "Air", "Ice"], "a": 0, "e": "🥛", "h": "It can be poured." },
+      { "q": "Which is a solid?", "o": ["Stone", "Juice", "Steam", "Water"], "a": 0, "e": "🪨", "h": "It keeps its own shape." },
+      { "q": "Put the water cycle in order.", "type": "order", "items": ["Evaporation", "Condensation", "Rain", "Collection"], "h": "The Sun warms the water first." },
+      { "q": "What is the main source of energy for the water cycle?", "o": ["The Sun", "The Moon", "Wind", "Fish"], "a": 0, "e": "☀️", "h": "It heats the oceans." }
+    ],
+    "water-2": [
+      { "q": "What do we call water vapour turning back into liquid?", "o": ["Condensation", "Evaporation", "Sublimation", "Filtration"], "a": 0, "e": "💧", "h": "Think of drops on a cold glass." },
+      { "q": "Which state of matter has particles that are far apart and move freely?", "o": ["Gas", "Solid", "Liquid", "Crystal"], "a": 0, "e": "🎈", "h": "It fills any container." },
+      { "q": "Rain, snow, sleet and hail are all kinds of...", "o": ["Precipitation", "Evaporation", "Condensation", "Transpiration"], "a": 0, "e": "🌨️", "h": "Water falling from clouds." },
+      { "q": "Water given out by plant leaves is called...", "o": ["Transpiration", "Photosynthesis", "Respiration", "Erosion"], "a": 0, "e": "🌿", "h": "It is like plants sweating." },
+      { "q": "About how much of the Earth's surface is covered by water?", "o": ["About 70%", "About 10%", "About 30%", "About 95%"], "a": 0, "e": "🌊", "h": "It is more than two thirds." },
+      { "q": "Which process can separate sand from water?", "o": ["Filtering", "Freezing", "Stirring", "Shaking"], "a": 0, "e": "🧪", "h": "Pour it through a paper or cloth." },
+      { "q": "Put the states in order as ice is heated.", "type": "order", "items": ["Solid", "Liquid", "Gas"], "h": "Ice melts, then water boils." },
+      { "q": "Most of the Earth's fresh water is stored as...", "o": ["Ice in glaciers and ice caps", "Rivers", "Rain clouds", "Puddles"], "a": 0, "e": "🧊", "h": "Think of the North and South Poles." }
+    ],
+    "body-0": [
+      { "q": "Which body part do you use to see?", "o": ["Eyes", "Ears", "Nose", "Hands"], "a": 0, "e": "👀", "h": "You open them in the morning." },
+      { "q": "Which body part do you use to hear?", "o": ["Ears", "Eyes", "Feet", "Mouth"], "a": 0, "e": "👂", "h": "They are on the sides of your head." },
+      { "q": "Which food is healthy?", "o": ["Apple", "Candy", "Chips", "Soda"], "a": 0, "e": "🍎", "h": "It is a fruit." },
+      { "q": "When should you wash your hands?", "o": ["Before eating", "Never", "Only on Sundays", "After sleeping only"], "a": 0, "e": "🧼", "h": "Germs can get on your food." },
+      { "q": "What helps your teeth stay clean?", "o": ["Brushing", "Eating sweets", "Shouting", "Jumping"], "a": 0, "e": "🪥", "h": "Do it every morning and night." },
+      { "q": "What do you smell with?", "o": ["Nose", "Knee", "Elbow", "Hair"], "a": 0, "e": "👃", "h": "It is in the middle of your face." },
+      { "q": "Put these in order from baby to grown-up.", "type": "order", "items": ["Baby", "Child", "Teenager", "Adult"], "h": "Everyone starts as a baby." },
+      { "q": "What should you drink most?", "o": ["Water", "Soda", "Syrup", "Ketchup"], "a": 0, "e": "💧", "h": "It is clear and has no sugar." }
+    ],
+    "body-1": [
+      { "q": "Which organ pumps blood around the body?", "o": ["Heart", "Lungs", "Brain", "Stomach"], "a": 0, "e": "❤️", "h": "You can feel it beat." },
+      { "q": "Which organ helps you breathe?", "o": ["Lungs", "Heart", "Liver", "Skin"], "a": 0, "e": "🫁", "h": "There are two of them in your chest." },
+      { "q": "Which organ controls your body and thinking?", "o": ["Brain", "Heart", "Kidney", "Stomach"], "a": 0, "e": "🧠", "h": "It is inside your skull." },
+      { "q": "What protects your brain?", "o": ["Skull", "Ribs", "Hair only", "Knee cap"], "a": 0, "e": "💀", "h": "It is a hard bone." },
+      { "q": "Which food group helps build muscles?", "o": ["Protein", "Sugar", "Fat only", "Salt"], "a": 0, "e": "🥚", "h": "Beans, eggs and fish are full of it." },
+      { "q": "How many senses do we usually learn about?", "o": ["5", "3", "7", "10"], "a": 0, "e": "🖐️", "h": "Sight, hearing, smell, taste and…" },
+      { "q": "Put the journey of food in order.", "type": "order", "items": ["Mouth", "Food pipe", "Stomach", "Intestines"], "h": "You chew first." },
+      { "q": "Which is the largest organ of the body?", "o": ["Skin", "Heart", "Brain", "Liver"], "a": 0, "e": "🖐️", "h": "It covers you from head to toe." }
+    ],
+    "body-2": [
+      { "q": "Which blood cells fight germs?", "o": ["White blood cells", "Red blood cells", "Platelets", "Plasma"], "a": 0, "e": "🛡️", "h": "They are the body's defenders." },
+      { "q": "What do red blood cells carry?", "o": ["Oxygen", "Food only", "Sound", "Light"], "a": 0, "e": "🩸", "h": "They pick it up in the lungs." },
+      { "q": "How many bones are in an adult human body (about)?", "o": ["206", "50", "500", "1000"], "a": 0, "e": "🦴", "h": "It is just over two hundred." },
+      { "q": "Which vitamin does your skin make in sunlight?", "o": ["Vitamin D", "Vitamin C", "Vitamin A", "Vitamin K"], "a": 0, "e": "☀️", "h": "It helps keep bones strong." },
+      { "q": "Muscles work by...", "o": ["Pulling (contracting)", "Pushing only", "Melting", "Spinning"], "a": 0, "e": "💪", "h": "They get shorter to move bones." },
+      { "q": "Which organ cleans the blood and makes urine?", "o": ["Kidneys", "Lungs", "Heart", "Stomach"], "a": 0, "e": "🫘", "h": "They are shaped like beans." },
+      { "q": "Put the path of air in order when you breathe in.", "type": "order", "items": ["Nose", "Windpipe", "Lungs", "Blood"], "h": "Air enters through your nose or mouth." },
+      { "q": "Order the blood's trip, starting in the lungs.", "type": "order", "items": ["Lungs", "Left side of the heart", "Body", "Right side of the heart"], "h": "Oxygen-rich blood goes from the lungs to the left side of the heart, which pumps it to the body." }
+    ],
+    "geo-0": [
+      { "q": "On a map, which way is usually at the top?", "o": ["North", "South", "East", "West"], "a": 0, "e": "🧭", "h": "The compass needle points this way." },
+      { "q": "Where does the Sun rise?", "o": ["East", "West", "North", "South"], "a": 0, "e": "🌅", "h": "Eastern mornings!" },
+      { "q": "Where does the Sun set?", "o": ["West", "East", "North", "South"], "a": 0, "e": "🌇", "h": "It is opposite to where it rises." },
+      { "q": "What is land with water all around it?", "o": ["Island", "Mountain", "Desert", "Forest"], "a": 0, "e": "🏝️", "h": "Like Mystery Island!" },
+      { "q": "Blue on a map usually means...", "o": ["Water", "Grass", "Roads", "Sand"], "a": 0, "e": "🗺️", "h": "Seas and rivers." },
+      { "q": "What shows the directions North, South, East and West?", "o": ["A compass", "A clock", "A spoon", "A ruler"], "a": 0, "e": "🧭", "h": "Sailors and explorers carry it." },
+      { "q": "What is the opposite of North?", "o": ["South", "East", "West", "Up"], "a": 0, "e": "↕️", "h": "Look at the bottom of the compass." },
+      { "q": "Put the compass points in order, turning clockwise from North.", "type": "order", "items": ["North", "East", "South", "West"], "h": "Never Eat Soggy Waffles!" }
+    ],
+    "geo-1": [
+      { "q": "How many continents are there?", "o": ["7", "5", "3", "10"], "a": 0, "e": "🌍", "h": "Asia, Africa, Europe and more…" },
+      { "q": "Which is the largest ocean?", "o": ["Pacific", "Atlantic", "Indian", "Arctic"], "a": 0, "e": "🌊", "h": "It lies between Asia and the Americas." },
+      { "q": "Which continent is India in?", "o": ["Asia", "Africa", "Europe", "Australia"], "a": 0, "e": "🇮🇳", "h": "It is the biggest continent." },
+      { "q": "What is halfway between North and East?", "o": ["North-East", "South-West", "North-West", "South-East"], "a": 0, "e": "🧭", "h": "Put the two names together." },
+      { "q": "A map key (legend) tells you...", "o": ["What the symbols mean", "The time", "The weather", "Who drew it"], "a": 0, "e": "🔑", "h": "It explains the little pictures." },
+      { "q": "Which is the coldest continent?", "o": ["Antarctica", "Africa", "Asia", "Europe"], "a": 0, "e": "🐧", "h": "Penguins live there." },
+      { "q": "If you face North and turn right, which way are you facing?", "o": ["East", "West", "South", "North"], "a": 0, "e": "➡️", "h": "Clockwise from North." },
+      { "q": "Order from smallest to largest.", "type": "order", "items": ["Village", "Town", "City", "Country"], "h": "A village is the smallest." }
+    ],
+    "geo-2": [
+      { "q": "The imaginary line around the middle of the Earth is the...", "o": ["Equator", "Prime Meridian", "Tropic of Cancer", "Arctic Circle"], "a": 0, "e": "🌐", "h": "It divides North and South." },
+      { "q": "Lines of longitude run from...", "o": ["North Pole to South Pole", "East to West", "Only across Europe", "Around the Equator"], "a": 0, "e": "🌎", "h": "They meet at the poles." },
+      { "q": "Which is the longest river in the world (by most measures)?", "o": ["Nile", "Ganges", "Thames", "Danube"], "a": 0, "e": "🏞️", "h": "It flows through Egypt." },
+      { "q": "Which is the highest mountain above sea level?", "o": ["Mount Everest", "Kilimanjaro", "Mont Blanc", "Mount Fuji"], "a": 0, "e": "🏔️", "h": "It is in the Himalayas." },
+      { "q": "If you face West and turn 180°, which way do you face?", "o": ["East", "North", "South", "West"], "a": 0, "e": "🔄", "h": "Half a turn points you the opposite way." },
+      { "q": "If you face South and turn 90° clockwise, which way do you face?", "o": ["West", "East", "North", "South"], "a": 0, "e": "🔃", "h": "Clockwise: North, East, South, West…" },
+      { "q": "Which continent has the Sahara Desert?", "o": ["Africa", "Asia", "South America", "Australia"], "a": 0, "e": "🏜️", "h": "It is the largest hot desert." },
+      { "q": "Order these continents from largest to smallest.", "type": "order", "items": ["Asia", "Africa", "Europe", "Australia"], "h": "Asia is the biggest continent." }
+    ],
+    "wonders-0": [
+      { "q": "Which animal lives at the North Pole?", "o": ["Polar bear", "Camel", "Monkey", "Parrot"], "a": 0, "e": "🐻‍❄️", "h": "It is white and furry." },
+      { "q": "Which animal lives in the desert?", "o": ["Camel", "Penguin", "Whale", "Seal"], "a": 0, "e": "🐫", "h": "It stores fat in its hump." },
+      { "q": "A very tall piece of land is a...", "o": ["Mountain", "River", "Lake", "Beach"], "a": 0, "e": "⛰️", "h": "You climb it." },
+      { "q": "Water that flows from hills to the sea is a...", "o": ["River", "Desert", "Cave", "Volcano"], "a": 0, "e": "🏞️", "h": "Boats sail along it." },
+      { "q": "A mountain that can erupt with lava is a...", "o": ["Volcano", "Glacier", "Island", "Hill"], "a": 0, "e": "🌋", "h": "It is hot inside!" },
+      { "q": "The Taj Mahal is in which country?", "o": ["India", "France", "Brazil", "Japan"], "a": 0, "e": "🕌", "h": "It is in the city of Agra." },
+      { "q": "Put these from hottest to coldest.", "type": "order", "items": ["Desert", "Beach", "Forest", "Snowy mountain"], "h": "Deserts are very hot in the day." },
+      { "q": "Where do penguins live?", "o": ["Antarctica", "The Sahara", "The Amazon", "Mount Everest's top"], "a": 0, "e": "🐧", "h": "It is the icy land at the bottom of the globe." }
+    ],
+    "wonders-1": [
+      { "q": "The Great Wall is in which country?", "o": ["China", "India", "Egypt", "Italy"], "a": 0, "e": "🧱", "h": "It is in East Asia." },
+      { "q": "The Pyramids of Giza are in...", "o": ["Egypt", "Mexico", "Peru", "Greece"], "a": 0, "e": "🔺", "h": "Near the river Nile." },
+      { "q": "The Amazon rainforest is mainly in which continent?", "o": ["South America", "Africa", "Asia", "Europe"], "a": 0, "e": "🌳", "h": "Brazil is there." },
+      { "q": "Which river is holy to many people in India?", "o": ["Ganga (Ganges)", "Amazon", "Mississippi", "Volga"], "a": 0, "e": "🏞️", "h": "It flows from the Himalayas." },
+      { "q": "A large area of hot sand with little rain is a...", "o": ["Desert", "Delta", "Valley", "Marsh"], "a": 0, "e": "🏜️", "h": "Camels live there." },
+      { "q": "The Eiffel Tower is in...", "o": ["Paris", "London", "Rome", "Tokyo"], "a": 0, "e": "🗼", "h": "It is the capital of France." },
+      { "q": "Which country is shaped like a boot?", "o": ["Italy", "India", "Chile", "Canada"], "a": 0, "e": "👢", "h": "Pizza comes from here." },
+      { "q": "Order from nearest to farthest from the Equator.", "type": "order", "items": ["Rainforest", "Desert", "Forest of pine trees", "Polar ice"], "h": "Rainforests are hot and wet near the Equator." }
+    ],
+    "wonders-2": [
+      { "q": "The Great Barrier Reef is off the coast of...", "o": ["Australia", "India", "Chile", "Norway"], "a": 0, "e": "🪸", "h": "It is in the Southern Hemisphere, near a big island-continent." },
+      { "q": "Machu Picchu is an ancient city in...", "o": ["Peru", "Egypt", "Greece", "China"], "a": 0, "e": "⛰️", "h": "It is high in the Andes mountains." },
+      { "q": "Which is the largest hot desert in the world?", "o": ["Sahara", "Thar", "Gobi", "Atacama"], "a": 0, "e": "🏜️", "h": "It covers much of North Africa." },
+      { "q": "The Himalayas separate India from which region to the north?", "o": ["Tibet (China)", "Sri Lanka", "Arabia", "Australia"], "a": 0, "e": "🏔️", "h": "It is a high plateau." },
+      { "q": "Which line divides the Earth into Eastern and Western Hemispheres?", "o": ["Prime Meridian", "Equator", "Tropic of Capricorn", "Arctic Circle"], "a": 0, "e": "🌍", "h": "It passes through Greenwich, London." },
+      { "q": "Which country has the most people (2020s)?", "o": ["India", "Brazil", "Russia", "Nigeria"], "a": 0, "e": "👨‍👩‍👧", "h": "It overtook China in 2023." },
+      { "q": "Which ocean lies between Africa and Australia?", "o": ["Indian Ocean", "Atlantic Ocean", "Arctic Ocean", "Southern only"], "a": 0, "e": "🌊", "h": "It is named after a country." },
+      { "q": "Order these rivers from longest to shortest.", "type": "order", "items": ["Nile", "Amazon", "Ganges", "Thames"], "h": "The Nile and Amazon are both very long; the Thames is short." }
+    ]
+  },
+
+  "wordProblems": {
+    "temple-0": [
+      { "text": "Kiki found {a} gold coins and then {b} more. How many coins now?", "vars": { "a": [1, 5], "b": [1, 4] }, "answer": "a+b", "hint": "Count {a} and then count on {b} more.", "emoji": "🪙" },
+      { "text": "There were {a} birds on the temple roof. {b} flew away. How many are left?", "vars": { "a": [5, 10], "b": [1, 4] }, "answer": "a-b", "hint": "Start at {a} and count back {b}.", "emoji": "🐦" },
+      { "text": "Each lamp has 2 wicks. How many wicks on {a} lamps?", "vars": { "a": [2, 5] }, "answer": "a*2", "hint": "Count in twos, {a} times.", "emoji": "🪔" },
+      { "text": "You have {a} apples and a friend gives you {b}. How many apples?", "vars": { "a": [2, 6], "b": [1, 3] }, "answer": "a+b", "hint": "Put them together: {a} and {b}.", "emoji": "🍎" },
+      { "text": "{a} statues stand in a row. {b} fall over. How many are still standing?", "vars": { "a": [6, 9], "b": [1, 5] }, "answer": "a-b", "hint": "Take away {b} from {a}.", "emoji": "🗿" }
+    ],
+    "temple-1": [
+      { "text": "The temple has {a} rooms. Each room has {b} jars. How many jars in all?", "vars": { "a": [3, 9], "b": [3, 9] }, "answer": "a*b", "hint": "Multiply {a} by {b}.", "emoji": "🏺" },
+      { "text": "Kiki shares {t} berries equally between {b} parrots. How many does each get?", "vars": { "b": [2, 6], "c": [2, 9] }, "derive": { "t": "b*c" }, "answer": "t/b", "hint": "Divide {t} berries into {b} equal groups.", "emoji": "🫐" },
+      { "text": "A path has {a} steps. You climb {b} steps. How many steps are left?", "vars": { "a": [40, 99], "b": [10, 39] }, "answer": "a-b", "hint": "Subtract {b} from {a}.", "emoji": "🪜" },
+      { "text": "You collect {a} gems on Monday and {b} gems on Tuesday. How many gems?", "vars": { "a": [15, 60], "b": [10, 39] }, "answer": "a+b", "hint": "Add the tens first, then the ones.", "emoji": "💎" },
+      { "text": "Each scroll has {a} lines. How many lines on {b} scrolls?", "vars": { "a": [4, 9], "b": [3, 8] }, "answer": "a*b", "hint": "{b} groups of {a}.", "emoji": "📜" }
+    ],
+    "temple-2": [
+      { "text": "A temple door needs {a} keys. Each key costs {b} coins. You have {c} coins. How many coins will you have left after buying all the keys?", "vars": { "a": [3, 6], "b": [5, 12], "c": [80, 120] }, "answer": "c-a*b", "hint": "First work out {a} × {b}, then subtract from {c}.", "emoji": "🗝️" },
+      { "text": "There are {a} rows of {b} tiles. {c} tiles are cracked. How many tiles are NOT cracked?", "vars": { "a": [6, 12], "b": [6, 12], "c": [5, 20] }, "answer": "a*b-c", "hint": "Total tiles is {a} × {b}. Then take away {c}.", "emoji": "🧱" },
+      { "text": "Kiki flies {a} km each day for {b} days, then {c} km more. How far in total?", "vars": { "a": [12, 25], "b": [3, 7], "c": [5, 30] }, "answer": "a*b+c", "hint": "Multiply {a} by {b}, then add {c}.", "emoji": "🦜" },
+      { "text": "{a} explorers share {b} bags equally. Each bag has {c} coins. How many coins does each explorer get?", "vars": { "a": [2, 4], "b": [4, 8], "k": [2, 5] }, "derive": { "c": "a*k" }, "answer": "b*c/a", "hint": "Find all the coins ({b} × {c}), then divide by {a}.", "emoji": "💰" },
+      { "text": "A candle burns {a} cm every hour. It is {b} cm tall. How tall is it after {c} hours?", "vars": { "a": [1, 3], "b": [20, 30], "c": [2, 6] }, "answer": "b-a*c", "hint": "It burns {a} × {c} cm. Take that from {b}.", "emoji": "🕯️" }
+    ],
+    "island-0": [
+      { "text": "The map shows {a} palm trees and {b} huts. How many things are on the map?", "vars": { "a": [1, 5], "b": [1, 4] }, "answer": "a+b", "hint": "Add {a} and {b}.", "emoji": "🗺️" },
+      { "text": "You walk {a} steps North and then {b} more steps North. How many steps?", "vars": { "a": [2, 5], "b": [1, 4] }, "answer": "a+b", "hint": "Put the steps together.", "emoji": "👣" },
+      { "text": "There are {a} boats. {b} sail away. How many boats stay?", "vars": { "a": [5, 10], "b": [1, 4] }, "answer": "a-b", "hint": "Take {b} away from {a}.", "emoji": "⛵" },
+      { "text": "Each treasure chest has 5 coins. How many coins in 2 chests?", "vars": {}, "answer": "10", "hint": "Count 5 and then 5 more.", "emoji": "🧰" },
+      { "text": "Kiki sees {a} crabs on the sand and {b} in the water. How many crabs?", "vars": { "a": [2, 6], "b": [1, 3] }, "answer": "a+b", "hint": "Add both groups.", "emoji": "🦀" }
+    ],
+    "island-1": [
+      { "text": "On the map, 1 square = {a} steps. The treasure is {b} squares away. How many steps?", "vars": { "a": [2, 10], "b": [3, 9] }, "answer": "a*b", "hint": "Multiply {b} squares by {a} steps.", "emoji": "🗺️" },
+      { "text": "A boat trip is {a} km. You have sailed {b} km. How many km are left?", "vars": { "a": [50, 99], "b": [11, 49] }, "answer": "a-b", "hint": "Subtract {b} from {a}.", "emoji": "⛵" },
+      { "text": "The pirates bury {a} coins in each of {b} holes. How many coins are buried?", "vars": { "a": [5, 12], "b": [3, 6] }, "answer": "a*b", "hint": "{b} groups of {a}.", "emoji": "🏴‍☠️" },
+      { "text": "You walk {a} m East, then {b} m East again. How far East did you walk?", "vars": { "a": [25, 60], "b": [15, 39] }, "answer": "a+b", "hint": "Add the two distances.", "emoji": "➡️" },
+      { "text": "{a} explorers each carry {b} water bottles. How many bottles?", "vars": { "a": [3, 8], "b": [2, 6] }, "answer": "a*b", "hint": "Multiply {a} by {b}.", "emoji": "💧" }
+    ],
+    "island-2": [
+      { "text": "On a map, 1 cm = {a} km. Two islands are {b} cm apart. A boat has already sailed {c} km. How many km are left?", "vars": { "a": [5, 10], "b": [6, 12], "c": [5, 25] }, "answer": "a*b-c", "hint": "Real distance is {a} × {b} km. Then subtract {c}.", "emoji": "🗺️" },
+      { "text": "You walk {a} steps North, then {b} steps South. How many steps North of the start are you?", "vars": { "a": [20, 40], "b": [5, 19] }, "answer": "a-b", "hint": "Going South cancels some of your North steps.", "emoji": "🧭" },
+      { "text": "The treasure is under the {a}th palm. Palms are planted every {b} m, starting at 0 m. How many metres from the start is it?", "vars": { "a": [4, 9], "b": [3, 8] }, "answer": "(a-1)*b", "hint": "The first palm is at 0 m, so there are {a} − 1 gaps of {b} m.", "emoji": "🌴" },
+      { "text": "A ship travels {a} km each hour. How far does it travel in {b} hours, plus {c} km on the last morning?", "vars": { "a": [12, 20], "b": [3, 6], "c": [4, 15] }, "answer": "a*b+c", "hint": "Multiply, then add the extra {c} km.", "emoji": "🚢" },
+      { "text": "The treasure has {a} gold bars worth {b} coins each. It is shared by {c} explorers equally. How many coins each?", "vars": { "a": [4, 8], "b": [6, 6], "c": [2, 3] }, "answer": "a*b/c", "hint": "Total = {a} × {b}. Then divide by {c}.", "emoji": "💰" }
+    ]
+  }
+}

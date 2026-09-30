@@ -1,0 +1,304 @@
+{
+  "language": "en",
+  "_comment": "All child-facing text. To add a language, copy this file, translate the values (keep the {placeholders}) and load it instead. Lines given as lists are picked at random.",
+
+  "voiceFiles": {},
+  "_voiceFilesComment": "Map a line id to a recorded clip, e.g. \"tutorial-0\": \"assets/audio/voice/en/tutorial-0.mp3\". Lines without a recording use the device's built-in English voice.",
+
+  "ui": {
+    "splash": {
+      "title": "Mystery Island",
+      "tagline": "Explore islands, solve puzzles and find the lost treasure!",
+      "play": "▶ Play"
+    },
+    "common": {
+      "back": "Back",
+      "next": "Next",
+      "ok": "OK",
+      "cancel": "Cancel",
+      "hooray": "Hooray!",
+      "backToMap": "Back to the map",
+      "wallet": "Your treasure",
+      "stars": "Stars",
+      "coins": "coins",
+      "gems": "gems",
+      "starsOf": "{n} of {max} stars",
+      "kikiRepeat": "Hear Kiki again"
+    },
+    "profiles": {
+      "title": "Who is exploring today?",
+      "subtitle": "Tap your explorer to continue your adventure.",
+      "add": "New explorer",
+      "slots": "{n} of {max} explorers",
+      "levels": "{n} levels",
+      "limitTitle": "Three explorers is the limit",
+      "limitBody": "This device can keep {max} explorers. A grown-up can remove one in the Parent Area to make room."
+    },
+    "setup": {
+      "nickTitle": "What's your explorer nickname?",
+      "nickPlaceholder": "Nickname",
+      "nickHelp": "Use a fun nickname, not your real full name.",
+      "orPick": "Or pick one:",
+      "suggestions": ["Captain Coral", "Star Seeker", "Jungle Jo", "Wave Rider", "Map Master", "Brave Bee"],
+      "nickNeeded": "Type or pick a nickname first.",
+      "nickTaken": "Another explorer already has that nickname. Try a different one!",
+      "bandTitle": "Hi {name}! How old are you?",
+      "ages": "Ages {ages}",
+      "bandDesc0": "Counting, simple words and fun puzzles",
+      "bandDesc1": "Times tables, spelling and trickier patterns",
+      "bandDesc2": "Word problems, big logic and map skills",
+      "bandHelp": "A grown-up can change this later in the Parent Area.",
+      "avatarTitle": "Choose your explorer",
+      "avatarLabel": "Explorer",
+      "avatarNeeded": "Tap an explorer to choose it.",
+      "start": "Start Adventure!"
+    },
+    "tutorial": {
+      "title": "Meet Kiki",
+      "skip": "Skip",
+      "go": "Let's go!"
+    },
+    "map": {
+      "title": "Treasure Map",
+      "progress": "{done} of {total} levels done",
+      "locked": "Locked",
+      "lockedShort": "Locked",
+      "pieces": "{n} of 4 map pieces",
+      "piecesLabel": "Map pieces",
+      "go": "Go",
+      "nav": "Game menu"
+    },
+    "nav": {
+      "camp": "Camp",
+      "awards": "Awards",
+      "settings": "Settings",
+      "explorers": "Explorers",
+      "parents": "Parents"
+    },
+    "world": {
+      "level": "Level {n}",
+      "ready": "Ready to play",
+      "lockedTitle": "Not yet!",
+      "lockedBody": "Finish the level before this one to open it."
+    },
+    "level": {
+      "start": "Start",
+      "best": "Your best:",
+      "clueLabel": "Glowing clue: tap to start the challenge",
+      "leaveTitle": "Leave this level?",
+      "leaveBody": "You can come back any time. Your stars and coins are safe.",
+      "stay": "Keep playing",
+      "leave": "Leave",
+      "resumeTitle": "Welcome back!",
+      "resumeBody": "Do you want to carry on from challenge {n}?",
+      "resume": "Carry on",
+      "restart": "Start again"
+    },
+    "game": {
+      "hint": "Hint",
+      "readAloud": "Read the question aloud",
+      "roundOf": "Challenge {n} of {total}",
+      "praise": ["Great job!", "Brilliant!", "You got it!", "Awesome!", "Super explorer!", "Well done!", "Fantastic!"],
+      "tryAgain": ["Almost! Try again.", "Good try! Have another go.", "Not quite. You can do it!", "Oops! Try once more.", "Keep going, you're close!"]
+    },
+    "reward": {
+      "title": "Level complete!",
+      "coins": "+{n} coins",
+      "gems": "+{n} gems",
+      "mapPiece": "You found the {world} map piece!",
+      "worldGems": "World bonus: +{n} gems",
+      "achievement": "New award: {name} (+{gems} gems)",
+      "worldUnlocked": "{world} is now open!",
+      "next": "Next level",
+      "toWorld": "Go to {world}",
+      "replay": "Play again",
+      "map": "Map",
+      "seeTreasure": "Open the treasure!",
+      "mapPieceTitle": "Map piece found!",
+      "mapPieceBody": "You have {n} of 4 map pieces. Collect all four to reach Treasure Island!"
+    },
+    "ending": {
+      "title": "You found the treasure!",
+      "body": "The greatest treasure is everything you learned on the way. Keep exploring: replay levels to earn more stars, and decorate your Camp!"
+    },
+    "camp": {
+      "title": "Explorer Camp",
+      "tab_hat": "Hats",
+      "tab_outfit": "Outfits",
+      "tab_pet": "Pets",
+      "tab_camp": "Camp",
+      "buy": "Get {name} for {price} {currency}",
+      "bought": "You got the {name}!",
+      "needMore": "You need more {currency}. Play levels to earn them!",
+      "wear": "Wear",
+      "takeOff": "Take off",
+      "place": "Place",
+      "packAway": "Pack away",
+      "note": "Coins and gems are earned by playing. They are just for fun and can't be bought."
+    },
+    "awards": {
+      "title": "Awards",
+      "count": "{n} of {total} awards earned"
+    },
+    "settings": {
+      "title": "Settings",
+      "sound": "Sound effects",
+      "music": "Music",
+      "voice": "Kiki's voice",
+      "voiceOn": "Hello again! I'm back!",
+      "autoRead": "Read questions aloud"
+    },
+    "parent": {
+      "entry": "Parent Area",
+      "title": "Parent Area",
+      "gateIntro": "This area is for grown-ups. Press and hold the button.",
+      "hold": "Hold for grown-ups",
+      "gateQuestion": "Type these numbers:",
+      "gateWrong": "That's not right. Please try again.",
+      "delete": "Delete",
+      "dashboard": "Parent Dashboard",
+      "intro": "Everything below is stored only on this device. Nothing is sent to a server.",
+      "noProfiles": "No explorers yet.",
+      "lastPlayed": "Last played {date}",
+      "levels": "Levels",
+      "pieces": "Map pieces",
+      "coins": "Coins",
+      "gems": "Gems",
+      "time": "Play time",
+      "minutes": "{m} min",
+      "hours": "{h} h {m} min",
+      "worlds": "Worlds",
+      "categories": "Challenge types",
+      "challenge": "Challenge",
+      "accuracy": "First-try accuracy",
+      "hints": "Hints",
+      "noPlay": "No levels played yet.",
+      "band": "Difficulty",
+      "bandChanged": "Difficulty updated.",
+      "resetOne": "Remove {name}",
+      "resetOneTitle": "Remove {name}?",
+      "resetOneBody": "This deletes this explorer's progress, rewards and Camp items from this device. It cannot be undone.",
+      "resetConfirm": "Yes, remove",
+      "resetDone": "Done.",
+      "privacy": "Privacy",
+      "analytics": "Anonymous usage counts",
+      "analyticsOn": "When on, the game sends anonymous counts (like 'a level was completed') to this website's own statistics. No names, nicknames, cookies or device IDs are ever sent.",
+      "analyticsNotSetUp": "Usage counting is not set up on this website, so nothing is sent either way.",
+      "privacyNote": "The game has no ads, no chat, no accounts and no links to other websites. Explorers store only a nickname, an age group and an avatar.",
+      "storageMode": "Progress is saved in: {mode}.",
+      "mode_indexeddb": "this browser's game storage (IndexedDB)",
+      "mode_localstorage": "this browser's basic storage (localStorage)",
+      "mode_memory": "nowhere: this browser is blocking storage, so progress will be lost when the page closes",
+      "resetAllTitle": "Reset all game data",
+      "resetAllBody": "Delete every explorer, all progress and all settings on this device.",
+      "resetAll": "Reset everything",
+      "resetAllConfirm": "This deletes ALL explorers and their progress from this device.",
+      "resetAllSure": "Are you completely sure? This cannot be undone.",
+      "resetAllYes": "Delete everything",
+      "backToGame": "Back to the game",
+      "engineNames": {
+        "number": "Number Challenge (maths)",
+        "word-builder": "Word Builder (spelling)",
+        "memory-sequence": "Memory Sequence",
+        "pattern-puzzle": "Pattern Puzzle (logic)",
+        "object-hunt": "Object Hunt (observation)",
+        "maze-path": "Maze, Compass & Maps (logic, geography)",
+        "science-choice": "Science & Geography Quiz",
+        "spot-difference": "Spot the Difference"
+      }
+    },
+    "errors": {
+      "notSaved": "Your progress could not be saved on this device. A grown-up can check the browser's storage settings.",
+      "noStorage": "This browser is blocking storage, so progress can't be saved after you close the page.",
+      "levelBroken": "Oops, this level couldn't start. Please try another level.",
+      "corruptTitle": "Some saved data couldn't be read",
+      "corruptBody": "Part of the saved game on this device looks damaged. A grown-up can fix this in the Parent Area by removing an explorer or resetting all data."
+    }
+  },
+
+  "kiki": {
+    "tutorial": [
+      "Squawk! Hello {name}! I'm Kiki, your parrot guide. Welcome to Mystery Island!",
+      "An old treasure map was torn into pieces. Each island hides one piece. Tap an island on the map to explore it.",
+      "Every island has puzzles. If you get stuck, tap the hint button. Mistakes are okay, just try again!",
+      "Solve puzzles to earn stars and coins. Spend coins at your Camp on hats, pets and more!",
+      "Our adventure starts at Pirate Beach. Ready, explorer?"
+    ],
+    "mapFirst": "Hi {name}! Let's start at Pirate Beach. Tap Go!",
+    "mapNext": ["Next up, {name}: {level} in {world}!", "Ready for {level}? Let's go, {name}!", "Adventure awaits in {world}, {name}!"],
+    "allDone": "Wow, {name}! You finished every level! Replay levels to win more stars.",
+    "worldLocked": "This island is still locked. Finish all 10 levels of {prev} first!",
+    "worldLockedFinal": "Treasure Island needs all four map pieces. You need {n} more!",
+    "worldProgress": ["Only {n} levels left on this island!", "Keep going! {n} levels to go."],
+    "worldDone": "You finished {world}! Replay any level to earn more stars.",
+    "explore": ["Look around! Tap the glowing {clue} to find the challenge.", "Something is glowing… Tap the {clue}!"],
+    "reward1": ["You did it! Play again to win more stars.", "Level finished! Practice makes perfect."],
+    "reward2": ["Great work! Two shiny stars!", "Well done, explorer!"],
+    "reward3": ["Perfect! Three stars! Squawk!", "Amazing! You're a superstar!"],
+    "rewardImproved": "You beat your best score! More stars for you!",
+    "camp": "This is your Camp! Earn coins by playing, then get hats, outfits, pets and decorations.",
+    "ending": "You did it, {name}! The treasure chest is open. You're a true Master Explorer!"
+  },
+
+  "engines": {
+    "dir": { "N": "North", "E": "East", "S": "South", "W": "West", "NE": "North-East", "SE": "South-East", "SW": "South-West", "NW": "North-West" },
+    "dirLower": { "N": "north", "E": "east", "S": "south", "W": "west" },
+    "number": {
+      "count": "How many {emoji} can you count?",
+      "countHint": "Touch each one with your finger as you count.",
+      "solve": "Solve the sum. Tap the right answer!",
+      "missing": "Which number is missing?",
+      "missingAddHint": "What do you add to {a} to make {c}? Count up from {a}.",
+      "missingHint": "Try each answer in the question to see which one works.",
+      "hint_add": "Start at {a} and count on {b} more.",
+      "hint_sub": "Start at {a} and count back {b}.",
+      "hint_mul": "{a} × {b} means {b} groups of {a}.",
+      "hint_div": "How many groups of {b} make {a}?"
+    },
+    "word": {
+      "prompt": "Spell the word! It has {n} letters.",
+      "promptClue": "Read the clue and spell the word ({n} letters).",
+      "emptySlot": "Empty letter space",
+      "hint": "The next letter is {letter}."
+    },
+    "memory": {
+      "watch": "Watch the {n} crystals light up…",
+      "yourTurn": "Your turn! Tap them in the same order.",
+      "watchAgain": "👀 Watch again",
+      "crystal": "Crystal {n}"
+    },
+    "pattern": {
+      "prompt": "What goes in the ? spot?",
+      "promptNumber": "Find the missing number in the pattern.",
+      "hintUnit": "Look at the first {n}. They repeat!",
+      "hintAdd": "Each number is {s} more than the one before.",
+      "hintSub": "Each number is {s} less than the one before.",
+      "hintDouble": "Each number is double the one before.",
+      "hintSquares": "These are square numbers: 1×1, 2×2, 3×3…",
+      "hintAlt": "The pattern adds {a}, then {b}, then {a} again…",
+      "hintGrowing": "The jump gets 1 bigger each time: +1, +2, +3…",
+      "hintFib": "Add the two numbers before to get the next one."
+    },
+    "hunt": {
+      "prompt": "Find {n} {label}!",
+      "counter": "Found {found} of {n}"
+    },
+    "maze": {
+      "prompt": "Guide your explorer to the key 🗝️!",
+      "compassLabel": "Compass: North is up"
+    },
+    "compass": {
+      "prompt": "Follow the directions from your explorer. Tap where the {landmark} is hidden!",
+      "move": "Go {n} {steps} {dir}",
+      "step": "step",
+      "steps": "steps"
+    },
+    "mapread": {
+      "prompt": "Which place is directly {dir} of the {from}? Tap it on the map."
+    },
+    "spot": {
+      "prompt": "Find the {n} differences between the two pictures!",
+      "empty": "Empty space"
+    }
+  }
+}
