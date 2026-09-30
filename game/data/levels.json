@@ -1,0 +1,1873 @@
+{
+ "generatedBy": "tools/generate-levels.mjs",
+ "bands": [
+  {
+   "id": 0,
+   "name": "Explorer",
+   "ages": "6–7",
+   "emoji": "🐣"
+  },
+  {
+   "id": 1,
+   "name": "Adventurer",
+   "ages": "8–9",
+   "emoji": "🦊"
+  },
+  {
+   "id": 2,
+   "name": "Master Explorer",
+   "ages": "10–12",
+   "emoji": "🦅"
+  }
+ ],
+ "worlds": [
+  {
+   "id": "beach",
+   "name": "Pirate Beach",
+   "emoji": "🏖️",
+   "color": "#f59e0b",
+   "focus": "Counting, basic maths, observation",
+   "story": "An old shipwreck lies on the sand. The first map piece is hidden somewhere on this beach!",
+   "scenery": [
+    "🌴",
+    "🐚",
+    "🦀",
+    "⚓",
+    "🏴‍☠️",
+    "🥥"
+   ],
+   "pos": {
+    "x": 22,
+    "y": 78
+   },
+   "mapPiece": true,
+   "gems": 5,
+   "levels": [
+    "beach-01",
+    "beach-02",
+    "beach-03",
+    "beach-04",
+    "beach-05",
+    "beach-06",
+    "beach-07",
+    "beach-08",
+    "beach-09",
+    "beach-10"
+   ]
+  },
+  {
+   "id": "jungle",
+   "name": "Mystery Jungle",
+   "emoji": "🌿",
+   "color": "#16a34a",
+   "focus": "Words, spelling, patterns, logic",
+   "story": "Deep in the jungle, talking vines guard the second map piece.",
+   "scenery": [
+    "🌴",
+    "🐒",
+    "🦋",
+    "🌺",
+    "🐸",
+    "🍌"
+   ],
+   "pos": {
+    "x": 72,
+    "y": 72
+   },
+   "mapPiece": true,
+   "gems": 5,
+   "levels": [
+    "jungle-01",
+    "jungle-02",
+    "jungle-03",
+    "jungle-04",
+    "jungle-05",
+    "jungle-06",
+    "jungle-07",
+    "jungle-08",
+    "jungle-09",
+    "jungle-10"
+   ]
+  },
+  {
+   "id": "cave",
+   "name": "Crystal Cave",
+   "emoji": "💎",
+   "color": "#7c3aed",
+   "focus": "Memory and sequences",
+   "story": "Glowing crystals hum a secret tune. Remember it to open the way.",
+   "scenery": [
+    "💎",
+    "🔮",
+    "🦇",
+    "🍄",
+    "🕯️",
+    "🪨"
+   ],
+   "pos": {
+    "x": 24,
+    "y": 44
+   },
+   "mapPiece": true,
+   "gems": 5,
+   "levels": [
+    "cave-01",
+    "cave-02",
+    "cave-03",
+    "cave-04",
+    "cave-05",
+    "cave-06",
+    "cave-07",
+    "cave-08",
+    "cave-09",
+    "cave-10"
+   ]
+  },
+  {
+   "id": "temple",
+   "name": "Ancient Temple",
+   "emoji": "🏛️",
+   "color": "#b45309",
+   "focus": "Science, maths, logic",
+   "story": "Ancient machines and stone puzzles protect the last map piece.",
+   "scenery": [
+    "🏺",
+    "🗿",
+    "📜",
+    "🪔",
+    "🌞",
+    "🔱"
+   ],
+   "pos": {
+    "x": 74,
+    "y": 38
+   },
+   "mapPiece": true,
+   "gems": 5,
+   "levels": [
+    "temple-01",
+    "temple-02",
+    "temple-03",
+    "temple-04",
+    "temple-05",
+    "temple-06",
+    "temple-07",
+    "temple-08",
+    "temple-09",
+    "temple-10"
+   ]
+  },
+  {
+   "id": "island",
+   "name": "Treasure Island",
+   "emoji": "🏝️",
+   "color": "#0e7490",
+   "focus": "Mixed skills + geography (maps and compass directions)",
+   "story": "All four map pieces fit together! Follow the map to the legendary treasure.",
+   "scenery": [
+    "🏝️",
+    "🧭",
+    "🗺️",
+    "⛵",
+    "🌋",
+    "🦜"
+   ],
+   "pos": {
+    "x": 50,
+    "y": 19
+   },
+   "requiresMapPieces": [
+    "beach",
+    "jungle",
+    "cave",
+    "temple"
+   ],
+   "mapPiece": false,
+   "gems": 10,
+   "levels": [
+    "island-01",
+    "island-02",
+    "island-03",
+    "island-04",
+    "island-05",
+    "island-06",
+    "island-07",
+    "island-08",
+    "island-09",
+    "island-10"
+   ]
+  }
+ ],
+ "levels": [
+  {
+   "id": "beach-01",
+   "world": "beach",
+   "index": 1,
+   "engine": "number",
+   "category": "maths",
+   "title": "Counting Shells",
+   "clue": "🐚",
+   "mission": "Count the treasures washed up on the beach.",
+   "bands": {
+    "0": {
+     "mode": "count",
+     "min": 2,
+     "max": 8,
+     "rounds": 4
+    },
+    "1": {
+     "mode": "count",
+     "min": 8,
+     "max": 15,
+     "rounds": 4
+    },
+    "2": {
+     "mode": "addsub",
+     "max": 100,
+     "min": 20,
+     "rounds": 5
+    }
+   }
+  },
+  {
+   "id": "beach-02",
+   "world": "beach",
+   "index": 2,
+   "engine": "object-hunt",
+   "category": "observation",
+   "title": "Shell Hunt",
+   "clue": "🔍",
+   "mission": "Find all the hidden shells in the sand.",
+   "bands": {
+    "0": {
+     "sets": [
+      "shells"
+     ],
+     "count": 4,
+     "distractors": 5,
+     "rounds": 2
+    },
+    "1": {
+     "sets": [
+      "shells",
+      "starfish"
+     ],
+     "count": 6,
+     "distractors": 9,
+     "rounds": 2
+    },
+    "2": {
+     "sets": [
+      "beach-mixed",
+      "sea-life"
+     ],
+     "count": 7,
+     "distractors": 12,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "beach-03",
+   "world": "beach",
+   "index": 3,
+   "engine": "number",
+   "category": "maths",
+   "title": "Coins in the Chest",
+   "clue": "🪙",
+   "mission": "Add up the pirate coins to open the chest.",
+   "bands": {
+    "0": {
+     "mode": "add",
+     "max": 10,
+     "rounds": 4,
+     "pictures": true
+    },
+    "1": {
+     "mode": "add",
+     "min": 20,
+     "max": 100,
+     "rounds": 5
+    },
+    "2": {
+     "mode": "mul",
+     "tables": 12,
+     "factorMax": 12,
+     "rounds": 5
+    }
+   }
+  },
+  {
+   "id": "beach-04",
+   "world": "beach",
+   "index": 4,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Beach Patterns",
+   "clue": "🌊",
+   "mission": "The waves left a pattern in the sand. What comes next?",
+   "bands": {
+    "0": {
+     "kind": "emoji",
+     "units": [
+      "AB",
+      "AAB"
+     ],
+     "show": 6,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "emoji",
+     "units": [
+      "ABC",
+      "AABB",
+      "ABB"
+     ],
+     "show": 8,
+     "rounds": 4
+    },
+    "2": {
+     "kind": "number",
+     "rules": [
+      "add",
+      "alt",
+      "double"
+     ],
+     "stepMin": 3,
+     "stepMax": 9,
+     "rounds": 5
+    }
+   }
+  },
+  {
+   "id": "beach-05",
+   "world": "beach",
+   "index": 5,
+   "engine": "spot-difference",
+   "category": "observation",
+   "title": "Two Sandcastles",
+   "clue": "🏰",
+   "mission": "Two sandcastles look the same… but are they?",
+   "bands": {
+    "0": {
+     "cols": 3,
+     "rows": 3,
+     "diffs": 3,
+     "rounds": 2
+    },
+    "1": {
+     "cols": 4,
+     "rows": 3,
+     "diffs": 4,
+     "rounds": 2
+    },
+    "2": {
+     "cols": 4,
+     "rows": 4,
+     "diffs": 5,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "beach-06",
+   "world": "beach",
+   "index": 6,
+   "engine": "number",
+   "category": "maths",
+   "title": "Crab Races",
+   "clue": "🦀",
+   "mission": "Help the crabs work out the race scores.",
+   "bands": {
+    "0": {
+     "mode": "sub",
+     "max": 10,
+     "rounds": 4
+    },
+    "1": {
+     "mode": "addsub",
+     "max": 100,
+     "min": 20,
+     "rounds": 5
+    },
+    "2": {
+     "mode": "div",
+     "tables": 12,
+     "factorMax": 12,
+     "rounds": 5
+    }
+   }
+  },
+  {
+   "id": "beach-07",
+   "world": "beach",
+   "index": 7,
+   "engine": "object-hunt",
+   "category": "observation",
+   "title": "Starfish Search",
+   "clue": "⭐",
+   "mission": "The starfish are playing hide and seek!",
+   "bands": {
+    "0": {
+     "sets": [
+      "starfish"
+     ],
+     "count": 5,
+     "distractors": 6,
+     "rounds": 2
+    },
+    "1": {
+     "sets": [
+      "crabs",
+      "coins"
+     ],
+     "count": 7,
+     "distractors": 10,
+     "rounds": 2
+    },
+    "2": {
+     "sets": [
+      "sea-life",
+      "beach-mixed"
+     ],
+     "count": 8,
+     "distractors": 14,
+     "rounds": 2,
+     "cols": 7,
+     "rows": 6
+    }
+   }
+  },
+  {
+   "id": "beach-08",
+   "world": "beach",
+   "index": 8,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Parrot Says",
+   "clue": "🦜",
+   "mission": "Polly the parrot taps the shells. Can you copy her?",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 2,
+     "rounds": 3,
+     "speed": 900
+    },
+    "1": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 3,
+     "speed": 750
+    },
+    "2": {
+     "tiles": 6,
+     "length": 4,
+     "rounds": 3,
+     "speed": 650
+    }
+   }
+  },
+  {
+   "id": "beach-09",
+   "world": "beach",
+   "index": 9,
+   "engine": "number",
+   "category": "maths",
+   "title": "Captain's Puzzle",
+   "clue": "🏴‍☠️",
+   "mission": "The captain hid a number. Find the missing one!",
+   "bands": {
+    "0": {
+     "mode": "missing",
+     "ops": [
+      "add"
+     ],
+     "max": 10,
+     "rounds": 4
+    },
+    "1": {
+     "mode": "missing",
+     "ops": [
+      "add",
+      "sub"
+     ],
+     "max": 50,
+     "rounds": 5
+    },
+    "2": {
+     "mode": "missing",
+     "ops": [
+      "mul",
+      "div"
+     ],
+     "tables": 12,
+     "factorMax": 12,
+     "rounds": 5
+    }
+   }
+  },
+  {
+   "id": "beach-10",
+   "world": "beach",
+   "index": 10,
+   "engine": "spot-difference",
+   "category": "observation",
+   "title": "Shipwreck Secrets",
+   "clue": "⚓",
+   "mission": "Compare the old drawing with the shipwreck.",
+   "bands": {
+    "0": {
+     "cols": 4,
+     "rows": 3,
+     "diffs": 3,
+     "rounds": 2
+    },
+    "1": {
+     "cols": 4,
+     "rows": 4,
+     "diffs": 5,
+     "rounds": 2
+    },
+    "2": {
+     "cols": 5,
+     "rows": 4,
+     "diffs": 6,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "jungle-01",
+   "world": "jungle",
+   "index": 1,
+   "engine": "word-builder",
+   "category": "language",
+   "title": "Jungle Words",
+   "clue": "🔤",
+   "mission": "The vines spell secret words. Put the letters in order.",
+   "bands": {
+    "0": {
+     "list": "jungle-0",
+     "rounds": 3
+    },
+    "1": {
+     "list": "jungle-1",
+     "rounds": 3
+    },
+    "2": {
+     "list": "jungle-2",
+     "rounds": 3,
+     "extra": 1
+    }
+   }
+  },
+  {
+   "id": "jungle-02",
+   "world": "jungle",
+   "index": 2,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Vine Patterns",
+   "clue": "🌿",
+   "mission": "Flowers grow on the vines in a pattern.",
+   "bands": {
+    "0": {
+     "kind": "emoji",
+     "units": [
+      "AB",
+      "ABC"
+     ],
+     "show": 6,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "emoji",
+     "units": [
+      "AABB",
+      "ABBC",
+      "ABC"
+     ],
+     "show": 8,
+     "rounds": 4,
+     "missing": "any"
+    },
+    "2": {
+     "kind": "mixed",
+     "units": [
+      "ABBC",
+      "AABBC"
+     ],
+     "rules": [
+      "alt",
+      "growing"
+     ],
+     "stepMin": 2,
+     "stepMax": 7,
+     "show": 8,
+     "rounds": 5,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "jungle-03",
+   "world": "jungle",
+   "index": 3,
+   "engine": "object-hunt",
+   "category": "observation",
+   "title": "Hidden Animals",
+   "clue": "🐒",
+   "mission": "Cheeky animals are hiding in the leaves.",
+   "bands": {
+    "0": {
+     "sets": [
+      "monkeys",
+      "bananas"
+     ],
+     "count": 4,
+     "distractors": 6,
+     "rounds": 2
+    },
+    "1": {
+     "sets": [
+      "butterflies",
+      "fruit"
+     ],
+     "count": 6,
+     "distractors": 10,
+     "rounds": 2
+    },
+    "2": {
+     "sets": [
+      "mammals",
+      "insects"
+     ],
+     "count": 7,
+     "distractors": 12,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "jungle-04",
+   "world": "jungle",
+   "index": 4,
+   "engine": "maze-path",
+   "category": "logic",
+   "title": "River Path",
+   "clue": "🛶",
+   "mission": "Find a path along the river to the key.",
+   "bands": {
+    "0": {
+     "mode": "maze",
+     "size": 4,
+     "rounds": 2
+    },
+    "1": {
+     "mode": "maze",
+     "size": 6,
+     "rounds": 2
+    },
+    "2": {
+     "mode": "maze",
+     "size": 8,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "jungle-05",
+   "world": "jungle",
+   "index": 5,
+   "engine": "word-builder",
+   "category": "language",
+   "title": "Animal Names",
+   "clue": "🐾",
+   "mission": "Name the jungle animals to make friends with them.",
+   "bands": {
+    "0": {
+     "list": "animals-0",
+     "rounds": 3
+    },
+    "1": {
+     "list": "animals-1",
+     "rounds": 3
+    },
+    "2": {
+     "list": "animals-2",
+     "rounds": 3,
+     "extra": 1
+    }
+   }
+  },
+  {
+   "id": "jungle-06",
+   "world": "jungle",
+   "index": 6,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Monkey Numbers",
+   "clue": "🔢",
+   "mission": "The monkeys are counting coconuts in a pattern.",
+   "bands": {
+    "0": {
+     "kind": "number",
+     "rules": [
+      "add"
+     ],
+     "stepMin": 1,
+     "stepMax": 2,
+     "startMax": 5,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "number",
+     "rules": [
+      "add",
+      "sub"
+     ],
+     "stepMin": 2,
+     "stepMax": 10,
+     "startMax": 20,
+     "rounds": 4
+    },
+    "2": {
+     "kind": "number",
+     "rules": [
+      "squares",
+      "fib",
+      "growing",
+      "double"
+     ],
+     "rounds": 5,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "jungle-07",
+   "world": "jungle",
+   "index": 7,
+   "engine": "maze-path",
+   "category": "logic",
+   "title": "Tangled Trail",
+   "clue": "🧵",
+   "mission": "The trail twists and turns. Reach the key!",
+   "bands": {
+    "0": {
+     "mode": "maze",
+     "size": 5,
+     "rounds": 2
+    },
+    "1": {
+     "mode": "maze",
+     "size": 7,
+     "rounds": 2
+    },
+    "2": {
+     "mode": "maze",
+     "size": 9,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "jungle-08",
+   "world": "jungle",
+   "index": 8,
+   "engine": "word-builder",
+   "category": "language",
+   "title": "Spelling Bridge",
+   "clue": "🌉",
+   "mission": "Each correct word adds a plank to the bridge.",
+   "bands": {
+    "0": {
+     "list": "spelling-0",
+     "rounds": 3
+    },
+    "1": {
+     "list": "spelling-1",
+     "rounds": 4
+    },
+    "2": {
+     "list": "spelling-2",
+     "rounds": 4,
+     "hideEmoji": true
+    }
+   }
+  },
+  {
+   "id": "jungle-09",
+   "world": "jungle",
+   "index": 9,
+   "engine": "object-hunt",
+   "category": "observation",
+   "title": "Odd Ones Out",
+   "clue": "🧐",
+   "mission": "Tap only the things that belong to the group.",
+   "bands": {
+    "0": {
+     "sets": [
+      "butterflies",
+      "monkeys"
+     ],
+     "count": 5,
+     "distractors": 7,
+     "rounds": 2
+    },
+    "1": {
+     "sets": [
+      "fly",
+      "fruit"
+     ],
+     "count": 6,
+     "distractors": 10,
+     "rounds": 2
+    },
+    "2": {
+     "sets": [
+      "insects",
+      "mammals",
+      "fly"
+     ],
+     "count": 8,
+     "distractors": 14,
+     "rounds": 3,
+     "cols": 7,
+     "rows": 6
+    }
+   }
+  },
+  {
+   "id": "jungle-10",
+   "world": "jungle",
+   "index": 10,
+   "engine": "maze-path",
+   "category": "logic",
+   "title": "Jungle Gate",
+   "clue": "🚪",
+   "mission": "The gate to the Jungle’s heart is at the end of this maze.",
+   "bands": {
+    "0": {
+     "mode": "maze",
+     "size": 5,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "maze",
+     "size": 7,
+     "rounds": 3
+    },
+    "2": {
+     "mode": "maze",
+     "size": 10,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "cave-01",
+   "world": "cave",
+   "index": 1,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Glowing Crystals",
+   "clue": "✨",
+   "mission": "Watch the crystals glow, then tap them in the same order.",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 2,
+     "rounds": 3,
+     "speed": 900
+    },
+    "1": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 3,
+     "speed": 800
+    },
+    "2": {
+     "tiles": 6,
+     "length": 4,
+     "rounds": 3,
+     "speed": 650
+    }
+   }
+  },
+  {
+   "id": "cave-02",
+   "world": "cave",
+   "index": 2,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Crystal Rows",
+   "clue": "💠",
+   "mission": "The crystals grow in rows. Which one is missing?",
+   "bands": {
+    "0": {
+     "kind": "emoji",
+     "units": [
+      "AB",
+      "ABB"
+     ],
+     "show": 6,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "emoji",
+     "units": [
+      "ABC",
+      "ABBC"
+     ],
+     "show": 8,
+     "rounds": 4,
+     "missing": "any"
+    },
+    "2": {
+     "kind": "emoji",
+     "units": [
+      "AABBC",
+      "ABCBA",
+      "ABCD"
+     ],
+     "show": 10,
+     "rounds": 5,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "cave-03",
+   "world": "cave",
+   "index": 3,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Echo Cave",
+   "clue": "🔊",
+   "mission": "The cave echoes back every sound. Can you?",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 3,
+     "speed": 850
+    },
+    "1": {
+     "tiles": 6,
+     "length": 3,
+     "rounds": 3,
+     "speed": 750
+    },
+    "2": {
+     "tiles": 6,
+     "length": 5,
+     "rounds": 3,
+     "speed": 600
+    }
+   }
+  },
+  {
+   "id": "cave-04",
+   "world": "cave",
+   "index": 4,
+   "engine": "spot-difference",
+   "category": "observation",
+   "title": "Mirror Pools",
+   "clue": "🪞",
+   "mission": "Two pools reflect the cave. Spot the differences.",
+   "bands": {
+    "0": {
+     "cols": 3,
+     "rows": 3,
+     "diffs": 3,
+     "rounds": 2
+    },
+    "1": {
+     "cols": 4,
+     "rows": 4,
+     "diffs": 4,
+     "rounds": 2
+    },
+    "2": {
+     "cols": 5,
+     "rows": 4,
+     "diffs": 6,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "cave-05",
+   "world": "cave",
+   "index": 5,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Number Stalactites",
+   "clue": "🔢",
+   "mission": "The drips count out a pattern.",
+   "bands": {
+    "0": {
+     "kind": "number",
+     "rules": [
+      "add"
+     ],
+     "stepMin": 1,
+     "stepMax": 2,
+     "startMax": 5,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "number",
+     "rules": [
+      "add",
+      "sub",
+      "double"
+     ],
+     "stepMin": 2,
+     "stepMax": 10,
+     "rounds": 4
+    },
+    "2": {
+     "kind": "number",
+     "rules": [
+      "squares",
+      "fib",
+      "alt"
+     ],
+     "stepMin": 3,
+     "stepMax": 12,
+     "rounds": 5,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "cave-06",
+   "world": "cave",
+   "index": 6,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Crystal Lock",
+   "clue": "🔐",
+   "mission": "The lock opens only for the right crystal song.",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 3,
+     "speed": 850
+    },
+    "1": {
+     "tiles": 6,
+     "length": 4,
+     "rounds": 3,
+     "speed": 700
+    },
+    "2": {
+     "tiles": 9,
+     "length": 4,
+     "rounds": 3,
+     "speed": 600
+    }
+   }
+  },
+  {
+   "id": "cave-07",
+   "world": "cave",
+   "index": 7,
+   "engine": "object-hunt",
+   "category": "observation",
+   "title": "Gem Hunt",
+   "clue": "💎",
+   "mission": "Sparkling gems hide among the rocks.",
+   "bands": {
+    "0": {
+     "sets": [
+      "gems"
+     ],
+     "count": 4,
+     "distractors": 6,
+     "rounds": 2
+    },
+    "1": {
+     "sets": [
+      "gems",
+      "bats"
+     ],
+     "count": 6,
+     "distractors": 10,
+     "rounds": 2
+    },
+    "2": {
+     "sets": [
+      "cave-light",
+      "solids"
+     ],
+     "count": 7,
+     "distractors": 12,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "cave-08",
+   "world": "cave",
+   "index": 8,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Secret Sequence",
+   "clue": "🗝️",
+   "mission": "Crack the secret sequence carved in the wall.",
+   "bands": {
+    "0": {
+     "kind": "emoji",
+     "units": [
+      "ABC",
+      "AAB"
+     ],
+     "show": 7,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "mixed",
+     "units": [
+      "ABBC"
+     ],
+     "rules": [
+      "add",
+      "sub"
+     ],
+     "stepMin": 3,
+     "stepMax": 9,
+     "rounds": 4,
+     "missing": "any"
+    },
+    "2": {
+     "kind": "mixed",
+     "units": [
+      "ABCBA",
+      "AABBC"
+     ],
+     "rules": [
+      "double",
+      "squares",
+      "growing"
+     ],
+     "show": 7,
+     "rounds": 6,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "cave-09",
+   "world": "cave",
+   "index": 9,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Bat Echo",
+   "clue": "🦇",
+   "mission": "The bats squeak in order. Copy them!",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 4,
+     "speed": 850,
+     "grow": 0
+    },
+    "1": {
+     "tiles": 6,
+     "length": 4,
+     "rounds": 3,
+     "speed": 700
+    },
+    "2": {
+     "tiles": 9,
+     "length": 5,
+     "rounds": 3,
+     "speed": 550
+    }
+   }
+  },
+  {
+   "id": "cave-10",
+   "world": "cave",
+   "index": 10,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Great Crystal Door",
+   "clue": "🚪",
+   "mission": "The final door needs the longest song of all.",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 4,
+     "rounds": 3,
+     "speed": 800
+    },
+    "1": {
+     "tiles": 6,
+     "length": 5,
+     "rounds": 3,
+     "speed": 650
+    },
+    "2": {
+     "tiles": 9,
+     "length": 6,
+     "rounds": 3,
+     "speed": 520
+    }
+   }
+  },
+  {
+   "id": "temple-01",
+   "world": "temple",
+   "index": 1,
+   "engine": "science-choice",
+   "category": "science",
+   "title": "Temple of Nature",
+   "clue": "🌱",
+   "mission": "The temple garden asks questions about living things.",
+   "bands": {
+    "0": {
+     "bank": "nature-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "nature-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "nature-2",
+     "rounds": 5,
+     "orderRounds": 2
+    }
+   }
+  },
+  {
+   "id": "temple-02",
+   "world": "temple",
+   "index": 2,
+   "engine": "number",
+   "category": "maths",
+   "title": "Stone Numbers",
+   "clue": "🗿",
+   "mission": "The stone guardian asks number riddles.",
+   "bands": {
+    "0": {
+     "mode": "addsub",
+     "max": 20,
+     "rounds": 4
+    },
+    "1": {
+     "mode": "mul",
+     "tables": 10,
+     "factorMax": 10,
+     "rounds": 5
+    },
+    "2": {
+     "mode": "mixed",
+     "max": 200,
+     "min": 50,
+     "tables": 12,
+     "factorMax": 12,
+     "rounds": 6
+    }
+   }
+  },
+  {
+   "id": "temple-03",
+   "world": "temple",
+   "index": 3,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Sundial Patterns",
+   "clue": "🌞",
+   "mission": "The sundial’s shadow moves in a pattern.",
+   "bands": {
+    "0": {
+     "kind": "number",
+     "rules": [
+      "add"
+     ],
+     "stepMin": 2,
+     "stepMax": 2,
+     "startMax": 10,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "number",
+     "rules": [
+      "add",
+      "double"
+     ],
+     "stepMin": 3,
+     "stepMax": 10,
+     "rounds": 4
+    },
+    "2": {
+     "kind": "number",
+     "rules": [
+      "squares",
+      "fib",
+      "alt",
+      "growing"
+     ],
+     "stepMin": 4,
+     "stepMax": 15,
+     "rounds": 5,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "temple-04",
+   "world": "temple",
+   "index": 4,
+   "engine": "science-choice",
+   "category": "science",
+   "title": "Sun and Planets",
+   "clue": "🪐",
+   "mission": "The star map on the ceiling shows the sky. Place the planets.",
+   "bands": {
+    "0": {
+     "bank": "space-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "space-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "space-2",
+     "rounds": 5,
+     "orderRounds": 2
+    }
+   }
+  },
+  {
+   "id": "temple-05",
+   "world": "temple",
+   "index": 5,
+   "engine": "number",
+   "category": "maths",
+   "title": "Scroll Riddles",
+   "clue": "📜",
+   "mission": "Ancient scrolls hold story puzzles.",
+   "bands": {
+    "0": {
+     "mode": "word",
+     "bank": "temple-0",
+     "rounds": 4
+    },
+    "1": {
+     "mode": "word",
+     "bank": "temple-1",
+     "rounds": 4
+    },
+    "2": {
+     "mode": "word",
+     "bank": "temple-2",
+     "rounds": 4
+    }
+   }
+  },
+  {
+   "id": "temple-06",
+   "world": "temple",
+   "index": 6,
+   "engine": "science-choice",
+   "category": "science",
+   "title": "Water and Weather",
+   "clue": "🌦️",
+   "mission": "The rain fountain wants to know about water and weather.",
+   "bands": {
+    "0": {
+     "bank": "water-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "water-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "water-2",
+     "rounds": 5,
+     "orderRounds": 1
+    }
+   }
+  },
+  {
+   "id": "temple-07",
+   "world": "temple",
+   "index": 7,
+   "engine": "spot-difference",
+   "category": "observation",
+   "title": "Twin Statues",
+   "clue": "🗿",
+   "mission": "Two statues guard the hall. One has changed!",
+   "bands": {
+    "0": {
+     "cols": 3,
+     "rows": 3,
+     "diffs": 3,
+     "rounds": 2
+    },
+    "1": {
+     "cols": 4,
+     "rows": 4,
+     "diffs": 5,
+     "rounds": 2
+    },
+    "2": {
+     "cols": 5,
+     "rows": 5,
+     "diffs": 6,
+     "rounds": 2
+    }
+   }
+  },
+  {
+   "id": "temple-08",
+   "world": "temple",
+   "index": 8,
+   "engine": "memory-sequence",
+   "category": "memory",
+   "title": "Temple Drums",
+   "clue": "🥁",
+   "mission": "Play the drums in the same order as the temple music.",
+   "bands": {
+    "0": {
+     "tiles": 4,
+     "length": 3,
+     "rounds": 3,
+     "speed": 850
+    },
+    "1": {
+     "tiles": 6,
+     "length": 4,
+     "rounds": 3,
+     "speed": 700
+    },
+    "2": {
+     "tiles": 9,
+     "length": 5,
+     "rounds": 3,
+     "speed": 550
+    }
+   }
+  },
+  {
+   "id": "temple-09",
+   "world": "temple",
+   "index": 9,
+   "engine": "science-choice",
+   "category": "science",
+   "title": "Body and Health",
+   "clue": "🫀",
+   "mission": "The healer’s room is full of questions about our bodies.",
+   "bands": {
+    "0": {
+     "bank": "body-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "body-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "body-2",
+     "rounds": 5,
+     "orderRounds": 2
+    }
+   }
+  },
+  {
+   "id": "temple-10",
+   "world": "temple",
+   "index": 10,
+   "engine": "number",
+   "category": "maths",
+   "title": "The Great Lock",
+   "clue": "🔒",
+   "mission": "Solve the lock’s numbers to win the last map piece!",
+   "bands": {
+    "0": {
+     "mode": "missing",
+     "ops": [
+      "add",
+      "sub"
+     ],
+     "max": 20,
+     "rounds": 4
+    },
+    "1": {
+     "mode": "missing",
+     "ops": [
+      "mul",
+      "add"
+     ],
+     "max": 100,
+     "tables": 10,
+     "factorMax": 10,
+     "rounds": 5
+    },
+    "2": {
+     "mode": "missing",
+     "ops": [
+      "mul",
+      "div",
+      "sub"
+     ],
+     "max": 500,
+     "min": 100,
+     "tables": 12,
+     "factorMax": 12,
+     "rounds": 6
+    }
+   }
+  },
+  {
+   "id": "island-01",
+   "world": "island",
+   "index": 1,
+   "engine": "maze-path",
+   "category": "geography",
+   "title": "Follow the Compass",
+   "clue": "🧭",
+   "mission": "Follow the compass directions to find the hidden chest.",
+   "bands": {
+    "0": {
+     "mode": "compass",
+     "size": 4,
+     "steps": 1,
+     "maxDistance": 2,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "compass",
+     "size": 5,
+     "steps": 2,
+     "maxDistance": 3,
+     "rounds": 3
+    },
+    "2": {
+     "mode": "compass",
+     "size": 6,
+     "steps": 3,
+     "maxDistance": 3,
+     "rounds": 3,
+     "diagonal": true
+    }
+   }
+  },
+  {
+   "id": "island-02",
+   "world": "island",
+   "index": 2,
+   "engine": "science-choice",
+   "category": "geography",
+   "title": "Map Explorer",
+   "clue": "🗺️",
+   "mission": "Answer the map-maker’s questions about maps and directions.",
+   "bands": {
+    "0": {
+     "bank": "geo-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "geo-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "geo-2",
+     "rounds": 5,
+     "orderRounds": 1
+    }
+   }
+  },
+  {
+   "id": "island-03",
+   "world": "island",
+   "index": 3,
+   "engine": "maze-path",
+   "category": "geography",
+   "title": "Read the Map",
+   "clue": "📍",
+   "mission": "Use the map to find which place is in each direction.",
+   "bands": {
+    "0": {
+     "mode": "mapread",
+     "size": 4,
+     "landmarks": 4,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "mapread",
+     "size": 5,
+     "landmarks": 6,
+     "rounds": 4
+    },
+    "2": {
+     "mode": "mapread",
+     "size": 6,
+     "landmarks": 8,
+     "rounds": 4
+    }
+   }
+  },
+  {
+   "id": "island-04",
+   "world": "island",
+   "index": 4,
+   "engine": "number",
+   "category": "maths",
+   "title": "Treasure Maths",
+   "clue": "💰",
+   "mission": "Count and share the treasure the pirates left behind.",
+   "bands": {
+    "0": {
+     "mode": "word",
+     "bank": "island-0",
+     "rounds": 4
+    },
+    "1": {
+     "mode": "word",
+     "bank": "island-1",
+     "rounds": 4
+    },
+    "2": {
+     "mode": "word",
+     "bank": "island-2",
+     "rounds": 4
+    }
+   }
+  },
+  {
+   "id": "island-05",
+   "world": "island",
+   "index": 5,
+   "engine": "word-builder",
+   "category": "language",
+   "title": "Island Words",
+   "clue": "🔤",
+   "mission": "Spell the explorer words carved on the old sign.",
+   "bands": {
+    "0": {
+     "list": "island-0",
+     "rounds": 3
+    },
+    "1": {
+     "list": "island-1",
+     "rounds": 4
+    },
+    "2": {
+     "list": "island-2",
+     "rounds": 4,
+     "extra": 1,
+     "hideEmoji": true
+    }
+   }
+  },
+  {
+   "id": "island-06",
+   "world": "island",
+   "index": 6,
+   "engine": "maze-path",
+   "category": "geography",
+   "title": "Compass Trail",
+   "clue": "👣",
+   "mission": "A longer trail! Follow every step carefully.",
+   "bands": {
+    "0": {
+     "mode": "compass",
+     "size": 5,
+     "steps": 2,
+     "maxDistance": 2,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "compass",
+     "size": 6,
+     "steps": 3,
+     "maxDistance": 3,
+     "rounds": 3,
+     "diagonal": true
+    },
+    "2": {
+     "mode": "compass",
+     "size": 7,
+     "steps": 4,
+     "maxDistance": 3,
+     "rounds": 3,
+     "diagonal": true
+    }
+   }
+  },
+  {
+   "id": "island-07",
+   "world": "island",
+   "index": 7,
+   "engine": "science-choice",
+   "category": "geography",
+   "title": "World Wonders",
+   "clue": "🌍",
+   "mission": "The treasure map has pictures of places around the world.",
+   "bands": {
+    "0": {
+     "bank": "wonders-0",
+     "rounds": 4,
+     "orderRounds": 1
+    },
+    "1": {
+     "bank": "wonders-1",
+     "rounds": 5,
+     "orderRounds": 1
+    },
+    "2": {
+     "bank": "wonders-2",
+     "rounds": 5,
+     "orderRounds": 1
+    }
+   }
+  },
+  {
+   "id": "island-08",
+   "world": "island",
+   "index": 8,
+   "engine": "maze-path",
+   "category": "geography",
+   "title": "Landmark Hunt",
+   "clue": "🏰",
+   "mission": "Explore the island map and find each landmark.",
+   "bands": {
+    "0": {
+     "mode": "mapread",
+     "size": 4,
+     "landmarks": 5,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "mapread",
+     "size": 6,
+     "landmarks": 7,
+     "rounds": 4
+    },
+    "2": {
+     "mode": "mapread",
+     "size": 7,
+     "landmarks": 9,
+     "rounds": 4
+    }
+   }
+  },
+  {
+   "id": "island-09",
+   "world": "island",
+   "index": 9,
+   "engine": "pattern-puzzle",
+   "category": "logic",
+   "title": "Treasure Lock Code",
+   "clue": "🔢",
+   "mission": "The treasure chest has a pattern lock.",
+   "bands": {
+    "0": {
+     "kind": "emoji",
+     "units": [
+      "ABC",
+      "AAB",
+      "ABB"
+     ],
+     "show": 7,
+     "rounds": 4
+    },
+    "1": {
+     "kind": "mixed",
+     "units": [
+      "ABBC",
+      "AABB"
+     ],
+     "rules": [
+      "add",
+      "double",
+      "alt"
+     ],
+     "stepMin": 3,
+     "stepMax": 12,
+     "rounds": 5,
+     "missing": "any"
+    },
+    "2": {
+     "kind": "number",
+     "rules": [
+      "squares",
+      "fib",
+      "growing",
+      "alt",
+      "double"
+     ],
+     "stepMin": 5,
+     "stepMax": 20,
+     "rounds": 6,
+     "missing": "any"
+    }
+   }
+  },
+  {
+   "id": "island-10",
+   "world": "island",
+   "index": 10,
+   "engine": "maze-path",
+   "category": "geography",
+   "title": "The Treasure Chest",
+   "clue": "🧰",
+   "mission": "The last adventure: a maze, a compass trail and a map. The treasure awaits!",
+   "bands": {
+    "0": {
+     "mode": "mixed",
+     "size": 5,
+     "compassSize": 4,
+     "mapSize": 4,
+     "steps": 2,
+     "maxDistance": 2,
+     "landmarks": 4,
+     "rounds": 3
+    },
+    "1": {
+     "mode": "mixed",
+     "size": 7,
+     "compassSize": 5,
+     "mapSize": 5,
+     "steps": 3,
+     "maxDistance": 3,
+     "landmarks": 6,
+     "rounds": 3
+    },
+    "2": {
+     "mode": "mixed",
+     "size": 9,
+     "compassSize": 6,
+     "mapSize": 6,
+     "steps": 4,
+     "maxDistance": 3,
+     "landmarks": 8,
+     "rounds": 3,
+     "diagonal": true
+    }
+   }
+  }
+ ]
+}

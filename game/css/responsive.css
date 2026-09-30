@@ -1,0 +1,203 @@
+/* Mobile portrait first; these rules adapt to small phones, landscape,
+   tablets and desktops. */
+
+@media (max-width: 520px) {
+  .topbar-title {
+    font-size: 1.05rem;
+  }
+
+  .dpad {
+    grid-template-rows: repeat(3, 56px);
+  }
+
+  .pp-worlds li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pp-worlds .progress {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .hunt-scene {
+    aspect-ratio: 1;
+  }
+}
+
+@media (max-width: 380px) {
+  html,
+  body {
+    font-size: 16px;
+  }
+
+  .screen {
+    padding: 8px 10px 24px;
+  }
+
+  .wallet {
+    padding: 4px 8px;
+    gap: 4px;
+    font-size: 0.85rem;
+  }
+
+  .choice {
+    min-height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .dpad {
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(3, 54px);
+  }
+
+  .keypad {
+    grid-template-columns: repeat(3, 62px);
+  }
+
+  .pp-worlds li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pp-worlds .progress {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .level-node.right {
+    margin-left: 8%;
+  }
+
+  .level-node.left {
+    margin-right: 8%;
+  }
+}
+
+/* short landscape phones: keep boards visible without scrolling too much */
+@media (orientation: landscape) and (max-height: 520px) {
+  .sea {
+    aspect-ratio: 16 / 9;
+    max-height: 78dvh;
+  }
+
+  .scene,
+  .hunt-scene {
+    aspect-ratio: 16 / 9;
+    max-height: 70dvh;
+  }
+
+  .maze-wrap {
+    max-width: 62dvh;
+  }
+
+  .compass-layout {
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .engine-area:has(.maze) {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .splash-logo {
+    font-size: 4rem;
+  }
+}
+
+/* tablets */
+@media (min-width: 700px) {
+  .screen {
+    padding: 16px 24px 40px;
+  }
+
+  .sea {
+    aspect-ratio: 4 / 3;
+  }
+
+  .choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .choices-many {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .compass-layout {
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .compass-layout .maze-wrap {
+    max-width: 420px;
+  }
+
+  .engine-area:has(.maze) {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .camp-scene {
+    height: 280px;
+  }
+}
+
+/* desktops: wider map with side information */
+@media (min-width: 1000px) {
+  .map-screen {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-areas:
+      'bar bar'
+      'sea kiki'
+      'sea pieces'
+      'sea nav';
+    grid-template-rows: auto auto auto 1fr;
+    align-items: start;
+    column-gap: 24px;
+  }
+
+  .map-screen > .topbar {
+    grid-area: bar;
+  }
+
+  .map-screen > .banner {
+    grid-column: 1 / -1;
+  }
+
+  .map-screen > .sea {
+    grid-area: sea;
+    aspect-ratio: 16 / 11;
+    max-height: 80dvh;
+  }
+
+  .map-screen > .map-pieces {
+    grid-area: pieces;
+  }
+
+  .map-screen > .map-kiki {
+    grid-area: kiki;
+  }
+
+  .map-screen > .map-nav {
+    grid-area: nav;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .map-kiki .kiki {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .map-kiki .kiki-bubble::before {
+    display: none;
+  }
+
+  .game {
+    max-width: 900px;
+  }
+}

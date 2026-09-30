@@ -1,0 +1,14 @@
+{
+  "name": "Mystery Island",
+  "short_name": "Mystery Island",
+  "description": "A child-friendly learning adventure: explore islands, solve puzzles and find the treasure.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#bae6fd",
+  "theme_color": "#0e7490",
+  "icons": [
+    { "src": "assets/ui/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
