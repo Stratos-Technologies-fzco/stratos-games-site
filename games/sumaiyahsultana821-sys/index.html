@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Number Merge — Stratos</title>
+<style>
+  :root{
+    --bg-900:#0a0f24;
+    --bg-800:#101735;
+    --panel:#161f44;
+    --panel-line:#2b3868;
+    --teal:#6ee7c8;
+    --teal-glow:rgba(110,231,200,0.35);
+    --ink:#eaf0ff;
+    --ink-dim:#9fb0e0;
+    --danger:#ff7a8a;
+    --gold:#ffd166;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;min-height:100%;
+    font-family:'Segoe UI',Verdana,Arial,sans-serif;
+    background:radial-gradient(circle at 50% -10%, var(--bg-800), var(--bg-900) 65%);
+    color:var(--ink);
+  }
+  #app{
+    max-width:560px;
+    margin:0 auto;
+    padding:18px 14px 50px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  header{ text-align:center; margin-bottom:6px; }
+  header h1{
+    margin:0;
+    font-size:2rem;
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#9ff2da,#eaf0ff,#9ff2da);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 2px 18px var(--teal-glow);
+  }
+  header p{ margin:4px 0 0; color:var(--ink-dim); font-size:0.88rem; }
+
+  .panel{
+    background:rgba(22,31,68,0.75);
+    border:1px solid var(--panel-line);
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    backdrop-filter:blur(6px);
+  }
+
+  #stats{
+    display:flex;
+    gap:10px;
+    width:100%;
+    max-width:420px;
+    margin:14px 0 10px;
+  }
+  .stat{
+    flex:1;
+    text-align:center;
+    padding:8px 4px;
+  }
+  .stat .label{
+    font-size:0.62rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--ink-dim);
+  }
+  .stat .value{
+    font-size:1.25rem;
+    font-weight:800;
+    color:var(--teal);
+  }
+
+  #board-wrap{ margin-top:4px; }
+  #board{
+    --cell:60px;
+    display:grid;
+    grid-template-columns:repeat(5, var(--cell));
+    grid-template-rows:repeat(5, var(--cell));
+    gap:7px;
+    padding:10px;
+  }
+  @media (max-width:420px){
+    #board{ --cell: calc((100vw - 68px) / 5); }
+  }
+
+  .cell{
+    width:var(--cell);
+    height:var(--cell);
+    border:none;
+    border-radius:11px;
+    background:#1c2550;
+    color:var(--ink);
+    font-size:clamp(14px, 4vw, 20px);
+    font-weight:800;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
+    touch-action:manipulation;
+    position:relative;
+  }
+  .cell.empty{ cursor:default; background:#161c3c; }
+  .cell:not(.empty):hover{ transform:translateY(-2px); }
+  .cell:not(.empty):active{ transform:scale(0.94); }
+  .cell.selected{
+    box-shadow:0 0 0 3px var(--teal), 0 0 16px var(--teal-glow);
+    transform:translateY(-2px);
+  }
+  .cell.spawned{ animation:spawnIn 0.28s ease; }
+  .cell.merged{ animation:mergePop 0.26s ease; }
+  @keyframes spawnIn{
+    from{ transform:scale(0.3); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  @keyframes mergePop{
+    0%{ transform:scale(1); }
+    40%{ transform:scale(1.18); }
+    100%{ transform:scale(1); }
+  }
+
+  .v2{ background:#6fe3c4; color:#0a1c2e; }
+  .v4{ background:#7cb8ff; color:#0a1c2e; }
+  .v8{ background:#b49bff; color:#0a1c2e; }
+  .v16{ background:#ff9ecb; color:#0a1c2e; }
+  .v32{ background:#ffbd6b; color:#0a1c2e; }
+  .v64{ background:#ff8a78; color:#0a1c2e; }
+  .v128{ background:#d8e35a; color:#0a1c2e; }
+  .v256{ background:#5fd8ef; color:#0a1c2e; }
+  .v512{ background:#f4f1ff; color:#0a1c2e; }
+
+  #message{
+    min-height:22px;
+    margin:12px 4px 4px;
+    font-size:0.88rem;
+    color:var(--teal);
+    text-align:center;
+    max-width:420px;
+  }
+  #message.warn{ color:var(--danger); }
+  #message.win{ color:var(--gold); font-weight:700; }
+
+  #controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:12px;
+  }
+  button.action{
+    font-family:inherit;
+    font-weight:700;
+    font-size:0.88rem;
+    padding:10px 18px;
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    background:linear-gradient(135deg,#7cf0d4,#4bd0ac);
+    color:#07241c;
+    box-shadow:0 4px 14px rgba(0,0,0,0.3);
+    transition:transform 0.1s ease;
+  }
+  button.action:hover{ transform:translateY(-2px); }
+  button.action:active{ transform:translateY(0); }
+  button.action.secondary{
+    background:rgba(255,255,255,0.08);
+    color:var(--ink);
+    border:1px solid var(--panel-line);
+  }
+
+  #instructions{
+    max-width:440px;
+    margin-top:18px;
+    font-size:0.82rem;
+    line-height:1.55;
+    color:var(--ink-dim);
+    text-align:center;
+    padding:14px 18px;
+  }
+  #instructions strong{ color:var(--ink); }
+
+  #overlay{
+    position:fixed; inset:0;
+    background:rgba(5,10,28,0.78);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    backdrop-filter:blur(3px);
+    padding:20px;
+  }
+  #overlay.show{ display:flex; }
+  #modal-card{
+    max-width:360px;
+    width:100%;
+    padding:26px 28px;
+    text-align:left;
+    border:1px solid var(--panel-line);
+  }
+  #modal-card h2{ margin:0 0 10px; color:var(--teal); font-size:1.3rem; text-align:center; }
+  #modal-card ol{ margin:0 0 14px; padding-left:20px; color:var(--ink-dim); font-size:0.88rem; line-height:1.6; }
+  #modal-card ol li strong{ color:var(--ink); }
+  #modal-close{ display:block; margin:0 auto; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>∑ Number Merge</h1>
+    <p>Pick a tile, then its matching neighbour — merge up to <span id="target-label">32</span> to win.</p>
+  </header>
+
+  <div id="stats" class="panel">
+    <div class="stat"><div class="label">Score</div><div class="value" id="hud-score">0</div></div>
+    <div class="stat"><div class="label">Moves</div><div class="value" id="hud-moves">0</div></div>
+    <div class="stat"><div class="label">Best Tile</div><div class="value" id="hud-best">2</div></div>
+  </div>
+
+  <div id="board-wrap" class="panel">
+    <div id="board"></div>
+  </div>
+
+  <p id="message">Select a numbered tile to begin.</p>
+
+  <div id="controls">
+    <button class="action" id="btn-restart">↻ Restart</button>
+    <button class="action secondary" id="btn-undo">↶ Undo</button>
+    <button class="action secondary" id="btn-help">? How to Play</button>
+  </div>
+
+  <div id="instructions" class="panel">
+    <strong>How it works:</strong> Tap a numbered tile, then tap an adjacent tile with the
+    <em>same number</em> to merge them into one tile worth double. Every merge drops a fresh
+    tile onto the board, so keep chaining matches to climb higher. The game ends when the
+    board is full and no more merges are possible — Restart to try again, or Undo to take
+    back your last move.
+  </div>
+</div>
+
+<div id="overlay">
+  <div id="modal-card" class="panel">
+    <h2>How to Play</h2>
+    <ol>
+      <li><strong>Select</strong> any numbered tile on the board.</li>
+      <li><strong>Select a neighbour</strong> directly beside it (up, down, left or right) that shows the <strong>same number</strong>.</li>
+      <li>Matching tiles <strong>merge</strong> into one tile worth double, and you score the new value.</li>
+      <li>A new tile appears after every merge — plan ahead to avoid filling the board.</li>
+      <li>Reach the target tile to win. The game continues afterward if you want a higher score.</li>
+      <li>Made a mistake? Tap <strong>Undo</strong> to reverse your last merge.</li>
+    </ol>
+    <button class="action" id="modal-close">Got it</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const SIZE = 5;
+  const WIN_TARGET = 32;
+  const STARTER_TILES = 10;
+  const SPAWNS_PER_MERGE = 2;
+
+  let grid, score, moves, selected, history, gameOver, wonShown;
+  let spawnedKeys = new Set(), mergedKey = null;
+
+  const boardEl = document.getElementById('board');
+  const hudScore = document.getElementById('hud-score');
+  const hudMoves = document.getElementById('hud-moves');
+  const hudBest = document.getElementById('hud-best');
+  const messageEl = document.getElementById('message');
+  const overlay = document.getElementById('overlay');
+
+  function emptyGrid(){
+    return Array.from({length:SIZE}, () => Array(SIZE).fill(0));
+  }
+
+  function emptyCells(g){
+    const cells = [];
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(!g[r][c]) cells.push({r,c});
+    return cells;
+  }
+
+  function randomValue(){
+    return Math.random() < 0.85 ? 2 : 4;
+  }
+
+  function hasAnyMerge(g){
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const v = g[r][c];
+        if(!v) continue;
+        if(c+1<SIZE && g[r][c+1]===v) return true;
+        if(r+1<SIZE && g[r+1][c]===v) return true;
+      }
+    }
+    return false;
+  }
+
+  function seedBoard(){
+    let g;
+    do{
+      g = emptyGrid();
+      const cells = [];
+      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) cells.push({r,c});
+      for(let i=cells.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [cells[i],cells[j]] = [cells[j],cells[i]];
+      }
+      for(let i=0;i<STARTER_TILES;i++){
+        g[cells[i].r][cells[i].c] = randomValue();
+      }
+    } while(!hasAnyMerge(g));
+    return g;
+  }
+
+  function restart(){
+    grid = seedBoard();
+    score = 0;
+    moves = 0;
+    selected = null;
+    history = null;
+    gameOver = false;
+    wonShown = false;
+    spawnedKeys = new Set();
+    mergedKey = null;
+    document.getElementById('target-label').textContent = WIN_TARGET;
+    say('Select a tile, then select a matching neighbour.');
+    render();
+  }
+
+  function render(){
+    boardEl.innerHTML = '';
+    for(let r=0;r<SIZE;r++){
+      for(let c=0;c<SIZE;c++){
+        const value = grid[r][c];
+        const key = r+','+c;
+        const btn = document.createElement('button');
+        btn.className = 'cell' +
+          (value ? ' v'+value : ' empty') +
+          (selected === key ? ' selected' : '') +
+          (spawnedKeys.has(key) ? ' spawned' : '') +
+          (mergedKey === key ? ' merged' : '');
+        btn.textContent = value || '';
+        btn.setAttribute('aria-label', value ? ('Tile '+value) : 'Empty space');
+        btn.disabled = gameOver;
+        btn.addEventListener('click', () => onCellClick(r,c));
+        boardEl.appendChild(btn);
+      }
+    }
+    hudScore.textContent = score;
+    hudMoves.textContent = moves;
+    let best = 2;
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(grid[r][c] > best) best = grid[r][c];
+    hudBest.textContent = best;
+    document.getElementById('btn-undo').disabled = !history;
+  }
+
+  function say(text, cls){
+    messageEl.textContent = text;
+    messageEl.className = cls || '';
+  }
+
+  function onCellClick(r,c){
+    if(gameOver) return;
+    const value = grid[r][c];
+    const key = r+','+c;
+    spawnedKeys = new Set();
+    mergedKey = null;
+
+    if(selected === null){
+      if(!value){ say('Select a numbered tile first.'); return; }
+      selected = key;
+      say('Now pick a matching neighbour beside it.');
+      render();
+      return;
+    }
+
+    if(selected === key){
+      selected = null;
+      say('Selection cleared. Pick a tile to begin.');
+      render();
+      return;
+    }
+
+    const [sr, sc] = selected.split(',').map(Number);
+    const sourceValue = grid[sr][sc];
+
+    if(!value){
+      say('Select a numbered tile first.');
+      return;
+    }
+
+    const adjacent = Math.abs(sr-r) + Math.abs(sc-c) === 1;
+
+    if(!adjacent){
+      selected = key;
+      say('Not adjacent — selection moved to this tile instead.');
+      render();
+      return;
+    }
+
+    if(value !== sourceValue){
+      selected = key;
+      say("Numbers didn't match — selection moved to this tile.", 'warn');
+      render();
+      return;
+    }
+
+    history = { grid: grid.map(row=>row.slice()), score, moves };
+
+    const merged = sourceValue * 2;
+    grid[r][c] = merged;
+    grid[sr][sc] = 0;
+    score += merged;
+    moves++;
+    selected = null;
+    mergedKey = key;
+
+    const cells = emptyCells(grid);
+    for(let i=0;i<SPAWNS_PER_MERGE && cells.length;i++){
+      const idx = Math.floor(Math.random()*cells.length);
+      const spot = cells.splice(idx,1)[0];
+      grid[spot.r][spot.c] = randomValue();
+      spawnedKeys.add(spot.r+','+spot.c);
+    }
+
+    if(merged >= WIN_TARGET && !wonShown){
+      wonShown = true;
+      say('🏆 You reached ' + merged + '! You win — keep playing for a higher score.', 'win');
+    } else if(!hasAnyMerge(grid)){
+      gameOver = true;
+      say('Game over — no more merges possible. Tap Restart to play again.', 'warn');
+    } else {
+      say(sourceValue + ' + ' + sourceValue + ' = ' + merged + '! +' + merged + ' points.');
+    }
+
+    render();
+  }
+
+  function undo(){
+    if(!history) return;
+    grid = history.grid;
+    score = history.score;
+    moves = history.moves;
+    history = null;
+    selected = null;
+    gameOver = false;
+    spawnedKeys = new Set();
+    mergedKey = null;
+    say('Last merge undone.');
+    render();
+  }
+
+  document.getElementById('btn-restart').addEventListener('click', restart);
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-help').addEventListener('click', () => overlay.classList.add('show'));
+  document.getElementById('modal-close').addEventListener('click', () => overlay.classList.remove('show'));
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('show'); });
+
+  restart();
+})();
+</script>
+</body>
+</html>
