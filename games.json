@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 11,
+ "count": 12,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -51,6 +51,19 @@
    "thumb": "games/shoaibul0926/thumbnail.png",
    "added": "2026-10-01",
    "github": "shoaibul0926",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sumaiyahsultana821-sys",
+   "title": "AquaLink",
+   "maker": "Sumaiyah Sultana",
+   "one_line": "Rotate pipes to link the water tank to the drain across 10 increasingly tricky levels.",
+   "category": "puzzle",
+   "url": "play/sumaiyahsultana821-sys/",
+   "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
+   "added": "2026-10-01",
+   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
