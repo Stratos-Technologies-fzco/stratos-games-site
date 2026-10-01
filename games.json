@@ -29,19 +29,6 @@
    "soon": false
   },
   {
-   "slug": "Mdsadee527",
-   "title": "Racing Mania",
-   "maker": "Mohammad Sadee",
-   "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
-   "category": "arcade",
-   "url": "play/Mdsadee527/",
-   "thumb": "games/Mdsadee527/thumbnail.svg",
-   "added": "2026-09-29",
-   "github": "Mdsadee527",
-   "kind": "family",
-   "soon": false
-  },
-  {
    "slug": "saiqulmodi",
    "title": "Stratos_squirrel_vs_viper",
    "maker": "Md. Saiqul Haque Modi",
@@ -49,7 +36,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-09-29",
+   "added": "2026-10-01",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -62,8 +49,21 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-09-29",
+   "added": "2026-10-01",
    "github": "shoaibul0926",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "Mdsadee527",
+   "title": "Racing Mania",
+   "maker": "Mohammad Sadee",
+   "one_line": "Dodge oncoming traffic across three lanes and rack up distance before you crash.",
+   "category": "arcade",
+   "url": "play/Mdsadee527/",
+   "thumb": "games/Mdsadee527/thumbnail.svg",
+   "added": "2026-09-29",
+   "github": "Mdsadee527",
    "kind": "family",
    "soon": false
   },
