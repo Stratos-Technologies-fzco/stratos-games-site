@@ -1,9 +1,0 @@
-{
-  "title": "Mystery Minutes: The Missing Phone",
-  "maker": "Sumaiyah Sultana",
-  "one_line": "A 3-minute mystery: search the room, find 3 clues, and accuse the right suspect before time runs out.",
-  "category": "puzzle",
-  "github": "sumaiyahsultana821-sys",
-  "how_to_play": "Tap around the room to search for clues, then tap \"I know who did it\" and pick the suspect you think is guilty.",
-  "description": "Mystery Minutes is a beginner-friendly detective game built with plain HTML, CSS and JavaScript, no libraries required. Your phone went missing from your room and four people were in the house today. You have 3 minutes to search five spots for 3 hidden clues (a keychain, muddy footprints, and a fabric thread), read each suspect's story, and make one accusation. Every clue points to a different random suspect each game, so no two cases play out the same way. Simple rules, one short case, works with mouse, touch, or keyboard on desktop and mobile browsers."
-}

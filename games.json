@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 12,
+ "count": 11,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -10,7 +10,7 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-09-30",
+   "added": "2026-10-01",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -23,47 +23,8 @@
    "category": "kids",
    "url": "play/nikhatenglish89/",
    "thumb": "assets/covers/generated/nikhatenglish89.svg",
-   "added": "2026-09-30",
+   "added": "2026-10-01",
    "github": "nikhatenglish89",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "saiqulmodi",
-   "title": "Stratos_squirrel_vs_viper",
-   "maker": "Md. Saiqul Haque Modi",
-   "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
-   "category": "arcade",
-   "url": "play/saiqulmodi/",
-   "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-09-30",
-   "github": "saiqulmodi",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "shoaibul0926",
-   "title": "Skyfall Armada",
-   "maker": "Shoaibul Hoque",
-   "one_line": "Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles.",
-   "category": "arcade",
-   "url": "play/shoaibul0926/",
-   "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-09-30",
-   "github": "shoaibul0926",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "sumaiyahsultana821-sys",
-   "title": "Mystery Minutes: The Missing Phone",
-   "maker": "Sumaiyah Sultana",
-   "one_line": "A 3-minute mystery: search the room, find 3 clues, and accuse the right suspect before time runs out.",
-   "category": "puzzle",
-   "url": "play/sumaiyahsultana821-sys/",
-   "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
-   "added": "2026-09-30",
-   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
@@ -77,6 +38,32 @@
    "thumb": "games/Mdsadee527/thumbnail.svg",
    "added": "2026-09-29",
    "github": "Mdsadee527",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi",
+   "title": "Stratos_squirrel_vs_viper",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
+   "category": "arcade",
+   "url": "play/saiqulmodi/",
+   "thumb": "games/saiqulmodi/thumbnail.png",
+   "added": "2026-09-29",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "shoaibul0926",
+   "title": "Skyfall Armada",
+   "maker": "Shoaibul Hoque",
+   "one_line": "Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles.",
+   "category": "arcade",
+   "url": "play/shoaibul0926/",
+   "thumb": "games/shoaibul0926/thumbnail.png",
+   "added": "2026-09-29",
+   "github": "shoaibul0926",
    "kind": "family",
    "soon": false
   },
@@ -101,7 +88,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-09-30",
+   "added": "2026-10-01",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
