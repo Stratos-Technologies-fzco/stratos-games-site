@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 12,
+ "count": 13,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -10,7 +10,7 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -23,7 +23,7 @@
    "category": "kids",
    "url": "play/nikhatenglish89/",
    "thumb": "assets/covers/generated/nikhatenglish89.svg",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "nikhatenglish89",
    "kind": "family",
    "soon": false
@@ -36,7 +36,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -49,8 +49,21 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "shoaibul0926",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sksarfarajali",
+   "title": "Echo Island",
+   "maker": "Sarfaraj Ali",
+   "one_line": "Explore a living island, bond with creatures and rebuild its lost memory, where every choice changes the world.",
+   "category": "kids",
+   "url": "play/sksarfarajali/",
+   "thumb": "assets/covers/generated/sksarfarajali.svg",
+   "added": "2026-10-02",
+   "github": "sksarfarajali",
    "kind": "family",
    "soon": false
   },
@@ -62,7 +75,7 @@
    "category": "puzzle",
    "url": "play/sumaiyahsultana821-sys/",
    "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
@@ -101,7 +114,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-10-01",
+   "added": "2026-10-02",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
