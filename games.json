@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 12,
+ "count": 13,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -64,6 +64,19 @@
    "thumb": "assets/covers/generated/sksarfarajali.svg",
    "added": "2026-10-02",
    "github": "sksarfarajali",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sumaiyahsultana821-sys",
+   "title": "Island Match Quest",
+   "maker": "Sumaiyah Sultana",
+   "one_line": "Flip shells, fruits, and gems to match pairs, clear three islands, and chase a high score.",
+   "category": "puzzle",
+   "url": "play/sumaiyahsultana821-sys/",
+   "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
+   "added": "2026-10-02",
+   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
