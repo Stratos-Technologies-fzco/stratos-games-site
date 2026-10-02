@@ -4,6 +4,6 @@
   "one_line": "Fly a stealth jet through the sky while launchers on the ground fire ever-smarter homing missiles at you.",
   "category": "arcade",
   "github": "saiqulmodi",
-  "how_to_play": "Computer: WASD to fly (let go and the autopilot keeps flying), mouse to aim, click or Space to fire, E shield, C camouflage, F flares, T triple jet, N/P or the level strip to change level.",
-  "description": "Six mobile launchers on the ground fire homing missiles that climb, turn and chase your jet. Missiles grow from short range to hypersonic as the levels rise, carry more ammunition (scatter, flak, homing micro-missiles) and learn tactics like dodging your shots, flanking and jamming. Every 5 levels both sides get faster and stronger. Launchers take two hits to destroy; a shot-down jet falls burning to the ground. Levels 1 to 100 plus endless overdrive, and a 2-player jet vs missile duel."
+  "how_to_play": "Computer: WASD to fly (let go and the autopilot keeps flying), mouse to aim, click or Space to fire, E shield, V stealth, C camouflage, F flares, T triple jet, N/P or the level strip to change level.",
+  "description": "Six mobile launchers on the ground fire homing missiles that climb, turn and chase your jet. A missile never shoots: it hits you or blows itself up right next to you, and your jet goes down in flames, so shoot them down first, raise your shield at the last moment, or vanish with 2 seconds of stealth. Missiles grow from short range to hypersonic as the levels rise and learn tactics like dodging your shots, flanking and jamming. Every 5 levels both sides get faster and stronger. Launchers take two hits to destroy. Levels 1 to 100 plus endless overdrive, and a 2-player duel where the missile has to ram the jet."
 }
