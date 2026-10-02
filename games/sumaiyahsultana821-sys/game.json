@@ -1,0 +1,10 @@
+{
+  "title": "Island Match Quest",
+  "maker": "Sumaiyah Sultana",
+  "one_line": "Flip shells, fruits, and gems to match pairs, clear three islands, and chase a high score.",
+  "category": "puzzle",
+  "github": "sumaiyahsultana821-sys",
+  "added": "2026-10-02",
+  "how_to_play": "Click a card to flip it, then click another to find its match. A match stays face up and scores points; a miss flips both back after a moment. Clear every pair to unlock the next island. Fewer moves and a faster time earn a bigger bonus. Restart quest starts you over from Island 1 anytime.",
+  "description": "A beginner-friendly memory matching game across three islands: Shell Shore, Fruit Grove, and Gem Cavern. One self-contained HTML file with no dependencies, built-in instructions, a live score, move counter, timer, and a restart button."
+}
