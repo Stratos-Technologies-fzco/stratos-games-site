@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 13,
+ "count": 12,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -64,19 +64,6 @@
    "thumb": "assets/covers/generated/sksarfarajali.svg",
    "added": "2026-10-02",
    "github": "sksarfarajali",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "sumaiyahsultana821-sys",
-   "title": "Number Merge",
-   "maker": "Sumaiyah Sultana",
-   "one_line": "Match adjacent equal numbers to merge and multiply your way up to 32 in this easy, relaxed puzzle.",
-   "category": "puzzle",
-   "url": "play/sumaiyahsultana821-sys/",
-   "thumb": "assets/covers/generated/sumaiyahsultana821-sys.svg",
-   "added": "2026-10-02",
-   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
