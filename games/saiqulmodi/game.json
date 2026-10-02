@@ -1,9 +1,9 @@
 {
-  "title": "Stratos_squirrel_vs_viper",
+  "title": "Jet vs Missile",
   "maker": "Md. Saiqul Haque Modi",
-  "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
+  "one_line": "Fly a stealth jet through the sky while launchers on the ground fire ever-smarter homing missiles at you.",
   "category": "arcade",
   "github": "saiqulmodi",
-  "how_to_play": "Tap once to start. Phone: drag left side to move, hold FIRE, tap NOVA. Computer: WASD + mouse/Space to shoot, E for Nova, T to change mode.",
-  "description": "Five modes: Squirrel vs AI, two squirrels vs AI, Squirrel vs Viper (player vs player), Viper vs AI squirrel, and two vipers vs AI squirrels. Every level brings a bigger viper pack and the squirrel's power grows to match, so both sides always have the same total strength; against the AI, human players get a 10% edge. Levels 1 to 100 with one-tap level jump, touch controls, keyboard, mouse and game controller support."
+  "how_to_play": "Computer: WASD to fly (let go and the autopilot keeps flying), mouse to aim, click or Space to fire, E shield, C camouflage, F flares, T triple jet, N/P or the level strip to change level.",
+  "description": "Six mobile launchers on the ground fire homing missiles that climb, turn and chase your jet. Missiles grow from short range to hypersonic as the levels rise, carry more ammunition (scatter, flak, homing micro-missiles) and learn tactics like dodging your shots, flanking and jamming. Every 5 levels both sides get faster and stronger. Launchers take two hits to destroy; a shot-down jet falls burning to the ground. Levels 1 to 100 plus endless overdrive, and a 2-player jet vs missile duel."
 }

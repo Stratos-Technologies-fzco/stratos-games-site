@@ -2222,8 +2222,8 @@ async function onload() {
 // TODO: error alert if 404 / timeout
     console.warn("Loading python interpreter from", config.executable)
     // Stratos box: engine files are bundled gzip-compressed; unpack them before starting the engine
-    if (window.__ssv_engine) {
-        const eng = await window.__ssv_engine
+    if (window.__jvm_engine) {
+        const eng = await window.__jvm_engine
         vm.wasmBinary = eng.wasm
         vm.getPreloadedPackage = function () { return eng.data }
     }
