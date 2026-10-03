@@ -1,331 +1,1132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flappy Bird</title>
-<style>
-  /* ---------- Basic page styling ---------- */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html, body {
-    height: 100%;
-    background: #4ec0ca;               /* the classic Flappy sky blue */
-    font-family: 'Segoe UI', Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-
-  /* The game canvas sits inside a rounded frame */
-  #game {
-    display: block;
-    background: #4ec0ca;
-    border: 4px solid #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,.25);
-    max-width: 100%;
-    max-height: 100vh;
-    touch-action: manipulation;
-    cursor: pointer;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Arrow Rush</title>
+  <!-- Inter — the Stratos Games launch splash (#229; STRATOS wordmark weight
+       600, GAMES weight 800) + the in-game HUD title / difficulty badge
+       (#413, weight 800). Same import as BX. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Display face for the Arrow Rush wordmark (#286). Loaded with
+       display=swap so the menu paints with the fallback first and
+       restyles when Fredoka One arrives — no FOUT blocking. -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <!-- Nunito — rounded bold face for the win-celebration praise word (2026-07-10,
+       competitor-style navy title-case). display=swap → falls back to the sans stack. -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+  <!-- Rubik Mono One — the chunky display face for the progress-banner praise
+       words (Bloxplode look). display=swap → falls back to the display stack. -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
+  <!-- Splash CSS is loaded BEFORE main.css so the splash paints with no
+       FOUC even before the JS module graph evaluates. -->
+  <!-- Boot-layer CSS (#276) loads BETWEEN splash and main so the loading
+       screen can paint with no FOUC immediately after the splash fade,
+       before the JS module graph evaluates the menu. -->
+  <!-- Adventure library (#421, Step 5) — minimal map canvas + 2-up world grid.
+       After main.css so it reads the theme tokens and overrides the base. -->
+  <!-- Adventure "Cleared!" win overlay (#421). Full-page celebration scoped
+       entirely under #overlay-adventure-win — the Classic win card
+       (#overlay-win) and win-celebration stay untouched. After main.css so
+       its .aw-theme.t-default / .aw-theme.t-dark surface overrides the base
+       .overlay dim scrim (mirrors #overlay-streak). -->
+  <!-- Floating-arrows background animation (#279). Loads after main.css so
+       its z-index:1 rule reads as the lowest stacking-context above the
+       body background; #app is bumped to z-index:2 in main.css. -->
+  <!-- Revive countdown overlay (#290). Loads after main.css so its
+       .revive-overlay z-index sits above .overlay (100). The DOM
+       template is injected by src/ui/revive-countdown.js on first show
+       — no inline markup needed here. -->
+  <!-- Full-screen Game Over screen (#292). Reached after the revive
+       overlay's skip / timer-expired / ad-unavailable branches. -->
+  <!-- Settings overlay redesign (#307). Loaded after main.css so its
+       dark-mode card styling overrides .overlay-card defaults; loaded
+       after game-over-screen.css so the Restart/Main Menu button
+       gradients can reference the shared --btn-shadow CSS variable
+       convention without ordering tricks. -->
+  <!-- Daily play-streak page + menu chip (#392). Loaded after main.css /
+       settings-overlay.css so the id-scoped #overlay-streak gold page
+       treatment and the chip states layer cleanly over the base .overlay
+       and menu rules. -->
+  <!-- Rewarded-ad disclosure (#399). The "AD" badge on the Hint bulb +
+       the "Watch an ad" line on the Revive CTA. Loaded after main.css so
+       the .ad-badge corner pill layers over the .btn-tool bulb and the
+       revive disclosure layers over revive-overlay.css. Neutral/muted
+       token chip — deliberately NOT the gold reward badge or the coral
+       interaction accent. -->
+  <script type="module" crossorigin src="./assets/index-CahIdgzL.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-C1q7N15b.css">
 </head>
 <body>
+  <!-- Floating-arrows background layer (#279). Sits BEHIND #app at
+       z-index:1; main.js adds `.active` once the boot layer dismisses
+       (mirrors BX www/index.html:14-19, www/menu.css:201-225). Hidden on
+       #screen-game via body.screen-game-active. 10 SVG arrows with mixed
+       sizes / left offsets / durations / delays / base rotations — see
+       src/styles/background-particles.css. Stroke-based arrow with chevron
+       tip — horizontal line + arrowhead — reads unmistakably as a directional
+       arrow (per #281 feedback; prior HUD shot-counter glyph was a lightning
+       bolt, not an arrow). currentColor inherits from .arrow's CSS color. -->
+  <div id="bg-particles" class="particles-layer" aria-hidden="true">
+    <svg class="arrow a1"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a2"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a3"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a4"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a5"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a6"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a7"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a8"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a9"  viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a10" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a11" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+    <svg class="arrow a12" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 H18 M14 1 L19 6 L14 11"/></svg>
+  </div>
 
-<!-- The whole game is drawn on this one canvas -->
-<canvas id="game" width="360" height="540"></canvas>
+  <!-- Stratos Games launch splash (#229) — "Trajectory Arc" gold-diamond ident.
+       Renders immediately on first paint, before any AP DOM/canvas: a comet
+       ascends drawing the teal/cyan S, a gold diamond pops at the peak, then
+       STRATOS / GAMES resolve over a starfield + glowing horizon. Removed by
+       main.js after the 3.5s + 0.5s fade sequence. Markup + tokens are
+       byte-equivalent with BX www/index.html — keep in sync (cross-game brand
+       consistency is the entire point; do NOT tweak per-game). -->
+  <div id="stratos-splash">
+    <div class="studio-stars"></div>
+    <div class="studio-horizon"></div>
+    <div class="studio-container">
+      <div class="studio-mono"><div class="studio-gem"></div></div>
+      <div class="studio-text">STRATOS</div>
+      <div class="studio-sub">GAMES</div>
+    </div>
+  </div>
+  <script>
+    // Inject the S-monogram SVG + comet at parse time (before first paint) so
+    // the draw/comet motion stays in sync with the CSS-driven stars, horizon,
+    // gem, and wordmark. Dismissal (fade-out 3500ms, display:none 4000ms) lives
+    // in main.js scheduleStratosSplashDismissal — it stays coordinated with the
+    // boot layer, ?skip-splash bypass, and resume-cover. Keep byte-equivalent
+    // with the BX inline boot script per the cross-game brand rule.
+    (function () {
+      var mono = document.querySelector('#stratos-splash .studio-mono');
+      if (!mono) return;
+      var P = "M30 97 C46 105 72 101 76 81 C80 61 61 56 43 50 C25 44 22 26 37 18 C51 11 74 15 74 26";
+      mono.insertAdjacentHTML('afterbegin',
+        '<svg viewBox="0 0 104 116">' +
+          '<defs><linearGradient id="stratosSg" x1="0" y1="1" x2="1" y2="0">' +
+            '<stop offset="0" stop-color="#3BE8D6"/><stop offset="1" stop-color="#00E5FF"/>' +
+          '</linearGradient></defs>' +
+          '<path class="studio-dpath" d="' + P + '" fill="none" stroke="url(#stratosSg)" ' +
+            'stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<circle class="studio-comet" r="4.6"/>' +
+        '</svg>');
+      var dp = mono.querySelector('.studio-dpath');
+      var L = Math.ceil(dp.getTotalLength());
+      dp.style.strokeDasharray = L;
+      dp.style.setProperty('--len', L + 'px');
+      var comet = mono.querySelector('.studio-comet');
+      if (window.CSS && CSS.supports && CSS.supports('offset-path', 'path("M0 0")')) {
+        comet.style.offsetPath = 'path("' + P + '")';
+      } else {
+        comet.style.display = 'none'; // graceful fallback: S still draws, no comet dot
+      }
+    })();
+  </script>
 
-<script>
-// =====================================================================
-//  FLAPPY BIRD  —  single-file, no libraries
-//  Controls: click / tap / press SPACE (or the up arrow) to flap.
-// =====================================================================
+  <!-- Bloxplode-style boot loading layer (#276). Activated by main.js
+       after the Stratos splash fade-out; reveals a wordmark + animated
+       LOADING bar (~4s) before the menu. No new image asset — the
+       wordmark mirrors the menu's .game-title for brand continuity.
+       Markup pattern is a 1:1 port of BX www/index.html:29-37, with the
+       <img> swapped for the AP wordmark <h1>. -->
+  <div id="game-boot-layer">
+    <div class="logo-wrapper" id="ap-master-logo">
+      <div class="wordmark-stage">
+        <h1 class="ap-boot-title ap-wordmark">Arrow<br>Rush</h1>
+        <svg class="boot-arrow-strike" viewBox="0 0 240 24" aria-hidden="true">
+          <defs>
+            <!-- `gradientUnits="userSpaceOnUse"` + explicit x1=0..x2=240 (viewBox
+                 width) so the gradient maps onto the shaft <line> too. The
+                 default objectBoundingBox mode collapses on zero-height lines
+                 (per #287 round-5 operator correction); userSpaceOnUse sweeps
+                 the SVG's coordinate space, which both shaft + polygon share. -->
+            <linearGradient id="arrow-wordmark-grad"
+                            x1="0" y1="0" x2="240" y2="0"
+                            gradientUnits="userSpaceOnUse">
+              <stop offset="0%"   stop-color="#5C4030"/>
+              <stop offset="50%"  stop-color="#FF7043"/>
+              <stop offset="100%" stop-color="#FFB300"/>
+            </linearGradient>
+          </defs>
+          <line x1="4" y1="12" x2="208" y2="12"
+                stroke="url(#arrow-wordmark-grad)" stroke-width="5.5" stroke-linecap="round"/>
+          <polygon points="200,4 234,12 200,20" fill="url(#arrow-wordmark-grad)"/>
+        </svg>
+      </div>
+    </div>
+    <div class="loading-zone" id="ap-loader">
+      <div class="loading-label">LOADING...</div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+    </div>
+  </div>
 
-// Grab the canvas and its 2D drawing context
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+  <div id="app">
+    <!-- Menu Screen -->
+    <div id="screen-menu" class="screen active">
+      <div class="menu-content">
+        <!-- Daily play-streak chip (#392) — persistent top-center
+             indicator (ref-3 placement: above the wordmark). Absolutely
+             positioned by streak.css so the centered menu column is
+             untouched. Two states driven by renderStreakChip(): .lit
+             (today secured — full gold) vs .at-risk (no win yet today —
+             dimmed; the daily pull). Glyph uses currentColor so the
+             state classes drive the colour swap. Tap opens the streak
+             page in review mode. Ships .at-risk with an honest 0 until
+             the engine renders real values. -->
+        <button id="streak-chip" class="streak-chip btn-press at-risk" aria-label="Daily streak">
+          <!-- #392 r3: soft rounded flame (the universal streak glyph,
+               our chunky/rounded language — not a spiky realistic fire).
+               Single currentColor path so it inherits the chip's
+               .lit/.at-risk gold. The full-screen pop badge keeps its
+               arrow form; this is the menu-chip glyph only. -->
+          <svg class="streak-chip-glyph" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13.4 2.3 C13.9 5.6 11 6.7 9.4 9 C8 11 7.8 12.7 8.3 14.2 C7.5 13.9 6.9 13.1 6.6 12 C5.3 13.4 4.5 15.2 4.5 17 C4.5 20.6 7.9 23 12 23 C16.1 23 19.5 20.4 19.5 16.5 C19.5 13.6 17.8 11.4 16.4 9.4 C14.9 7.3 13.1 5.6 13.4 2.3 Z"
+                  fill="currentColor"/>
+          </svg>
+          <span id="streak-chip-count" class="streak-chip-count">0</span>
+        </button>
+        <!-- Menu wordmark logo (#288). Static counterpart of the boot-layer
+             strike-arrow (#285) — the arrow sits permanently between
+             "Arrow" and "Rush" so the menu screen always shows the full
+             brand identity. No animation here; the arrow only fires off
+             in the boot-layer flow. Distinct class + gradient id keep the
+             menu version independent of the boot-layer rules. -->
+        <div class="wordmark-stage menu-wordmark-stage">
+          <h1 class="game-title ap-wordmark">Arrow<br>Rush</h1>
+          <svg class="menu-arrow-strike" viewBox="0 0 240 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="menu-arrow-grad"
+                              x1="0" y1="0" x2="240" y2="0"
+                              gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#5C4030"/>
+                <stop offset="50%"  stop-color="#FF7043"/>
+                <stop offset="100%" stop-color="#FFB300"/>
+              </linearGradient>
+            </defs>
+            <line x1="4" y1="12" x2="208" y2="12"
+                  stroke="url(#menu-arrow-grad)" stroke-width="5.5" stroke-linecap="round"/>
+            <polygon points="200,4 234,12 200,20" fill="url(#menu-arrow-grad)"/>
+          </svg>
+        </div>
+        <!-- Adventure hero — the single Adventure surface on home, driven by
+             updateAdventureHero() in main.js. LOCKED below Classic L20: an
+             enticing teaser + "Unlock at Level N". UNLOCKED: themes to the
+             last-played world with a "Continue · Level X", or an Explore CTA
+             for first-timers. Tap → onAdventureHeroTap (toast / resume / library).
+             Initial markup = the locked state; JS overwrites on every menu show. -->
+        <button id="home-adventure" class="btn btn-press home-hero" type="button">
+          <span class="home-hero-title">Adventure</span>
+          <span class="home-hero-world">10 themed worlds · bigger, intricate mazes</span>
+          <span class="home-hero-emoji" aria-hidden="true">🗺️</span>
+          <span class="home-hero-cta">🔒 Unlock at Level 20</span>
+        </button>
+        <!-- Daily strip — same #btn-daily → showDaily() wiring, restyled from a
+             pill to a full-width strip. Keeps .btn for the click-SFX delegate. -->
+        <button id="btn-daily" class="btn btn-press home-daily" type="button">
+          <span class="home-daily-ic" aria-hidden="true">📅</span>
+          <span class="home-daily-txt">
+            <span class="home-daily-title">Daily Challenge</span>
+            <span class="home-daily-sub">Keep your streak alive</span>
+          </span>
+        </button>
+        <!-- Play zone, pinned above the nav (margin-top:auto). The primary
+             Unlimited CTA. #btn-play / #btn-play-level keep their ids so
+             updatePlayButton() is untouched; #btn-play-level sits inside the
+             pill as the sub-label. -->
+        <div class="home-playzone">
+          <button id="btn-play" class="btn btn-press home-play btn-cta">
+            <span class="btn-play-label">Play</span>
+            <span id="btn-play-level" class="btn-play-caption">Level 1</span>
+          </button>
+          <!-- (Adventure resume merged into the #home-adventure hero — one
+               Adventure surface; the playzone is Classic-only now.) -->
+        </div>
+      </div>
+    </div>
 
-const W = canvas.width;   // 360
-const H = canvas.height;  // 540
+    <!-- Level Select Screen -->
+    <div id="screen-levels" class="screen">
+      <div class="levels-header">
+        <button id="btn-levels-back" class="btn-icon btn-press" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <h2 class="levels-title">Select Level</h2>
+        <div style="width:44px"></div>
+      </div>
+      <!-- Page navigator (#317): `← Page X of Y →` with the page label
+           tappable to open a mini-grid of page tiles. Markup is static;
+           contents are re-rendered by ui/level-grid.js on every page
+           change so the disabled state, label text, and jump popover
+           stay in sync with the currentPage state. -->
+      <div id="levels-page-nav" class="levels-page-nav"></div>
+      <div id="levels-grid-container">
+        <div id="levels-grid"></div>
+      </div>
+      <!-- Footer (#317): coral Continue capsule + small "Page X of Y" +
+           dot indicators. Footer is fixed below the scrollable grid so
+           the primary action is always one-thumb reachable. -->
+      <div id="levels-footer" class="levels-footer">
+        <button id="btn-levels-continue" class="btn btn-cta btn-press">
+          <span class="btn-levels-continue-label">Continue</span>
+        </button>
+        <div class="levels-page-indicator"></div>
+      </div>
+    </div>
 
-// ---------- Tunable game settings (change these to feel it out!) ----------
-const GRAVITY   = 0.45;   // how fast the bird accelerates downward
-const FLAP      = -7.5;   // upward push when you flap (negative = up)
-const PIPE_GAP  = 140;    // vertical space the bird flies through
-const PIPE_W    = 56;     // width of each pipe
-const PIPE_SPEED= 2.2;    // how fast pipes move left
-const PIPE_EVERY= 95;     // spawn a new pipe every N frames
-const GROUND_H  = 80;     // height of the ground strip at the bottom
+    <!-- Daily Challenge Screen -->
+    <div id="screen-daily" class="screen">
+      <div class="daily-header">
+        <button id="btn-daily-back" class="btn-icon btn-press" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <h2 class="daily-title">Daily Challenge</h2>
+        <div class="daily-head-actions">
+          <button id="btn-trophy-cabinet" class="btn-icon btn-press" aria-label="Trophy Cabinet">🏆</button>
+          <button id="btn-daily-help" class="btn-icon btn-press daily-help" type="button" aria-label="About Daily"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="6.8" r="1.85"/><rect x="10.5" y="10.3" width="3" height="7.4" rx="1.5"/></svg></button>
+        </div>
+      </div>
+      <!-- Daily calendar (design locked 2026-07-05): all inner DOM is built by
+           ui/daily-calendar.js — month hero, day grid, contextual CTA. -->
+      <div id="daily-calendar-root" class="daily-content"></div>
+    </div>
 
-// ---------- The bird ----------
-const bird = {
-  x: 90,
-  y: H / 2,
-  r: 14,          // radius (used for drawing + collision)
-  vy: 0,          // vertical velocity
-  wing: 0         // used to animate the wing flap
-};
+    <!-- Trophy Cabinet (Phase 2) — one metallic trophy per month, material =
+         tier. Shelf DOM is built by ui/trophy-cabinet.js. -->
+    <!-- Trophy Cabinet (redesign Ripon 2026-07-13, mock-approved): ONE
+         continuous dotted surface (no header-block/panel fragments), a 3D
+         trophy (Microsoft Fluent emoji, MIT) above a Fredoka gold title,
+         captions removed. Shelf/trophy rendering (trophy-cabinet.js) and
+         the locked states are untouched. -->
+    <div id="screen-cabinet" class="screen">
+      <div class="tc-head">
+        <button id="btn-cabinet-back" class="btn-icon btn-press" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <img class="tc-icon" src="trophy-3d.png" alt="" aria-hidden="true">
+        <h2 class="tc-title">Trophy Cabinet</h2>
+      </div>
+      <div id="trophy-cabinet-root" class="daily-content"></div>
+    </div>
 
-// ---------- Game state ----------
-let pipes = [];         // list of pipe pairs on screen
-let frame = 0;          // frame counter (drives pipe spawning)
-let score = 0;
-let best = Number(localStorage.getItem('flappyBest') || 0);
-let state = 'ready';    // 'ready' | 'playing' | 'over'
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+      <div id="hud">
+        <div class="hud-left">
+          <button id="btn-back" class="btn-icon btn-press" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="hud-center">
+          <span id="hud-level">Level 1</span>
+          <!-- Difficulty badge (#NNN) — stacked under the level, by arrow
+               count. Text + .tier-<key> shade set by updateDifficultyBadge(). -->
+          <span id="hud-difficulty" class="difficulty-badge" hidden></span>
+        </div>
+        <div class="hud-right">
+          <button id="btn-settings-game" class="btn-icon btn-press" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
 
-// ---------------------------------------------------------------------
-//  INPUT — one function handles click, tap, and keyboard
-// ---------------------------------------------------------------------
-function flap() {
-  if (state === 'ready') {
-    state = 'playing';          // first flap starts the game
-  }
-  if (state === 'playing') {
-    bird.vy = FLAP;             // push the bird up
-    bird.wing = 6;             // trigger wing animation
-  } else if (state === 'over') {
-    reset();                    // flap after game-over restarts
-  }
-}
+      <div id="game-info">
+        <div id="arrow-count">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2L4 14h6v8l8-12h-6z"/></svg>
+          <span id="arrow-count-num">0</span>
+        </div>
+        <!-- Combo heat chip (Ripon 2026-07-13) — the live streak capsule;
+             built + driven by ui/combo-chip.js (ignites at T2, streak 10). -->
+        <div id="combo-chip" aria-hidden="true"></div>
+        <div id="lives-display"></div>
+      </div>
 
-// Mouse / touch
-canvas.addEventListener('mousedown', flap);
-canvas.addEventListener('touchstart', function (e) { e.preventDefault(); flap(); }, { passive: false });
+      <div id="board-container">
+        <canvas id="game-canvas"></canvas>
+        <!-- Progress strip — two stacked lanes dropping from the board's top
+             edge (Ripon 2026-07-10). Lane 1 (#progress-banner): the size-scaled
+             clear milestones ("N% cleared" → praise). Lane 2 (#tier-banner): the
+             combo-tier announcements ("T2 STARTED", badge in the arrow colour).
+             They stack in flow so each opens independently with no gap and no
+             collision. Both managed by ui/progress-banner.js. -->
+        <div id="pb-lanes" aria-hidden="true">
+          <div id="progress-banner" class="pb-strip">
+            <span class="pb-glow"></span>
+            <span class="pb-msg pb-pct"></span>
+            <span class="pb-msg pb-praise"></span>
+          </div>
+          <div id="tier-banner" class="pb-strip">
+            <span class="pb-glow"></span>
+            <span class="pb-msg pb-tier"></span>
+          </div>
+          <!-- Lane 3 (#456): the Combo Shield save offer — [T{n}] BROKE [SAVE].
+               Star Save's non-blocking rule: the lane passes taps through;
+               ONLY #cs-save is tappable (pointer-events:auto in CSS). -->
+          <div id="shield-banner" class="pb-strip">
+            <span class="pb-glow"></span>
+            <span class="pb-msg cs-row">
+              <b class="cs-pill">T5</b><span class="cs-word">BROKE</span>
+              <button id="cs-save" class="cs-save btn-press" type="button">SAVE<i class="ad-badge" aria-hidden="true">AD</i></button>
+            </span>
+            <span class="cs-cd"></span>
+          </div>
+        </div>
+      </div>
 
-// Keyboard (Space or Up arrow)
-document.addEventListener('keydown', function (e) {
-  if (e.code === 'Space' || e.code === 'ArrowUp') {
-    e.preventDefault();
-    flap();
-  }
-});
+      <div id="collision-bleed"></div>
 
-// ---------------------------------------------------------------------
-//  RESET — start a fresh game
-// ---------------------------------------------------------------------
-function reset() {
-  bird.y = H / 2;
-  bird.vy = 0;
-  pipes = [];
-  frame = 0;
-  score = 0;
-  state = 'ready';
-}
+      <div id="bottom-bar">
+        <button id="btn-hint" class="btn-tool btn-press" aria-label="Hint">
+          <span class="tool-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 16V15.26C9 14.4 8.41 13.65 7.88 13C7.07 12.04 6.5 10.83 6.5 9.5C6.5 6.46 8.96 4 12 4C15.04 4 17.5 6.46 17.5 9.5C17.5 10.83 16.93 12.04 16.12 13C15.59 13.65 15 14.4 15 15.26V16" fill="currentColor" opacity="0.85"/>
+              <path d="M9 16h6"/>
+              <path d="M9.5 18h5"/>
+              <path d="M10 20h4"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="1" y1="11" x2="3" y2="11"/>
+              <!-- upper-right diagonal ray dropped + right ray lowered to y=12 so the
+                   reveal-count bubble (#413) sits clean on the bulb's top-right. -->
+              <line x1="21" y1="12" x2="23" y2="12"/>
+            </svg>
+            <!-- AdMob rewarded-ad disclosure (#399) + reveal counter (#413).
+                 updateHintAdBadge() shows the count bubble / "AD" chip / hides it.
+                 Inside .tool-icon so the label width never pushes it off the icon. -->
+            <span class="ad-badge" data-ad-badge aria-hidden="true" hidden>AD</span>
+          </span>
+          <span>Hint</span>
+        </button>
+        <button id="btn-show-paths" class="btn-tool btn-press" aria-label="Show Paths">
+          <span class="tool-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor" opacity="0.85"/>
+              <circle cx="12" cy="9" r="2.5" fill="none" stroke="var(--bg-card, #fff)" stroke-width="2"/>
+            </svg>
+            <!-- Rewarded-ad disclosure + reveal counter (#413), mirroring Hint.
+                 updatePathsAdBadge() shows the COUNT / "AD" chip / hides it.
+                 Inside .tool-icon so the "Paths" label width never shifts it. -->
+            <span class="ad-badge" data-ad-badge aria-hidden="true" hidden>AD</span>
+          </span>
+          <span>Paths</span>
+        </button>
+      </div>
+    </div>
 
-// ---------------------------------------------------------------------
-//  SPAWN A PIPE — a top pipe + bottom pipe with a gap between them
-// ---------------------------------------------------------------------
-function spawnPipe() {
-  // Random gap position, kept away from the very top and the ground
-  const minTop = 40;
-  const maxTop = H - GROUND_H - PIPE_GAP - 40;
-  const topHeight = minTop + Math.random() * (maxTop - minTop);
+    <!-- Win Overlay — #380 redesign. The pre-card celebration (#377)
+         owns the emotional beat (big phrase + confetti), so the card is
+         purely "result + where to next": #win-title carries the level/
+         day number (set per-open by configureWinCard in win-modal.js),
+         stars stay, and one row of round icon buttons replaces the
+         stacked pills — 🏠 Menu · ⊞ All Levels · ▶ Next (primary,
+         accent-filled, right-most for the thumb arc). Daily wins hide
+         ▶ (its daily action was "go to menu", which 🏠 covers) and
+         📤 Share takes the primary slot; Share sits BEFORE Next in DOM
+         order so whichever survives is right-most. The ⊞ grid glyph is
+         the menu Levels pill's exact icon (same glyph = same screen). -->
+    <div id="overlay-win" class="overlay">
+      <!-- #383 — decorative page-background flecks. CSS paints 15 small
+           token-colored rectangles via box-shadows on this one layer
+           (element + two pseudos = three rotation planes). -->
+      <div class="win-page-flecks" aria-hidden="true"></div>
+      <div class="overlay-card">
+        <h2 id="win-title" class="win-title">Level Cleared!</h2>
+        <!-- Finalized Classic celebration: the level number sits in a medallion
+             (gold-bordered disc + ripple); win-modal.js renders #win-number as an
+             odometer that rolls the cleared level → next. Daily reuses it with a
+             static streak number (interim until Step 6). -->
+        <div class="win-medallion">
+          <span class="win-ripple" aria-hidden="true"></span>
+          <span class="win-ripple" aria-hidden="true"></span>
+          <span class="win-ripple" aria-hidden="true"></span>
+          <span class="win-disc" aria-hidden="true"></span>
+          <div class="win-number" id="win-number"></div>
+        </div>
+        <!-- Stacked capsules — primary (Go to Level N / daily Share) seats first,
+             Main Menu below. Ids reused so the existing handlers + the daily
+             show/hide logic (configureWinCard, wireShareButton) are untouched. -->
+        <div class="win-actions">
+          <button id="btn-next" class="btn btn-cta btn-press" type="button">Go to Level 39</button>
+          <button id="btn-share" class="btn btn-cta btn-press" type="button" style="display:none" aria-label="Share result">Share</button>
+          <button id="btn-menu-win" class="btn btn-cta-soft btn-press" type="button">Home</button>
+        </div>
+      </div>
+    </div>
 
-  pipes.push({
-    x: W,                 // start off the right edge
-    top: topHeight,       // bottom of the top pipe
-    passed: false         // have we scored this pipe yet?
-  });
-}
+    <!-- Daily win card (2026-07-10) — streak-hero card. Full-bleed like the
+         mode intros; filled + entrance-armed by ui/daily-win.js. A month-
+         completing win skips this for the trophy Collect ceremony instead. -->
+    <div id="overlay-daily-win" class="overlay">
+      <div class="dw-card">
+        <div class="dw-title" id="dw-title"></div>
+        <div class="dw-medal">
+          <span class="dw-flame" id="dw-flame" aria-hidden="true"></span>
+          <div class="dw-streak" id="dw-streak">0</div>
+        </div>
+        <div class="dw-cap">DAY STREAK</div>
+        <div class="dw-month">
+          <div class="dw-month-head"><span id="dw-progress"></span><span id="dw-goal"></span></div>
+          <div class="dw-track"><i id="dw-fill"></i></div>
+        </div>
+        <div class="dw-actions">
+          <button id="btn-daily-win-share" class="btn btn-cta btn-press" type="button" aria-label="Share result">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Share
+          </button>
+          <button id="btn-daily-win-home" class="btn btn-cta-soft btn-press" type="button">Home</button>
+        </div>
+      </div>
+    </div>
 
-// ---------------------------------------------------------------------
-//  UPDATE — move everything one step (called every frame while playing)
-// ---------------------------------------------------------------------
-function update() {
-  if (state !== 'playing') return;
+    <!-- Adventure "Cleared!" win overlay (#421). Wrapped EXACTLY like
+         #overlay-win (`<div id="overlay-… " class="overlay">`) so the same
+         OverlayController toggles it: overlays.open('adventure-win') adds
+         .active, which the base .overlay rule reveals; adventure-win.css
+         overrides the dim scrim with the full-page theme surface. ui/
+         adventure-win.js fills the title / meter / stars / chip and runs
+         the animation sequence by toggling .play on this wrapper. Faithful
+         port of design/ — Desktop/arrow-rush-adventure-win-mockup.html. -->
+    <div id="overlay-adventure-win" class="overlay">
+      <div class="aw-theme t-default">
+        <div class="bg"></div>
+        <div class="rays"></div>
+        <div class="scrim"></div>
+        <div class="glow"></div>
+        <div class="confetti" id="aw-confetti"></div>
+        <div class="star-total"><span class="st-ic">★</span><span class="st-num">0</span></div>
+        <div class="ghost g1"></div><div class="ghost g2"></div><div class="ghost g3"></div>
+        <div class="aw-content">
+          <div class="stars">
+            <div class="star s1"></div>
+            <div class="star s2"></div>
+            <div class="star s3"></div>
+          </div>
+          <div class="title"><span class="l1" data-text=""></span><span class="l2" data-text="Cleared!"></span></div>
+          <div class="meter">
+            <div class="row"><span class="cur"></span><span class="nx"></span></div>
+            <div class="bar"><i></i></div>
+            <div class="plus"></div>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn primary" id="btn-adv-win-next" type="button">Go to Level 2</button>
+          <div class="btn-row">
+            <button class="btn soft" id="btn-adv-win-home" type="button">Home</button>
+            <button class="btn soft" id="btn-adv-win-levels" type="button">Levels</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // Gravity pulls the bird down
-  bird.vy += GRAVITY;
-  bird.y += bird.vy;
-  if (bird.wing > 0) bird.wing--;
+    <!-- Daily play-streak page (#392, reference: evidence/daily-streak/).
+         Once-a-day celebration pop, anchored to the player's win-card nav
+         tap (stash → this page → Continue runs the stashed route); the
+         menu chip reopens it in review mode. Sits AFTER #overlay-win so
+         it stacks above the still-open win page when both are .active.
+         Gold REWARD surface: the page treatment is id-scoped to
+         #overlay-streak (streak.css) exactly like #overlay-win's (#383)
+         — the shared .overlay dim scrim and the settings overlay stay
+         untouched. Badge = our identity: an upward arrow rising on a
+         flame-lick tail over a gold hex plate (token-colored inline SVG,
+         not Duolingo's flame). Count / tier line / strip contents are
+         written by ui/streak-overlay.js with REAL values (#44). -->
+    <!-- Mode-unlock celebration (#421 r3): fires ONCE on clearing Classic L10
+         (Daily) / L20 (Adventure). showModeUnlock() fills the ring/icon/title/sub/
+         CTA per mode and adds .play to drive the entrance animation; the CTA opens
+         the new mode. Card uses --bg-card + .btn-cta, so it dark/gold-flips itself. -->
+    <!-- Adventure first-visit onboarding (#421 r4): shown ONCE the first time the
+         Adventure library opens (menu hero OR the unlock-celebration CTA), gated by
+         the adventure_onboarded save flag. "Start exploring" closes it. Full-bleed,
+         theme-token driven so dark gold-flips. -->
+    <div id="overlay-adventure-intro" class="overlay">
+      <div class="ai-card">
+        <div class="ai-hero">
+          <span class="ai-badge"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M24 9 L30 24 L24 30 L18 24 Z" fill="#E8734A"/><path d="M24 39 L18 24 L24 18 L30 24 Z" fill="currentColor" opacity=".9"/></svg></span>
+          <div class="ai-h1">Welcome to Adventure</div>
+          <div class="ai-tag">Solve themed mazes across unlockable worlds.</div>
+        </div>
+        <div class="ai-legend">
+          <div class="ai-legend-h">Earn up to 3 stars a level</div>
+          <div class="ai-tier"><span class="ai-stars"><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg></span><span class="ai-tt"><b>Clean clear</b><span>No hints, paths or revives</span></span></div>
+          <div class="ai-tier"><span class="ai-stars"><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st off" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg></span><span class="ai-tt"><b>A little help</b><span>Used a hint / path, or one revive</span></span></div>
+          <div class="ai-tier"><span class="ai-stars"><svg viewBox="0 0 24 24" class="ai-st on" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st off" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg><svg viewBox="0 0 24 24" class="ai-st off" aria-hidden="true"><path d="M12 2 L14.9 8.6 L22 9.3 L16.7 14 L18.3 21 L12 17.3 L5.7 21 L7.3 14 L2 9.3 L9.1 8.6 Z"/></svg></span><span class="ai-tt"><b>Pushed through</b><span>Needed extra revives</span></span></div>
+        </div>
+        <div class="ai-foots">
+          <div class="ai-foot"><span class="ai-fc ai-fc-tgt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg></span><span>Tougher boards, for players who want a <b>real challenge</b>.</span></div>
+          <div class="ai-foot"><svg class="ai-lk" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 9.6-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/></svg><span>Collect stars to <b>unlock new worlds</b>.</span></div>
+        </div>
+        <button id="btn-adventure-intro-go" class="btn btn-cta btn-press ai-cta" type="button">Start exploring</button>
+      </div>
+    </div>
 
-  // Spawn pipes on a timer
-  if (frame % PIPE_EVERY === 0) spawnPipe();
-  frame++;
+    <!-- Classic first-visit onboarding — shown ONCE the first time the player
+         enters Classic (the tutorial → Level 1 handoff), gated by the
+         classic_onboarded flag. Same .ai-* skeleton as Adventure, so it
+         theme gold-flips for free. "Start climbing" closes it. -->
+    <div id="overlay-classic-intro" class="overlay">
+      <div class="ai-card">
+        <div class="ai-hero">
+          <span class="ai-badge"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.2 8.2c-2.6 0-3.7 2.3-5.2 3.8-1.5-1.5-2.6-3.8-5.2-3.8-2.7 0-4 2-4 3.8s1.3 3.8 4 3.8c2.6 0 3.7-2.3 5.2-3.8 1.5 1.5 2.6 3.8 5.2 3.8 2.7 0 4-2 4-3.8s-1.3-3.8-4-3.8z" stroke="#fff" stroke-width="2.1" stroke-linejoin="round"/></svg></span>
+          <div class="ai-h1">Welcome to Classic</div>
+          <div class="ai-tag">Clear every maze to climb through 1000+ handcrafted levels, and counting.</div>
+        </div>
+        <div class="ai-legend">
+          <div class="ai-legend-h">A climb that plays fair</div>
+          <div class="ai-tier"><span class="ai-ico" style="color:#36487E"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M12 3 L21 7.5 L12 12 L3 7.5 Z"/><path d="M3 12 L12 16.5 L21 12"/><path d="M3 16.5 L12 21 L21 16.5"/></svg></span><span class="ai-tt"><b>1000+ levels</b><span>Every board its own maze</span></span></div>
+          <div class="ai-tier"><span class="ai-ico"><svg viewBox="0 0 24 24" fill="#36487E" aria-hidden="true"><rect x="3" y="14" width="4" height="7" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="17" rx="1"/></svg></span><span class="ai-tt"><b>A fair difficulty curve</b><span>Ramps up gently, with a breather after every spike</span></span></div>
+          <div class="ai-tier"><span class="ai-ico"><svg viewBox="0 0 24 24" fill="#E0A626" aria-hidden="true"><path d="M7 4h10v2.5a5 5 0 0 1-10 0V4z"/><path d="M5 4H4a2 2 0 0 0 2 3.4M19 4h1a2 2 0 0 1-2 3.4" fill="none" stroke="#E0A626" stroke-width="1.6" stroke-linecap="round"/><path d="M11 10.5h2V14h-2z"/><path d="M8 19c0-1.7 1.6-3 4-3s4 1.3 4 3v1H8z"/></svg></span><span class="ai-tt"><b>Milestone trophies</b><span>A trophy board every 100 levels</span></span></div>
+          <!-- #444 — the priming row: announces the OS notification ask that
+               fires at this player's first win (bare dialog, no second card). -->
+          <div class="ai-tier"><span class="ai-ico">🔔</span><span class="ai-tt"><b>Gentle reminders</b><span>After your first level we will offer a daily puzzle nudge. One a day at most</span></span></div>
+        </div>
+        <div class="ai-foots">
+          <div class="ai-foot"><span class="ai-fc ai-fc-inf"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.2 8.2c-2.6 0-3.7 2.3-5.2 3.8-1.5-1.5-2.6-3.8-5.2-3.8-2.7 0-4 2-4 3.8s1.3 3.8 4 3.8c2.6 0 3.7-2.3 5.2-3.8 1.5 1.5 2.6 3.8 5.2 3.8 2.7 0 4-2 4-3.8s-1.3-3.8-4-3.8z" stroke="currentColor" stroke-width="2.1"/></svg></span><span>It never stops. <b>Endless past level 1000</b>.</span></div>
+        </div>
+        <button id="btn-classic-intro-go" class="btn btn-cta btn-press ai-cta" type="button">Start climbing</button>
+      </div>
+    </div>
 
-  // Move pipes left, score them, and drop off-screen ones
-  for (const p of pipes) {
-    p.x -= PIPE_SPEED;
+    <!-- Daily first-visit onboarding — shown ONCE the first time the player
+         opens Daily, gated by the daily_onboarded flag. "Play today" closes it. -->
+    <div id="overlay-daily-intro" class="overlay">
+      <div class="ai-card">
+        <div class="ai-hero">
+          <span class="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg></span>
+          <div class="ai-h1">Welcome to Daily</div>
+          <div class="ai-tag">A fresh puzzle every day. Come back to keep your streak alive.</div>
+        </div>
+        <div class="ai-legend">
+          <div class="ai-legend-h">Earn a monthly trophy</div>
+          <div class="ai-tier"><span class="ai-ico" style="font-size:22px">🏆</span><span class="ai-tt"><b>Clear every day</b><span>Finish all of the month's boards to win its trophy</span></span></div>
+          <div class="ai-tier"><span class="ai-ico" style="font-size:22px">📅</span><span class="ai-tt"><b>Catch up any time</b><span>Missed a day? Replay it free, no rush</span></span></div>
+        </div>
+        <div class="ai-legend ai-legend-streak">
+          <div class="ai-legend-h">Keep your streak</div>
+          <div class="ai-tier"><span class="ai-ico" style="font-size:22px">🔥</span><span class="ai-tt"><b>Play today's puzzle</b><span>Only today's board keeps your streak going. Catch up days count for the trophy, not the streak.</span></span></div>
+          <div class="ai-tier"><span class="ai-ico" style="font-size:22px">💔</span><span class="ai-tt"><b>Miss a day</b><span>Your streak resets.</span></span></div>
+        </div>
+        <button id="btn-daily-intro-go" class="btn btn-cta btn-press ai-cta" type="button">Play today</button>
+      </div>
+    </div>
 
-    // Score when the bird's x passes the pipe's right edge
-    if (!p.passed && p.x + PIPE_W < bird.x) {
-      p.passed = true;
-      score++;
-    }
-  }
-  pipes = pipes.filter(p => p.x + PIPE_W > 0);
+    <!-- Notification permission card (#444) — shown ONCE, on the clean
+         win-nav after a Daily win, only while the OS permission is still
+         askable (native + prompt state + notif_card_seen unset + RC on).
+         "Remind me" summons the real OS dialog; "Not now" never auto-asks
+         again (the Settings Reminders toggle stays the door back in).
+         Same .ai-* skeleton as the mode welcomes — dark gold-flips free. -->
+    <div id="overlay-notif-intro" class="overlay">
+      <div class="ai-card">
+        <div class="ai-hero">
+          <span class="ai-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+          <div class="ai-h1">Never lose your streak</div>
+          <div class="ai-tag">You just started something. Want us to guard it?</div>
+        </div>
+        <div class="ai-legend">
+          <div class="ai-tier"><span class="ai-ico">🔥</span><span class="ai-tt"><b>Streak guard</b><span>A gentle evening nudge if your streak is about to break</span></span></div>
+          <div class="ai-tier"><span class="ai-ico">📅</span><span class="ai-tt"><b>Fresh board alerts</b><span>A heads up when today's puzzle is still waiting</span></span></div>
+          <div class="ai-tier"><span class="ai-ico">🤫</span><span class="ai-tt"><b>Quiet by design</b><span>One reminder a day at most. No spam, ever.</span></span></div>
+        </div>
+        <button id="btn-notif-intro-go" class="btn btn-cta btn-press ai-cta" type="button">Remind me</button>
+        <button id="btn-notif-intro-later" class="btn btn-cta-soft btn-press ai-later" type="button">Not now</button>
+      </div>
+    </div>
 
-  // ---- Collision checks ----
-  // Hit the ground?
-  if (bird.y + bird.r >= H - GROUND_H) {
-    bird.y = H - GROUND_H - bird.r;
-    gameOver();
-  }
-  // Hit the ceiling? (just clamp, don't die)
-  if (bird.y - bird.r < 0) {
-    bird.y = bird.r;
-    bird.vy = 0;
-  }
-  // Hit a pipe?
-  for (const p of pipes) {
-    const inX = bird.x + bird.r > p.x && bird.x - bird.r < p.x + PIPE_W;
-    const inGap = bird.y - bird.r > p.top && bird.y + bird.r < p.top + PIPE_GAP;
-    if (inX && !inGap) {
-      gameOver();
-    }
-  }
-}
+    <div id="overlay-mode-unlock" class="overlay">
+      <div class="mu-card">
+        <span class="mu-confetti" aria-hidden="true"></span>
+        <span class="mu-burst" aria-hidden="true"><span class="mu-rays"></span><span class="mu-ring" id="mu-ring"></span></span>
+        <div class="mu-kick" id="mu-kick">NEW MODE UNLOCKED</div>
+        <div class="mu-title" id="mu-title"></div>
+        <div class="mu-sub" id="mu-sub"></div>
+        <button id="btn-mode-unlock-go" class="btn btn-cta btn-press mu-cta" type="button"></button>
+        <button id="btn-mode-unlock-later" class="btn btn-cta-soft btn-press mu-later" type="button">Maybe later</button>
+      </div>
+    </div>
 
-function gameOver() {
-  if (state !== 'playing') return;
-  state = 'over';
-  if (score > best) {
-    best = score;
-    localStorage.setItem('flappyBest', best);
-  }
-}
+    <!-- Update prompt (Ripon 2026-07-26) — soft "Update available" nudge (or
+         hard "Update required" block) on app open when the installed version
+         is behind the RC `update_latest_version`. Content + soft/hard filled
+         by ui/update-prompt.js. Resume-guard card look. -->
+    <div id="overlay-update" class="overlay">
+      <div class="up-card">
+        <div class="up-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#E8734A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+        <div class="up-title" id="up-title">Update available</div>
+        <p class="up-body" id="up-body"></p>
+        <button id="btn-update-go" class="btn btn-cta btn-press up-go" type="button">Update</button>
+        <button id="btn-update-later" class="btn btn-cta-soft btn-press up-later" type="button">Later</button>
+      </div>
+    </div>
 
-// ---------------------------------------------------------------------
-//  DRAW — paint the current frame
-// ---------------------------------------------------------------------
-function draw() {
-  // Sky
-  ctx.fillStyle = '#4ec0ca';
-  ctx.fillRect(0, 0, W, H);
+    <!-- Leave-the-level confirm (#452) — fires on the in-game < and the hardware
+         back while playing, so an accidental back doesn't drop you out. Progress
+         IS saved (goToMenu snapshots first), so the copy reassures. Home badge:
+         blue default / amber dark, matching the primary btn-cta. -->
+    <div id="overlay-leave" class="overlay">
+      <div class="leave-card">
+        <div class="leave-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5h4v5h3.5a1 1 0 0 0 1-1V9.5"/></svg></div>
+        <div class="leave-title">Leave the level?</div>
+        <p class="leave-body">Your progress is saved. You can pick up right where you left off.</p>
+        <button id="btn-leave-stay" class="btn btn-cta btn-press leave-stay" type="button">Keep playing</button>
+        <button id="btn-leave-go" class="btn btn-cta-soft btn-press leave-go" type="button">Leave</button>
+      </div>
+    </div>
 
-  // Pipes (green with a darker outline + a lip)
-  for (const p of pipes) {
-    drawPipe(p.x, 0, PIPE_W, p.top, true);                                  // top pipe
-    drawPipe(p.x, p.top + PIPE_GAP, PIPE_W, H - GROUND_H - (p.top + PIPE_GAP), false); // bottom pipe
-  }
+    <!-- Resume guard (Ripon 2026-07-26) — Adventure/Daily tapped a DIFFERENT
+         level while one is saved midway; the most-recent-wins slot would
+         silently eat that progress. Confirm first. Safe action is primary. -->
+    <div id="overlay-resume-guard" class="overlay">
+      <div class="rg-card">
+        <div class="rg-badge" aria-hidden="true">⏸️</div>
+        <div class="rg-title">Level in progress</div>
+        <p class="rg-body"><b id="rg-saved"></b> is saved midway.</p>
+        <p class="rg-warn" id="rg-warn"></p>
+        <button id="btn-rg-back" class="btn btn-cta btn-press rg-back" type="button">Go back</button>
+        <button id="btn-rg-start" class="btn btn-cta-soft btn-press rg-start" type="button">Start anyway</button>
+      </div>
+    </div>
 
-  // Ground
-  ctx.fillStyle = '#ded895';
-  ctx.fillRect(0, H - GROUND_H, W, GROUND_H);
-  ctx.fillStyle = '#c0b968';
-  ctx.fillRect(0, H - GROUND_H, W, 10);
+        <!-- Collect ceremony — fires the moment a month or a Classic century is
+         completed; the trophy pops with a praise phrase, then Collect. -->
+    <div id="overlay-trophy-award" class="overlay">
+      <div id="ta-card" class="overlay-card ta-card">
+        <div id="ta-praise" class="ta-praise">LEGENDARY!</div>
+        <div id="ta-trophy" class="ta-trophy"></div>
+        <div id="ta-title" class="ta-title">July Champion!</div>
+        <div id="ta-sub" class="ta-sub">Every board this month, cleared</div>
+        <button id="btn-award-continue" class="btn btn-cta btn-press ta-continue">🏆 Collect</button>
+      </div>
+    </div>
 
-  // Bird
-  drawBird();
+<div id="overlay-streak" class="overlay">
+      <div id="streak-card" class="overlay-card streak-card">
+        <!-- Badge stage (approved redesign): the generated glowing gold
+             arrow medallion (assets/streak-badge.png, set by
+             streak-overlay.js) on a soft spreading glow, with twinkling
+             sparkles. ACT 1 of the entrance animation lives entirely on
+             these elements (glow-base bloom + breathe, glow-burst radiate,
+             badgeIn + float, sparkle twinkle) — purely additive CSS via
+             the .play class; nothing here is load-bearing for data.
+             A token-gold sparkle stays inline (currentColor/celebration
+             token) so the badge reads even before the asset paints. -->
+        <div id="streak-badge" class="streak-badge" aria-hidden="true">
+          <div class="streak-glow-base"></div>
+          <div class="streak-glow-burst"></div>
+          <!-- token-gold fallback motif: a single celebration-gold sparkle
+               kept inline (BEHIND the image) so the badge surface is never
+               empty if the asset is slow/absent (also satisfies the inline-SVG
+               identity gate). -->
+          <svg class="streak-badge-spark" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"
+                  fill="var(--celebration-gold)"/>
+          </svg>
+          <span class="streak-spark" style="left:16%;top:22%">✦</span>
+          <span class="streak-spark" style="left:80%;top:28%;animation-delay:.5s">✦</span>
+          <span class="streak-spark" style="left:30%;top:74%;animation-delay:.9s">✧</span>
+          <span class="streak-spark" style="left:72%;top:70%;animation-delay:1.3s">✦</span>
+          <span class="streak-spark" style="left:50%;top:6%;animation-delay:.7s;font-size:11px">✦</span>
+          <img id="streak-badge-img" class="streak-badge-img" alt="" aria-hidden="true">
+        </div>
+        <!-- Count = the odometer: streak-overlay.js builds a clipped digit
+             reel here and rolls it to the streak value (matching the
+             mockup's digit-roll). The FINAL value is written synchronously
+             (#44) — the roll is additive CSS, never a precondition. -->
+        <div id="streak-count" class="streak-count">0</div>
+        <div class="streak-label">Daily Streak</div>
+        <div id="streak-week" class="streak-week" aria-hidden="true"></div>
+        <p id="streak-tier-line" class="streak-tier-line"></p>
+        <!-- Shields (#396, Issue B1): a free streak-freeze. These three
+             rows are written by streak-overlay.js with REAL values (#44)
+             and stay EMPTY/hidden until the engine fills them. Gold reward
+             family. The shield-saved line shows only when a held shield
+             bridged a missed day into today's pop; the earned note shows
+             only on a day a 7-multiple granted one; the held row shows the
+             gold pips the player is carrying (pop + review). -->
+        <p id="streak-shield-saved" class="streak-shield-saved" hidden></p>
+        <p id="streak-shield-earned" class="streak-shield-earned" hidden></p>
+        <div id="streak-shields-held" class="streak-shields-held" aria-hidden="true" hidden></div>
+        <!-- Streak Repair offer (#410, Issue B2). Shown by streak-overlay.js
+             ONLY in the repair-offer pop (a streak broke + the rewarded
+             repair offer is live); the normal #btn-streak-continue hides
+             while this row shows. The "💔 broke" copy lands in the tier
+             line above (REAL value, #44). Watch = the rewarded "restore"
+             opt-in: .btn + .btn-press keep it on the global button SFX
+             delegate + the gameHaptics.tap() bindButtons map (#133); the
+             .ad-badge "AD" pill is the AdMob rewarded-ad disclosure
+             (#399/#403 pattern), the deliberate tap is the affirmative
+             opt-in; aria-label announces the ad. Start over = the decline
+             (clears the offer, the honest Day-1 reset stands). Ships
+             hidden — the engine reveals it. -->
+        <div id="streak-repair-actions" class="streak-repair-actions" hidden>
+          <button id="btn-streak-repair" class="btn btn-primary btn-press streak-repair-watch" aria-label="Restore your streak — watch an ad">
+            <span class="streak-repair-watch-label">Watch to restore</span>
+            <span class="ad-badge" data-ad-badge aria-hidden="true">AD</span>
+          </button>
+          <button id="btn-streak-repair-decline" class="btn btn-secondary btn-press streak-repair-decline">Start over</button>
+        </div>
+        <!-- Continue = the gold celebration pill (approved redesign). Keeps
+             .btn/.btn-primary/.btn-press for the global SFX delegate +
+             gameHaptics.tap map + press feedback (#133); the .streak-continue
+             modifier paints the gold celebration fill (var(--celebration-gold),
+             consistent in both themes — this is a reward moment). -->
+        <button id="btn-streak-continue" class="btn btn-primary btn-press streak-continue">Continue</button>
+      </div>
+    </div>
 
-  // Score (big, centered, while playing/ready)
-  ctx.fillStyle = '#fff';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3;
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 44px Segoe UI, Arial';
-  if (state === 'playing') {
-    ctx.strokeText(score, W / 2, 70);
-    ctx.fillText(score, W / 2, 70);
-  }
+    <!-- Full-screen Game Over screen — win-style failure page (operator-
+         approved redesign, ported from arrow-rush-gameover-mockup.html).
+         Reached from main.js onGameOver after the revive overlay's skip /
+         timer-expired / ad-unavailable exit paths.
 
-  // Overlays for the ready + game-over screens
-  if (state === 'ready')  drawPanel('FLAPPY BIRD', 'Tap / Space to flap', null);
-  if (state === 'over')   drawPanel('GAME OVER', 'Score: ' + score + '   Best: ' + best, 'Tap to play again');
-}
+         Mirrors the win card's surface architecture (light token surface
+         + disc + big number + two stacked pills) in FAILURE mood:
+           - Title "Level N Failed!" ("Failed!" in red); JS fills N.
+           - The disc carries the level number; on the failDrop SLAM the
+             number reddens (default ink → red) with a squash + disc shake.
+           - A persistent red hue (.gameover-hue + .gameover-screen-hue)
+             fades in on impact and STAYS (forwards) — the failure ambiance.
+           - Two stacked pills: PRIMARY "Try again" (navy .btn-cta, id
+             KEPT = btn-gameover-retry → fires the retry interstitial in
+             main.js) + secondary "Home" (slate .btn-cta-soft, id =
+             btn-gameover-menu → goToMenu).
+         The sub-line (#gameover-soclose) carries the par-phrase from
+         src/ui/gameover-phrases.js, written at show-time by
+         updateGameOverMessaging() (tiered pools, no immediate repeat);
+         in the high tier it instead shows the close-call count
+         ("{freed} of {total} — one more try?"). Starts hidden, fail-closed.
+         NO gold anywhere on this screen — gold is the win-exclusive reward
+         colour (#383); the failure page is red / navy / slate. -->
+    <div id="screen-gameover" class="screen">
+      <div class="gameover-screen-hue" aria-hidden="true"></div>
+      <div class="gameover-content">
+        <h1 id="gameover-title" class="gameover-title"></h1>
+        <p id="gameover-soclose" class="gameover-soclose" style="display:none"></p>
+        <div class="gameover-disc-wrap">
+          <span class="gameover-hue" aria-hidden="true"></span>
+          <span class="gameover-disc" aria-hidden="true"></span>
+          <span id="gameover-flame" class="gameover-flame" aria-hidden="true"></span>
+          <div id="gameover-number" class="gameover-number"></div>
+        </div>
+        <div id="gameover-cap" class="gameover-cap" style="display:none"></div>
+        <div class="gameover-actions">
+          <button id="btn-gameover-retry" class="btn btn-cta btn-press" type="button">Try again</button>
+          <button id="btn-gameover-levels" class="btn btn-cta-soft btn-press" type="button" style="display:none">Levels</button>
+          <button id="btn-gameover-menu" class="btn btn-cta-soft btn-press" type="button">Home</button>
+        </div>
+      </div>
+    </div>
 
-function drawPipe(x, y, w, h, isTop) {
-  if (h <= 0) return;
-  ctx.fillStyle = '#5ec741';
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = '#3a8c27';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(x, y, w, h);
-  // The "lip" at the mouth of the pipe
-  const lipH = 16;
-  const lipY = isTop ? y + h - lipH : y;
-  ctx.fillStyle = '#5ec741';
-  ctx.fillRect(x - 4, lipY, w + 8, lipH);
-  ctx.strokeRect(x - 4, lipY, w + 8, lipH);
-}
+    <!-- Adventure library (#421, Step 5). A scrollable 2-up grid of "world"
+         theme-cards on a minimal map canvas (parchment + sun-glow + green
+         mountains; the compass lives in the header so it survives any theme
+         count). Cards render from WORLDS in main.js (renderAdventureLibrary).
+         Design: ~/Desktop/arrow-rush-adventure-library-final.html. -->
+    <div id="screen-adventure" class="screen">
+      <div class="adv-canvas" aria-hidden="true">
+        <div class="adv-glow"></div>
+        <div class="adv-sky-lights"></div>
+        <svg class="adv-mtns" viewBox="0 0 390 152" preserveAspectRatio="none">
+          <path d="M0,152 L0,80 L55,44 L110,76 L165,34 L230,72 L290,38 L350,66 L390,48 L390,152Z" fill="#A7C47E"/>
+          <path d="M0,152 L0,106 L70,80 L140,102 L210,74 L280,100 L350,78 L390,94 L390,152Z" fill="#86A862"/>
+        </svg>
+      </div>
+      <div class="adv-header">
+        <div class="adv-brand">
+          <svg class="adv-compass" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="45" fill="#FBF3DD" stroke="#243A6B" stroke-width="5"/>
+            <polygon points="10,50 50,44 90,50 50,56" fill="#D8A85A"/>
+            <polygon points="50,9 56,50 44,50" fill="#C8443B"/>
+            <polygon points="50,91 56,50 44,50" fill="#2C3E6B"/>
+            <circle cx="50" cy="50" r="5" fill="#2C3E6B"/>
+          </svg>
+          <h2 class="adv-title">Adventure</h2>
+        </div>
+        <div class="adv-star-chip"><span class="s">★</span> <span id="adv-total-stars">0</span><button id="btn-adventure-help" class="adv-help btn-press" type="button" aria-label="About Adventure"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="6.8" r="1.85"/><rect x="10.5" y="10.3" width="3" height="7.4" rx="1.5"/></svg></button></div>
+      </div>
+      <div id="adventure-grid" class="adventure-grid"><!-- cards: renderAdventureLibrary() in main.js --></div>
+    </div>
 
-function drawBird() {
-  ctx.save();
-  ctx.translate(bird.x, bird.y);
+    <!-- Adventure level-select (#422). Tap a world in the library → its 30-level
+         grid (level 1 unlocked). Filled by renderLevelSelect() in main.js.
+         Design: ~/Desktop/arrow-rush-level-select-mockup.html. -->
+    <div id="screen-adventure-levels" class="screen">
+      <svg class="lv-defs" width="0" height="0" aria-hidden="true"><defs>
+        <linearGradient id="lockgold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBD969"/><stop offset="0.5" stop-color="#EBA63A"/><stop offset="1" stop-color="#CB7C18"/></linearGradient>
+        <linearGradient id="shackle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C3D4E0"/><stop offset="1" stop-color="#7C92A4"/></linearGradient>
+      </defs></svg>
+      <div class="adv-canvas" aria-hidden="true">
+        <div class="adv-glow"></div>
+        <div class="adv-sky-lights"></div>
+        <svg class="adv-mtns" viewBox="0 0 390 152" preserveAspectRatio="none">
+          <path d="M0,152 L0,80 L55,44 L110,76 L165,34 L230,72 L290,38 L350,66 L390,48 L390,152Z" fill="#A7C47E"/>
+          <path d="M0,152 L0,106 L70,80 L140,102 L210,74 L280,100 L350,78 L390,94 L390,152Z" fill="#86A862"/>
+        </svg>
+      </div>
+      <div class="lv-header">
+        <button id="btn-adv-levels-back" class="lv-back btn-press" type="button" aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="lv-pill"><span class="lv-name" id="al-world-name">Safari</span><span class="lv-prog"><span id="al-world-prog">0/60</span> <span class="star">★</span></span></div>
+        <div class="lv-spacer"></div>
+      </div>
+      <div id="adventure-level-grid" class="lv-grid"></div>
+    </div>
 
-  // Tilt the bird based on how fast it's rising/falling
-  let angle = Math.max(-0.5, Math.min(1.2, bird.vy / 12));
-  ctx.rotate(angle);
+    <!-- Me (#421) — grouped-card list (Arrow Rush skin, competitor skeleton).
+         Settings opens the existing in-game overlay (unchanged); About + Privacy
+         Preferences are full sub-screens (below); Help → mail app; Privacy/Terms
+         → stratos.games. Only the options we actually have (no Awards/Remove Ads). -->
+    <div id="screen-me" class="screen">
+      <div class="me-screen">
+        <div class="me-head">Me</div>
+        <div class="me-body">
+          <!-- Stats (Ripon 2026-07-12) — the player records page; renders into
+               #stats-body on every show (ui/stats-page.js). -->
+          <div class="me-card">
+            <button id="btn-me-stats" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#3E6FB0"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="9"/></svg></span>
+              <span class="me-lab">Stats<span class="me-sub">Your records &amp; progress</span></span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <div class="me-card">
+            <button id="btn-me-cabinet" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#C9982A"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6c-2.5 0-3.5 3.5-.5 4.5M17 6c2.5 0 3.5 3.5.5 4.5"/><path d="M12 14v3"/><path d="M8.5 20h7l-1-3h-5z"/></svg></span>
+              <span class="me-lab">Trophy Cabinet<span class="me-sub" id="me-cabinet-sub">Your shelf awaits</span></span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <!-- Reminders (#444, relocated Ripon 2026-07-20): competitors keep
+               the in-game gear for core settings only — the notification
+               opt-in lives here in Me instead. Native-only (hidden on web);
+               same ids as before so the toggle wiring + truth sync carry
+               over unchanged. ON fires the OS prompt when still askable. -->
+          <div class="me-card" id="setting-reminders-row" style="display:none">
+            <div class="me-row prefs-row">
+              <span class="me-ic" style="background:#E8734A"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span>
+              <span class="me-lab">Reminders<span class="me-sub">Daily puzzle and streak alerts</span></span>
+              <label class="toggle"><input type="checkbox" id="setting-reminders"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="me-card">
+            <button id="btn-me-settings" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#2A3A66"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+              <span class="me-lab">Settings<span class="me-sub">Sound · Music · Haptics · Theme</span></span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <div class="me-card">
+            <button id="btn-me-help" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#34A853"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.8 2.4-2.8 2.7"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+              <span class="me-lab">Help &amp; Support</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <button id="btn-me-about" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#3B7DD8"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.6" x2="12.01" y2="7.6"/></svg></span>
+              <span class="me-lab">About</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <button id="btn-me-privacy" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#7B5BC4"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4.5 6v6c0 4.5 3.2 7.8 7.5 9.5 4.3-1.7 7.5-5 7.5-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4-4.4"/></svg></span>
+              <span class="me-lab">Privacy Policy</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <button id="btn-me-terms" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#1FA0A8"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="16.6" x2="15" y2="16.6"/></svg></span>
+              <span class="me-lab">Terms of Use</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <button id="btn-me-prefs" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#E8734A"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="8" x2="19" y2="8"/><circle cx="9" cy="8" r="2.4" fill="#fff" stroke="none"/><line x1="5" y1="16" x2="19" y2="16"/><circle cx="15" cy="16" r="2.4" fill="#fff" stroke="none"/></svg></span>
+              <span class="me-lab">Privacy Preferences</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // Body
-  ctx.fillStyle = '#ffd41f';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(0, 0, bird.r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+    <!-- Stats (Ripon 2026-07-12; full-page rework 2026-07-13) — records page
+         reached from Me, styled like the Trophy Cabinet: ONE continuous
+         dotted wallpaper (no header gap bleeding the menu through), a 3D
+         chart above a Fredoka gold title, and bottom padding clearing the
+         nav so every stat is reachable. Body rendered by ui/stats-page.js
+         on every show (live save-state numbers). -->
+    <div id="screen-stats" class="screen">
+      <div class="st-head">
+        <button id="btn-stats-back" class="btn-icon btn-press" type="button" aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <img class="st-icon" src="stats-3d.png" alt="" aria-hidden="true">
+        <h2 class="st-title">Stats</h2>
+      </div>
+      <div class="stats-body" id="stats-body"></div>
+    </div>
 
-  // Wing (moves up briefly when you flap)
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.ellipse(-3, bird.wing > 0 ? -4 : 3, 7, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+    <!-- About (#421) — full sub-screen reached from Me. Version stamped at runtime. -->
+    <div id="screen-about" class="screen">
+      <div class="me-screen">
+        <div class="sub-head">
+          <button id="btn-about-back" class="btn-icon btn-press" type="button" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="sub-title">About</div>
+          <div class="sub-spacer"></div>
+        </div>
+        <div class="me-body">
+          <div class="about-hero">
+            <div class="about-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+            <div class="about-name">Arrow Rush</div>
+            <div class="about-ver" id="about-version">Version</div>
+          </div>
+          <div class="me-card about-card">
+            <p>Fill the silhouette, free every arrow — a relaxing logic puzzle from <b>Stratos Games</b>.</p>
+            <button id="btn-about-web" class="about-weblink" type="button">Visit stratos.games →</button>
+          </div>
+          <div class="about-foot">© Stratos Games · Stratos Technologies FZCO</div>
+        </div>
+      </div>
+    </div>
 
-  // Eye
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(6, -5, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#000';
-  ctx.beginPath();
-  ctx.arc(7, -5, 2, 0, Math.PI * 2);
-  ctx.fill();
+    <!-- Privacy Preferences (#421) — full sub-screen; manage analytics consent. -->
+    <div id="screen-privacy-prefs" class="screen">
+      <div class="me-screen">
+        <div class="sub-head">
+          <button id="btn-prefs-back" class="btn-icon btn-press" type="button" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="sub-title">Privacy Preferences</div>
+          <div class="sub-spacer"></div>
+        </div>
+        <div class="me-body">
+          <div class="me-card">
+            <div class="me-row prefs-row">
+              <span class="me-lab">Analytics &amp; Measurement<span class="me-sub">Help us improve Arrow Rush</span></span>
+              <label class="toggle"><input type="checkbox" id="pref-analytics"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <p class="prefs-note">We use analytics to understand how the game is played so we can make it better. Turn this off to stop analytics collection on this device — it won't affect your saved progress.</p>
+          <div class="me-card">
+            <button id="btn-prefs-privacy" class="me-row btn-press" type="button">
+              <span class="me-ic" style="background:#7B5BC4"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4.5 6v6c0 4.5 3.2 7.8 7.5 9.5 4.3-1.7 7.5-5 7.5-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4-4.4"/></svg></span>
+              <span class="me-lab">Privacy Policy</span>
+              <svg class="me-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  // Beak
-  ctx.fillStyle = '#ff7a1f';
-  ctx.beginPath();
-  ctx.moveTo(bird.r - 2, -3);
-  ctx.lineTo(bird.r + 8, 0);
-  ctx.lineTo(bird.r - 2, 3);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+    <!-- Bottom navigation (#nav-shell) — the 4-tab home: Home (Unlimited) ·
+         Adventure · Daily · Me. Persistent across the menu-level screens; hidden
+         in-game / on game-over. Additive: routes to the existing screens for now
+         (the home redesign + Adventure/Me content arrive in later steps). -->
+    <nav id="bottom-nav" aria-label="Main">
+      <button class="nav-tab" data-nav="menu" aria-label="Home">
+        <span class="nav-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h14V9.5"/></svg></span>
+        <span>Home</span>
+      </button>
+      <button class="nav-tab" data-nav="adventure" aria-label="Adventure">
+        <span class="nav-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M12 5.5 L13.4 10.6 L18.5 12 L13.4 13.4 L12 18.5 L10.6 13.4 L5.5 12 L10.6 10.6 Z" fill="currentColor" stroke="none"/></svg></span>
+        <span>Adventure</span>
+      </button>
+      <button class="nav-tab" data-nav="daily" aria-label="Daily">
+        <span class="nav-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span>
+        <span>Daily</span>
+      </button>
+      <button class="nav-tab" data-nav="me" aria-label="Me">
+        <span class="nav-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+        <span>Me</span>
+      </button>
+    </nav>
 
-  ctx.restore();
-}
+<!-- First-run analytics consent banner (#159). Filled in + revealed
+         by `src/ui/consent-banner.js` on boot when consent is unset.
+         Compliance gate — required for Play Store / App Store submission. -->
+    <div id="consent-banner" hidden></div>
 
-function drawPanel(title, line1, line2) {
-  // Dim the screen a little
-  ctx.fillStyle = 'rgba(0,0,0,.35)';
-  ctx.fillRect(0, 0, W, H);
+    <!-- Settings Overlay (#307). Bloxplode-inspired structure with the
+         Arrow Rush warm-chocolate palette. Three independent audio
+         toggles (Sound = SFX, Music = BGM, Haptics) + theme picker +
+         Restart / Main Menu action buttons. X close in top-right
+         replaces the prior bottom Close pill. Action buttons are
+         hidden on menu/levels/daily via the absence of .from-game
+         (set by main.js openSettings() based on screen context). -->
+    <div id="overlay-settings" class="overlay">
+      <div class="overlay-card settings-card">
+        <div class="settings-header">
+          <h2>Settings</h2>
+          <button id="btn-close-settings" class="settings-close" type="button" aria-label="Close settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M6 6 L18 18 M18 6 L6 18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="setting-row">
+          <svg class="setting-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 5 L6 9 H3 v6 h3 l5 4 V5z"/>
+            <path d="M16 8 a5 5 0 0 1 0 8"/>
+            <path d="M19 5 a9 9 0 0 1 0 14"/>
+          </svg>
+          <span class="setting-label">Sound</span>
+          <label class="toggle"><input type="checkbox" id="setting-sound" checked><span class="toggle-slider"></span></label>
+        </div>
+        <!-- Music retired (2026-06-30): hidden + force-OFF in main.js boot until a new menu loop is wired.
+             To restore: remove the inline display:none here and revert bgm.setEnabled in main.js boot. -->
+        <div class="setting-row" style="display:none" data-retired="music">
+          <svg class="setting-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18 V5 l11 -2 v13"/>
+            <circle cx="6" cy="18" r="3" fill="currentColor" stroke="none"/>
+            <circle cx="17" cy="16" r="3" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="setting-label">Music</span>
+          <label class="toggle"><input type="checkbox" id="setting-music"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <svg class="setting-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="4" width="12" height="16" rx="2"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span class="setting-label">Haptics</span>
+          <label class="toggle"><input type="checkbox" id="setting-haptics" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row setting-theme-row">
+          <span class="theme-label">Theme</span>
+          <div class="theme-swatches" role="radiogroup" aria-label="Theme">
+            <button type="button" class="theme-swatch" data-theme="default" role="radio" aria-label="Default theme"></button>
+            <button type="button" class="theme-swatch" data-theme="dark"    role="radio" aria-label="Dark theme"></button>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="btn-settings-restart" class="btn btn-press settings-action settings-action-restart" type="button">
+            <span>Restart</span>
+          </button>
+          <button id="btn-settings-exit" class="btn btn-press settings-action settings-action-menu" type="button">
+            <span>Home</span>
+          </button>
+        </div>
+        <p id="settings-footer" class="settings-footer">v · ARROW RUSH</p>
+      </div>
+    </div>
+  </div>
 
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 4;
-
-  ctx.font = 'bold 34px Segoe UI, Arial';
-  ctx.strokeText(title, W / 2, H / 2 - 30);
-  ctx.fillText(title, W / 2, H / 2 - 30);
-
-  ctx.font = 'bold 20px Segoe UI, Arial';
-  ctx.strokeText(line1, W / 2, H / 2 + 6);
-  ctx.fillText(line1, W / 2, H / 2 + 6);
-
-  if (line2) {
-    ctx.font = '16px Segoe UI, Arial';
-    ctx.fillText(line2, W / 2, H / 2 + 40);
-  }
-}
-
-// ---------------------------------------------------------------------
-//  MAIN LOOP — update then draw, ~60 times a second
-// ---------------------------------------------------------------------
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-reset();   // set up the first game
-loop();    // start!
-</script>
 </body>
 </html>

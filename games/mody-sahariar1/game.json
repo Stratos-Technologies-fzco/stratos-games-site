@@ -1,1 +1,9 @@
-{"title": "Flappy Bird", "maker": "Sahariar Mody", "one_line": "Tap to flap, dodge the pipes, beat your best. One file, no libraries.", "github": "mody-sahariar1", "added": "2026-09-27"}
+{
+  "title": "Arrow Rush",
+  "maker": "Sahariar Mody",
+  "one_line": "Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds.",
+  "category": "puzzle",
+  "github": "mody-sahariar1",
+  "how_to_play": "Tap an arrow to fire it; it flies until it hits a wall or another arrow. Clear the whole board to win.",
+  "description": "A calm, clever puzzle game. Every arrow points somewhere. Tap to fire it, and it slides until something stops it. Clear the board in the right order and you win the level. Also on the Play Store and App Store."
+}
