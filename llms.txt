@@ -3,9 +3,18 @@
 Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.
 
 ## Play (free browser games)
+- [Magic Shot](https://stratos.games/play/im-mohua-liza/): A magical liquid-sorting puzzle: pour glowing potions between enchanted bottles until every bottle holds one colour. Made by Mohua Liza.
 - [Arrow Rush](https://stratos.games/play/mody-sahariar1/): Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds. Made by Sahariar Mody.
+- [Mystery Island](https://stratos.games/play/nikhatenglish89/): Explore five islands, solve puzzles and mini-games, and collect the map pieces that unlock the treasure. Made by Nikhat.
+- [Jet vs Missile](https://stratos.games/play/saiqulmodi/): Fly a stealth jet through the sky while launchers on the ground fire ever-smarter homing missiles at you. Made by Md. Saiqul Haque Modi.
+- [Stratos_squirrel_vs_viper](https://stratos.games/play/saiqulmodi-squirrel-vs-viper/): A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper. Made by Md. Saiqul Haque Modi.
+- [Skyfall Armada](https://stratos.games/play/shoaibul0926/): Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles. Made by Shoaibul Hoque.
+- [Echo Island](https://stratos.games/play/sksarfarajali/): Explore a living island, bond with creatures and rebuild its lost memory, where every choice changes the world. Made by Sarfaraj Ali.
+- [Island Match Quest](https://stratos.games/play/sumaiyahsultana821-sys/): Flip shells, fruits, and gems to match pairs, clear three islands, and chase a high score. Made by Sumaiyah Sultana.
+- [Racing Mania](https://stratos.games/play/Mdsadee527/): Dodge oncoming traffic across three lanes and rack up distance before you crash. Made by Mohammad Sadee.
 
 ## Coming soon (claimed by family makers)
+- COPROB by Sahid Modi: Plan sneaky routes past cops and guards to pull off colorful, Brawl-Stars-style heists in each puzzle level.
 
 ## Studio titles
 - [BLOXPLODE](https://stratos.games/games-bloxplode/): Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.

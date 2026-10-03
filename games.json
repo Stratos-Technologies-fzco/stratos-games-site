@@ -16,6 +16,19 @@
    "soon": false
   },
   {
+   "slug": "mody-sahariar1",
+   "title": "Arrow Rush",
+   "maker": "Sahariar Mody",
+   "one_line": "Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds.",
+   "category": "puzzle",
+   "url": "play/mody-sahariar1/",
+   "thumb": "games/mody-sahariar1/thumbnail.png",
+   "added": "2026-10-03",
+   "github": "mody-sahariar1",
+   "kind": "family",
+   "soon": false
+  },
+  {
    "slug": "nikhatenglish89",
    "title": "Mystery Island",
    "maker": "Nikhat",
@@ -103,19 +116,6 @@
    "thumb": "games/Mdsadee527/thumbnail.svg",
    "added": "2026-09-29",
    "github": "Mdsadee527",
-   "kind": "family",
-   "soon": false
-  },
-  {
-   "slug": "mody-sahariar1",
-   "title": "Arrow Rush",
-   "maker": "Sahariar Mody",
-   "one_line": "Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds.",
-   "category": "puzzle",
-   "url": "play/mody-sahariar1/",
-   "thumb": "games/mody-sahariar1/thumbnail.png",
-   "added": "2026-10-03",
-   "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
   },
