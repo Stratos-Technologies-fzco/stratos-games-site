@@ -450,5 +450,32 @@ frameborder="1"
 
     </script>
 
+    <script>
+    // Jet vs Missile, full screen on phones (user, 2026-10-03): the first finger tap on the game switches the
+    // page to full screen (browsers only allow it inside a tap) and asks for landscape. Mouse clicks on a
+    // computer are left alone (the site's Fullscreen button does that). iPhone Safari has no full screen API
+    // for pages, so there it stays in the browser frame.
+    (function () {
+        function inFull() { return document.fullscreenElement || document.webkitFullscreenElement; }
+        function goFull(ev) {
+            if (ev && ev.pointerType && ev.pointerType !== "touch") return;
+            if (inFull()) return;
+            var el = document.documentElement;
+            var req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (!req) return;
+            try {
+                var p = req.call(el, { navigationUI: "hide" });
+                if (p && p.then) {
+                    p.then(function () {
+                        if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {});
+                    }).catch(function () {});
+                }
+            } catch (e) {}
+        }
+        window.addEventListener("pointerup", goFull, { passive: true });
+        window.addEventListener("touchend", function () { goFull(null); }, { passive: true });
+    })();
+    </script>
+
 </body>
 </html>
