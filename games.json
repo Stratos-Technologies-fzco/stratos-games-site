@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 13,
+ "count": 14,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -36,6 +36,19 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
+   "added": "2026-10-03",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-squirrel-vs-viper",
+   "title": "Stratos_squirrel_vs_viper",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
+   "category": "arcade",
+   "url": "play/saiqulmodi-squirrel-vs-viper/",
+   "thumb": "games/saiqulmodi-squirrel-vs-viper/thumbnail.png",
    "added": "2026-10-03",
    "github": "saiqulmodi",
    "kind": "family",
