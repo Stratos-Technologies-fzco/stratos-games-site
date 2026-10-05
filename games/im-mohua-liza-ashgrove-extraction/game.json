@@ -1,0 +1,9 @@
+{
+  "title": "Ashgrove Extraction",
+  "maker": "Mohua Liza",
+  "one_line": "A third-person survival shooter: find Mara in a militia-held town, keep her alive, call for help and reach the evac helicopter.",
+  "category": "arcade",
+  "github": "im-mohua-liza",
+  "how_to_play": "Phone: drag left side to move, right side to look, hold FIRE, tap AIM and USE. Computer: WASD to move, mouse or arrow keys to look, click to fire, right-click to aim, E to interact.",
+  "description": "Elias has to reach Mara, who is hiding in a warehouse in an abandoned mill town held by the Ravel militia. Lead her out, search houses for supplies, use the radio tower to call for extraction, then hold the landing zone against enemy waves until the helicopter lands. Mara follows you, takes cover by herself and warns you about flankers. Enemies patrol, investigate noises, use cover and flank. Three difficulty levels, checkpoints after each objective, and a Watch demo mode on the title screen. Characters: AvatarSDK and Avaturn sample avatars (non-commercial licence) and the three.js Soldier model."
+}
