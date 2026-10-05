@@ -4,6 +4,7 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 
 ## Play (free browser games)
 - [Magic Shot](https://stratos.games/play/im-mohua-liza/): A magical liquid-sorting puzzle: pour glowing potions between enchanted bottles until every bottle holds one colour. Made by Mohua Liza.
+- [Ashgrove Extraction](https://stratos.games/play/im-mohua-liza-ashgrove-extraction/): A third-person survival shooter: find Mara in a militia-held town, keep her alive, call for help and reach the evac helicopter. Made by Mohua Liza.
 - [Arrow Rush](https://stratos.games/play/mody-sahariar1/): Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds. Made by Sahariar Mody.
 - [Mystery Island](https://stratos.games/play/nikhatenglish89/): Explore five islands, solve puzzles and mini-games, and collect the map pieces that unlock the treasure. Made by Nikhat.
 - [Jet vs Missile](https://stratos.games/play/saiqulmodi/): Fly a stealth jet through the sky while launchers on the ground fire ever-smarter homing missiles at you. Made by Md. Saiqul Haque Modi.

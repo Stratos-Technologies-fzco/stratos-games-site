@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 14,
+ "count": 15,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -10,7 +10,20 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-ashgrove-extraction",
+   "title": "Ashgrove Extraction",
+   "maker": "Mohua Liza",
+   "one_line": "A third-person survival shooter: find Mara in a militia-held town, keep her alive, call for help and reach the evac helicopter.",
+   "category": "arcade",
+   "url": "play/im-mohua-liza-ashgrove-extraction/",
+   "thumb": "games/im-mohua-liza-ashgrove-extraction/thumbnail.png",
+   "added": "2026-10-05",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -23,7 +36,7 @@
    "category": "puzzle",
    "url": "play/mody-sahariar1/",
    "thumb": "games/mody-sahariar1/thumbnail.png",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
@@ -36,7 +49,7 @@
    "category": "kids",
    "url": "play/nikhatenglish89/",
    "thumb": "assets/covers/generated/nikhatenglish89.svg",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "nikhatenglish89",
    "kind": "family",
    "soon": false
@@ -49,7 +62,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -62,7 +75,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi-squirrel-vs-viper/",
    "thumb": "games/saiqulmodi-squirrel-vs-viper/thumbnail.png",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -75,7 +88,7 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "shoaibul0926",
    "kind": "family",
    "soon": false
@@ -88,7 +101,7 @@
    "category": "kids",
    "url": "play/sksarfarajali/",
    "thumb": "assets/covers/generated/sksarfarajali.svg",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -127,7 +140,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-10-04",
+   "added": "2026-10-05",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
