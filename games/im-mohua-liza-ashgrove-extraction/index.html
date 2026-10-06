@@ -28,6 +28,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-hud);ove
 #view{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none;cursor:crosshair}
 .vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(0,0,0,.5) 100%)}
 #hurt{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(120,0,0,0) 40%,rgba(160,14,6,.7) 100%)}
+#bars{position:fixed;inset:0;pointer-events:none;display:none}
+#bars i{position:absolute;left:0;right:0;height:11vh;background:#000}
+#bars i:first-child{top:0}#bars i:last-child{bottom:0}
+body.cine #bars{display:block}
+body.cine #hud>:not(#sub):not(#toast){visibility:hidden!important}
+.skip{position:fixed;top:calc(11vh + 12px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));font-size:14px;padding:8px 16px;background:rgba(10,12,13,.55);border-color:rgba(235,230,218,.5);z-index:5}
 #fade{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0;transition:opacity 1.2s ease}
 #hud{position:fixed;inset:0;pointer-events:none}
 .obj{position:absolute;left:16px;top:calc(16px + env(safe-area-inset-top,0px));width:min(340px,calc(100vw - 232px));padding:10px 14px 12px;background:linear-gradient(90deg,var(--panel),rgba(12,14,15,0));border-left:2px solid var(--sodium)}
@@ -82,6 +88,7 @@ kbd{font:600 13px var(--f-data);padding:2px 7px;border:1px solid currentColor;bo
 .sub b{color:var(--mara);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-right:8px}
 .sub b.pilot{color:var(--sodium)}
 .sub b.mil{color:var(--danger)}
+.sub b.elias{color:var(--ink)}
 .toast{position:absolute;left:50%;top:17%;transform:translateX(-50%);font:700 17px var(--f-hud);letter-spacing:.26em;text-transform:uppercase;color:var(--sodium);padding:8px 18px;border-top:1px solid rgba(232,166,64,.5);border-bottom:1px solid rgba(232,166,64,.5);background:rgba(10,12,13,.4);white-space:nowrap}
 #marks{position:absolute;inset:0;overflow:hidden}
 .mk{position:absolute;left:0;top:0;will-change:transform;text-align:center;white-space:nowrap}
@@ -187,6 +194,7 @@ body.touch .touchHelp{display:block}
 <canvas id="view" tabindex="0" aria-label="Game view"></canvas>
 <div class="vig"></div>
 <div id="hurt"></div>
+<div id="bars"><i></i><i></i></div>
 <div id="hud" hidden>
   <div id="marks"></div>
   <section class="obj" aria-live="polite">
@@ -200,7 +208,7 @@ body.touch .touchHelp{display:block}
     <div class="who"><span>Elias</span><span id="hpNum" class="num">100</span></div>
     <div class="bar" id="hpWrap"><i id="hpBar"></i></div>
     <div class="bar thin"><i id="stBar"></i></div>
-    <div class="who m"><span>Mara</span><span id="maraState" class="chip teal">Hiding</span><span id="maraNum" class="num">100</span></div>
+    <div class="who m"><span>Mara</span><span id="maraState" class="chip teal">Captive</span><span id="maraNum" class="num">100</span></div>
     <div class="bar mb" id="maraWrap"><i id="maraBar"></i></div>
   </section>
   <section class="arms">
@@ -232,6 +240,7 @@ body.touch .touchHelp{display:block}
 </div>
 <div id="rotate" hidden>Turn your phone sideways to play</div>
 <div id="fade"></div>
+<button type="button" class="btn skip" id="btnSkip" hidden>Skip intro</button>
 
 <div id="menu" class="wrap">
   <div class="sheet" id="startPanel">
@@ -240,7 +249,7 @@ body.touch .touchHelp{display:block}
       <h1>Ashgrove</h1>
       <span class="tag">Mill town, 41 km from the coast · 19:40 · rain, wind from the west</span>
     </div>
-    <p class="lede">Mara is hiding in the back room of the west warehouse. The Ravel militia hold the whole town. Get to her, keep her alive, find a way to call for help, and get both of you onto the evac flight.</p>
+    <p class="lede">The Ravel militia have taken Mara and locked her in the back room of the west warehouse. They hold the whole town. Get to her, keep her alive, find a way to call for help, and get both of you onto the evac flight.</p>
     <div class="row">
       <div class="field"><span>Difficulty</span><div class="seg" id="segDiff"><button type="button" data-v="recruit" id="dRecruit">Recruit</button><button type="button" data-v="veteran" id="dVeteran" aria-pressed="true">Veteran</button><button type="button" data-v="hardened" id="dHardened">Hardened</button></div></div>
       <div class="field"><span>Graphics</span><div class="seg" id="segGfx"><button type="button" data-v="high" id="gHigh" aria-pressed="true">High</button><button type="button" data-v="low" id="gLow">Low</button></div></div>
@@ -1355,15 +1364,15 @@ let VOICE = null;
 function speak(text, who) {
   if (!S.voice || !window.speechSynthesis) return;
   try {
-    if (!VOICE) { const vs = speechSynthesis.getVoices(); VOICE = { f: vs.find(v => /female|zira|samantha|victoria|karen|moira|tessa|fiona|aria|jenny|libby|sonia/i.test(v.name) && /^en/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)), m: vs.find(v => /male|david|daniel|guy|ryan|george|alex/i.test(v.name) && /^en/i.test(v.lang)) }; }
-    const u = new SpeechSynthesisUtterance(text); u.rate = who === 'pilot' ? 1.1 : 1.04; u.pitch = who === 'pilot' ? 0.8 : 1.08; u.volume = 0.9;
-    const v = who === 'pilot' ? VOICE.m : VOICE.f; if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u);
+    if (!VOICE) { const vs = speechSynthesis.getVoices(); VOICE = { f: vs.find(v => /female|zira|samantha|victoria|karen|moira|tessa|fiona|aria|jenny|libby|sonia/i.test(v.name) && /^en/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)), m: vs.find(v => !/female/i.test(v.name) && /male|david|daniel|guy|ryan|george|alex|mark|christopher|eric/i.test(v.name) && /^en/i.test(v.lang)) }; }
+    const u = new SpeechSynthesisUtterance(text); u.rate = who === 'pilot' ? 1.1 : who === 'mil' ? 1.08 : who === 'elias' ? 0.94 : 1.04; u.pitch = who === 'pilot' ? 0.8 : who === 'mil' ? 0.55 : who === 'elias' ? 0.9 : 1.08; u.volume = 0.9;
+    const v = who === 'mara' ? VOICE.f : VOICE.m; if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u);
   } catch (e) {}
 }
 
 /* ================= game state ================= */
 const STAGES = [
-  { id: 'find', title: 'Find Mara', text: 'She is hiding in the back room of the west warehouse. Stay low and get to her.' },
+  { id: 'find', title: 'Rescue Mara', text: 'The militia dragged her into the back room of the west warehouse. Stay low and get to her.' },
   { id: 'escape', title: 'Leave the yard', text: 'Lead Mara out of the industrial yard and into town.' },
   { id: 'supplies', title: 'Search the town', text: '' },
   { id: 'tower', title: 'Call for extraction', text: 'Reach the radio tower north-east of town and use the transmitter.' },
@@ -1470,7 +1479,7 @@ function newPlayerState() {
       { name: 'Vesper S2', kind: 'Sidearm', mag: 12, size: 12, res: 36, rpm: 380, auto: false, dmg: 34, reload: 1.5, spread: .026, aimSpread: .008, kick: .028, noise: 48, snd: 'pistol' }] });
 }
 function newMaraState() {
-  Object.assign(MA, { x: -91.5, z: 4, vx: 0, vz: 0, yaw: Math.PI / 2 + 0.3, hp: 100, joined: false, mode: 'follow', status: 'Hiding', crouch: true, cower: false, cover: null, coverEvalT: 0, lastNear: -9, lastHit: -9, lastHurt: -99,
+  Object.assign(MA, { x: -91.5, z: 4, vx: 0, vz: 0, yaw: Math.PI / 2 + 0.3, hp: 100, joined: false, mode: 'follow', status: 'Captive', crouch: true, cower: false, cover: null, coverEvalT: 0, lastNear: -9, lastHit: -9, lastHurt: -99,
     speed: 0, path: null, pathI: 0, repathT: 0, pathGoal: null, flinch: 0, dead: false, side: 1, hold: null, stuckT: 0, inCover: false, run: false });
 }
 function spawnEnemy(def, rosterId) {
@@ -1505,7 +1514,7 @@ function resetMission() {
   CAM.yaw = Math.atan2(-(-80 - START.x), -(0 - START.z)); CAM.pitch = -0.08; CAM.recoil = 0;
   for (const k in CUE) delete CUE[k];
   setStage(0, true);
-  setTimeout(() => { if (S.running && M.stage === 0) say('mara', 'Elias? I am in the warehouse, the back room. There are men everywhere. Please hurry.', 'radio'); }, 1200);
+  setTimeout(() => { if (S.running && !INTRO.on && M.stage === 0) say('mara', 'Elias? It is me. They locked me in the back room of the warehouse. I took a radio off the table. Please hurry.', 'radio'); }, 1600);
 }
 function setStage(i, silent) {
   M.stage = i; const st = STAGES[i];
@@ -1607,11 +1616,11 @@ function restoreCheckpoint() {
 /* ---------- dialogue ---------- */
 const CUE = {}; let subT = 0, subUntil = 0;
 function say(who, text, tag) {
-  const sub = $('sub'); const name = who === 'mara' ? (tag === 'radio' ? 'Mara · radio' : 'Mara') : who === 'pilot' ? 'Kite Two · radio' : 'Militia';
-  sub.innerHTML = ''; const b = document.createElement('b'); b.textContent = name; if (who === 'pilot') b.className = 'pilot'; if (who === 'mil') b.className = 'mil';
+  const sub = $('sub'); const name = who === 'mara' ? (tag === 'radio' ? 'Mara · radio' : 'Mara') : who === 'pilot' ? 'Kite Two · radio' : who === 'elias' ? 'Elias' : 'Militia';
+  sub.innerHTML = ''; const b = document.createElement('b'); b.textContent = name; if (who === 'pilot') b.className = 'pilot'; if (who === 'mil') b.className = 'mil'; if (who === 'elias') b.className = 'elias';
   sub.appendChild(b); sub.appendChild(document.createTextNode(text)); sub.hidden = false;
   subUntil = S.t + 2.6 + text.length * 0.045;
-  if (who !== 'mil') speak(text, who === 'pilot' ? 'pilot' : 'mara');
+  if (who !== 'mil' || INTRO.on) speak(text, who);
 }
 function cue(key, text, cd, urgent) {
   if (!MA.joined || MA.dead) return; if (S.t < (CUE[key] || -1)) return; if (!urgent && S.t < (CUE._g || -1)) return;
@@ -1934,7 +1943,7 @@ function combatLogic(e, dt, c) {
 /* ================= Mara AI ================= */
 function joinMara() {
   MA.joined = true; MA.mode = 'follow'; MA.crouch = false;
-  say('mara', 'Elias! You came. I did not think anyone would. Get me out of here.');
+  say('mara', 'Elias! You came for me. They left me back here alone. Get me out of here.');
   completeStage();
 }
 function findCoverFor(a, threats, anchor) {
@@ -1954,7 +1963,7 @@ function updateMara(dt) {
   if (MA.dead) { animHuman(MA.model, { dead: true }, dt); syncModel(MA); return; }
   MA.flinch = Math.max(0, MA.flinch - dt * 3);
   if (!MA.joined) {
-    MA.status = 'Hiding'; MA.crouch = true; faceTo(MA, -87, -5, dt, 2);
+    MA.status = 'Captive'; MA.crouch = true; faceTo(MA, -87, -5, dt, 2);
     animHuman(MA.model, { speed: 0, crouch: true, cower: true, armed: false, lookYaw: Math.sin(S.t * 0.4) * 0.5 }, dt); syncModel(MA); return;
   }
   const threats = [];
@@ -2136,11 +2145,11 @@ function doCrouch() { if (!P.run) P.crouch = !P.crouch; }
 function switchWeapon(n) { if (n !== P.w) { P.w = n; P.reloading = 0; P.fireCD = 0.4; sfxClick(1500, 0.2, 0.05); } }
 function useMedkit() { if (P.medkits > 0 && P.hp < 100 && P.healing <= 0) { P.medkits--; P.healing = 2.2; P.reloading = 0; } else if (P.medkits <= 0) toast('No medkits'); else if (P.hp >= 100) toast('Health is full'); }
 function toggleMara() { if (!MA.joined || MA.dead) return; if (MA.mode === 'follow') { MA.mode = 'hold'; MA.hold = { x: MA.x, z: MA.z }; say('mara', 'Okay. I will wait here. Do not be long.'); } else { MA.mode = 'follow'; MA.hold = null; say('mara', 'Coming. Right behind you.'); } }
-function begin(fromCheckpoint) {
+function begin(fromCheckpoint, afterIntro) {
   initAudio(); applyGfx();
   if (fromCheckpoint && CP) restoreCheckpoint(); else { CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {} resetMission(); }
   S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0; canvas.focus();
-  if (TOUCH.on) goFullscreen(); else { requestLock(); setTimeout(() => { if (S.running && !S.locked) toast('Move the mouse over the game to look. Arrow keys also turn.'); }, 1500); }
+  if (TOUCH.on) goFullscreen(); else if (afterIntro && !S.noLock) toast('Click the game to take control'); else { requestLock(); setTimeout(() => { if (S.running && !S.locked) toast('Move the mouse over the game to look. Arrow keys also turn.'); }, 1500); }
 }
 function goFullscreen() { try { const el = document.documentElement, r = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen && el.webkitRequestFullscreen(); if (r && r.then) r.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); } catch (e) {} }
 function pause() { if (!S.running || S.over) return; S.paused = true; showPanel('pausePanel'); for (const k in K) K[k] = false; MB.l = MB.r = false; try { speechSynthesis.cancel(); } catch (e) {} }
@@ -2175,7 +2184,8 @@ segInit('segGfx', v => { S.gfx = v; applyGfx(); });
 segInit('segVoice', v => { S.voice = v === 'on'; setPressed('segVoice2', v); });
 segInit('segVoice2', v => { S.voice = v === 'on'; setPressed('segVoice', v); if (!S.voice) try { speechSynthesis.cancel(); } catch (e) {} });
 for (const id of ['sens', 'sens2']) $(id).addEventListener('input', e => { S.sens = parseFloat(e.target.value); $('sens').value = $('sens2').value = S.sens; });
-$('btnStart').addEventListener('click', () => begin(false));
+$('btnStart').addEventListener('click', () => startIntro());
+$('btnSkip').addEventListener('click', () => finishIntro());
 $('btnDemo').addEventListener('click', () => startDemo());
 $('btnContinue').addEventListener('click', () => { if (CP) { S.diffKey = CP.diff || S.diffKey; S.D = DIFFS[S.diffKey]; } begin(true); });
 $('btnResume').addEventListener('click', resume);
@@ -2189,16 +2199,17 @@ if (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').ma
 /* ================= input ================= */
 document.addEventListener('pointerlockchange', () => { S.locked = document.pointerLockElement === canvas; if (S.locked) S.wasLocked = true; else if (S.wasLocked && S.running && !S.paused && !S.over) pause(); });
 document.addEventListener('pointerlockerror', () => { S.noLock = true; });
-canvas.addEventListener('mousedown', e => { if (DEMO.on) return; if (!S.running || S.paused) return; if (!S.locked && !S.noLock) requestLock(); if (e.button === 0) MB.l = true; if (e.button === 2) MB.r = true; });
+canvas.addEventListener('mousedown', e => { if (DEMO.on || INTRO.on) return; if (!S.running || S.paused) return; if (!S.locked && !S.noLock) requestLock(); if (e.button === 0) MB.l = true; if (e.button === 2) MB.r = true; });
 addEventListener('mouseup', e => { if (e.button === 0) MB.l = false; if (e.button === 2) MB.r = false; });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 addEventListener('mousemove', e => {
-  if (DEMO.on) return;
+  if (DEMO.on || INTRO.on) return;
   if (!S.running || S.paused || S.over) return; if (!S.locked && !(S.noLock && e.target === canvas)) return;
   const s = 0.0022 * S.sens * (P.aim ? 0.6 : 1); CAM.yaw -= (e.movementX || 0) * s; CAM.pitch -= (e.movementY || 0) * s;
 });
 addEventListener('keydown', e => {
   if (DEMO.on) { if (e.code === 'Escape') stopDemo(); return; }
+  if (INTRO.on) { if (e.code === 'Escape' || e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); finishIntro(); } return; }
   if (!S.running || S.over) return;
   if (e.code === 'Tab' || e.code === 'Space') e.preventDefault();
   if (e.code === 'Escape' || e.code === 'KeyP') { if (S.paused) resume(); else if (!S.locked) pause(); return; }
@@ -2292,6 +2303,133 @@ function demoCamera(dt) {
   camera.position.copy(DEMO.cp); camera.lookAt(DEMO.cl); if (Math.abs(camera.fov - 50) > 0.1) { camera.fov = 50; camera.updateProjectionMatrix(); }
 }
 
+/* ================= opening cutscene ================= */
+// Elias and Mara are ambushed on the road north of town. The militia knock Elias down and drag Mara to the warehouse.
+const INTRO = { on: false, t: 0, ev: 0, ext: null, phase: '' };
+function kf(t, keys) {
+  if (t <= keys[0][0]) return { x: keys[0][1], z: keys[0][2] };
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) { const a = keys[i - 1], b = keys[i], u = (t - a[0]) / Math.max(1e-4, b[0] - a[0]); return { x: lerp(a[1], b[1], u), z: lerp(a[2], b[2], u) }; }
+  const l = keys[keys.length - 1]; return { x: l[1], z: l[2] };
+}
+function iMove(a, p, dt, face, rate = 8) {
+  const ox = a.x, oz = a.z; a.x = p.x; a.z = p.z; const k = 1 / Math.max(dt, 1e-4);
+  a.vx = (a.x - ox) * k; a.vz = (a.z - oz) * k; a.speed = Math.min(7, Math.hypot(a.vx, a.vz)); if (INTRO.cut) { a.vx = a.vz = a.speed = 0; }
+  const ty = face !== undefined ? face : a.speed > 0.3 ? Math.atan2(a.vx, a.vz) : a.yaw;
+  a.yaw += angDiff(a.yaw, ty) * (INTRO.cut ? 1 : 1 - Math.exp(-rate * dt));
+}
+const yawTo = (a, b) => Math.atan2(b.x - a.x, b.z - a.z);
+function boneW(h, n) { return h.B && h.B[n] ? h.B[n].getWorldPosition(new V3()) : null; }
+function handsUp(h, k) {
+  if (!h.B || k < 0.02) return; const B = h.B, yaw = h.root.rotation.y, fwd = new V3(Math.sin(yaw), 0, Math.cos(yaw)), right = new V3().crossVectors(fwd, UP);
+  const head = boneW(h, 'Head');
+  for (const side of [1, -1]) {
+    const A = side > 0 ? [B.RightArm, B.RightForeArm, B.RightHand] : [B.LeftArm, B.LeftForeArm, B.LeftHand];
+    const cur = A[2].getWorldPosition(new V3()), tgt = head.clone().addScaledVector(UP, 0.16).addScaledVector(right, 0.3 * side).addScaledVector(fwd, 0.14);
+    cur.lerp(tgt, k); ik2(A[0], A[1], A[2], cur, right.clone().multiplyScalar(side).addScaledVector(UP, -0.6));
+  }
+}
+function reachArm(h, target, pole) { // move whichever hand is nearer to the target
+  if (!h.B || !target) return; const B = h.B;
+  const l = B.LeftHand.getWorldPosition(new V3()), r = B.RightHand.getWorldPosition(new V3());
+  if (l.distanceToSquared(target) < r.distanceToSquared(target)) ik2(B.LeftArm, B.LeftForeArm, B.LeftHand, target, pole); else ik2(B.RightArm, B.RightForeArm, B.RightHand, target, pole);
+}
+function armMid(h, side) { if (!h.B) return null; const B = h.B, a = side > 0 ? B.RightArm : B.LeftArm, f = side > 0 ? B.RightForeArm : B.LeftForeArm; return a.getWorldPosition(new V3()).lerp(f.getWorldPosition(new V3()), 0.55); }
+// timeline, seconds from the start of the scene
+const IEV = [
+  [0.4, () => { toast('Ashgrove · 19:20'); sfxThunder(); }],
+  [1.4, () => say('mara', 'The road north is clear. We are almost out, Elias.')],
+  [4.6, () => say('elias', 'Stay close to me. Just a little further.')],
+  [7.0, () => { sfxClick(1700, 0.35, 0.05); setTimeout(() => sfxClick(1300, 0.35, 0.05), 160); }],
+  [7.3, () => say('mil', 'Stop right there! Hands up! Do not move!')],
+  [9.9, () => say('mara', 'Elias!')],
+  [11.6, () => { sfxHurt(); sfxStep(0.6); CAM.shake = 0.9; }],
+  [12.1, () => say('mara', 'No! Elias!')],
+  [14.0, () => say('mara', 'Let go of me! Elias! Help me!')],
+  [17.4, () => say('mil', 'Take her to the warehouse. Move!')],
+  [19.6, () => { $('fade').style.opacity = 1; }],
+  [21.0, () => { sfxThunder(); $('fade').style.opacity = 0; }],
+  [23.6, () => say('elias', 'Do not worry, Mara. I am coming to save you.')],
+  [27.4, () => { $('fade').style.opacity = 1; }],
+  [28.8, () => finishIntro()]
+];
+const EL = [[0, -102, 88], [7, -102, 97.4]];
+const MAK = [[0, -101.15, 88.25], [7, -101.15, 97.65], [8.4, -101.45, 97.0], [12.8, -101.45, 97.0], [13.5, -100.4, 97.0], [20, -100.4, 87.3]];
+const SOLK = [
+  [[0, -100.5, 111], [7, -100.5, 111], [9.3, -100.8, 100.8], [12.8, -101.2, 98.2], [13.5, -100.9, 96.66]],
+  [[0, -108.5, 96.4], [7, -108.5, 96.4], [9.2, -104.8, 96.6], [11.2, -102.85, 97.05], [11.6, -102.6, 97.2], [12.6, -103.4, 96.5], [19.2, -103.4, 96.5], [21, -102, 92]],
+  [[0, -93.5, 99.5], [7, -93.5, 99.5], [9.4, -98.4, 98.3], [12.8, -99.4, 97.6], [13.5, -99.9, 96.66]]
+];
+function startIntro() {
+  initAudio(); applyGfx(); if (TOUCH.on) goFullscreen();
+  CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {}
+  INTRO.on = true; resetMission(); INTRO.t = 0; INTRO.ev = 0; INTRO.cut = true;
+  INTRO.ext = [['rifle', SOLK[0]], ['heavy', SOLK[1]], ['flanker', SOLK[2]]].map(([type, k]) => spawnEnemy({ type, x: k[0][1], z: k[0][2], route: [[k[0][1], k[0][2]]] }, null));
+  for (const g of P.model.guns) g.visible = false;
+  S.running = true; S.paused = false; showPanel(null); hud.hidden = false; document.body.classList.add('cine'); $('btnSkip').hidden = false; $('fade').style.opacity = 0;
+}
+function finishIntro() {
+  if (!INTRO.on) return; INTRO.on = false; INTRO.ext = null;
+  document.body.classList.remove('cine'); $('btnSkip').hidden = true; $('sub').hidden = true; subUntil = 0; try { speechSynthesis.cancel(); } catch (e) {}
+  MA.model.root.visible = true; for (const e of enemies) e.model.root.visible = true;
+  $('fade').style.opacity = 1; begin(false, true);
+}
+function updateIntro(dt) {
+  const t = INTRO.t; INTRO.t += dt;
+  while (INTRO.ev < IEV.length && IEV[INTRO.ev][0] <= t) IEV[INTRO.ev++][1]();
+  if (!INTRO.on) return;
+  const [s1, s2, s3] = INTRO.ext, ph = t < 7 ? 'walk' : t < 11.6 ? 'standoff' : t < 13.5 ? 'strike' : t < 20.4 ? 'drag' : 'vow';
+  if (ph !== INTRO.phase) { INTRO.phase = ph; INTRO.cut = true; }
+  const vow = ph === 'vow';
+  // Elias
+  iMove(P, kf(t, EL), dt, ph === 'walk' ? undefined : vow ? Math.PI : ph === 'standoff' ? yawTo(P, s1) : undefined, 5);
+  const down = t >= 11.75 && !vow, rifle = vow && t > 25.6;
+  P.model.gun = P.model.guns[0]; P.model.guns[0].visible = rifle;
+  animHuman(P.model, down ? { dead: true } : { speed: P.speed, crouch: vow && t < 22.6, armed: rifle, aim: false, pitch: vow ? 0.35 : 0.1, flinch: t > 11.5 && t < 11.75 ? 1 : 0, lookYaw: ph === 'walk' ? Math.sin(t * 0.6) * 0.25 - 0.15 : 0, mx: P.vx, mz: P.vz }, dt);
+  syncModel(P);
+  if (ph === 'standoff') handsUp(P.model, smooth(7.6, 8.6, t));
+  // Mara
+  MA.model.root.visible = !vow;
+  if (!vow) {
+    const fear = ph === 'standoff' || ph === 'strike';
+    iMove(MA, kf(t, MAK), dt, ph === 'walk' ? undefined : ph === 'drag' ? Math.PI * 0.05 + Math.sin(t * 1.7) * 0.35 : yawTo(MA, ph === 'strike' ? P : s1), 6);
+    const fl = ph === 'drag' ? Math.max(0, Math.sin(t * 7.3)) * 0.9 : ph === 'strike' && t > 11.6 ? 0.8 : 0;
+    animHuman(MA.model, { speed: MA.speed, crouch: false, cower: fear, armed: false, flinch: fl, lookYaw: ph === 'walk' ? -0.45 + Math.sin(t * 0.7) * 0.2 : ph === 'drag' ? Math.sin(t * 2.3) * 0.5 : 0, mx: MA.vx, mz: MA.vz }, dt);
+    syncModel(MA);
+    if (ph === 'drag' && MA.model.B) { const pole = new V3(0, -1, 0); for (const [g, n] of [[s1, 'LeftArm'], [s3, 'RightArm']]) { const sh = boneW(MA.model, n), c = boneW(g.model, 'Spine2'); if (sh && c) reachArm(MA.model, sh.lerp(c, 0.5).setY(sh.y - 0.28), pole); } }
+  }
+  // militia
+  const grab = ph === 'drag';
+  for (const [i, e] of [s1, s2, s3].entries()) {
+    e.model.root.visible = !vow && t > 6.8;
+    let p = kf(t, SOLK[i]);
+    if (grab && i !== 1) p = { x: MA.x + (i === 0 ? -0.5 : 0.5), z: MA.z - 0.34 };
+    const target = i === 1 ? P : MA, armed = !(grab && i !== 1);
+    const face = t < 7 ? undefined : grab && i !== 1 ? Math.PI : yawTo(e, t > 13.5 && i !== 1 ? MA : i === 1 && t < 19.2 ? P : target);
+    iMove(e, p, dt, i === 1 && t > 19.2 ? undefined : face, 7);
+    e.model.gun = e.model.guns[0]; e.model.guns[0].visible = armed && !vow; if (e.model.guns[1]) e.model.guns[1].visible = false;
+    animHuman(e.model, { speed: e.speed, armed, aim: armed && t > 7.4 && !(i === 1 && t > 19.2), pitch: i === 1 && t > 12 ? -0.55 : -0.05, flinch: i === 1 && t > 11.35 && t < 11.7 ? -0.8 : 0, mx: e.vx, mz: e.vz }, dt);
+    syncModel(e);
+    if (!armed) reachArm(e.model, armMid(MA.model, i === 0 ? -1 : 1), new V3(0, -1, 0));
+  }
+  for (const e of enemies) if (!INTRO.ext.includes(e)) updateEnemyIdle(e, dt);
+  // camera
+  let cp, cl;
+  if (ph === 'walk') { cp = new V3(P.x + 3.0, 1.5, P.z + 4.6 - t * 0.12); cl = new V3(lerp(P.x, MA.x, 0.5), 1.45, P.z + 0.3); }
+  else if (ph === 'standoff') { const u = smooth(7, 11, t); cp = new V3(P.x - 0.75, 1.72, P.z - 2.5 + u * 0.4); cl = new V3(lerp(s1.x, P.x, 0.25), 1.4, lerp(s1.z, P.z, 0.25)); }
+  else if (ph === 'strike') { cp = new V3(P.x + 2.6, 1.3, P.z - 3.6); cl = new V3(P.x - 0.3, 0.85, P.z - 0.2); }
+  else if (ph === 'drag') { cp = new V3(-100.9, 0.5, 98.9); cl = new V3(MA.x, 1.15, MA.z); }
+  else { const u = smooth(21, 27, t), eye = lerp(1.6, 1.08, P.model.cb); cp = new V3(P.x + 0.42 - u * 0.12, eye + 0.02, P.z - 1.55 + u * 0.45); cl = new V3(P.x, eye - 0.06, P.z); }
+  if (INTRO.cut || !INTRO.cp) { INTRO.cp = cp.clone(); INTRO.cl = cl.clone(); INTRO.cut = false; }
+  const k = 1 - Math.exp(-5 * dt); INTRO.cp.lerp(cp, k); INTRO.cl.lerp(cl, k);
+  CAM.shake = Math.max(0, CAM.shake - dt * 2.5); const sh = CAM.shake * CAM.shake * (S.reduce ? 0.012 : 0.05);
+  camera.position.set(INTRO.cp.x + rand(-sh, sh), INTRO.cp.y + rand(-sh, sh), INTRO.cp.z + rand(-sh, sh)); camera.lookAt(INTRO.cl);
+  if (Math.abs(camera.fov - 48) > 0.1) { camera.fov = 48; camera.updateProjectionMatrix(); }
+  for (const b of BUILDINGS) { b.rm.colorWrite = true; b.rm.depthWrite = true; }
+  sun.position.set(P.x + SUN_DIR.x * 120, SUN_DIR.y * 120, P.z + SUN_DIR.z * 120); sun.target.position.set(P.x, 0, P.z); sun.target.updateMatrixWorld();
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) $('toast').hidden = true; }
+  if (subUntil && S.t > subUntil) { $('sub').hidden = true; subUntil = 0; }
+}
+
 /* ================= touch controls ================= */
 const TOUCH = { on: false, mx: 0, my: 0, run: false, useReady: false, stick: null, look: null, fireLook: null };
 const PERF = { n: 0, t: 0 };
@@ -2359,8 +2497,9 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   S.menuT += dt;
   try {
-    if (S.running && !S.paused && !S.over && !DEMO.on) { PERF.n++; PERF.t += dt; if (PERF.t > 4) { const fps = PERF.n / PERF.t; PERF.n = 0; PERF.t = 0; if (fps < 30 && S.gfx === 'high') { S.gfx = 'low'; setPressed('segGfx', 'low'); applyGfx(); toast('Switched to low graphics for smoother play'); } } }
-    if (S.running && !S.paused && !S.over) {
+    if (S.running && !S.paused && !S.over && !DEMO.on && !INTRO.on) { PERF.n++; PERF.t += dt; if (PERF.t > 4) { const fps = PERF.n / PERF.t; PERF.n = 0; PERF.t = 0; if (fps < 30 && S.gfx === 'high') { S.gfx = 'low'; setPressed('segGfx', 'low'); applyGfx(); toast('Switched to low graphics for smoother play'); } } }
+    if (INTRO.on) { if (!S.paused) { S.t += dt; updateIntro(dt); } }
+    else if (S.running && !S.paused && !S.over) {
       S.t += dt; pathBudget = 3;
       if (DEMO.on) updateDemo(dt);
       updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate();
@@ -2374,9 +2513,9 @@ function frame() {
 }
 function updateEnemyIdle(e, dt) { if (!e.alive) return; const wp = e.route[e.ri]; if (e.wait > 0) e.wait -= dt; else { steer(e, wp.x, wp.z, e.T.walk, dt); if (Math.hypot(wp.x - e.x, wp.z - e.z) < 0.9) { e.ri = (e.ri + 1) % e.route.length; e.wait = rand(1.5, 4); } if (e.speed > 0.3) e.yaw += angDiff(e.yaw, Math.atan2(e.vx, e.vz)) * (1 - Math.exp(-6 * dt)); } animHuman(e.model, { speed: e.speed, armed: true, mx: e.vx, mz: e.vz }, dt); syncModel(e); }
 frame();
-function tick(dt){ S.t += dt; S.menuT += dt; pathBudget = 3; if (DEMO.on) updateDemo(dt); if (!S.running) return; updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate(); updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); updateFX(dt); updateWeather(dt); }
+function tick(dt){ if (INTRO.on) { S.t += dt; updateIntro(dt); updateFX(dt); updateWeather(dt); return; } S.t += dt; S.menuT += dt; pathBudget = 3; if (DEMO.on) updateDemo(dt); if (!S.running) return; updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate(); updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); updateFX(dt); updateWeather(dt); }
 function renderNow() { renderer.render(scene, camera); }
-window.__ash = { setSize: (w, h) => { renderer.setPixelRatio(1); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }, renderNow, startDemo, DEMO, AU, canvas, tick, camera, CAM, S, P, MA, M, get enemies() { return enemies; }, completeStage, begin, IA, HELI };
+window.__ash = { setSize: (w, h) => { renderer.setPixelRatio(1); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }, renderNow, startDemo, startIntro, finishIntro, INTRO, DEMO, AU, canvas, tick, camera, CAM, S, P, MA, M, get enemies() { return enemies; }, completeStage, begin, IA, HELI };
 })();
 </script>
 
