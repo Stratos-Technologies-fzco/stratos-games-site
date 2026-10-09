@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 15,
+ "count": 16,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -10,7 +10,7 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -23,7 +23,7 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-ashgrove-extraction/",
    "thumb": "games/im-mohua-liza-ashgrove-extraction/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -36,7 +36,7 @@
    "category": "puzzle",
    "url": "play/mody-sahariar1/",
    "thumb": "games/mody-sahariar1/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
@@ -49,33 +49,46 @@
    "category": "kids",
    "url": "play/nikhatenglish89/",
    "thumb": "assets/covers/generated/nikhatenglish89.svg",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "nikhatenglish89",
    "kind": "family",
    "soon": false
   },
   {
    "slug": "saiqulmodi",
-   "title": "Jet vs Missile",
+   "title": "Fight for Right",
    "maker": "Md. Saiqul Haque Modi",
    "one_line": "Fly a stealth jet through the sky while launchers on the ground fire ever-smarter homing missiles at you.",
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-bridge-genius",
+   "title": "Bridge Genius: Setu Builders",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "Build real-physics bridges, railways and signals across India, and earn your building money by learning.",
+   "category": "kids",
+   "url": "play/saiqulmodi-bridge-genius/",
+   "thumb": "games/saiqulmodi-bridge-genius/thumbnail.png",
+   "added": "2026-10-09",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
   },
   {
    "slug": "saiqulmodi-squirrel-vs-viper",
-   "title": "Stratos_squirrel_vs_viper",
+   "title": "Survival",
    "maker": "Md. Saiqul Haque Modi",
    "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
    "category": "arcade",
    "url": "play/saiqulmodi-squirrel-vs-viper/",
    "thumb": "games/saiqulmodi-squirrel-vs-viper/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -88,7 +101,7 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "shoaibul0926",
    "kind": "family",
    "soon": false
@@ -101,7 +114,7 @@
    "category": "kids",
    "url": "play/sksarfarajali/",
    "thumb": "assets/covers/generated/sksarfarajali.svg",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -140,7 +153,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-10-06",
+   "added": "2026-10-09",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
