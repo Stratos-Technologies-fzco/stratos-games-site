@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 16,
+ "count": 17,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -75,6 +75,19 @@
    "category": "kids",
    "url": "play/saiqulmodi-bridge-genius/",
    "thumb": "games/saiqulmodi-bridge-genius/thumbnail.png",
+   "added": "2026-10-10",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-domino-wonder-dash",
+   "title": "Domino Wonder Dash",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "Trace real outlines, topple the dominoes and learn 366 things: ABC, Hindi letters, numbers, animals, maps and more.",
+   "category": "kids",
+   "url": "play/saiqulmodi-domino-wonder-dash/",
+   "thumb": "games/saiqulmodi-domino-wonder-dash/thumbnail.png",
    "added": "2026-10-10",
    "github": "saiqulmodi",
    "kind": "family",
