@@ -1,9 +1,9 @@
 {
   "title": "Survival",
   "maker": "Md. Saiqul Haque Modi",
-  "one_line": "A neon arcade duel: blast laser fans at a growing viper pack as the Squirrel, or lead the pack as the Viper.",
+  "one_line": "Mongoose vs viper: blast laser fans at a growing viper pack as a fierce mongoose, or lead the pack as the viper and strike with your head.",
   "category": "arcade",
   "github": "saiqulmodi",
   "how_to_play": "Tap once to start. Phone: drag left side to move, hold FIRE, tap NOVA. Computer: WASD + mouse/Space to shoot, E for Nova, T to change mode.",
-  "description": "Five modes: Squirrel vs AI, two squirrels vs AI, Squirrel vs Viper (player vs player), Viper vs AI squirrel, and two vipers vs AI squirrels. Every level brings a bigger viper pack and the squirrel's power grows to match, so both sides always have the same total strength; against the AI, human players get a 10% edge. Levels 1 to 100 with one-tap level jump, touch controls, keyboard, mouse and game controller support."
+  "description": "Five modes: Mongoose vs AI, two mongooses vs AI, Mongoose vs Viper (player vs player), Viper vs AI mongoose, and two vipers vs AI mongooses. Vipers spit venom from far away, and up close they stand up and strike with their head. Every level brings a bigger viper pack and the mongoose's power grows to match, so both sides always have the same total strength; against the AI, human players get a 10% edge. Levels 1 to 100 with one-tap level jump, touch controls, keyboard, mouse and game controller support."
 }
