@@ -302,6 +302,21 @@ function show_infobox() {
 
     
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4A90E2">
+    <meta name="apple-mobile-web-app-title" content="Wonder Dash">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-180.png">
+    <link rel="icon" type="image/png" href="icon-192.png" sizes="192x192">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function (e) {
+            console.warn('offline mode not available', e);
+          });
+        });
+      }
+    </script>
 </head>
 
 <body>
