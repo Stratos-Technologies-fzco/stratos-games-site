@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 16,
+ "count": 17,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -75,6 +75,19 @@
    "category": "kids",
    "url": "play/saiqulmodi-bridge-genius/",
    "thumb": "games/saiqulmodi-bridge-genius/thumbnail.png",
+   "added": "2026-10-24",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-domino-wonder-dash",
+   "title": "Domino Game",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "Trace, topple magic dominoes and sing along: ABC, Hindi and Bangla letters, 65 rhymes, numbers, animals, India, road safety and more, Nursery to Class 7, with English, Hindi or Bangla voice.",
+   "category": "kids",
+   "url": "play/saiqulmodi-domino-wonder-dash/",
+   "thumb": "games/saiqulmodi-domino-wonder-dash/thumbnail.png",
    "added": "2026-10-24",
    "github": "saiqulmodi",
    "kind": "family",
