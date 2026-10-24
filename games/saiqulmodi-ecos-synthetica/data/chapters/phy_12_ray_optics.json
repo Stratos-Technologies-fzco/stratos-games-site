@@ -1,0 +1,716 @@
+[
+  {
+    "id": "PHY_12_RAY_OPTICS_001",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The focal length of a plane glass mirror is:",
+    "options": [
+      "Zero",
+      "1 meter",
+      "Infinity",
+      "Depends on thickness"
+    ],
+    "answer": 2,
+    "explanation": "A flat mirror has an infinite radius of curvature, so f = R/2 = infinity.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_RAY_OPTICS_002",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "A convex lens of focal length 20 cm in air is submerged in water (n = 1.33). Its focal length will:",
+    "options": [
+      "Decrease",
+      "Increase",
+      "Remain 20 cm",
+      "Become negative"
+    ],
+    "answer": 1,
+    "explanation": "Lens maker's formula shows reducing relative refractive index ratio increases focal length.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_RAY_OPTICS_003",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The phenomenon that explains the brilliant sparkle of diamonds is:",
+    "options": [
+      "Refraction",
+      "Diffraction",
+      "Total Internal Reflection",
+      "Polarization"
+    ],
+    "answer": 2,
+    "explanation": "Diamond's high refractive index (2.42) produces a very low critical angle (~24.4\u00b0).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_RAY_OPTICS_004",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "For a compound microscope, the final image formed by the eyepiece is:",
+    "options": [
+      "Real and inverted",
+      "Virtual, inverted, and magnified",
+      "Virtual and erect",
+      "Real and erect"
+    ],
+    "answer": 1,
+    "explanation": "The eyepiece magnifies the real inverted image formed by objective, producing a virtual inverted image.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P1",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +1 Diopters. What is its focal length?",
+    "options": [
+      "100 cm",
+      "200 cm",
+      "50 cm",
+      "110 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 1 = 100 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P2",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +2 Diopters. What is its focal length?",
+    "options": [
+      "50 cm",
+      "100 cm",
+      "25 cm",
+      "60 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 2 = 50 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P3",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +3 Diopters. What is its focal length?",
+    "options": [
+      "33 cm",
+      "66 cm",
+      "16 cm",
+      "43 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 3 = 33 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P4",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +4 Diopters. What is its focal length?",
+    "options": [
+      "25 cm",
+      "50 cm",
+      "12 cm",
+      "35 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 4 = 25 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P5",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +5 Diopters. What is its focal length?",
+    "options": [
+      "20 cm",
+      "40 cm",
+      "10 cm",
+      "30 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 5 = 20 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P6",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +6 Diopters. What is its focal length?",
+    "options": [
+      "16 cm",
+      "32 cm",
+      "8 cm",
+      "26 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 6 = 16 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P7",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +7 Diopters. What is its focal length?",
+    "options": [
+      "14 cm",
+      "28 cm",
+      "7 cm",
+      "24 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 7 = 14 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P8",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +8 Diopters. What is its focal length?",
+    "options": [
+      "12 cm",
+      "24 cm",
+      "6 cm",
+      "22 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 8 = 12 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P9",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +9 Diopters. What is its focal length?",
+    "options": [
+      "11 cm",
+      "22 cm",
+      "5 cm",
+      "21 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 9 = 11 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P10",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +10 Diopters. What is its focal length?",
+    "options": [
+      "10 cm",
+      "20 cm",
+      "5 cm",
+      "20 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 10 = 10 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P11",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +11 Diopters. What is its focal length?",
+    "options": [
+      "9 cm",
+      "18 cm",
+      "4 cm",
+      "19 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 11 = 9 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P12",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +12 Diopters. What is its focal length?",
+    "options": [
+      "8 cm",
+      "16 cm",
+      "4 cm",
+      "18 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 12 = 8 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P13",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +13 Diopters. What is its focal length?",
+    "options": [
+      "7 cm",
+      "14 cm",
+      "3 cm",
+      "17 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 13 = 7 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_OPT_P14",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +14 Diopters. What is its focal length?",
+    "options": [
+      "7 cm",
+      "14 cm",
+      "3 cm",
+      "17 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Therefore, f = 100 / 14 = 7 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_005",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "For an equilateral triangular prism with minimum deviation angle Dm = 30\u00b0, what is the refractive index (n)?",
+    "options": [
+      "1.414 (\u221a2)",
+      "1.732 (\u221a3)",
+      "1.500",
+      "1.333"
+    ],
+    "answer": 0,
+    "explanation": "A = 60\u00b0, Dm = 30\u00b0. n = sin((A + Dm)/2) / sin(A/2) = sin(45\u00b0) / sin(30\u00b0) = (1/\u221a2) / (1/2) = \u221a2 \u2248 1.414.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_006",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Two thin lenses of optical powers +5 D and -3 D are kept in close contact. The focal length of the combination is:",
+    "options": [
+      "+50 cm",
+      "-50 cm",
+      "+20 cm",
+      "+10 cm"
+    ],
+    "answer": 0,
+    "explanation": "Net power P = P1 + P2 = +5 - 3 = +2 D. Focal length f = 1/P = 1/2 m = +50 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_007",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "An astronomical telescope has an objective of focal length 100 cm and an eyepiece of focal length 5 cm. Normal magnification is:",
+    "options": [
+      "20",
+      "500",
+      "95",
+      "105"
+    ],
+    "answer": 0,
+    "explanation": "In normal adjustment (final image at infinity), magnifying power m = f_obj / f_eye = 100 / 5 = 20.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_008",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Chromatic aberration in optical lenses is caused by:",
+    "options": [
+      "Reflection from lens surfaces",
+      "Variation of refractive index with wavelength (dispersion)",
+      "Non-spherical lens curvatures",
+      "Total internal reflection"
+    ],
+    "answer": 1,
+    "explanation": "Different colors have different refractive indices in glass (n_violet > n_red), focusing light at different points along the principal axis.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_009",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The power of a convex lens in air is +4 D. What is its focal length?",
+    "options": [
+      "4 cm",
+      "25 cm",
+      "40 cm",
+      "2.5 cm"
+    ],
+    "answer": 1,
+    "explanation": "f = 1 / P = 1 / 4 m = 0.25 m = 25 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_OPT_010",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In an optical fiber, light propagates along the central core via repeated:",
+    "options": [
+      "Refraction",
+      "Diffraction",
+      "Total Internal Reflection",
+      "Polarization"
+    ],
+    "answer": 2,
+    "explanation": "The core has a higher refractive index than the cladding; light incident beyond the critical angle suffers lossless total internal reflection.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_1",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +1 Diopters. What is its focal length?",
+    "options": [
+      "100 cm",
+      "200 cm",
+      "50 cm",
+      "115 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 1 = 100 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_2",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +2 Diopters. What is its focal length?",
+    "options": [
+      "50 cm",
+      "100 cm",
+      "25 cm",
+      "65 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 2 = 50 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_3",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +3 Diopters. What is its focal length?",
+    "options": [
+      "33 cm",
+      "66 cm",
+      "16 cm",
+      "48 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 3 = 33 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_4",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +4 Diopters. What is its focal length?",
+    "options": [
+      "25 cm",
+      "50 cm",
+      "12 cm",
+      "40 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 4 = 25 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_5",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +5 Diopters. What is its focal length?",
+    "options": [
+      "20 cm",
+      "40 cm",
+      "10 cm",
+      "35 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 5 = 20 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_6",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +6 Diopters. What is its focal length?",
+    "options": [
+      "16 cm",
+      "32 cm",
+      "8 cm",
+      "31 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 6 = 16 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_7",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +7 Diopters. What is its focal length?",
+    "options": [
+      "14 cm",
+      "28 cm",
+      "7 cm",
+      "29 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 7 = 14 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_8",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +8 Diopters. What is its focal length?",
+    "options": [
+      "12 cm",
+      "24 cm",
+      "6 cm",
+      "27 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 8 = 12 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_9",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +9 Diopters. What is its focal length?",
+    "options": [
+      "11 cm",
+      "22 cm",
+      "5 cm",
+      "26 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 9 = 11 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_OPT_10",
+    "chapter_key": "phy_12_ray_optics",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "A thin convex lens has an optical power of +10 Diopters. What is its focal length?",
+    "options": [
+      "10 cm",
+      "20 cm",
+      "5 cm",
+      "25 cm"
+    ],
+    "answer": 0,
+    "explanation": "Power P = 100 / f(cm). Hence, f = 100 / 10 = 10 cm.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

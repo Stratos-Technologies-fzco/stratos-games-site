@@ -1,0 +1,296 @@
+[
+  {
+    "id": "BIO_11_CYCLE_001",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "In a typical human cell cycle lasting 24 hours, what percentage of the total duration is spent in interphase?",
+    "options": [
+      "About 25%",
+      "About 50%",
+      "More than 95%",
+      "Exactly 75%"
+    ],
+    "answer": 2,
+    "explanation": "According to NCERT, human cells divide once every 24 hours. The M-phase lasts for only about an hour, meaning interphase lasts more than 95% of the cell cycle duration.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_002",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "During which sub-stage of interphase does DNA replication take place and the centriole duplicate in the cytoplasm?",
+    "options": [
+      "G1 Phase (Gap 1)",
+      "S Phase (Synthesis)",
+      "G2 Phase (Gap 2)",
+      "G0 Phase (Quiescent stage)"
+    ],
+    "answer": 1,
+    "explanation": "During S phase, DNA replication doubles the amount of DNA per cell (from 2C to 4C, chromosome number remains 2n), and centrioles duplicate in the cytoplasm of animal cells.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_003",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Cells that do not divide further exit G1 phase to enter an inactive stage called:",
+    "options": [
+      "M Phase",
+      "G2 Phase",
+      "Quiescent stage (G0)",
+      "S Phase"
+    ],
+    "answer": 2,
+    "explanation": "Cells in the G0 stage remain metabolically active but no longer proliferate unless called upon to do so based on organism requirements.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_004",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "At which stage of mitosis do chromosomes align along the equatorial plate (metaphase plate)?",
+    "options": [
+      "Prophase",
+      "Metaphase",
+      "Anaphase",
+      "Telophase"
+    ],
+    "answer": 1,
+    "explanation": "Metaphase is characterized by all replicated chromosomes lying at the equator, with kinetochores attached to spindle fibers from opposite poles.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_005",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the key event that distinguishes Anaphase of mitosis?",
+    "options": [
+      "Condensation of chromatin",
+      "Splitting of centromeres and separation of sister chromatids",
+      "Reformation of nuclear envelope",
+      "Attachment of spindle fibers to kinetochores"
+    ],
+    "answer": 1,
+    "explanation": "During anaphase, centromeres split simultaneously and sister chromatids separate, migrating toward opposite spindle poles.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_006",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Synapsis\u2014the pairing of homologous chromosomes accompanied by the formation of a synaptonemal complex\u2014occurs in which stage of Prophase I?",
+    "options": [
+      "Leptotene",
+      "Zygotene",
+      "Pachytene",
+      "Diplotene"
+    ],
+    "answer": 1,
+    "explanation": "Chromosomes start pairing together during zygotene; this pairing process is called synapsis, mediated by the synaptonemal complex.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_007",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The X-shaped structures formed by non-sister chromatids during the dissolution of the synaptonemal complex in Diplotene are called:",
+    "options": [
+      "Kinetochores",
+      "Centrosomes",
+      "Chiasmata",
+      "Chromocenters"
+    ],
+    "answer": 2,
+    "explanation": "The dissolution of the synaptonemal complex occurs in diplotene, leaving homologous chromosomes attached only at the points of crossing over (chiasmata).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_008",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Terminalisation of chiasmata is the hallmark event of which final stage of Meiosis I Prophase?",
+    "options": [
+      "Diakinesis",
+      "Diplotene",
+      "Pachytene",
+      "Zygotene"
+    ],
+    "answer": 0,
+    "explanation": "Diakinesis represents the final stage of meiotic prophase I, marked by terminalisation of chiasmata and disappearance of the nucleolus.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_009",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "assertion_reason",
+    "question": "Statement I: Meiosis reduces the chromosome number by half in the resulting gametes.\nStatement II: Meiosis increases genetic variability in populations of organisms from one generation to the next.",
+    "options": [
+      "Both Statement I and Statement II are correct",
+      "Both Statement I and Statement II are incorrect",
+      "Statement I is correct, but Statement II is incorrect",
+      "Statement I is incorrect, but Statement II is correct"
+    ],
+    "answer": 0,
+    "explanation": "Both statements are true: Meiosis conserves species chromosome number via halving during gametogenesis and generates variation through crossing over and independent assortment.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CYCLE_010",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The short stage between Meiosis I and Meiosis II where DNA replication does NOT occur is known as:",
+    "options": [
+      "Interphase",
+      "Interkinesis",
+      "Diakinesis",
+      "Metaphase II"
+    ],
+    "answer": 1,
+    "explanation": "Interkinesis is generally short-lived and occurs between Telophase I and Prophase II. No replication of DNA takes place during interkinesis.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_CYCLE_DIVISION_001",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "DNA replication and centriole duplication occur in which phase?",
+    "options": [
+      "G1 Phase",
+      "S Phase",
+      "G2 Phase",
+      "M Phase"
+    ],
+    "answer": 1,
+    "explanation": "S phase (synthesis) is dedicated to nuclear DNA replication and cytoplasmic centriole duplication.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_CYCLE_DIVISION_002",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Synapsis and synaptonemal complex formation occur during:",
+    "options": [
+      "Leptotene",
+      "Zygotene",
+      "Pachytene",
+      "Diplotene"
+    ],
+    "answer": 1,
+    "explanation": "Homologous chromosome pairing (synapsis) takes place during Zygotene.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_CYCLE_DIVISION_003",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Crossing over mediated by recombinase occurs during:",
+    "options": [
+      "Zygotene",
+      "Pachytene",
+      "Diplotene",
+      "Diakinesis"
+    ],
+    "answer": 1,
+    "explanation": "Recombination nodules and crossing over occur in Pachytene.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_CYCLE_DIVISION_004",
+    "chapter_key": "bio_11_cell_cycle_division",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Centromere splitting and sister chromatid separation happen in:",
+    "options": [
+      "Prophase",
+      "Metaphase",
+      "Anaphase",
+      "Telophase"
+    ],
+    "answer": 2,
+    "explanation": "Anaphase marks the simultaneous division of centromeres.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

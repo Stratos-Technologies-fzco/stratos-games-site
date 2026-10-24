@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ecos-Synthetica</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a full-screen 3D specimen view with instrument-panel HUD at the edges; one deliberate dark look (a microscope field, Gram-stain colours). */
+:root {
+  color-scheme: dark;
+  --bg: #0b1f24;
+  --panel: rgba(12, 32, 38, 0.9);
+  --panel-solid: #0f2a30;
+  --raise: #163a41;
+  --line: rgba(166, 214, 206, 0.18);
+  --fg: #e8f1ed;
+  --muted: #9cb6b0;
+  --violet: #9b7be0;      /* crystal violet: Gram-positive, the scanner */
+  --violet-ink: #1b0f33;
+  --pink: #e46b86;        /* safranin: Gram-negative, threats */
+  --amber: #e8a33d;       /* opportunists, warnings */
+  --green: #84c96b;       /* partners, chlorophyll */
+  --cyan: #5fc4d0;        /* immune memory */
+  --display: "Bricolage Grotesque", "Noto Sans Devanagari", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Noto Sans Devanagari", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "Noto Sans Devanagari", "Noto Sans Bengali", ui-monospace, Consolas, monospace;
+  --r: 14px;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body); overflow: hidden; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+i { font-style: italic; }
+[hidden] { display: none !important; }
+
+#stage { position: fixed; inset: 0; }
+#gl { display: block; width: 100%; height: 100%; touch-action: none; }
+#vignette { position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 0 rgba(228, 107, 134, 0); }
+#vignette.hit { animation: hit 0.5s ease-out; }
+@keyframes hit { from { box-shadow: inset 0 0 90px 10px rgba(228, 107, 134, 0.55); } to { box-shadow: inset 0 0 0 0 rgba(228, 107, 134, 0); } }
+
+/* ---------- HUD ---------- */
+.hud-box { position: fixed; z-index: 5; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; backdrop-filter: blur(6px); }
+#hudLeft { top: calc(10px + env(safe-area-inset-top, 0px)); left: max(12px, env(safe-area-inset-left, 0px)); width: min(200px, 44vw); }
+#hudRight { top: calc(10px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: min(200px, 46vw); }
+.eyebrow { font: 500 11px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.eyebrow.new { color: var(--green); margin-bottom: 6px; }
+.tier-name { font: 800 clamp(18px, 4.6vw, 24px)/1.05 var(--display); margin: 3px 0 6px; text-wrap: balance; }
+.prog { display: flex; gap: 10px; flex-wrap: wrap; font: 12px/1.3 var(--mono); color: var(--muted); }
+.prog b { color: var(--fg); font-weight: 500; }
+.ep { font: 500 13px var(--mono); color: var(--violet); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.small-btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.mini-btn { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+.mini-btn:hover { color: var(--fg); }
+
+.meter { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font: 11px/1.2 var(--mono); color: var(--muted); margin-bottom: 6px; }
+.meter b { color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+.meter .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 50%; background: var(--c); border-radius: 3px; transition: width 0.2s; }
+.meter.warn i { background: var(--pink); }
+.meter.warn b { color: var(--pink); }
+.env { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; font: 11px/1.2 var(--mono); color: var(--muted); border-top: 1px solid var(--line); padding-top: 6px; }
+.env b { display: block; color: var(--fg); font-weight: 500; font-size: 12px; }
+.event { font: 500 11px/1.3 var(--mono); color: var(--amber); margin-top: 5px; }
+
+#targetChip { position: fixed; z-index: 5; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); width: min(260px, calc(100vw - 2 * min(200px, 46vw) - 48px)); min-width: 150px; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--ring, var(--muted)); border-radius: 10px; padding: 7px 10px; }
+@media (max-width: 640px) { #targetChip { top: auto; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); width: min(300px, calc(100vw - 32px)); } }
+#tName { font: 700 14px/1.2 var(--display); }
+#tSci { font-style: italic; font-size: 12px; color: var(--muted); }
+#tStatus { font: 11px/1.3 var(--mono); color: var(--muted); margin-top: 2px; }
+.tbar { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+#tBar { height: 100%; width: 0; background: var(--violet); }
+
+#toasts { position: fixed; z-index: 6; left: 50%; transform: translateX(-50%); top: calc(96px + env(safe-area-inset-top, 0px)); width: min(440px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+@media (max-width: 640px) { #toasts { top: calc(178px + env(safe-area-inset-top, 0px)); } }
+.toast { background: var(--panel-solid); border: 1px solid var(--line); border-left: 3px solid var(--muted); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; transition: opacity 0.4s, transform 0.4s; animation: tin 0.25s ease-out; }
+.toast.good { border-left-color: var(--green); }
+.toast.warn { border-left-color: var(--amber); }
+.toast.memory { border-left-color: var(--cyan); }
+.toast.env { border-left-color: var(--violet); }
+.toast.out { opacity: 0; transform: translateY(-6px); }
+@keyframes tin { from { opacity: 0; transform: translateY(-6px); } }
+
+#actions { position: fixed; z-index: 5; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: flex-end; gap: 10px; }
+.act { width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); font: 700 12px var(--display); display: grid; place-items: center; }
+.act:hover { border-color: var(--muted); }
+#btnNeet { color: var(--cyan); border-color: color-mix(in srgb, var(--cyan) 50%, transparent); font-weight: 800; }
+#btnScan { width: 78px; height: 78px; font-size: 15px; color: var(--violet-ink); border: 0; background: conic-gradient(var(--fg) calc(var(--p, 0) * 360deg), var(--violet) 0); box-shadow: 0 0 0 4px rgba(155, 123, 224, 0.25); }
+#btnEvolve { position: fixed; z-index: 5; left: 50%; transform: translateX(-50%); bottom: calc(100px + env(safe-area-inset-bottom, 0px)); padding: 12px 22px; border-radius: 999px; border: 0; background: var(--green); color: #10240a; font: 800 16px var(--display); animation: pulse 1.6s ease-in-out infinite; }
+@media (min-width: 641px) { #btnEvolve { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 10px rgba(132, 201, 107, 0.2); } }
+#joy { position: fixed; z-index: 5; left: max(20px, env(safe-area-inset-left, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 124px; height: 124px; border-radius: 50%; background: rgba(12, 32, 38, 0.55); border: 1px solid var(--line); touch-action: none; }
+#joyKnob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(232, 241, 237, 0.85); pointer-events: none; }
+#keysHint { position: fixed; z-index: 4; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font: 11px/1.6 var(--mono); color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+@media (pointer: coarse) { #keysHint { display: none; } }
+
+/* ---------- panels ---------- */
+.modal { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; background: rgba(4, 14, 16, 0.6); padding: calc(12px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.panel { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 18px; width: min(980px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.panel > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.panel h2 { font: 800 22px/1.1 var(--display); margin: 0; }
+.x { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; font-size: 13px; }
+.scroll { overflow: auto; padding: 16px 18px 20px; min-height: 0; }
+.btn { border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 10px 16px; font-weight: 700; }
+.btn.primary { background: var(--violet); color: var(--violet-ink); border-color: transparent; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.lead { font-size: 16.5px; line-height: 1.55; margin: 0 0 10px; }
+.empty { color: var(--muted); font-size: 14px; }
+h3 { font: 700 15px/1.25 var(--display); margin: 0 0 4px; }
+p { margin: 0 0 8px; }
+
+/* profile sheet */
+#sheetScrim { position: fixed; inset: 0; z-index: 29; background: rgba(4, 14, 16, 0.5); }
+#sheet { position: fixed; z-index: 30; left: max(12px, env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); width: min(520px, calc(100vw - 24px)); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 18px; display: flex; }
+#sheetBody { overflow: auto; padding: 18px 20px 20px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.prof-head h2 { font: 800 clamp(24px, 6vw, 30px)/1.05 var(--display); margin: 0; text-wrap: balance; }
+.sci { font-style: italic; color: var(--muted); margin: 4px 0 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 11.5px/1 var(--mono); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chip.role { color: var(--c); border-color: color-mix(in srgb, var(--c) 55%, transparent); }
+.its-side { background: var(--raise); border-radius: 12px; padding: 12px 14px; }
+.its-side h3 { color: var(--green); }
+.its-side p { font-size: 16px; margin: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 480px) { .two { grid-template-columns: 1fr; } }
+.two > div { min-width: 0; }
+.energy h3 { color: var(--amber); }
+.trophic { font: 500 12px var(--mono); color: var(--muted); margin-bottom: 4px; }
+.harm h3 { color: var(--pink); }
+.answer h3 { color: var(--cyan); }
+.solution h3 { color: var(--green); }
+.sol-lead { margin: 0 0 6px; }
+.sol-parts { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 8px; }
+.sol-parts li { padding: 8px 10px; border-radius: 8px; background: rgba(132, 201, 107, 0.10); border-left: 3px solid var(--green); }
+.sol-parts li > i { font-size: 12px; color: var(--muted); margin-left: 6px; }
+.sol-parts p { margin: 4px 0 0; }
+.sol-parts p span { color: var(--green); font-weight: 600; }
+.human h3 { color: var(--violet); }
+.ways { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ways li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: baseline; }
+.ways li p { margin: 0; }
+.way { font: 500 11px/1.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--violet); }
+.ways.mini p { margin: 0 0 6px; font-size: 14px; }
+.ways.mini .way { margin-right: 6px; }
+.fact { font-size: 14px; color: var(--muted); margin: 0; }
+.fact span { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg); margin-right: 4px; }
+.sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+
+/* lab */
+.lab-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 760px) { .lab-grid { grid-template-columns: minmax(0, 1fr); } }
+.lab-grid > * { min-width: 0; }
+#labTargets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.target { text-align: left; border: 1px solid var(--line); border-left: 3px solid var(--c); background: transparent; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+.target.on { background: var(--raise); border-color: var(--c); }
+.target b { font: 700 14px var(--display); }
+.target i { font-size: 12.5px; color: var(--muted); }
+#labCase { background: var(--raise); border-radius: 12px; padding: 12px; }
+#labCase:empty { display: none; }
+#labCase h3 { color: var(--cyan); display: flex; justify-content: space-between; gap: 8px; }
+.parts { font: 500 11px var(--mono); color: var(--muted); white-space: nowrap; }
+#labCase p { margin: 0; font-size: 14.5px; }
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.slot { min-height: 54px; border: 1px dashed var(--line); border-radius: 10px; display: grid; place-items: center; font: 12px var(--mono); color: var(--muted); padding: 6px; text-align: center; }
+.slot.full { border: 1px solid var(--violet); background: rgba(155, 123, 224, 0.14); color: var(--fg); font: 700 12.5px/1.25 var(--body); position: relative; }
+.slot.full span { position: absolute; top: 2px; right: 6px; color: var(--muted); }
+.synth-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.feedback { font-size: 14px; margin: 10px 0 0; min-height: 1em; }
+.feedback.bad { color: var(--amber); }
+.feedback.warn { color: var(--amber); }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0 10px; }
+.tab { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 12px; font-size: 13px; color: var(--muted); }
+.tab.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+#labParts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.part { text-align: left; border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.part b { font-size: 13.5px; line-height: 1.25; }
+.part i { font: 11px var(--mono); font-style: normal; color: var(--muted); }
+.part.sel { border-color: var(--violet); background: rgba(155, 123, 224, 0.2); }
+.part.right { box-shadow: inset 0 0 0 2px var(--green); }
+.part.wrong { box-shadow: inset 0 0 0 2px var(--pink); }
+.part.reveal { box-shadow: inset 0 0 0 2px var(--cyan); }
+#partInfo { font-size: 13.5px; color: var(--muted); margin: 10px 0 0; min-height: 2.6em; }
+#partInfo b { color: var(--fg); }
+.why-fit, .why-not { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 8px; color: var(--fg); }
+.why-fit { background: rgba(132, 201, 107, 0.14); border-left: 3px solid var(--green); }
+.why-fit b { color: var(--green) !important; }
+.why-not { background: rgba(232, 163, 61, 0.1); border-left: 3px solid var(--amber); }
+.why-not b { color: var(--amber) !important; }
+.why-locked { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+/* codex */
+.codex-sum { font: 12px var(--mono); color: var(--muted); }
+.codex-tier { margin: 18px 0 8px; font-size: 17px; }
+.codex-tier span { font: 400 12px var(--mono); color: var(--muted); margin-left: 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.card { text-align: left; border: 1px solid var(--line); border-top: 3px solid var(--c, var(--line)); background: var(--raise); border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.card b { font: 700 14px var(--display); }
+.card i { font-size: 12px; color: var(--muted); }
+.card span { font: 11px var(--mono); color: var(--c); margin-top: 3px; }
+.card.unknown { opacity: 0.55; border-style: dashed; }
+.flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.flow.side { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); } .flow.side { grid-template-columns: minmax(0, 1fr); } }
+.level { background: var(--raise); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 5px; position: relative; min-width: 0; }
+.level h4 { font: 700 14px var(--display); margin: 0; }
+.level p { font-size: 12px; color: var(--muted); margin: 0; }
+.level.source { background: rgba(232, 163, 61, 0.18); }
+.level.sink { background: rgba(228, 107, 134, 0.14); }
+.node { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 4px 7px; font-size: 12.5px; text-align: left; }
+.node.unknown, .node.empty { color: var(--muted); border-style: dashed; }
+.node.you { border-color: var(--violet); color: var(--violet); }
+.truth { border-left: 3px solid var(--violet); padding: 4px 0 4px 14px; margin-bottom: 16px; max-width: 68ch; }
+.truth h3 { font-size: 18px; }
+
+/* dialog */
+#dialog .panel { width: min(560px, 100%); }
+#dlgBody { display: flex; flex-direction: column; gap: 6px; }
+#dlgButtons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 0 18px 16px; }
+.world { font: 500 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.steps { margin: 4px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+
+/* start */
+#start { position: fixed; z-index: 40; inset: 0; overflow: auto; background: radial-gradient(120% 90% at 70% 20%, rgba(155, 123, 224, 0.18), transparent 60%), radial-gradient(90% 80% at 10% 90%, rgba(132, 201, 107, 0.14), transparent 60%), rgba(8, 24, 28, 0.82); padding: calc(24px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.start-inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.start-inner h1 { font: 800 clamp(42px, 10vw, 88px)/0.92 var(--display); letter-spacing: -0.02em; margin: 0; }
+.start-inner h1 span { display: block; font-weight: 500; font-size: 0.36em; letter-spacing: 0; color: var(--violet); margin-top: 10px; }
+.thesis { font-size: clamp(17px, 2.6vw, 20px); line-height: 1.5; max-width: 60ch; margin: 0; }
+.lens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 600px) { .lens { grid-template-columns: minmax(0, 1fr); } }
+.lens div { border-top: 2px solid var(--c); padding-top: 8px; }
+.lens b { font: 700 15px var(--display); display: block; margin-bottom: 2px; }
+.lens p { font-size: 14px; color: var(--muted); margin: 0; }
+.forms { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px var(--mono); color: var(--muted); }
+.forms span::after { content: " →"; color: var(--line); }
+.forms span:last-child::after { content: ""; }
+.begin-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+#btnBegin { font-size: 17px; padding: 14px 22px; }
+#confirmNew { font-size: 14px; color: var(--amber); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* read aloud, energy chain, quiz, language */
+.prof-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.prof-top h2, .prof-top h3 { min-width: 0; }
+.read { flex: none; color: var(--violet); border-color: color-mix(in srgb, var(--violet) 50%, transparent); }
+.read[aria-pressed="true"] { background: var(--violet); color: var(--violet-ink); }
+.chain { position: relative; margin: 6px 0 8px; overflow-x: auto; }
+.chain ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(64px, 1fr)); gap: 6px; position: relative; min-width: calc(var(--n) * 70px); }
+.chain li { position: relative; z-index: 1; text-align: center; font: 500 11.5px/1.25 var(--mono); padding: 7px 4px; border-radius: 8px; background: var(--raise); border: 1px solid var(--line); color: var(--muted); }
+.chain li:first-child { background: rgba(232, 163, 61, 0.2); color: var(--fg); }
+.chain li:last-child { background: rgba(228, 107, 134, 0.16); color: var(--fg); }
+.chain li.it { border-color: var(--amber); color: var(--fg); font-weight: 700; box-shadow: 0 0 0 2px rgba(232, 163, 61, 0.25); }
+.chain-track { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, var(--amber), var(--pink)); opacity: 0.6; min-width: calc(var(--n) * 70px); }
+.spark { position: absolute; top: -4px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: #ffd36a; box-shadow: 0 0 10px #ffd36a; animation: flow 3s linear infinite; animation-delay: var(--d); z-index: 2; }
+@keyframes flow { 0% { left: 0; background: #ffd36a; } 70% { background: #ffb36a; } 100% { left: calc(100% - 10px); background: var(--pink); opacity: 0.2; } }
+
+#quiz .panel { width: min(680px, 100%); }
+.quiz-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.question { font-size: 19px; line-height: 1.35; margin: 10px 0 12px; text-wrap: balance; }
+blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--green); background: var(--raise); border-radius: 0 10px 10px 0; font-size: 15px; }
+.qopts { display: grid; gap: 8px; }
+.qopt { text-align: left; display: flex; gap: 10px; align-items: baseline; border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.qopt:disabled { cursor: default; }
+.qopt .letter { font: 500 12px var(--mono); color: var(--muted); flex: none; }
+.qopt.right { border-color: var(--green); box-shadow: inset 0 0 0 1px var(--green); }
+.qopt.wrong { border-color: var(--pink); box-shadow: inset 0 0 0 1px var(--pink); }
+.feedback.good { color: var(--green); }
+.why { color: var(--muted); display: block; margin-top: 4px; }
+.score { font: 800 56px/1 var(--display); color: var(--violet); margin: 4px 0 10px; }
+#langPick { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+#langPick .tab { margin: 0; font-size: 15px; padding: 7px 16px; }
+.lang-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font: 12px var(--mono); color: var(--muted); }
+#fatal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: var(--bg); text-align: center; }
+
+/* ---------- Academic / NEET Modal Additions ---------- */
+#academicModal .panel { width: min(720px, 100%); }
+.academic-badge { font: 600 11.5px/1 var(--mono); padding: 5px 10px; border-radius: 6px; background: rgba(95, 196, 208, 0.15); color: var(--cyan); border: 1px solid var(--cyan); display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; text-transform: uppercase; }
+.academic-qtext { font: 700 18px/1.4 var(--display); margin-bottom: 16px; color: var(--fg); }
+.academic-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.academic-opt-list { display: grid; gap: 8px; }
+.academic-opt-btn { text-align: left; display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 12px 14px; font-size: 15px; color: var(--fg); transition: border-color 0.15s, background 0.15s; }
+.academic-opt-btn:hover:not(:disabled) { border-color: var(--cyan); background: rgba(95, 196, 208, 0.1); }
+.academic-opt-btn .opt-letter { font: 600 12px var(--mono); color: var(--muted); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 4px; padding: 2px 7px; }
+.academic-opt-btn.correct { border-color: var(--green); background: rgba(132, 201, 107, 0.18); box-shadow: inset 0 0 0 1px var(--green); }
+.academic-opt-btn.wrong { border-color: var(--pink); background: rgba(228, 107, 134, 0.18); box-shadow: inset 0 0 0 1px var(--pink); }
+.academic-feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.45; }
+.academic-feedback.good { background: rgba(132, 201, 107, 0.14); border-left: 3px solid var(--green); color: var(--fg); }
+.academic-feedback.bad { background: rgba(228, 107, 134, 0.14); border-left: 3px solid var(--pink); color: var(--fg); }
+.academic-footer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 8px; flex-wrap: wrap; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .spark { display: none; } }
+</style>
+<script type="importmap">{ "imports": { "three": "cdn/three.module.js" } }</script>
+
+</head>
+<body>
+<div id="stage"></div>
+<div id="vignette"></div>
+
+<div id="hud" hidden>
+  <div id="hudLeft" class="hud-box">
+    <p class="eyebrow" id="tierNum">Form 1 of 4</p>
+    <div id="tierName" class="tier-name">Single Cell</div>
+    <div class="prog"><span><span data-i18n="hud.countered">Countered</span> <b id="progCounters">0/4</b></span><span><span data-i18n="hud.partners">Partners</span> <b id="progAllies">0/1</b></span></div>
+    <div class="ep"><span id="epVal">0</span> <span data-i18n="hud.ep">evolution points</span></div>
+    <div class="small-btns">
+      <button id="btnHelp" class="mini-btn" data-i18n="hud.help">How to play</button>
+      <button id="btnSound" class="mini-btn" aria-pressed="true">Sound on</button>
+      <button id="btnLang" class="mini-btn" title="Language">English</button>
+    </div>
+  </div>
+  <div id="hudRight" class="hud-box">
+    <div class="meter" id="mInt" style="--c: var(--green)"><span data-i18n="hud.integrity">Integrity</span><b>100</b><span class="bar"><i></i></span></div>
+    <div class="meter" id="mAtp" style="--c: var(--amber)"><span data-i18n="hud.energy">Energy (ATP)</span><b>100</b><span class="bar"><i></i></span></div>
+    <div class="meter" id="mBal" style="--c: var(--cyan)"><span data-i18n="hud.balance">Ecosystem balance</span><b>50</b><span class="bar"><i></i></span></div>
+    <div class="env"><span><span data-i18n="hud.hum">Humidity</span><b id="envHum">80%</b></span><span><span data-i18n="hud.temp">Temp</span><b id="envTemp">22 °C</b></span><span><span data-i18n="hud.nut">Nutrients</span><b id="envNut">55</b></span></div>
+    <div class="event" id="envEvent">Calm</div>
+  </div>
+  <div id="targetChip" hidden>
+    <div id="tName"></div><div id="tSci"></div><div id="tStatus"></div>
+    <div class="tbar"><div id="tBar"></div></div>
+  </div>
+  <div id="toasts" aria-live="polite"></div>
+  <button id="btnEvolve" hidden data-i18n="btn.evolve">Evolve</button>
+  <div id="actions">
+    <button id="btnNeet" class="act" title="NEET / Academic Q&A (Q)">Q&A</button>
+    <button id="btnCodex" class="act" title="Codex (C)" data-i18n="btn.codex">Codex</button>
+    <button id="btnLab" class="act" title="Synthesis Lab (L)" data-i18n="btn.lab">Lab</button>
+    <button id="btnScan" class="act" title="Scan (E)" data-i18n="btn.scan">Scan</button>
+  </div>
+  <div id="joy" hidden><div id="joyKnob"></div></div>
+  <div id="keysHint" data-i18n-html="hud.keys">WASD move · drag to look · wheel zoom<br>click or E scan · L lab · C codex · Q neet</div>
+</div>
+
+<div id="sheetScrim" hidden></div>
+<section id="sheet" hidden aria-label="Organism profile"><div id="sheetBody"></div></section>
+
+<!-- Academic / NEET Modal -->
+<section id="academicModal" class="modal" hidden role="dialog" aria-labelledby="academicTitle">
+  <div class="panel">
+    <header>
+      <h2 id="academicTitle">Academic Mastery & NEET Preparation</h2>
+      <button class="x" id="btnAcademicClose">Close</button>
+    </header>
+    <div class="scroll">
+      <div class="academic-filter-bar">
+        <button class="tab on" data-filter="all">All Modules</button>
+        <button class="tab" data-filter="Biology">NEET Biology</button>
+        <button class="tab" data-filter="Chemistry">NEET Chemistry</button>
+        <button class="tab" data-filter="Physics">NEET Physics</button>
+        <button class="tab" data-filter="Foundation">Foundation</button>
+      </div>
+
+      <!-- Dynamic Chapter Selector -->
+      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <label for="chapterSelect" style="font: 500 12px var(--mono); color: var(--muted);">CHAPTER:</label>
+        <select id="chapterSelect" style="background: var(--raise); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 6px 10px; font: 13px var(--body); flex: 1; outline: none;">
+          <option value="all">All Chapters in Active Module</option>
+        </select>
+      </div>
+
+      <div id="academicBadge" class="academic-badge">Loading...</div>
+      <div id="academicQuestion" class="academic-qtext"></div>
+      <div id="academicOptions" class="academic-opt-list"></div>
+      <div id="academicFeedback" class="academic-feedback" hidden></div>
+      <div class="academic-footer-actions">
+        <span id="academicStats" style="font: 500 12px var(--mono); color: var(--muted);">Correct: 0 | Energy Gain: 0 ATP</span>
+        <button id="btnAcademicNext" class="btn primary" style="display:none;">Next Question</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lab" class="modal" hidden aria-label="Synthesis Lab">
+  <div class="panel">
+    <header><h2 data-i18n="lab.title">Synthesis Lab</h2><button class="x" data-close="lab" data-i18n="btn.close">Close</button></header>
+    <div class="scroll">
+      <div class="lab-grid">
+        <div>
+          <p class="eyebrow" style="margin-bottom:8px" data-i18n="lab.cases">Open cases</p>
+          <div id="labTargets"></div>
+          <div id="labCase"></div>
+        </div>
+        <div id="labWork">
+          <p class="eyebrow" style="margin-bottom:8px" data-i18n="lab.combo">Your combination</p>
+          <div class="slots" id="labSlots"></div>
+          <div class="synth-row"><button class="btn primary" id="btnSynth">Synthesise</button></div>
+          <p class="feedback" id="labFeedback"></p>
+          <p id="partInfo">Tap a part to read what it does and add it to your combination.</p>
+          <div class="tabs" id="labTabs"></div>
+          <div id="labParts"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="codex" class="modal" hidden aria-label="Codex">
+  <div class="panel">
+    <header><h2 data-i18n="codex.title">Codex</h2><button class="x" data-close="codex" data-i18n="btn.close">Close</button></header>
+    <div class="scroll">
+      <div class="tabs" id="codexTabs" style="margin-top:0"></div>
+      <div id="codexBody"></div>
+    </div>
+  </div>
+</section>
+
+<section id="quiz" class="modal" hidden role="dialog" aria-labelledby="quizTitle">
+  <div class="panel">
+    <header><h2 id="quizTitle">Form quiz</h2></header>
+    <div class="scroll" id="quizBody"></div>
+  </div>
+</section>
+
+<section id="dialog" class="modal" hidden role="dialog" aria-labelledby="dlgTitle">
+  <div class="panel">
+    <header><h2 id="dlgTitle"></h2></header>
+    <div class="scroll" id="dlgBody"></div>
+    <div id="dlgButtons"></div>
+  </div>
+</section>
+
+<section id="start" hidden>
+  <div class="start-inner">
+    <div class="lang-row"><span data-i18n="start.lang">Language</span><div id="langPick"></div></div>
+    <h1>Ecos-Synthetica<span data-i18n="start.subtitle">The Evolutionary Shield</span></h1>
+    <p class="thesis" data-i18n="start.thesis">Fungi, bacteria, viruses and insects are not villains. Each one is surviving, as you are. Scan them, hear their side first, then answer them the way life really does: with walls, enzymes, signals, antibodies and partnerships.</p>
+    <div class="lens">
+      <div style="--c: var(--amber)"><b data-i18n="start.lens1t">Energy flows</b><p data-i18n="start.lens1">From the sun, through every eater, out as heat. Matter goes round forever.</p></div>
+      <div style="--c: var(--green)"><b data-i18n="start.lens2t">Nature in front</b><p data-i18n="start.lens2">Every creature's own survival story comes before what it does to you.</p></div>
+      <div style="--c: var(--violet)"><b data-i18n="start.lens3t">Three ways of knowing</b><p data-i18n="start.lens3">How humans explained each one: belief, observation, then science.</p></div>
+    </div>
+    <div class="forms" id="formsList"><span>Single cell</span><span>Plant seedling</span><span>Honey bee</span><span>Human</span></div>
+    <div class="begin-row">
+      <button class="btn primary" id="btnBegin">Begin as a single cell</button>
+      <span id="newGameRow"><button class="btn" id="btnNew" data-i18n="start.new">New game</button></span>
+    </div>
+    <div id="confirmNew" hidden><span data-i18n="start.erase">Erase all progress and start again?</span> <button class="btn" id="btnNewYes" data-i18n="start.eraseYes">Yes, erase</button> <button class="btn" id="btnNewNo" data-i18n="start.eraseNo">Keep my progress</button></div>
+  </div>
+</section>
+
+<div id="fatal" hidden><p data-i18n="fatal">This game needs WebGL. Please open it in a recent version of Chrome, Edge, Safari or Firefox.</p></div>
+
+<!-- Core Game Modules -->
+<script type="module" src="js/main.js"></script>
+
+<!-- Embedded Academic / NEET Mastery Engine -->
+<script>
+(function() {
+  const BUILTIN_FALLBACK = [
+    {
+      "id": "BIO_NEET_11_BOT_01",
+      "subject": "Biology",
+      "grade": 11,
+      "chapter_key": "bio_11_cell_unit_of_life",
+      "chapter_title": "Cell: The Unit of Life",
+      "neet_high_yield": true,
+      "question": "Which of the following organisms are known as the chief 'producers' in the oceans?",
+      "options": ["Dinoflagellates", "Diatoms", "Euglenoids", "Cyanobacteria"],
+      "answer": 1,
+      "explanation": "Diatoms are microscopic, photosynthetic protists with siliceous walls, functioning as the primary producers in ocean ecosystems.",
+      "reward": { "energy": 25, "xp": 15 }
+    },
+    {
+      "id": "BIO_NEET_11_BOT_02",
+      "subject": "Biology",
+      "grade": 11,
+      "chapter_key": "bio_11_cell_cycle_division",
+      "chapter_title": "Cell Cycle and Cell Division",
+      "neet_high_yield": true,
+      "question": "Crossing over between non-sister chromatids of homologous chromosomes occurs during which sub-stage of Prophase I?",
+      "options": ["Leptotene", "Zygotene", "Pachytene", "Diplotene"],
+      "answer": 2,
+      "explanation": "Recombination nodules appear and enzyme-mediated crossing over takes place during the Pachytene stage.",
+      "reward": { "energy": 30, "xp": 20 }
+    },
+    {
+      "id": "CHEM_NEET_11_ORG_01",
+      "subject": "Chemistry",
+      "grade": 11,
+      "chapter_key": "chem_11_chemical_bonding",
+      "chapter_title": "Chemical Bonding",
+      "neet_high_yield": true,
+      "question": "Which of the following carbocations exhibits the highest thermodynamic stability due to hyperconjugation?",
+      "options": ["Methyl carbocation", "Ethyl carbocation", "Isopropyl carbocation", "tert-Butyl carbocation"],
+      "answer": 3,
+      "explanation": "The tert-butyl carbocation has 9 alpha-hydrogens, providing extensive hyperconjugative stabilization.",
+      "reward": { "energy": 30, "xp": 20 }
+    },
+    {
+      "id": "PHY_NEET_11_MECH_01",
+      "subject": "Physics",
+      "grade": 11,
+      "chapter_key": "phy_11_work_energy_power",
+      "chapter_title": "Work, Energy and Power",
+      "neet_high_yield": true,
+      "question": "What is the work done by the centripetal force on an object in a uniform circular orbit after one complete revolution?",
+      "options": ["2π R F", "π R² F", "Zero", "F / (2π)"],
+      "answer": 2,
+      "explanation": "Centripetal force is always perpendicular to instantaneous displacement (cos 90° = 0), so work done is zero.",
+      "reward": { "energy": 25, "xp": 15 }
+    }
+  ];
+
+  class AcademicController {
+    constructor() {
+      this.manifest = [];
+      this.allQuestions = [];
+      this.currentFilter = 'all';
+      this.currentChapterKey = 'all';
+      this.currentQuestion = null;
+      this.correctCount = 0;
+      this.totalEnergyAwarded = 0;
+      this.init();
+    }
+
+    async init() {
+      try {
+        const res = await fetch('data/manifest.json');
+        if (res.ok) {
+          this.manifest = await res.json();
+          await this.loadAllActiveChapters();
+          this.populateChapterDropdown();
+        } else {
+          throw new Error('Manifest not found');
+        }
+      } catch (e) {
+        console.warn('[AcademicEngine] Running on internal built-in fallback set.', e);
+        this.allQuestions = BUILTIN_FALLBACK;
+      }
+      this.bindEvents();
+    }
+
+    async loadAllActiveChapters() {
+      const activeChapters = this.manifest.filter(m => m.current_volume > 0);
+      const loads = activeChapters.map(c => fetch(c.file).then(r => r.json()).catch(() => []));
+      const results = await Promise.all(loads);
+      this.allQuestions = results.flat();
+      if (this.allQuestions.length === 0) {
+        this.allQuestions = BUILTIN_FALLBACK;
+      }
+      console.log(`[AcademicEngine] Live bank loaded: ${this.allQuestions.length} total questions.`);
+    }
+
+    populateChapterDropdown() {
+      const select = document.getElementById('chapterSelect');
+      if (!select) return;
+
+      select.innerHTML = '<option value="all">All Chapters in Active Module</option>';
+      const active = this.manifest.filter(m => {
+        if (m.current_volume === 0) return false;
+        if (this.currentFilter === 'all') return true;
+        if (this.currentFilter === 'Foundation') return m.grade <= 10;
+        return m.subject.toLowerCase() === this.currentFilter.toLowerCase();
+      });
+
+      active.forEach(ch => {
+        const opt = document.createElement('option');
+        opt.value = ch.chapter_key;
+        opt.innerText = `${ch.subject} (Gr ${ch.grade}) • ${ch.chapter_title} [${ch.current_volume} Qs]`;
+        select.appendChild(opt);
+      });
+      select.value = 'all';
+      this.currentChapterKey = 'all';
+    }
+
+    bindEvents() {
+      const modal = document.getElementById('academicModal');
+      const btnOpen = document.getElementById('btnNeet');
+      const btnClose = document.getElementById('btnAcademicClose');
+      const btnNext = document.getElementById('btnAcademicNext');
+      const chSelect = document.getElementById('chapterSelect');
+
+      if (btnOpen) {
+        btnOpen.addEventListener('click', () => {
+          modal.hidden = false;
+          this.loadNextQuestion();
+        });
+      }
+
+      if (btnClose) {
+        btnClose.addEventListener('click', () => {
+          modal.hidden = true;
+        });
+      }
+
+      if (btnNext) {
+        btnNext.addEventListener('click', () => {
+          this.loadNextQuestion();
+        });
+      }
+
+      if (chSelect) {
+        chSelect.addEventListener('change', (e) => {
+          this.currentChapterKey = e.target.value;
+          this.loadNextQuestion();
+        });
+      }
+
+      document.querySelectorAll('#academicModal .academic-filter-bar .tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          document.querySelectorAll('#academicModal .academic-filter-bar .tab').forEach(t => t.classList.remove('on'));
+          e.target.classList.add('on');
+          this.currentFilter = e.target.getAttribute('data-filter');
+          this.populateChapterDropdown();
+          this.loadNextQuestion();
+        });
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.key === 'q' || e.key === 'Q') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+          modal.hidden = !modal.hidden;
+          if (!modal.hidden) this.loadNextQuestion();
+        }
+      });
+    }
+
+    getFilteredPool() {
+      let pool = this.allQuestions;
+
+      if (this.currentChapterKey !== 'all') {
+        return pool.filter(q => q.chapter_key === this.currentChapterKey);
+      }
+
+      if (this.currentFilter !== 'all') {
+        if (this.currentFilter === 'Foundation') {
+          pool = pool.filter(q => q.grade <= 10 || !q.neet_high_yield);
+        } else {
+          pool = pool.filter(q => q.subject.toLowerCase() === this.currentFilter.toLowerCase());
+        }
+      }
+      return pool;
+    }
+
+    loadNextQuestion() {
+      const pool = this.getFilteredPool();
+      const feedback = document.getElementById('academicFeedback');
+      const btnNext = document.getElementById('btnAcademicNext');
+      const optsContainer = document.getElementById('academicOptions');
+
+      feedback.hidden = true;
+      btnNext.style.display = 'none';
+      optsContainer.innerHTML = '';
+
+      if (pool.length === 0) {
+        document.getElementById('academicBadge').innerText = 'No Questions';
+        document.getElementById('academicQuestion').innerText = 'No questions found for this selection.';
+        return;
+      }
+
+      this.currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+      const q = this.currentQuestion;
+
+      const title = q.chapter_key ? q.chapter_key.replace(/_/g, ' ').toUpperCase() : (q.chapter || 'GENERAL');
+      document.getElementById('academicBadge').innerText = `${q.subject} • Class ${q.grade} • ${title}`;
+      document.getElementById('academicQuestion').innerText = q.question;
+
+      q.options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'academic-opt-btn';
+        btn.innerHTML = `<span class="opt-letter">${String.fromCharCode(65 + idx)}</span> <span>${optText}</span>`;
+        btn.onclick = () => this.evaluateAnswer(idx);
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    evaluateAnswer(selectedIdx) {
+      const q = this.currentQuestion;
+      if (!q) return;
+
+      const opts = document.querySelectorAll('.academic-opt-btn');
+      opts.forEach(b => b.disabled = true);
+
+      const feedback = document.getElementById('academicFeedback');
+      const btnNext = document.getElementById('btnAcademicNext');
+      const isCorrect = selectedIdx === q.answer;
+
+      opts[selectedIdx].classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) {
+        opts[q.answer].classList.add('correct');
+      }
+
+      if (isCorrect) {
+        this.correctCount++;
+        const energyReward = q.reward?.energy || 25;
+        this.totalEnergyAwarded += energyReward;
+
+        feedback.className = 'academic-feedback good';
+        feedback.innerHTML = `<b>Correct!</b> (+${energyReward} ATP Energy)<br>${q.explanation}`;
+
+        const atpMeter = document.querySelector('#mAtp b');
+        if (atpMeter) {
+          const currentVal = parseInt(atpMeter.innerText, 10) || 100;
+          atpMeter.innerText = Math.min(currentVal + energyReward, 200);
+        }
+      } else {
+        feedback.className = 'academic-feedback bad';
+        feedback.innerHTML = `<b>Incorrect.</b> Correct answer: <b>${String.fromCharCode(65 + q.answer)}</b>.<br>${q.explanation}`;
+      }
+
+      feedback.hidden = false;
+      btnNext.style.display = 'inline-block';
+      document.getElementById('academicStats').innerText = `Correct: ${this.correctCount} | Energy Gain: +${this.totalEnergyAwarded} ATP`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    window.academicController = new AcademicController();
+  });
+})();
+</script>
+</body>
+</html>

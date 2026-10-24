@@ -1,0 +1,170 @@
+[
+  {
+    "id": "BIO_12_REP_008",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The primary site of human fertilization under physiological conditions is:",
+    "options": [
+      "Uterus",
+      "Cervix",
+      "Ampullary region of the Fallopian tube",
+      "Infundibulum"
+    ],
+    "answer": 2,
+    "explanation": "Fertilization typically occurs in the ampulla (ampullary-isthmic junction region) of the oviduct / Fallopian tube.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_001",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which cells in the testes secrete testosterone under LH regulation?",
+    "options": [
+      "Sertoli cells",
+      "Leydig cells (Interstitial cells)",
+      "Spermatogonia",
+      "Secondary spermatocytes"
+    ],
+    "answer": 1,
+    "explanation": "Leydig cells located in interstitial spaces produce androgens (principally testosterone) stimulated by LH.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_002",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Sertoli cells inside seminiferous tubules provide:",
+    "options": [
+      "Motility to mature sperms",
+      "Nutrition and mechanical support to developing germ cells",
+      "Direct secretion of estrogen",
+      "Acrosome enzymes"
+    ],
+    "answer": 1,
+    "explanation": "Sertoli cells act as nurse cells providing structural and nutritional support to developing spermatogenic cells.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_003",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The acrosome of a mature spermatozoon is derived embryologically from which organelle?",
+    "options": [
+      "Centriole",
+      "Mitochondria",
+      "Golgi apparatus",
+      "Endoplasmic reticulum"
+    ],
+    "answer": 2,
+    "explanation": "The acrosome filled with hydrolytic enzymes is formed from the Golgi apparatus.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_004",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "At which stage is human oogenesis arrested from embryonic development until puberty?",
+    "options": [
+      "Metaphase II",
+      "Diakinesis",
+      "Prophase I (Diplotene stage)",
+      "Anaphase I"
+    ],
+    "answer": 2,
+    "explanation": "Primary oocytes begin meiosis during fetal life and remain suspended at Prophase I (diplotene stage) until puberty.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_005",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What triggers the secondary oocyte to complete Meiosis II?",
+    "options": [
+      "LH surge",
+      "Entry of sperm into the vitelline membrane",
+      "Implantation into endometrium",
+      "Progesterone decline"
+    ],
+    "answer": 1,
+    "explanation": "Sperm entry into the secondary oocyte triggers the completion of Meiosis II, releasing the second polar body and an ootid.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_006",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Corpus luteum formed after ovulation primarily secretes high quantities of:",
+    "options": [
+      "Estrogen",
+      "Progesterone",
+      "FSH",
+      "hCG"
+    ],
+    "answer": 1,
+    "explanation": "The ruptured Graafian follicle transforms into the corpus luteum, which secretes large amounts of progesterone to maintain the endometrium.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_REP_007",
+    "chapter_key": "bio_12_human_reproduction",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The primary site of human fertilization under physiological conditions is:",
+    "options": [
+      "Uterus",
+      "Cervix",
+      "Ampullary region of the Fallopian tube",
+      "Infundibulum"
+    ],
+    "answer": 2,
+    "explanation": "Fertilization typically occurs in the ampulla (ampullary-isthmic junction region) of the Fallopian tube.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

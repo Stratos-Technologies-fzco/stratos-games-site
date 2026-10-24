@@ -1,0 +1,182 @@
+[
+  {
+    "id": "BIO_NEET_11_BOT_05",
+    "subject": "Biology",
+    "branch": "Botany",
+    "grade": 11,
+    "chapter": "Morphology of Flowering Plants",
+    "neet_high_yield": true,
+    "question": "Pneumatophores are specialized respiratory roots found commonly in which of the following plants?",
+    "options": [
+      "Rhizophora",
+      "Banyan (Ficus)",
+      "Pistia",
+      "Maize"
+    ],
+    "answer": 0,
+    "explanation": "Rhizophora grows in swampy halophytic areas where roots come out vertically upwards (pneumatophores) to obtain oxygen for respiration.",
+    "reward": { "energy": 25, "xp": 15 }
+  },
+  {
+    "id": "BIO_NEET_11_BOT_06",
+    "subject": "Biology",
+    "branch": "Botany",
+    "grade": 11,
+    "chapter": "Respiration in Plants",
+    "neet_high_yield": true,
+    "question": "Which enzyme catalyzes the committed, irreversible step in glycolysis converting Fructose-6-phosphate to Fructose-1,6-bisphosphate?",
+    "options": [
+      "Hexokinase",
+      "Phosphofructokinase (PFK)",
+      "Aldolase",
+      "Pyruvate kinase"
+    ],
+    "answer": 1,
+    "explanation": "Phosphofructokinase-1 (PFK-1) catalyzes the key regulatory and committed step of glycolysis using one ATP molecule.",
+    "reward": { "energy": 30, "xp": 20 }
+  },
+  {
+    "id": "BIO_NEET_12_BOT_03",
+    "subject": "Biology",
+    "branch": "Botany",
+    "grade": 12,
+    "chapter": "Sexual Reproduction in Flowering Plants",
+    "neet_high_yield": true,
+    "question": "What is the typical ploidy level of the Primary Endosperm Nucleus (PEN) in angiosperms following double fertilization?",
+    "options": [
+      "Haploid (n)",
+      "Diploid (2n)",
+      "Triploid (3n)",
+      "Tetraploid (4n)"
+    ],
+    "answer": 2,
+    "explanation": "In angiosperms, triple fusion between a haploid male gamete (n) and the diploid secondary nucleus (2n) results in a triploid (3n) endosperm.",
+    "reward": { "energy": 25, "xp": 15 }
+  },
+  {
+    "id": "BIO_NEET_11_ZOO_03",
+    "subject": "Biology",
+    "branch": "Zoology",
+    "grade": 11,
+    "chapter": "Neural Control and Coordination",
+    "neet_high_yield": true,
+    "question": "During the generation of an action potential in a nerve fiber, rapid depolarization occurs primarily due to:",
+    "options": [
+      "Rapid efflux of K⁺ ions",
+      "Rapid influx of Na⁺ ions",
+      "Efflux of Ca²⁺ ions",
+      "Active pumping by Na⁺/K⁺ ATPase"
+    ],
+    "answer": 1,
+    "explanation": "Opening of voltage-gated sodium channels allows a rapid rush (influx) of Na⁺ into the axoplasm, reversing membrane polarity from negative to positive.",
+    "reward": { "energy": 30, "xp": 20 }
+  },
+  {
+    "id": "BIO_NEET_12_ZOO_03",
+    "subject": "Biology",
+    "branch": "Zoology",
+    "grade": 12,
+    "chapter": "Biotechnology: Principles and Processes",
+    "neet_high_yield": true,
+    "question": "Which thermostable enzyme is utilized in Polymerase Chain Reaction (PCR) to synthesize DNA at elevated temperatures?",
+    "options": [
+      "DNA Ligase",
+      "Reverse Transcriptase",
+      "Taq Polymerase",
+      "RNA Polymerase III"
+    ],
+    "answer": 2,
+    "explanation": "Taq polymerase, isolated from the bacterium Thermus aquaticus, remains active during high-temperature denaturation steps in PCR.",
+    "reward": { "energy": 25, "xp": 15 }
+  },
+  {
+    "id": "CHEM_NEET_11_PHYS_02",
+    "subject": "Chemistry",
+    "branch": "Physical",
+    "grade": 11,
+    "chapter": "Thermodynamics",
+    "neet_high_yield": true,
+    "question": "For a spontaneous chemical process at all temperatures under constant pressure, which condition must hold true?",
+    "options": [
+      "ΔH < 0 and ΔS > 0",
+      "ΔH > 0 and ΔS < 0",
+      "ΔH > 0 and ΔS > 0",
+      "ΔH < 0 and ΔS < 0"
+    ],
+    "answer": 0,
+    "explanation": "According to the Gibbs-Helmholtz equation ΔG = ΔH - TΔS, when ΔH is negative (exothermic) and ΔS is positive, ΔG is always negative regardless of temperature.",
+    "reward": { "energy": 30, "xp": 20 }
+  },
+  {
+    "id": "CHEM_NEET_12_ORG_03",
+    "subject": "Chemistry",
+    "branch": "Organic",
+    "grade": 12,
+    "chapter": "Amines",
+    "neet_high_yield": true,
+    "question": "Which test distinguishes primary aliphatic and aromatic amines by reacting with CHCl₃ and ethanolic KOH to produce foul-smelling isocyanides?",
+    "options": [
+      "Lucas Test",
+      "Carbylamine Reaction",
+      "Hinsberg Test",
+      "Fehling's Test"
+    ],
+    "answer": 1,
+    "explanation": "The Carbylamine (isocyanide) reaction is specific to primary amines, producing foul-smelling carbylamines (isocyanides). Secondary and tertiary amines do not show this test.",
+    "reward": { "energy": 30, "xp": 20 }
+  },
+  {
+    "id": "PHY_NEET_11_MECH_02",
+    "subject": "Physics",
+    "branch": "Mechanics",
+    "grade": 11,
+    "chapter": "Gravitation",
+    "neet_high_yield": true,
+    "question": "If the radius of the Earth shrinks by 1% while its mass remains constant, the acceleration due to gravity (g) on the surface will:",
+    "options": [
+      "Decrease by 2%",
+      "Increase by 2%",
+      "Increase by 1%",
+      "Decrease by 1%"
+    ],
+    "answer": 1,
+    "explanation": "Since g = GM / R², fractional change Δg/g ≈ -2(ΔR/R). A 1% decrease in radius results in approximately a 2% increase in surface gravity.",
+    "reward": { "energy": 35, "xp": 25 }
+  },
+  {
+    "id": "PHY_NEET_12_MODERN_01",
+    "subject": "Physics",
+    "branch": "Modern Physics",
+    "grade": 12,
+    "chapter": "Dual Nature of Radiation and Matter",
+    "neet_high_yield": true,
+    "question": "If the kinetic energy of a free electron is quadrupled (increased 4 times), what happens to its de Broglie wavelength?",
+    "options": [
+      "It is halved",
+      "It is doubled",
+      "It increases by 4 times",
+      "It remains unchanged"
+    ],
+    "answer": 0,
+    "explanation": "The de Broglie wavelength λ = h / √(2mK). Because λ is inversely proportional to the square root of kinetic energy, multiplying K by 4 reduces λ by half.",
+    "reward": { "energy": 30, "xp": 20 }
+  },
+  {
+    "id": "MATH_FOUND_CLASS08_01",
+    "subject": "Mathematics",
+    "branch": "Foundational Algebra",
+    "grade": 8,
+    "chapter": "Linear Equations in One Variable",
+    "neet_high_yield": false,
+    "question": "If 3x - 7 = 14, what is the value of 2x + 1?",
+    "options": [
+      "13",
+      "15",
+      "17",
+      "21"
+    ],
+    "answer": 1,
+    "explanation": "3x = 14 + 7 = 21, so x = 7. Substituting into the expression: 2(7) + 1 = 15.",
+    "reward": { "energy": 15, "xp": 10 }
+  }
+]

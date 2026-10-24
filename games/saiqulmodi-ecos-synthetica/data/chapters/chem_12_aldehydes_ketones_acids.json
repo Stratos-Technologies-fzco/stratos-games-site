@@ -1,0 +1,212 @@
+[
+  {
+    "id": "CHEM_12_ALDEHYDES_KETONES_ACIDS_001",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which aldehyde undergoes the Cannizzaro reaction when treated with concentrated NaOH?",
+    "options": [
+      "Acetaldehyde",
+      "Benzaldehyde",
+      "Propionaldehyde",
+      "Acetone"
+    ],
+    "answer": 1,
+    "explanation": "Benzaldehyde has no alpha-hydrogens, undergoing self oxidation-reduction (Cannizzaro reaction).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDEHYDES_KETONES_ACIDS_002",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The reagent used in the Rosenmund reduction to form aldehydes from acyl chlorides is:",
+    "options": [
+      "LiAlH4",
+      "Pd/BaSO4 poisoned with sulfur/quinoline",
+      "NaBH4",
+      "Zn/HCl"
+    ],
+    "answer": 1,
+    "explanation": "Pd/BaSO4 partially poisons the catalyst to halt reduction at the aldehyde stage.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDEHYDES_KETONES_ACIDS_003",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which compound gives a positive yellow precipitate in the iodoform test?",
+    "options": [
+      "Methanol",
+      "Pentan-3-one",
+      "Acetophenone",
+      "Benzaldehyde"
+    ],
+    "answer": 2,
+    "explanation": "Acetophenone possesses the requisite -COCH3 terminal methyl ketone group.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDEHYDES_KETONES_ACIDS_004",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Carboxylic acids have higher boiling points than alcohols of comparable mass due to:",
+    "options": [
+      "Intermolecular dipole forces",
+      "Extensive cyclic dimer hydrogen bonding",
+      "Covalent resonance",
+      "Steric hindrance"
+    ],
+    "answer": 1,
+    "explanation": "Carboxylic acids form strong cyclic dimers held by two intermolecular hydrogen bonds.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_005",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The reaction of an aldehyde or ketone with zinc amalgam (Zn-Hg) and concentrated HCl to yield hydrocarbons is:",
+    "options": [
+      "Wolff-Kishner reduction",
+      "Clemmensen reduction",
+      "Stephen reduction",
+      "Etard reaction"
+    ],
+    "answer": 1,
+    "explanation": "Clemmensen reduction converts >C=O to >CH2 using Zn-Hg/conc. HCl (acidic medium).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_006",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Wolff-Kishner reduction accomplishes >C=O to >CH2 conversion using which reagents?",
+    "options": [
+      "Hydrazine (NH2NH2) followed by KOH in ethylene glycol",
+      "LiAlH4 in dry ether",
+      "Sn/HCl",
+      "H2 / Ni"
+    ],
+    "answer": 0,
+    "explanation": "Wolff-Kishner operates under basic conditions by heating the hydrazone derivative with KOH in high-boiling ethylene glycol.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_007",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Tollens' reagent consists of:",
+    "options": [
+      "Ammoniacal silver nitrate solution",
+      "Alkaline copper sulfate with sodium potassium tartrate",
+      "Neutral ferric chloride",
+      "Potassium permanganate"
+    ],
+    "answer": 0,
+    "explanation": "Tollens' reagent is [Ag(NH3)2]\u207a OH\u207b, which oxidizes aliphatic and aromatic aldehydes to form a characteristic silver mirror.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_008",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which carboxylic acid halogenation reaction introduces chlorine or bromine specifically at the alpha-position?",
+    "options": [
+      "Hell-Volhard-Zelinsky (HVZ) reaction",
+      "Kolbe's electrolysis",
+      "Hunsdiecker reaction",
+      "Decarboxylation"
+    ],
+    "answer": 0,
+    "explanation": "Carboxylic acids having an alpha-hydrogen react with Cl2 or Br2 in presence of red phosphorus (HVZ reaction) to yield alpha-halocarboxylic acids.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_009",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the correct order of acid strength among chlorinated acetic acids?",
+    "options": [
+      "CH3COOH > CH2ClCOOH > CHCl2COOH > CCl3COOH",
+      "CCl3COOH > CHCl2COOH > CH2ClCOOH > CH3COOH",
+      "CHCl2COOH > CCl3COOH > CH2ClCOOH > CH3COOH",
+      "CH2ClCOOH > CHCl2COOH > CCl3COOH > CH3COOH"
+    ],
+    "answer": 1,
+    "explanation": "The strong -I (electron-withdrawing inductive effect) of chlorine stabilizes the carboxylate anion: trichloroacetic acid is the strongest.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_12_ALDKET_010",
+    "chapter_key": "chem_12_aldehydes_ketones_acids",
+    "subject": "Chemistry",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Aldol condensation requires aldehydes or ketones to possess at least one:",
+    "options": [
+      "Aromatic ring",
+      "Alpha-hydrogen atom",
+      "Beta-hydrogen atom",
+      "Terminal methyl group"
+    ],
+    "answer": 1,
+    "explanation": "Aldol condensation is initiated by base-catalyzed deprotonation of an acidic alpha-hydrogen to generate an enolate nucleophile.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

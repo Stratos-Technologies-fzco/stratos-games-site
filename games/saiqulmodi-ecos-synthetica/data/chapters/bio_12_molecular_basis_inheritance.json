@@ -1,0 +1,170 @@
+[
+  {
+    "id": "BIO_12_MOLECULAR_BASIS_INHERITANCE_001",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In the lac operon, the repressor protein binds to the:",
+    "options": [
+      "Promoter",
+      "Operator",
+      "Structural gene z",
+      "Cap site"
+    ],
+    "answer": 1,
+    "explanation": "The repressor binds the operator sequence to prevent RNA polymerase from transcribing.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_MOLECULAR_BASIS_INHERITANCE_002",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which enzyme is primarily responsible for unwinding the DNA double helix?",
+    "options": [
+      "DNA Ligase",
+      "DNA Polymerase III",
+      "Helicase",
+      "Topoisomerase"
+    ],
+    "answer": 2,
+    "explanation": "Helicase unwinds the double helix at replication forks by breaking hydrogen bonds.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_MOLECULAR_BASIS_INHERITANCE_003",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the start codon that also codes for Methionine?",
+    "options": [
+      "UAA",
+      "UAG",
+      "AUG",
+      "UGA"
+    ],
+    "answer": 2,
+    "explanation": "AUG acts as the universal initiation codon for protein translation.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_MOLECULAR_BASIS_INHERITANCE_004",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In eukaryotic transcription, RNA Polymerase II synthesizes:",
+    "options": [
+      "rRNA (28S, 18S, 5.8S)",
+      "hnRNA (precursor of mRNA)",
+      "tRNA and 5S rRNA",
+      "Small nuclear RNA"
+    ],
+    "answer": 1,
+    "explanation": "RNA Pol II transcribes heterogeneous nuclear RNA (hnRNA), which matures into mRNA.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_MOL_CHARGAFF_20",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "numerical",
+    "question": "In double-stranded DNA, if Adenine constitutes 20% of the bases, what is the expected percentage of Cytosine?",
+    "options": [
+      "30%",
+      "20%",
+      "80%",
+      "10%"
+    ],
+    "answer": 0,
+    "explanation": "By Chargaff's rule: %A = %T = 20%. Remaining G + C = 60%. Since %G = %C, Cytosine = 30%.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_MOL_CHARGAFF_24",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "numerical",
+    "question": "In double-stranded DNA, if Adenine constitutes 24% of the bases, what is the expected percentage of Cytosine?",
+    "options": [
+      "26%",
+      "24%",
+      "76%",
+      "12%"
+    ],
+    "answer": 0,
+    "explanation": "By Chargaff's rule: %A = %T = 24%. Remaining G + C = 52%. Since %G = %C, Cytosine = 26%.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_MOL_CHARGAFF_28",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "numerical",
+    "question": "In double-stranded DNA, if Adenine constitutes 28% of the bases, what is the expected percentage of Cytosine?",
+    "options": [
+      "22%",
+      "28%",
+      "72%",
+      "14%"
+    ],
+    "answer": 0,
+    "explanation": "By Chargaff's rule: %A = %T = 28%. Remaining G + C = 44%. Since %G = %C, Cytosine = 22%.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_MOL_CHARGAFF_32",
+    "chapter_key": "bio_12_molecular_basis_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "numerical",
+    "question": "In double-stranded DNA, if Adenine constitutes 32% of the bases, what is the expected percentage of Cytosine?",
+    "options": [
+      "18%",
+      "32%",
+      "68%",
+      "16%"
+    ],
+    "answer": 0,
+    "explanation": "By Chargaff's rule: %A = %T = 32%. Remaining G + C = 36%. Since %G = %C, Cytosine = 18%.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

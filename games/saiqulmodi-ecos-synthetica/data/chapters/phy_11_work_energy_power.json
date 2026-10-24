@@ -1,0 +1,212 @@
+[
+  {
+    "id": "PHY_11_WORK_ENERGY_POWER_001",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The work done by a conservative force along a closed loop path is:",
+    "options": [
+      "Always positive",
+      "Always negative",
+      "Zero",
+      "Path-dependent"
+    ],
+    "answer": 2,
+    "explanation": "Conservative forces (like gravity and electrostatics) do net zero work over any closed loop.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WORK_ENERGY_POWER_002",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "If momentum of a body increases by 100%, its kinetic energy increases by:",
+    "options": [
+      "100%",
+      "200%",
+      "300%",
+      "400%"
+    ],
+    "answer": 2,
+    "explanation": "KE = p\u00b2 / 2m. If p doubles (2p), KE becomes 4x original, representing a 300% increase.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WORK_ENERGY_POWER_003",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "In a perfectly inelastic collision, which quantity is conserved?",
+    "options": [
+      "Kinetic energy only",
+      "Linear momentum only",
+      "Both momentum and kinetic energy",
+      "Neither"
+    ],
+    "answer": 1,
+    "explanation": "Linear momentum is always conserved in isolated collisions, but maximum kinetic energy is lost in inelastic impacts.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WORK_ENERGY_POWER_004",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "A crane lifts 2000 kg by 10 m in 20 seconds. What is the power output (g = 10 m/s\u00b2)?",
+    "options": [
+      "5 kW",
+      "10 kW",
+      "20 kW",
+      "100 kW"
+    ],
+    "answer": 1,
+    "explanation": "Work = mgh = 2000 * 10 * 10 = 200,000 J. Power = Work / t = 200,000 / 20 = 10,000 W = 10 kW.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_005",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "A spring of spring constant 'k' is stretched from extension x1 to x2. Work done by the external stretching force is:",
+    "options": [
+      "(1/2) k (x2 - x1)\u00b2",
+      "(1/2) k (x2\u00b2 - x1\u00b2)",
+      "k (x2 - x1)",
+      "k (x2\u00b2 - x1\u00b2)"
+    ],
+    "answer": 1,
+    "explanation": "Work done = \u222b (k x) dx from x1 to x2 = (1/2) k (x2\u00b2 - x1\u00b2).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_006",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Work-Energy theorem states that the change in kinetic energy of a particle equals:",
+    "options": [
+      "Work done by conservative forces only",
+      "Work done by non-conservative forces only",
+      "Net work done by all forces (conservative + non-conservative + external)",
+      "Work done against friction only"
+    ],
+    "answer": 2,
+    "explanation": "The Work-Energy theorem is universal: \u0394K = W_total, accounting for all forces acting on the system.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_007",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the coefficient of restitution (e) for a completely elastic collision?",
+    "options": [
+      "e = 0",
+      "e = 1",
+      "0 < e < 1",
+      "e = infinity"
+    ],
+    "answer": 1,
+    "explanation": "In perfectly elastic collisions, relative velocity of separation equals relative velocity of approach (e = 1). In perfectly inelastic, e = 0.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_008",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Potential energy function U(x) = ax\u00b2 - bx. The position of stable equilibrium is given by:",
+    "options": [
+      "x = b / (2a)",
+      "x = a / (2b)",
+      "x = 2b / a",
+      "x = 0"
+    ],
+    "answer": 0,
+    "explanation": "At equilibrium, dU/dx = 0 -> 2ax - b = 0 -> x = b/(2a). Since d\u00b2U/dx\u00b2 = 2a > 0 (assuming a > 0), it is stable equilibrium.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_009",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "One kilowatt-hour (1 kWh) of commercial electrical energy equals how many Joules?",
+    "options": [
+      "3.6 x 10\u2075 J",
+      "3.6 x 10\u2076 J",
+      "1.0 x 10\u00b3 J",
+      "3.6 x 10\u2077 J"
+    ],
+    "answer": 1,
+    "explanation": "1 kWh = 1000 W * 3600 s = 3.6 x 10\u2076 J (or 3.6 MJ).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_11_WEP_010",
+    "chapter_key": "phy_11_work_energy_power",
+    "subject": "Physics",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "A body of mass m is released from the top of a smooth hemisphere of radius R. At what vertical distance below the apex does it leave contact?",
+    "options": [
+      "R / 2",
+      "R / 3",
+      "2R / 3",
+      "R / 4"
+    ],
+    "answer": 1,
+    "explanation": "Centrifugal balance gives mg cos \u03b8 = mv\u00b2/R, and energy conservation gives v\u00b2 = 2gh. Solving yields h = R/3 below the top.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

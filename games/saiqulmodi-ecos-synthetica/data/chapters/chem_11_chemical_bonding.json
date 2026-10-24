@@ -1,0 +1,191 @@
+[
+  {
+    "id": "CHEM_11_CHEMICAL_BONDING_001",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "According to VSEPR theory, the molecular shape of SF4 is:",
+    "options": [
+      "Tetrahedral",
+      "Square planar",
+      "See-saw",
+      "Trigonal bipyramidal"
+    ],
+    "answer": 2,
+    "explanation": "SF4 has 4 bond pairs and 1 equatorial lone pair on sulfur, adopting a see-saw geometry.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_CHEMICAL_BONDING_002",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which of the following molecules has a dipole moment of zero?",
+    "options": [
+      "NH3",
+      "NF3",
+      "BF3",
+      "H2O"
+    ],
+    "answer": 2,
+    "explanation": "BF3 is symmetrical trigonal planar (sp2), so bond dipole vectors cancel to zero.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_CHEMICAL_BONDING_003",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The hybridization of the central xenon atom in XeF4 is:",
+    "options": [
+      "sp3d",
+      "sp3d2",
+      "sp3",
+      "dsp2"
+    ],
+    "answer": 1,
+    "explanation": "XeF4 has 4 bond pairs and 2 lone pairs (steric number 6), giving sp3d2 hybridization.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_CHEMICAL_BONDING_004",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which chemical bond has the highest bond dissociation enthalpy?",
+    "options": [
+      "C-C single bond",
+      "C=C double bond",
+      "C\u2261C triple bond",
+      "C-H single bond"
+    ],
+    "answer": 2,
+    "explanation": "Bond dissociation energy increases with bond order: triple > double > single.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_BOND_1",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the hybridization and molecular geometry of the central atom in BeCl2?",
+    "options": [
+      "sp and Linear",
+      "sp and Bent",
+      "sp3 and Linear",
+      "dsp2 and Square planar"
+    ],
+    "answer": 0,
+    "explanation": "2 bond pairs, 0 lone pairs on central Be atom.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_BOND_2",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the hybridization and molecular geometry of the central atom in BCl3?",
+    "options": [
+      "sp2 and Trigonal planar",
+      "sp2 and Bent",
+      "sp3 and Trigonal planar",
+      "dsp2 and Square planar"
+    ],
+    "answer": 0,
+    "explanation": "3 bond pairs, 0 lone pairs on central B atom.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_BOND_3",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the hybridization and molecular geometry of the central atom in CH4?",
+    "options": [
+      "sp3 and Tetrahedral",
+      "sp3 and Bent",
+      "sp3 and Tetrahedral",
+      "dsp2 and Square planar"
+    ],
+    "answer": 0,
+    "explanation": "4 bond pairs, 0 lone pairs on central C atom.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_BOND_4",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the hybridization and molecular geometry of the central atom in PCl5?",
+    "options": [
+      "sp3d and Trigonal bipyramidal",
+      "sp3d and Bent",
+      "sp3 and Trigonal bipyramidal",
+      "dsp2 and Square planar"
+    ],
+    "answer": 0,
+    "explanation": "5 bond pairs, 0 lone pairs on central P atom.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_BOND_5",
+    "chapter_key": "chem_11_chemical_bonding",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the hybridization and molecular geometry of the central atom in SF6?",
+    "options": [
+      "sp3d2 and Octahedral",
+      "sp3d2 and Bent",
+      "sp3 and Octahedral",
+      "dsp2 and Square planar"
+    ],
+    "answer": 0,
+    "explanation": "6 bond pairs, 0 lone pairs on central S atom.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

@@ -1,0 +1,464 @@
+[
+  {
+    "id": "PHY_12_CURRENT_ELECTRICITY_001",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Kirchhoff's First Rule (Junction Rule) is based on the conservation of:",
+    "options": [
+      "Energy",
+      "Linear momentum",
+      "Electric charge",
+      "Angular momentum"
+    ],
+    "answer": 2,
+    "explanation": "Junction rule (\u03a3 I = 0) states charge cannot accumulate at a conductor node.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_CURRENT_ELECTRICITY_002",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Kirchhoff's Second Rule (Loop Rule) is based on the conservation of:",
+    "options": [
+      "Electric charge",
+      "Energy",
+      "Magnetic flux",
+      "Potential difference"
+    ],
+    "answer": 1,
+    "explanation": "Loop rule (\u03a3 \u0394V = 0) is a direct consequence of energy conservation in closed circuits.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_CURRENT_ELECTRICITY_003",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "When temperature of a metallic conductor increases, its electrical resistance:",
+    "options": [
+      "Decreases",
+      "Increases",
+      "Remains constant",
+      "First decreases then increases"
+    ],
+    "answer": 1,
+    "explanation": "Thermal agitation increases lattice ion vibrations, shortening electron relaxation time (\u03c4).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "PHY_12_CURRENT_ELECTRICITY_004",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In a balanced Wheatstone bridge with resistors P, Q, R, S, the condition is:",
+    "options": [
+      "P * Q = R * S",
+      "P / Q = R / S",
+      "P + Q = R + S",
+      "P - Q = R - S"
+    ],
+    "answer": 1,
+    "explanation": "Bridge balance occurs when potential difference across detector is zero: P/Q = R/S.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_1",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 2 \u03a9 and 2 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "1 \u03a9",
+      "4 \u03a9",
+      "2 \u03a9",
+      "4 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/2 + 1/2 = (2+2)/(4), giving R = 1 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_2",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 3 \u03a9 and 6 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "2 \u03a9",
+      "9 \u03a9",
+      "3 \u03a9",
+      "12 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/3 + 1/6 = (3+6)/(18), giving R = 2 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_3",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 4 \u03a9 and 4 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "2 \u03a9",
+      "8 \u03a9",
+      "4 \u03a9",
+      "8 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/4 + 1/4 = (4+4)/(16), giving R = 2 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_4",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 6 \u03a9 and 12 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "4 \u03a9",
+      "18 \u03a9",
+      "6 \u03a9",
+      "24 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/6 + 1/12 = (6+12)/(72), giving R = 4 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_5",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 10 \u03a9 and 10 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "5 \u03a9",
+      "20 \u03a9",
+      "10 \u03a9",
+      "20 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/10 + 1/10 = (10+10)/(100), giving R = 5 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_6",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 12 \u03a9 and 24 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "8 \u03a9",
+      "36 \u03a9",
+      "12 \u03a9",
+      "48 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/12 + 1/24 = (12+24)/(288), giving R = 8 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_7",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 20 \u03a9 and 20 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "10 \u03a9",
+      "40 \u03a9",
+      "20 \u03a9",
+      "40 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/20 + 1/20 = (20+20)/(400), giving R = 10 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_PHY_CURR_8",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of resistances 30 \u03a9 and 60 \u03a9 are connected in parallel across an ideal source. What is the equivalent resistance?",
+    "options": [
+      "20 \u03a9",
+      "90 \u03a9",
+      "30 \u03a9",
+      "120 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "For two resistors in parallel: 1/R = 1/30 + 1/60 = (30+60)/(1800), giving R = 20 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_1",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 2 \u03a9 and 2 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "1 \u03a9",
+      "4 \u03a9",
+      "4 \u03a9",
+      "1 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/2 + 1/2 = (2+2)/(2*2) => R = 1 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_2",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 3 \u03a9 and 6 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "2 \u03a9",
+      "9 \u03a9",
+      "6 \u03a9",
+      "3 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/3 + 1/6 = (3+6)/(3*6) => R = 2 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_3",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 4 \u03a9 and 4 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "2 \u03a9",
+      "8 \u03a9",
+      "8 \u03a9",
+      "2 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/4 + 1/4 = (4+4)/(4*4) => R = 2 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_4",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 6 \u03a9 and 12 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "4 \u03a9",
+      "18 \u03a9",
+      "12 \u03a9",
+      "6 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/6 + 1/12 = (6+12)/(6*12) => R = 4 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_5",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 10 \u03a9 and 10 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "5 \u03a9",
+      "20 \u03a9",
+      "20 \u03a9",
+      "5 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/10 + 1/10 = (10+10)/(10*10) => R = 5 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_6",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 12 \u03a9 and 24 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "8 \u03a9",
+      "36 \u03a9",
+      "24 \u03a9",
+      "12 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/12 + 1/24 = (12+24)/(12*24) => R = 8 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_7",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 20 \u03a9 and 20 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "10 \u03a9",
+      "40 \u03a9",
+      "40 \u03a9",
+      "10 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/20 + 1/20 = (20+20)/(20*20) => R = 10 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_8",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 30 \u03a9 and 60 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "20 \u03a9",
+      "90 \u03a9",
+      "60 \u03a9",
+      "30 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/30 + 1/60 = (30+60)/(30*60) => R = 20 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_9",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 5 \u03a9 and 20 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "4 \u03a9",
+      "25 \u03a9",
+      "10 \u03a9",
+      "10 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/5 + 1/20 = (5+20)/(5*20) => R = 4 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_PHY_CURR_10",
+    "chapter_key": "phy_12_current_electricity",
+    "subject": "Physics",
+    "grade": 12,
+    "type": "numerical",
+    "question": "Two resistors of 8 \u03a9 and 8 \u03a9 are connected in parallel. What is the equivalent resistance?",
+    "options": [
+      "4 \u03a9",
+      "16 \u03a9",
+      "16 \u03a9",
+      "4 \u03a9"
+    ],
+    "answer": 0,
+    "explanation": "1/R = 1/8 + 1/8 = (8+8)/(8*8) => R = 4 \u03a9.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

@@ -1,0 +1,296 @@
+[
+  {
+    "id": "BIO_11_CELL_001",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Who proposed the cell theory modification stating 'Omnis cellula-e cellula' (all cells arise from pre-existing cells)?",
+    "options": [
+      "Matthias Schleiden",
+      "Theodore Schwann",
+      "Rudolf Virchow",
+      "Robert Brown"
+    ],
+    "answer": 2,
+    "explanation": "Rudolf Virchow in 1855 first explained that cells divide and new cells are formed from pre-existing cells ('Omnis cellula-e cellula').",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_002",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which of the following cellular components is non-membrane bound and found in both prokaryotic and eukaryotic cells?",
+    "options": [
+      "Lysosome",
+      "Ribosome",
+      "Peroxisome",
+      "Endoplasmic Reticulum"
+    ],
+    "answer": 1,
+    "explanation": "Ribosomes are non-membrane bound organelles found in all living cells\u2014both prokaryotes (70S) and eukaryotes (80S).",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_003",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the typical diameter range of mitochondria according to NCERT?",
+    "options": [
+      "0.2 - 1.0 \u00b5m (average 0.5 \u00b5m)",
+      "1.0 - 4.1 \u00b5m",
+      "0.02 - 0.2 \u00b5m",
+      "5.0 - 10.0 \u00b5m"
+    ],
+    "answer": 0,
+    "explanation": "NCERT states mitochondria are sausage-shaped or cylindrical having a diameter of 0.2-1.0 \u00b5m (average 0.5 \u00b5m) and length 1.0-4.1 \u00b5m.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_004",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "According to Singer and Nicolson's Fluid Mosaic Model (1972), what provides fluidity to the plasma membrane?",
+    "options": [
+      "Peripheral proteins",
+      "Quasi-fluid nature of lipid bilayer",
+      "Cholesterol anchored tightly",
+      "Rigid carbohydrate chains"
+    ],
+    "answer": 1,
+    "explanation": "The quasi-fluid nature of lipids enables lateral movement of proteins within the overall bilayer, which defines membrane fluidity.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_005",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "assertion_reason",
+    "question": "Statement I: The endomembrane system includes ER, Golgi complex, lysosomes, and vacuoles.\nStatement II: Mitochondria, chloroplasts, and peroxisomes are coordinated with the endomembrane system.",
+    "options": [
+      "Both Statement I and Statement II are correct",
+      "Both Statement I and Statement II are incorrect",
+      "Statement I is correct, but Statement II is incorrect",
+      "Statement I is incorrect, but Statement II is correct"
+    ],
+    "answer": 2,
+    "explanation": "Statement I is correct. Statement II is incorrect because functions of mitochondria, chloroplasts, and peroxisomes are not coordinated with ER/Golgi, so they are excluded from the endomembrane system.",
+    "difficulty": 3,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_006",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which face of the Golgi apparatus is the 'forming face' that receives transition vesicles from the endoplasmic reticulum?",
+    "options": [
+      "Trans or maturing face",
+      "Cis or convex forming face",
+      "Medial cisternae",
+      "Secretory vesicle face"
+    ],
+    "answer": 1,
+    "explanation": "Cis (convex) face is the forming face oriented toward the nucleus/ER, while trans (concave) face is the maturing/shipping face.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_007",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Hydrolytic enzymes of lysosomes (hydrolases) are maximally active at which environmental pH?",
+    "options": [
+      "Neutral pH (7.0)",
+      "Alkaline pH (8.5)",
+      "Acidic pH (~4.5 - 5.0)",
+      "Extremely basic pH (12.0)"
+    ],
+    "answer": 2,
+    "explanation": "Lysosomal enzymes (lipases, proteases, carbohydrases) are optimized to function under acidic conditions maintained by proton pumps.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_008",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "In plant cells, what percentage of cell volume can be occupied by the central vacuole?",
+    "options": [
+      "Up to 30%",
+      "Up to 50%",
+      "Up to 70%",
+      "Up to 90%"
+    ],
+    "answer": 3,
+    "explanation": "In plant cells, the central vacuole bound by the semi-permeable tonoplast can occupy up to 90 percent of the total cellular volume.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_009",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the sedimentation coefficient (S) known as, and what does it indirectly measure?",
+    "options": [
+      "Stahl unit; measures DNA density",
+      "Svedberg unit; indirectly measures density and size",
+      "Singer coefficient; measures lipid fluid velocity",
+      "Schleiden unit; measures cell wall thickness"
+    ],
+    "answer": 1,
+    "explanation": "'S' stands for Svedberg unit, representing the sedimentation coefficient, which is an indirect measurement of density and size.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_010",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the arrangement of peripheral doublet microtubules and central microtubules in a eukaryotic cilium or flagellum axoneme?",
+    "options": [
+      "9 + 0 array",
+      "9 + 2 array",
+      "8 + 2 array",
+      "9 + 3 triplets"
+    ],
+    "answer": 1,
+    "explanation": "The eukaryotic axoneme possesses 9 pairs of radially arranged peripheral doublets and one central pair of singlet microtubules (9 + 2 array). Centrioles have 9 + 0 triplets.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_UNIT_OF_LIFE_001",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Who proposed 'Omnis cellula-e cellula'?",
+    "options": [
+      "Matthias Schleiden",
+      "Theodore Schwann",
+      "Rudolf Virchow",
+      "Robert Brown"
+    ],
+    "answer": 2,
+    "explanation": "Rudolf Virchow in 1855 clarified that cells arise from pre-existing cells.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_UNIT_OF_LIFE_002",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which organelle lacks a membrane and is found in prokaryotes and eukaryotes?",
+    "options": [
+      "Lysosome",
+      "Ribosome",
+      "Peroxisome",
+      "Endoplasmic Reticulum"
+    ],
+    "answer": 1,
+    "explanation": "Ribosomes are universal non-membrane-bound ribonucleoprotein particles.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_UNIT_OF_LIFE_003",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the typical diameter of a mitochondrion?",
+    "options": [
+      "0.2 - 1.0 \u00b5m",
+      "1.0 - 4.1 \u00b5m",
+      "0.02 - 0.2 \u00b5m",
+      "5.0 - 10.0 \u00b5m"
+    ],
+    "answer": 0,
+    "explanation": "NCERT gives mitochondrial diameter as 0.2-1.0 \u00b5m (average 0.5 \u00b5m).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CELL_UNIT_OF_LIFE_004",
+    "chapter_key": "bio_11_cell_unit_of_life",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The 9+2 microtubule axoneme arrangement is found in:",
+    "options": [
+      "Centriole",
+      "Cilia and flagella",
+      "Spindle fibers",
+      "Basal body"
+    ],
+    "answer": 1,
+    "explanation": "Eukaryotic cilia and flagella have a 9 doublet + 2 singlet microtubule arrangement.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

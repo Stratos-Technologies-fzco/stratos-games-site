@@ -1,0 +1,107 @@
+[
+  {
+    "id": "BIO_11_NEUR_005",
+    "chapter_key": "bio_11_neural_coordination",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The thick tract of transverse nerve fibers connecting the left and right cerebral hemispheres is the:",
+    "options": [
+      "Corpora quadrigemina",
+      "Corpus callosum",
+      "Pons Varolii",
+      "Infundibulum"
+    ],
+    "answer": 1,
+    "explanation": "The two cerebral hemispheres are internally united by a curved band of white matter known as the corpus callosum.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_NEUR_001",
+    "chapter_key": "bio_11_neural_coordination",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "During resting membrane potential (-70 mV), the axonal membrane is relatively more permeable to:",
+    "options": [
+      "Sodium ions (Na\u207a)",
+      "Potassium ions (K\u207a)",
+      "Calcium ions (Ca\u00b2\u207a)",
+      "Chloride ions (Cl\u207b)"
+    ],
+    "answer": 1,
+    "explanation": "At rest, the axolemma is substantially more permeable to K\u207a than to Na\u207a, allowing K\u207a efflux.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_NEUR_002",
+    "chapter_key": "bio_11_neural_coordination",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Depolarization of an axonal membrane during action potential generation is driven by rapid influx of:",
+    "options": [
+      "K\u207a ions",
+      "Na\u207a ions",
+      "Ca\u00b2\u207a ions",
+      "Mg\u00b2\u207a ions"
+    ],
+    "answer": 1,
+    "explanation": "Voltage-gated Na\u207a channel opening allows inward rush of Na\u207a, reversing membrane polarity from -70 mV toward +30 mV.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_NEUR_003",
+    "chapter_key": "bio_11_neural_coordination",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The sodium-potassium pump (Na\u207a/K\u207a ATPase) transports ions across the resting membrane in which ratio?",
+    "options": [
+      "2 Na\u207a out for 3 K\u207a in",
+      "3 Na\u207a out for 2 K\u207a in",
+      "3 Na\u207a in for 2 K\u207a out",
+      "1 Na\u207a out for 1 K\u207a in"
+    ],
+    "answer": 1,
+    "explanation": "The electrogenic pump consumes 1 ATP to export 3 Na\u207a ions and import 2 K\u207a ions.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_NEUR_004",
+    "chapter_key": "bio_11_neural_coordination",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which part of the human brain contains vital centers controlling cardiovascular reflexes and respiration?",
+    "options": [
+      "Cerebrum",
+      "Cerebellum",
+      "Medulla oblongata",
+      "Corpus callosum"
+    ],
+    "answer": 2,
+    "explanation": "The medulla oblongata contains autonomous centers controlling cardiac rate, breathing, and vasomotor tone.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

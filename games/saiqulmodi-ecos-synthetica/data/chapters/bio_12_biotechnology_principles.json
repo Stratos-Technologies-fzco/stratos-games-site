@@ -1,0 +1,170 @@
+[
+  {
+    "id": "BIO_12_BIOTECHNOLOGY_PRINCIPLES_001",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Taq polymerase used in PCR is isolated from which thermophilic bacterium?",
+    "options": [
+      "Thermus aquaticus",
+      "Bacillus thuringiensis",
+      "Escherichia coli",
+      "Agrobacterium tumefaciens"
+    ],
+    "answer": 0,
+    "explanation": "Taq polymerase withstands high-temperature denaturation cycles.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_BIOTECHNOLOGY_PRINCIPLES_002",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which enzyme acts as 'molecular glue' by joining DNA fragments?",
+    "options": [
+      "Restriction endonuclease",
+      "DNA Ligase",
+      "Exonuclease",
+      "Alkaline phosphatase"
+    ],
+    "answer": 1,
+    "explanation": "DNA ligase seals nicks in the phosphodiester backbone.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_BIOTECHNOLOGY_PRINCIPLES_003",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "The natural genetic engineer utilized for plant transformation is:",
+    "options": [
+      "E. coli",
+      "Agrobacterium tumefaciens",
+      "Rhizobium",
+      "Salmonella"
+    ],
+    "answer": 1,
+    "explanation": "Agrobacterium tumefaciens delivers the T-DNA portion of its Ti-plasmid into plant genomes.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_BIOTECHNOLOGY_PRINCIPLES_004",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "EcoRI restriction enzyme recognizes which palindromic sequence?",
+    "options": [
+      "5'-GAATTC-3'",
+      "5'-GGATCC-3'",
+      "5'-AAGCTT-3'",
+      "5'-CTCGAG-3'"
+    ],
+    "answer": 0,
+    "explanation": "EcoRI cuts specifically at 5'-G|AATTC-3'.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_BIOTECH_1",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which recognition sequence and cleavage feature corresponds to the restriction enzyme EcoRI?",
+    "options": [
+      "5'-GAATTC-3' generating Sticky ends (staggered cut between G and A)",
+      "5'-GAATTC-3' generating random cuts",
+      "5'-TTAA-3' generating blunt ends",
+      "3'-AAAA-5' non-specific cleavage"
+    ],
+    "answer": 0,
+    "explanation": "EcoRI isolated from Escherichia coli RY 13 recognizes 5'-GAATTC-3' and creates Sticky ends (staggered cut between G and A).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_BIOTECH_2",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which recognition sequence and cleavage feature corresponds to the restriction enzyme HindIII?",
+    "options": [
+      "5'-AAGCTT-3' generating Sticky ends (cut between A and A)",
+      "5'-AAGCTT-3' generating random cuts",
+      "5'-TTAA-3' generating blunt ends",
+      "3'-AAAA-5' non-specific cleavage"
+    ],
+    "answer": 0,
+    "explanation": "HindIII isolated from Haemophilus influenzae Rd recognizes 5'-AAGCTT-3' and creates Sticky ends (cut between A and A).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_BIOTECH_3",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which recognition sequence and cleavage feature corresponds to the restriction enzyme BamHI?",
+    "options": [
+      "5'-GGATCC-3' generating Sticky ends (cut between G and G)",
+      "5'-GGATCC-3' generating random cuts",
+      "5'-TTAA-3' generating blunt ends",
+      "3'-AAAA-5' non-specific cleavage"
+    ],
+    "answer": 0,
+    "explanation": "BamHI isolated from Bacillus amyloliquefaciens H recognizes 5'-GGATCC-3' and creates Sticky ends (cut between G and G).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_BIOTECH_4",
+    "chapter_key": "bio_12_biotechnology_principles",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which recognition sequence and cleavage feature corresponds to the restriction enzyme SmaI?",
+    "options": [
+      "5'-CCCGGG-3' generating Blunt ends (cut between C and G)",
+      "5'-CCCGGG-3' generating random cuts",
+      "5'-TTAA-3' generating blunt ends",
+      "3'-AAAA-5' non-specific cleavage"
+    ],
+    "answer": 0,
+    "explanation": "SmaI isolated from Serratia marcescens recognizes 5'-CCCGGG-3' and creates Blunt ends (cut between C and G).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

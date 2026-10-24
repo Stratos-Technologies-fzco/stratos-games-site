@@ -1,0 +1,107 @@
+[
+  {
+    "id": "BIO_11_EXCR_005",
+    "chapter_key": "bio_11_excretory_products",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Podocytes with filtration slits (slit pores) are specialized epithelial cells lining:",
+    "options": [
+      "Parietal layer of Bowman's capsule",
+      "Visceral layer of Bowman's capsule wrapping around glomerular capillaries",
+      "Proximal Convoluted Tubule (PCT)",
+      "Collecting duct"
+    ],
+    "answer": 1,
+    "explanation": "Podocytes form the visceral layer of Bowman's capsule; their interdigitating pedicels leave filtration slits for ultrafiltration.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_EXCR_001",
+    "chapter_key": "bio_11_excretory_products",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the average daily glomerular filtration rate (GFR) in a healthy human adult?",
+    "options": [
+      "1.5 liters/day",
+      "18 liters/day",
+      "180 liters/day",
+      "1200 liters/day"
+    ],
+    "answer": 2,
+    "explanation": "GFR is ~125 mL/min (~180 L/day). Around 99% is reabsorbed, yielding ~1.5 L of urine per day.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_EXCR_002",
+    "chapter_key": "bio_11_excretory_products",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The ascending limb of the loop of Henle is:",
+    "options": [
+      "Permeable to water but impermeable to electrolytes",
+      "Impermeable to water but allows transport of electrolytes (NaCl)",
+      "Freely permeable to both water and urea",
+      "Completely impermeable to all ions and water"
+    ],
+    "answer": 1,
+    "explanation": "The descending limb is permeable to water and impermeable to salts; the ascending limb is impermeable to water and reabsorbs NaCl.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_EXCR_003",
+    "chapter_key": "bio_11_excretory_products",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Juxtaglomerular cells release renin in response to:",
+    "options": [
+      "High arterial blood pressure",
+      "Fall in glomerular filtration rate (GFR) or blood volume",
+      "Increased sodium delivery to macula densa",
+      "Release of Atrial Natriuretic Factor (ANF)"
+    ],
+    "answer": 1,
+    "explanation": "A drop in glomerular blood flow/pressure/GFR activates juxtaglomerular cells to release renin, initiating RAAS.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_EXCR_004",
+    "chapter_key": "bio_11_excretory_products",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Podocytes with filtration slits are specialized epithelial cells lining:",
+    "options": [
+      "Parietal layer of Bowman's capsule",
+      "Visceral layer of Bowman's capsule wrapping around glomerular capillaries",
+      "Proximal Convoluted Tubule (PCT)",
+      "Collecting duct"
+    ],
+    "answer": 1,
+    "explanation": "Podocytes form the visceral layer of Bowman's capsule, providing filtration slits for ultrafiltration.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

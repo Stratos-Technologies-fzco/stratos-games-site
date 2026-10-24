@@ -1,0 +1,170 @@
+[
+  {
+    "id": "CHEM_11_THERMODYNAMICS_001",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For an isolated system undergoing a spontaneous process, the change in entropy (\u0394S) is:",
+    "options": [
+      "Zero",
+      "Negative",
+      "Positive",
+      "Undefined"
+    ],
+    "answer": 2,
+    "explanation": "Second Law states entropy of an isolated system always increases for spontaneous processes.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_THERMODYNAMICS_002",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The criteria for spontaneity at constant temperature and pressure is:",
+    "options": [
+      "\u0394H < 0",
+      "\u0394S < 0",
+      "\u0394G < 0",
+      "\u0394G > 0"
+    ],
+    "answer": 2,
+    "explanation": "A process is thermodynamically spontaneous when Gibbs free energy change \u0394G is negative.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_THERMODYNAMICS_003",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For an adiabatic process, which parameter is strictly zero?",
+    "options": [
+      "Work done (w)",
+      "Heat exchange (q)",
+      "Internal energy (\u0394U)",
+      "Temperature change (\u0394T)"
+    ],
+    "answer": 1,
+    "explanation": "Adiabatic processes prevent any heat flow across the system boundary (q = 0).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "CHEM_11_THERMODYNAMICS_004",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The standard enthalpy of formation (\u0394fH\u00b0) of pure elements in their standard state is:",
+    "options": [
+      "Positive",
+      "Negative",
+      "Assigned as zero",
+      "Infinity"
+    ],
+    "answer": 2,
+    "explanation": "By convention, elements in their most stable reference state have \u0394fH\u00b0 = 0.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_THERMO_1",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For a reaction where \u0394H is Negative (\u0394H < 0) and \u0394S is Positive (\u0394S > 0), the reaction will be:",
+    "options": [
+      "Spontaneous at all temperatures",
+      "Equilibrium at all temperatures",
+      "Spontaneous only at absolute zero",
+      "Rate-independent"
+    ],
+    "answer": 0,
+    "explanation": "\u0394G = \u0394H - T\u0394S is always negative when \u0394H < 0 and \u0394S > 0.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_THERMO_2",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For a reaction where \u0394H is Positive (\u0394H > 0) and \u0394S is Negative (\u0394S < 0), the reaction will be:",
+    "options": [
+      "Non-spontaneous at all temperatures",
+      "Equilibrium at all temperatures",
+      "Spontaneous only at absolute zero",
+      "Rate-independent"
+    ],
+    "answer": 0,
+    "explanation": "\u0394G = \u0394H - T\u0394S is always positive when \u0394H > 0 and \u0394S < 0.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_THERMO_3",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For a reaction where \u0394H is Negative (\u0394H < 0) and \u0394S is Negative (\u0394S < 0), the reaction will be:",
+    "options": [
+      "Spontaneous only at low temperatures",
+      "Equilibrium at all temperatures",
+      "Spontaneous only at absolute zero",
+      "Rate-independent"
+    ],
+    "answer": 0,
+    "explanation": "Enthalpy favors spontaneity, but entropy opposes it. Low T keeps |T\u0394S| smaller than |\u0394H|.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_CHEM_THERMO_4",
+    "chapter_key": "chem_11_thermodynamics",
+    "subject": "Chemistry",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "For a reaction where \u0394H is Positive (\u0394H > 0) and \u0394S is Positive (\u0394S > 0), the reaction will be:",
+    "options": [
+      "Spontaneous only at high temperatures",
+      "Equilibrium at all temperatures",
+      "Spontaneous only at absolute zero",
+      "Rate-independent"
+    ],
+    "answer": 0,
+    "explanation": "Entropy favors spontaneity, while enthalpy opposes it. High T makes T\u0394S overcome \u0394H.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

@@ -1,0 +1,464 @@
+[
+  {
+    "id": "BIO_12_GEN_001",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Gregor Mendel conducted hybridization experiments on garden peas (Pisum sativum) for how many years?",
+    "options": [
+      "5 years (1850-1855)",
+      "7 years (1856-1863)",
+      "10 years (1860-1870)",
+      "14 years (1870-1884)"
+    ],
+    "answer": 1,
+    "explanation": "Gregor Mendel conducted hybridization experiments on garden peas for 7 years (1856-1863) and proposed the laws of inheritance in living organisms.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_002",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "How many pairs of contrasting characters in pea plants were selected and studied by Mendel?",
+    "options": [
+      "4 pairs",
+      "7 pairs (14 true-breeding varieties)",
+      "12 pairs",
+      "14 pairs"
+    ],
+    "answer": 1,
+    "explanation": "Mendel selected 14 true-breeding pea plant varieties as pairs which were similar except for one character with contrasting traits (7 pairs).",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_003",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In a monohybrid cross between heterozygous tall pea plants (Tt x Tt), what is the expected genotypic ratio among the offspring?",
+    "options": [
+      "3 : 1",
+      "1 : 2 : 1",
+      "9 : 3 : 3 : 1",
+      "1 : 1 : 1 : 1"
+    ],
+    "answer": 1,
+    "explanation": "The monohybrid phenotypic ratio is 3:1 (Tall:Dwarf), but the genotypic ratio is 1 TT : 2 Tt : 1 tt (1:2:1).",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_004",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What type of cross is used to determine whether a dominant phenotype individual is homozygous dominant or heterozygous?",
+    "options": [
+      "Reciprocal cross",
+      "Back cross to dominant parent",
+      "Test cross (crossing with homozygous recessive)",
+      "Dihybrid selfing"
+    ],
+    "answer": 2,
+    "explanation": "In a test cross, an organism showing a dominant phenotype is crossed with the homozygous recessive parent instead of self-crossing to determine its genotype.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_005",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In Antirrhinum (snapdragon), a cross between red-flowered (RR) and white-flowered (rr) plants produces pink-flowered (Rr) progeny. This exemplifies:",
+    "options": [
+      "Codominance",
+      "Incomplete dominance",
+      "Complete dominance",
+      "Polygenic inheritance"
+    ],
+    "answer": 1,
+    "explanation": "Incomplete dominance occurs when the heterozygote displays an intermediate phenotype between the two homozygous phenotypes, yielding a 1:2:1 phenotypic and genotypic ratio in F2.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_006",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Human ABO blood group inheritance is governed by gene I with alleles I\u1d2c, I\u1d2e, and i. This illustrates both:",
+    "options": [
+      "Incomplete dominance and pleiotropy",
+      "Multiple allelism and codominance",
+      "Polygenic inheritance and epistasis",
+      "Sex-linked inheritance and dominance"
+    ],
+    "answer": 1,
+    "explanation": "Gene I has three alleles (multiple allelism in the population), and when I\u1d2c and I\u1d2e are present together in an individual, both express their sugars equally (codominance).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_007",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Who formulated the Chromosomal Theory of Inheritance by uniting Mendel's principles with chromosomal behavior during cell division?",
+    "options": [
+      "Watson and Crick",
+      "Walter Sutton and Theodore Boveri",
+      "Thomas Hunt Morgan",
+      "Alfred Sturtevant"
+    ],
+    "answer": 1,
+    "explanation": "Walter Sutton and Theodore Boveri (1902) noted that the behavior of chromosomes was parallel to the behavior of genes and used chromosome movement to explain Mendel's laws.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_008",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Why did Thomas Hunt Morgan choose the fruit fly (Drosophila melanogaster) for his experimental verification of chromosomal theory?",
+    "options": [
+      "They have a long life cycle of several months",
+      "A single mating produces few offspring",
+      "They can be grown on simple synthetic medium and have clear sex dimorphism",
+      "They have 46 pairs of chromosomes"
+    ],
+    "answer": 2,
+    "explanation": "Drosophila completes its life cycle in about two weeks, produces large numbers of progeny per mating, can be reared on simple synthetic medium, and shows distinct morphological differences between sexes.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_009",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In humans, phenylketonuria (PKU) is an inborn error of metabolism caused by a mutation in the gene encoding which enzyme?",
+    "options": [
+      "Tyrosinase",
+      "Phenylalanine hydroxylase",
+      "Homogentisate oxidase",
+      "Hexosaminidase A"
+    ],
+    "answer": 1,
+    "explanation": "PKU is an autosomal recessive disorder caused by the lack of phenylalanine hydroxylase, which normally converts phenylalanine into tyrosine, leading to phenylalanine accumulation and mental retardation.",
+    "difficulty": 3,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_GEN_010",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "assertion_reason",
+    "question": "Statement I: Down's syndrome is caused by the presence of an additional copy of chromosome 21 (Trisomy 21).\nStatement II: Affected individuals typically show short stature, furrowed tongue, and characteristic broad palm with a single crease.",
+    "options": [
+      "Both Statement I and Statement II are correct",
+      "Both Statement I and Statement II are incorrect",
+      "Statement I is correct, but Statement II is incorrect",
+      "Statement I is incorrect, but Statement II is correct"
+    ],
+    "answer": 0,
+    "explanation": "Both statements are correct. First described by Langdon Down in 1866, Down's syndrome is an aneuploidy (trisomy 21) characterized by short stature, small round head, furrowed tongue, partially open mouth, and broad palmar crease.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_PRINCIPLES_OF_INHERITANCE_001",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Mendel's monohybrid genotypic ratio is:",
+    "options": [
+      "3:1",
+      "1:2:1",
+      "9:3:3:1",
+      "1:1:1:1"
+    ],
+    "answer": 1,
+    "explanation": "Genotypic ratio of Tt x Tt is 1 TT : 2 Tt : 1 tt.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_PRINCIPLES_OF_INHERITANCE_002",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "Which disorder is caused by Trisomy of chromosome 21?",
+    "options": [
+      "Turner's syndrome",
+      "Klinefelter's syndrome",
+      "Down's syndrome",
+      "Cri-du-chat syndrome"
+    ],
+    "answer": 2,
+    "explanation": "Down's syndrome is an autosomal aneuploidy (trisomy 21).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_PRINCIPLES_OF_INHERITANCE_003",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "A test cross involves crossing an unknown dominant phenotype with:",
+    "options": [
+      "Homozygous dominant parent",
+      "Heterozygous parent",
+      "Homozygous recessive parent",
+      "Any F1 progeny"
+    ],
+    "answer": 2,
+    "explanation": "Test crosses cross with homozygous recessive to reveal zygosity.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_12_PRINCIPLES_OF_INHERITANCE_004",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In snapdragon (Antirrhinum), pink flowers in F1 illustrate:",
+    "options": [
+      "Codominance",
+      "Incomplete dominance",
+      "Polygenic inheritance",
+      "Pleiotropy"
+    ],
+    "answer": 1,
+    "explanation": "Heterozygous condition yields an intermediate pink hue (incomplete dominance).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_BIO_GEN_CROSS_1",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In garden pea genetics, what is the expected phenotypic outcome from the cross: Round/Wrinkled seeds (Rr x Rr)?",
+    "options": [
+      "3 Round : 1 Wrinkled",
+      "All dominant phenotype",
+      "All recessive phenotype",
+      "1:2:1 ratio"
+    ],
+    "answer": 0,
+    "explanation": "Monohybrid crossing follows standard Mendelian segregation: expected phenotypic ratio is 3:1 (3 Round : 1 Wrinkled). Genotypic ratio is 1:2:1 (1 RR : 2 Rr : 1 rr).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_BIO_GEN_CROSS_2",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In garden pea genetics, what is the expected phenotypic outcome from the cross: Yellow/Green cotyledons (Yy x Yy)?",
+    "options": [
+      "3 Yellow : 1 Green",
+      "All dominant phenotype",
+      "All recessive phenotype",
+      "1:2:1 ratio"
+    ],
+    "answer": 0,
+    "explanation": "Monohybrid crossing follows standard Mendelian segregation: expected phenotypic ratio is 3:1 (3 Yellow : 1 Green). Genotypic ratio is 1:2:1 (1 YY : 2 Yy : 1 yy).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_BIO_GEN_CROSS_3",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In garden pea genetics, what is the expected phenotypic outcome from the cross: Tall/Dwarf stem height (Tt x tt test cross)?",
+    "options": [
+      "1 Tall : 1 Dwarf",
+      "All dominant phenotype",
+      "All recessive phenotype",
+      "1:2:1 ratio"
+    ],
+    "answer": 0,
+    "explanation": "Monohybrid crossing follows standard Mendelian segregation: expected phenotypic ratio is 1:1 (1 Tall : 1 Dwarf). Genotypic ratio is 1:1 (1 Tt : 1 tt).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "AUTO_BIO_GEN_CROSS_4",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "In garden pea genetics, what is the expected phenotypic outcome from the cross: Violet/White flower color (Ww x ww test cross)?",
+    "options": [
+      "1 Violet : 1 White",
+      "All dominant phenotype",
+      "All recessive phenotype",
+      "1:2:1 ratio"
+    ],
+    "answer": 0,
+    "explanation": "Monohybrid crossing follows standard Mendelian segregation: expected phenotypic ratio is 1:1 (1 Violet : 1 White). Genotypic ratio is 1:1 (1 Ww : 1 ww).",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_CROSS_1",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the characteristic offspring ratio produced in a classical Mendelian Monohybrid Cross (Tt x Tt)?",
+    "options": [
+      "3:1 Phenotypic, 1:2:1 Genotypic",
+      "1:1:1:1 always",
+      "9:7 complementary",
+      "15:1 duplicate"
+    ],
+    "answer": 0,
+    "explanation": "3 Tall : 1 Dwarf; 1 TT : 2 Tt : 1 tt",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_CROSS_2",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the characteristic offspring ratio produced in a classical Mendelian Monohybrid Test Cross (Tt x tt)?",
+    "options": [
+      "1:1 Phenotypic, 1:1 Genotypic",
+      "1:1:1:1 always",
+      "9:7 complementary",
+      "15:1 duplicate"
+    ],
+    "answer": 0,
+    "explanation": "1 Tall : 1 Dwarf; 1 Tt : 1 tt",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_CROSS_3",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the characteristic offspring ratio produced in a classical Mendelian Dihybrid F2 Cross (RrYy x RrYy)?",
+    "options": [
+      "9:3:3:1 Phenotypic",
+      "1:1:1:1 always",
+      "9:7 complementary",
+      "15:1 duplicate"
+    ],
+    "answer": 0,
+    "explanation": "9 Round Yellow : 3 Round Green : 3 Wrinkled Yellow : 1 Wrinkled Green",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "MAT_BIO_CROSS_4",
+    "chapter_key": "bio_12_principles_of_inheritance",
+    "subject": "Biology",
+    "grade": 12,
+    "type": "mcq_fact",
+    "question": "What is the characteristic offspring ratio produced in a classical Mendelian Dihybrid Test Cross (RrYy x rryy)?",
+    "options": [
+      "1:1:1:1 Phenotypic",
+      "1:1:1:1 always",
+      "9:7 complementary",
+      "15:1 duplicate"
+    ],
+    "answer": 0,
+    "explanation": "1 RrYy : 1 Rryy : 1 rrYy : 1 rryy",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]

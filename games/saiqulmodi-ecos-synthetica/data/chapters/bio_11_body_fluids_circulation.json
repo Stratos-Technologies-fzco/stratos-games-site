@@ -1,0 +1,128 @@
+[
+  {
+    "id": "BIO_11_CIRC_006",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Erythroblastosis fetalis occurs when:",
+    "options": [
+      "Rh negative mother carries Rh positive fetus",
+      "Rh positive mother carries Rh negative fetus",
+      "Both mother and fetus are Rh negative",
+      "Both mother and fetus are Rh positive"
+    ],
+    "answer": 0,
+    "explanation": "If an Rh\u207b mother carries an Rh\u207a child, exposure to fetal Rh antigens induces maternal anti-Rh antibodies that attack RBCs of subsequent Rh\u207a fetuses.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CIRC_001",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "What is the average lifespan of human red blood cells (erythrocytes) before destruction in the spleen?",
+    "options": [
+      "30 days",
+      "60 days",
+      "120 days",
+      "365 days"
+    ],
+    "answer": 2,
+    "explanation": "RBCs have an average lifespan of 120 days, after which they are destroyed in the spleen.",
+    "difficulty": 1,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CIRC_002",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Which plasma protein is primarily responsible for maintaining intravascular colloid osmotic pressure?",
+    "options": [
+      "Fibrinogen",
+      "Albumin",
+      "Globulin",
+      "Heparin"
+    ],
+    "answer": 1,
+    "explanation": "Albumins make up ~60% of plasma proteins and generate oncotic pressure to retain fluid inside capillary beds.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CIRC_003",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "The second heart sound ('dub') during a cardiac cycle is caused by:",
+    "options": [
+      "Closure of atrioventricular (bicuspid/tricuspid) valves",
+      "Closure of semilunar valves at the beginning of ventricular diastole",
+      "Rapid opening of semilunar valves",
+      "Rush of blood into atria"
+    ],
+    "answer": 1,
+    "explanation": "The first heart sound ('lub') is closure of AV valves; the second sound ('dub') is closure of aortic and pulmonary semilunar valves.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CIRC_004",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "In a standard ECG, the QRS complex represents:",
+    "options": [
+      "Atrial depolarization",
+      "Ventricular depolarization",
+      "Ventricular repolarization",
+      "Atrial repolarization"
+    ],
+    "answer": 1,
+    "explanation": "P-wave = atrial depolarization, QRS complex = ventricular depolarization, T-wave = ventricular repolarization.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  },
+  {
+    "id": "BIO_11_CIRC_005",
+    "chapter_key": "bio_11_body_fluids_circulation",
+    "subject": "Biology",
+    "grade": 11,
+    "type": "mcq_fact",
+    "question": "Erythroblastosis fetalis occurs when:",
+    "options": [
+      "Rh negative mother carries Rh positive fetus",
+      "Rh positive mother carries Rh negative fetus",
+      "Both mother and fetus are Rh negative",
+      "Both mother and fetus are Rh positive"
+    ],
+    "answer": 0,
+    "explanation": "An Rh\u207b mother carrying an Rh\u207a fetus can produce anti-Rh antibodies that attack erythrocytes of subsequent Rh\u207a fetuses.",
+    "difficulty": 2,
+    "reward": {
+      "energy": 25,
+      "xp": 15
+    }
+  }
+]
