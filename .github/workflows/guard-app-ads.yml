@@ -1,0 +1,33 @@
+name: guard app-ads.txt
+# app-ads.txt authorises Google to sell ads in our store apps (Arrow Puzzle, Bloxplode).
+# If a push changes or deletes it, put the exact line back straight away.
+on:
+  push:
+    branches: [main]
+    paths: ["app-ads.txt"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-main
+  cancel-in-progress: false
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: restore app-ads.txt if it changed
+        run: |
+          want='google.com, pub-8653076377863928, DIRECT, f08c47fec0942fa0'
+          if [ -f app-ads.txt ] && [ "$(cat app-ads.txt)" = "$want" ]; then echo "app-ads.txt is correct"; exit 0; fi
+          echo "$want" > app-ads.txt
+          git config user.name "stratos-games-bot"
+          git config user.email "bot@stratos.games"
+          for i in 1 2 3 4 5; do
+            git add app-ads.txt
+            git commit -m "guard: restore app-ads.txt (never edit it, live app ads depend on it)" || exit 0
+            if git push origin HEAD:main; then echo "restored"; exit 0; fi
+            git fetch origin main && git reset --hard origin/main && echo "$want" > app-ads.txt
+            sleep $((i * 3))
+          done
+          exit 1
