@@ -2,7 +2,7 @@
 
 The one place for Stratos Games. One repo, one folder per maker, one push and your game is on the front page.
 
-Vercel serves this repo at https://stratos.games (Sahil runs the hosting). The GitHub Pages copy at https://stratos-technologies-fzco.github.io/stratos-games-site/ is the preview, same content.
+Vercel serves this repo at https://stratos.games (project `stratos-games-site`, Stepahead team; Sahil runs the hosting). Every push to `main` is live about a minute later. The GitHub Pages copy at https://stratos-technologies-fzco.github.io/stratos-games-site/ is a mirror, same content.
 
 ## Step 1. Claim your box (two minutes, no game needed yet)
 
@@ -57,4 +57,4 @@ Categories: arcade, puzzle, word, party, sports, kids.
 
 ## Hosting (Sahil)
 
-Vercel imports this repo and serves it as static files: Framework preset "Other", no build command, no output directory (the repo root is the site), production branch `main`. `vercel.json` sets trailing slashes (the WordPress URLs all had them, so `/about/` stays `/about/`) and cache headers; `404.html` is the custom not-found page. Every push deploys; the Action's follow-up commit "build: site pages" is the one that carries a new game, so a maker's push is live about a minute after it lands. Domains: add `stratos.games` and `www.stratos.games` in the project's Domains tab and set the DNS records it shows (Vercel's usual ones are an A record for the apex and a CNAME to `cname.vercel-dns.com` for www). The same URLs as the WordPress site are all here, so nothing needs redirecting.
+Vercel imports this repo and serves it as static files: Framework preset "Other", no build command, no output directory (the repo root is the site), production branch `main`. `vercel.json` sets trailing slashes (the WordPress URLs all had them, so `/about/` stays `/about/`) and cache headers; `404.html` is the custom not-found page. Every push deploys; the Action's follow-up commit "build: site pages" is the one that carries a new game, so a maker's push is live about a minute after it lands. Domains (live since 2026-10-24): `stratos.games` and `www.stratos.games` are on the project. DNS stays in Hostinger hPanel (Advanced, DNS Zone Editor): A `@` = 76.76.21.21, `www` CNAME to `stratos.games`, no AAAA on `@`. Leave the MX, TXT, mail CNAMEs and `link` (Linkrunner) records alone, they carry admin@stratos.games and app links. The old WordPress site is backed up off the server. The same URLs as the WordPress site are all here, so nothing needs redirecting.
