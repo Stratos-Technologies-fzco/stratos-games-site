@@ -318,6 +318,39 @@ function show_infobox() {
         });
       }
     </script>
+    <!-- Firebase Analytics - anonymous usage tracking (no personal data) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+      import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+
+      const firebaseConfig = {
+        apiKey:            "AIzaSyC063203QLH1oldbRfLUxivnUP9TeH6rCg",
+        authDomain:        "dominogame-ee7d8.firebaseapp.com",
+        projectId:         "dominogame-ee7d8",
+        storageBucket:     "dominogame-ee7d8.firebasestorage.app",
+        messagingSenderId: "789561435508",
+        appId:             "1:789561435508:web:c79869f6d1dfc52949b821",
+        measurementId:     "G-X5MCMTN4T7"
+      };
+
+      const app       = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+
+      const sessionStart = Date.now();
+      logEvent(analytics, "game_session_start", {
+        platform: /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop"
+      });
+
+      window.addEventListener("beforeunload", () => {
+        const seconds = Math.round((Date.now() - sessionStart) / 1000);
+        logEvent(analytics, "game_session_end", { duration_seconds: seconds });
+      });
+
+      document.addEventListener("click", function onFirstClick() {
+        logEvent(analytics, "game_started");
+        document.removeEventListener("click", onFirstClick);
+      }, { once: true });
+    </script>
 </head>
 
 <body>
