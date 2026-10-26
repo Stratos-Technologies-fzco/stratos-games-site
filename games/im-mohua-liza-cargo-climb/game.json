@@ -1,0 +1,9 @@
+{
+  "title": "Cargo Climb",
+  "maker": "Mohua Liza",
+  "one_line": "A hill-climb driving game where you haul three loose crates over the hills and get paid for every crate that reaches a depot.",
+  "category": "arcade",
+  "github": "im-mohua-liza",
+  "how_to_play": "Phone: hold GAS and BRAKE in the bottom corners. Computer: right arrow or D for gas, left arrow or A to brake. In the air, gas tips the nose up and brake tips it down.",
+  "description": "Your pickup carries three crates that slide and bounce for real. Every 400 metres there is a depot: each crate still on board pays 30 coins, a full load pays a bonus, and you get a full tank and three new crates. Grab coins and fuel cans, land flips for bonus coins, and keep the driver's head off the ground. The hills change every day, so there is a new route to beat each morning and a day streak to keep going. Day turns to dusk and night as you drive, and your headlights come on in the dark."
+}

@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Cargo Climb</title>
+<style>
+@font-face { font-family: "Bungee"; font-weight: 400; font-display: swap; src: url(fonts/Bungee-400.woff2) format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url(fonts/BarlowCondensed-500.woff2) format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 600; font-display: swap; src: url(fonts/BarlowCondensed-600.woff2) format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url(fonts/BarlowCondensed-700.woff2) format("woff2"); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* Layout: full-bleed canvas world, highway-sign HUD pinned to the safe-area edges, pedals in the bottom corners */
+:root {
+  color-scheme: dark;
+  --sign-green: #1d6b45;
+  --sign-green-deep: #124a2f;
+  --sign-white: #f4f1e6;
+  --amber: #f2a900;
+  --danger: #e04b3a;
+  --ink: #141824;
+  --glass: rgba(20, 24, 36, 0.72);
+  --font-display: "Bungee", "Impact", "Arial Black", sans-serif;
+  --font-body: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+}
+html, body { height: 100%; }
+body {
+  background: var(--ink);
+  color: var(--sign-white);
+  font-family: var(--font-body);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+.hud {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;
+  pointer-events: none;
+}
+.plate {
+  background: var(--sign-green);
+  border: 2px solid var(--sign-white);
+  border-radius: 6px;
+  padding: 4px 10px 5px;
+  display: flex; flex-direction: column; gap: 1px;
+  box-shadow: 0 2px 0 var(--sign-green-deep);
+  min-width: 0;
+}
+.plate .lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; font-weight: 600; }
+.plate .val { font-family: var(--font-display); font-size: 20px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.plate.amber { background: var(--amber); color: var(--ink); border-color: var(--ink); box-shadow: 0 2px 0 #8a6000; }
+.fuel { width: 150px; }
+.gauge { height: 10px; border-radius: 3px; background: rgba(0,0,0,0.35); overflow: hidden; margin-top: 4px; }
+.gauge > i { display: block; height: 100%; width: 100%; background: var(--amber); transition: background 0.3s; }
+.gauge.low > i { background: var(--danger); }
+.slots { display: flex; gap: 4px; margin-top: 3px; }
+.slots b { width: 16px; height: 16px; border-radius: 2px; background: #b57a3c; border: 2px solid #6b4220; }
+.slots b.gone { background: transparent; border: 2px dashed rgba(244,241,230,0.45); }
+.spacer { flex: 1; }
+.iconbtn {
+  pointer-events: auto;
+  font-family: var(--font-body); font-weight: 700; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: var(--glass); color: var(--sign-white);
+  border: 2px solid rgba(244,241,230,0.5); border-radius: 6px; padding: 6px 10px; cursor: pointer;
+}
+.iconbtn:focus-visible, .pedal:focus-visible, .cta:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.pedal {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  width: 110px; height: 130px;
+  border-radius: 14px;
+  border: 3px solid var(--sign-white);
+  font-family: var(--font-display); font-size: 18px; color: var(--sign-white);
+  display: grid; place-items: center;
+  cursor: pointer; touch-action: none;
+  box-shadow: 0 5px 0 rgba(0,0,0,0.45);
+  transition: transform 0.05s;
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.12) 0 6px, transparent 6px 16px);
+}
+.pedal.down { transform: translateY(4px) scale(0.97); box-shadow: 0 1px 0 rgba(0,0,0,0.45); }
+#brake { left: max(16px, env(safe-area-inset-left, 0px)); background-color: #8c2f25; }
+#gas { right: max(16px, env(safe-area-inset-right, 0px)); background-color: var(--sign-green); height: 150px; }
+
+.toast {
+  position: fixed; left: 50%; top: 32%;
+  transform: translate(-50%, 0);
+  font-family: var(--font-display); font-size: clamp(20px, 5vw, 34px);
+  color: var(--amber);
+  text-shadow: 0 3px 0 var(--ink), 0 0 18px rgba(0,0,0,0.6);
+  pointer-events: none; white-space: nowrap;
+  opacity: 0;
+}
+.toast.show { animation: pop 1.4s ease-out forwards; }
+@keyframes pop {
+  0% { opacity: 0; transform: translate(-50%, 16px) scale(0.8); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  25% { transform: translate(-50%, 0) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -26px); }
+}
+
+.overlay {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px;
+  background: rgba(10, 13, 22, 0.55);
+}
+.card {
+  width: min(460px, 100%);
+  background: var(--sign-green);
+  border: 3px solid var(--sign-white);
+  outline: 6px solid var(--sign-green);
+  border-radius: 12px;
+  padding: 22px 22px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+.card h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(34px, 9vw, 48px); line-height: 0.95; text-wrap: balance; }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1; }
+.card p { margin: 0; font-size: 19px; line-height: 1.3; max-width: 60ch; }
+.exit { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); background: var(--amber); align-self: flex-start; padding: 2px 8px; border-radius: 3px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 17px; align-items: center; }
+.keys kbd { font-family: var(--font-body); font-weight: 700; background: var(--sign-white); color: var(--ink); border-radius: 4px; padding: 1px 7px; font-size: 15px; justify-self: start; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stats div { border: 2px solid rgba(244,241,230,0.6); border-radius: 6px; padding: 6px 10px; }
+.stats span { display: block; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; font-weight: 600; }
+.stats strong { font-family: var(--font-display); font-weight: 400; font-size: 22px; font-variant-numeric: tabular-nums; }
+.cta {
+  font-family: var(--font-display); font-size: 20px;
+  background: var(--amber); color: var(--ink);
+  border: 3px solid var(--ink); border-radius: 8px;
+  padding: 12px 16px; cursor: pointer;
+  box-shadow: 0 4px 0 #8a6000;
+}
+.cta:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a6000; }
+.newbest { color: var(--amber); font-family: var(--font-display); font-size: 16px; }
+.daily { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 16px; font-weight: 600; border-top: 2px solid rgba(244,241,230,0.35); padding-top: 10px; }
+.daily b { font-family: var(--font-display); font-weight: 400; color: var(--amber); }
+.cta.ghost { background: transparent; color: var(--sign-white); border-color: var(--sign-white); box-shadow: none; font-size: 17px; }
+.btnrow { display: grid; gap: 10px; }
+
+@media (max-width: 520px) {
+  .plate .val { font-size: 17px; }
+  .fuel { width: 120px; }
+  .pedal { width: 92px; height: 112px; font-size: 15px; }
+  #gas { height: 128px; }
+  .hide-narrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast.show { animation-duration: 1.8s; }
+  .pedal { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="game" aria-label="Cargo Climb game view"></canvas>
+
+<div class="hud">
+  <div class="plate fuel">
+    <span class="lbl">Fuel</span>
+    <div class="gauge" id="gauge"><i id="fuelbar"></i></div>
+  </div>
+  <div class="plate">
+    <span class="lbl">Distance</span>
+    <span class="val" id="dist">0 m</span>
+  </div>
+  <div class="plate amber">
+    <span class="lbl">Coins</span>
+    <span class="val" id="coins">0</span>
+  </div>
+  <div class="plate">
+    <span class="lbl">Cargo</span>
+    <div class="slots" id="slots"><b></b><b></b><b></b></div>
+  </div>
+  <div class="plate hide-narrow">
+    <span class="lbl">Next depot</span>
+    <span class="val" id="depot">400 m</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="iconbtn" id="mute" type="button">Sound off</button>
+</div>
+
+<button class="pedal" id="brake" type="button" aria-label="Brake and reverse">BRAKE</button>
+<button class="pedal" id="gas" type="button" aria-label="Gas">GAS</button>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="menu">
+  <div class="card">
+    <span class="exit">Route 1 · Hill country</span>
+    <h1>Cargo Climb</h1>
+    <p>Haul three loose crates over the hills. Each crate still on your truck when you pass a depot pays 30 coins, and the depot refuels you and loads three more. Drive too wild and they bounce off.</p>
+    <div class="keys">
+      <kbd>→ / D</kbd><span>Gas. In the air it tips the nose up.</span>
+      <kbd>← / A</kbd><span>Brake and reverse. In the air it tips the nose down.</span>
+      <kbd>Flip</kbd><span>Land a full flip for 40 coins. Don't land on your head.</span>
+    </div>
+    <div class="daily"><span>Today's route: <b id="mRoute">-</b></span><span>Today's best: <b id="mToday">0 m</b></span><span>Streak: <b id="mStreak">0 days</b></span></div>
+    <button class="cta" id="start" type="button">Start driving</button>
+  </div>
+</div>
+
+<div class="overlay" id="over" hidden>
+  <div class="card">
+    <span class="exit" id="reason">Crashed</span>
+    <h2>End of the road</h2>
+    <div class="stats">
+      <div><span>Distance</span><strong id="sDist">0 m</strong></div>
+      <div><span>Today's best</span><strong id="sBest">0 m</strong></div>
+      <div><span>Coins</span><strong id="sCoins">0</strong></div>
+      <div><span>Crates delivered</span><strong id="sCrates">0</strong></div>
+    </div>
+    <span class="newbest" id="newbest" hidden>New best for today's route</span>
+    <div class="daily"><span>All-time best: <b id="sAll">0 m</b></span><span>Streak: <b id="sStreak">1 day</b></span></div>
+    <div class="btnrow">
+      <button class="cta" id="second" type="button" hidden>Second chance: keep driving</button>
+      <button class="cta" id="again" type="button">Drive again</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/planck.min.js"></script>
+<script>
+(() => {
+"use strict";
+const pl = window.planck;
+const V = (x, y) => new pl.Vec2(x, y);
+
+// ---------- Tuning ----------
+const DEPOT_GAP = 400;        // metres between depots
+const CHUNK = 30;             // terrain chunk width (m)
+const WHEEL_R = 0.45;
+const CRATE_H = 0.27;         // crate half-size
+const CRATE_SLOTS = [[-1.17, 0.53], [-0.6, 0.53], [-0.03, 0.53]];
+const MAX_SPEED = 46;         // wheel rad/s
+const MOTOR_TORQUE = 19;
+
+// ---------- Hooks for Stratos ads and analytics (switched on site-wide later) ----------
+function track(name, details) { /* does nothing yet */ }
+function offerReward(onDone) { onDone(); } // later: show a rewarded ad first
+
+// ---------- Daily route: the hills change every day ----------
+const today = new Date();
+const DAY_KEY = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+const ROUTE_NAME = today.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+let seed = 0; for (const ch of DAY_KEY) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+const rand01 = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+const PH = [rand01() * 6.283, rand01() * 6.283, rand01() * 6.283];
+const FQ = [0.085 + rand01() * 0.015, 0.21 + rand01() * 0.04, 0.034 + rand01() * 0.008];
+
+// ---------- Terrain ----------
+function baseH(x) {
+  if (x < 30) return 0;
+  const t = x - 30;
+  const ramp = Math.min(1, t / 50);
+  const amp = ramp * Math.min(2.6, 1 + t / 650);
+  return amp * (1.6 * Math.sin(t * FQ[0] + PH[0]) + 0.6 * Math.sin(t * FQ[1] + PH[1]) + 2.4 * Math.sin(t * FQ[2] + PH[2]) + 0.08 * Math.sin(t * 0.9));
+}
+const smooth = (u) => u * u * (3 - 2 * u);
+function H(x) {
+  const b = baseH(x);
+  const k = Math.round(x / DEPOT_GAP);
+  if (k < 1) return b;
+  const d = Math.abs(x - k * DEPOT_GAP);
+  if (d > 20) return b;
+  const flat = baseH(k * DEPOT_GAP);
+  const w = d < 8 ? 1 : 1 - smooth((d - 8) / 12);
+  return b + (flat - b) * w;
+}
+
+// ---------- State ----------
+let world, ground, chassis, wheelB, wheelF, jointB, jointF;
+let chunks, genTo, coinsArr, fuelArr, nextFuel, crates;
+let state = "menu", fuel, coins, maxX, delivered, nextDepot, depotNo;
+let wheelContacts, crashFlag, crashTimer, stallTimer, endReason;
+let airTime, airStartAngle, particles, simTime;
+let camX = 0, camY = 0, zoom = 1;
+const input = { gas: false, brake: false };
+
+let best = 0, todayBest = 0, streak = 0, secondUsed = false;
+function loadSave() {
+  try {
+    best = Number(localStorage.getItem("cargoClimbBest")) || 0;
+    const d = JSON.parse(localStorage.getItem("cargoClimbDaily") || "{}");
+    todayBest = d.day === DAY_KEY ? d.best || 0 : 0;
+    const s = JSON.parse(localStorage.getItem("cargoClimbStreak") || "{}");
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const yKey = yesterday.getFullYear() + "-" + String(yesterday.getMonth() + 1).padStart(2, "0") + "-" + String(yesterday.getDate()).padStart(2, "0");
+    streak = s.last === DAY_KEY || s.last === yKey ? s.count || 0 : 0;
+    window.__streakLast = s.last;
+  } catch (e) {}
+}
+function markPlayedToday() {
+  if (window.__streakLast === DAY_KEY) return;
+  streak += 1; window.__streakLast = DAY_KEY;
+  try { localStorage.setItem("cargoClimbStreak", JSON.stringify({ last: DAY_KEY, count: streak })); } catch (e) {}
+}
+const days = (n) => n + (n === 1 ? " day" : " days");
+loadSave();
+
+function resetWorld() {
+  world = new pl.World({ gravity: V(0, -10) });
+  ground = world.createBody();
+  chunks = []; genTo = -20; coinsArr = []; fuelArr = []; nextFuel = 170; crates = []; particles = [];
+  fuel = 100; coins = 0; maxX = 0; delivered = 0; nextDepot = DEPOT_GAP; depotNo = 1;
+  wheelContacts = 0; crashFlag = false; crashTimer = 0; stallTimer = 0; endReason = "";
+  airTime = 0; airStartAngle = 0; simTime = 0;
+  ensureTerrain(0);
+  makeCar(3, 1.05);
+  loadCrates();
+  camX = 6; camY = 1;
+
+  world.on("begin-contact", (c) => contact(c, 1));
+  world.on("end-contact", (c) => contact(c, -1));
+}
+
+function contact(c, dir) {
+  const a = c.getFixtureA().getUserData(), b = c.getFixtureB().getUserData();
+  const pair = (p, q) => (a === p && b === q) || (a === q && b === p);
+  if (pair("wheel", "ground")) wheelContacts = Math.max(0, wheelContacts + dir);
+  if (dir > 0 && pair("head", "ground")) crashFlag = true;
+}
+
+function ensureTerrain(cx) {
+  while (genTo < cx + 90) {
+    const x0 = genTo, verts = [];
+    for (let x = x0; x <= x0 + CHUNK; x += 1) verts.push(V(x, H(x)));
+    const fx = ground.createFixture(new pl.Chain(verts, false), { friction: 0.95, userData: "ground" });
+    chunks.push({ x0, x1: x0 + CHUNK, fx });
+    // coin runs, kept away from depots and the start
+    for (let s = x0; s < x0 + CHUNK; s += 10) {
+      const k = Math.round(s / DEPOT_GAP), nearDepot = k >= 1 && Math.abs(s - k * DEPOT_GAP) < 25;
+      if (s > 25 && !nearDepot && Math.random() < 0.32) {
+        const n = 4 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < n; i++) { const x = s + i * 1.15; coinsArr.push({ x, y: H(x) + 1.15, got: false }); }
+      }
+    }
+    while (nextFuel < x0 + CHUNK) {
+      fuelArr.push({ x: nextFuel, y: H(nextFuel) + 0.85, got: false });
+      nextFuel += 210 + nextFuel * 0.05;
+    }
+    genTo += CHUNK;
+  }
+  while (chunks.length && chunks[0].x1 < cx - 60) ground.destroyFixture(chunks.shift().fx);
+  coinsArr = coinsArr.filter((c) => c.x > cx - 40);
+  fuelArr = fuelArr.filter((c) => c.x > cx - 40);
+}
+
+function makeCar(x, y) {
+  chassis = world.createDynamicBody({ position: V(x, y), angularDamping: 0.3 });
+  const fd = { density: 1.2, friction: 0.6, filterGroupIndex: -1, userData: "car" };
+  chassis.createFixture(new pl.Box(1.6, 0.2, V(0, 0.05), 0), fd);
+  chassis.createFixture(new pl.Polygon([V(0.3, 0.25), V(1.65, 0.25), V(1.65, 0.55), V(1.05, 0.75), V(0.3, 0.75)]), fd);
+  chassis.createFixture(new pl.Box(0.07, 0.2, V(-1.53, 0.45), 0), fd);
+  chassis.createFixture(new pl.Circle(V(0.62, 1.15), 0.22), { density: 0.1, friction: 0.5, filterGroupIndex: -1, userData: "head" });
+
+  const wfd = { density: 1.0, friction: 0.98, restitution: 0.05, filterGroupIndex: -1, userData: "wheel" };
+  wheelB = world.createDynamicBody(V(x - 1.1, y - 0.5));
+  wheelB.createFixture(new pl.Circle(WHEEL_R), wfd);
+  wheelF = world.createDynamicBody(V(x + 1.15, y - 0.5));
+  wheelF.createFixture(new pl.Circle(WHEEL_R), wfd);
+  const jd = { motorSpeed: 0, maxMotorTorque: MOTOR_TORQUE, enableMotor: true, frequencyHz: 4.2, dampingRatio: 0.7 };
+  jointB = world.createJoint(new pl.WheelJoint(jd, chassis, wheelB, wheelB.getPosition(), V(0, 1)));
+  jointF = world.createJoint(new pl.WheelJoint(jd, chassis, wheelF, wheelF.getPosition(), V(0, 1)));
+}
+
+function loadCrates(count = 3) {
+  for (const c of crates) world.destroyBody(c.body);
+  crates = [];
+  const ang = chassis.getAngle();
+  for (const [lx, ly] of CRATE_SLOTS.slice(0, count)) {
+    const p = chassis.getWorldPoint(V(lx, ly));
+    const body = world.createDynamicBody({ position: p, angle: ang });
+    body.createFixture(new pl.Box(CRATE_H, CRATE_H), { density: 0.55, friction: 0.85, restitution: 0.05, userData: "crate" });
+    body.setLinearVelocity(chassis.getLinearVelocityFromWorldPoint(p));
+    body.setAngularVelocity(chassis.getAngularVelocity());
+    crates.push({ body, lost: false, outFor: 0 });
+  }
+  updateSlots();
+}
+
+function onBoardCount() { return crates.filter((c) => !c.lost).length; }
+
+function updateCrates(dt) {
+  for (const c of crates) {
+    if (c.lost) continue;
+    const lp = chassis.getLocalPoint(c.body.getPosition());
+    const out = lp.x < -1.9 || lp.x > 0.55 || lp.y < -0.1 || lp.y > 2.4;
+    c.outFor = out ? c.outFor + dt : 0;
+    if (c.outFor > 0.35) {
+      c.lost = true;
+      if (state === "play") { toast("Crate lost!"); sfx(160, 0.18, "square"); }
+      updateSlots();
+    }
+  }
+  // tidy up crates left far behind
+  crates = crates.filter((c) => {
+    if (c.lost && c.body.getPosition().x < camX - 45) { world.destroyBody(c.body); return false; }
+    return true;
+  });
+}
+
+// ---------- Game loop ----------
+function step(dt) {
+  const throttle = state === "play" && fuel > 0 ? (input.gas ? 1 : 0) - (input.brake ? 1 : 0) : 0;
+  const alive = state === "play" || state === "menu";
+  for (const j of [jointB, jointF]) {
+    if (alive && throttle !== 0) {
+      j.setMotorSpeed(throttle > 0 ? -MAX_SPEED : MAX_SPEED * 0.55);
+      j.setMaxMotorTorque(MOTOR_TORQUE);
+    } else {
+      j.setMotorSpeed(0);
+      j.setMaxMotorTorque(state === "menu" ? 30 : 0.6);
+    }
+  }
+  const airborne = wheelContacts === 0;
+  if (alive && throttle !== 0) chassis.applyTorque(throttle * (airborne ? 9 : 2.2), true);
+
+  world.step(dt, 8, 3);
+  simTime += dt;
+
+  if (state !== "play") { updateCrates(dt); return; }
+
+  // fuel
+  fuel = Math.max(0, fuel - dt * (0.9 + (throttle !== 0 ? 1.9 : 0)));
+
+  // flips and air time
+  if (airborne) {
+    if (airTime === 0) airStartAngle = chassis.getAngle();
+    airTime += dt;
+  } else if (airTime > 0) {
+    const turned = chassis.getAngle() - airStartAngle;
+    const flips = Math.floor((Math.abs(turned) + 0.6) / (Math.PI * 2));
+    if (flips > 0 && !crashFlag) {
+      coins += 40 * flips;
+      toast((turned > 0 ? "Backflip" : "Front flip") + (flips > 1 ? " x" + flips : "") + "  +" + 40 * flips);
+      sfx(660, 0.25, "triangle");
+    } else if (airTime > 1.3 && !crashFlag) {
+      coins += 10; toast("Big air  +10"); sfx(520, 0.15, "triangle");
+    }
+    airTime = 0;
+  }
+
+  const p = chassis.getPosition();
+  maxX = Math.max(maxX, p.x);
+
+  // pickups
+  const pts = [p, wheelB.getPosition(), wheelF.getPosition()];
+  const near = (o, r) => pts.some((q) => (q.x - o.x) ** 2 + (q.y - o.y) ** 2 < r * r);
+  for (const c of coinsArr) if (!c.got && near(c, 1.05)) { c.got = true; coins += 1; sfx(880 + Math.random() * 120, 0.07, "sine"); }
+  for (const f of fuelArr) if (!f.got && near(f, 1.3)) { f.got = true; fuel = 100; toast("Fuel full"); sfx(440, 0.2, "triangle"); }
+
+  updateCrates(dt);
+
+  // depots
+  if (p.x >= nextDepot) {
+    const n = onBoardCount();
+    let pay = n * 30;
+    if (n === 3) pay += 30;
+    coins += pay; delivered += n; fuel = 100;
+    toast(n === 0 ? "Depot " + depotNo + ": nothing to deliver" : n === 3 ? "Full load!  +" + pay : n + " crate" + (n > 1 ? "s" : "") + " delivered  +" + pay);
+    sfx(n ? 760 : 220, 0.3, "triangle");
+    track("level_complete", { depot: depotNo, crates: n, coins });
+    depotNo += 1; nextDepot += DEPOT_GAP;
+    loadCrates();
+  }
+
+  // ending conditions
+  if (crashFlag) { endReason = "Driver down"; state = "crashing"; crashTimer = 1.4; sfx(90, 0.4, "sawtooth"); }
+  const speed = chassis.getLinearVelocity().length();
+  if (fuel <= 0 && speed < 0.4) stallTimer += dt; else stallTimer = 0;
+  if (stallTimer > 2.2) { endReason = "Out of fuel"; finish(); }
+}
+
+function finish() {
+  state = "over";
+  const d = Math.floor(maxX);
+  if (d > best) { best = d; try { localStorage.setItem("cargoClimbBest", String(best)); } catch (e) {} }
+  const isBest = d > todayBest;
+  if (isBest) { todayBest = d; try { localStorage.setItem("cargoClimbDaily", JSON.stringify({ day: DAY_KEY, best: todayBest })); } catch (e) {} }
+  track("game_over", { reason: endReason, distance: d, coins, delivered });
+  $("reason").textContent = endReason;
+  $("sDist").textContent = d + " m";
+  $("sBest").textContent = todayBest + " m";
+  $("sAll").textContent = best + " m";
+  $("sStreak").textContent = days(streak);
+  $("sCoins").textContent = coins;
+  $("sCrates").textContent = delivered;
+  $("newbest").hidden = !isBest;
+  // one second chance per run, once there is a run worth saving
+  const canSave = !secondUsed && d >= 60;
+  $("second").hidden = !canSave;
+  if (canSave) track("reward_offered", { kind: "second_chance", distance: d });
+  $("over").hidden = false;
+  (canSave ? $("second") : $("again")).focus();
+}
+
+function revive() {
+  secondUsed = true;
+  track("reward_taken", { kind: "second_chance", distance: Math.floor(maxX) });
+  const keep = onBoardCount();
+  const x = Math.max(3, chassis.getPosition().x - 2);
+  for (const c of crates) world.destroyBody(c.body);
+  crates = [];
+  world.destroyBody(wheelB); world.destroyBody(wheelF); world.destroyBody(chassis);
+  makeCar(x, Math.max(H(x - 1.1), H(x + 1.15), H(x)) + 1.15);
+  loadCrates(keep);
+  wheelContacts = 0; crashFlag = false; crashTimer = 0; stallTimer = 0; airTime = 0;
+  fuel = Math.max(fuel, 60);
+  state = "play";
+  $("over").hidden = true;
+  toast("Back on the road");
+  lastHud = ""; updateHud();
+}
+
+// ---------- Rendering ----------
+const cv = document.getElementById("game"), ctx = cv.getContext("2d");
+let W = 0, Hh = 0, dpr = 1, ppm = 40, lowFx = false, slowFor = 0;
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, lowFx ? 1 : 2);
+  W = cv.clientWidth; Hh = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(Hh * dpr);
+}
+window.addEventListener("resize", resize);
+
+const SKY = [ // [stop, top, bottom, far hills, near hills]
+  [0.00, [90, 169, 230], [207, 232, 242], [143, 179, 166], [110, 154, 124]],
+  [0.30, [90, 169, 230], [214, 232, 230], [143, 179, 166], [110, 154, 124]],
+  [0.40, [59, 63, 122], [242, 166, 90], [122, 92, 122], [91, 74, 99]],
+  [0.50, [11, 19, 48], [39, 48, 90], [31, 39, 71], [24, 32, 56]],
+  [0.68, [11, 19, 48], [39, 48, 90], [31, 39, 71], [24, 32, 56]],
+  [0.80, [107, 111, 179], [247, 197, 159], [155, 138, 168], [120, 112, 143]],
+  [0.92, [90, 169, 230], [207, 232, 242], [143, 179, 166], [110, 154, 124]],
+  [1.00, [90, 169, 230], [207, 232, 242], [143, 179, 166], [110, 154, 124]],
+];
+function skyAt(ph) {
+  let i = 0; while (i < SKY.length - 2 && ph > SKY[i + 1][0]) i++;
+  const a = SKY[i], b = SKY[i + 1], u = (ph - a[0]) / (b[0] - a[0] || 1);
+  const mix = (k) => a[k].map((v, j) => Math.round(v + (b[k][j] - v) * u));
+  return { top: mix(1), bot: mix(2), far: mix(3), near: mix(4) };
+}
+const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+function nightness(ph) {
+  if (ph < 0.36 || ph > 0.86) return 0;
+  if (ph < 0.48) return (ph - 0.36) / 0.12;
+  if (ph < 0.7) return 1;
+  return 1 - (ph - 0.7) / 0.16;
+}
+const STARS = Array.from({ length: 90 }, () => [Math.random(), Math.random() * 0.6, Math.random() * 1.4 + 0.4]);
+
+const sx = (x) => (x - camX) * ppm + W * 0.38;
+const sy = (y) => Hh * 0.58 - (y - camY) * ppm;
+
+function draw() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ph = ((maxX + 600) / 2400) % 1;   // starts in daytime, dusk arrives around 360 m
+  const sky = skyAt(ph), night = nightness(ph);
+
+  const g = ctx.createLinearGradient(0, 0, 0, Hh);
+  g.addColorStop(0, rgb(sky.top)); g.addColorStop(1, rgb(sky.bot));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
+
+  if (night > 0 && !lowFx) {
+    ctx.fillStyle = `rgba(255,255,240,${0.85 * night})`;
+    for (const [x, y, r] of STARS) { ctx.beginPath(); ctx.arc(((x * W * 1.5 - camX * 2) % W + W) % W, y * Hh, r, 0, 7); ctx.fill(); }
+  }
+  // sun or moon
+  const orbY = Hh * (0.18 + 0.5 * Math.abs(Math.sin(ph * Math.PI * 2)) * 0.4);
+  ctx.fillStyle = night > 0.5 ? "rgba(240,236,214,0.95)" : "rgba(255,226,140,0.95)";
+  ctx.beginPath(); ctx.arc(W * 0.78, orbY, Math.max(22, Math.min(W, Hh) * 0.05), 0, 7); ctx.fill();
+
+  // parallax hills
+  if (!lowFx) hills(0.15, sky.far, 0.62, 3.2, 0.045, 1.7);
+  hills(0.35, sky.near, 0.7, 2.2, 0.08, 4.1);
+
+  // terrain
+  const x0 = Math.floor(camX - (W * 0.38) / ppm) - 2, x1 = Math.ceil(camX + (W * 0.62) / ppm) + 2;
+  ctx.beginPath(); ctx.moveTo(sx(x0), Hh + 10);
+  for (let x = x0; x <= x1; x++) ctx.lineTo(sx(x), sy(H(x)));
+  ctx.lineTo(sx(x1), Hh + 10); ctx.closePath();
+  const dg = ctx.createLinearGradient(0, sy(camY + 2), 0, Hh);
+  dg.addColorStop(0, "#9a5b34"); dg.addColorStop(1, "#5e3420");
+  ctx.fillStyle = dg; ctx.fill();
+  ctx.lineJoin = "round";
+  strokeGround(x0, x1, -1.1, "#7d4626", 0.16);
+  strokeGround(x0, x1, -2.4, "#6c3c22", 0.12);
+  strokeGround(x0, x1, -0.05, "#5c9e3b", 0.42);
+  strokeGround(x0, x1, 0.12, "#7cc04f", 0.12);
+
+  // roadside: distance posts and depots
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (let m = Math.ceil(x0 / 100) * 100; m <= x1; m += 100) {
+    if (m <= 0 || m % DEPOT_GAP === 0) continue;
+    const gx = sx(m), gy = sy(H(m));
+    ctx.fillStyle = "#e8e4d6"; ctx.fillRect(gx - 0.06 * ppm, gy - 1.3 * ppm, 0.12 * ppm, 1.3 * ppm);
+    ctx.fillStyle = "#1d6b45"; roundRect(gx - 0.5 * ppm, gy - 1.75 * ppm, 1.0 * ppm, 0.55 * ppm, 4); ctx.fill();
+    ctx.fillStyle = "#f4f1e6"; ctx.font = `${Math.round(0.3 * ppm)}px Bungee, Impact, sans-serif`;
+    ctx.fillText(m + "", gx, gy - 1.47 * ppm);
+  }
+  for (let k = Math.max(1, Math.ceil(x0 / DEPOT_GAP)); k * DEPOT_GAP <= x1 + 4; k++) drawDepot(k);
+
+  // pickups
+  const t = simTime;
+  for (const c of coinsArr) {
+    if (c.got || c.x < x0 || c.x > x1) continue;
+    const r = 0.32 * ppm, squash = Math.abs(Math.cos(t * 3 + c.x));
+    ctx.save(); ctx.translate(sx(c.x), sy(c.y)); ctx.scale(Math.max(0.15, squash), 1);
+    ctx.fillStyle = "#b8860b"; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+    ctx.fillStyle = "#f6c544"; ctx.beginPath(); ctx.arc(0, 0, r * 0.78, 0, 7); ctx.fill();
+    ctx.fillStyle = "#b8860b"; ctx.fillRect(-r * 0.12, -r * 0.42, r * 0.24, r * 0.84);
+    ctx.restore();
+  }
+  for (const f of fuelArr) {
+    if (f.got || f.x < x0 || f.x > x1) continue;
+    const bob = Math.sin(t * 2.5) * 0.08;
+    ctx.save(); ctx.translate(sx(f.x), sy(f.y + bob));
+    const s = ppm;
+    ctx.fillStyle = "#c8322a"; roundRect(-0.32 * s, -0.42 * s, 0.64 * s, 0.84 * s, 5); ctx.fill();
+    ctx.fillStyle = "#8f1f1a"; ctx.fillRect(-0.1 * s, -0.56 * s, 0.32 * s, 0.16 * s);
+    ctx.fillStyle = "#f4f1e6"; ctx.font = `${Math.round(0.36 * s)}px Bungee, Impact, sans-serif`; ctx.fillText("F", 0, 0.02 * s);
+    ctx.restore();
+  }
+
+  // dust
+  for (const p of particles) {
+    ctx.fillStyle = `rgba(200,170,130,${p.life * 0.6})`;
+    ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), p.r * ppm * (1.6 - p.life), 0, 7); ctx.fill();
+  }
+
+  // crates, then the truck
+  for (const c of crates) drawCrate(c.body);
+  drawTruck();
+
+  // night falls over the world, headlights cut through it
+  if (night > 0) {
+    ctx.fillStyle = `rgba(8,12,32,${0.42 * night})`; ctx.fillRect(0, 0, W, Hh);
+    const a = chassis.getAngle(), hp = chassis.getWorldPoint(V(1.62, 0.45));
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(sx(hp.x), sy(hp.y)); ctx.rotate(-a);
+    const lg = ctx.createRadialGradient(0, 0, 0, 0, 0, 9 * ppm);
+    lg.addColorStop(0, `rgba(255,236,170,${0.35 * night})`); lg.addColorStop(1, "rgba(255,236,170,0)");
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(9 * ppm, -1.6 * ppm); ctx.lineTo(9 * ppm, 2.6 * ppm); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function hills(f, col, base, amp, freq, seed) {
+  ctx.fillStyle = rgb(col);
+  ctx.beginPath(); ctx.moveTo(0, Hh);
+  const horizon = Hh * base + camY * ppm * f * 0.5;
+  for (let px = 0; px <= W + 8; px += 8) {
+    const wx = camX * f + (px - W * 0.38) / ppm;
+    const h = amp * Math.sin(wx * freq + seed) + amp * 0.5 * Math.sin(wx * freq * 2.7 + seed * 2) + amp * 0.2 * Math.sin(wx * freq * 6.1);
+    ctx.lineTo(px, horizon - h * ppm * 0.8);
+  }
+  ctx.lineTo(W, Hh); ctx.closePath(); ctx.fill();
+}
+
+function strokeGround(x0, x1, off, color, width) {
+  ctx.beginPath();
+  for (let x = x0; x <= x1; x++) { const X = sx(x), Y = sy(H(x) + off); x === x0 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); }
+  ctx.strokeStyle = color; ctx.lineWidth = width * ppm; ctx.stroke();
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function drawDepot(k) {
+  const x = k * DEPOT_GAP, gy = sy(H(x)), gx = sx(x), s = ppm;
+  // checkered line on the road
+  for (let i = 0; i < 6; i++) {
+    ctx.fillStyle = i % 2 ? "#141824" : "#f4f1e6";
+    ctx.fillRect(gx - 0.15 * s, gy - 0.05 * s + i * 0.12 * s, 0.3 * s, 0.12 * s);
+  }
+  ctx.fillStyle = "#cfcabb";
+  ctx.fillRect(gx - 2.0 * s, gy - 3.6 * s, 0.16 * s, 3.6 * s);
+  ctx.fillRect(gx + 1.84 * s, gy - 3.6 * s, 0.16 * s, 3.6 * s);
+  ctx.fillStyle = "#f4f1e6"; roundRect(gx - 2.4 * s, gy - 4.9 * s, 4.8 * s, 1.5 * s, 8); ctx.fill();
+  ctx.fillStyle = "#1d6b45"; roundRect(gx - 2.3 * s, gy - 4.8 * s, 4.6 * s, 1.3 * s, 6); ctx.fill();
+  ctx.fillStyle = "#f4f1e6";
+  ctx.font = `${Math.round(0.5 * s)}px Bungee, Impact, sans-serif`;
+  ctx.fillText("DEPOT " + k, gx, gy - 4.36 * s);
+  ctx.font = `600 ${Math.round(0.34 * s)}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+  ctx.fillText("30 COINS PER CRATE · FUEL", gx, gy - 3.86 * s);
+}
+
+function bodyTransform(b) {
+  const p = b.getPosition();
+  ctx.save(); ctx.translate(sx(p.x), sy(p.y)); ctx.rotate(-b.getAngle()); ctx.scale(ppm, -ppm);
+}
+function poly(pts) { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
+
+function drawCrate(b) {
+  bodyTransform(b);
+  const h = CRATE_H;
+  ctx.fillStyle = "#b57a3c"; ctx.fillRect(-h, -h, 2 * h, 2 * h);
+  ctx.strokeStyle = "#6b4220"; ctx.lineWidth = 0.06; ctx.strokeRect(-h + 0.03, -h + 0.03, 2 * h - 0.06, 2 * h - 0.06);
+  ctx.beginPath(); ctx.moveTo(-h + 0.06, -h + 0.06); ctx.lineTo(h - 0.06, h - 0.06); ctx.moveTo(-h + 0.06, h - 0.06); ctx.lineTo(h - 0.06, -h + 0.06); ctx.lineWidth = 0.05; ctx.stroke();
+  ctx.restore();
+}
+
+function drawWheel(w) {
+  bodyTransform(w);
+  const r = WHEEL_R;
+  ctx.fillStyle = "#1b1b1f"; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#2c2c33"; ctx.lineWidth = 0.05;
+  for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.82, Math.sin(a) * r * 0.82); ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); ctx.stroke(); }
+  ctx.fillStyle = "#b9bcc4"; ctx.beginPath(); ctx.arc(0, 0, r * 0.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#6d717b"; ctx.lineWidth = 0.06;
+  for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r * 0.46, Math.sin(a) * r * 0.46); ctx.stroke(); }
+  ctx.fillStyle = "#3a3d45"; ctx.beginPath(); ctx.arc(0, 0, r * 0.13, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+function drawTruck() {
+  // suspension struts
+  ctx.strokeStyle = "#3a3d45"; ctx.lineWidth = 0.12 * ppm; ctx.lineCap = "round";
+  for (const [w, lx] of [[wheelB, -1.1], [wheelF, 1.15]]) {
+    const a = chassis.getWorldPoint(V(lx, 0)), b = w.getPosition();
+    ctx.beginPath(); ctx.moveTo(sx(a.x), sy(a.y)); ctx.lineTo(sx(b.x), sy(b.y)); ctx.stroke();
+  }
+  bodyTransform(chassis);
+  // driver (behind the door panel)
+  ctx.fillStyle = "#2f6db5"; poly([[0.42, 0.6], [0.82, 0.6], [0.8, 1.0], [0.46, 1.0]]); ctx.fill();
+  ctx.fillStyle = "#2b2d42"; ctx.beginPath(); ctx.arc(0.62, 1.15, 0.22, 0, 7); ctx.fill();
+  ctx.fillStyle = "#f2a900"; ctx.beginPath(); ctx.arc(0.62, 1.15, 0.22, 0.35, 2.6); ctx.lineTo(0.62, 1.15); ctx.fill();
+  ctx.fillStyle = "#9fd3f0"; poly([[0.7, 1.08], [0.84, 1.08], [0.82, 1.22], [0.7, 1.2]]); ctx.fill();
+  // windshield frame
+  ctx.strokeStyle = "#2b2d42"; ctx.lineWidth = 0.07; ctx.beginPath(); ctx.moveTo(1.3, 0.65); ctx.lineTo(1.08, 1.05); ctx.stroke();
+  ctx.fillStyle = "rgba(160,215,240,0.45)"; poly([[1.3, 0.65], [1.08, 1.05], [1.0, 1.0], [1.18, 0.66]]); ctx.fill();
+  // body
+  ctx.fillStyle = "#e4572e";
+  poly([[-1.6, -0.15], [1.6, -0.15], [1.65, 0.05], [1.65, 0.55], [1.05, 0.75], [0.3, 0.75], [0.3, 0.25], [-1.46, 0.25], [-1.46, 0.65], [-1.6, 0.65]]); ctx.fill();
+  ctx.fillStyle = "#b8401f"; ctx.fillRect(-1.6, -0.15, 3.25, 0.12);
+  ctx.fillStyle = "#f4f1e6"; ctx.fillRect(-1.3, 0.02, 1.5, 0.08);
+  // door window and handle
+  ctx.fillStyle = "#9fd3f0"; poly([[0.42, 0.48], [0.95, 0.48], [0.95, 0.68], [0.42, 0.68]]); ctx.fill();
+  ctx.fillStyle = "#2b2d42"; ctx.fillRect(0.5, 0.36, 0.16, 0.04);
+  // headlight and tail light
+  ctx.fillStyle = "#ffe9a8"; ctx.fillRect(1.56, 0.36, 0.09, 0.14);
+  ctx.fillStyle = "#c8322a"; ctx.fillRect(-1.6, 0.36, 0.06, 0.16);
+  ctx.restore();
+  drawWheel(wheelB); drawWheel(wheelF);
+}
+
+// ---------- Camera, particles, HUD ----------
+function updateCamera(dt) {
+  const p = chassis.getPosition(), v = chassis.getLinearVelocity();
+  const tx = p.x + Math.max(-2, Math.min(5, v.x * 0.35)) + 1.5, ty = p.y + 0.6;
+  const k = 1 - Math.exp(-dt * 4);
+  camX += (tx - camX) * k; camY += (ty - camY) * k;
+  const base = Math.max(20, Math.min(56, Math.min(W / 19, Hh / 11)));
+  const targetZoom = 1 - Math.min(0.18, Math.abs(v.x) / 120);
+  zoom += (targetZoom - zoom) * k * 0.5;
+  ppm = base * zoom;
+}
+
+function updateParticles(dt) {
+  if (!lowFx && state === "play" && wheelContacts > 0 && (input.gas || input.brake) && fuel > 0) {
+    for (const w of [wheelB, wheelF]) {
+      if (Math.random() < 0.35) {
+        const p = w.getPosition();
+        particles.push({ x: p.x - 0.3, y: p.y - WHEEL_R * 0.7, vx: -1 - Math.random() * 2, vy: Math.random() * 1.5, r: 0.12 + Math.random() * 0.1, life: 1 });
+      }
+    }
+  }
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 1.5 * dt; p.life -= dt * 1.6; }
+  particles = particles.filter((p) => p.life > 0);
+}
+
+const $ = (id) => document.getElementById(id);
+let lastHud = "";
+function updateHud() {
+  const d = Math.floor(Math.max(0, maxX));
+  const s = [Math.round(fuel), d, coins, nextDepot].join("|");
+  if (s === lastHud) return; lastHud = s;
+  $("fuelbar").style.width = fuel + "%";
+  $("gauge").classList.toggle("low", fuel < 25);
+  $("dist").textContent = d + " m";
+  $("coins").textContent = coins;
+  $("depot").textContent = Math.max(0, Math.ceil(nextDepot - maxX)) + " m";
+}
+function updateSlots() {
+  const n = onBoardCount();
+  [...$("slots").children].forEach((b, i) => b.classList.toggle("gone", i >= n));
+}
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1500);
+}
+
+// ---------- Sound ----------
+let ac = null, engOsc, engGain, engFilter, muted = true;
+function initAudio() {
+  if (ac) return;
+  try {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    engOsc = ac.createOscillator(); engOsc.type = "sawtooth";
+    engFilter = ac.createBiquadFilter(); engFilter.type = "lowpass"; engFilter.frequency.value = 420;
+    engGain = ac.createGain(); engGain.gain.value = 0;
+    engOsc.connect(engFilter).connect(engGain).connect(ac.destination); engOsc.start();
+  } catch (e) { ac = null; }
+}
+function sfx(freq, dur, type) {
+  if (!ac || muted) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.08, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+  o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + dur);
+}
+function updateEngine() {
+  if (!ac) return;
+  const spin = Math.abs(wheelB.getAngularVelocity()) + Math.abs(wheelF.getAngularVelocity());
+  const on = !muted && state === "play" && fuel > 0;
+  const thr = input.gas || input.brake ? 1 : 0;
+  engOsc.frequency.setTargetAtTime(42 + spin * 1.6 + thr * 18, ac.currentTime, 0.08);
+  engGain.gain.setTargetAtTime(on ? 0.035 + thr * 0.025 : 0, ac.currentTime, 0.1);
+}
+$("mute").addEventListener("click", () => {
+  initAudio(); muted = !muted;
+  if (ac && ac.state === "suspended") ac.resume();
+  $("mute").textContent = muted ? "Sound off" : "Sound on";
+});
+
+// ---------- Input ----------
+const keyMap = { ArrowRight: "gas", KeyD: "gas", ArrowUp: "gas", KeyW: "gas", ArrowLeft: "brake", KeyA: "brake", ArrowDown: "brake", KeyS: "brake" };
+window.addEventListener("keydown", (e) => {
+  if (keyMap[e.code]) { input[keyMap[e.code]] = true; setPedal(keyMap[e.code], true); e.preventDefault(); }
+  if ((e.code === "Enter" || e.code === "Space") && state === "over") { e.preventDefault(); start(); }
+});
+window.addEventListener("keyup", (e) => { if (keyMap[e.code]) { input[keyMap[e.code]] = false; setPedal(keyMap[e.code], false); } });
+window.addEventListener("blur", () => { input.gas = input.brake = false; setPedal("gas", false); setPedal("brake", false); });
+function setPedal(name, on) { $(name).classList.toggle("down", on); }
+for (const name of ["gas", "brake"]) {
+  const el = $(name);
+  const on = (e) => { e.preventDefault(); input[name] = true; setPedal(name, true); try { el.setPointerCapture(e.pointerId); } catch (err) {} };
+  const off = () => { input[name] = false; setPedal(name, false); };
+  el.addEventListener("pointerdown", on);
+  el.addEventListener("pointerup", off);
+  el.addEventListener("pointercancel", off);
+  el.addEventListener("lostpointercapture", off);
+  el.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+
+function start() {
+  initAudio();
+  if (ac && ac.state === "suspended") ac.resume();
+  if (muted && ac && !startedOnce) { muted = false; $("mute").textContent = "Sound on"; }
+  startedOnce = true;
+  resetWorld();
+  secondUsed = false;
+  markPlayedToday();
+  track("level_start", { route: DAY_KEY });
+  state = "play";
+  $("menu").hidden = true; $("over").hidden = true;
+  lastHud = ""; updateHud(); updateSlots();
+}
+let startedOnce = false;
+$("start").addEventListener("click", start);
+$("again").addEventListener("click", start);
+$("second").addEventListener("click", () => offerReward(revive));
+$("mRoute").textContent = ROUTE_NAME;
+$("mToday").textContent = todayBest + " m";
+$("mStreak").textContent = days(streak);
+
+// ---------- Main loop ----------
+let last = performance.now(), acc = 0;
+const DT = 1 / 60;
+function frame(now) {
+  const raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
+  // weak phone: switch off decorative effects instead of dropping frames
+  if (!lowFx && state === "play" && !document.hidden) { slowFor = raw > 0.026 && raw < 0.5 ? slowFor + raw : Math.max(0, slowFor - raw * 0.5); if (slowFor > 3) { lowFx = true; particles = []; resize(); } }
+  acc += dt;
+  while (acc >= DT) {
+    step(DT);
+    if (state === "crashing") { crashTimer -= DT; if (crashTimer <= 0) finish(); }
+    acc -= DT;
+  }
+  ensureTerrain(chassis.getPosition().x);
+  updateCamera(dt);
+  updateParticles(dt);
+  updateEngine();
+  draw();
+  updateHud();
+  requestAnimationFrame(frame);
+}
+
+if (!pl) {
+  document.body.insertAdjacentHTML("beforeend", '<div class="overlay"><div class="card"><h2>Physics engine did not load</h2><p>Check your connection and reload the page.</p></div></div>');
+  return;
+}
+resize();
+resetWorld();
+updateHud();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
