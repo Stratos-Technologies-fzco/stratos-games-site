@@ -189,14 +189,49 @@ arm();window.addEventListener('resize',arm);
 })();
 </script>"""
 
+# --- Poki-style look: one packed grid of square tiles, logo box in the corner ---
+def pk_nav(base=""):
+    return (f'<div class="pk-nav"><a class="pk-logo" href="{base}./" aria-label="Stratos Games home"><span class="lm">S</span><span>Stratos<b>Games</b></span></a>'
+            f'<label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games"></label></div>')
+
+def pk_tile(g, base="", size="s1"):
+    href, ext = href_of(g, base)
+    q = f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
+    return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}" title="{esc(g["title"])}">'
+            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}</span></a>')
+
+def pk_tiles(items, base="", first_big=True):
+    real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
+    out = [pk_tile(g, base, "s3" if i == 0 and first_big else "s2") for i, g in enumerate(real)]
+    return "".join(out + [pk_tile(g, base, "s1") for g in soon])
+
+def pk_cta():
+    return (f'<a class="pk-t s2 pk-cta" href="{JOIN}" target="_blank" rel="noopener"><span class="plus">+</span>'
+            f'<b>Your game here</b><small>Build it with Claude, push it, it shows up</small></a>')
+
+def pk_cats(base=""):
+    return "".join(f'<a class="pk-cat" href="{base}c/{c["id"]}/" style="--h:{c.get("hue", 220)}"><span class="em">{c.get("emoji", "🎮")}</span><span>{esc(c["label"])}</span></a>'
+                   for c in SITE["categories"])
+
+def pk_foot(base=""):
+    links = "".join(f'<a href="{base}{esc(f["href"])}">{esc(f["label"])}</a>' for f in SITE["footer"])
+    return f'<footer class="pk-foot">{links}<span class="fine">© {YEAR} Stratos Games · {esc(SITE["tagline"])}</span></footer>'
+
+PK_JS = """<script>(function(){var q=document.getElementById('pkq');if(!q)return;
+var ts=[].slice.call(document.querySelectorAll('.pk-t[data-q]')),none=document.getElementById('pk-none');
+q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0;
+ts.forEach(function(t){var hit=!v||t.dataset.q.indexOf(v)>-1;t.hidden=!hit;if(hit)n++});
+document.body.classList.toggle('pk-searching',!!v);if(none)none.hidden=!(v&&!n)})})();</script>"""
+
+def pk_body(base, inner):
+    return (f'<body class="pk"><main class="pk-grid">{pk_nav(base)}{inner}</main>'
+            f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{pk_foot(base)}{PK_JS}</body></html>')
+
 def build_home_cards(fam):
     jsonld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Organization", "@id": SITE["url"] + "/#org", "name": "Stratos Games", "url": SITE["url"] + "/", "email": SITE["contact"], "logo": SITE["url"] + "/assets/favicon.svg"},
         {"@type": "WebSite", "@id": SITE["url"] + "/#site", "url": SITE["url"] + "/", "name": "Stratos Games", "publisher": {"@id": SITE["url"] + "/#org"}}]}
-    cards = "".join(tile(g) for g in fam) or '<p class="empty">No games yet. The first one to push is first on the page.</p>'
-    body = (f'<body class="clean">{topbar()}<div class="shell"><main class="main">'
-            f'<section class="row" id="results" hidden><div class="rh"><h2></h2></div><div class="grid"></div></section>'
-            f'<section class="row" id="wall"><div class="cards">{cards}</div></section>{footer()}</main></div>{JS}</body></html>')
+    body = pk_body("", pk_tiles(fam) + pk_cta() + pk_cats())
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
@@ -225,6 +260,12 @@ def build_home(fam, studio):
 def build_category(cid, items, fam, studio):
     c = CATS[cid]; base = "../../"
     pool = ([g for g in fam if not g.get("soon")] if cid == "new" else studio if cid == "studio" else items)
+    if CLEAN:
+        n = len(pool)
+        headcard = f'<div class="pk-head"><h1>{c.get("emoji", "")} {esc(c["label"])}</h1><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>'
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base))
+        write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base) + body)
+        return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
             f'<section class="row" id="results" hidden><div class="rh"><h2></h2></div><div class="grid"></div></section>'
             f'{wall(pool, base, bigs=1, title=c["label"], sub=f"{c.get('mood', '')} · {len(pool)} game{'s' if len(pool) != 1 else ''}") if pool else f"<section class=\"row\"><div class=\"rh\"><h2>{esc(c['label'])}</h2></div><div class=\"wall\"><div class=\"empty\">Nothing here yet. Be the first.</div>{cta_tile()}</div></section>"}'
@@ -241,6 +282,18 @@ def build_play(g, fam, studio):
     howto = f'<h2>How to play</h2><p>{esc(g["how_to_play"])}</p>' if g.get("how_to_play") else ""
     about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") else "")
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
+    if CLEAN:
+        stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
+                 f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
+                 f'<button class="pk-ib" type="button" title="Share" aria-label="Share" onclick="var b=this;(navigator.share?navigator.share({{title:document.title,url:location.href}}):navigator.clipboard.writeText(location.href).then(function(){{b.title=\'Link copied\'}}))">{icon("share", 18)}</button>'
+                 f'<a class="pk-ib" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'
+                 f'<button class="pk-ib" type="button" title="Fullscreen" aria-label="Fullscreen" onclick="var f=document.getElementById(\'game\');(f.requestFullscreen||f.webkitRequestFullscreen).call(f)">{icon("full", 18)}</button></div></div>')
+        info = (f'<section class="pk-info"><h1>{esc(g["title"])}</h1><p class="lead">{esc(g.get("one_line"))}</p>{about}{howto}'
+                f'<p class="meta">{esc(CATS[g["category"]]["label"])} · Made by {esc(g["maker"])}{gh} · Added {esc(g["added"])} · Free, no install, works on a phone</p></section>')
+        others = [x for x in fam if x["slug"] != g["slug"] and not x.get("soon")]
+        body = pk_body(base, stage + pk_tiles(others, base, first_big=False) + info + pk_cta() + pk_cats(base))
+        write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld) + body)
+        return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'
             f'<div class="stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
             f'<div class="stage-bar"><div class="sb-title"><b>{esc(g["title"])}</b><span class="tm">{esc(CATS[g["category"]]["label"])} · by {esc(g["maker"])}</span></div>'
@@ -261,7 +314,9 @@ def build_extras(fam, studio):
     write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {SITE['url']}/sitemap.xml\n")
     lines = [f"# Stratos Games", "", SITE["description"], "", "## Play (free browser games)"] + [f"- [{g['title']}]({SITE['url']}/play/{g['slug']}/): {g.get('one_line','')} Made by {g['maker']}." for g in real] + ["", "## Coming soon (claimed by family makers)"] + [f"- {g['title']} by {g['maker']}: {g.get('one_line','')}" for g in soon] + ["", "## Studio titles"] + [f"- [{s['title']}]({SITE['url']}/{s['page']}): {s['one_line']}" for s in studio] + ["", "## Pages", f"- About: {SITE['url']}/about/", f"- For publishers: {SITE['url']}/for-publishers/", f"- Press kit: {SITE['url']}/press/", f"- Contact: {SITE['contact']}"]
     write("llms.txt", "\n".join(lines) + "\n")
-    write("404.html", head("Page not found | Stratos Games", "That page is not here.", SITE["url"] + "/404.html") + f'<body class="{"clean" if CLEAN else ""}">{topbar()}<div class="shell">{sidebar()}<main class="main"><section class="pitch"><div><h2>404. That page is not here.</h2><p>Try the games instead.</p><a class="btn" href="/">Back to the games</a></div><div class="pitch-art">🕹️</div></section>{footer()}</main></div>{JS}</body></html>')
+    if CLEAN:
+        write("404.html", head("Page not found | Stratos Games", "That page is not here.", SITE["url"] + "/404.html") + pk_body("/", '<div class="pk-head wide"><h1>🕹️ 404. That page is not here.</h1><small>Try the games instead.</small></div>' + pk_tiles(real, "/", first_big=False) + pk_cats("/")))
+    else: write("404.html", head("Page not found | Stratos Games", "That page is not here.", SITE["url"] + "/404.html") + f'<body class="{"clean" if CLEAN else ""}">{topbar()}<div class="shell">{sidebar()}<main class="main"><section class="pitch"><div><h2>404. That page is not here.</h2><p>Try the games instead.</p><a class="btn" href="/">Back to the games</a></div><div class="pitch-art">🕹️</div></section>{footer()}</main></div>{JS}</body></html>')
     json.dump({"site": SITE["url"], "count": len(fam) + len(studio), "games": [{k: g.get(k) for k in ("slug", "title", "maker", "one_line", "category", "url", "thumb", "added", "github", "kind", "soon")} for g in fam + studio]},
               open(os.path.join(ROOT, "games.json"), "w", encoding="utf-8"), indent=1)
 
