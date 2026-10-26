@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 17,
+ "count": 18,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -23,6 +23,19 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-ashgrove-extraction/",
    "thumb": "games/im-mohua-liza-ashgrove-extraction/thumbnail.png",
+   "added": "2026-10-26",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-cargo-climb",
+   "title": "Cargo Climb",
+   "maker": "Mohua Liza",
+   "one_line": "A hill-climb driving game where you haul three loose crates over the hills and get paid for every crate that reaches a depot.",
+   "category": "arcade",
+   "url": "play/im-mohua-liza-cargo-climb/",
+   "thumb": "games/im-mohua-liza-cargo-climb/thumbnail.png",
    "added": "2026-10-26",
    "github": "im-mohua-liza",
    "kind": "family",
