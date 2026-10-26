@@ -186,6 +186,35 @@ body.touch .toast{top:26%;font-size:14px}
 body.touch .keys{display:none}
 body.touch .touchHelp{display:block}
 .touchHelp{display:none}
+/* control layout card: opens over the title screen on load, and from the Controls buttons */
+#ctrl{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;background:rgba(4,5,6,.62)}
+.cl-card{width:min(940px,100%);margin:auto;background:#07090a;border:2px solid var(--sodium);border-radius:4px;box-shadow:0 18px 60px rgba(0,0,0,.6)}
+.cl-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:58px;padding:0 64px;background:#14171a;border-bottom:1px solid var(--hair)}
+.cl-head h2{margin:0;font:900 clamp(22px,4vw,32px)/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.cl-x{position:absolute;right:0;top:0;bottom:0;width:58px;appearance:none;border:0;border-left:1px solid var(--hair);background:#1d2124;color:var(--ink-dim);font:400 34px/1 var(--f-hud);cursor:pointer}
+.cl-x:hover,.cl-x:focus-visible{color:var(--ink);background:#262b2f;outline:none}
+.cl-body{padding:18px 18px 6px}
+.cl-body svg{display:block;width:100%;height:auto;max-height:max(200px,calc(100vh - 210px))}
+@media (max-height:520px){.cl-head{min-height:42px}.cl-x{width:46px;font-size:28px}.cl-body{padding:8px 12px 0}.cl-foot{padding:8px 12px 10px}.cl-foot .fine{font-size:12px}}
+.cl-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px 18px}
+.cl-foot .fine{max-width:60ch}
+.cl-foot .btn{padding:10px 22px;font-size:15px}
+#ctrl .k rect{fill:rgba(235,230,218,.03);stroke:rgba(235,230,218,.2);stroke-width:1.5}
+#ctrl .k text{fill:rgba(235,230,218,.32);font:600 14px var(--f-data);text-anchor:middle}
+#ctrl .k.on rect{fill:rgba(232,166,64,.14);stroke:var(--sodium);stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(232,166,64,.55))}
+#ctrl .k.on text{fill:var(--sodium);font-weight:700}
+#ctrl .ln{fill:none;stroke:rgba(235,230,218,.62);stroke-width:1.5}
+#ctrl .dot{fill:rgba(235,230,218,.8)}
+#ctrl .lb{fill:var(--ink);font:700 16px var(--f-hud);letter-spacing:.08em;text-transform:uppercase}
+#ctrl .lb.dim{fill:var(--ink-dim);font-weight:500;font-size:14px}
+#ctrl .ms{fill:rgba(235,230,218,.03);stroke:rgba(235,230,218,.32);stroke-width:1.5}
+#ctrl .ms.on{fill:rgba(232,166,64,.16);stroke:var(--sodium);stroke-width:2.5;filter:drop-shadow(0 0 5px rgba(232,166,64,.55))}
+#ctrl .ph{fill:rgba(235,230,218,.03);stroke:rgba(235,230,218,.35);stroke-width:2}
+#ctrl .zn{fill:rgba(121,199,189,.07);stroke:rgba(121,199,189,.5);stroke-width:1.5;stroke-dasharray:6 6}
+#ctrl .tbtn{fill:rgba(232,166,64,.14);stroke:var(--sodium);stroke-width:2}
+#ctrl .tbtn.red{fill:rgba(120,30,20,.5);stroke:var(--danger)}
+#ctrl .tt{fill:var(--ink);font:700 15px var(--f-hud);letter-spacing:.06em;text-transform:uppercase;text-anchor:middle}
+#ctrl .zt{fill:var(--mara);font:700 20px var(--f-hud);letter-spacing:.1em;text-transform:uppercase;text-anchor:middle}
 </style>
 </head>
 <body>
@@ -260,6 +289,7 @@ body.touch .touchHelp{display:block}
       <button type="button" class="btn pri" id="btnStart">Start mission</button>
       <button type="button" class="btn" id="btnContinue" hidden>Continue</button>
       <button type="button" class="btn" id="btnDemo">Watch demo</button>
+      <button type="button" class="btn" id="btnControls">Controls</button>
     </div>
     <p id="loadErr" class="err" hidden>The 3D engine could not load. Check your connection and reload the page.</p>
     <p id="touchNote" class="fine" hidden>This prototype needs a keyboard and mouse.</p>
@@ -288,6 +318,7 @@ body.touch .touchHelp{display:block}
     <div class="actions">
       <button type="button" class="btn pri" id="btnResume">Resume</button>
       <button type="button" class="btn" id="btnCheckpoint">Restart from checkpoint</button>
+      <button type="button" class="btn" id="btnControls2">Controls</button>
       <button type="button" class="btn" id="btnQuit">Quit to title</button>
     </div>
     <div class="row">
@@ -304,6 +335,14 @@ body.touch .touchHelp{display:block}
       <button type="button" class="btn" id="btnRestart">Restart mission</button>
       <button type="button" class="btn" id="btnTitle">Title screen</button>
     </div>
+  </div>
+</div>
+
+<div id="ctrl" hidden role="dialog" aria-modal="true" aria-labelledby="ctrlTitle">
+  <div class="cl-card">
+    <div class="cl-head"><h2 id="ctrlTitle">Control layout</h2><button type="button" class="cl-x" id="ctrlX" aria-label="Close controls">&times;</button></div>
+    <div class="cl-body" id="ctrlArt"></div>
+    <div class="cl-foot"><p class="fine" id="ctrlNote"></p><button type="button" class="btn pri" id="ctrlOk">Got it</button></div>
   </div>
 </div>
 
@@ -2196,6 +2235,77 @@ $('btnRestart').addEventListener('click', () => begin(false));
 $('btnTitle').addEventListener('click', toTitle);
 if (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) $('touchNote').hidden = false;
 
+/* ================= control layout card ================= */
+function keyboardArt() {
+  const ON = 'Esc 1 2 Tab W E R A S D F H Shift C V'.split(' ');
+  const rows = [
+    [110, [['Esc', 150, 40], '1', '2', '3', '4', '5', '6']],
+    [160, [['Tab', 150, 62], 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P']],
+    [210, [['Caps', 150, 74], 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']],
+    [260, [['Shift', 150, 96], 'Z', 'X', 'C', 'V', 'B', 'N', 'M']]
+  ];
+  let keys = '';
+  for (const [y, list] of rows) {
+    let x = 0;
+    for (const k of list) {
+      const [lab, kx, w] = Array.isArray(k) ? k : [k, x, 40];
+      keys += `<g class="k${ON.includes(lab) ? ' on' : ''}"><rect x="${kx}" y="${y}" width="${w}" height="40" rx="6"/><text x="${kx + w / 2}" y="${y + 25}">${lab}</text></g>`;
+      x = kx + w + 6;
+    }
+  }
+  const ln = pts => `<polyline class="ln" points="${pts}"/>`;
+  const dot = (x, y) => `<circle class="dot" cx="${x}" cy="${y}" r="2.5"/>`;
+  const lb = (x, y, t, a = 'middle', c = '') => `<text class="lb${c}" x="${x}" y="${y}" text-anchor="${a}">${t}</text>`;
+  const callouts = [
+    // left side
+    ln('150,130 132,130'), dot(132, 130), lb(126, 135, 'Pause', 'end'),
+    ln('150,180 132,180'), dot(132, 180), lb(126, 185, 'Inventory', 'end'),
+    ln('150,280 132,280'), dot(132, 280), lb(126, 285, 'Sprint', 'end'),
+    // above
+    ln('216,110 216,96 262,96 262,110'), ln('239,96 239,44'), lb(239, 36, 'Carbine / sidearm'),
+    ln('284,160 284,94'), lb(284, 87, 'Move'),
+    ln('330,160 330,68'), lb(330, 61, 'Interact / hold'),
+    ln('376,160 376,94'), lb(376, 87, 'Reload'),
+    // below
+    ln('296,250 296,314'), ln('342,250 342,314'), ln('250,314 342,314'), ln('250,250 250,340'), dot(250, 340), lb(242, 345, 'Left · back · right', 'end'),
+    ln('480,250 480,328'), dot(480, 328), lb(488, 333, 'Medkit', 'start'),
+    ln('410,300 410,352'), dot(410, 352), lb(418, 357, 'Swap shoulder', 'start'),
+    ln('388,250 388,376'), dot(388, 376), lb(396, 381, 'Mara: wait / follow', 'start'),
+    ln('364,300 364,400'), dot(364, 400), lb(372, 405, 'Crouch / stand', 'start')
+  ].join('');
+  const mouse = `<rect class="ms" x="790" y="120" width="100" height="180" rx="50"/>
+    <path class="ms on" d="M790,185 V170 A50,50 0 0 1 840,120 V185 Z"/><path class="ms on" d="M840,185 V120 A50,50 0 0 1 890,170 V185 Z"/>
+    <rect class="ms" x="835" y="136" width="10" height="30" rx="5"/>
+    ${ln('800,160 740,160')}${dot(740, 160)}${lb(732, 165, 'Fire', 'end')}
+    ${ln('880,160 912,160')}${dot(912, 160)}${lb(920, 165, 'Aim', 'start')}
+    ${lb(840, 338, 'Move mouse: look')}${lb(840, 360, 'Arrow keys also look', 'middle', ' dim')}${lb(840, 382, 'P also pauses', 'middle', ' dim')}`;
+  return `<svg viewBox="22 14 958 404" role="img" aria-label="Keyboard and mouse controls">${keys}${callouts}${mouse}</svg>`;
+}
+function touchArt() {
+  const b = (cx, cy, r, t, red) => `<circle class="tbtn${red ? ' red' : ''}" cx="${cx}" cy="${cy}" r="${r}"/><text class="tt" x="${cx}" y="${cy + 5}">${t}</text>`;
+  const pills = ['Mara: wait', 'Medkit', 'Swap gun', 'Pause'].map((t, i) => { const x = 288 + i * 98; return `<rect class="tbtn" x="${x}" y="28" width="90" height="28" rx="14"/><text class="tt" x="${x + 45}" y="47">${t}</text>`; }).join('');
+  return `<svg viewBox="60 0 840 410" role="img" aria-label="Phone controls">
+    <rect class="ph" x="70" y="10" width="820" height="390" rx="26"/>
+    <rect class="zn" x="84" y="124" width="330" height="262" rx="10"/><rect class="zn" x="420" y="22" width="456" height="364" rx="10" style="fill:rgba(121,199,189,.04)"/>
+    <text class="zt" x="290" y="160">Drag here to move</text><text class="zt" x="600" y="140">Drag here to look around</text>
+    <circle cx="144" cy="278" r="48" fill="none" stroke="rgba(235,230,218,.4)" stroke-width="2" stroke-dasharray="5 5"/><circle cx="144" cy="278" r="20" fill="rgba(235,230,218,.45)"/>
+    ${pills}${b(127, 185, 27, 'Run')}${b(654, 326, 30, 'Use')}${b(728, 334, 30, 'Aim')}${b(741, 263, 27, 'Reload')}${b(819, 241, 27, 'Crouch')}${b(816, 326, 42, 'Fire', true)}
+  </svg>`;
+}
+let ctrlBack = null;
+function openControls() {
+  const touch = TOUCH.on || (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches);
+  $('ctrlArt').innerHTML = touch ? touchArt() : keyboardArt();
+  $('ctrlNote').textContent = touch ? 'Turn your phone sideways to play. Hold FIRE to shoot, tap USE near Mara or items. Reopen this from Controls.' : 'Click the game to take mouse control. Esc pauses at any time. Reopen this from Controls.';
+  ctrlBack = document.activeElement; $('ctrl').hidden = false; $('ctrl').scrollTop = 0; $('ctrlOk').focus({ preventScroll: true });
+}
+function closeControls() { $('ctrl').hidden = true; if (ctrlBack && ctrlBack.focus) ctrlBack.focus(); ctrlBack = null; }
+$('ctrlX').addEventListener('click', closeControls);
+$('ctrlOk').addEventListener('click', closeControls);
+$('ctrl').addEventListener('click', e => { if (e.target === $('ctrl')) closeControls(); });
+$('btnControls').addEventListener('click', openControls);
+$('btnControls2').addEventListener('click', openControls);
+
 /* ================= input ================= */
 document.addEventListener('pointerlockchange', () => { S.locked = document.pointerLockElement === canvas; if (S.locked) S.wasLocked = true; else if (S.wasLocked && S.running && !S.paused && !S.over) pause(); });
 document.addEventListener('pointerlockerror', () => { S.noLock = true; });
@@ -2208,6 +2318,7 @@ addEventListener('mousemove', e => {
   const s = 0.0022 * S.sens * (P.aim ? 0.6 : 1); CAM.yaw -= (e.movementX || 0) * s; CAM.pitch -= (e.movementY || 0) * s;
 });
 addEventListener('keydown', e => {
+  if (!$('ctrl').hidden) { if (e.code === 'Escape' || e.code === 'Enter') { e.preventDefault(); closeControls(); } return; }
   if (DEMO.on) { if (e.code === 'Escape') stopDemo(); return; }
   if (INTRO.on) { if (e.code === 'Escape' || e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); finishIntro(); } return; }
   if (!S.running || S.over) return;
@@ -2484,6 +2595,7 @@ function enableTouch() {
 /* ================= boot ================= */
 buildWorld(); buildVegetation(); flushStatic(); buildNav(); buildCover(); defineIAs();
 const startBtn = $('btnStart'); startBtn.disabled = true; startBtn.textContent = 'Loading characters 0/3';
+openControls();
 loadRigs().then(ok => {
   P.model = buildHuman(LOOKS.player); MA.model = buildHuman(LOOKS.mara); P.model.ent = P; MA.model.ent = MA;
   newPlayerState(); newMaraState(); Object.assign(M, { stage: 0, sup: { water: false, med: false, battery: false }, defT: DEF_TIME, waveI: 0, kills: 0, shots: 0, hits: 0 });
