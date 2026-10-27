@@ -289,8 +289,7 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .spark { display: none; } }
 </style>
-<script type="importmap">{ "imports": { "three": "cdn/three.module.js" } }</script>
-
+<script type="importmap">{ "imports": { "three": "./cdn/three.module.js" } }</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -303,7 +302,7 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
     <div class="prog"><span><span data-i18n="hud.countered">Countered</span> <b id="progCounters">0/4</b></span><span><span data-i18n="hud.partners">Partners</span> <b id="progAllies">0/1</b></span></div>
     <div class="ep"><span id="epVal">0</span> <span data-i18n="hud.ep">evolution points</span></div>
     <div class="small-btns">
-      <button id="btnHelp" class="mini-btn" data-i18n="hud.help">How to play</button>
+      <button id="btn-quit" class="mini-btn quit-btn" data-i18n="hud.quit">Quit</button>`n      <button id="btnHelp" class="mini-btn" data-i18n="hud.help">How to play</button>
       <button id="btnSound" class="mini-btn" aria-pressed="true">Sound on</button>
       <button id="btnLang" class="mini-btn" title="Language">English</button>
     </div>
@@ -708,5 +707,70 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
   });
 })();
 </script>
+<!-- Quit Button & QA Modal Injected -->
+<style>
+  .hud-actions { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; gap: 10px; }
+  .btn-hud { background: rgba(20,20,30,0.8); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; backdrop-filter: blur(4px); transition: 0.2s; }
+  .btn-hud:hover { background: rgba(40,40,60,0.9); }
+  .btn-quit { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+  .btn-quit:hover { background: rgba(239,68,68,0.3); color: #fff; }
+  .qa-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
+  .qa-box { background: #121826; border: 1px solid #2d3748; border-radius: 12px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding: 24px; color: #e2e8f0; font-family: system-ui, sans-serif; }
+  .qa-card { background: #1a2234; border: 1px solid #334155; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .qa-pillar { font-size: 12px; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; }
+  .qa-q { font-size: 15px; margin: 6px 0 8px; color: #fff; font-weight: 600; }
+  .qa-opt { font-size: 13px; color: #94a3b8; margin: 3px 0; }
+  .qa-opt.correct { color: #4ade80; font-weight: 500; }
+</style>
+
+<div class="hud-actions">
+  <button id="btnViewQA" class="btn-hud">View Q/A Bank</button>
+  <button id="btnQuitApp" class="btn-hud btn-quit">Quit Game</button>
+</div>
+
+<div id="qaModal" class="qa-modal">
+  <div class="qa-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="margin:0; font-size:18px;">Ecos-Synthetica Q/A Bank</h2>
+      <button id="btnCloseQA" class="btn-hud" style="padding:4px 10px;">Close</button>
+    </div>
+    <div id="qaList"></div>
+  </div>
+</div>
+
+<script>
+  // 1. Quit Action
+  document.getElementById('btnQuitApp').onclick = () => {
+    if (confirm('Quit and return to start?')) window.location.reload();
+  };
+
+  // 2. Q/A Bank Loading & Display
+  const qaModal = document.getElementById('qaModal');
+  const qaList = document.getElementById('qaList');
+
+  document.getElementById('btnViewQA').onclick = async () => {
+    qaModal.style.display = 'flex';
+    try {
+      const res = await fetch('./questions.json');
+      const data = await res.json();
+      qaList.innerHTML = data.stages.flatMap(s => 
+        s.questions.map(q => 
+          '<div class="qa-card">' +
+            '<div class="qa-pillar">' + s.title + ' • ' + q.pillar + '</div>' +
+            '<div class="qa-q">' + q.prompt + '</div>' +
+            q.options.map((opt, i) => '<div class="qa-opt ' + (i === q.correctIndex ? 'correct' : '') + '">' + (i === q.correctIndex ? '? ' : '• ') + opt + '</div>').join('') +
+            '<div style="font-size:12px; color:#cbd5e1; margin-top:8px;"><em>' + q.explanation + '</em></div>' +
+          '</div>'
+        )
+      ).join('');
+    } catch (err) {
+      qaList.innerHTML = '<p style="color:#f87171;">Failed to load questions.json. Ensure it exists in the root folder.</p>';
+    }
+  };
+
+  document.getElementById('btnCloseQA').onclick = () => { qaModal.style.display = 'none'; };
+</script>
+<!-- End Injected -->
 </body>
 </html>
+
