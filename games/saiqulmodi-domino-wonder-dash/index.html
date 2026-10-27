@@ -350,6 +350,17 @@ function show_infobox() {
         logEvent(analytics, "game_started");
         document.removeEventListener("click", onFirstClick);
       }, { once: true });
+
+      // milestones from the game (counter.count_event): class travel, finished
+      // pictures, celebrations - anonymous names only
+      window.dominoEvent = function (name, value) {
+        try { logEvent(analytics, name, { value: String(value) }); } catch (e) {}
+        try {
+          if (window.goatcounter && window.goatcounter.count) {
+            window.goatcounter.count({ path: "/event/" + name + "/" + value, title: name, event: true });
+          }
+        } catch (e) {}
+      };
     </script>
 </head>
 
