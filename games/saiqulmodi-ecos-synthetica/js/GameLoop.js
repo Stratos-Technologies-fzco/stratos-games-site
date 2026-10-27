@@ -10,6 +10,9 @@ import { t, o, dict, tierT, eventT } from './i18n.js';
 
 const ARENA = 50;
 const SAVE_KEY = 'ecos-synthetica-v1';
+// Each player profile keeps its own save (the first profile keeps the original key).
+let saveKey = SAVE_KEY;
+export function setSaveKey(k) { saveKey = k || SAVE_KEY; }
 const SCAN_COST = 4;
 const SYNTH_COST = 8;
 export const RING = {
@@ -73,7 +76,7 @@ export class Game {
   // ---------- save ----------
   load() {
     let s = null;
-    try { s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { s = null; }
+    try { s = JSON.parse(localStorage.getItem(saveKey) || 'null'); } catch (e) { s = null; }
     this.hasSave = !!(s && (s.scanned || []).length);
     this.tier = s && Number.isInteger(s.tier) && s.tier >= 0 && s.tier < TIERS.length ? s.tier : 0;
     this.ep = (s && s.ep) || 0;
@@ -91,12 +94,12 @@ export class Game {
 
   save() {
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ tier: this.tier, ep: this.ep, completed: this.completed, scanned: [...this.scanned], countered: [...this.countered], recruited: [...this.recruited], attempts: this.synth.attempts }));
+      localStorage.setItem(saveKey, JSON.stringify({ tier: this.tier, ep: this.ep, completed: this.completed, scanned: [...this.scanned], countered: [...this.countered], recruited: [...this.recruited], attempts: this.synth.attempts }));
     } catch (e) { /* storage blocked: progress lasts for this visit only */ }
   }
 
   resetProgress() {
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
+    try { localStorage.removeItem(saveKey); } catch (e) { /* ignore */ }
     this.tier = 0; this.ep = 0; this.completed = false;
     this.scanned = new Set(); this.countered = new Set(); this.recruited = new Set();
     this.synth = new SynthesisEngine();
@@ -169,6 +172,14 @@ export class Game {
     this.sound.evolve();
     this.loadTier(this.tier + 1);
     this.ui.showTierIntro(this.tier);
+  }
+
+  // Second chance: keep everything, push the nearest attackers back, half integrity.
+  revive() {
+    const p = this.player.position;
+    for (const e of [...this.entities]) if (e.state !== 'ally' && e.root.position.distanceTo(p) < 9) this.removeEntity(e);
+    this.integrity = 50;
+    this.over = false;
   }
 
   retry() {

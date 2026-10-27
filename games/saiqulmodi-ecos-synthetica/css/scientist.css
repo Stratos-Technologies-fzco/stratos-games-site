@@ -1,0 +1,31 @@
+/* scientist.css - Eco Scientist add-ons: desk, experiments, journal, AI Teacher, live charts. */
+#desk { z-index: 10001; }
+#desk .panel { width: min(900px, 100%); }
+#deskBody .chart { max-width: 680px; }
+.desk-tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 18px 0; }
+.desk-tabs.sub { padding: 0; margin: 4px 0 10px; }
+#deskBody h3 { font: 700 15px var(--display); margin: 16px 0 4px; }
+#deskBody .small, #livePanel .small { font-size: 12.5px; color: var(--muted); }
+.mono { font-family: var(--mono); }
+.exp-grid { display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 680px) { .exp-grid { grid-template-columns: minmax(0, 1fr); } }
+.exp-inputs { display: flex; flex-direction: column; gap: 10px; }
+.exp-in { display: flex; flex-direction: column; gap: 4px; font: 12.5px var(--mono); color: var(--muted); }
+.exp-in b { color: var(--fg); font-weight: 600; }
+.exp-in input[type="range"] { width: 100%; accent-color: var(--violet); min-height: 28px; }
+.exp-check { display: flex; gap: 8px; align-items: center; font-size: 14px; min-height: 32px; }
+.exp-check input { width: 20px; height: 20px; accent-color: var(--green); }
+.exp-checkline { background: var(--raise); border-left: 3px solid var(--green); padding: 10px 12px; border-radius: 8px; line-height: 1.5; }
+.j-note { width: 100%; resize: vertical; box-sizing: border-box; }
+.j-entry { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
+.j-entry header { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.j-entry header i { color: var(--muted); font-size: 12px; margin-right: auto; }
+.j-entry p { margin: 6px 0 0; }
+.t-ask { display: flex; gap: 8px; margin-bottom: 12px; }
+.t-ask .field { flex: 1; min-width: 0; }
+.t-card { background: var(--raise); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; line-height: 1.55; }
+.t-card h3 { margin-top: 0 !important; }
+.t-topics { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+#livePanel { top: auto; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); width: min(340px, calc(100vw - 32px)); padding: 8px 10px; pointer-events: none; }
+#btnLive { margin-top: 6px; }
+@media (max-width: 400px) { .act { width: 52px; height: 52px; font-size: 11px; } #actions { gap: 8px; } }

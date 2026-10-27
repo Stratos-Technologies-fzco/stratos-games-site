@@ -1,0 +1,510 @@
+{
+ "ui": {
+  "en": {
+   "fo.tigers": "Tigers (your plan)",
+   "fo.K": "Carrying capacity K (from prey)",
+   "fo.chart": "Tigers in the reserve over 20 years",
+   "fo.years": "years",
+   "fo.tigers20": "Tigers after 20 years",
+   "fo.conflict": "Conflict incidents near villages (20 years, model)",
+   "fo.moved": "Young tigers that reached another forest",
+   "mg.water": "Water level at the embankment",
+   "mg.top": "Top of the embankment",
+   "mg.chart": "The cyclone's surge and waves against the embankment",
+   "mg.breach": "The embankment is overtopped: the village floods with salt water.",
+   "mg.safe": "The embankment holds.",
+   "mg.risk": "People at risk in the cyclone (model)",
+   "mg.carbon": "CO2 taken up by the mangroves each year",
+   "mg.fish": "Fish and crab nursery"
+  },
+  "hi": {
+   "fo.tigers": "बाघ (आपकी योजना)",
+   "fo.K": "वहन क्षमता K (शिकार से)",
+   "fo.chart": "20 वर्षों में रिज़र्व में बाघ",
+   "fo.years": "वर्ष",
+   "fo.tigers20": "20 वर्ष बाद बाघ",
+   "fo.conflict": "गाँवों के पास संघर्ष की घटनाएँ (20 वर्ष, मॉडल)",
+   "fo.moved": "दूसरे जंगल तक पहुँचे युवा बाघ",
+   "mg.water": "तटबंध पर पानी का स्तर",
+   "mg.top": "तटबंध की ऊँचाई",
+   "mg.chart": "तटबंध के सामने चक्रवात का उफान और लहरें",
+   "mg.breach": "पानी तटबंध के ऊपर से जाता है: गाँव में खारा पानी भर जाता है।",
+   "mg.safe": "तटबंध टिका रहता है।",
+   "mg.risk": "चक्रवात में जोखिम वाले लोग (मॉडल)",
+   "mg.carbon": "मैंग्रोव द्वारा हर साल ली गई CO2",
+   "mg.fish": "मछली और केकड़े की नर्सरी"
+  },
+  "bn": {
+   "fo.tigers": "বাঘ (তোমার পরিকল্পনা)",
+   "fo.K": "বহন ক্ষমতা K (শিকার থেকে)",
+   "fo.chart": "২০ বছরে সংরক্ষিত বনে বাঘ",
+   "fo.years": "বছর",
+   "fo.tigers20": "২০ বছর পরে বাঘ",
+   "fo.conflict": "গ্রামের কাছে সংঘাতের ঘটনা (২০ বছর, মডেল)",
+   "fo.moved": "অন্য বনে পৌঁছানো তরুণ বাঘ",
+   "mg.water": "বাঁধে জলের উচ্চতা",
+   "mg.top": "বাঁধের উচ্চতা",
+   "mg.chart": "বাঁধের সামনে ঘূর্ণিঝড়ের জলোচ্ছ্বাস আর ঢেউ",
+   "mg.breach": "জল বাঁধ ছাপিয়ে যায়: গ্রামে নোনা জল ঢোকে।",
+   "mg.safe": "বাঁধ টিকে থাকে।",
+   "mg.risk": "ঘূর্ণিঝড়ে ঝুঁকিতে থাকা মানুষ (মডেল)",
+   "mg.carbon": "ম্যানগ্রোভ প্রতি বছর যে CO2 নেয়",
+   "mg.fish": "মাছ আর কাঁকড়ার নার্সারি"
+  }
+ },
+ "cases": [
+  {
+   "id": "tiger",
+   "track": "forestry",
+   "model": "tiger",
+   "budget": 10,
+   "concepts": [
+    "predator_prey",
+    "population_growth",
+    "biodiversity_loss"
+   ],
+   "title": {
+    "en": "A tiger reserve for the next 20 years",
+    "hi": "अगले 20 वर्षों के लिए बाघ रिज़र्व",
+    "bn": "আগামী ২০ বছরের জন্য বাঘ সংরক্ষিত বন"
+   },
+   "nature": {
+    "en": "The tiger first. A tigress holds a territory of about 20-60 km², a male a larger one overlapping several females. She raises cubs alone for nearly two years; then the young must leave and find space of their own. Tigers need large prey (chital, sambar, gaur, wild pig), and the prey need grass, water and forest without cattle. Count the deer and you have counted the tigers' future.",
+    "hi": "पहले बाघ। एक बाघिन लगभग 20-60 वर्ग किमी का इलाका रखती है, नर इससे बड़ा जो कई मादाओं के इलाके से मिलता है। वह लगभग दो साल अकेले शावक पालती है; फिर युवाओं को जाकर अपनी जगह ढूँढनी होती है। बाघों को बड़े शिकार (चीतल, सांभर, गौर, जंगली सूअर) चाहिए, और शिकार को घास, पानी और बिना मवेशियों का जंगल। हिरण गिन लिए तो बाघों का भविष्य गिन लिया।",
+    "bn": "আগে বাঘ। একটি বাঘিনী প্রায় ২০-৬০ বর্গকিমি এলাকা রাখে, পুরুষ তার চেয়ে বড়, যা কয়েকটি স্ত্রীর এলাকার সঙ্গে মেশে। সে প্রায় দুই বছর একা ছানা বড় করে; তারপর তরুণদের চলে গিয়ে নিজের জায়গা খুঁজতে হয়। বাঘের বড় শিকার (চিতল, সম্বর, গৌর, বুনো শুয়োর) লাগে, আর শিকারের লাগে ঘাস, জল আর গবাদি পশু-ছাড়া বন। হরিণ গুনলে বাঘের ভবিষ্যৎ গোনা হয়ে যায়।"
+   },
+   "brief": {
+    "en": "You are the field director of a 1,000 km² tiger reserve with 25 tigers and a thin prey base (about 20 large prey per km²), poaching, cattle grazing and villages inside the core. You have 10 points for the next 20 years. Grow a healthy tiger population and keep people and tigers apart.",
+    "hi": "आप 1,000 वर्ग किमी के बाघ रिज़र्व के फ़ील्ड निदेशक हैं, जिसमें 25 बाघ और कमज़ोर शिकार आधार (लगभग 20 बड़े शिकार प्रति वर्ग किमी), शिकार-चोरी, मवेशी चराई और कोर में गाँव हैं। अगले 20 वर्षों के लिए आपके पास 10 अंक हैं। बाघों की स्वस्थ आबादी बढ़ाएँ और लोगों व बाघों को अलग रखें।",
+    "bn": "তুমি ১,০০০ বর্গকিমির বাঘ সংরক্ষিত বনের ফিল্ড ডিরেক্টর, যেখানে ২৫টি বাঘ আর দুর্বল শিকার-ভিত্তি (প্রতি বর্গকিমিতে প্রায় ২০টি বড় শিকার), চোরাশিকার, গবাদি পশুর চারণ আর কোরে গ্রাম আছে। আগামী ২০ বছরের জন্য তোমার ১০ পয়েন্ট। বাঘের সুস্থ জনসংখ্যা বাড়াও আর মানুষ ও বাঘকে আলাদা রাখো।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Core area / tigers today",
+      "hi": "कोर क्षेत्र / आज बाघ",
+      "bn": "কোর এলাকা / আজ বাঘ"
+     },
+     "value": "1,000 km² / 25"
+    },
+    {
+     "label": {
+      "en": "Large prey density",
+      "hi": "बड़े शिकार का घनत्व",
+      "bn": "বড় শিকারের ঘনত্ব"
+     },
+     "value": {
+      "en": "about 20 per km² (healthy reserves: 40-60)",
+      "hi": "लगभग 20 प्रति वर्ग किमी (स्वस्थ रिज़र्व: 40-60)",
+      "bn": "প্রতি বর্গকিমিতে প্রায় ২০ (সুস্থ সংরক্ষিত বন: ৪০-৬০)"
+     }
+    },
+    {
+     "label": {
+      "en": "Prey one tiger needs in its range (model)",
+      "hi": "एक बाघ के इलाके में चाहिए शिकार (मॉडल)",
+      "bn": "একটি বাঘের এলাকায় দরকারি শিকার (মডেল)"
+     },
+     "value": {
+      "en": "about 550 (eats 50-60 a year)",
+      "hi": "लगभग 550 (साल में 50-60 खाता है)",
+      "bn": "প্রায় ৫৫০ (বছরে ৫০-৬০টি খায়)"
+     }
+    },
+    {
+     "label": {
+      "en": "India's tigers (All India Tiger Estimation 2022)",
+      "hi": "भारत के बाघ (अखिल भारतीय बाघ आकलन 2022)",
+      "bn": "ভারতের বাঘ (সর্বভারতীয় বাঘ সমীক্ষা ২০২২)"
+     },
+     "value": {
+      "en": "3,682 (mean estimate), about 75% of the world's wild tigers",
+      "hi": "3,682 (औसत अनुमान), दुनिया के जंगली बाघों का लगभग 75%",
+      "bn": "৩,৬৮২ (গড় অনুমান), বিশ্বের বুনো বাঘের প্রায় ৭৫%"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "patrol",
+     "q": {
+      "en": "Protection",
+      "hi": "सुरक्षा",
+      "bn": "সুরক্ষা"
+     },
+     "options": [
+      {
+       "id": "p0",
+       "cost": 0,
+       "effect": 0.12,
+       "label": {
+        "en": "Few guards (12% of tigers lost a year)",
+        "hi": "कम पहरेदार (हर साल 12% बाघ खोते हैं)",
+        "bn": "কম রক্ষী (বছরে ১২% বাঘ হারায়)"
+       }
+      },
+      {
+       "id": "p1",
+       "cost": 3,
+       "effect": 0.06,
+       "label": {
+        "en": "Foot patrols and camera traps (6%) (3)",
+        "hi": "पैदल गश्त और कैमरा ट्रैप (6%) (3)",
+        "bn": "পায়ে টহল আর ক্যামেরা ট্র্যাপ (৬%) (৩)"
+       }
+      },
+      {
+       "id": "p2",
+       "cost": 5,
+       "effect": 0.03,
+       "label": {
+        "en": "+ intelligence network and village informers (3%) (5)",
+        "hi": "+ ख़ुफ़िया तंत्र और गाँव के मुखबिर (3%) (5)",
+        "bn": "+ গোয়েন্দা নেটওয়ার্ক আর গ্রামের খবরদাতা (৩%) (৫)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "prey",
+     "q": {
+      "en": "Prey and habitat",
+      "hi": "शिकार और आवास",
+      "bn": "শিকার আর আবাস"
+     },
+     "options": [
+      {
+       "id": "h0",
+       "cost": 0,
+       "effect": 20,
+       "label": {
+        "en": "No change (20 per km²)",
+        "hi": "कोई बदलाव नहीं (20 प्रति वर्ग किमी)",
+        "bn": "কোনো বদল নয় (প্রতি বর্গকিমিতে ২০)"
+       }
+      },
+      {
+       "id": "h1",
+       "cost": 3,
+       "effect": 30,
+       "label": {
+        "en": "Clear Lantana, restore grassland and waterholes (30) (3)",
+        "hi": "लैंटाना हटाएँ, घास के मैदान और जलाशय बहाल करें (30) (3)",
+        "bn": "ল্যান্টানা সাফ, তৃণভূমি আর জলাশয় ফেরানো (৩০) (৩)"
+       }
+      },
+      {
+       "id": "h2",
+       "cost": 5,
+       "effect": 40,
+       "label": {
+        "en": "+ move cattle grazing out with fodder support (40) (5)",
+        "hi": "+ चारे की मदद से मवेशी चराई बाहर करें (40) (5)",
+        "bn": "+ পশুখাদ্যের সাহায্যে চারণ বাইরে সরানো (৪০) (৫)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "corridor",
+     "q": {
+      "en": "Link to the next forest",
+      "hi": "अगले जंगल से जोड़",
+      "bn": "পাশের বনের সঙ্গে সংযোগ"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "None",
+        "hi": "नहीं",
+        "bn": "নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 1,
+       "label": {
+        "en": "Secure a forest corridor with underpasses on the highway (2)",
+        "hi": "हाईवे पर अंडरपास के साथ वन गलियारा सुरक्षित करें (2)",
+        "bn": "হাইওয়েতে আন্ডারপাসসহ বন-করিডর সুরক্ষিত (২)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "relocate",
+     "q": {
+      "en": "Villages inside the core",
+      "hi": "कोर के अंदर गाँव",
+      "bn": "কোরের ভেতরের গ্রাম"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Stay as they are",
+        "hi": "जैसे हैं वैसे रहें",
+        "bn": "যেমন আছে থাকুক"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 1,
+       "label": {
+        "en": "Voluntary relocation with the NTCA package, land and livelihoods (2)",
+        "hi": "NTCA पैकेज, ज़मीन और आजीविका के साथ स्वैच्छिक पुनर्वास (2)",
+        "bn": "NTCA প্যাকেজ, জমি আর জীবিকাসহ স্বেচ্ছা পুনর্বাসন (২)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Tigers are limited by prey, so the carrying capacity K rises only when the habitat feeds more deer; guards alone save tigers but cannot raise K. A full reserve keeps sending out young tigers: without a corridor they end up near farms, where conflict begins. India's tiger numbers grew because protection, prey recovery, voluntary relocation and corridors were done together under Project Tiger (1973) and the NTCA.",
+    "hi": "बाघ शिकार से सीमित होते हैं, इसलिए वहन क्षमता K तभी बढ़ती है जब आवास ज़्यादा हिरणों को पालता है; केवल पहरेदार बाघ बचाते हैं पर K नहीं बढ़ा सकते। भरा हुआ रिज़र्व युवा बाघों को बाहर भेजता रहता है: बिना गलियारे के वे खेतों के पास पहुँचते हैं, जहाँ संघर्ष शुरू होता है। भारत में बाघ इसलिए बढ़े क्योंकि प्रोजेक्ट टाइगर (1973) और NTCA के तहत सुरक्षा, शिकार की बहाली, स्वैच्छिक पुनर्वास और गलियारे साथ-साथ किए गए।",
+    "bn": "বাঘ শিকার দিয়ে সীমিত, তাই বহন ক্ষমতা K বাড়ে কেবল যখন আবাস বেশি হরিণ পালে; শুধু রক্ষী বাঘ বাঁচায় কিন্তু K বাড়াতে পারে না। ভরা সংরক্ষিত বন তরুণ বাঘ বাইরে পাঠাতেই থাকে: করিডর না থাকলে তারা খেতের কাছে পৌঁছায়, সেখানেই সংঘাত শুরু। ভারতে বাঘ বেড়েছে কারণ প্রজেক্ট টাইগার (১৯৭৩) আর NTCA-র অধীনে সুরক্ষা, শিকার ফেরানো, স্বেচ্ছা পুনর্বাসন আর করিডর একসঙ্গে করা হয়েছে।"
+   },
+   "sources": [
+    "NTCA / WII, Status of Tigers, Co-predators and Prey in India 2022 (All India Tiger Estimation)",
+    "Project Tiger (1973); NTCA voluntary relocation guidelines",
+    "Karanth et al. (2004), PNAS: tiger numbers are set by prey density",
+    "Prey per tiger, growth rate and dispersal shares are stated model assumptions"
+   ]
+  },
+  {
+   "id": "mangrove",
+   "track": "forestry",
+   "model": "mangrove",
+   "budget": 10,
+   "concepts": [
+    "carbon_cycle",
+    "biodiversity_loss"
+   ],
+   "title": {
+    "en": "Mangroves before the next cyclone",
+    "hi": "अगले चक्रवात से पहले मैंग्रोव",
+    "bn": "পরের ঘূর্ণিঝড়ের আগে ম্যানগ্রোভ"
+   },
+   "nature": {
+    "en": "The mangrove first. It lives where no other tree can: in salt water that floods twice a day. Some species push breathing roots (pneumatophores) up through the mud; Rhizophora stands on stilt roots; many seeds sprout while still on the tree and drop ready to grow. Their tangle of roots slows water and traps mud, building land. Crabs, fish fry and the Sundarbans tiger all live in it.",
+    "hi": "पहले मैंग्रोव। यह वहाँ रहता है जहाँ कोई और पेड़ नहीं रह सकता: दिन में दो बार भरने वाले खारे पानी में। कुछ प्रजातियाँ कीचड़ से ऊपर साँस लेने वाली जड़ें (न्यूमेटोफ़ोर) निकालती हैं; राइज़ोफ़ोरा खंभे जैसी जड़ों पर खड़ा रहता है; कई बीज पेड़ पर ही अंकुरित होकर उगने को तैयार गिरते हैं। जड़ों का जाल पानी धीमा करता है और कीचड़ रोककर ज़मीन बनाता है। केकड़े, मछली के बच्चे और सुंदरबन का बाघ सब इसी में रहते हैं।",
+    "bn": "আগে ম্যানগ্রোভ। এটি থাকে যেখানে আর কোনো গাছ থাকতে পারে না: দিনে দুবার জোয়ারে ভরা নোনা জলে। কিছু প্রজাতি কাদা থেকে ওপরে শ্বাসমূল (নিউম্যাটোফোর) তোলে; রাইজোফোরা ঠেসমূলে দাঁড়িয়ে থাকে; অনেক বীজ গাছেই অঙ্কুরিত হয়ে বাড়তে তৈরি অবস্থায় পড়ে। শিকড়ের জাল জল ধীর করে আর কাদা আটকে মাটি গড়ে। কাঁকড়া, মাছের পোনা আর সুন্দরবনের বাঘ সবাই এখানেই থাকে।"
+   },
+   "brief": {
+    "en": "You are the forest officer for 10 km of coast in front of island villages (6,000 people) in the Sundarbans. A strong cyclone can bring a 2.3 m surge and 1.2 m waves against an earthen embankment 2.4 m high. Plan with 10 points before the next cyclone season.",
+    "hi": "आप सुंदरबन में द्वीप गाँवों (6,000 लोग) के सामने 10 किमी तट के वन अधिकारी हैं। तेज़ चक्रवात 2.4 मीटर ऊँचे मिट्टी के तटबंध के सामने 2.3 मीटर का उफान और 1.2 मीटर की लहरें ला सकता है। अगले चक्रवात मौसम से पहले 10 अंकों में योजना बनाएँ।",
+    "bn": "তুমি সুন্দরবনের দ্বীপ-গ্রামগুলোর (৬,০০০ মানুষ) সামনের ১০ কিমি উপকূলের বন আধিকারিক। প্রবল ঘূর্ণিঝড় ২.৪ মিটার উঁচু মাটির বাঁধের সামনে ২.৩ মিটার জলোচ্ছ্বাস আর ১.২ মিটার ঢেউ আনতে পারে। পরের ঘূর্ণিঝড়ের মরসুমের আগে ১০ পয়েন্টে পরিকল্পনা করো।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Cyclone surge / waves (design case)",
+      "hi": "चक्रवात उफान / लहरें (डिज़ाइन स्थिति)",
+      "bn": "ঘূর্ণিঝড়ের জলোচ্ছ্বাস / ঢেউ (নকশা অবস্থা)"
+     },
+     "value": "2.3 m / 1.2 m"
+    },
+    {
+     "label": {
+      "en": "Earthen embankment height",
+      "hi": "मिट्टी के तटबंध की ऊँचाई",
+      "bn": "মাটির বাঁধের উচ্চতা"
+     },
+     "value": "2.4 m"
+    },
+    {
+     "label": {
+      "en": "Mangrove effect (McIvor et al. 2012)",
+      "hi": "मैंग्रोव का असर (मैकआइवर आदि 2012)",
+      "bn": "ম্যানগ্রোভের প্রভাব (ম্যাকআইভর প্রমুখ ২০১২)"
+     },
+     "value": {
+      "en": "surge -0.04 to -0.48 m per km of width; waves -13 to -66% per 100 m",
+      "hi": "उफान प्रति किमी चौड़ाई -0.04 से -0.48 मीटर; लहरें प्रति 100 मीटर -13 से -66%",
+      "bn": "জলোচ্ছ্বাস প্রতি কিমি প্রস্থে -০.০৪ থেকে -০.৪৮ মিটার; ঢেউ প্রতি ১০০ মিটারে -১৩ থেকে -৬৬%"
+     }
+    },
+    {
+     "label": {
+      "en": "Seedling survival after 5 years (model)",
+      "hi": "5 साल बाद पौध जीवित (मॉडल)",
+      "bn": "৫ বছর পরে চারা বাঁচে (মডেল)"
+     },
+     "value": {
+      "en": "native species mix 80%, one species 50%",
+      "hi": "देसी प्रजाति मिश्रण 80%, एक प्रजाति 50%",
+      "bn": "দেশি প্রজাতির মিশ্রণ ৮০%, একটি প্রজাতি ৫০%"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "width",
+     "q": {
+      "en": "Mangrove belt in front of the embankment",
+      "hi": "तटबंध के सामने मैंग्रोव पट्टी",
+      "bn": "বাঁধের সামনে ম্যানগ্রোভের বেল্ট"
+     },
+     "options": [
+      {
+       "id": "w0",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "None",
+        "hi": "नहीं",
+        "bn": "নয়"
+       }
+      },
+      {
+       "id": "w200",
+       "cost": 2,
+       "effect": 200,
+       "label": {
+        "en": "200 m wide (2)",
+        "hi": "200 मीटर चौड़ी (2)",
+        "bn": "২০০ মিটার চওড়া (২)"
+       }
+      },
+      {
+       "id": "w500",
+       "cost": 4,
+       "effect": 500,
+       "label": {
+        "en": "500 m wide (4)",
+        "hi": "500 मीटर चौड़ी (4)",
+        "bn": "৫০০ মিটার চওড়া (৪)"
+       }
+      },
+      {
+       "id": "w1000",
+       "cost": 7,
+       "effect": 1000,
+       "label": {
+        "en": "1 km wide (7)",
+        "hi": "1 किमी चौड़ी (7)",
+        "bn": "১ কিমি চওড়া (৭)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "mix",
+     "q": {
+      "en": "What to plant",
+      "hi": "क्या लगाएँ",
+      "bn": "কী লাগাবে"
+     },
+     "options": [
+      {
+       "id": "mono",
+       "cost": 0,
+       "label": {
+        "en": "One fast-growing species",
+        "hi": "एक तेज़ बढ़ने वाली प्रजाति",
+        "bn": "একটি দ্রুত বাড়া প্রজাতি"
+       }
+      },
+      {
+       "id": "native",
+       "cost": 1,
+       "label": {
+        "en": "Native mix (Avicennia, Sonneratia, Rhizophora, Excoecaria) by zone (1)",
+        "hi": "क्षेत्र के अनुसार देसी मिश्रण (एविसेनिया, सोनेरेशिया, राइज़ोफ़ोरा, एक्सकोकेरिया) (1)",
+        "bn": "অঞ্চল অনুযায়ী দেশি মিশ্রণ (বাইন, কেওড়া, গরান-জাতীয়, গেওয়া) (১)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "raise",
+     "q": {
+      "en": "Embankment",
+      "hi": "तटबंध",
+      "bn": "বাঁধ"
+     },
+     "options": [
+      {
+       "id": "r0",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "As it is (2.4 m)",
+        "hi": "जैसा है (2.4 मीटर)",
+        "bn": "যেমন আছে (২.৪ মিটার)"
+       }
+      },
+      {
+       "id": "r1",
+       "cost": 3,
+       "effect": 0.5,
+       "label": {
+        "en": "Raise 0.5 m with earth and turf (3)",
+        "hi": "मिट्टी और घास से 0.5 मीटर ऊँचा (3)",
+        "bn": "মাটি আর ঘাসে ০.৫ মিটার উঁচু (৩)"
+       }
+      },
+      {
+       "id": "r2",
+       "cost": 6,
+       "effect": 1.0,
+       "label": {
+        "en": "Raise 1 m with a concrete face (6)",
+        "hi": "कंक्रीट सतह के साथ 1 मीटर ऊँचा (6)",
+        "bn": "কংক্রিটের মুখসহ ১ মিটার উঁচু (৬)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "shelters",
+     "q": {
+      "en": "People",
+      "hi": "लोग",
+      "bn": "মানুষ"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 1,
+       "label": {
+        "en": "Cyclone shelters, early warning and evacuation drills (2)",
+        "hi": "चक्रवात आश्रय, पूर्व चेतावनी और निकासी अभ्यास (2)",
+        "bn": "ঘূর্ণিঝড় আশ্রয়, আগাম সতর্কতা আর সরিয়ে নেওয়ার মহড়া (২)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Mangroves are a living breakwater that grows taller and repairs itself, while concrete only ages. A wide native belt cuts the waves most, so a cheaper earthen embankment behind it can hold, and the same forest stores carbon and feeds fisheries. After the 2004 tsunami, villages behind mangroves in Tamil Nadu (Pichavaram) suffered less than exposed ones. Shelters and early warning save lives whatever else happens; IMD warnings and evacuations have cut cyclone deaths in Odisha and Bengal sharply since 1999.",
+    "hi": "मैंग्रोव जीवित तरंग-रोधक हैं जो ऊँचे होते जाते हैं और ख़ुद की मरम्मत करते हैं, जबकि कंक्रीट केवल पुराना होता है। चौड़ी देसी पट्टी लहरों को सबसे ज़्यादा घटाती है, इसलिए उसके पीछे सस्ता मिट्टी का तटबंध टिक सकता है, और वही जंगल कार्बन रखता है व मछली पालन को पोषण देता है। 2004 की सुनामी के बाद तमिलनाडु (पिचावरम) में मैंग्रोव के पीछे के गाँवों को खुले गाँवों से कम नुकसान हुआ। आश्रय और पूर्व चेतावनी हर हाल में जान बचाते हैं; 1999 से IMD चेतावनियों और निकासी ने ओडिशा व बंगाल में चक्रवात मौतें बहुत घटाई हैं।",
+    "bn": "ম্যানগ্রোভ জীবন্ত ঢেউ-রোধক যা লম্বা হতে থাকে আর নিজেই নিজেকে সারায়, অথচ কংক্রিট শুধু পুরোনো হয়। চওড়া দেশি বেল্ট ঢেউ সবচেয়ে বেশি কমায়, তাই পেছনে সস্তা মাটির বাঁধ টিকে যেতে পারে, আর সেই বনই কার্বন রাখে আর মৎস্যচাষকে খাওয়ায়। ২০০৪-এর সুনামির পরে তামিলনাড়ুতে (পিচাভরম) ম্যানগ্রোভের পেছনের গ্রামগুলোর ক্ষতি খোলা গ্রামের চেয়ে কম হয়েছিল। আশ্রয় আর আগাম সতর্কতা যা-ই হোক প্রাণ বাঁচায়; ১৯৯৯ থেকে IMD-র সতর্কতা আর সরিয়ে নেওয়ায় ওড়িশা ও বাংলায় ঘূর্ণিঝড়ে মৃত্যু অনেক কমেছে।"
+   },
+   "sources": [
+    "McIvor, Möller, Spencer & Spalding (2012), Reduction of wind and swell waves / storm surges by mangroves, Natural Coastal Protection Series",
+    "Kathiresan & Rajendran (2005); Danielsen et al. (2005), Science: mangroves and the 2004 tsunami in India",
+    "Forest Survey of India, India State of Forest Report (mangrove cover)",
+    "Seedling survival, carbon uptake per hectare and people-at-risk shares are stated model assumptions"
+   ]
+  }
+ ]
+}

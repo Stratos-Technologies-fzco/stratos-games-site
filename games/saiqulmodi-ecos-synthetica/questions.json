@@ -1,0 +1,119 @@
+{
+  "stages": [
+    {
+      "id": "single_cell",
+      "title": "Single Cell",
+      "questions": [
+        {
+          "id": "sc_01",
+          "pillar": "Energy flows",
+          "prompt": "How does the single cell first acquire fuel from its microenvironment?",
+          "options": [
+            "Passive nutrient diffusion across the semi-permeable lipid membrane",
+            "Hunting larger multi-cellular organisms directly",
+            "Absorbing direct thermal heat as kinetic motion",
+            "Extracting electrical current from soil minerals"
+          ],
+          "correctIndex": 0,
+          "explanation": "At the cellular scale, matter and dissolved organic compounds pass across the lipid bilayer via passive diffusion and transporter channels."
+        },
+        {
+          "id": "sc_02",
+          "pillar": "Nature in front",
+          "prompt": "Why does a nearby bacteriophage attach to the cell wall?",
+          "options": [
+            "It is completing its replication cycle to avoid extinction",
+            "It acts out of targeted malice against the cell",
+            "To consume the cell's heat energy entirely",
+            "To convert the cell into non-living mineral matter"
+          ],
+          "correctIndex": 0,
+          "explanation": "Microbes and phages do not act with malice; their structures evolved to propagate genetic material to survive."
+        },
+        {
+          "id": "sc_03",
+          "pillar": "Three ways of knowing",
+          "prompt": "How did early microscopists first confirm the existence of single-celled life?",
+          "options": [
+            "Direct visual observation using ground-glass lens systems",
+            "Ancient philosophical deduction from elemental theories",
+            "Gene sequencing assays",
+            "Chemical stain spectrography"
+          ],
+          "correctIndex": 0,
+          "explanation": "The transition from belief to observation happened when early naturalists like Antonie van Leeuwenhoek observed 'animalcules' under handcrafted lenses."
+        }
+      ]
+    },
+    {
+      "id": "plant_seedling",
+      "title": "Plant Seedling",
+      "questions": [
+        {
+          "id": "ps_01",
+          "pillar": "Energy flows",
+          "prompt": "What primary mechanism allows the seedling to transform solar radiation into usable tissue?",
+          "options": [
+            "Photosynthetic carbon fixation converting sunlight into glucose",
+            "Thermal radiation dissipation through stomata",
+            "Direct mechanical absorption of wind energy",
+            "Root extraction of atmospheric carbon"
+          ],
+          "correctIndex": 0,
+          "explanation": "Solar photon capture via chloroplasts converts inorganic carbon dioxide into chemical energy."
+        },
+        {
+          "id": "ps_02",
+          "pillar": "Nature in front",
+          "prompt": "Why do mycorrhizal fungi colonize the seedling root network?",
+          "options": [
+            "To exchange scavenged soil phosphorus for plant carbohydrates in symbiosis",
+            "To rapidly suffocate and digest the root tissues",
+            "To steal structural lignin for spore shell production",
+            "To block water absorption from competing plants"
+          ],
+          "correctIndex": 0,
+          "explanation": "Fungi partner symbiotically to acquire stable carbon while donating surface-area foraging capacity for phosphorus and nitrogen."
+        }
+      ]
+    },
+    {
+      "id": "honey_bee",
+      "title": "Honey Bee",
+      "questions": [
+        {
+          "id": "hb_01",
+          "pillar": "Energy flows",
+          "prompt": "How does the bee disperse metabolic energy back into the surrounding ecosystem?",
+          "options": [
+            "Through muscular flight heat loss and active pollination cycles",
+            "By sequestering carbohydrates indefinitely inside the hive wax",
+            "By transforming floral nectar into soil minerals",
+            "Through complete cellular hibernation during daylight"
+          ],
+          "correctIndex": 0,
+          "explanation": "Flight metabolism dissipates heat while pollen transfer powers reproduction across plant trophic layers."
+        }
+      ]
+    },
+    {
+      "id": "human",
+      "title": "Human",
+      "questions": [
+        {
+          "id": "hu_01",
+          "pillar": "Three ways of knowing",
+          "prompt": "How did scientific understanding of contagion replace the historical 'miasma' theory?",
+          "options": [
+            "Through germ theory validation and controlled pathogen isolation",
+            "By attributing illness to unaligned bodily humors and foul airs",
+            "By relying on traditional planetary alignment charts",
+            "By assuming microscopic entities spontaneously generate"
+          ],
+          "correctIndex": 0,
+          "explanation": "Rigorous observation, culturing, and microscopic validation proved that specific microbes—not noxious vapors—caused infectious conditions."
+        }
+      ]
+    }
+  ]
+}

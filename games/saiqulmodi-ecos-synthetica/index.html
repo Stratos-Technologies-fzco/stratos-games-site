@@ -289,7 +289,8 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .spark { display: none; } }
 </style>
-<script type="importmap">{ "imports": { "three": "./cdn/three.module.js" } }</script>
+<link rel="stylesheet" href="css/tiers.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head>
 <body>
 <div id="stage"></div>
@@ -302,7 +303,8 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
     <div class="prog"><span><span data-i18n="hud.countered">Countered</span> <b id="progCounters">0/4</b></span><span><span data-i18n="hud.partners">Partners</span> <b id="progAllies">0/1</b></span></div>
     <div class="ep"><span id="epVal">0</span> <span data-i18n="hud.ep">evolution points</span></div>
     <div class="small-btns">
-      <button id="btn-quit" class="mini-btn quit-btn" data-i18n="hud.quit">Quit</button>`n      <button id="btnHelp" class="mini-btn" data-i18n="hud.help">How to play</button>
+      <button id="btn-quit" class="mini-btn quit-btn" data-i18n="hud.quit">Quit</button>
+      <button id="btnHelp" class="mini-btn" data-i18n="hud.help">How to play</button>
       <button id="btnSound" class="mini-btn" aria-pressed="true">Sound on</button>
       <button id="btnLang" class="mini-btn" title="Language">English</button>
     </div>

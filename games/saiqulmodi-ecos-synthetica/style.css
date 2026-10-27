@@ -1,0 +1,14 @@
+
+/* Quit Button Styling */
+.quit-btn {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.quit-btn:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #ffffff;
+  border-color: #ef4444;
+}

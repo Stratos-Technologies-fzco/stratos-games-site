@@ -4,7 +4,9 @@ import { TIERS, COMPONENTS, ORGANISMS, ROLE_LABEL, TROPHIC_LABEL, TRUTHS, organi
 import { RING } from './GameLoop.js';
 import { LANGS, getLang, setLang, t, o, comp, dict, tierT, truthT, whyT } from './i18n.js';
 import { Speech } from './Speech.js';
-import { buildQuiz } from './Quiz.js';
+import { buildQuiz, loadBank } from './Quiz.js';
+import { track, offerReward, rewardUsed } from './app/hooks.js';
+import { tr } from './app/strings.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -504,9 +506,10 @@ export class UI {
   }
 
   // ---------- quiz ----------
-  openQuiz(mode) {
+  async openQuiz(mode) {
     const g = this.game;
-    this.quiz = { mode, qs: buildQuiz(g.scanned, g.tier), i: 0, score: 0, picked: null, done: false };
+    await loadBank(g.tier);
+    this.quiz ={ mode, qs: buildQuiz(g.scanned, g.tier), i: 0, score: 0, picked: null, done: false };
     this.renderQuiz();
     this.open('quiz');
   }
@@ -618,12 +621,15 @@ export class UI {
   }
 
   showOverwhelmed(names) {
+    track('game_over', { tier: 'scientist', form: this.game.tier });
     let who = names.join(t('over.and')) || t('over.attackers');
     who = who.charAt(0).toUpperCase() + who.slice(1);
     this.dialog({
       title: t('over.title'),
       html: `<p class="lead">${esc(t('over.lead', { who }))}</p><p>${esc(t('over.body'))}</p>`,
-      buttons: [{ label: t('over.codex'), onClick: () => { this.game.retry(); this.openCodex(); } }, { label: t('over.retry'), primary: true, onClick: () => this.game.retry() }],
+      buttons: [
+        ...(rewardUsed('form' + this.game.tier) ? [] : [{ label: tr('hk.second'), onClick: () => offerReward(() => this.game.revive(), 'form' + this.game.tier) }]),
+        { label: t('over.codex'), onClick: () => { this.game.retry(); this.openCodex(); } }, { label: t('over.retry'), primary: true, onClick: () => this.game.retry() }],
     });
   }
 

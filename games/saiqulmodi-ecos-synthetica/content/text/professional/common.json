@@ -1,0 +1,211 @@
+{
+ "tracks": [
+  {
+   "id": "health",
+   "icon": "🩺",
+   "ready": true,
+   "title": {
+    "en": "Health / MBBS",
+    "hi": "स्वास्थ्य / MBBS",
+    "bn": "স্বাস্থ্য / MBBS"
+   },
+   "text": {
+    "en": "Outbreaks, air and water: environmental health and community medicine.",
+    "hi": "प्रकोप, हवा और पानी: पर्यावरणीय स्वास्थ्य और सामुदायिक चिकित्सा।",
+    "bn": "প্রাদুর্ভাব, বাতাস আর জল: পরিবেশ-স্বাস্থ্য ও কমিউনিটি মেডিসিন।"
+   }
+  },
+  {
+   "id": "engineering",
+   "icon": "⚙️",
+   "ready": true,
+   "title": {
+    "en": "Engineering",
+    "hi": "इंजीनियरिंग",
+    "bn": "ইঞ্জিনিয়ারিং"
+   },
+   "text": {
+    "en": "Clean power, drains that survive the monsoon, and city waste.",
+    "hi": "स्वच्छ बिजली, मानसून झेलने वाली नालियाँ, और शहर का कचरा।",
+    "bn": "পরিষ্কার বিদ্যুৎ, বর্ষা সামলানো নর্দমা, আর শহরের বর্জ্য।"
+   }
+  },
+  {
+   "id": "agriculture",
+   "icon": "🌾",
+   "ready": true,
+   "title": {
+    "en": "Agriculture",
+    "hi": "कृषि",
+    "bn": "কৃষি"
+   },
+   "text": {
+    "en": "Soil nitrogen and water: more crop with less loss.",
+    "hi": "मिट्टी की नाइट्रोजन और पानी: कम नुकसान में ज़्यादा फसल।",
+    "bn": "মাটির নাইট্রোজেন আর জল: কম ক্ষতিতে বেশি ফসল।"
+   }
+  },
+  {
+   "id": "forestry",
+   "icon": "🌳",
+   "ready": true,
+   "title": {
+    "en": "Forestry & Environmental Science",
+    "hi": "वानिकी और पर्यावरण विज्ञान",
+    "bn": "বনবিদ্যা ও পরিবেশ বিজ্ঞান"
+   },
+   "text": {
+    "en": "Tigers and their prey, and mangroves that guard the coast.",
+    "hi": "बाघ और उनके शिकार, और तट की रक्षा करते मैंग्रोव।",
+    "bn": "বাঘ আর তাদের শিকার, আর উপকূল রক্ষাকারী ম্যানগ্রোভ।"
+   }
+  },
+  {
+   "id": "research",
+   "icon": "🔭",
+   "ready": true,
+   "title": {
+    "en": "Research mode",
+    "hi": "रिसर्च मोड",
+    "bn": "রিসার্চ মোড"
+   },
+   "text": {
+    "en": "Maps, open Indian datasets, model runs and biodiversity indices.",
+    "hi": "नक्शे, खुले भारतीय डेटासेट, मॉडल रन और जैव विविधता सूचकांक।",
+    "bn": "মানচিত্র, খোলা ভারতীয় ডেটাসেট, মডেল রান আর জীববৈচিত্র্য সূচক।"
+   },
+   "screen": true
+  }
+ ],
+ "ui": {
+  "en": {
+   "pro.title": "Eco Professional",
+   "pro.tracks": "Choose your track",
+   "pro.impact": "Impact",
+   "pro.impactLives": "Impact score {n}",
+   "pro.cases": "Cases",
+   "pro.soon": "Coming in the next update",
+   "pro.open": "Open case",
+   "pro.again": "Run again",
+   "pro.back": "Back",
+   "pro.nature": "Nature first",
+   "pro.brief": "Case brief",
+   "pro.data": "Data",
+   "pro.decide": "Your decisions",
+   "pro.budget": "Budget used: {u} of {b}",
+   "pro.over": "Over budget. Drop something.",
+   "pro.run": "Run the model",
+   "pro.outcome": "Outcome",
+   "pro.debrief": "Debrief: what the science says",
+   "pro.sources": "Sources",
+   "pro.report": "Download report",
+   "pro.print": "Open printable report",
+   "pro.ask": "Ask the Research Assistant",
+   "pro.yourPlan": "Your plan",
+   "pro.noAction": "No action",
+   "pro.days": "days",
+   "pro.day": "Day",
+   "pro.metric": "Measure",
+   "pro.planCol": "Your plan",
+   "pro.baseCol": "No action",
+   "pro.score": "Case score {s}%",
+   "pro.stars": "Stars",
+   "pro.done": "Done",
+   "pro.best": "Best {s}%",
+   "pro.notDone": "Not started",
+   "pro.reportTitle": "Case report",
+   "pro.player": "Prepared by",
+   "pro.date": "Date",
+   "pro.choices": "Decisions",
+   "pro.results": "Results",
+   "pro.assistantNote": "From the checked concept notes (offline).",
+   "pro.lang": "Language"
+  },
+  "hi": {
+   "pro.title": "इको प्रोफ़ेशनल",
+   "pro.tracks": "अपना ट्रैक चुनें",
+   "pro.impact": "प्रभाव",
+   "pro.impactLives": "प्रभाव अंक {n}",
+   "pro.cases": "केस",
+   "pro.soon": "अगले अपडेट में आ रहा है",
+   "pro.open": "केस खोलें",
+   "pro.again": "फिर चलाएँ",
+   "pro.back": "वापस",
+   "pro.nature": "पहले प्रकृति",
+   "pro.brief": "केस विवरण",
+   "pro.data": "आँकड़े",
+   "pro.decide": "आपके निर्णय",
+   "pro.budget": "इस्तेमाल बजट: {b} में से {u}",
+   "pro.over": "बजट से ज़्यादा। कुछ हटाएँ।",
+   "pro.run": "मॉडल चलाएँ",
+   "pro.outcome": "परिणाम",
+   "pro.debrief": "समीक्षा: विज्ञान क्या कहता है",
+   "pro.sources": "स्रोत",
+   "pro.report": "रिपोर्ट डाउनलोड करें",
+   "pro.print": "छापने योग्य रिपोर्ट खोलें",
+   "pro.ask": "रिसर्च असिस्टेंट से पूछें",
+   "pro.yourPlan": "आपकी योजना",
+   "pro.noAction": "कोई कदम नहीं",
+   "pro.days": "दिन",
+   "pro.day": "दिन",
+   "pro.metric": "माप",
+   "pro.planCol": "आपकी योजना",
+   "pro.baseCol": "कोई कदम नहीं",
+   "pro.score": "केस अंक {s}%",
+   "pro.stars": "सितारे",
+   "pro.done": "पूरा",
+   "pro.best": "सर्वश्रेष्ठ {s}%",
+   "pro.notDone": "शुरू नहीं",
+   "pro.reportTitle": "केस रिपोर्ट",
+   "pro.player": "तैयार किया",
+   "pro.date": "तारीख़",
+   "pro.choices": "निर्णय",
+   "pro.results": "परिणाम",
+   "pro.assistantNote": "जाँचे गए अवधारणा नोट्स से (ऑफ़लाइन)।",
+   "pro.lang": "भाषा"
+  },
+  "bn": {
+   "pro.title": "ইকো প্রফেশনাল",
+   "pro.tracks": "তোমার ট্র্যাক বাছো",
+   "pro.impact": "প্রভাব",
+   "pro.impactLives": "প্রভাব স্কোর {n}",
+   "pro.cases": "কেস",
+   "pro.soon": "পরের আপডেটে আসছে",
+   "pro.open": "কেস খোলো",
+   "pro.again": "আবার চালাও",
+   "pro.back": "ফিরে যাও",
+   "pro.nature": "আগে প্রকৃতি",
+   "pro.brief": "কেসের বিবরণ",
+   "pro.data": "তথ্য",
+   "pro.decide": "তোমার সিদ্ধান্ত",
+   "pro.budget": "ব্যবহৃত বাজেট: {b}-এর মধ্যে {u}",
+   "pro.over": "বাজেট ছাড়িয়েছে। কিছু বাদ দাও।",
+   "pro.run": "মডেল চালাও",
+   "pro.outcome": "ফলাফল",
+   "pro.debrief": "পর্যালোচনা: বিজ্ঞান কী বলে",
+   "pro.sources": "উৎস",
+   "pro.report": "রিপোর্ট ডাউনলোড করো",
+   "pro.print": "ছাপার উপযোগী রিপোর্ট খোলো",
+   "pro.ask": "রিসার্চ অ্যাসিস্ট্যান্টকে জিজ্ঞাসা করো",
+   "pro.yourPlan": "তোমার পরিকল্পনা",
+   "pro.noAction": "কোনো পদক্ষেপ নয়",
+   "pro.days": "দিন",
+   "pro.day": "দিন",
+   "pro.metric": "মাপ",
+   "pro.planCol": "তোমার পরিকল্পনা",
+   "pro.baseCol": "কোনো পদক্ষেপ নয়",
+   "pro.score": "কেস স্কোর {s}%",
+   "pro.stars": "তারা",
+   "pro.done": "শেষ",
+   "pro.best": "সেরা {s}%",
+   "pro.notDone": "শুরু হয়নি",
+   "pro.reportTitle": "কেস রিপোর্ট",
+   "pro.player": "প্রস্তুতকারী",
+   "pro.date": "তারিখ",
+   "pro.choices": "সিদ্ধান্ত",
+   "pro.results": "ফলাফল",
+   "pro.assistantNote": "যাচাই করা ধারণা-নোট থেকে (অফলাইন)।",
+   "pro.lang": "ভাষা"
+  }
+ }
+}

@@ -1,0 +1,755 @@
+{
+ "ui": {
+  "en": {
+   "dg.chartSick": "People sick with dengue on each day",
+   "dg.chartMos": "Adult Aedes mosquitoes in the ward",
+   "dg.infections": "Infections",
+   "dg.deaths": "Deaths (model)",
+   "dg.peak": "Most people sick on one day",
+   "dg.r0": "R0 at the start",
+   "aq.chart": "AQI each day (CPCB National Air Quality Index)",
+   "aq.poorEdge": "Very Poor from 301",
+   "aq.severeEdge": "Severe from 401",
+   "aq.band": "Category",
+   "aq.mean": "Average AQI",
+   "aq.badDays": "Very Poor or Severe days",
+   "aq.visits": "Respiratory hospital visits avoided (per 100,000, this week)",
+   "aq.good": "Good",
+   "aq.satisfactory": "Satisfactory",
+   "aq.moderate": "Moderate",
+   "aq.poor": "Poor",
+   "aq.veryPoor": "Very Poor",
+   "aq.severe": "Severe",
+   "wq.chart": "Worst reading of each source, as a multiple of its BIS limit",
+   "wq.chartNote": "1× = at the limit. Above 1× the water is not fit to drink. E. coli: any is too many (shown as 2×).",
+   "wq.source": "Source",
+   "wq.people": "People",
+   "wq.problems": "Problems",
+   "wq.treatment": "Your action",
+   "wq.result": "Result",
+   "wq.safe": "Safe to drink",
+   "wq.unsafe": "Still unsafe: {what}",
+   "wq.closed": "Closed; people use another source",
+   "wq.none": "None",
+   "wq.safePeople": "People with safe water",
+   "wq.unsafePeople": "People still drinking unsafe water",
+   "wq.p.ph": "pH",
+   "wq.p.turbidity": "turbidity",
+   "wq.p.tds": "dissolved salts (TDS)",
+   "wq.p.fluoride": "fluoride",
+   "wq.p.nitrate": "nitrate",
+   "wq.p.arsenic": "arsenic",
+   "wq.p.ecoli": "E. coli (faecal germs)",
+   "wq.t.none": "Drink as it is",
+   "wq.t.boil": "Boil",
+   "wq.t.chlorine": "Chlorinate",
+   "wq.t.filterChlorine": "Settle and filter, then chlorinate",
+   "wq.t.defluoride": "Defluoridation unit (activated alumina)",
+   "wq.t.arsenicPlant": "Arsenic removal unit",
+   "wq.t.ro": "Community RO plant",
+   "wq.t.close": "Close it (paint red, use another source)",
+   "wq.s.A": "Deep hand pump (school)",
+   "wq.s.B": "Open well (old village)",
+   "wq.s.C": "Piped tap (panchayat tank)",
+   "wq.s.D": "Shallow hand pump (near fields)",
+   "wq.col.ph": "pH",
+   "wq.col.turbidity": "Turbidity NTU",
+   "wq.col.tds": "TDS mg/L",
+   "wq.col.fluoride": "Fluoride mg/L",
+   "wq.col.nitrate": "Nitrate mg/L",
+   "wq.col.arsenic": "Arsenic mg/L",
+   "wq.col.ecoli": "E. coli /100 mL",
+   "wq.limit": "BIS IS 10500 limit"
+  },
+  "hi": {
+   "dg.chartSick": "हर दिन डेंगू से बीमार लोग",
+   "dg.chartMos": "वार्ड में वयस्क एडीज़ मच्छर",
+   "dg.infections": "संक्रमण",
+   "dg.deaths": "मौतें (मॉडल)",
+   "dg.peak": "एक दिन में सबसे ज़्यादा बीमार",
+   "dg.r0": "शुरुआत में R0",
+   "aq.chart": "हर दिन का AQI (CPCB राष्ट्रीय वायु गुणवत्ता सूचकांक)",
+   "aq.poorEdge": "301 से बहुत खराब",
+   "aq.severeEdge": "401 से गंभीर",
+   "aq.band": "श्रेणी",
+   "aq.mean": "औसत AQI",
+   "aq.badDays": "बहुत खराब या गंभीर दिन",
+   "aq.visits": "टली हुई साँस की अस्पताल यात्राएँ (प्रति 1,00,000, इस हफ़्ते)",
+   "aq.good": "अच्छा",
+   "aq.satisfactory": "संतोषजनक",
+   "aq.moderate": "मध्यम",
+   "aq.poor": "खराब",
+   "aq.veryPoor": "बहुत खराब",
+   "aq.severe": "गंभीर",
+   "wq.chart": "हर स्रोत की सबसे खराब माप, उसकी BIS सीमा के गुणक में",
+   "wq.chartNote": "1× = सीमा पर। 1× से ऊपर पानी पीने योग्य नहीं। ई. कोलाई: थोड़ा भी ज़्यादा है (2× दिखाया गया)।",
+   "wq.source": "स्रोत",
+   "wq.people": "लोग",
+   "wq.problems": "समस्याएँ",
+   "wq.treatment": "आपका कदम",
+   "wq.result": "परिणाम",
+   "wq.safe": "पीने के लिए सुरक्षित",
+   "wq.unsafe": "अब भी असुरक्षित: {what}",
+   "wq.closed": "बंद; लोग दूसरा स्रोत इस्तेमाल करते हैं",
+   "wq.none": "कोई नहीं",
+   "wq.safePeople": "सुरक्षित पानी वाले लोग",
+   "wq.unsafePeople": "अब भी असुरक्षित पानी पीने वाले लोग",
+   "wq.p.ph": "pH",
+   "wq.p.turbidity": "गंदलापन",
+   "wq.p.tds": "घुले लवण (TDS)",
+   "wq.p.fluoride": "फ्लोराइड",
+   "wq.p.nitrate": "नाइट्रेट",
+   "wq.p.arsenic": "आर्सेनिक",
+   "wq.p.ecoli": "ई. कोलाई (मल के कीटाणु)",
+   "wq.t.none": "जैसा है वैसा पिएँ",
+   "wq.t.boil": "उबालें",
+   "wq.t.chlorine": "क्लोरीन डालें",
+   "wq.t.filterChlorine": "बैठाएँ और छानें, फिर क्लोरीन",
+   "wq.t.defluoride": "फ्लोराइड हटाने की इकाई (सक्रिय एल्युमिना)",
+   "wq.t.arsenicPlant": "आर्सेनिक हटाने की इकाई",
+   "wq.t.ro": "सामुदायिक RO संयंत्र",
+   "wq.t.close": "बंद करें (लाल रंग, दूसरा स्रोत)",
+   "wq.s.A": "गहरा हैंडपंप (स्कूल)",
+   "wq.s.B": "खुला कुआँ (पुराना गाँव)",
+   "wq.s.C": "नल (पंचायत टंकी)",
+   "wq.s.D": "उथला हैंडपंप (खेतों के पास)",
+   "wq.col.ph": "pH",
+   "wq.col.turbidity": "गंदलापन NTU",
+   "wq.col.tds": "TDS mg/L",
+   "wq.col.fluoride": "फ्लोराइड mg/L",
+   "wq.col.nitrate": "नाइट्रेट mg/L",
+   "wq.col.arsenic": "आर्सेनिक mg/L",
+   "wq.col.ecoli": "ई. कोलाई /100 mL",
+   "wq.limit": "BIS IS 10500 सीमा"
+  },
+  "bn": {
+   "dg.chartSick": "প্রতিদিন ডেঙ্গিতে অসুস্থ মানুষ",
+   "dg.chartMos": "ওয়ার্ডে প্রাপ্তবয়স্ক এডিস মশা",
+   "dg.infections": "সংক্রমণ",
+   "dg.deaths": "মৃত্যু (মডেল)",
+   "dg.peak": "এক দিনে সবচেয়ে বেশি অসুস্থ",
+   "dg.r0": "শুরুতে R0",
+   "aq.chart": "প্রতিদিনের AQI (CPCB জাতীয় বায়ুমান সূচক)",
+   "aq.poorEdge": "৩০১ থেকে খুব খারাপ",
+   "aq.severeEdge": "৪০১ থেকে গুরুতর",
+   "aq.band": "শ্রেণি",
+   "aq.mean": "গড় AQI",
+   "aq.badDays": "খুব খারাপ বা গুরুতর দিন",
+   "aq.visits": "এড়ানো শ্বাসকষ্টের হাসপাতাল-যাত্রা (প্রতি ১,০০,০০০, এই সপ্তাহে)",
+   "aq.good": "ভালো",
+   "aq.satisfactory": "সন্তোষজনক",
+   "aq.moderate": "মাঝারি",
+   "aq.poor": "খারাপ",
+   "aq.veryPoor": "খুব খারাপ",
+   "aq.severe": "গুরুতর",
+   "wq.chart": "প্রতিটি উৎসের সবচেয়ে খারাপ মাপ, তার BIS সীমার গুণিতকে",
+   "wq.chartNote": "1× = সীমায়। 1×-এর ওপরে জল পানের অযোগ্য। ই. কোলাই: সামান্যও বেশি (2× দেখানো)।",
+   "wq.source": "উৎস",
+   "wq.people": "মানুষ",
+   "wq.problems": "সমস্যা",
+   "wq.treatment": "তোমার পদক্ষেপ",
+   "wq.result": "ফল",
+   "wq.safe": "পানের জন্য নিরাপদ",
+   "wq.unsafe": "এখনও অনিরাপদ: {what}",
+   "wq.closed": "বন্ধ; মানুষ অন্য উৎস ব্যবহার করে",
+   "wq.none": "নেই",
+   "wq.safePeople": "নিরাপদ জল পাওয়া মানুষ",
+   "wq.unsafePeople": "এখনও অনিরাপদ জল খাওয়া মানুষ",
+   "wq.p.ph": "pH",
+   "wq.p.turbidity": "ঘোলাটে ভাব",
+   "wq.p.tds": "দ্রবীভূত লবণ (TDS)",
+   "wq.p.fluoride": "ফ্লোরাইড",
+   "wq.p.nitrate": "নাইট্রেট",
+   "wq.p.arsenic": "আর্সেনিক",
+   "wq.p.ecoli": "ই. কোলাই (মলের জীবাণু)",
+   "wq.t.none": "যেমন আছে খাও",
+   "wq.t.boil": "ফোটাও",
+   "wq.t.chlorine": "ক্লোরিন দাও",
+   "wq.t.filterChlorine": "থিতিয়ে ছাঁকো, তারপর ক্লোরিন",
+   "wq.t.defluoride": "ফ্লোরাইড সরানোর ইউনিট (সক্রিয় অ্যালুমিনা)",
+   "wq.t.arsenicPlant": "আর্সেনিক সরানোর ইউনিট",
+   "wq.t.ro": "সমষ্টিগত RO প্ল্যান্ট",
+   "wq.t.close": "বন্ধ করো (লাল রং, অন্য উৎস)",
+   "wq.s.A": "গভীর নলকূপ (স্কুল)",
+   "wq.s.B": "খোলা কুয়ো (পুরোনো গ্রাম)",
+   "wq.s.C": "কল (পঞ্চায়েত ট্যাঙ্ক)",
+   "wq.s.D": "অগভীর নলকূপ (খেতের কাছে)",
+   "wq.col.ph": "pH",
+   "wq.col.turbidity": "ঘোলাটে NTU",
+   "wq.col.tds": "TDS mg/L",
+   "wq.col.fluoride": "ফ্লোরাইড mg/L",
+   "wq.col.nitrate": "নাইট্রেট mg/L",
+   "wq.col.arsenic": "আর্সেনিক mg/L",
+   "wq.col.ecoli": "ই. কোলাই /100 mL",
+   "wq.limit": "BIS IS 10500 সীমা"
+  }
+ },
+ "cases": [
+  {
+   "id": "dengue",
+   "track": "health",
+   "model": "dengue",
+   "budget": 12,
+   "concepts": [
+    "immunity",
+    "population_growth"
+   ],
+   "title": {
+    "en": "Dengue outbreak in a city ward",
+    "hi": "शहर के एक वार्ड में डेंगू का प्रकोप",
+    "bn": "শহরের এক ওয়ার্ডে ডেঙ্গির প্রাদুর্ভাব"
+   },
+   "nature": {
+    "en": "Aedes aegypti first. The female needs one blood meal to make her eggs; the male only drinks nectar. She lays eggs just above the water line in clean, still water: coolers, tyres, pots, tank lids. The eggs can wait dry for months and hatch with the first rain. She bites by day and rests indoors in dark corners. To her, a crowded city in the monsoon is the perfect home.",
+    "hi": "पहले एडीज़ एजिप्टी। मादा को अंडे बनाने के लिए एक बार खून चाहिए; नर केवल मकरंद पीता है। वह साफ़, रुके पानी में पानी की सतह के ठीक ऊपर अंडे देती है: कूलर, टायर, गमले, टंकी के ढक्कन। अंडे महीनों सूखे रहकर पहली बारिश में फूट जाते हैं। वह दिन में काटती है और घर के अंदर अँधेरे कोनों में आराम करती है। उसके लिए मानसून का भीड़ भरा शहर एकदम सही घर है।",
+    "bn": "আগে এডিস ইজিপ্টাই। স্ত্রী মশার ডিম তৈরির জন্য একবার রক্ত লাগে; পুরুষ শুধু ফুলের রস খায়। সে পরিষ্কার, স্থির জলে জলের ঠিক ওপরে ডিম পাড়ে: কুলার, টায়ার, টব, ট্যাঙ্কের ঢাকনা। ডিম মাসের পর মাস শুকনো থেকে প্রথম বৃষ্টিতে ফোটে। সে দিনে কামড়ায় আর ঘরের ভেতরে অন্ধকার কোণে বিশ্রাম নেয়। তার কাছে বর্ষার ভিড়ভরা শহর একদম ঠিকঠাক বাসা।"
+   },
+   "brief": {
+    "en": "You are the ward's public health officer. 20,000 people live here. Five dengue cases were confirmed this week, and the monsoon has just begun. Your budget allows 12 points of action. Plan the response: the model runs it for 210 days. The goal is to keep Aedes away from people, not to wipe out a species.",
+    "hi": "आप वार्ड के जन स्वास्थ्य अधिकारी हैं। यहाँ 20,000 लोग रहते हैं। इस हफ़्ते डेंगू के पाँच मामले पक्के हुए, और मानसून अभी शुरू हुआ है। आपका बजट 12 अंकों के कदमों की अनुमति देता है। जवाबी योजना बनाएँ: मॉडल इसे 210 दिन चलाता है। लक्ष्य एडीज़ को लोगों से दूर रखना है, किसी प्रजाति को मिटाना नहीं।",
+    "bn": "তুমি ওয়ার্ডের জনস্বাস্থ্য আধিকারিক। এখানে ২০,০০০ মানুষ থাকে। এই সপ্তাহে ডেঙ্গির পাঁচটি ঘটনা নিশ্চিত হয়েছে, আর বর্ষা সবে শুরু। তোমার বাজেটে ১২ পয়েন্টের পদক্ষেপ সম্ভব। প্রতিক্রিয়ার পরিকল্পনা করো: মডেল এটি ২১০ দিন চালায়। লক্ষ্য এডিসকে মানুষের থেকে দূরে রাখা, কোনো প্রজাতি মুছে ফেলা নয়।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Population",
+      "hi": "जनसंख्या",
+      "bn": "জনসংখ্যা"
+     },
+     "value": "20,000"
+    },
+    {
+     "label": {
+      "en": "Confirmed cases (week 1)",
+      "hi": "पक्के मामले (हफ़्ता 1)",
+      "bn": "নিশ্চিত ঘটনা (সপ্তাহ ১)"
+     },
+     "value": "5"
+    },
+    {
+     "label": {
+      "en": "Female Aedes per person (from larval surveys)",
+      "hi": "प्रति व्यक्ति मादा एडीज़ (लार्वा सर्वेक्षण से)",
+      "bn": "মাথাপিছু স্ত্রী এডিস (লার্ভা সমীক্ষা থেকে)"
+     },
+     "value": "2"
+    },
+    {
+     "label": {
+      "en": "Human incubation / infectious period",
+      "hi": "मानव ऊष्मायन / संक्रामक अवधि",
+      "bn": "মানুষের সুপ্তিকাল / সংক্রামক সময়"
+     },
+     "value": {
+      "en": "5.5 / 5 days",
+      "hi": "5.5 / 5 दिन",
+      "bn": "৫.৫ / ৫ দিন"
+     }
+    },
+    {
+     "label": {
+      "en": "Virus development inside the mosquito",
+      "hi": "मच्छर के अंदर वायरस का विकास",
+      "bn": "মশার ভেতরে ভাইরাসের বিকাশ"
+     },
+     "value": {
+      "en": "10 days",
+      "hi": "10 दिन",
+      "bn": "১০ দিন"
+     }
+    },
+    {
+     "label": {
+      "en": "Adult mosquito life",
+      "hi": "वयस्क मच्छर का जीवन",
+      "bn": "প্রাপ্তবয়স্ক মশার আয়ু"
+     },
+     "value": {
+      "en": "14 days",
+      "hi": "14 दिन",
+      "bn": "১৪ দিন"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "source",
+     "q": {
+      "en": "Breeding sites",
+      "hi": "प्रजनन स्थल",
+      "bn": "প্রজননস্থল"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Nothing extra",
+        "hi": "कुछ अतिरिक्त नहीं",
+        "bn": "বাড়তি কিছু নয়"
+       }
+      },
+      {
+       "id": "dry",
+       "cost": 3,
+       "effect": 0.4,
+       "label": {
+        "en": "Weekly 'dry day': empty coolers, pots and tyres (3)",
+        "hi": "साप्ताहिक 'सूखा दिवस': कूलर, गमले, टायर खाली (3)",
+        "bn": "সাপ্তাহিক 'শুকনো দিন': কুলার, টব, টায়ার খালি (৩)"
+       }
+      },
+      {
+       "id": "dryfish",
+       "cost": 5,
+       "effect": 0.55,
+       "label": {
+        "en": "Dry day + lids on tanks + guppy fish in big tanks (5)",
+        "hi": "सूखा दिवस + टंकियों पर ढक्कन + बड़ी टंकियों में गप्पी मछली (5)",
+        "bn": "শুকনো দিন + ট্যাঙ্কে ঢাকনা + বড় ট্যাঙ্কে গাপ্পি মাছ (৫)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "fog",
+     "q": {
+      "en": "Adult mosquitoes",
+      "hi": "वयस्क मच्छर",
+      "bn": "প্রাপ্তবয়স্ক মশা"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No fogging",
+        "hi": "फॉगिंग नहीं",
+        "bn": "ফগিং নয়"
+       }
+      },
+      {
+       "id": "fog",
+       "cost": 3,
+       "effect": 1,
+       "label": {
+        "en": "Fogging in the streets for two weeks (3)",
+        "hi": "दो हफ़्ते गलियों में फॉगिंग (3)",
+        "bn": "দুই সপ্তাহ রাস্তায় ফগিং (৩)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "protect",
+     "q": {
+      "en": "Protecting people from bites",
+      "hi": "लोगों को काटने से बचाना",
+      "bn": "কামড় থেকে মানুষকে বাঁচানো"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Nothing extra",
+        "hi": "कुछ अतिरिक्त नहीं",
+        "bn": "বাড়তি কিছু নয়"
+       }
+      },
+      {
+       "id": "rep",
+       "cost": 2,
+       "effect": 0.2,
+       "label": {
+        "en": "Repellent and full sleeves campaign (2)",
+        "hi": "मच्छर-रोधी और पूरी बाँह अभियान (2)",
+        "bn": "মশা-তাড়ানো আর পুরো হাতা অভিযান (২)"
+       }
+      },
+      {
+       "id": "screens",
+       "cost": 4,
+       "effect": 0.35,
+       "label": {
+        "en": "Campaign + window screens + nets for day sleepers and patients (4)",
+        "hi": "अभियान + खिड़की जाली + दिन में सोने वालों व मरीज़ों के लिए मच्छरदानी (4)",
+        "bn": "অভিযান + জানালায় জাল + দিনে ঘুমানো ও রোগীদের মশারি (৪)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "care",
+     "q": {
+      "en": "Care for the sick",
+      "hi": "बीमारों की देखभाल",
+      "bn": "অসুস্থদের যত্ন"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Usual clinics",
+        "hi": "सामान्य क्लिनिक",
+        "bn": "সাধারণ ক্লিনিক"
+       }
+      },
+      {
+       "id": "camps",
+       "cost": 3,
+       "effect": 1,
+       "label": {
+        "en": "Fever camps, NS1 tests, fluid and platelet monitoring (3)",
+        "hi": "बुखार शिविर, NS1 जाँच, तरल व प्लेटलेट निगरानी (3)",
+        "bn": "জ্বর শিবির, NS1 পরীক্ষা, তরল ও প্লেটলেট নজরদারি (৩)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Source reduction works best because it lowers how many new mosquitoes are born, every week. Fogging kills flying adults for a few days, misses mosquitoes resting indoors, and harms other insects, so the NCVBDC treats it as an emergency tool, not the main one. Bite protection cuts the bites twice in the cycle (person to mosquito and back), so it counts double in R0. Early care does not stop spread, but it is what saves lives: with good fluid management, severe dengue deaths fall below 1%.",
+    "hi": "स्रोत में कमी सबसे अच्छा काम करती है क्योंकि यह हर हफ़्ते नए पैदा होने वाले मच्छर घटाती है। फॉगिंग कुछ दिन उड़ते वयस्कों को मारती है, घर के अंदर आराम करते मच्छरों तक नहीं पहुँचती, और दूसरे कीटों को नुकसान पहुँचाती है, इसलिए NCVBDC इसे आपात साधन मानता है, मुख्य नहीं। काटने से बचाव चक्र में दो बार काटने को घटाता है (व्यक्ति से मच्छर और वापस), इसलिए R0 में दोगुना असर करता है। जल्दी देखभाल फैलाव नहीं रोकती, पर जान यही बचाती है: अच्छे तरल प्रबंधन से गंभीर डेंगू की मौतें 1% से नीचे आती हैं।",
+    "bn": "উৎস হ্রাস সবচেয়ে ভালো কাজ করে কারণ এটি প্রতি সপ্তাহে নতুন জন্মানো মশা কমায়। ফগিং কয়েক দিন উড়ন্ত মশা মারে, ঘরের ভেতরে বিশ্রাম নেওয়া মশা পর্যন্ত পৌঁছায় না, আর অন্য পতঙ্গের ক্ষতি করে, তাই NCVBDC এটিকে জরুরি হাতিয়ার মনে করে, প্রধান নয়। কামড় থেকে সুরক্ষা চক্রে দুবার কামড় কমায় (মানুষ থেকে মশা আর ফেরত), তাই R0-তে দ্বিগুণ প্রভাব ফেলে। দ্রুত চিকিৎসা ছড়ানো থামায় না, কিন্তু প্রাণ বাঁচায় এটাই: ভালো তরল ব্যবস্থাপনায় গুরুতর ডেঙ্গিতে মৃত্যু ১%-এর নিচে নামে।"
+   },
+   "sources": [
+    "NCVBDC (National Center for Vector Borne Diseases Control), National Guidelines for Clinical Management of Dengue and dengue control",
+    "WHO (2009) Dengue: guidelines for diagnosis, treatment, prevention and control",
+    "Ross-Macdonald vector model; model severity and fatality shares are stated assumptions"
+   ]
+  },
+  {
+   "id": "aqi",
+   "track": "health",
+   "model": "aqi",
+   "budget": 10,
+   "concepts": [
+    "climate_change",
+    "respiration"
+   ],
+   "title": {
+    "en": "A winter week of bad air",
+    "hi": "खराब हवा का एक सर्दियों वाला हफ़्ता",
+    "bn": "খারাপ বাতাসের এক শীতের সপ্তাহ"
+   },
+   "nature": {
+    "en": "The air first. Lichens on old walls and tree bark are living air meters: they take water and minerals straight from the air, so in dirty air they fade away. Neem and peepal leaves trap dust on their surfaces, and rain washes it down. In winter, cold air near the ground sits under warmer air (an inversion) like a lid, and smoke and dust cannot rise.",
+    "hi": "पहले हवा। पुरानी दीवारों और पेड़ों की छाल पर लाइकेन जीवित वायु-मापक हैं: वे पानी और खनिज सीधे हवा से लेते हैं, इसलिए गंदी हवा में गायब हो जाते हैं। नीम और पीपल की पत्तियाँ धूल पकड़ती हैं, और बारिश उसे धो देती है। सर्दी में ज़मीन के पास ठंडी हवा गर्म हवा के नीचे ढक्कन की तरह बैठ जाती है (व्युत्क्रमण), और धुआँ व धूल ऊपर नहीं उठ पाते।",
+    "bn": "আগে বাতাস। পুরোনো দেয়াল আর গাছের ছালে লাইকেন জীবন্ত বায়ু-মাপক: তারা জল আর খনিজ সরাসরি বাতাস থেকে নেয়, তাই নোংরা বাতাসে মিলিয়ে যায়। নিম আর অশ্বত্থের পাতা ধুলো আটকায়, আর বৃষ্টি তা ধুয়ে দেয়। শীতে মাটির কাছে ঠান্ডা বাতাস গরম বাতাসের নিচে ঢাকনার মতো বসে থাকে (উৎক্রমণ), তাই ধোঁয়া আর ধুলো ওপরে উঠতে পারে না।"
+   },
+   "brief": {
+    "en": "You advise the city's health department during a winter week when a forecast shows the AQI climbing into Severe. You have 10 points of action. Choose which sources to cut and whether to issue health advice. The model applies CPCB AQI breakpoints to each day.",
+    "hi": "आप सर्दी के उस हफ़्ते में शहर के स्वास्थ्य विभाग के सलाहकार हैं जब पूर्वानुमान AQI को गंभीर तक जाता दिखाता है। आपके पास 10 अंकों के कदम हैं। चुनें कि कौन से स्रोत घटाने हैं और स्वास्थ्य सलाह जारी करनी है या नहीं। मॉडल हर दिन पर CPCB AQI सीमाएँ लगाता है।",
+    "bn": "শীতের এক সপ্তাহে যখন পূর্বাভাসে AQI গুরুতর পর্যন্ত উঠছে, তুমি শহরের স্বাস্থ্য দপ্তরের উপদেষ্টা। তোমার ১০ পয়েন্টের পদক্ষেপ আছে। বেছে নাও কোন উৎস কমাবে আর স্বাস্থ্য পরামর্শ দেবে কি না। মডেল প্রতিদিনে CPCB AQI সীমা প্রয়োগ করে।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Forecast PM2.5, days 1-7 (µg/m³)",
+      "hi": "पूर्वानुमान PM2.5, दिन 1-7 (µg/m³)",
+      "bn": "পূর্বাভাস PM2.5, দিন ১-৭ (µg/m³)"
+     },
+     "value": "142, 188, 236, 291, 318, 262, 205"
+    },
+    {
+     "label": {
+      "en": "Forecast PM10, days 1-7 (µg/m³)",
+      "hi": "पूर्वानुमान PM10, दिन 1-7 (µg/m³)",
+      "bn": "পূর্বাভাস PM10, দিন ১-৭ (µg/m³)"
+     },
+     "value": "262, 318, 372, 446, 478, 410, 336"
+    },
+    {
+     "label": {
+      "en": "India 24-hour standard (NAAQS) PM2.5 / PM10",
+      "hi": "भारत 24-घंटे मानक (NAAQS) PM2.5 / PM10",
+      "bn": "ভারতের ২৪-ঘণ্টা মান (NAAQS) PM2.5 / PM10"
+     },
+     "value": "60 / 100 µg/m³"
+    },
+    {
+     "label": {
+      "en": "WHO 2021 guideline, 24-hour PM2.5",
+      "hi": "WHO 2021 दिशानिर्देश, 24-घंटे PM2.5",
+      "bn": "WHO ২০২১ নির্দেশিকা, ২৪-ঘণ্টা PM2.5"
+     },
+     "value": "15 µg/m³"
+    },
+    {
+     "label": {
+      "en": "Note",
+      "hi": "टिप्पणी",
+      "bn": "টীকা"
+     },
+     "value": {
+      "en": "Illustrative week typical of a north Indian winter, not a measured record",
+      "hi": "उत्तर भारतीय सर्दी जैसा उदाहरण हफ़्ता, मापा हुआ रिकॉर्ड नहीं",
+      "bn": "উত্তর ভারতের শীতের মতো উদাহরণ সপ্তাহ, মাপা রেকর্ড নয়"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "dust",
+     "q": {
+      "en": "Construction and road dust",
+      "hi": "निर्माण और सड़क की धूल",
+      "bn": "নির্মাণ আর রাস্তার ধুলো"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 3,
+       "effect": 1,
+       "label": {
+        "en": "Stop dusty construction, water and machine-sweep roads (3)",
+        "hi": "धूल भरा निर्माण रोकें, सड़कों पर पानी व मशीन से सफ़ाई (3)",
+        "bn": "ধুলোময় নির্মাণ বন্ধ, রাস্তায় জল ও যন্ত্রে ঝাড়ু (৩)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "burning",
+     "q": {
+      "en": "Stubble and waste burning",
+      "hi": "पराली और कचरा जलाना",
+      "bn": "নাড়া আর বর্জ্য পোড়ানো"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 4,
+       "effect": 1,
+       "label": {
+        "en": "Free residue collection and bio-decomposer; waste-burning patrols (4)",
+        "hi": "मुफ़्त पराली संग्रह और बायो-डीकंपोज़र; कचरा जलाने पर गश्त (4)",
+        "bn": "বিনামূল্যে নাড়া সংগ্রহ আর বায়ো-ডিকম্পোজার; বর্জ্য পোড়ানোয় টহল (৪)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "traffic",
+     "q": {
+      "en": "Traffic",
+      "hi": "यातायात",
+      "bn": "যানবাহন"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 1,
+       "label": {
+        "en": "Divert trucks, more buses and metro trips (2)",
+        "hi": "ट्रक मोड़ें, ज़्यादा बसें और मेट्रो (2)",
+        "bn": "ট্রাক ঘোরানো, বেশি বাস আর মেট্রো (২)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "industry",
+     "q": {
+      "en": "Industry",
+      "hi": "उद्योग",
+      "bn": "শিল্প"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 3,
+       "effect": 1,
+       "label": {
+        "en": "Pause brick kilns and coal-fired units for the week (3)",
+        "hi": "हफ़्ते भर ईंट भट्ठे और कोयला इकाइयाँ बंद (3)",
+        "bn": "সপ্তাহ ধরে ইটভাটা আর কয়লাচালিত ইউনিট বন্ধ (৩)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "advice",
+     "q": {
+      "en": "Health advice",
+      "hi": "स्वास्थ्य सलाह",
+      "bn": "স্বাস্থ্য পরামর্শ"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "None",
+        "hi": "नहीं",
+        "bn": "নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 1,
+       "effect": 1,
+       "label": {
+        "en": "Alerts: children, elderly and asthma patients stay in, N95 masks outdoors (1)",
+        "hi": "चेतावनी: बच्चे, बुज़ुर्ग, दमा रोगी घर में रहें, बाहर N95 मास्क (1)",
+        "bn": "সতর্কতা: শিশু, বয়স্ক, হাঁপানি রোগী ঘরে থাকুক, বাইরে N95 মাস্ক (১)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "PM2.5 (fine particles from burning) goes deep into the lungs and blood; PM10 (coarser dust) mostly reaches the airways. The AQI is the worst sub-index of the day, so cutting only dust helps less when PM2.5 is the problem. Graded action plans (such as Delhi's GRAP) switch on stricter steps as the AQI crosses each band. Health advice does not clean the air, but it protects the people most at risk, cheaply and at once.",
+    "hi": "PM2.5 (जलने से बने महीन कण) फेफड़ों और खून में गहराई तक जाते हैं; PM10 (मोटी धूल) ज़्यादातर श्वास नलियों तक पहुँचती है। AQI दिन का सबसे खराब उप-सूचकांक है, इसलिए जब समस्या PM2.5 हो तो केवल धूल घटाने से कम मदद मिलती है। श्रेणीबद्ध कार्य योजनाएँ (जैसे दिल्ली का GRAP) हर श्रेणी पार होने पर सख़्त कदम लागू करती हैं। स्वास्थ्य सलाह हवा साफ़ नहीं करती, पर सबसे ज़्यादा जोखिम वाले लोगों को सस्ते में और तुरंत बचाती है।",
+    "bn": "PM2.5 (দহন থেকে তৈরি সূক্ষ্ম কণা) ফুসফুস আর রক্তে গভীরে যায়; PM10 (মোটা ধুলো) বেশিরভাগ শ্বাসনালী পর্যন্ত পৌঁছায়। AQI দিনের সবচেয়ে খারাপ উপ-সূচক, তাই সমস্যা PM2.5 হলে শুধু ধুলো কমালে কম সাহায্য হয়। ধাপে ধাপে কর্মপরিকল্পনা (যেমন দিল্লির GRAP) প্রতিটি শ্রেণি পেরোলে কড়া পদক্ষেপ চালু করে। স্বাস্থ্য পরামর্শ বাতাস পরিষ্কার করে না, কিন্তু সবচেয়ে ঝুঁকিতে থাকা মানুষকে সস্তায় আর তখনই বাঁচায়।"
+   },
+   "sources": [
+    "CPCB National Air Quality Index (2014): breakpoints for PM2.5 and PM10",
+    "CPCB National Ambient Air Quality Standards (2009)",
+    "WHO Global Air Quality Guidelines (2021)",
+    "Source shares and the 0.8% per 10 µg/m³ hospital-visit rise are stated model assumptions"
+   ]
+  },
+  {
+   "id": "water",
+   "track": "health",
+   "model": "water",
+   "concepts": [
+    "decomposition"
+   ],
+   "title": {
+    "en": "Is this village's water safe?",
+    "hi": "क्या इस गाँव का पानी सुरक्षित है?",
+    "bn": "এই গ্রামের জল কি নিরাপদ?"
+   },
+   "nature": {
+    "en": "Water first. Groundwater picks up what the rocks hold: fluoride from granite and other rocks in much of peninsular and western India, and arsenic from young river sediments in the Ganga-Brahmaputra plains. E. coli lives harmlessly in our gut; in water it is a warning that sewage has got in. Nitrate comes from fertiliser and latrines, soaking down from the surface.",
+    "hi": "पहले पानी। भूजल वही उठाता है जो चट्टानों में है: प्रायद्वीपीय और पश्चिमी भारत के बड़े हिस्से में ग्रेनाइट व अन्य चट्टानों से फ्लोराइड, और गंगा-ब्रह्मपुत्र मैदानों की नई नदी तलछट से आर्सेनिक। ई. कोलाई हमारी आँत में बिना नुकसान रहता है; पानी में यह चेतावनी है कि मल-जल घुस गया है। नाइट्रेट खाद और शौचालयों से सतह से नीचे रिसता है।",
+    "bn": "আগে জল। ভূগর্ভের জল পাথরে যা আছে তা-ই তুলে আনে: উপদ্বীপীয় ও পশ্চিম ভারতের বড় অংশে গ্রানাইট ও অন্য পাথর থেকে ফ্লোরাইড, আর গঙ্গা-ব্রহ্মপুত্র সমভূমির নবীন নদী-পলি থেকে আর্সেনিক। ই. কোলাই আমাদের অন্ত্রে নিরীহভাবে থাকে; জলে এটি সতর্কবার্তা যে নর্দমার জল ঢুকেছে। নাইট্রেট আসে সার আর শৌচাগার থেকে, ওপর থেকে চুঁইয়ে।"
+   },
+   "brief": {
+    "en": "You lead the block water-quality team. A field test kit and the district lab sent results for the four drinking water sources of a village of 1,200 people. Compare each one with BIS IS 10500:2012 and choose one action per source.",
+    "hi": "आप प्रखंड जल-गुणवत्ता दल के प्रमुख हैं। फ़ील्ड टेस्ट किट और ज़िला प्रयोगशाला ने 1,200 लोगों के गाँव के चार पेयजल स्रोतों के परिणाम भेजे हैं। हर एक की तुलना BIS IS 10500:2012 से करें और हर स्रोत के लिए एक कदम चुनें।",
+    "bn": "তুমি ব্লকের জলমান দলের প্রধান। ফিল্ড টেস্ট কিট আর জেলা ল্যাব ১,২০০ মানুষের এক গ্রামের চারটি পানীয় জলের উৎসের ফল পাঠিয়েছে। প্রতিটিকে BIS IS 10500:2012-এর সঙ্গে মেলাও আর প্রতিটি উৎসের জন্য একটি পদক্ষেপ বাছো।"
+   },
+   "sources": [
+    "BIS IS 10500:2012 Drinking Water Specification (acceptable and permissible limits)",
+    "Jal Jeevan Mission water quality testing protocol (field test kits and district labs)",
+    "Treatment effects (boiling, chlorination, activated alumina, arsenic adsorption, RO) as in CPHEEO Manual on Water Supply and Treatment"
+   ],
+   "decisionOptions": [
+    "none",
+    "boil",
+    "chlorine",
+    "filterChlorine",
+    "defluoride",
+    "arsenicPlant",
+    "ro",
+    "close"
+   ],
+   "debrief": {
+    "en": "Match the treatment to the problem. Boiling and chlorine kill germs but leave fluoride, arsenic and nitrate; boiling even concentrates them. Chlorine needs clear water, so turbid water is settled and filtered first. Fluoride above 1.5 mg/L causes dental and skeletal fluorosis over years; arsenic above 0.01 mg/L causes skin lesions and cancers; nitrate above 45 mg/L is dangerous for infants (blue baby syndrome). For chemical problems, a safe alternative source is often cheaper than treatment, but people need it close by.",
+    "hi": "समस्या के अनुसार उपचार चुनें। उबालना और क्लोरीन कीटाणु मारते हैं पर फ्लोराइड, आर्सेनिक और नाइट्रेट छोड़ देते हैं; उबालना तो उन्हें और सघन करता है। क्लोरीन को साफ़ पानी चाहिए, इसलिए गंदला पानी पहले बैठाकर छाना जाता है। 1.5 mg/L से ऊपर फ्लोराइड वर्षों में दाँतों और हड्डियों का फ्लोरोसिस करता है; 0.01 mg/L से ऊपर आर्सेनिक त्वचा के घाव और कैंसर; 45 mg/L से ऊपर नाइट्रेट शिशुओं के लिए खतरनाक है (ब्लू बेबी सिंड्रोम)। रासायनिक समस्याओं में सुरक्षित वैकल्पिक स्रोत अक्सर उपचार से सस्ता होता है, पर वह लोगों के पास होना चाहिए।",
+    "bn": "সমস্যা অনুযায়ী চিকিৎসা বাছো। ফোটানো আর ক্লোরিন জীবাণু মারে কিন্তু ফ্লোরাইড, আর্সেনিক আর নাইট্রেট রেখে দেয়; ফোটালে বরং সেগুলো ঘন হয়। ক্লোরিনের জন্য পরিষ্কার জল লাগে, তাই ঘোলা জল আগে থিতিয়ে ছাঁকা হয়। ১.৫ mg/L-এর বেশি ফ্লোরাইড বছরের পর বছরে দাঁত ও হাড়ের ফ্লুরোসিস ঘটায়; ০.০১ mg/L-এর বেশি আর্সেনিক ত্বকের ক্ষত আর ক্যানসার; ৪৫ mg/L-এর বেশি নাইট্রেট শিশুদের জন্য বিপজ্জনক (ব্লু বেবি সিনড্রোম)। রাসায়নিক সমস্যায় নিরাপদ বিকল্প উৎস প্রায়ই চিকিৎসার চেয়ে সস্তা, তবে তা মানুষের কাছাকাছি হতে হবে।"
+   },
+   "waterSources": [
+    {
+     "id": "A",
+     "name": "wq.s.A",
+     "people": 450,
+     "ph": 7.4,
+     "turbidity": 0.8,
+     "tds": 640,
+     "fluoride": 2.4,
+     "nitrate": 18,
+     "arsenic": 0.004,
+     "ecoli": 0
+    },
+    {
+     "id": "B",
+     "name": "wq.s.B",
+     "people": 300,
+     "ph": 7.1,
+     "turbidity": 9,
+     "tds": 420,
+     "fluoride": 0.7,
+     "nitrate": 30,
+     "arsenic": 0.002,
+     "ecoli": 60
+    },
+    {
+     "id": "C",
+     "name": "wq.s.C",
+     "people": 350,
+     "ph": 7.6,
+     "turbidity": 0.5,
+     "tds": 350,
+     "fluoride": 0.5,
+     "nitrate": 12,
+     "arsenic": 0.003,
+     "ecoli": 0
+    },
+    {
+     "id": "D",
+     "name": "wq.s.D",
+     "people": 100,
+     "ph": 7.0,
+     "turbidity": 1.2,
+     "tds": 900,
+     "fluoride": 0.8,
+     "nitrate": 78,
+     "arsenic": 0.02,
+     "ecoli": 0
+    }
+   ]
+  }
+ ]
+}

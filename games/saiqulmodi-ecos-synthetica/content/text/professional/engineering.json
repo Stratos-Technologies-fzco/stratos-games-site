@@ -1,0 +1,516 @@
+{
+ "ui": {
+  "en": {
+   "en.demand": "Electricity used",
+   "en.solar": "Rooftop solar made",
+   "en.grid": "Still from the grid",
+   "en.chartMWh": "Electricity in one year (MWh)",
+   "en.netZero": "Share of the year's electricity from the ward's own solar",
+   "en.co2": "CO2 avoided per year",
+   "en.peak": "Evening peak drawn from the grid",
+   "dr.r2": "2-year storm",
+   "dr.r5": "5-year storm",
+   "dr.r10": "10-year storm",
+   "dr.capacity": "Drain capacity",
+   "dr.chart": "Peak runoff for each design storm vs what the drains carry",
+   "dr.note": "Q = C·i·A/360 (rational method). Green = the drains cope; red = the colony floods.",
+   "dr.C": "Runoff coefficient C",
+   "dr.handled": "Design storms handled",
+   "dr.recharge": "Rain soaking into the ground each year"
+  },
+  "hi": {
+   "en.demand": "इस्तेमाल बिजली",
+   "en.solar": "छत पर सौर ने बनाई",
+   "en.grid": "अब भी ग्रिड से",
+   "en.chartMWh": "एक साल में बिजली (MWh)",
+   "en.netZero": "साल की बिजली में वार्ड के अपने सौर का हिस्सा",
+   "en.co2": "हर साल बची CO2",
+   "en.peak": "ग्रिड से शाम का शिखर",
+   "dr.r2": "2-वर्षीय तूफ़ान",
+   "dr.r5": "5-वर्षीय तूफ़ान",
+   "dr.r10": "10-वर्षीय तूफ़ान",
+   "dr.capacity": "नाली की क्षमता",
+   "dr.chart": "हर डिज़ाइन तूफ़ान का शिखर अपवाह बनाम नालियों की क्षमता",
+   "dr.note": "Q = C·i·A/360 (रैशनल विधि)। हरा = नालियाँ संभाल लेती हैं; लाल = कॉलोनी में पानी भरता है।",
+   "dr.C": "अपवाह गुणांक C",
+   "dr.handled": "संभाले गए डिज़ाइन तूफ़ान",
+   "dr.recharge": "हर साल ज़मीन में रिसने वाली बारिश"
+  },
+  "bn": {
+   "en.demand": "ব্যবহৃত বিদ্যুৎ",
+   "en.solar": "ছাদের সৌর বানিয়েছে",
+   "en.grid": "এখনও গ্রিড থেকে",
+   "en.chartMWh": "এক বছরে বিদ্যুৎ (MWh)",
+   "en.netZero": "বছরের বিদ্যুতে ওয়ার্ডের নিজের সৌরের অংশ",
+   "en.co2": "প্রতি বছর এড়ানো CO2",
+   "en.peak": "গ্রিড থেকে সন্ধ্যার সর্বোচ্চ চাহিদা",
+   "dr.r2": "২-বছরের ঝড়বৃষ্টি",
+   "dr.r5": "৫-বছরের ঝড়বৃষ্টি",
+   "dr.r10": "১০-বছরের ঝড়বৃষ্টি",
+   "dr.capacity": "নর্দমার ক্ষমতা",
+   "dr.chart": "প্রতিটি নকশা-ঝড়ের সর্বোচ্চ জলপ্রবাহ বনাম নর্দমার ক্ষমতা",
+   "dr.note": "Q = C·i·A/360 (র‍্যাশনাল পদ্ধতি)। সবুজ = নর্দমা সামলায়; লাল = পাড়ায় জল জমে।",
+   "dr.C": "জলপ্রবাহ গুণাঙ্ক C",
+   "dr.handled": "সামলানো নকশা-ঝড়",
+   "dr.recharge": "প্রতি বছর মাটিতে ঢোকা বৃষ্টি"
+  }
+ },
+ "cases": [
+  {
+   "id": "solar",
+   "track": "engineering",
+   "model": "solar",
+   "budget": 12,
+   "concepts": [
+    "climate_change",
+    "carbon_cycle"
+   ],
+   "title": {
+    "en": "A net-zero electricity ward",
+    "hi": "नेट-ज़ीरो बिजली वाला वार्ड",
+    "bn": "নেট-জিরো বিদ্যুতের ওয়ার্ড"
+   },
+   "nature": {
+    "en": "The sun first. Every leaf in the ward already runs on sunlight, catching a few per cent of it. A solar cell catches about 20% and turns it into electricity with no smoke. The coal it replaces is sunlight too, stored by plants 300 million years ago and released as CO2 in a moment.",
+    "hi": "पहले सूरज। वार्ड की हर पत्ती पहले से धूप पर चलती है, उसका कुछ प्रतिशत पकड़कर। सौर सेल लगभग 20% पकड़ता है और बिना धुएँ के बिजली बनाता है। जिस कोयले की जगह यह लेता है वह भी धूप ही है, जिसे पौधों ने 30 करोड़ साल पहले जमा किया और जो पल भर में CO2 बनकर निकलता है।",
+    "bn": "আগে সূর্য। ওয়ার্ডের প্রতিটি পাতা আগে থেকেই রোদে চলে, তার কয়েক শতাংশ ধরে। সৌর কোষ প্রায় ২০% ধরে আর ধোঁয়া ছাড়াই বিদ্যুৎ বানায়। যে কয়লার জায়গা এটি নেয় সেটাও রোদ, যা গাছ ৩০ কোটি বছর আগে জমিয়েছিল আর মুহূর্তে CO2 হয়ে বেরিয়ে যায়।"
+   },
+   "brief": {
+    "en": "You are the ward's electrical engineer. 2,000 homes use about 150 units (kWh) a month each, all from a coal-heavy grid. The council gives you 12 points to spend. Aim for net zero over the year with rooftop solar and net metering, and lower the evening peak that strains the local transformer.",
+    "hi": "आप वार्ड के विद्युत इंजीनियर हैं। 2,000 घर हर महीने लगभग 150 यूनिट (kWh) बिजली लेते हैं, सब कोयले-भारी ग्रिड से। परिषद आपको खर्च के लिए 12 अंक देती है। छत पर सौर और नेट मीटरिंग से साल भर में नेट ज़ीरो का लक्ष्य रखें, और शाम का वह शिखर घटाएँ जो स्थानीय ट्रांसफ़ॉर्मर पर भारी पड़ता है।",
+    "bn": "তুমি ওয়ার্ডের বিদ্যুৎ ইঞ্জিনিয়ার। ২,০০০ বাড়ি মাসে প্রায় ১৫০ ইউনিট (kWh) করে বিদ্যুৎ নেয়, সবই কয়লানির্ভর গ্রিড থেকে। পরিষদ তোমাকে খরচের জন্য ১২ পয়েন্ট দেয়। ছাদের সৌর আর নেট মিটারিং দিয়ে বছরে নেট জিরোর লক্ষ্য রাখো, আর সন্ধ্যার সেই সর্বোচ্চ চাহিদা কমাও যা স্থানীয় ট্রান্সফর্মারে চাপ দেয়।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Homes / use per home",
+      "hi": "घर / प्रति घर उपयोग",
+      "bn": "বাড়ি / বাড়িপিছু ব্যবহার"
+     },
+     "value": {
+      "en": "2,000 / 150 kWh per month",
+      "hi": "2,000 / 150 kWh प्रति माह",
+      "bn": "২,০০০ / মাসে ১৫০ kWh"
+     }
+    },
+    {
+     "label": {
+      "en": "Rooftop solar yield in India",
+      "hi": "भारत में छत सौर उत्पादन",
+      "bn": "ভারতে ছাদ-সৌরের উৎপাদন"
+     },
+     "value": {
+      "en": "about 1,500 kWh per kWp per year (4-4.5 units/kW/day)",
+      "hi": "लगभग 1,500 kWh प्रति kWp प्रति वर्ष (4-4.5 यूनिट/kW/दिन)",
+      "bn": "বছরে kWp প্রতি প্রায় ১,৫০০ kWh (৪-৪.৫ ইউনিট/kW/দিন)"
+     }
+    },
+    {
+     "label": {
+      "en": "Grid emission factor",
+      "hi": "ग्रिड उत्सर्जन कारक",
+      "bn": "গ্রিড নিঃসরণ গুণক"
+     },
+     "value": {
+      "en": "about 0.71 t CO2 per MWh",
+      "hi": "लगभग 0.71 टन CO2 प्रति MWh",
+      "bn": "MWh প্রতি প্রায় ০.৭১ টন CO2"
+     }
+    },
+    {
+     "label": {
+      "en": "Evening peak today",
+      "hi": "आज शाम का शिखर",
+      "bn": "আজ সন্ধ্যার সর্বোচ্চ"
+     },
+     "value": "1.6 MW"
+    }
+   ],
+   "decisions": [
+    {
+     "id": "solar",
+     "q": {
+      "en": "Rooftop solar",
+      "hi": "छत पर सौर",
+      "bn": "ছাদে সৌর"
+     },
+     "options": [
+      {
+       "id": "s0",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "None",
+        "hi": "नहीं",
+        "bn": "নয়"
+       }
+      },
+      {
+       "id": "s1",
+       "cost": 3,
+       "effect": 1,
+       "label": {
+        "en": "1 MW on schools and the market (3)",
+        "hi": "स्कूलों और बाज़ार पर 1 MW (3)",
+        "bn": "স্কুল আর বাজারে ১ MW (৩)"
+       }
+      },
+      {
+       "id": "s2",
+       "cost": 6,
+       "effect": 2,
+       "label": {
+        "en": "2 MW: also homes with good roofs (6)",
+        "hi": "2 MW: अच्छी छत वाले घर भी (6)",
+        "bn": "২ MW: ভালো ছাদের বাড়িও (৬)"
+       }
+      },
+      {
+       "id": "s3",
+       "cost": 9,
+       "effect": 3,
+       "label": {
+        "en": "3 MW: every usable roof (9)",
+        "hi": "3 MW: हर उपयोगी छत (9)",
+        "bn": "৩ MW: প্রতিটি ব্যবহারযোগ্য ছাদ (৯)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "eff",
+     "q": {
+      "en": "Efficiency",
+      "hi": "दक्षता",
+      "bn": "দক্ষতা"
+     },
+     "options": [
+      {
+       "id": "e0",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "e1",
+       "cost": 1,
+       "effect": 0.08,
+       "label": {
+        "en": "LED bulbs and street lights (1)",
+        "hi": "LED बल्ब और सड़क की बत्तियाँ (1)",
+        "bn": "LED বাল্ব আর রাস্তার আলো (১)"
+       }
+      },
+      {
+       "id": "e2",
+       "cost": 4,
+       "effect": 0.2,
+       "label": {
+        "en": "LEDs + BLDC fans + 5-star (BEE) fridges and ACs (4)",
+        "hi": "LED + BLDC पंखे + 5-स्टार (BEE) फ़्रिज और AC (4)",
+        "bn": "LED + BLDC পাখা + ৫-তারা (BEE) ফ্রিজ আর AC (৪)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "battery",
+     "q": {
+      "en": "Battery storage",
+      "hi": "बैटरी भंडारण",
+      "bn": "ব্যাটারি সঞ্চয়"
+     },
+     "options": [
+      {
+       "id": "b0",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "None",
+        "hi": "नहीं",
+        "bn": "নয়"
+       }
+      },
+      {
+       "id": "b1",
+       "cost": 2,
+       "effect": 1,
+       "label": {
+        "en": "1 MWh community battery (2)",
+        "hi": "1 MWh सामुदायिक बैटरी (2)",
+        "bn": "১ MWh সমষ্টিগত ব্যাটারি (২)"
+       }
+      },
+      {
+       "id": "b2",
+       "cost": 4,
+       "effect": 2,
+       "label": {
+        "en": "2 MWh community battery (4)",
+        "hi": "2 MWh सामुदायिक बैटरी (4)",
+        "bn": "২ MWh সমষ্টিগত ব্যাটারি (৪)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "The cheapest unit is the one you never use: efficiency shrinks the target that solar has to meet, so 2 MW of solar plus efficient appliances reaches net zero, while solar alone needs a third more panels. Net zero over a year does not remove the evening peak, because the sun sets before demand peaks; storage moves midday solar into the evening. PM Surya Ghar (2024) subsidises home rooftop solar for exactly this.",
+    "hi": "सबसे सस्ती यूनिट वह है जो कभी इस्तेमाल न हो: दक्षता उस लक्ष्य को छोटा करती है जिसे सौर को पूरा करना है, इसलिए 2 MW सौर और कुशल उपकरण नेट ज़ीरो तक पहुँचते हैं, जबकि अकेले सौर को एक-तिहाई ज़्यादा पैनल चाहिए। साल भर का नेट ज़ीरो शाम का शिखर नहीं हटाता, क्योंकि माँग के शिखर से पहले सूरज ढल जाता है; भंडारण दोपहर की सौर बिजली को शाम तक ले जाता है। पीएम सूर्य घर (2024) इसी के लिए घरों की छत सौर पर सब्सिडी देता है।",
+    "bn": "সবচেয়ে সস্তা ইউনিট সেটাই যা কখনও খরচ হয় না: দক্ষতা সেই লক্ষ্য ছোট করে যা সৌরকে পূরণ করতে হবে, তাই ২ MW সৌর আর দক্ষ যন্ত্রে নেট জিরো হয়, অথচ শুধু সৌরে এক-তৃতীয়াংশ বেশি প্যানেল লাগে। বছরের নেট জিরো সন্ধ্যার সর্বোচ্চ চাহিদা সরায় না, কারণ চাহিদা চূড়ায় ওঠার আগেই সূর্য ডোবে; সঞ্চয় দুপুরের সৌরবিদ্যুৎ সন্ধ্যায় নিয়ে যায়। পিএম সূর্য ঘর (২০২৪) ঠিক এর জন্যই বাড়ির ছাদ-সৌরে ভর্তুকি দেয়।"
+   },
+   "sources": [
+    "CEA CO2 Baseline Database for the Indian Power Sector (grid emission factor)",
+    "MNRE rooftop solar guidance (about 4-4.5 kWh per kWp per day); PM Surya Ghar Muft Bijli Yojana (2024)",
+    "BEE Standards & Labelling programme (star-rated appliances)",
+    "Demand cuts, evening share and battery use are stated model assumptions"
+   ]
+  },
+  {
+   "id": "drain",
+   "track": "engineering",
+   "model": "drain",
+   "budget": 10,
+   "concepts": [
+    "climate_change"
+   ],
+   "title": {
+    "en": "Drains that survive the monsoon",
+    "hi": "मानसून झेलने वाली नालियाँ",
+    "bn": "বর্ষা সামলানো নর্দমা"
+   },
+   "nature": {
+    "en": "Rain first. On a forest floor most rain soaks in: leaf litter, roots and earthworm tunnels hold it and feed wells and streams for months. On roofs and roads almost all of it runs off at once. A city floods when it has sealed the ground that used to drink the rain.",
+    "hi": "पहले बारिश। जंगल की ज़मीन पर ज़्यादातर बारिश रिस जाती है: पत्तियों की परत, जड़ें और केंचुओं की सुरंगें इसे थामती हैं और महीनों तक कुओं व नालों को भरती हैं। छतों और सड़कों पर लगभग सारी बारिश एक साथ बह जाती है। शहर तब डूबता है जब उसने वह ज़मीन ढक दी जो बारिश पीती थी।",
+    "bn": "আগে বৃষ্টি। বনের মাটিতে বেশিরভাগ বৃষ্টি ঢুকে যায়: পাতার স্তর, শিকড় আর কেঁচোর সুড়ঙ্গ তা ধরে রাখে আর মাসের পর মাস কুয়ো ও নালা ভরায়। ছাদ আর রাস্তায় প্রায় সবটাই একসঙ্গে বয়ে যায়। শহর ডোবে যখন সে সেই মাটি ঢেকে ফেলে যা বৃষ্টি পান করত।"
+   },
+   "brief": {
+    "en": "You are the municipal engineer for a 40-hectare colony that floods every monsoon. Its old drain carries 3 m³/s. Using the rational method, plan for the 2-, 5- and 10-year design storms with 10 points: bigger drains, a greener catchment, or both.",
+    "hi": "आप 40 हेक्टेयर की उस कॉलोनी के नगर अभियंता हैं जो हर मानसून में डूबती है। उसकी पुरानी नाली 3 m³/s ले जाती है। रैशनल विधि से 2, 5 और 10-वर्षीय डिज़ाइन तूफ़ानों के लिए 10 अंकों में योजना बनाएँ: बड़ी नालियाँ, हरा जलग्रहण, या दोनों।",
+    "bn": "তুমি ৪০ হেক্টরের সেই পাড়ার পৌর ইঞ্জিনিয়ার যা প্রতি বর্ষায় ডোবে। তার পুরোনো নর্দমা ৩ m³/s বয়ে নেয়। র‍্যাশনাল পদ্ধতিতে ২, ৫ আর ১০-বছরের নকশা-ঝড়ের জন্য ১০ পয়েন্টে পরিকল্পনা করো: বড় নর্দমা, সবুজ জলগ্রহণ এলাকা, বা দুটোই।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Catchment area A",
+      "hi": "जलग्रहण क्षेत्र A",
+      "bn": "জলগ্রহণ এলাকা A"
+     },
+     "value": "40 ha"
+    },
+    {
+     "label": {
+      "en": "Runoff coefficient C (roofs, roads)",
+      "hi": "अपवाह गुणांक C (छतें, सड़कें)",
+      "bn": "জলপ্রবাহ গুণাঙ্ক C (ছাদ, রাস্তা)"
+     },
+     "value": "0.80"
+    },
+    {
+     "label": {
+      "en": "Design rainfall intensity: 2 / 5 / 10-year storm",
+      "hi": "डिज़ाइन वर्षा तीव्रता: 2 / 5 / 10-वर्षीय",
+      "bn": "নকশা বৃষ্টির তীব্রতা: ২ / ৫ / ১০-বছরের"
+     },
+     "value": {
+      "en": "60 / 80 / 95 mm/h (illustrative IDF values)",
+      "hi": "60 / 80 / 95 मिमी/घंटा (उदाहरण IDF मान)",
+      "bn": "৬০ / ৮০ / ৯৫ মিমি/ঘণ্টা (উদাহরণ IDF মান)"
+     }
+    },
+    {
+     "label": {
+      "en": "Existing drain capacity",
+      "hi": "मौजूदा नाली क्षमता",
+      "bn": "বর্তমান নর্দমার ক্ষমতা"
+     },
+     "value": "3.0 m³/s"
+    },
+    {
+     "label": {
+      "en": "Peak runoff today, 2-year storm",
+      "hi": "आज का शिखर अपवाह, 2-वर्षीय",
+      "bn": "আজকের সর্বোচ্চ জলপ্রবাহ, ২-বছরের"
+     },
+     "value": "Q = 0.8 × 60 × 40 / 360 = 5.3 m³/s"
+    }
+   ],
+   "decisions": [
+    {
+     "id": "drain",
+     "q": {
+      "en": "Drains",
+      "hi": "नालियाँ",
+      "bn": "নর্দমা"
+     },
+     "options": [
+      {
+       "id": "d0",
+       "cost": 0,
+       "effect": 3.0,
+       "label": {
+        "en": "Keep the old drain (3.0 m³/s)",
+        "hi": "पुरानी नाली रखें (3.0 m³/s)",
+        "bn": "পুরোনো নর্দমা রাখো (৩.০ m³/s)"
+       }
+      },
+      {
+       "id": "d1",
+       "cost": 4,
+       "effect": 4.5,
+       "label": {
+        "en": "Widen and line it (4.5 m³/s) (4)",
+        "hi": "चौड़ा और पक्का करें (4.5 m³/s) (4)",
+        "bn": "চওড়া আর বাঁধানো (৪.৫ m³/s) (৪)"
+       }
+      },
+      {
+       "id": "d2",
+       "cost": 7,
+       "effect": 6.5,
+       "label": {
+        "en": "Widen + a parallel drain (6.5 m³/s) (7)",
+        "hi": "चौड़ा + समानांतर नाली (6.5 m³/s) (7)",
+        "bn": "চওড়া + সমান্তরাল নর্দমা (৬.৫ m³/s) (৭)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "permeable",
+     "q": {
+      "en": "Lanes and parking",
+      "hi": "गलियाँ और पार्किंग",
+      "bn": "গলি আর পার্কিং"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Concrete as now",
+        "hi": "अभी जैसा कंक्रीट",
+        "bn": "এখনকার মতো কংক্রিট"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 0.08,
+       "label": {
+        "en": "Permeable paving (C -0.08) (2)",
+        "hi": "पारगम्य फ़र्श (C -0.08) (2)",
+        "bn": "জল-ঢোকা পেভিং (C -০.০৮) (২)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "garden",
+     "q": {
+      "en": "Parks and verges",
+      "hi": "पार्क और किनारे",
+      "bn": "পার্ক আর রাস্তার ধার"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 3,
+       "effect": 0.06,
+       "label": {
+        "en": "Rain gardens and recharge pits (C -0.06) (3)",
+        "hi": "वर्षा उद्यान और रिचार्ज गड्ढे (C -0.06) (3)",
+        "bn": "বৃষ্টি-বাগান আর রিচার্জ গর্ত (C -০.০৬) (৩)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "rwh",
+     "q": {
+      "en": "Roofs",
+      "hi": "छतें",
+      "bn": "ছাদ"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "No change",
+        "hi": "कोई बदलाव नहीं",
+        "bn": "কোনো বদল নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 2,
+       "effect": 0.05,
+       "label": {
+        "en": "Rooftop rainwater harvesting (C -0.05) (2)",
+        "hi": "छत पर वर्षा जल संचयन (C -0.05) (2)",
+        "bn": "ছাদে বৃষ্টির জল সংরক্ষণ (C -০.০৫) (২)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "desilt",
+     "q": {
+      "en": "Before the monsoon",
+      "hi": "मानसून से पहले",
+      "bn": "বর্ষার আগে"
+     },
+     "options": [
+      {
+       "id": "no",
+       "cost": 0,
+       "effect": 0,
+       "label": {
+        "en": "Nothing",
+        "hi": "कुछ नहीं",
+        "bn": "কিছু নয়"
+       }
+      },
+      {
+       "id": "yes",
+       "cost": 1,
+       "effect": 1,
+       "label": {
+        "en": "Desilt and clear plastic from drains (+15%) (1)",
+        "hi": "नालियों से गाद और प्लास्टिक हटाएँ (+15%) (1)",
+        "bn": "নর্দমা থেকে পলি আর প্লাস্টিক সাফ (+১৫%) (১)"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Runoff grows with C, so every hectare that lets rain soak in cuts the peak a drain must carry, and recharges groundwater too. Concrete-only plans need very large drains and still waste the rain; green-only plans are not enough for the 10-year storm here. The CPHEEO Manual on Storm Water Drainage Systems (2019) asks cities to combine both, and to keep drains clear: a drain blocked by plastic floods at a fraction of its design flow.",
+    "hi": "अपवाह C के साथ बढ़ता है, इसलिए हर हेक्टेयर जो बारिश को रिसने देता है, नाली के शिखर भार को घटाता है और भूजल भी भरता है। केवल कंक्रीट वाली योजनाओं को बहुत बड़ी नालियाँ चाहिए और वे फिर भी बारिश बर्बाद करती हैं; केवल हरित योजनाएँ यहाँ 10-वर्षीय तूफ़ान के लिए काफ़ी नहीं। CPHEEO की वर्षा जल निकासी नियमावली (2019) शहरों से दोनों को जोड़ने और नालियाँ साफ़ रखने को कहती है: प्लास्टिक से भरी नाली अपनी डिज़ाइन क्षमता के छोटे हिस्से पर ही उफन जाती है।",
+    "bn": "জলপ্রবাহ C-এর সঙ্গে বাড়ে, তাই প্রতিটি হেক্টর যা বৃষ্টি ঢুকতে দেয় তা নর্দমার সর্বোচ্চ ভার কমায় আর ভূগর্ভের জলও ভরায়। শুধু কংক্রিটের পরিকল্পনায় খুব বড় নর্দমা লাগে আর তবুও বৃষ্টি নষ্ট হয়; শুধু সবুজ পরিকল্পনা এখানে ১০-বছরের ঝড়ের জন্য যথেষ্ট নয়। CPHEEO-র ঝড়জল নিষ্কাশন ম্যানুয়াল (২০১৯) শহরগুলিকে দুটো মেলাতে আর নর্দমা সাফ রাখতে বলে: প্লাস্টিকে আটকানো নর্দমা নকশা-প্রবাহের সামান্য অংশেই উপচে পড়ে।"
+   },
+   "sources": [
+    "CPHEEO Manual on Storm Water Drainage Systems (2019), rational method Q = CiA/360",
+    "CGWB guidance on rooftop rainwater harvesting and artificial recharge",
+    "Storm intensities, runoff cuts and desilting gain are stated model assumptions"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ecos-Synthetica Teacher</title>
+<style>
+:root { --bg: #f4f6f3; --card: #fff; --fg: #1d2a2e; --mut: #5d6f6c; --line: #d9e0dc; --acc: #1f7a86; --good: #3f8f2f; --bad: #c2415d; --star: #b7791f; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0f1d21; --card: #15292e; --fg: #e8f1ed; --mut: #9cb6b0; --line: rgba(166,214,206,.2); --acc: #5fc4d0; --good: #84c96b; --bad: #e46b86; --star: #e8a33d; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 "Segoe UI", "Noto Sans", "Noto Sans Devanagari", "Noto Sans Bengali", system-ui, sans-serif; }
+header { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
+header h1 { margin: 0 auto 0 0; font-size: 20px; }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+h2 { font-size: 17px; margin: 0 0 8px; }
+p { margin: 0 0 8px; }
+.muted { color: var(--mut); font-size: 13.5px; }
+button, select, input, textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-height: 38px; }
+button { cursor: pointer; font-weight: 600; }
+button.primary { background: var(--acc); color: #fff; border-color: transparent; }
+textarea { width: 100%; min-height: 70px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; }
+.drop.over { border-color: var(--acc); }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.stat { border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.stat b { display: block; font-size: 22px; }
+.bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; background: var(--good); }
+.wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--card); }
+.s { color: var(--star); letter-spacing: -1px; }
+.bad { color: var(--bad); }
+.code { font: 700 22px ui-monospace, Consolas, monospace; letter-spacing: 3px; color: var(--acc); }
+</style>
+</head>
+<body>
+<header><h1 id="tTitle">Ecos-Synthetica: class progress</h1><select id="lang" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="bn">বাংলা</option></select></header>
+<main>
+  <section>
+    <h2 data-t="add">Add report cards</h2>
+    <p class="muted" data-t="addLead">Students tap "Share with teacher" in the game and send you the file, or show the QR code. Nothing is uploaded: everything stays in this browser.</p>
+    <div class="drop" id="drop"><p data-t="drop">Drop report files here</p><input type="file" id="files" accept=".json,application/json" multiple></div>
+    <p class="muted" data-t="paste">Or paste the text from scanned QR codes (one per line):</p>
+    <textarea id="pasteBox"></textarea>
+    <div class="row"><button class="primary" id="pasteAdd" data-t="pasteAdd">Add pasted text</button><button id="clear" data-t="clear">Clear all</button></div>
+    <p id="msg" class="muted"></p>
+  </section>
+  <section>
+    <h2 data-t="class">Class</h2>
+    <div class="row"><label><span data-t="filter">Class code</span> <input id="filter" maxlength="12" placeholder="7B-GREEN"></label>
+      <label><span data-t="goal">Class goal: trees</span> <input id="goal" type="number" min="1" value="500" style="width:110px"></label>
+      <button id="csv" data-t="csv">Download CSV</button></div>
+    <div class="stats" id="stats"></div>
+  </section>
+  <section>
+    <h2 data-t="table">Students</h2>
+    <div class="wrap"><table id="table"></table></div>
+  </section>
+  <section>
+    <h2 data-t="unlock">Unlock a level for the class</h2>
+    <p class="muted" data-t="unlockLead">Students enter this code under "Teacher code" with the same class code.</p>
+    <div class="row"><input id="ucClass" maxlength="12" placeholder="7B-GREEN"><select id="ucTier"><option value="scientist">Eco Scientist</option><option value="professional">Eco Professional</option></select><button class="primary" id="ucMake" data-t="make">Make code</button><span class="code" id="ucOut"></span></div>
+  </section>
+</main>
+<script type="module">
+import { readReport, classTable, toCSV, unlockCode, EXPLORER } from './js/teacher/report.js';
+
+const T = {
+  en: { title: 'Ecos-Synthetica: class progress', add: 'Add report cards', addLead: 'Students tap "Share with teacher" in the game and send you the file, or show the QR code. Nothing is uploaded: everything stays in this browser.', drop: 'Drop report files here', paste: 'Or paste the text from scanned QR codes (one per line):', pasteAdd: 'Add pasted text', clear: 'Clear all', class: 'Class', filter: 'Class code', goal: 'Class goal: trees', csv: 'Download CSV', table: 'Students', unlock: 'Unlock a level for the class', unlockLead: 'Students enter this code under "Teacher code" with the same class code.', make: 'Make code',
+    added: '{n} report(s) added.', rejected: '{n} rejected (not a report, or changed by hand).', students: 'Students', trees: 'Trees planted', goalOf: '{t} of {g} trees', explorerDone: 'Finished Explorer', impact: 'Impact score', none: 'No reports yet.',
+    name: 'Name', cls: 'Class', date: 'Date', sci: 'Scientist', pro: 'Professional', badges: 'Badges', done: 'done', form: 'form {f}', needClass: 'Enter a class code.',
+    m: { plants: 'Plants', animals: 'Animals', water: 'Water', foodchain: 'Food chain', pollution: 'Pollution', biodiversity: 'Biodiversity', climate: 'Climate' } },
+  hi: { title: 'इको-सिंथेटिका: कक्षा की प्रगति', add: 'रिपोर्ट कार्ड जोड़ें', addLead: 'छात्र खेल में "शिक्षक को भेजें" दबाकर आपको फ़ाइल भेजते हैं, या QR कोड दिखाते हैं। कुछ भी अपलोड नहीं होता: सब इसी ब्राउज़र में रहता है।', drop: 'रिपोर्ट फ़ाइलें यहाँ छोड़ें', paste: 'या स्कैन किए QR कोड का पाठ चिपकाएँ (हर पंक्ति में एक):', pasteAdd: 'चिपकाया पाठ जोड़ें', clear: 'सब हटाएँ', class: 'कक्षा', filter: 'कक्षा कोड', goal: 'कक्षा लक्ष्य: पेड़', csv: 'CSV डाउनलोड करें', table: 'छात्र', unlock: 'कक्षा के लिए स्तर खोलें', unlockLead: 'छात्र यही कोड "शिक्षक कोड" में उसी कक्षा कोड के साथ लिखते हैं।', make: 'कोड बनाएँ',
+    added: '{n} रिपोर्ट जोड़ी गईं।', rejected: '{n} अस्वीकार (रिपोर्ट नहीं, या हाथ से बदली गई)।', students: 'छात्र', trees: 'लगाए पेड़', goalOf: '{g} में से {t} पेड़', explorerDone: 'एक्सप्लोरर पूरा', impact: 'प्रभाव अंक', none: 'अभी कोई रिपोर्ट नहीं।',
+    name: 'नाम', cls: 'कक्षा', date: 'तारीख़', sci: 'साइंटिस्ट', pro: 'प्रोफ़ेशनल', badges: 'बैज', done: 'पूरा', form: 'रूप {f}', needClass: 'कक्षा कोड लिखें।',
+    m: { plants: 'पौधे', animals: 'जानवर', water: 'पानी', foodchain: 'खाद्य श्रृंखला', pollution: 'प्रदूषण', biodiversity: 'जैव विविधता', climate: 'जलवायु' } },
+  bn: { title: 'ইকো-সিন্থেটিকা: ক্লাসের অগ্রগতি', add: 'রিপোর্ট কার্ড যোগ করো', addLead: 'ছাত্রছাত্রীরা খেলায় "শিক্ষককে পাঠাও" চেপে তোমাকে ফাইল পাঠায়, বা QR কোড দেখায়। কিছুই আপলোড হয় না: সব এই ব্রাউজারেই থাকে।', drop: 'রিপোর্ট ফাইল এখানে ছাড়ো', paste: 'অথবা স্ক্যান করা QR কোডের লেখা পেস্ট করো (প্রতি লাইনে একটি):', pasteAdd: 'পেস্ট করা লেখা যোগ করো', clear: 'সব মুছে ফেলো', class: 'ক্লাস', filter: 'ক্লাস কোড', goal: 'ক্লাসের লক্ষ্য: গাছ', csv: 'CSV ডাউনলোড করো', table: 'ছাত্রছাত্রী', unlock: 'ক্লাসের জন্য স্তর খোলো', unlockLead: 'ছাত্রছাত্রীরা এই কোড "শিক্ষকের কোড"-এ একই ক্লাস কোড দিয়ে লেখে।', make: 'কোড বানাও',
+    added: '{n}টি রিপোর্ট যোগ হয়েছে।', rejected: '{n}টি বাতিল (রিপোর্ট নয়, বা হাতে বদলানো)।', students: 'ছাত্রছাত্রী', trees: 'লাগানো গাছ', goalOf: '{g}টির মধ্যে {t}টি গাছ', explorerDone: 'এক্সপ্লোরার শেষ', impact: 'প্রভাব স্কোর', none: 'এখনও কোনো রিপোর্ট নেই।',
+    name: 'নাম', cls: 'ক্লাস', date: 'তারিখ', sci: 'সায়েন্টিস্ট', pro: 'প্রফেশনাল', badges: 'ব্যাজ', done: 'শেষ', form: 'রূপ {f}', needClass: 'ক্লাস কোড লেখো।',
+    m: { plants: 'উদ্ভিদ', animals: 'প্রাণী', water: 'জল', foodchain: 'খাদ্যশৃঙ্খল', pollution: 'দূষণ', biodiversity: 'জীববৈচিত্র্য', climate: 'জলবায়ু' } },
+};
+const KEY = 'ecos-teacher-reports';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const $ = (id) => document.getElementById(id);
+let lang = 'en';
+try { lang = localStorage.getItem('ecos-lang') || 'en'; } catch (e) { /* ignore */ }
+if (!T[lang]) lang = 'en';
+const t = (k, v = {}) => String(T[lang][k] ?? T.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+let reports = [];
+try { reports = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { reports = []; }
+const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(reports)); } catch (e) { /* memory only */ } };
+
+async function addTexts(texts) {
+  let ok = 0, bad = 0;
+  for (const text of texts) {
+    if (!String(text).trim()) continue;
+    const r = await readReport(text);
+    if (r.ok) { reports.push(r.report); ok++; } else bad++;
+  }
+  keep();
+  $('msg').textContent = [ok ? t('added', { n: ok }) : '', bad ? t('rejected', { n: bad }) : ''].filter(Boolean).join(' ');
+  render();
+  return { ok, bad };
+}
+
+async function addFiles(list) {
+  const texts = await Promise.all([...list].map((f) => f.text()));
+  return addTexts(texts);
+}
+
+const stars = (n) => (n > 0 ? `<span class="s">${'★'.repeat(n)}</span>` : n === 0 ? '·' : '');
+
+function render() {
+  document.documentElement.lang = lang;
+  document.title = t('title');
+  $('tTitle').textContent = t('title');
+  document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = t(el.dataset.t); });
+  const table = classTable(reports, $('filter').value.trim());
+  const goal = Math.max(1, Number($('goal').value) || 1);
+  const tot = table.totals;
+  $('stats').innerHTML = `<div class="stat">${esc(t('students'))}<b>${tot.students}</b></div>
+    <div class="stat">${esc(t('trees'))}<b>${tot.trees}</b><span class="muted">${esc(t('goalOf', { t: tot.trees, g: goal }))}</span><div class="bar"><i style="width:${Math.min(100, (tot.trees / goal) * 100)}%"></i></div></div>
+    <div class="stat">${esc(t('explorerDone'))}<b>${tot.explorerDone}</b></div>
+    <div class="stat">${esc(t('impact'))}<b>${tot.impact}</b></div>`;
+  if (!table.rows.length) { $('table').innerHTML = `<tr><td>${esc(t('none'))}</td></tr>`; return; }
+  $('table').innerHTML = `<thead><tr><th>${esc(t('name'))}</th><th>${esc(t('cls'))}</th>${EXPLORER.map((id) => `<th>${esc(T[lang].m[id])}</th>`).join('')}<th>${esc(t('trees'))}</th><th>${esc(t('badges'))}</th><th>${esc(t('sci'))}</th>${table.caseIds.map((id) => `<th>${esc(id)}</th>`).join('')}<th>${esc(t('impact'))}</th><th>${esc(t('date'))}</th></tr></thead>
+    <tbody>${table.rows.map((r) => `<tr><td>${esc(r.name)}</td><td>${r.cls > 12 ? '+' : esc(r.cls)}</td>${EXPLORER.map((id) => `<td>${stars((r.ex || {})[id] ?? -1)}</td>`).join('')}<td>${r.trees}</td><td>${r.badges}</td>
+      <td>${r.sci ? esc(r.sci.done ? t('done') : t('form', { f: r.sci.form })) : ''}</td>${table.caseIds.map((id) => `<td>${stars((r.pro || {})[id] ?? -1)}</td>`).join('')}<td>${r.impact}</td><td>${esc(r.at)}</td></tr>`).join('')}</tbody>`;
+}
+
+$('lang').value = lang;
+$('lang').onchange = () => { lang = $('lang').value; render(); };
+$('files').onchange = (e) => addFiles(e.target.files);
+const drop = $('drop');
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); };
+$('pasteAdd').onclick = () => { addTexts($('pasteBox').value.split(/\n(?=\s*\{)/)); $('pasteBox').value = ''; };
+$('clear').onclick = () => { reports = []; keep(); $('msg').textContent = ''; render(); };
+$('filter').oninput = render;
+$('goal').oninput = render;
+$('csv').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + toCSV(classTable(reports, $('filter').value.trim()))], { type: 'text/csv;charset=utf-8' }));
+  a.download = `ecos-class-${$('filter').value.trim() || 'all'}.csv`;
+  a.click();
+};
+$('ucMake').onclick = async () => {
+  const cc = $('ucClass').value.trim();
+  $('ucOut').textContent = cc ? await unlockCode(cc, $('ucTier').value) : t('needClass');
+};
+window.ecosTeacher = { addTexts, reports: () => reports, classTable };
+render();
+</script>
+</body>
+</html>

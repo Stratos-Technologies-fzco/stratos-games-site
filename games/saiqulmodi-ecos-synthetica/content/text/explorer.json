@@ -1,0 +1,240 @@
+{
+  "ui": {
+    "en": {
+      "ex.title": "Nature Trail", "ex.choose": "Choose an adventure", "ex.lockedBand": "Opens when you finish more adventures, or in a higher class.",
+      "ex.seeds": "Seeds", "ex.badges": "Badges", "ex.start": "Start", "ex.next": "Next", "ex.home": "Map", "ex.listen": "Listen",
+      "ex.check": "Quick check", "ex.great": "Great work!", "ex.tryAgain": "Good try! Let us play it once more.",
+      "ex.stars": "You got {s} stars and {n} seeds.", "ex.newBadge": "New badge: {b}", "ex.allDone": "You are an Eco Explorer! Eco Scientist is open now.",
+      "ex.qEn": "(question in English)", "ex.tapWalk": "Tap the glowing ring to walk there.", "ex.notThat": "Not that one. Look for the glowing ring.",
+      "ex.welcome": "Welcome to the Nature Trail, {name}! Choose an adventure.", "ex.more": "Want to know more?", "ex.noBadges": "Finish an adventure to earn your first badge.",
+      "ex.again": "Play again", "ex.done": "Done",
+      "mod.plants": "Plants", "mod.animals": "Animals", "mod.water": "Water Cycle", "mod.foodchain": "Food Chains",
+      "mod.pollution": "Pollution", "mod.biodiversity": "Biodiversity", "mod.climate": "Climate",
+      "badge.plants": "Seed Planter", "badge.animals": "Animal Friend", "badge.water": "Rain Maker", "badge.foodchain": "Chain Builder",
+      "badge.pollution": "River Friend", "badge.biodiversity": "Nature Spotter", "badge.climate": "Sun and Wind Hero", "badge.explorer": "Eco Explorer",
+      "m.plant.go": "Go to the seed shed and take a sapling.", "m.plant.dig": "Tap a brown patch to plant your sapling.",
+      "m.plant.water": "Go to the river and fill your watering can.", "m.plant.pour": "Now water your sapling.",
+      "m.plant.grow": "Look! Your tree is growing.", "m.plant.again": "Plant {n} more.",
+      "m.rescue.turtle": "A turtle is stuck in a plastic bag. Tap the turtle to free it.", "m.rescue.turtleHome": "Where does a turtle live? Take it to the river.",
+      "m.rescue.chick": "A baby bird fell from its nest. Pick it up gently.", "m.rescue.chickHome": "Take the baby bird back to its nest in the big tree.",
+      "m.rescue.frog": "A frog is stuck in a dry pit. Pick it up.", "m.rescue.frogHome": "Frogs need water. Take the frog to the pond.",
+      "m.rescue.done": "All the animals are safe at home!",
+      "m.river.start": "The river is dirty. Tap the floating rubbish to pick it up.", "m.river.left": "{n} more pieces.", "m.river.done": "The river is clean! The fish are back.",
+      "m.spot.start": "Find 6 different living things. Tap each one.", "m.spot.left": "{n} more to find.",
+      "m.energy.start": "Night is coming and the village has no power. Put solar panels on 3 roofs.", "m.energy.wind": "Now put a windmill on the windy hill.",
+      "m.energy.done": "The village has clean light, and no smoke at all!",
+      "mini.water": "Put the water cycle in order. Tap the first step.", "mini.chain": "Build the food chain. Who comes first?",
+      "mini.right": "Yes!", "mini.wrong": "Not yet. Try another one.", "mini.sort": "Put each thing in the right bin. Tap a thing, then tap a bin.",
+      "mini.sortDone": "Every bin is right. Well sorted!",
+      "w.sun": "Sun heats the water", "w.vapour": "Vapour rises", "w.cloud": "Clouds form", "w.rain": "Rain falls",
+      "c.grass": "Grass", "c.grasshopper": "Grasshopper", "c.frog": "Frog", "c.snake": "Snake", "c.eagle": "Eagle",
+      "bin.wet": "Wet waste", "bin.dry": "Dry waste", "bin.harm": "Harmful waste",
+      "it.banana": "Banana peel", "it.food": "Leftover food", "it.leaves": "Dry leaves", "it.paper": "Newspaper", "it.glass": "Glass bottle",
+      "it.can": "Tin can", "it.plastic": "Plastic bottle", "it.battery": "Old battery", "it.medicine": "Old medicines",
+      "sp.butterfly": "Butterflies carry pollen from flower to flower.", "sp.peacock": "The peacock is India's national bird.",
+      "sp.earthworm": "Earthworms loosen and mix the soil and make it rich.", "sp.mushroom": "Mushrooms are fungi. They break down dead leaves and wood.",
+      "sp.bee": "Bees make honey and help plants make fruits and seeds.", "sp.ladybird": "Ladybirds eat aphids, tiny insects that harm plants.",
+      "spn.butterfly": "Butterfly", "spn.peacock": "Peacock", "spn.earthworm": "Earthworm", "spn.mushroom": "Mushroom", "spn.bee": "Honey bee", "spn.ladybird": "Ladybird"
+    },
+    "hi": {
+      "ex.title": "प्रकृति पथ", "ex.choose": "एक साहसिक काम चुनें", "ex.lockedBand": "और काम पूरे करने पर, या ऊँची कक्षा में खुलेगा।",
+      "ex.seeds": "बीज", "ex.badges": "बैज", "ex.start": "शुरू करें", "ex.next": "आगे", "ex.home": "नक्शा", "ex.listen": "सुनें",
+      "ex.check": "छोटी जाँच", "ex.great": "बहुत बढ़िया!", "ex.tryAgain": "अच्छी कोशिश! चलो एक बार और खेलें।",
+      "ex.stars": "आपको {s} तारे और {n} बीज मिले।", "ex.newBadge": "नया बैज: {b}", "ex.allDone": "आप इको एक्सप्लोरर हैं! इको साइंटिस्ट अब खुल गया है।",
+      "ex.qEn": "(प्रश्न अंग्रेज़ी में)", "ex.tapWalk": "वहाँ चलने के लिए चमकते घेरे पर टैप करें।", "ex.notThat": "वह नहीं। चमकता घेरा ढूँढें।",
+      "ex.welcome": "प्रकृति पथ पर स्वागत है, {name}! एक साहसिक काम चुनें।", "ex.more": "और जानना चाहते हैं?", "ex.noBadges": "पहला बैज पाने के लिए एक काम पूरा करें।",
+      "ex.again": "फिर से खेलें", "ex.done": "हो गया",
+      "mod.plants": "पौधे", "mod.animals": "जानवर", "mod.water": "जल चक्र", "mod.foodchain": "खाद्य शृंखला",
+      "mod.pollution": "प्रदूषण", "mod.biodiversity": "जैव विविधता", "mod.climate": "जलवायु",
+      "badge.plants": "बीज बोने वाला", "badge.animals": "जानवरों का दोस्त", "badge.water": "वर्षा लाने वाला", "badge.foodchain": "शृंखला निर्माता",
+      "badge.pollution": "नदी का दोस्त", "badge.biodiversity": "प्रकृति खोजी", "badge.climate": "सूरज और हवा का नायक", "badge.explorer": "इको एक्सप्लोरर",
+      "m.plant.go": "बीज घर जाओ और एक पौधा लो।", "m.plant.dig": "पौधा लगाने के लिए भूरी जगह पर टैप करो।",
+      "m.plant.water": "नदी पर जाओ और अपना पानी का डिब्बा भरो।", "m.plant.pour": "अब अपने पौधे को पानी दो।",
+      "m.plant.grow": "देखो! तुम्हारा पेड़ बढ़ रहा है।", "m.plant.again": "{n} और लगाओ।",
+      "m.rescue.turtle": "एक कछुआ प्लास्टिक की थैली में फँसा है। उसे छुड़ाने के लिए कछुए पर टैप करो।", "m.rescue.turtleHome": "कछुआ कहाँ रहता है? उसे नदी तक ले जाओ।",
+      "m.rescue.chick": "एक चिड़िया का बच्चा घोंसले से गिर गया है। उसे धीरे से उठाओ।", "m.rescue.chickHome": "चिड़िया के बच्चे को बड़े पेड़ पर उसके घोंसले में वापस ले जाओ।",
+      "m.rescue.frog": "एक मेंढक सूखे गड्ढे में फँसा है। उसे उठाओ।", "m.rescue.frogHome": "मेंढक को पानी चाहिए। उसे तालाब तक ले जाओ।",
+      "m.rescue.done": "सारे जानवर अपने घर में सुरक्षित हैं!",
+      "m.river.start": "नदी गंदी है। तैरते कचरे को उठाने के लिए उस पर टैप करो।", "m.river.left": "{n} टुकड़े और।", "m.river.done": "नदी साफ़ हो गई! मछलियाँ लौट आईं।",
+      "m.spot.start": "6 अलग-अलग जीव ढूँढो। हर एक पर टैप करो।", "m.spot.left": "{n} और ढूँढने हैं।",
+      "m.energy.start": "रात होने वाली है और गाँव में बिजली नहीं है। 3 छतों पर सोलर पैनल लगाओ।", "m.energy.wind": "अब हवादार पहाड़ी पर एक पवन चक्की लगाओ।",
+      "m.energy.done": "गाँव में साफ़ रोशनी है, और ज़रा भी धुआँ नहीं!",
+      "mini.water": "जल चक्र को क्रम से लगाओ। पहले कदम पर टैप करो।", "mini.chain": "खाद्य शृंखला बनाओ। सबसे पहले कौन आता है?",
+      "mini.right": "हाँ!", "mini.wrong": "अभी नहीं। दूसरा चुनो।", "mini.sort": "हर चीज़ को सही डिब्बे में डालो। पहले चीज़ पर, फिर डिब्बे पर टैप करो।",
+      "mini.sortDone": "हर डिब्बा सही है। बहुत अच्छे से छाँटा!",
+      "w.sun": "सूरज पानी गरम करता है", "w.vapour": "भाप ऊपर उठती है", "w.cloud": "बादल बनते हैं", "w.rain": "बारिश होती है",
+      "c.grass": "घास", "c.grasshopper": "टिड्डा", "c.frog": "मेंढक", "c.snake": "साँप", "c.eagle": "बाज़",
+      "bin.wet": "गीला कचरा", "bin.dry": "सूखा कचरा", "bin.harm": "हानिकारक कचरा",
+      "it.banana": "केले का छिलका", "it.food": "बचा हुआ खाना", "it.leaves": "सूखे पत्ते", "it.paper": "अख़बार", "it.glass": "काँच की बोतल",
+      "it.can": "टिन का डिब्बा", "it.plastic": "प्लास्टिक की बोतल", "it.battery": "पुरानी बैटरी", "it.medicine": "पुरानी दवाइयाँ",
+      "sp.butterfly": "तितलियाँ पराग को एक फूल से दूसरे फूल तक ले जाती हैं।", "sp.peacock": "मोर भारत का राष्ट्रीय पक्षी है।",
+      "sp.earthworm": "केंचुए मिट्टी को ढीला करते हैं, मिलाते हैं और उपजाऊ बनाते हैं।", "sp.mushroom": "मशरूम कवक हैं। वे सूखे पत्तों और लकड़ी को तोड़ते हैं।",
+      "sp.bee": "मधुमक्खियाँ शहद बनाती हैं और पौधों को फल और बीज बनाने में मदद करती हैं।", "sp.ladybird": "लेडीबर्ड एफ़िड खाती है, जो पौधों को नुकसान पहुँचाने वाले छोटे कीट हैं।",
+      "spn.butterfly": "तितली", "spn.peacock": "मोर", "spn.earthworm": "केंचुआ", "spn.mushroom": "मशरूम", "spn.bee": "मधुमक्खी", "spn.ladybird": "लेडीबर्ड"
+    },
+    "bn": {
+      "ex.title": "প্রকৃতির পথ", "ex.choose": "একটি অভিযান বেছে নাও", "ex.lockedBand": "আরও অভিযান শেষ করলে, বা উঁচু শ্রেণিতে খুলবে।",
+      "ex.seeds": "বীজ", "ex.badges": "ব্যাজ", "ex.start": "শুরু করো", "ex.next": "পরের", "ex.home": "মানচিত্র", "ex.listen": "শোনো",
+      "ex.check": "ছোট্ট পরীক্ষা", "ex.great": "দারুণ কাজ!", "ex.tryAgain": "ভালো চেষ্টা! চলো আর একবার খেলি।",
+      "ex.stars": "তুমি {s}টি তারা আর {n}টি বীজ পেয়েছ।", "ex.newBadge": "নতুন ব্যাজ: {b}", "ex.allDone": "তুমি এখন ইকো এক্সপ্লোরার! ইকো সায়েন্টিস্ট এখন খোলা।",
+      "ex.qEn": "(প্রশ্ন ইংরেজিতে)", "ex.tapWalk": "সেখানে হাঁটতে উজ্জ্বল বৃত্তে ট্যাপ করো।", "ex.notThat": "ওটা নয়। উজ্জ্বল বৃত্তটা খোঁজো।",
+      "ex.welcome": "প্রকৃতির পথে স্বাগতম, {name}! একটি অভিযান বেছে নাও।", "ex.more": "আরও জানতে চাও?", "ex.noBadges": "প্রথম ব্যাজ পেতে একটি অভিযান শেষ করো।",
+      "ex.again": "আবার খেলো", "ex.done": "শেষ",
+      "mod.plants": "গাছপালা", "mod.animals": "প্রাণী", "mod.water": "জলচক্র", "mod.foodchain": "খাদ্যশৃঙ্খল",
+      "mod.pollution": "দূষণ", "mod.biodiversity": "জীববৈচিত্র্য", "mod.climate": "জলবায়ু",
+      "badge.plants": "বীজ রোপণকারী", "badge.animals": "প্রাণীর বন্ধু", "badge.water": "বৃষ্টি আনয়নকারী", "badge.foodchain": "শৃঙ্খল নির্মাতা",
+      "badge.pollution": "নদীর বন্ধু", "badge.biodiversity": "প্রকৃতি সন্ধানী", "badge.climate": "সূর্য ও বাতাসের নায়ক", "badge.explorer": "ইকো এক্সপ্লোরার",
+      "m.plant.go": "বীজঘরে যাও আর একটি চারা নাও।", "m.plant.dig": "চারা লাগাতে একটি বাদামি জায়গায় ট্যাপ করো।",
+      "m.plant.water": "নদীতে যাও আর তোমার ঝারি ভরো।", "m.plant.pour": "এবার তোমার চারায় জল দাও।",
+      "m.plant.grow": "দেখো! তোমার গাছ বড় হচ্ছে।", "m.plant.again": "আরও {n}টি লাগাও।",
+      "m.rescue.turtle": "একটি কচ্ছপ প্লাস্টিকের ব্যাগে আটকে গেছে। ছাড়াতে কচ্ছপে ট্যাপ করো।", "m.rescue.turtleHome": "কচ্ছপ কোথায় থাকে? ওকে নদীতে নিয়ে যাও।",
+      "m.rescue.chick": "একটি পাখির ছানা বাসা থেকে পড়ে গেছে। আলতো করে তুলে নাও।", "m.rescue.chickHome": "পাখির ছানাকে বড় গাছে ওর বাসায় ফিরিয়ে দাও।",
+      "m.rescue.frog": "একটি ব্যাঙ শুকনো গর্তে আটকে আছে। ওকে তুলে নাও।", "m.rescue.frogHome": "ব্যাঙের জল দরকার। ওকে পুকুরে নিয়ে যাও।",
+      "m.rescue.done": "সব প্রাণী নিজের বাড়িতে নিরাপদ!",
+      "m.river.start": "নদী নোংরা। ভাসমান আবর্জনা তুলতে তাতে ট্যাপ করো।", "m.river.left": "আরও {n}টি টুকরো।", "m.river.done": "নদী পরিষ্কার! মাছেরা ফিরে এসেছে।",
+      "m.spot.start": "৬টি আলাদা জীব খুঁজে বের করো। প্রত্যেকটিতে ট্যাপ করো।", "m.spot.left": "আরও {n}টি খুঁজতে হবে।",
+      "m.energy.start": "রাত আসছে আর গ্রামে বিদ্যুৎ নেই। ৩টি ছাদে সোলার প্যানেল বসাও।", "m.energy.wind": "এবার হাওয়ার টিলায় একটি বায়ুকল বসাও।",
+      "m.energy.done": "গ্রামে পরিষ্কার আলো জ্বলছে, একটুও ধোঁয়া নেই!",
+      "mini.water": "জলচক্র ক্রমে সাজাও। প্রথম ধাপে ট্যাপ করো।", "mini.chain": "খাদ্যশৃঙ্খল বানাও। সবার আগে কে আসে?",
+      "mini.right": "হ্যাঁ!", "mini.wrong": "এখনও নয়। অন্যটা বেছে নাও।", "mini.sort": "প্রতিটি জিনিস ঠিক বিনে রাখো। আগে জিনিসে, তারপর বিনে ট্যাপ করো।",
+      "mini.sortDone": "সব বিন ঠিক হয়েছে। খুব ভালো বাছাই!",
+      "w.sun": "সূর্য জল গরম করে", "w.vapour": "বাষ্প উপরে ওঠে", "w.cloud": "মেঘ তৈরি হয়", "w.rain": "বৃষ্টি পড়ে",
+      "c.grass": "ঘাস", "c.grasshopper": "ফড়িং", "c.frog": "ব্যাঙ", "c.snake": "সাপ", "c.eagle": "ঈগল",
+      "bin.wet": "ভেজা বর্জ্য", "bin.dry": "শুকনো বর্জ্য", "bin.harm": "ক্ষতিকর বর্জ্য",
+      "it.banana": "কলার খোসা", "it.food": "বেঁচে যাওয়া খাবার", "it.leaves": "শুকনো পাতা", "it.paper": "খবরের কাগজ", "it.glass": "কাচের বোতল",
+      "it.can": "টিনের কৌটো", "it.plastic": "প্লাস্টিকের বোতল", "it.battery": "পুরনো ব্যাটারি", "it.medicine": "পুরনো ওষুধ",
+      "sp.butterfly": "প্রজাপতি এক ফুল থেকে আরেক ফুলে পরাগ নিয়ে যায়।", "sp.peacock": "ময়ূর ভারতের জাতীয় পাখি।",
+      "sp.earthworm": "কেঁচো মাটি আলগা করে, মেশায় আর উর্বর করে।", "sp.mushroom": "মাশরুম হলো ছত্রাক। এরা মরা পাতা আর কাঠ ভেঙে ফেলে।",
+      "sp.bee": "মৌমাছি মধু তৈরি করে আর গাছকে ফল ও বীজ তৈরিতে সাহায্য করে।", "sp.ladybird": "লেডিবার্ড জাবপোকা খায়, যারা গাছের ক্ষতি করে।",
+      "spn.butterfly": "প্রজাপতি", "spn.peacock": "ময়ূর", "spn.earthworm": "কেঁচো", "spn.mushroom": "মাশরুম", "spn.bee": "মৌমাছি", "spn.ladybird": "লেডিবার্ড"
+    }
+  },
+  "modules": {
+    "plants": {
+      "icon": "🌱", "activity": "plantTree", "source": "NCERT EVS Class 3-5 (plants); NCERT Science Class 6-7 (getting to know plants, nutrition in plants)",
+      "story": [
+        { "icon": "☀️", "en": "Plants make their own food from sunlight, water and air.", "hi": "पौधे सूरज की रोशनी, पानी और हवा से अपना भोजन खुद बनाते हैं।", "bn": "গাছ সূর্যের আলো, জল আর বাতাস দিয়ে নিজের খাবার নিজেই তৈরি করে।" },
+        { "icon": "🌳", "en": "Roots drink water from the soil. Leaves catch the sunlight.", "hi": "जड़ें मिट्टी से पानी पीती हैं। पत्तियाँ सूरज की रोशनी पकड़ती हैं।", "bn": "শিকড় মাটি থেকে জল টেনে নেয়। পাতা সূর্যের আলো ধরে।" },
+        { "icon": "🐦", "en": "Plants give us fresh air, fruit and shade, and homes for birds.", "hi": "पौधे हमें ताज़ी हवा, फल और छाँव देते हैं, और चिड़ियों को घर।", "bn": "গাছ আমাদের টাটকা বাতাস, ফল আর ছায়া দেয়, আর পাখিদের বাসা।" }
+      ],
+      "more": { "icon": "🍃", "en": "Leaves use sunlight to join water and carbon dioxide into sugar. This is called photosynthesis, and it gives out the oxygen we breathe.", "hi": "पत्तियाँ सूरज की रोशनी से पानी और कार्बन डाइऑक्साइड को मिलाकर शर्करा बनाती हैं। इसे प्रकाश संश्लेषण कहते हैं, और इससे वह ऑक्सीजन निकलती है जिसमें हम साँस लेते हैं।", "bn": "পাতা সূর্যের আলো দিয়ে জল আর কার্বন ডাইঅক্সাইড জুড়ে শর্করা তৈরি করে। একে সালোকসংশ্লেষ বলে, আর এতে সেই অক্সিজেন বেরোয় যা আমরা শ্বাসে নিই।" },
+      "deep": { "icon": "🔬", "en": "Chlorophyll absorbs mostly red and blue light and reflects green, which is why leaves look green. Plants are the starting point of almost every food chain on land.", "hi": "क्लोरोफ़िल ज़्यादातर लाल और नीली रोशनी सोखता है और हरी रोशनी लौटा देता है, इसीलिए पत्तियाँ हरी दिखती हैं। ज़मीन की लगभग हर खाद्य शृंखला पौधों से शुरू होती है।", "bn": "ক্লোরোফিল বেশিরভাগ লাল আর নীল আলো শুষে নেয় আর সবুজ আলো ফিরিয়ে দেয়, তাই পাতা সবুজ দেখায়। ডাঙার প্রায় প্রতিটি খাদ্যশৃঙ্খল গাছ দিয়েই শুরু হয়।" },
+      "quiz": [
+        { "q": { "en": "What does a plant need to make its food?", "hi": "पौधे को अपना भोजन बनाने के लिए क्या चाहिए?", "bn": "নিজের খাবার তৈরি করতে গাছের কী দরকার?" }, "ans": 0,
+          "opts": [["☀️", { "en": "Sunlight", "hi": "धूप", "bn": "সূর্যের আলো" }], ["🍬", { "en": "Sweets", "hi": "मिठाई", "bn": "মিষ্টি" }], ["📺", { "en": "Television", "hi": "टीवी", "bn": "টিভি" }], ["👟", { "en": "Shoes", "hi": "जूते", "bn": "জুতো" }]] },
+        { "q": { "en": "Which part of a plant drinks water from the soil?", "hi": "पौधे का कौन-सा भाग मिट्टी से पानी पीता है?", "bn": "গাছের কোন অংশ মাটি থেকে জল টেনে নেয়?" }, "ans": 2,
+          "opts": [["🍃", { "en": "Leaf", "hi": "पत्ती", "bn": "পাতা" }], ["🌸", { "en": "Flower", "hi": "फूल", "bn": "ফুল" }], ["🥕", { "en": "Root", "hi": "जड़", "bn": "শিকড়" }], ["🍎", { "en": "Fruit", "hi": "फल", "bn": "ফল" }]] },
+        { "q": { "en": "Which gas do plants give out that we breathe?", "hi": "पौधे कौन-सी गैस छोड़ते हैं जिसमें हम साँस लेते हैं?", "bn": "গাছ কোন গ্যাস ছাড়ে যা আমরা শ্বাসে নিই?" }, "ans": 0,
+          "opts": [["🌬️", { "en": "Oxygen", "hi": "ऑक्सीजन", "bn": "অক্সিজেন" }], ["🏭", { "en": "Smoke", "hi": "धुआँ", "bn": "ধোঁয়া" }], ["🌫️", { "en": "Dust", "hi": "धूल", "bn": "ধুলো" }], ["♨️", { "en": "Steam", "hi": "भाप", "bn": "বাষ্প" }]] }
+      ]
+    },
+    "animals": {
+      "icon": "🐾", "activity": "rescueAnimal", "source": "NCERT EVS Class 1-5 (animals and their homes); NCERT Science Class 6 (habitat and adaptation)",
+      "story": [
+        { "icon": "🏠", "en": "Every animal has a home. A fish lives in water. A bird builds a nest in a tree.", "hi": "हर जानवर का एक घर होता है। मछली पानी में रहती है। चिड़िया पेड़ पर घोंसला बनाती है।", "bn": "প্রত্যেক প্রাণীর একটা বাড়ি আছে। মাছ থাকে জলে। পাখি গাছে বাসা বানায়।" },
+        { "icon": "🥕", "en": "Some animals eat plants, some eat other animals, and some eat both.", "hi": "कुछ जानवर पौधे खाते हैं, कुछ दूसरे जानवर खाते हैं, और कुछ दोनों खाते हैं।", "bn": "কিছু প্রাণী গাছপালা খায়, কিছু অন্য প্রাণী খায়, আর কিছু দুটোই খায়।" },
+        { "icon": "🤝", "en": "Animals need clean water, food and a safe home, just like us.", "hi": "जानवरों को हमारी तरह साफ़ पानी, भोजन और सुरक्षित घर चाहिए।", "bn": "আমাদের মতোই প্রাণীদেরও পরিষ্কার জল, খাবার আর নিরাপদ বাড়ি দরকার।" }
+      ],
+      "more": { "icon": "🐸", "en": "The place where an animal lives and finds its food is its habitat. A frog lives both on land and in water, so it is called an amphibian.", "hi": "जिस जगह जानवर रहता है और अपना भोजन पाता है, वह उसका आवास है। मेंढक ज़मीन और पानी दोनों में रहता है, इसलिए उसे उभयचर कहते हैं।", "bn": "যে জায়গায় প্রাণী থাকে আর খাবার খুঁজে পায়, সেটাই তার বাসস্থান। ব্যাঙ ডাঙা আর জল দুই জায়গাতেই থাকে, তাই তাকে উভচর বলে।" },
+      "deep": { "icon": "🐪", "en": "Animals are adapted to their habitats: a camel can go many days without drinking, and a fish breathes through gills. When a habitat is destroyed, its animals have nowhere to go.", "hi": "जानवर अपने आवास के अनुसार ढले होते हैं: ऊँट कई दिन बिना पानी पिए रह सकता है, और मछली गलफड़ों से साँस लेती है। जब आवास नष्ट होता है, तो उसके जानवरों के पास जाने की कोई जगह नहीं बचती।", "bn": "প্রাণীরা নিজের বাসস্থানের সঙ্গে মানিয়ে নেয়: উট অনেক দিন জল না খেয়ে থাকতে পারে, আর মাছ ফুলকা দিয়ে শ্বাস নেয়। বাসস্থান নষ্ট হলে সেখানকার প্রাণীদের আর যাওয়ার জায়গা থাকে না।" },
+      "quiz": [
+        { "q": { "en": "Where does a fish live?", "hi": "मछली कहाँ रहती है?", "bn": "মাছ কোথায় থাকে?" }, "ans": 0,
+          "opts": [["💧", { "en": "Water", "hi": "पानी", "bn": "জল" }], ["🌳", { "en": "Tree", "hi": "पेड़", "bn": "গাছ" }], ["🏜️", { "en": "Desert", "hi": "रेगिस्तान", "bn": "মরুভূমি" }], ["🪨", { "en": "Rock", "hi": "चट्टान", "bn": "পাথর" }]] },
+        { "q": { "en": "Which animal eats only plants?", "hi": "कौन-सा जानवर सिर्फ़ पौधे खाता है?", "bn": "কোন প্রাণী শুধু গাছপালা খায়?" }, "ans": 0,
+          "opts": [["🐄", { "en": "Cow", "hi": "गाय", "bn": "গরু" }], ["🐅", { "en": "Tiger", "hi": "बाघ", "bn": "বাঘ" }], ["🦅", { "en": "Eagle", "hi": "बाज़", "bn": "ঈগল" }], ["🐍", { "en": "Snake", "hi": "साँप", "bn": "সাপ" }]] },
+        { "q": { "en": "A frog lives on land and in water. What is it called?", "hi": "मेंढक ज़मीन और पानी दोनों में रहता है। उसे क्या कहते हैं?", "bn": "ব্যাঙ ডাঙা আর জল দুই জায়গাতেই থাকে। তাকে কী বলে?" }, "ans": 0,
+          "opts": [["🐸", { "en": "Amphibian", "hi": "उभयचर", "bn": "উভচর" }], ["🐦", { "en": "Bird", "hi": "पक्षी", "bn": "পাখি" }], ["🐟", { "en": "Fish", "hi": "मछली", "bn": "মাছ" }], ["🐞", { "en": "Insect", "hi": "कीट", "bn": "পোকা" }]] }
+      ]
+    },
+    "water": {
+      "icon": "💧", "activity": "waterCycle", "source": "NCERT EVS Class 5; NCERT Science Class 6 (water), Class 7 (weather and climate)",
+      "story": [
+        { "icon": "☀️", "en": "The sun warms the water in rivers, lakes and seas.", "hi": "सूरज नदियों, झीलों और समुद्रों के पानी को गरम करता है।", "bn": "সূর্য নদী, হ্রদ আর সমুদ্রের জল গরম করে।" },
+        { "icon": "☁️", "en": "The water turns into vapour, rises up high and makes clouds.", "hi": "पानी भाप बनकर ऊपर उठता है और बादल बनाता है।", "bn": "জল বাষ্প হয়ে অনেক উপরে ওঠে আর মেঘ তৈরি করে।" },
+        { "icon": "🌧️", "en": "Clouds bring rain. The rain fills rivers, wells and ponds again.", "hi": "बादल बारिश लाते हैं। बारिश नदियों, कुओं और तालाबों को फिर से भर देती है।", "bn": "মেঘ বৃষ্টি আনে। বৃষ্টি নদী, কুয়ো আর পুকুর আবার ভরে দেয়।" }
+      ],
+      "more": { "icon": "♨️", "en": "Evaporation turns water into vapour. High in the cold sky the vapour condenses into tiny drops that form clouds. When the drops grow heavy, they fall as rain. This is the water cycle.", "hi": "वाष्पीकरण से पानी भाप बनता है। ऊँचे ठंडे आसमान में भाप संघनित होकर छोटी बूँदें बनती है, जिनसे बादल बनते हैं। बूँदें भारी होने पर बारिश बनकर गिरती हैं। यही जल चक्र है।", "bn": "বাষ্পীভবনে জল বাষ্প হয়। উঁচু ঠান্ডা আকাশে বাষ্প ঘনীভূত হয়ে ছোট ছোট ফোঁটা হয়, তা থেকে মেঘ তৈরি হয়। ফোঁটা ভারী হলে বৃষ্টি হয়ে ঝরে পড়ে। এটাই জলচক্র।" },
+      "deep": { "icon": "🧊", "en": "Plants also release water vapour through their leaves; this is transpiration. Only about 3% of Earth's water is fresh, and most of that is frozen as ice, so every drop we save matters.", "hi": "पौधे भी अपनी पत्तियों से जलवाष्प छोड़ते हैं; इसे वाष्पोत्सर्जन कहते हैं। पृथ्वी का केवल लगभग 3% पानी मीठा है, और उसका ज़्यादातर हिस्सा बर्फ़ के रूप में जमा है, इसलिए बचाई गई हर बूँद क़ीमती है।", "bn": "গাছও পাতা দিয়ে জলীয় বাষ্প ছাড়ে; একে প্রস্বেদন বলে। পৃথিবীর মাত্র প্রায় ৩% জল মিষ্টি, আর তার বেশিরভাগই বরফ হয়ে জমে আছে, তাই বাঁচানো প্রতিটি ফোঁটা মূল্যবান।" },
+      "quiz": [
+        { "q": { "en": "What warms the water in rivers so that it rises up?", "hi": "नदियों के पानी को कौन गरम करता है जिससे वह ऊपर उठता है?", "bn": "নদীর জল কে গরম করে যাতে তা উপরে ওঠে?" }, "ans": 0,
+          "opts": [["☀️", { "en": "The Sun", "hi": "सूरज", "bn": "সূর্য" }], ["🌙", { "en": "The Moon", "hi": "चाँद", "bn": "চাঁদ" }], ["⭐", { "en": "The stars", "hi": "तारे", "bn": "তারা" }], ["💡", { "en": "A lamp", "hi": "दीया", "bn": "প্রদীপ" }]] },
+        { "q": { "en": "What are clouds made of?", "hi": "बादल किससे बने होते हैं?", "bn": "মেঘ কী দিয়ে তৈরি?" }, "ans": 0,
+          "opts": [["💧", { "en": "Tiny water drops", "hi": "पानी की छोटी बूँदें", "bn": "ছোট ছোট জলের ফোঁটা" }], ["🧶", { "en": "Cotton", "hi": "रुई", "bn": "তুলো" }], ["🏭", { "en": "Smoke", "hi": "धुआँ", "bn": "ধোঁয়া" }], ["⏳", { "en": "Sand", "hi": "रेत", "bn": "বালি" }]] },
+        { "q": { "en": "Water turning into vapour is called...", "hi": "पानी का भाप बनना कहलाता है...", "bn": "জলের বাষ্প হয়ে যাওয়াকে বলে..." }, "ans": 0,
+          "opts": [["♨️", { "en": "Evaporation", "hi": "वाष्पीकरण", "bn": "বাষ্পীভবন" }], ["🧊", { "en": "Freezing", "hi": "जमना", "bn": "জমে যাওয়া" }], ["🍦", { "en": "Melting", "hi": "पिघलना", "bn": "গলে যাওয়া" }], ["🌈", { "en": "Rainbow", "hi": "इंद्रधनुष", "bn": "রামধনু" }]] }
+      ]
+    },
+    "foodchain": {
+      "icon": "🔗", "activity": "foodChain", "source": "NCERT EVS Class 4-5; NCERT Science Class 7, Class 10 (Our Environment: trophic levels, 10 per cent law)",
+      "story": [
+        { "icon": "🌿", "en": "Grass makes its food from sunlight.", "hi": "घास धूप से अपना भोजन बनाती है।", "bn": "ঘাস সূর্যের আলো দিয়ে নিজের খাবার তৈরি করে।" },
+        { "icon": "🦗", "en": "A grasshopper eats the grass. A frog eats the grasshopper.", "hi": "टिड्डा घास खाता है। मेंढक टिड्डे को खाता है।", "bn": "ফড়িং ঘাস খায়। ব্যাঙ ফড়িংকে খায়।" },
+        { "icon": "🦅", "en": "A snake eats the frog, and an eagle eats the snake. This is a food chain.", "hi": "साँप मेंढक को खाता है, और बाज़ साँप को। यही खाद्य शृंखला है।", "bn": "সাপ ব্যাঙকে খায়, আর ঈগল সাপকে। এটাই খাদ্যশৃঙ্খল।" }
+      ],
+      "more": { "icon": "⚡", "en": "Plants are producers: they make food. Animals are consumers: they eat plants or other animals. Energy from the sun passes along the chain.", "hi": "पौधे उत्पादक हैं: वे भोजन बनाते हैं। जानवर उपभोक्ता हैं: वे पौधे या दूसरे जानवर खाते हैं। सूरज की ऊर्जा शृंखला में आगे बढ़ती है।", "bn": "গাছ উৎপাদক: তারা খাবার তৈরি করে। প্রাণীরা খাদক: তারা গাছ বা অন্য প্রাণী খায়। সূর্যের শক্তি শৃঙ্খল ধরে এগিয়ে যায়।" },
+      "deep": { "icon": "🔥", "en": "At each step only about 10% of the energy passes on; the rest is used for living and lost as heat. That is why there are always more plants than plant-eaters, and more plant-eaters than top predators.", "hi": "हर कदम पर केवल लगभग 10% ऊर्जा आगे जाती है; बाकी जीने में खर्च होकर गर्मी के रूप में निकल जाती है। इसीलिए पौधे हमेशा पौधे खाने वालों से ज़्यादा होते हैं, और पौधे खाने वाले शीर्ष शिकारियों से ज़्यादा।", "bn": "প্রতিটি ধাপে মাত্র প্রায় ১০% শক্তি এগিয়ে যায়; বাকিটা বেঁচে থাকতে খরচ হয়ে তাপ হয়ে হারিয়ে যায়। তাই গাছ সবসময় তৃণভোজীদের চেয়ে বেশি, আর তৃণভোজীরা সবার উপরের শিকারিদের চেয়ে বেশি।" },
+      "quiz": [
+        { "q": { "en": "In a food chain, who comes first?", "hi": "खाद्य शृंखला में सबसे पहले कौन आता है?", "bn": "খাদ্যশৃঙ্খলে সবার আগে কে আসে?" }, "ans": 0,
+          "opts": [["🌿", { "en": "Plants", "hi": "पौधे", "bn": "গাছপালা" }], ["🐅", { "en": "Tiger", "hi": "बाघ", "bn": "বাঘ" }], ["🦅", { "en": "Eagle", "hi": "बाज़", "bn": "ঈগল" }], ["🐸", { "en": "Frog", "hi": "मेंढक", "bn": "ব্যাঙ" }]] },
+        { "q": { "en": "What does a grasshopper eat?", "hi": "टिड्डा क्या खाता है?", "bn": "ফড়িং কী খায়?" }, "ans": 0,
+          "opts": [["🌿", { "en": "Grass", "hi": "घास", "bn": "ঘাস" }], ["🐸", { "en": "Frog", "hi": "मेंढक", "bn": "ব্যাঙ" }], ["🐍", { "en": "Snake", "hi": "साँप", "bn": "সাপ" }], ["🪨", { "en": "Stones", "hi": "पत्थर", "bn": "পাথর" }]] },
+        { "q": { "en": "Where does all the energy in a food chain start?", "hi": "खाद्य शृंखला की सारी ऊर्जा कहाँ से शुरू होती है?", "bn": "খাদ্যশৃঙ্খলের সব শক্তি কোথা থেকে শুরু হয়?" }, "ans": 0,
+          "opts": [["☀️", { "en": "The Sun", "hi": "सूरज", "bn": "সূর্য" }], ["🌙", { "en": "The Moon", "hi": "चाँद", "bn": "চাঁদ" }], ["🌧️", { "en": "Rain", "hi": "बारिश", "bn": "বৃষ্টি" }], ["🌬️", { "en": "Wind", "hi": "हवा", "bn": "বাতাস" }]] }
+      ]
+    },
+    "pollution": {
+      "icon": "🧹", "activity": "cleanRiver", "source": "NCERT EVS Class 4-5; NCERT Science Class 8 (pollution of air and water); Solid Waste Management Rules, 2016 (Govt. of India)",
+      "story": [
+        { "icon": "🛍️", "en": "Plastic and garbage thrown into rivers make the water dirty.", "hi": "नदियों में फेंका गया प्लास्टिक और कचरा पानी को गंदा कर देता है।", "bn": "নদীতে ফেলা প্লাস্টিক আর আবর্জনা জলকে নোংরা করে দেয়।" },
+        { "icon": "🐟", "en": "Fish and animals get sick in dirty water. So do people.", "hi": "गंदे पानी में मछलियाँ और जानवर बीमार हो जाते हैं। लोग भी।", "bn": "নোংরা জলে মাছ আর প্রাণীরা অসুস্থ হয়। মানুষও।" },
+        { "icon": "🗑️", "en": "Put waste in the right bin: green for wet waste, blue for dry waste, and keep harmful waste apart.", "hi": "कचरा सही डिब्बे में डालो: गीले कचरे के लिए हरा, सूखे कचरे के लिए नीला, और हानिकारक कचरा अलग रखो।", "bn": "বর্জ্য ঠিক বিনে ফেলো: ভেজা বর্জ্যের জন্য সবুজ, শুকনো বর্জ্যের জন্য নীল, আর ক্ষতিকর বর্জ্য আলাদা রাখো।" }
+      ],
+      "more": { "icon": "♻️", "en": "Wet waste such as peels and leftover food can become compost for plants. Dry waste such as paper, glass and metal can be recycled. Harmful waste such as batteries and old medicines must be kept separate.", "hi": "गीला कचरा जैसे छिलके और बचा खाना पौधों के लिए खाद बन सकता है। सूखा कचरा जैसे कागज़, काँच और धातु दोबारा काम में आ सकता है। बैटरी और पुरानी दवाइयों जैसा हानिकारक कचरा अलग रखना ज़रूरी है।", "bn": "খোসা আর বাসি খাবারের মতো ভেজা বর্জ্য গাছের জন্য সার হতে পারে। কাগজ, কাচ আর ধাতুর মতো শুকনো বর্জ্য আবার ব্যবহার করা যায়। ব্যাটারি আর পুরনো ওষুধের মতো ক্ষতিকর বর্জ্য আলাদা রাখতেই হবে।" },
+      "deep": { "icon": "🔬", "en": "India's Solid Waste Management Rules, 2016 ask every home to separate waste at source into wet, dry and domestic hazardous waste. Plastic can last for hundreds of years and breaks into microplastics that enter food chains.", "hi": "भारत के ठोस अपशिष्ट प्रबंधन नियम, 2016 हर घर से कहते हैं कि कचरे को स्रोत पर ही गीला, सूखा और घरेलू हानिकारक में अलग करें। प्लास्टिक सैकड़ों साल तक बना रह सकता है और टूटकर माइक्रोप्लास्टिक बनता है जो खाद्य शृंखला में पहुँच जाता है।", "bn": "ভারতের কঠিন বর্জ্য ব্যবস্থাপনা বিধি, ২০১৬ প্রতিটি বাড়িকে উৎসেই বর্জ্য ভেজা, শুকনো আর গৃহস্থালির ক্ষতিকর ভাগে আলাদা করতে বলে। প্লাস্টিক শত শত বছর টিকে থাকতে পারে আর ভেঙে মাইক্রোপ্লাস্টিক হয়, যা খাদ্যশৃঙ্খলে ঢুকে পড়ে।" },
+      "quiz": [
+        { "q": { "en": "Which bin does a banana peel go in?", "hi": "केले का छिलका किस डिब्बे में जाता है?", "bn": "কলার খোসা কোন বিনে যাবে?" }, "ans": 0,
+          "opts": [["🟢", { "en": "Green: wet waste", "hi": "हरा: गीला कचरा", "bn": "সবুজ: ভেজা বর্জ্য" }], ["🔵", { "en": "Blue: dry waste", "hi": "नीला: सूखा कचरा", "bn": "নীল: শুকনো বর্জ্য" }], ["🔴", { "en": "Red: harmful waste", "hi": "लाल: हानिकारक कचरा", "bn": "লাল: ক্ষতিকর বর্জ্য" }], ["🌊", { "en": "The river", "hi": "नदी", "bn": "নদী" }]] },
+        { "q": { "en": "Where should an old battery go?", "hi": "पुरानी बैटरी कहाँ जानी चाहिए?", "bn": "পুরনো ব্যাটারি কোথায় যাওয়া উচিত?" }, "ans": 0,
+          "opts": [["🔴", { "en": "Harmful waste", "hi": "हानिकारक कचरा", "bn": "ক্ষতিকর বর্জ্য" }], ["🟢", { "en": "Wet waste", "hi": "गीला कचरा", "bn": "ভেজা বর্জ্য" }], ["🌊", { "en": "The river", "hi": "नदी", "bn": "নদী" }], ["🔥", { "en": "A fire", "hi": "आग", "bn": "আগুন" }]] },
+        { "q": { "en": "What can wet waste become?", "hi": "गीला कचरा क्या बन सकता है?", "bn": "ভেজা বর্জ্য কী হতে পারে?" }, "ans": 0,
+          "opts": [["🌱", { "en": "Compost for plants", "hi": "पौधों की खाद", "bn": "গাছের সার" }], ["🧴", { "en": "Plastic", "hi": "प्लास्टिक", "bn": "প্লাস্টিক" }], ["🪨", { "en": "Stone", "hi": "पत्थर", "bn": "পাথর" }], ["🔋", { "en": "A battery", "hi": "बैटरी", "bn": "ব্যাটারি" }]] }
+      ]
+    },
+    "biodiversity": {
+      "icon": "🦋", "activity": "spotSpecies", "source": "NCERT Science Class 8 (conservation of plants and animals); Ministry of Environment, Forest and Climate Change (India: megadiverse country)",
+      "story": [
+        { "icon": "🦋", "en": "Biodiversity means the many different kinds of living things in one place.", "hi": "जैव विविधता का मतलब है एक जगह पर रहने वाले कई तरह के जीव।", "bn": "জীববৈচিত্র্য মানে এক জায়গায় থাকা নানা রকমের জীব।" },
+        { "icon": "🍄", "en": "Trees, birds, insects, frogs, worms and mushrooms each have a job in nature.", "hi": "पेड़, पक्षी, कीट, मेंढक, केंचुए और मशरूम, सबका प्रकृति में अपना काम है।", "bn": "গাছ, পাখি, পোকা, ব্যাঙ, কেঁচো আর মাশরুম, প্রকৃতিতে প্রত্যেকের নিজের কাজ আছে।" },
+        { "icon": "🐝", "en": "Bees carry pollen, worms make soil rich, and mushrooms recycle dead leaves.", "hi": "मधुमक्खियाँ पराग ले जाती हैं, केंचुए मिट्टी उपजाऊ बनाते हैं, और मशरूम सूखे पत्तों को फिर से मिट्टी बनाते हैं।", "bn": "মৌমাছি পরাগ বয়ে নেয়, কেঁচো মাটি উর্বর করে, আর মাশরুম মরা পাতাকে আবার মাটিতে ফেরায়।" }
+      ],
+      "more": { "icon": "🇮🇳", "en": "India is one of the world's 17 megadiverse countries. It has about 7 to 8 percent of all the species recorded on Earth.", "hi": "भारत दुनिया के 17 महा-विविधता वाले देशों में से एक है। पृथ्वी पर दर्ज सभी प्रजातियों का लगभग 7 से 8 प्रतिशत भारत में है।", "bn": "ভারত পৃথিবীর ১৭টি মহা-জীববৈচিত্র্যপূর্ণ দেশের একটি। পৃথিবীতে নথিভুক্ত সব প্রজাতির প্রায় ৭ থেকে ৮ শতাংশ ভারতে আছে।" },
+      "deep": { "icon": "🏞️", "en": "When one species is lost, others that depend on it suffer too. Habitat loss is the biggest cause of species loss. National parks and wildlife sanctuaries protect habitats, and with them, biodiversity.", "hi": "जब एक प्रजाति खत्म होती है, तो उस पर निर्भर दूसरी प्रजातियाँ भी परेशानी में पड़ती हैं। आवास का नष्ट होना प्रजातियों के खत्म होने का सबसे बड़ा कारण है। राष्ट्रीय उद्यान और वन्यजीव अभयारण्य आवासों को, और उनके साथ जैव विविधता को, बचाते हैं।", "bn": "একটি প্রজাতি হারিয়ে গেলে তার উপর নির্ভরশীল অন্যরাও কষ্ট পায়। বাসস্থান ধ্বংস হওয়াই প্রজাতি হারানোর সবচেয়ে বড় কারণ। জাতীয় উদ্যান আর বন্যপ্রাণী অভয়ারণ্য বাসস্থান, আর তার সঙ্গে জীববৈচিত্র্য, রক্ষা করে।" },
+      "quiz": [
+        { "q": { "en": "What does biodiversity mean?", "hi": "जैव विविधता का क्या मतलब है?", "bn": "জীববৈচিত্র্য মানে কী?" }, "ans": 0,
+          "opts": [["🌈", { "en": "Many kinds of living things", "hi": "कई तरह के जीव", "bn": "নানা রকমের জীব" }], ["🏙️", { "en": "Many buildings", "hi": "बहुत सारी इमारतें", "bn": "অনেক বাড়ি" }], ["🚗", { "en": "Many cars", "hi": "बहुत सारी गाड़ियाँ", "bn": "অনেক গাড়ি" }], ["🪨", { "en": "Many rocks", "hi": "बहुत सारे पत्थर", "bn": "অনেক পাথর" }]] },
+        { "q": { "en": "Which one helps plants make fruits by carrying pollen?", "hi": "पराग ले जाकर पौधों को फल बनाने में कौन मदद करता है?", "bn": "পরাগ বয়ে নিয়ে কে গাছকে ফল তৈরিতে সাহায্য করে?" }, "ans": 0,
+          "opts": [["🐝", { "en": "Bee", "hi": "मधुमक्खी", "bn": "মৌমাছি" }], ["🪨", { "en": "Stone", "hi": "पत्थर", "bn": "পাথর" }], ["🚲", { "en": "Bicycle", "hi": "साइकिल", "bn": "সাইকেল" }], ["🧱", { "en": "Brick", "hi": "ईंट", "bn": "ইট" }]] },
+        { "q": { "en": "What is India's national bird?", "hi": "भारत का राष्ट्रीय पक्षी कौन है?", "bn": "ভারতের জাতীয় পাখি কোনটি?" }, "ans": 0,
+          "opts": [["🦚", { "en": "Peacock", "hi": "मोर", "bn": "ময়ূর" }], ["🦜", { "en": "Parrot", "hi": "तोता", "bn": "টিয়া" }], ["🦅", { "en": "Eagle", "hi": "बाज़", "bn": "ঈগল" }], ["🕊️", { "en": "Pigeon", "hi": "कबूतर", "bn": "পায়রা" }]] }
+      ]
+    },
+    "climate": {
+      "icon": "🌍", "activity": "cleanEnergy", "source": "NCERT Science Class 7 (weather, climate); IPCC AR6 Synthesis Report 2023 (about 1.1 °C warming since 1850-1900); Government of India net-zero 2070 pledge (COP26)",
+      "story": [
+        { "icon": "🌡️", "en": "Weather is how hot, rainy or windy it is today. Climate is the usual weather of a place over many years.", "hi": "मौसम बताता है कि आज कितनी गर्मी, बारिश या हवा है। जलवायु किसी जगह का कई सालों का सामान्य मौसम है।", "bn": "আবহাওয়া মানে আজ কতটা গরম, বৃষ্টি বা হাওয়া। জলবায়ু হলো কোনো জায়গার অনেক বছরের সাধারণ আবহাওয়া।" },
+        { "icon": "🏭", "en": "Burning coal and petrol puts carbon dioxide into the air. It traps heat, and the Earth is getting warmer.", "hi": "कोयला और पेट्रोल जलाने से हवा में कार्बन डाइऑक्साइड जाती है। यह गर्मी को रोकती है, और पृथ्वी गरम हो रही है।", "bn": "কয়লা আর পেট্রল পোড়ালে বাতাসে কার্বন ডাইঅক্সাইড যায়। এটা তাপ আটকে রাখে, আর পৃথিবী গরম হচ্ছে।" },
+        { "icon": "☀️", "en": "Sun and wind give clean energy that makes no smoke.", "hi": "सूरज और हवा साफ़ ऊर्जा देते हैं जिससे धुआँ नहीं होता।", "bn": "সূর্য আর বাতাস পরিচ্ছন্ন শক্তি দেয়, যাতে কোনো ধোঁয়া হয় না।" }
+      ],
+      "more": { "icon": "🧣", "en": "Carbon dioxide and methane are greenhouse gases. They trap heat like a blanket. More of them means hotter summers, changing rains and melting glaciers.", "hi": "कार्बन डाइऑक्साइड और मीथेन ग्रीनहाउस गैसें हैं। वे कंबल की तरह गर्मी रोकती हैं। इनके बढ़ने से गर्मियाँ ज़्यादा गरम होती हैं, बारिश बदलती है और हिमनद पिघलते हैं।", "bn": "কার্বন ডাইঅক্সাইড আর মিথেন হলো গ্রিনহাউস গ্যাস। এরা কম্বলের মতো তাপ আটকে রাখে। এদের পরিমাণ বাড়লে গ্রীষ্ম আরও গরম হয়, বৃষ্টি বদলে যায় আর হিমবাহ গলে।" },
+      "deep": { "icon": "📈", "en": "The Earth is now about 1.1 °C warmer than in 1850-1900, mainly because of burning fossil fuels (IPCC, 2023). India has pledged to reach net-zero emissions by 2070 and is building large amounts of solar and wind power.", "hi": "पृथ्वी अब 1850-1900 की तुलना में लगभग 1.1 °C गरम है, मुख्य रूप से जीवाश्म ईंधन जलाने के कारण (IPCC, 2023)। भारत ने 2070 तक नेट-ज़ीरो उत्सर्जन का संकल्प लिया है और बड़ी मात्रा में सौर और पवन बिजली बना रहा है।", "bn": "১৮৫০-১৯০০ সালের তুলনায় পৃথিবী এখন প্রায় ১.১ °C বেশি গরম, মূলত জীবাশ্ম জ্বালানি পোড়ানোর কারণে (IPCC, ২০২৩)। ভারত ২০৭০ সালের মধ্যে নেট-জিরো নির্গমনের অঙ্গীকার করেছে আর প্রচুর সৌর ও বায়ুবিদ্যুৎ তৈরি করছে।" },
+      "quiz": [
+        { "q": { "en": "Which one gives clean energy with no smoke?", "hi": "कौन बिना धुएँ के साफ़ ऊर्जा देता है?", "bn": "কোনটি ধোঁয়া ছাড়া পরিচ্ছন্ন শক্তি দেয়?" }, "ans": 0,
+          "opts": [["☀️", { "en": "The Sun", "hi": "सूरज", "bn": "সূর্য" }], ["⛽", { "en": "Petrol", "hi": "पेट्रोल", "bn": "পেট্রল" }], ["🪨", { "en": "Coal", "hi": "कोयला", "bn": "কয়লা" }], ["🔥", { "en": "Burning wood", "hi": "जलती लकड़ी", "bn": "পোড়া কাঠ" }]] },
+        { "q": { "en": "What does carbon dioxide do in the air?", "hi": "हवा में कार्बन डाइऑक्साइड क्या करती है?", "bn": "বাতাসে কার্বন ডাইঅক্সাইড কী করে?" }, "ans": 0,
+          "opts": [["🧣", { "en": "Traps heat", "hi": "गर्मी रोकती है", "bn": "তাপ আটকে রাখে" }], ["🧊", { "en": "Makes ice", "hi": "बर्फ़ बनाती है", "bn": "বরফ তৈরি করে" }], ["🌈", { "en": "Makes rainbows", "hi": "इंद्रधनुष बनाती है", "bn": "রামধনু তৈরি করে" }], ["🔇", { "en": "Stops sound", "hi": "आवाज़ रोकती है", "bn": "শব্দ থামায়" }]] },
+        { "q": { "en": "The usual weather of a place over many years is called...", "hi": "किसी जगह का कई सालों का सामान्य मौसम कहलाता है...", "bn": "কোনো জায়গার অনেক বছরের সাধারণ আবহাওয়াকে বলে..." }, "ans": 0,
+          "opts": [["🌍", { "en": "Climate", "hi": "जलवायु", "bn": "জলবায়ু" }], ["⛈️", { "en": "A storm", "hi": "तूफ़ान", "bn": "ঝড়" }], ["🌈", { "en": "A rainbow", "hi": "इंद्रधनुष", "bn": "রামধনু" }], ["☁️", { "en": "A cloud", "hi": "बादल", "bn": "মেঘ" }]] }
+      ]
+    }
+  }
+}

@@ -1,0 +1,432 @@
+{
+ "ui": {
+  "en": {
+   "ag.curve": "Yield response for your method",
+   "ag.chart": "Wheat yield against nitrogen applied",
+   "ag.yield": "Grain yield",
+   "ag.income": "Income from 1 ha (grain at MSP, less fertiliser and labour)",
+   "ag.lost": "Nitrogen lost to air and water",
+   "ag.leached": "Nitrate reaching groundwater (as N)",
+   "ir.chart": "Water pumped for your field in one season, by method",
+   "ir.m.flood": "Flood",
+   "ir.m.furrow": "Furrow",
+   "ir.m.sprinkler": "Sprinkler",
+   "ir.m.drip": "Drip",
+   "ir.water": "Water pumped (2 ha, one season)",
+   "ir.energy": "Pumping energy",
+   "ir.fall": "Water table fall under the farm (model)",
+   "ir.income": "Income over 5 seasons, after equipment"
+  },
+  "hi": {
+   "ag.curve": "आपकी विधि की उपज प्रतिक्रिया",
+   "ag.chart": "डाली गई नाइट्रोजन के अनुसार गेहूँ की उपज",
+   "ag.yield": "अनाज उपज",
+   "ag.income": "1 हेक्टेयर से आय (MSP पर अनाज, खाद और मज़दूरी घटाकर)",
+   "ag.lost": "हवा और पानी में खोई नाइट्रोजन",
+   "ag.leached": "भूजल तक पहुँचा नाइट्रेट (N के रूप में)",
+   "ir.chart": "एक मौसम में आपके खेत के लिए पंप किया पानी, विधि के अनुसार",
+   "ir.m.flood": "बाढ़ सिंचाई",
+   "ir.m.furrow": "कूँड़",
+   "ir.m.sprinkler": "फव्वारा",
+   "ir.m.drip": "टपक",
+   "ir.water": "पंप किया पानी (2 हेक्टेयर, एक मौसम)",
+   "ir.energy": "पंपिंग ऊर्जा",
+   "ir.fall": "खेत के नीचे जलस्तर में गिरावट (मॉडल)",
+   "ir.income": "5 मौसमों की आय, उपकरण के बाद"
+  },
+  "bn": {
+   "ag.curve": "তোমার পদ্ধতির ফলন-প্রতিক্রিয়া",
+   "ag.chart": "দেওয়া নাইট্রোজেন অনুযায়ী গমের ফলন",
+   "ag.yield": "শস্যের ফলন",
+   "ag.income": "১ হেক্টর থেকে আয় (MSP-তে শস্য, সার আর মজুরি বাদে)",
+   "ag.lost": "বাতাস আর জলে হারানো নাইট্রোজেন",
+   "ag.leached": "ভূগর্ভের জলে পৌঁছানো নাইট্রেট (N হিসেবে)",
+   "ir.chart": "এক মরসুমে তোমার খেতের জন্য পাম্প করা জল, পদ্ধতি অনুযায়ী",
+   "ir.m.flood": "প্লাবন",
+   "ir.m.furrow": "নালা",
+   "ir.m.sprinkler": "স্প্রিংকলার",
+   "ir.m.drip": "ড্রিপ",
+   "ir.water": "পাম্প করা জল (২ হেক্টর, এক মরসুম)",
+   "ir.energy": "পাম্পের শক্তি",
+   "ir.fall": "খেতের নিচে জলস্তর নামা (মডেল)",
+   "ir.income": "৫ মরসুমের আয়, যন্ত্রের খরচের পরে"
+  }
+ },
+ "cases": [
+  {
+   "id": "wheat",
+   "track": "agriculture",
+   "model": "wheat",
+   "concepts": [
+    "nitrogen_cycle",
+    "photosynthesis"
+   ],
+   "title": {
+    "en": "How much urea for this wheat field?",
+    "hi": "इस गेहूँ के खेत को कितना यूरिया?",
+    "bn": "এই গমখেতে কতটা ইউরিয়া?"
+   },
+   "nature": {
+    "en": "Soil life first. A spoon of good soil holds more microbes than there are people in India. Bacteria turn dead roots into ammonium, Nitrosomonas and Nitrobacter turn it into nitrate, and Rhizobium in moong roots pulls nitrogen from the air. Urea the plant cannot take in time is not wasted by nature: other bacteria send it back to the air or rain washes it down to the well.",
+    "hi": "पहले मिट्टी का जीवन। अच्छी मिट्टी के एक चम्मच में भारत की आबादी से ज़्यादा सूक्ष्मजीव होते हैं। बैक्टीरिया मरी जड़ों को अमोनियम बनाते हैं, नाइट्रोसोमोनास और नाइट्रोबैक्टर उसे नाइट्रेट बनाते हैं, और मूंग की जड़ों में राइजोबियम हवा से नाइट्रोजन खींचता है। जो यूरिया पौधा समय पर नहीं ले पाता, प्रकृति उसे बेकार नहीं करती: दूसरे बैक्टीरिया उसे हवा में लौटाते हैं या बारिश उसे बहाकर कुएँ तक ले जाती है।",
+    "bn": "আগে মাটির প্রাণ। এক চামচ ভালো মাটিতে ভারতের জনসংখ্যার চেয়ে বেশি অণুজীব থাকে। ব্যাকটেরিয়া মরা শিকড়কে অ্যামোনিয়াম বানায়, নাইট্রোসোমোনাস আর নাইট্রোব্যাক্টর তাকে নাইট্রেট বানায়, আর মুগের শিকড়ে রাইজোবিয়াম বাতাস থেকে নাইট্রোজেন টানে। যে ইউরিয়া গাছ সময়মতো নিতে পারে না, প্রকৃতি তা নষ্ট করে না: অন্য ব্যাকটেরিয়া তা বাতাসে ফেরায় বা বৃষ্টি তা কুয়োয় ধুয়ে নেয়।"
+   },
+   "brief": {
+    "en": "You are the Krishi Vigyan Kendra agronomist. A farmer's Soil Health Card shows low available nitrogen. Advise the urea dose, how to apply it, and whether to grow summer moong before wheat. The model gives yield, income and nitrogen losses for 1 hectare of irrigated wheat.",
+    "hi": "आप कृषि विज्ञान केंद्र के शस्य वैज्ञानिक हैं। एक किसान का मृदा स्वास्थ्य कार्ड उपलब्ध नाइट्रोजन कम दिखाता है। यूरिया की मात्रा, उसे डालने का तरीका, और गेहूँ से पहले गर्मी में मूंग उगाने की सलाह दें। मॉडल 1 हेक्टेयर सिंचित गेहूँ की उपज, आय और नाइट्रोजन हानि देता है।",
+    "bn": "তুমি কৃষি বিজ্ঞান কেন্দ্রের শস্যবিজ্ঞানী। এক কৃষকের সয়েল হেলথ কার্ডে প্রাপ্য নাইট্রোজেন কম। ইউরিয়ার মাত্রা, দেওয়ার পদ্ধতি, আর গমের আগে গ্রীষ্মে মুগ চাষ করবে কি না পরামর্শ দাও। মডেল ১ হেক্টর সেচের গমের ফলন, আয় আর নাইট্রোজেন ক্ষতি দেখায়।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Soil Health Card: available N",
+      "hi": "मृदा स्वास्थ्य कार्ड: उपलब्ध N",
+      "bn": "সয়েল হেলথ কার্ড: প্রাপ্য N"
+     },
+     "value": {
+      "en": "220 kg/ha (low: below 280)",
+      "hi": "220 किग्रा/हेक्टेयर (कम: 280 से नीचे)",
+      "bn": "২২০ কেজি/হেক্টর (কম: ২৮০-র নিচে)"
+     }
+    },
+    {
+     "label": {
+      "en": "Typical recommendation, irrigated wheat",
+      "hi": "सामान्य सिफ़ारिश, सिंचित गेहूँ",
+      "bn": "সাধারণ সুপারিশ, সেচের গম"
+     },
+     "value": {
+      "en": "120-150 kg N/ha in split doses",
+      "hi": "बँटी खुराक में 120-150 किग्रा N/हेक्टेयर",
+      "bn": "ভাগ করা মাত্রায় ১২০-১৫০ কেজি N/হেক্টর"
+     }
+    },
+    {
+     "label": {
+      "en": "Urea",
+      "hi": "यूरिया",
+      "bn": "ইউরিয়া"
+     },
+     "value": {
+      "en": "46% N; ₹242 per 45 kg bag (neem-coated)",
+      "hi": "46% N; ₹242 प्रति 45 किग्रा बोरी (नीम-लेपित)",
+      "bn": "৪৬% N; ৪৫ কেজির বস্তা ₹২৪২ (নিম-আবৃত)"
+     }
+    },
+    {
+     "label": {
+      "en": "Wheat MSP (RMS 2025-26)",
+      "hi": "गेहूँ MSP (RMS 2025-26)",
+      "bn": "গমের MSP (RMS ২০২৫-২৬)"
+     },
+     "value": {
+      "en": "₹2,425 per quintal",
+      "hi": "₹2,425 प्रति क्विंटल",
+      "bn": "কুইন্টাল প্রতি ₹২,৪২৫"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "dose",
+     "q": {
+      "en": "Nitrogen dose (kg N per ha)",
+      "hi": "नाइट्रोजन मात्रा (किग्रा N प्रति हेक्टेयर)",
+      "bn": "নাইট্রোজেনের মাত্রা (কেজি N প্রতি হেক্টর)"
+     },
+     "options": [
+      {
+       "id": "n0",
+       "effect": 0,
+       "label": {
+        "en": "0",
+        "hi": "0",
+        "bn": "০"
+       }
+      },
+      {
+       "id": "n60",
+       "effect": 60,
+       "label": {
+        "en": "60 (about 3 bags of urea)",
+        "hi": "60 (लगभग 3 बोरी यूरिया)",
+        "bn": "৬০ (প্রায় ৩ বস্তা ইউরিয়া)"
+       }
+      },
+      {
+       "id": "n120",
+       "effect": 120,
+       "label": {
+        "en": "120 (about 6 bags)",
+        "hi": "120 (लगभग 6 बोरी)",
+        "bn": "১২০ (প্রায় ৬ বস্তা)"
+       }
+      },
+      {
+       "id": "n180",
+       "effect": 180,
+       "label": {
+        "en": "180 (about 9 bags)",
+        "hi": "180 (लगभग 9 बोरी)",
+        "bn": "১৮০ (প্রায় ৯ বস্তা)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "method",
+     "q": {
+      "en": "How to apply it",
+      "hi": "कैसे डालें",
+      "bn": "কীভাবে দেবে"
+     },
+     "options": [
+      {
+       "id": "single",
+       "label": {
+        "en": "All at sowing",
+        "hi": "सब बुवाई पर",
+        "bn": "সবটা বপনের সময়"
+       }
+      },
+      {
+       "id": "split",
+       "label": {
+        "en": "Three splits: sowing, first and second irrigation",
+        "hi": "तीन बार: बुवाई, पहली और दूसरी सिंचाई",
+        "bn": "তিন ভাগে: বপন, প্রথম আর দ্বিতীয় সেচ"
+       }
+      },
+      {
+       "id": "lcc",
+       "label": {
+        "en": "Splits timed by a leaf colour chart",
+        "hi": "पत्ती रंग चार्ट से तय समय पर बँटी खुराक",
+        "bn": "পাতার রং চার্ট দেখে ভাগে ভাগে"
+       }
+      }
+     ]
+    },
+    {
+     "id": "legume",
+     "q": {
+      "en": "Before wheat",
+      "hi": "गेहूँ से पहले",
+      "bn": "গমের আগে"
+     },
+     "options": [
+      {
+       "id": "no",
+       "effect": 0,
+       "label": {
+        "en": "Fallow after rice",
+        "hi": "धान के बाद परती",
+        "bn": "ধানের পরে পতিত"
+       }
+      },
+      {
+       "id": "yes",
+       "effect": 1,
+       "label": {
+        "en": "Summer moong, residue ploughed in",
+        "hi": "गर्मी में मूंग, अवशेष जुताई में मिलाएँ",
+        "bn": "গ্রীষ্মে মুগ, অবশেষ চাষে মেশাও"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Yield rises with nitrogen but each extra kilogram adds less (diminishing returns), while losses keep rising, so the last bags of urea pay for themselves only in the groundwater. Split doses match the crop's demand and lift use efficiency; a leaf colour chart tells the farmer when the crop is actually hungry. A legume crop is a free nitrogen factory: Rhizobium leaves nitrogen in the soil for the next crop.",
+    "hi": "नाइट्रोजन से उपज बढ़ती है पर हर अतिरिक्त किलो कम जोड़ता है (घटता प्रतिफल), जबकि हानि बढ़ती रहती है, इसलिए यूरिया की आख़िरी बोरियाँ केवल भूजल में अपनी कीमत चुकाती हैं। बँटी खुराक फसल की माँग से मेल खाती है और उपयोग दक्षता बढ़ाती है; पत्ती रंग चार्ट किसान को बताता है कि फसल सच में कब भूखी है। दलहन फसल मुफ़्त नाइट्रोजन कारखाना है: राइजोबियम अगली फसल के लिए मिट्टी में नाइट्रोजन छोड़ता है।",
+    "bn": "নাইট্রোজেনে ফলন বাড়ে কিন্তু প্রতিটি বাড়তি কেজি কম যোগ করে (ক্রমহ্রাসমান প্রতিদান), অথচ ক্ষতি বাড়তেই থাকে, তাই ইউরিয়ার শেষ বস্তাগুলো শুধু ভূগর্ভের জলে দাম চোকায়। ভাগ করা মাত্রা ফসলের চাহিদার সঙ্গে মেলে আর ব্যবহার-দক্ষতা বাড়ায়; পাতার রং চার্ট কৃষককে বলে ফসল সত্যিই কখন ক্ষুধার্ত। ডালশস্য বিনামূল্যের নাইট্রোজেন কারখানা: রাইজোবিয়াম পরের ফসলের জন্য মাটিতে নাইট্রোজেন রেখে যায়।"
+   },
+   "sources": [
+    "Soil Health Card scheme: available N ratings (low < 280, medium 280-560, high > 560 kg/ha)",
+    "ICAR package of practices for irrigated wheat; leaf colour chart (ICAR / IRRI)",
+    "Wheat MSP for RMS 2025-26 (Government of India); urea MRP",
+    "Yield curve, use efficiencies and leaching share are stated model assumptions"
+   ]
+  },
+  {
+   "id": "irrigation",
+   "track": "agriculture",
+   "model": "irrigation",
+   "concepts": [
+    "photosynthesis"
+   ],
+   "title": {
+    "en": "Drip, sprinkler or flood?",
+    "hi": "टपक, फव्वारा या बाढ़?",
+    "bn": "ড্রিপ, স্প্রিংকলার না প্লাবন?"
+   },
+   "nature": {
+    "en": "The root first. A plant drinks only near its roots, and loses most water through tiny pores in its leaves while it takes in CO2. Water that floods the whole field mostly evaporates from bare soil or sinks below the roots. Groundwater under the farm took decades to collect; a tube well can empty it in years.",
+    "hi": "पहले जड़। पौधा केवल अपनी जड़ों के पास पानी पीता है, और CO2 लेते समय ज़्यादातर पानी पत्तियों के छोटे छिद्रों से खोता है। पूरे खेत में भरा पानी ज़्यादातर खुली मिट्टी से भाप बनता है या जड़ों से नीचे चला जाता है। खेत के नीचे का भूजल दशकों में जमा हुआ; ट्यूबवेल उसे कुछ सालों में खाली कर सकता है।",
+    "bn": "আগে শিকড়। গাছ শুধু শিকড়ের কাছেই জল খায়, আর CO2 নেওয়ার সময় পাতার ছোট ছিদ্র দিয়ে বেশিরভাগ জল হারায়। পুরো খেতে ভরানো জলের বেশিরভাগ খোলা মাটি থেকে বাষ্প হয় বা শিকড়ের নিচে চলে যায়। খেতের নিচের ভূগর্ভস্থ জল জমতে দশক লেগেছে; নলকূপ কয়েক বছরে তা খালি করতে পারে।"
+   },
+   "brief": {
+    "en": "You advise a farmer with 2 hectares of vegetables over a falling water table (pump lifts water 60 m). The crop needs about 600 mm of water a season. Choose the irrigation method, mulch and scheduling. Small farmers get 55% of drip or sprinkler cost from PMKSY 'Per Drop More Crop'.",
+    "hi": "आप गिरते जलस्तर (पंप 60 मीटर से पानी उठाता है) वाले 2 हेक्टेयर सब्ज़ी के किसान को सलाह देते हैं। फसल को एक मौसम में लगभग 600 मिमी पानी चाहिए। सिंचाई विधि, मल्च और समय-निर्धारण चुनें। छोटे किसानों को PMKSY 'पर ड्रॉप मोर क्रॉप' से टपक या फव्वारे की लागत का 55% मिलता है।",
+    "bn": "তুমি নামতে থাকা জলস্তরের (পাম্প ৬০ মিটার থেকে জল তোলে) ২ হেক্টর সবজিচাষিকে পরামর্শ দাও। ফসলের এক মরসুমে প্রায় ৬০০ মিমি জল লাগে। সেচ পদ্ধতি, মালচ আর সময়সূচি বাছো। ছোট কৃষকেরা PMKSY 'পার ড্রপ মোর ক্রপ' থেকে ড্রিপ বা স্প্রিংকলারের খরচের ৫৫% পান।"
+   },
+   "data": [
+    {
+     "label": {
+      "en": "Crop water need",
+      "hi": "फसल की पानी की ज़रूरत",
+      "bn": "ফসলের জলের প্রয়োজন"
+     },
+     "value": {
+      "en": "600 mm per season",
+      "hi": "प्रति मौसम 600 मिमी",
+      "bn": "মরসুমে ৬০০ মিমি"
+     }
+    },
+    {
+     "label": {
+      "en": "Field application efficiency",
+      "hi": "खेत में अनुप्रयोग दक्षता",
+      "bn": "খেতে প্রয়োগ-দক্ষতা"
+     },
+     "value": {
+      "en": "flood 40%, furrow 60%, sprinkler 75%, drip 90%",
+      "hi": "बाढ़ 40%, कूँड़ 60%, फव्वारा 75%, टपक 90%",
+      "bn": "প্লাবন ৪০%, নালা ৬০%, স্প্রিংকলার ৭৫%, ড্রিপ ৯০%"
+     }
+    },
+    {
+     "label": {
+      "en": "Pumping lift",
+      "hi": "पंप उठान",
+      "bn": "পাম্পের উত্তোলন"
+     },
+     "value": "60 m"
+    },
+    {
+     "label": {
+      "en": "Recharge under the farm",
+      "hi": "खेत के नीचे पुनर्भरण",
+      "bn": "খেতের নিচে পুনর্ভরণ"
+     },
+     "value": {
+      "en": "about 150 mm a year",
+      "hi": "लगभग 150 मिमी प्रति वर्ष",
+      "bn": "বছরে প্রায় ১৫০ মিমি"
+     }
+    }
+   ],
+   "decisions": [
+    {
+     "id": "method",
+     "q": {
+      "en": "Irrigation method",
+      "hi": "सिंचाई विधि",
+      "bn": "সেচ পদ্ধতি"
+     },
+     "options": [
+      {
+       "id": "flood",
+       "label": {
+        "en": "Flood the beds",
+        "hi": "क्यारियों में पानी भरें",
+        "bn": "কেয়ারি ভরিয়ে দাও"
+       }
+      },
+      {
+       "id": "furrow",
+       "label": {
+        "en": "Furrows between ridges",
+        "hi": "मेड़ों के बीच कूँड़",
+        "bn": "আলের মাঝে নালা"
+       }
+      },
+      {
+       "id": "sprinkler",
+       "label": {
+        "en": "Sprinklers (55% subsidy)",
+        "hi": "फव्वारा (55% सब्सिडी)",
+        "bn": "স্প্রিংকলার (৫৫% ভর্তুকি)"
+       }
+      },
+      {
+       "id": "drip",
+       "label": {
+        "en": "Drip with fertigation (55% subsidy)",
+        "hi": "फ़र्टिगेशन के साथ टपक (55% सब्सिडी)",
+        "bn": "ফার্টিগেশনসহ ড্রিপ (৫৫% ভর্তুকি)"
+       }
+      }
+     ]
+    },
+    {
+     "id": "mulch",
+     "q": {
+      "en": "Soil cover",
+      "hi": "मिट्टी ढकना",
+      "bn": "মাটি ঢাকা"
+     },
+     "options": [
+      {
+       "id": "no",
+       "effect": 0,
+       "label": {
+        "en": "Bare soil",
+        "hi": "खुली मिट्टी",
+        "bn": "খোলা মাটি"
+       }
+      },
+      {
+       "id": "yes",
+       "effect": 1,
+       "label": {
+        "en": "Mulch with crop residue",
+        "hi": "फसल अवशेष की मल्च",
+        "bn": "ফসলের অবশেষের মালচ"
+       }
+      }
+     ]
+    },
+    {
+     "id": "sensor",
+     "q": {
+      "en": "When to water",
+      "hi": "कब पानी दें",
+      "bn": "কখন জল দেবে"
+     },
+     "options": [
+      {
+       "id": "no",
+       "effect": 0,
+       "label": {
+        "en": "Fixed days",
+        "hi": "तय दिनों पर",
+        "bn": "নির্দিষ্ট দিনে"
+       }
+      },
+      {
+       "id": "yes",
+       "effect": 1,
+       "label": {
+        "en": "When a soil moisture sensor says so",
+        "hi": "जब मिट्टी नमी सेंसर बताए",
+        "bn": "যখন মাটির আর্দ্রতা সেন্সর বলে"
+       }
+      }
+     ]
+    }
+   ],
+   "debrief": {
+    "en": "Flooding wets the whole field to water a few roots, so most of the pumped water evaporates or drains away and the water table falls fast. Drip puts water at the root zone and can carry fertiliser with it (fertigation), which usually raises yield as well. Mulch and sensor-based scheduling are cheap and work with any method. Where electricity for pumps is free, saving water also saves the state's power bill.",
+    "hi": "बाढ़ सिंचाई कुछ जड़ों को पानी देने के लिए पूरा खेत भिगोती है, इसलिए पंप किया ज़्यादातर पानी भाप बनता या बह जाता है और जलस्तर तेज़ी से गिरता है। टपक सिंचाई पानी जड़ क्षेत्र में देती है और उसके साथ खाद भी ले जा सकती है (फ़र्टिगेशन), जिससे प्रायः उपज भी बढ़ती है। मल्च और सेंसर-आधारित समय सस्ते हैं और किसी भी विधि के साथ काम करते हैं। जहाँ पंप की बिजली मुफ़्त है, पानी बचाना राज्य का बिजली बिल भी बचाता है।",
+    "bn": "প্লাবন সেচ কয়েকটি শিকড়ে জল দিতে পুরো খেত ভেজায়, তাই পাম্প করা জলের বেশিরভাগ বাষ্প হয় বা বয়ে যায় আর জলস্তর দ্রুত নামে। ড্রিপ জল দেয় শিকড়ের অঞ্চলে আর সঙ্গে সারও নিতে পারে (ফার্টিগেশন), যাতে সাধারণত ফলনও বাড়ে। মালচ আর সেন্সর-ভিত্তিক সময়সূচি সস্তা আর যেকোনো পদ্ধতির সঙ্গে কাজ করে। যেখানে পাম্পের বিদ্যুৎ বিনামূল্যে, সেখানে জল বাঁচালে রাজ্যের বিদ্যুৎ বিলও বাঁচে।"
+   },
+   "sources": [
+    "Pradhan Mantri Krishi Sinchayee Yojana, Per Drop More Crop: subsidy 55% for small and marginal farmers",
+    "Central Water Commission / NMSA figures for irrigation application efficiency",
+    "CGWB Dynamic Ground Water Resources assessments (falling water tables)",
+    "Yield factors, recharge and costs are stated model assumptions"
+   ]
+  }
+ ]
+}

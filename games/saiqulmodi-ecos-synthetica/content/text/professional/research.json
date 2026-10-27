@@ -1,0 +1,452 @@
+{
+ "ui": {
+  "en": {
+   "rs.title": "Research mode",
+   "rs.lead": "Real published Indian and global data. Fit models, see the uncertainty, reproduce official numbers, measure biodiversity and map it.",
+   "rs.tabData": "Datasets",
+   "rs.tabModel": "Model run",
+   "rs.tabRepro": "Reproduce a result",
+   "rs.tabDiv": "Biodiversity",
+   "rs.tabMap": "Map",
+   "rs.source": "Source",
+   "rs.licence": "Licence",
+   "rs.download": "Download CSV",
+   "rs.rows": "{n} rows",
+   "rs.dataset": "Dataset",
+   "rs.model": "Model",
+   "rs.linear": "Straight line (linear regression)",
+   "rs.exp": "Exponential growth (fit on log values)",
+   "rs.forecast": "Forecast year",
+   "rs.fitted": "Fitted model",
+   "rs.data": "Data",
+   "rs.band": "95% prediction interval",
+   "rs.eqLin": "y = {a} + {b} × year · R² = {r2}",
+   "rs.eqExp": "growth {rate}% a year (doubling in {dbl} years) · R² = {r2}",
+   "rs.pred": "Forecast for {year}: {y} (95% interval {lo} to {hi})",
+   "rs.aiNote": "This forecast is the model above, nothing hidden: it assumes the past trend continues. The band shows how sure it can be; it widens the further ahead you look.",
+   "rs.downloadFit": "Download fit and forecast (CSV)",
+   "rs.reproLead": "Use the data to calculate the number yourself, then check it against the published figure.",
+   "rs.answer": "Your answer",
+   "rs.check": "Check",
+   "rs.right": "Correct. You reproduced the published result: {pub}.",
+   "rs.wrong": "Not yet. Hint: {hint}",
+   "rs.done": "Reproduced",
+   "rs.divLead": "Counts of each species in two 20 m × 20 m plots (illustrative counts). Edit the numbers and see the indices change.",
+   "rs.species": "Species",
+   "rs.count": "Count",
+   "rs.richness": "Species richness S",
+   "rs.shannon": "Shannon H′ = −Σ p ln p",
+   "rs.simpson": "Simpson 1 − Σ p²",
+   "rs.evenness": "Evenness J = H′ / ln S",
+   "rs.total": "Individuals counted",
+   "rs.divNote": "A plot full of one invasive shrub can have many plants but little diversity.",
+   "rs.mapLead": "Some of India's tiger reserves (approximate centres), placed by latitude and longitude. The map is drawn by the game and works offline.",
+   "rs.reserve": "Tiger reserve",
+   "rs.state": "State",
+   "rs.mapNote": "Tap a name to see the reserve on OpenStreetMap (opens a new tab, online).",
+   "rs.tropic": "Tropic of Cancer"
+  },
+  "hi": {
+   "rs.title": "रिसर्च मोड",
+   "rs.lead": "असली प्रकाशित भारतीय और वैश्विक आँकड़े। मॉडल फ़िट करें, अनिश्चितता देखें, आधिकारिक संख्याएँ दोबारा निकालें, जैव विविधता मापें और नक्शे पर देखें।",
+   "rs.tabData": "डेटासेट",
+   "rs.tabModel": "मॉडल रन",
+   "rs.tabRepro": "परिणाम दोहराएँ",
+   "rs.tabDiv": "जैव विविधता",
+   "rs.tabMap": "नक्शा",
+   "rs.source": "स्रोत",
+   "rs.licence": "लाइसेंस",
+   "rs.download": "CSV डाउनलोड करें",
+   "rs.rows": "{n} पंक्तियाँ",
+   "rs.dataset": "डेटासेट",
+   "rs.model": "मॉडल",
+   "rs.linear": "सीधी रेखा (रैखिक प्रतिगमन)",
+   "rs.exp": "घातांकी वृद्धि (लॉग मानों पर फ़िट)",
+   "rs.forecast": "पूर्वानुमान वर्ष",
+   "rs.fitted": "फ़िट किया मॉडल",
+   "rs.data": "आँकड़े",
+   "rs.band": "95% पूर्वानुमान अंतराल",
+   "rs.eqLin": "y = {a} + {b} × वर्ष · R² = {r2}",
+   "rs.eqExp": "वृद्धि {rate}% प्रति वर्ष ({dbl} वर्ष में दोगुना) · R² = {r2}",
+   "rs.pred": "{year} का पूर्वानुमान: {y} (95% अंतराल {lo} से {hi})",
+   "rs.aiNote": "यह पूर्वानुमान ऊपर वाला मॉडल ही है, कुछ छिपा नहीं: यह मानता है कि पुराना रुझान जारी रहेगा। पट्टी दिखाती है कि यह कितना पक्का हो सकता है; जितना आगे देखें, उतनी चौड़ी होती है।",
+   "rs.downloadFit": "फ़िट और पूर्वानुमान डाउनलोड करें (CSV)",
+   "rs.reproLead": "आँकड़ों से संख्या ख़ुद निकालें, फिर प्रकाशित आँकड़े से मिलाएँ।",
+   "rs.answer": "आपका उत्तर",
+   "rs.check": "जाँचें",
+   "rs.right": "सही। आपने प्रकाशित परिणाम दोहरा दिया: {pub}।",
+   "rs.wrong": "अभी नहीं। संकेत: {hint}",
+   "rs.done": "दोहराया गया",
+   "rs.divLead": "दो 20 मी × 20 मी भूखंडों में हर प्रजाति की गिनती (उदाहरण गिनती)। संख्याएँ बदलें और सूचकांक बदलते देखें।",
+   "rs.species": "प्रजाति",
+   "rs.count": "गिनती",
+   "rs.richness": "प्रजाति समृद्धि S",
+   "rs.shannon": "शैनन H′ = −Σ p ln p",
+   "rs.simpson": "सिम्पसन 1 − Σ p²",
+   "rs.evenness": "समानता J = H′ / ln S",
+   "rs.total": "गिने गए सदस्य",
+   "rs.divNote": "एक आक्रामक झाड़ी से भरे भूखंड में पौधे बहुत हो सकते हैं पर विविधता कम।",
+   "rs.mapLead": "भारत के कुछ बाघ रिज़र्व (लगभग केंद्र), अक्षांश और देशांतर के अनुसार। नक्शा खेल ख़ुद बनाता है और ऑफ़लाइन चलता है।",
+   "rs.reserve": "बाघ रिज़र्व",
+   "rs.state": "राज्य",
+   "rs.mapNote": "रिज़र्व को OpenStreetMap पर देखने के लिए नाम दबाएँ (नया टैब, ऑनलाइन)।",
+   "rs.tropic": "कर्क रेखा"
+  },
+  "bn": {
+   "rs.title": "রিসার্চ মোড",
+   "rs.lead": "প্রকাশিত আসল ভারতীয় ও বৈশ্বিক তথ্য। মডেল বসাও, অনিশ্চয়তা দেখো, সরকারি সংখ্যা নিজে বের করো, জীববৈচিত্র্য মাপো আর মানচিত্রে দেখো।",
+   "rs.tabData": "ডেটাসেট",
+   "rs.tabModel": "মডেল রান",
+   "rs.tabRepro": "ফল পুনরায় বের করো",
+   "rs.tabDiv": "জীববৈচিত্র্য",
+   "rs.tabMap": "মানচিত্র",
+   "rs.source": "উৎস",
+   "rs.licence": "লাইসেন্স",
+   "rs.download": "CSV ডাউনলোড করো",
+   "rs.rows": "{n}টি সারি",
+   "rs.dataset": "ডেটাসেট",
+   "rs.model": "মডেল",
+   "rs.linear": "সরলরেখা (রৈখিক রিগ্রেশন)",
+   "rs.exp": "সূচকীয় বৃদ্ধি (লগ মানে বসানো)",
+   "rs.forecast": "পূর্বাভাসের বছর",
+   "rs.fitted": "বসানো মডেল",
+   "rs.data": "তথ্য",
+   "rs.band": "৯৫% পূর্বাভাস ব্যবধান",
+   "rs.eqLin": "y = {a} + {b} × বছর · R² = {r2}",
+   "rs.eqExp": "বছরে {rate}% বৃদ্ধি ({dbl} বছরে দ্বিগুণ) · R² = {r2}",
+   "rs.pred": "{year}-এর পূর্বাভাস: {y} (৯৫% ব্যবধান {lo} থেকে {hi})",
+   "rs.aiNote": "এই পূর্বাভাস ওপরের মডেলটিই, কিছু লুকোনো নেই: এটি ধরে নেয় অতীতের ধারা চলবে। পট্টিটি দেখায় এটি কতটা নিশ্চিত হতে পারে; যত দূরে তাকাবে, তত চওড়া হয়।",
+   "rs.downloadFit": "ফিট আর পূর্বাভাস ডাউনলোড করো (CSV)",
+   "rs.reproLead": "তথ্য থেকে সংখ্যাটা নিজে হিসাব করো, তারপর প্রকাশিত সংখ্যার সঙ্গে মেলাও।",
+   "rs.answer": "তোমার উত্তর",
+   "rs.check": "যাচাই করো",
+   "rs.right": "ঠিক। তুমি প্রকাশিত ফল নিজে বের করেছ: {pub}।",
+   "rs.wrong": "এখনও নয়। সূত্র: {hint}",
+   "rs.done": "পুনরায় বের করা হয়েছে",
+   "rs.divLead": "দুটি ২০ মি × ২০ মি প্লটে প্রতিটি প্রজাতির গণনা (উদাহরণ গণনা)। সংখ্যা বদলাও আর সূচক বদলাতে দেখো।",
+   "rs.species": "প্রজাতি",
+   "rs.count": "গণনা",
+   "rs.richness": "প্রজাতি-সমৃদ্ধি S",
+   "rs.shannon": "শ্যানন H′ = −Σ p ln p",
+   "rs.simpson": "সিম্পসন 1 − Σ p²",
+   "rs.evenness": "সমতা J = H′ / ln S",
+   "rs.total": "গোনা সদস্য",
+   "rs.divNote": "একটি আগ্রাসী ঝোপে ভরা প্লটে গাছ অনেক থাকতে পারে কিন্তু বৈচিত্র্য কম।",
+   "rs.mapLead": "ভারতের কয়েকটি বাঘ সংরক্ষিত বন (আনুমানিক কেন্দ্র), অক্ষাংশ আর দ্রাঘিমাংশ অনুযায়ী। মানচিত্রটি খেলা নিজেই আঁকে আর অফলাইনে চলে।",
+   "rs.reserve": "বাঘ সংরক্ষিত বন",
+   "rs.state": "রাজ্য",
+   "rs.mapNote": "সংরক্ষিত বনটি OpenStreetMap-এ দেখতে নাম চাপো (নতুন ট্যাব, অনলাইন)।",
+   "rs.tropic": "কর্কটক্রান্তি রেখা"
+  }
+ },
+ "datasets": [
+  {
+   "id": "census",
+   "file": "india_population_census.csv",
+   "x": "year",
+   "y": "population_millions",
+   "title": {
+    "en": "India's population, Census 1951-2011 (millions)",
+    "hi": "भारत की जनसंख्या, जनगणना 1951-2011 (मिलियन)",
+    "bn": "ভারতের জনসংখ্যা, জনগণনা ১৯৫১-২০১১ (মিলিয়ন)"
+   },
+   "source": "Census of India, Office of the Registrar General & Census Commissioner (final population totals)",
+   "licence": "Government Open Data Licence - India"
+  },
+  {
+   "id": "tigers",
+   "file": "india_tigers_aite.csv",
+   "x": "year",
+   "y": "tigers_mean",
+   "lo": "tigers_lower",
+   "hi": "tigers_upper",
+   "title": {
+    "en": "Wild tigers in India, All India Tiger Estimation 2006-2022",
+    "hi": "भारत में जंगली बाघ, अखिल भारतीय बाघ आकलन 2006-2022",
+    "bn": "ভারতে বুনো বাঘ, সর্বভারতীয় বাঘ সমীক্ষা ২০০৬-২০২২"
+   },
+   "source": "NTCA and Wildlife Institute of India, Status of Tigers, Co-predators and Prey in India (2006, 2010, 2014, 2018, 2022)",
+   "licence": "Public government reports"
+  },
+  {
+   "id": "forest",
+   "file": "india_forest_cover_isfr.csv",
+   "x": "year",
+   "y": "forest_cover_km2",
+   "title": {
+    "en": "India's forest cover, ISFR 2015-2021 (km²)",
+    "hi": "भारत का वन आवरण, ISFR 2015-2021 (वर्ग किमी)",
+    "bn": "ভারতের বনভূমি, ISFR ২০১৫-২০২১ (বর্গকিমি)"
+   },
+   "source": "Forest Survey of India, India State of Forest Report 2015, 2017, 2019, 2021",
+   "licence": "Public government reports"
+  },
+  {
+   "id": "co2",
+   "file": "co2_mauna_loa.csv",
+   "x": "year",
+   "y": "co2_ppm",
+   "title": {
+    "en": "CO2 in the air, Mauna Loa annual means 1960-2023 (ppm)",
+    "hi": "हवा में CO2, मौना लोआ वार्षिक औसत 1960-2023 (ppm)",
+    "bn": "বাতাসে CO2, মাউনা লোয়া বার্ষিক গড় ১৯৬০-২০২৩ (ppm)"
+   },
+   "source": "NOAA Global Monitoring Laboratory, Mauna Loa CO2 annual mean data (values rounded to 0.01 ppm)",
+   "licence": "Public domain (US Government work)"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "census",
+   "dataset": "census",
+   "answer": 17.7,
+   "tol": 0.2,
+   "unit": "%",
+   "q": {
+    "en": "What was India's population growth over the decade 2001-2011, in per cent?",
+    "hi": "2001-2011 के दशक में भारत की जनसंख्या वृद्धि कितने प्रतिशत थी?",
+    "bn": "২০০১-২০১১ দশকে ভারতের জনসংখ্যা বৃদ্ধি কত শতাংশ ছিল?"
+   },
+   "hint": {
+    "en": "(population 2011 − population 2001) ÷ population 2001 × 100",
+    "hi": "(जनसंख्या 2011 − जनसंख्या 2001) ÷ जनसंख्या 2001 × 100",
+    "bn": "(জনসংখ্যা ২০১১ − জনসংখ্যা ২০০১) ÷ জনসংখ্যা ২০০১ × ১০০"
+   },
+   "pub": {
+    "en": "Census of India 2011, decadal growth 2001-2011: 17.7%",
+    "hi": "भारत की जनगणना 2011, 2001-2011 की दशकीय वृद्धि: 17.7%",
+    "bn": "ভারতের জনগণনা ২০১১, ২০০১-২০১১ দশকের বৃদ্ধি: ১৭.৭%"
+   }
+  },
+  {
+   "id": "co2",
+   "dataset": "co2",
+   "answer": 2.4,
+   "tol": 0.1,
+   "unit": "ppm/yr",
+   "q": {
+    "en": "Fit a straight line to the CO2 values for 2010, 2015 and 2020 (Model run tab, or by hand). How many ppm a year did CO2 rise in the 2010s?",
+    "hi": "2010, 2015 और 2020 के CO2 मानों पर सीधी रेखा फ़िट करें (मॉडल रन टैब में, या हाथ से)। 2010 के दशक में CO2 हर साल कितने ppm बढ़ी?",
+    "bn": "২০১০, ২০১৫ আর ২০২০-র CO2 মানে সরলরেখা বসাও (মডেল রান ট্যাবে, বা হাতে)। ২০১০-এর দশকে CO2 বছরে কত ppm বেড়েছে?"
+   },
+   "hint": {
+    "en": "(CO2 in 2020 − CO2 in 2010) ÷ 10 years gives almost the same slope",
+    "hi": "(2020 की CO2 − 2010 की CO2) ÷ 10 वर्ष लगभग वही ढलान देता है",
+    "bn": "(২০২০-র CO2 − ২০১০-র CO2) ÷ ১০ বছর প্রায় একই ঢাল দেয়"
+   },
+   "pub": {
+    "en": "NOAA: CO2 rose by about 2.4 ppm a year in the 2010s",
+    "hi": "NOAA: 2010 के दशक में CO2 लगभग 2.4 ppm प्रति वर्ष बढ़ी",
+    "bn": "NOAA: ২০১০-এর দশকে CO2 বছরে প্রায় ২.৪ ppm বেড়েছে"
+   }
+  }
+ ],
+ "plots": [
+  {
+   "id": "grove",
+   "title": {
+    "en": "Plot A: sacred grove, Western Ghats",
+    "hi": "भूखंड A: पवित्र उपवन, पश्चिमी घाट",
+    "bn": "প্লট A: পবিত্র কুঞ্জ, পশ্চিমঘাট"
+   },
+   "counts": [
+    [
+     "Hopea ponga",
+     12
+    ],
+    [
+     "Syzygium cumini",
+     9
+    ],
+    [
+     "Memecylon umbellatum",
+     8
+    ],
+    [
+     "Myristica malabarica",
+     6
+    ],
+    [
+     "Ficus racemosa",
+     5
+    ],
+    [
+     "Terminalia paniculata",
+     4
+    ],
+    [
+     "Lagerstroemia microcarpa",
+     3
+    ]
+   ]
+  },
+  {
+   "id": "lantana",
+   "title": {
+    "en": "Plot B: forest edge invaded by Lantana",
+    "hi": "भूखंड B: लैंटाना से घिरा जंगल का किनारा",
+    "bn": "প্লট B: ল্যান্টানায় ছেয়ে যাওয়া বনের প্রান্ত"
+   },
+   "counts": [
+    [
+     "Lantana camara",
+     62
+    ],
+    [
+     "Chromolaena odorata",
+     14
+    ],
+    [
+     "Tectona grandis",
+     5
+    ],
+    [
+     "Terminalia paniculata",
+     3
+    ]
+   ]
+  }
+ ],
+ "reserves": [
+  {
+   "name": {
+    "en": "Jim Corbett",
+    "hi": "जिम कॉर्बेट",
+    "bn": "জিম করবেট"
+   },
+   "state": {
+    "en": "Uttarakhand",
+    "hi": "उत्तराखंड",
+    "bn": "উত্তরাখণ্ড"
+   },
+   "lat": 29.53,
+   "lng": 78.77
+  },
+  {
+   "name": {
+    "en": "Ranthambore",
+    "hi": "रणथंभौर",
+    "bn": "রণথম্ভোর"
+   },
+   "state": {
+    "en": "Rajasthan",
+    "hi": "राजस्थान",
+    "bn": "রাজস্থান"
+   },
+   "lat": 26.02,
+   "lng": 76.5
+  },
+  {
+   "name": {
+    "en": "Kanha",
+    "hi": "कान्हा",
+    "bn": "কানহা"
+   },
+   "state": {
+    "en": "Madhya Pradesh",
+    "hi": "मध्य प्रदेश",
+    "bn": "মধ্যপ্রদেশ"
+   },
+   "lat": 22.33,
+   "lng": 80.61
+  },
+  {
+   "name": {
+    "en": "Bandhavgarh",
+    "hi": "बांधवगढ़",
+    "bn": "বান্ধবগড়"
+   },
+   "state": {
+    "en": "Madhya Pradesh",
+    "hi": "मध्य प्रदेश",
+    "bn": "মধ্যপ্রদেশ"
+   },
+   "lat": 23.7,
+   "lng": 81.03
+  },
+  {
+   "name": {
+    "en": "Tadoba-Andhari",
+    "hi": "ताडोबा-अंधारी",
+    "bn": "তাডোবা-আন্ধারি"
+   },
+   "state": {
+    "en": "Maharashtra",
+    "hi": "महाराष्ट्र",
+    "bn": "মহারাষ্ট্র"
+   },
+   "lat": 20.25,
+   "lng": 79.38
+  },
+  {
+   "name": {
+    "en": "Bandipur",
+    "hi": "बांदीपुर",
+    "bn": "বান্দিপুর"
+   },
+   "state": {
+    "en": "Karnataka",
+    "hi": "कर्नाटक",
+    "bn": "কর্ণাটক"
+   },
+   "lat": 11.66,
+   "lng": 76.63
+  },
+  {
+   "name": {
+    "en": "Nagarahole",
+    "hi": "नागरहोल",
+    "bn": "নাগরহোল"
+   },
+   "state": {
+    "en": "Karnataka",
+    "hi": "कर्नाटक",
+    "bn": "কর্ণাটক"
+   },
+   "lat": 12.05,
+   "lng": 76.15
+  },
+  {
+   "name": {
+    "en": "Periyar",
+    "hi": "पेरियार",
+    "bn": "পেরিয়ার"
+   },
+   "state": {
+    "en": "Kerala",
+    "hi": "केरल",
+    "bn": "কেরালা"
+   },
+   "lat": 9.47,
+   "lng": 77.17
+  },
+  {
+   "name": {
+    "en": "Sundarbans",
+    "hi": "सुंदरबन",
+    "bn": "সুন্দরবন"
+   },
+   "state": {
+    "en": "West Bengal",
+    "hi": "पश्चिम बंगाल",
+    "bn": "পশ্চিমবঙ্গ"
+   },
+   "lat": 21.95,
+   "lng": 88.9
+  },
+  {
+   "name": {
+    "en": "Kaziranga",
+    "hi": "काज़ीरंगा",
+    "bn": "কাজিরাঙা"
+   },
+   "state": {
+    "en": "Assam",
+    "hi": "असम",
+    "bn": "অসম"
+   },
+   "lat": 26.58,
+   "lng": 93.17
+  }
+ ]
+}
