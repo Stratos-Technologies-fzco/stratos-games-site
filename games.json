@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 18,
+ "count": 19,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -10,6 +10,19 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
+   "added": "2026-10-27",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-aetherhold",
+   "title": "Aetherhold",
+   "maker": "Mohua Liza",
+   "one_line": "Build a kingdom on a floating sky island, summon heroes, raise an army and battle through a 30-stage campaign.",
+   "category": "arcade",
+   "url": "play/im-mohua-liza-aetherhold/",
+   "thumb": "games/im-mohua-liza-aetherhold/thumbnail.png",
    "added": "2026-10-27",
    "github": "im-mohua-liza",
    "kind": "family",
