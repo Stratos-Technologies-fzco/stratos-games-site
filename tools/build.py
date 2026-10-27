@@ -287,15 +287,52 @@ q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,see
   if(hit&&v){if(seen[t.href])hit=false;seen[t.href]=1}t.hidden=!hit;if(hit)n++});
  body.classList.toggle('pk-searching',!!v);if(none)none.hidden=!(v&&!n)})})();</script>"""
 
-def pk_body(base, inner, attrs="", active=""):
-    return (f'<body class="pk" data-base="{esc(base)}"{attrs}>{pk_side(base, active)}<main class="pk-grid">{pk_nav(base)}{inner}</main>'
+def pk_body(base, inner, attrs="", active="", nav=None, cls="", top=""):
+    return (f'<body class="pk{cls}" data-base="{esc(base)}"{attrs}>{top}{pk_side(base, active)}<main class="pk-grid">{pk_nav(base) if nav is None else nav}{inner}</main>'
             f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{pk_foot(base)}{PK_JS}</body></html>')
+
+# --- home page: Poki look (turquoise page, square logo box, mixed tile sizes) ---
+ICONS["thumbup"] = '<path d="M7 11v9H4v-9zM7 11l4-8c1.5 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>'
+ICONS["thumbdown"] = '<path d="M7 13V4H4v9zM7 13l4 8c1.5 0 2.5-1.2 2.2-2.7L12.6 15H19a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17.8 4H7"/>'
+ICONS["user"] ='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'
+
+def pz_nav():
+    return (f'<div class="pk-nav pz-nav"><a class="pz-logo" href="./" aria-label="Stratos Games home">Stratos<b>Games</b></a>'
+            f'<div class="pz-btns"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>'
+            f'<button class="pz-b" type="button" aria-label="Account">{icon("user", 24)}</button>'
+            f'<button class="pz-b" type="button" aria-label="Search" onclick="document.body.classList.add(&quot;pz-find&quot;);document.getElementById(&quot;pkq&quot;).focus()">{icon("search", 24)}</button></div>'
+            f'<label class="pk-search pz-search">{icon("search", 14)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games" '
+            f'onblur="if(!this.value)document.body.classList.remove(&quot;pz-find&quot;)"></label></div>')
+
+ICONS["ad"] = '<circle cx="12" cy="12" r="9"/><path d="M7.5 15l2-6 2 6M8.2 13h2.6M14 9v6h1.5a3 3 0 0 0 0-6z"/>'
+ICONS["users"] = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.8.2 5 2.6 5 5.8"/>'
+ICONS["bookmark"] = '<path d="M6 3h12v18l-6-4.5L6 21z"/>'
+ICONS["bell"] = '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>'
+
+def cg_top(new_count):
+    """CrazyGames-style bar across the top of the home page. Its search box drives the same search as the logo box."""
+    dot = f'<span class="cg-dot">{new_count}</span>' if new_count else ""
+    sync = "var p=document.getElementById(&quot;pkq&quot;);p.value=this.value;p.dispatchEvent(new Event(&quot;input&quot;))"
+    return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
+            f'<a class="cg-logo" href="./" aria-label="Stratos Games home"><span class="lm">S</span><span class="cg-wm">STRATOS<b>GAMES</b></span></a>'
+            f'<label class="cg-search"><input type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories" oninput="{sync}">{icon("search", 20)}</label>'
+            f'<div class="cg-acts"><button class="cg-noads" type="button">{icon("ad", 18)}<span>No ads</span></button>'
+            f'<button class="cg-ib" type="button" title="Friends" aria-label="Friends">{icon("users", 18)}</button>'
+            f'<a class="cg-ib" href="#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
+            f'<a class="cg-ib" href="c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
+            f'<button class="cg-login" type="button">Log in</button></div></header>')
+
+PZ_SIZES = ["s3", "s2", "s2", "s1", "s1", "s2", "s3", "s1", "s2", "s1", "s2", "s1"]   # big, medium, small, repeating
+
+def pz_tiles(items):
+    real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
+    return "".join([pk_tile(g, "", PZ_SIZES[i % len(PZ_SIZES)]) for i, g in enumerate(real)] + [pk_tile(g, "", "s1") for g in soon])
 
 def build_home_cards(fam):
     jsonld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Organization", "@id": SITE["url"] + "/#org", "name": "Stratos Games", "url": SITE["url"] + "/", "email": SITE["contact"], "logo": SITE["url"] + "/assets/favicon.svg"},
         {"@type": "WebSite", "@id": SITE["url"] + "/#site", "url": SITE["url"] + "/", "name": "Stratos Games", "publisher": {"@id": SITE["url"] + "/#org"}}]}
-    body = pk_body("", pk_hero(fam) + PK_MINE + pk_tiles(fam, first_big=False) + pk_cta() + pk_cats(), active="home")
+    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))))
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
@@ -349,6 +386,12 @@ def build_play(g, fam, studio):
     if CLEAN:
         stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
                  f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
+                 f'<button class="pk-ib pk-vote up" type="button" data-v="1" title="I like this game" aria-label="Like" aria-pressed="false">{icon("thumbup", 19)}</button>'
+                 f'<button class="pk-ib pk-vote down" type="button" data-v="-1" title="I don\'t like this game" aria-label="Dislike" aria-pressed="false">{icon("thumbdown", 19)}</button>'
+                 f'<script>(function(){{var k="sg_votes",s={json.dumps(g["slug"])},b=[].slice.call(document.querySelectorAll(".pk-vote"));'
+                 f'function rd(){{try{{return JSON.parse(localStorage.getItem(k)||"{{}}")||{{}}}}catch(e){{return{{}}}}}}'
+                 f'function paint(){{var v=rd()[s]||0;b.forEach(function(x){{var o=+x.dataset.v===v;x.classList.toggle("on",o);x.setAttribute("aria-pressed",o)}})}}'
+                 f'b.forEach(function(x){{x.onclick=function(){{var m=rd(),v=+x.dataset.v;if(m[s]===v)delete m[s];else m[s]=v;try{{localStorage.setItem(k,JSON.stringify(m))}}catch(e){{}}paint()}}}});paint()}})()</script>'
                  f'<button class="pk-ib pk-like" id="pk-like" type="button" title="Add to favourites" aria-label="Favourite" aria-pressed="false">{icon("heart", 18)}</button>'
                  f'<button class="pk-ib" type="button" title="Share" aria-label="Share" onclick="var b=this;(navigator.share?navigator.share({{title:document.title,url:location.href}}):navigator.clipboard.writeText(location.href).then(function(){{b.title=\'Link copied\'}}))">{icon("share", 18)}</button>'
                  f'<a class="pk-ib" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'

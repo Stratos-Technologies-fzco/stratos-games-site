@@ -247,3 +247,57 @@ body.pk{--rail:76px;padding-left:calc(var(--rail) + 16px)}
   body.side-open .pk-scrim{display:block;position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.55)}
 }
 @media (prefers-reduced-motion:reduce){.pk-side,.pk-si .lb{transition:none}}
+/* ===== home page only (body.poki): Poki look ===== */
+body.poki{background:#000}
+.poki .pz-nav{grid-column:span 1;padding:9px 6px 6px;justify-content:space-between}
+.pz-logo{display:flex;flex-direction:column;align-items:center;font-size:18px;font-weight:900;line-height:.95;color:var(--ink);letter-spacing:-.02em}
+.pz-logo b{color:var(--blue);font-weight:900}
+.pz-btns{display:flex;justify-content:space-around;align-items:center}
+.pz-b{display:grid;place-items:center;width:36px;height:34px;padding:0;border:0;border-radius:10px;background:none;color:var(--blue);cursor:pointer}
+.pz-b svg{stroke-width:2.6}
+.pz-b:hover{background:var(--soft)}
+.pz-btns .pk-menu{width:26px;height:26px;background:none;color:var(--blue)}
+.pz-search{display:none;height:30px;padding:0 7px}
+.pz-search svg{flex:none}
+.pz-find .pz-btns{display:none}
+.pz-find .pz-search{display:flex}
+@media (max-width:620px){.pz-logo{font-size:14px}.pz-b{width:26px;height:28px}.pz-b svg{width:20px;height:20px}}
+/* ===== home page only: CrazyGames-style bar on top ===== */
+body.poki{--topbar:60px;padding-top:calc(var(--topbar) + 16px)}
+body.poki .pk-side{top:var(--topbar)}
+body.poki.side-open .pk-side{width:250px;box-shadow:20px 0 50px rgba(0,0,0,.6)}
+body.poki.side-open .pk-side .lb{opacity:1}
+.cg-top{position:fixed;inset:0 0 auto 0;height:var(--topbar);z-index:60;display:flex;align-items:center;gap:14px;padding:0 12px 0 16px;background:#1a1b26}
+.cg-menu{display:grid;place-items:center;width:40px;height:40px;flex:none;padding:0;border:0;border-radius:12px;background:none;color:#fff;cursor:pointer}
+.cg-menu:hover{background:#2b2d3e}
+.cg-logo{display:flex;align-items:center;gap:10px;flex:none;color:#fff}
+.cg-logo .lm{width:36px;height:36px;font-size:20px;border-radius:11px}
+.cg-wm{display:flex;flex-direction:column;font-weight:900;font-size:15px;line-height:.92;letter-spacing:.02em}
+.cg-wm b{font-weight:900}
+.cg-search{flex:1;min-width:0;max-width:690px;margin:0 auto;display:flex;align-items:center;gap:10px;height:44px;padding:0 18px 0 20px;border-radius:999px;background:#373a57;color:#c3c5df;cursor:text}
+.cg-search input{flex:1;min-width:0;border:0;outline:0;background:none;color:#fff;font:inherit;font-size:16px;font-weight:800}
+.cg-search input::placeholder{color:#a8abc9;opacity:1}
+.cg-search:focus-within{box-shadow:0 0 0 2px #7b5cff}
+.cg-acts{display:flex;align-items:center;gap:10px;flex:none}
+.cg-noads{display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 13px;border:2px solid #ffd21f;border-radius:999px;background:none;color:#ffd21f;font:inherit;font-size:15px;font-weight:900;cursor:pointer;white-space:nowrap}
+.cg-noads:hover{background:rgba(255,210,31,.1)}
+.cg-ib{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#2e3041;color:#fff;cursor:pointer}
+.cg-ib:hover{background:#3b3e54}
+.cg-ib svg{fill:currentColor}
+.cg-dot{position:absolute;top:-6px;right:-4px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#ff1f3d;color:#fff;font-size:12px;font-weight:900;line-height:22px;text-align:center}
+.cg-login{height:44px;padding:0 18px;border:0;border-radius:999px;background:#b8ff3c;color:#0b0c11;font:inherit;font-size:16px;font-weight:900;cursor:pointer;white-space:nowrap}
+.cg-login:hover{filter:brightness(1.07)}
+@media (max-width:1200px){.cg-noads span,.cg-wm{display:none}.cg-noads{width:44px;padding:0;justify-content:center}}
+@media (max-width:760px){
+  body.poki{--topbar:56px;padding-top:calc(var(--topbar) + 12px)}
+  .cg-top{gap:8px;padding:0 10px}
+  .cg-menu{width:40px;height:40px}
+  .cg-logo .lm{width:36px;height:36px;font-size:20px}
+  .cg-search{height:40px;padding:0 14px 0 16px}.cg-search input{font-size:15px}
+  .cg-noads,.cg-acts .cg-ib{display:none}
+  .cg-login{height:40px;padding:0 14px;font-size:15px}
+}
+/* ===== game pages: like / dislike under the game ===== */
+.pk-vote.up.on{background:var(--blue);color:#fff}
+.pk-vote.down.on{background:#ff3d68;color:#fff}
+.pk-vote.on svg{fill:currentColor}
