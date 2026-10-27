@@ -150,6 +150,23 @@ body {
 .daily b { font-family: var(--font-display); font-weight: 400; color: var(--amber); }
 .cta.ghost { background: transparent; color: var(--sign-white); border-color: var(--sign-white); box-shadow: none; font-size: 17px; }
 .btnrow { display: grid; gap: 10px; }
+.garage-card { width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.vcard { background: var(--sign-green-deep); border: 2px solid rgba(244,241,230,0.35); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; color: var(--sign-white); font-family: var(--font-body); text-align: left; cursor: pointer; min-width: 0; }
+.vcard:hover { border-color: rgba(244,241,230,0.8); }
+.vcard:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+.vcard.sel { border-color: var(--amber); box-shadow: inset 0 0 0 2px var(--amber); }
+.vcard canvas { width: 100%; height: 110px; display: block; border-radius: 5px; background: linear-gradient(#a9dcf2, #e6f4f9 72%, #7cc04f 72%, #5c9e3b 79%, #9a5b34 79%); }
+.vname { font-family: var(--font-display); font-size: 17px; }
+.vblurb { font-size: 15px; line-height: 1.2; opacity: 0.9; }
+.vstat { display: grid; grid-template-columns: 56px 1fr; gap: 3px 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; align-items: center; }
+.vstat i { height: 7px; background: rgba(0,0,0,0.35); border-radius: 3px; overflow: hidden; display: block; }
+.vstat i b { display: block; height: 100%; background: var(--amber); }
+.vcrates { font-family: var(--font-display); font-size: 14px; letter-spacing: 0; }
+.vbtn { font-family: var(--font-display); font-size: 14px; padding: 7px; border-radius: 6px; text-align: center; background: var(--amber); color: var(--ink); }
+.vbtn.owned { background: transparent; color: var(--sign-white); border: 2px solid rgba(244,241,230,0.6); }
+.vbtn.locked { background: rgba(0,0,0,0.3); color: rgba(244,241,230,0.75); }
+.bank { font-family: var(--font-display); font-weight: 400; color: var(--amber); }
 
 @media (max-width: 520px) {
   .plate .val { font-size: 17px; }
@@ -202,14 +219,18 @@ body {
   <div class="card">
     <span class="exit">Route 1 · Hill country</span>
     <h1>Cargo Climb</h1>
-    <p>Haul three loose crates over the hills. Each crate still on your truck when you pass a depot pays 30 coins, and the depot refuels you and loads three more. Drive too wild and they bounce off.</p>
+    <p>Haul loose crates over the hills. Each crate still on board when you pass a depot pays 30 coins, and the depot refuels you and loads more. Drive too wild and they bounce off.</p>
     <div class="keys">
       <kbd>→ / D</kbd><span>Gas. In the air it tips the nose up.</span>
       <kbd>← / A</kbd><span>Brake and reverse. In the air it tips the nose down.</span>
       <kbd>Flip</kbd><span>Land a full flip for 40 coins. Don't land on your head.</span>
     </div>
     <div class="daily"><span>Today's route: <b id="mRoute">-</b></span><span>Today's best: <b id="mToday">0 m</b></span><span>Streak: <b id="mStreak">0 days</b></span></div>
-    <button class="cta" id="start" type="button">Start driving</button>
+    <div class="daily"><span>Vehicle: <b id="mCar">Pickup</b></span><span>Garage coins: <b id="mBank">0</b></span></div>
+    <div class="btnrow">
+      <button class="cta" id="start" type="button">Start driving</button>
+      <button class="cta ghost" id="mGarage" type="button">Garage: change vehicle</button>
+    </div>
   </div>
 </div>
 
@@ -224,11 +245,22 @@ body {
       <div><span>Crates delivered</span><strong id="sCrates">0</strong></div>
     </div>
     <span class="newbest" id="newbest" hidden>New best for today's route</span>
-    <div class="daily"><span>All-time best: <b id="sAll">0 m</b></span><span>Streak: <b id="sStreak">1 day</b></span></div>
+    <div class="daily"><span>All-time best: <b id="sAll">0 m</b></span><span>Streak: <b id="sStreak">1 day</b></span><span>Garage coins: <b id="sBank">0</b></span><span>Vehicle: <b id="sCar">Pickup</b></span></div>
     <div class="btnrow">
       <button class="cta" id="second" type="button" hidden>Second chance: keep driving</button>
       <button class="cta" id="again" type="button">Drive again</button>
+      <button class="cta ghost" id="oGarage" type="button">Garage: change vehicle</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="garage" hidden>
+  <div class="card garage-card">
+    <span class="exit">Garage</span>
+    <h2>Pick your ride</h2>
+    <p>Coins from every run go into the garage. Spend them to unlock new vehicles. You have <b class="bank" id="gBank">0</b> coins.</p>
+    <div class="vgrid" id="gGrid"></div>
+    <button class="cta" id="gBack" type="button">Done</button>
   </div>
 </div>
 
@@ -242,11 +274,111 @@ const V = (x, y) => new pl.Vec2(x, y);
 // ---------- Tuning ----------
 const DEPOT_GAP = 400;        // metres between depots
 const CHUNK = 30;             // terrain chunk width (m)
-const WHEEL_R = 0.45;
 const CRATE_H = 0.27;         // crate half-size
-const CRATE_SLOTS = [[-1.17, 0.53], [-0.6, 0.53], [-0.03, 0.53]];
-const MAX_SPEED = 46;         // wheel rad/s
-const MOTOR_TORQUE = 19;
+
+// ---------- Vehicles ----------
+// Every vehicle is built from convex body pieces (metres, y up, origin at the chassis centre).
+// The same pieces are the physics shapes, the drawing, and the parts that fly off in a crash.
+const PAINT = { dark: "#2b2d42", glass: "#9fd3f0", light: "#ffe9a8", tail: "#c8322a", white: "#f4f1e6", steel: "#3a3d45" };
+const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+function pickupPieces(col, trim) {
+  return [
+    { poly: rect(-1.6, -0.15, 0, 0.25), color: col, deco() { fillR(-1.6, -0.15, 0, -0.03, trim); fillR(-1.3, 0.02, 0, 0.1, PAINT.white); } },
+    { poly: [[0, -0.15], [1.6, -0.15], [1.65, 0.05], [1.65, 0.25], [0, 0.25]], color: col, deco() { fillR(0, -0.15, 1.65, -0.03, trim); fillR(0, 0.02, 0.2, 0.1, PAINT.white); } },
+    { poly: [[0.3, 0.25], [1.65, 0.25], [1.65, 0.55], [1.05, 0.75], [0.3, 0.75]], color: col, deco() {
+        line([[1.3, 0.65], [1.08, 1.05]], PAINT.dark, 0.07);
+        fillP([[1.3, 0.65], [1.08, 1.05], [1.0, 1.0], [1.18, 0.66]], "rgba(160,215,240,0.45)");
+        fillP(rect(0.42, 0.48, 0.95, 0.68), PAINT.glass);
+        fillR(0.5, 0.36, 0.66, 0.4, PAINT.dark);
+        fillR(1.56, 0.36, 1.65, 0.5, PAINT.light);
+      } },
+    { poly: rect(-1.6, 0.25, -1.46, 0.65), color: col, deco() { fillR(-1.6, 0.36, -1.54, 0.52, PAINT.tail); } },
+  ];
+}
+const VEHICLES = [
+  { id: "pickup", name: "Pickup", price: 0, blurb: "Steady all-rounder. Room for three crates.", stats: { speed: 3, power: 3, grip: 3 },
+    pieces: pickupPieces("#e4572e", "#b8401f"), wheelStyle: "road", wheelDensity: 1,
+    wheels: [{ x: -1.1, y: -0.5, r: 0.45, strut: [-1.1, 0] }, { x: 1.15, y: -0.5, r: 0.45, strut: [1.15, 0] }],
+    density: 1.2, force: 42, vmax: 20.5, air: 9, hz: 4.2, damp: 0.7,
+    hip: [0.62, 0.6], armA: -0.35, legA: 0, driverFront: false,
+    slots: [[-1.17, 0.53], [-0.6, 0.53], [-0.03, 0.53]], bed: [-1.9, 0.55, -0.1, 2.4], light: [1.62, 0.45] },
+
+  { id: "tractor", name: "Tractor", price: 75, blurb: "Slow, strong and hard to tip. Two crates on the trailer.", stats: { speed: 1, power: 5, grip: 4 },
+    pieces: [
+      { poly: rect(-1.0, -0.1, 1.55, 0.2), color: PAINT.steel },
+      { poly: [[0.25, 0.2], [1.6, 0.2], [1.6, 0.58], [0.25, 0.66]], color: "#1f8a8a", deco() {
+          fillR(0.3, 0.42, 1.5, 0.47, PAINT.white); fillR(1.5, 0.25, 1.6, 0.55, PAINT.dark);
+          for (let y = 0.3; y < 0.55; y += 0.07) fillR(1.52, y, 1.6, y + 0.025, "#5b6070");
+          circ(1.58, 0.5, 0.05, PAINT.light); line([[0.3, 0.66], [0.05, 0.95]], PAINT.dark, 0.05); circ(0.05, 0.95, 0.08, PAINT.dark);
+        } },
+      { poly: rect(0.9, 0.62, 0.98, 1.1), color: PAINT.dark, deco() { fillR(0.87, 1.06, 1.01, 1.12, PAINT.dark); } },
+      { poly: rect(-1.3, 0.47, -0.2, 0.53), color: "#1f8a8a" },
+      { poly: rect(-2.4, 0.42, -0.9, 0.52), color: "#8a5a33", deco() { for (let x = -2.3; x < -0.95; x += 0.3) fillR(x, 0.42, x + 0.03, 0.52, "#6b4220"); } },
+      { poly: rect(-2.5, 0.42, -2.4, 0.8), color: "#8a5a33", deco() { fillR(-2.5, 0.55, -2.44, 0.68, PAINT.tail); } },
+      { poly: rect(-0.9, 0.52, -0.8, 1.0), color: PAINT.dark },
+      { poly: rect(-0.8, 0.52, -0.3, 0.6), color: PAINT.dark },
+    ],
+    wheelStyle: "tractor", wheelDensity: 0.7,
+    wheels: [{ x: -0.75, y: -0.25, r: 0.72, strut: null }, { x: 1.2, y: -0.62, r: 0.38, strut: [1.2, -0.1] }],
+    density: 1.1, force: 60, vmax: 14, air: 7, hz: 3.5, damp: 0.7,
+    hip: [-0.55, 0.6], armA: -0.1, legA: -0.4, driverFront: true,
+    slots: [[-2.07, 0.8], [-1.47, 0.8]], bed: [-2.9, -0.6, 0.3, 2.6], light: [1.6, 0.5] },
+
+  { id: "bike", name: "Dirt Bike", price: 100, blurb: "Light and fast, flips in a blink. One crate on the rack.", stats: { speed: 4, power: 2, grip: 2 },
+    pieces: [
+      { poly: [[-0.55, -0.08], [0.42, -0.08], [0.6, 0.25], [-0.4, 0.32]], color: "#2a7de1", deco() {
+          fillR(-0.2, -0.05, 0.25, 0.15, PAINT.steel); circ(0.02, 0.05, 0.06, "#5b6070");
+          fillP([[0.2, 0.18], [0.45, 0.18], [0.5, 0.28], [0.25, 0.3]], PAINT.white);
+        } },
+      { poly: [[-0.55, 0.3], [0.3, 0.3], [0.42, 0.42], [-0.6, 0.42]], color: "#24263a" },
+      { poly: [[0.5, 0.25], [0.62, 0.28], [0.86, -0.28], [0.76, -0.32]], color: "#b9bcc4" },
+      { poly: [[0.55, 0.3], [0.63, 0.3], [0.66, 0.72], [0.58, 0.72]], color: PAINT.dark, deco() { circ(0.63, 0.72, 0.05, "#111"); circ(0.66, 0.42, 0.05, PAINT.light); } },
+      { poly: rect(-1.2, 0.3, -0.55, 0.36), color: PAINT.steel },
+      { poly: rect(-1.24, 0.3, -1.16, 0.52), color: PAINT.steel, deco() { fillR(-1.24, 0.3, -1.18, 0.38, PAINT.tail); } },
+    ],
+    wheelStyle: "knobby", wheelDensity: 0.8,
+    wheels: [{ x: -0.78, y: -0.32, r: 0.42, strut: [-0.3, 0.0] }, { x: 0.82, y: -0.32, r: 0.42, strut: null }],
+    density: 1.5, force: 15, vmax: 21, air: 5, hz: 3.6, damp: 0.6, tilt: 0, spin: 1.2,
+    hip: [0.05, 0.42], armA: -0.3, legA: -1.1, driverFront: true,
+    slots: [[-0.85, 0.64]], bed: [-1.6, 0.3, 0.0, 2.0], light: [0.7, 0.42] },
+
+  { id: "supercar", name: "Supercar", price: 250, blurb: "Wild top speed, stiff and low. One crate in the back.", stats: { speed: 5, power: 3, grip: 4 },
+    pieces: [
+      { poly: [[-1.75, -0.12], [1.9, -0.12], [2.02, 0.06], [1.2, 0.3], [-1.75, 0.34]], color: "#f5c518", deco() {
+          fillP([[-0.9, -0.02], [-0.3, -0.02], [-0.45, 0.16], [-0.9, 0.16]], PAINT.dark);
+          for (const x of [-1.15, 1.3]) { ctx.beginPath(); ctx.arc(x, -0.12, 0.44, 0, Math.PI); ctx.closePath(); ctx.fillStyle = "#1b1b1f"; ctx.fill(); }
+          fillP([[1.6, 0.12], [1.95, 0.06], [1.92, 0.11], [1.6, 0.18]], PAINT.light);
+          fillR(-1.75, 0.14, -1.68, 0.26, PAINT.tail);
+          line([[-1.6, 0.24], [1.15, 0.24]], "#d9a800", 0.03);
+        } },
+      { poly: rect(-1.7, 0.34, -1.6, 0.6), color: PAINT.dark },
+      { poly: rect(-2.0, 0.6, -1.35, 0.68), color: PAINT.dark },
+      { poly: rect(-0.55, 0.3, -0.42, 0.62), color: PAINT.dark },
+      { poly: [[0.15, 0.3], [1.2, 0.3], [0.3, 0.64], [0.15, 0.64]], color: "rgba(60,90,130,0.55)", deco() { line([[1.2, 0.3], [0.3, 0.64]], PAINT.dark, 0.04); } },
+    ],
+    wheelStyle: "sport", wheelDensity: 1,
+    wheels: [{ x: -1.15, y: -0.22, r: 0.36, strut: null }, { x: 1.3, y: -0.22, r: 0.36, strut: null }],
+    density: 1.0, force: 44, vmax: 25, air: 8, hz: 5.5, damp: 0.8,
+    hip: [-0.15, 0.16], armA: -0.15, legA: 0, driverFront: false,
+    slots: [[-1.1, 0.62]], bed: [-2.2, -0.2, 0.1, 2.0], light: [2.0, 0.1] },
+
+  { id: "monster", name: "Monster Truck", price: 400, blurb: "Giant wheels roll over anything. Three crates.", stats: { speed: 3, power: 5, grip: 5 },
+    pieces: pickupPieces("#7b3fe4", "#5a2bb0"), wheelStyle: "monster", wheelDensity: 0.45,
+    wheels: [{ x: -1.15, y: -0.9, r: 0.8, strut: [-1.15, 0] }, { x: 1.2, y: -0.9, r: 0.8, strut: [1.2, 0] }],
+    density: 1.7, force: 30, vmax: 22, air: 9, hz: 2.4, damp: 0.6, tilt: 0, spin: 0.9,
+    hip: [0.62, 0.6], armA: -0.35, legA: 0, driverFront: false,
+    slots: [[-1.17, 0.53], [-0.6, 0.53], [-0.03, 0.53]], bed: [-1.9, 0.55, -0.1, 2.4], light: [1.62, 0.45] },
+];
+// driver layout from the hip point: torso, helmet, shoulder and arm, hip root and leg
+for (const v of VEHICLES) {
+  const [hx, hy] = v.hip, sh = [hx + 0.04, hy + 0.34], lr = [hx - 0.12, hy];
+  v.D = {
+    torso: [[hx - 0.2, hy], [hx + 0.2, hy], [hx + 0.18, hy + 0.4], [hx - 0.16, hy + 0.4]],
+    head: [hx, hy + 0.55], neck: [hx, hy + 0.38], sh, lr,
+    ac: [sh[0] + 0.21 * Math.cos(v.armA), sh[1] + 0.21 * Math.sin(v.armA)],
+    lc: [lr[0] + 0.25 * Math.cos(v.legA), lr[1] + 0.25 * Math.sin(v.legA)],
+  };
+}
 
 // ---------- Hooks for Stratos ads and analytics (switched on site-wide later) ----------
 function track(name, details) { /* does nothing yet */ }
@@ -287,6 +419,8 @@ let chunks, genTo, coinsArr, fuelArr, nextFuel, crates;
 let state = "menu", fuel, coins, maxX, delivered, nextDepot, depotNo;
 let wheelContacts, crashFlag, crashTimer, stallTimer, endReason;
 let airTime, airStartAngle, particles, simTime;
+let broken = null, shakeT = 0;
+const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 let camX = 0, camY = 0, zoom = 1;
 const input = { gas: false, brake: false };
 
@@ -311,15 +445,30 @@ function markPlayedToday() {
 const days = (n) => n + (n === 1 ? " day" : " days");
 loadSave();
 
+let bank = 0, owned = ["pickup"], carId = "pickup", runBanked = 0;
+try {
+  bank = Number(localStorage.getItem("cargoClimbBank")) || 0;
+  const o = JSON.parse(localStorage.getItem("cargoClimbOwned") || "null"); if (Array.isArray(o)) owned = [...new Set(["pickup", ...o])];
+  carId = localStorage.getItem("cargoClimbCar") || "pickup";
+} catch (e) {}
+let car = VEHICLES.find((v) => v.id === carId && owned.includes(v.id)) || VEHICLES[0];
+function saveGarage() {
+  try {
+    localStorage.setItem("cargoClimbBank", String(bank));
+    localStorage.setItem("cargoClimbOwned", JSON.stringify(owned));
+    localStorage.setItem("cargoClimbCar", car.id);
+  } catch (e) {}
+}
+
 function resetWorld() {
   world = new pl.World({ gravity: V(0, -10) });
   ground = world.createBody();
   chunks = []; genTo = -20; coinsArr = []; fuelArr = []; nextFuel = 170; crates = []; particles = [];
   fuel = 100; coins = 0; maxX = 0; delivered = 0; nextDepot = DEPOT_GAP; depotNo = 1;
   wheelContacts = 0; crashFlag = false; crashTimer = 0; stallTimer = 0; endReason = "";
-  airTime = 0; airStartAngle = 0; simTime = 0;
+  airTime = 0; airStartAngle = 0; simTime = 0; broken = null; shakeT = 0;
   ensureTerrain(0);
-  makeCar(3, 1.05);
+  makeCar(3);
   loadCrates();
   camX = 6; camY = 1;
 
@@ -338,7 +487,7 @@ function ensureTerrain(cx) {
   while (genTo < cx + 90) {
     const x0 = genTo, verts = [];
     for (let x = x0; x <= x0 + CHUNK; x += 1) verts.push(V(x, H(x)));
-    const fx = ground.createFixture(new pl.Chain(verts, false), { friction: 0.95, userData: "ground" });
+    const fx = ground.createFixture(new pl.Chain(verts, false), { friction: 0.95, userData: "ground", filterCategoryBits: 4 });
     chunks.push({ x0, x1: x0 + CHUNK, fx });
     // coin runs, kept away from depots and the start
     for (let s = x0; s < x0 + CHUNK; s += 10) {
@@ -359,29 +508,28 @@ function ensureTerrain(cx) {
   fuelArr = fuelArr.filter((c) => c.x > cx - 40);
 }
 
-function makeCar(x, y) {
-  chassis = world.createDynamicBody({ position: V(x, y), angularDamping: 0.3 });
-  const fd = { density: 1.2, friction: 0.6, filterGroupIndex: -1, userData: "car" };
-  chassis.createFixture(new pl.Box(1.6, 0.2, V(0, 0.05), 0), fd);
-  chassis.createFixture(new pl.Polygon([V(0.3, 0.25), V(1.65, 0.25), V(1.65, 0.55), V(1.05, 0.75), V(0.3, 0.75)]), fd);
-  chassis.createFixture(new pl.Box(0.07, 0.2, V(-1.53, 0.45), 0), fd);
-  chassis.createFixture(new pl.Circle(V(0.62, 1.15), 0.22), { density: 0.1, friction: 0.5, filterGroupIndex: -1, userData: "head" });
-
-  const wfd = { density: 1.0, friction: 0.98, restitution: 0.05, filterGroupIndex: -1, userData: "wheel" };
-  wheelB = world.createDynamicBody(V(x - 1.1, y - 0.5));
-  wheelB.createFixture(new pl.Circle(WHEEL_R), wfd);
-  wheelF = world.createDynamicBody(V(x + 1.15, y - 0.5));
-  wheelF.createFixture(new pl.Circle(WHEEL_R), wfd);
-  const jd = { motorSpeed: 0, maxMotorTorque: MOTOR_TORQUE, enableMotor: true, frequencyHz: 4.2, dampingRatio: 0.7 };
-  jointB = world.createJoint(new pl.WheelJoint(jd, chassis, wheelB, wheelB.getPosition(), V(0, 1)));
-  jointF = world.createJoint(new pl.WheelJoint(jd, chassis, wheelF, wheelF.getPosition(), V(0, 1)));
+function makeCar(x) {
+  const v = car;
+  const y = Math.max(...v.wheels.map((w) => H(x + w.x) + w.r - w.y)) + 0.05;
+  chassis = world.createDynamicBody({ position: V(x, y), angularDamping: v.spin ?? 0.3 });
+  const fd = { density: v.density, friction: 0.6, filterGroupIndex: -1, userData: "car" };
+  for (const pc of v.pieces) chassis.createFixture(new pl.Polygon(pc.poly.map(([a, b]) => V(a, b))), fd);
+  chassis.createFixture(new pl.Circle(V(v.D.head[0], v.D.head[1]), 0.22), { density: 0.1, friction: 0.5, filterGroupIndex: -1, userData: "head" });
+  const wfd = { density: v.wheelDensity, friction: 0.98, restitution: 0.05, filterGroupIndex: -1, userData: "wheel" };
+  const made = v.wheels.map((w) => {
+    const b = world.createDynamicBody(V(x + w.x, y + w.y));
+    b.createFixture(new pl.Circle(w.r), wfd);
+    const j = world.createJoint(new pl.WheelJoint({ motorSpeed: 0, maxMotorTorque: v.force * w.r, enableMotor: true, frequencyHz: v.hz, dampingRatio: v.damp }, chassis, b, b.getPosition(), V(0, 1)));
+    return [b, j];
+  });
+  [[wheelB, jointB], [wheelF, jointF]] = made;
 }
 
-function loadCrates(count = 3) {
+function loadCrates(count = car.slots.length) {
   for (const c of crates) world.destroyBody(c.body);
   crates = [];
   const ang = chassis.getAngle();
-  for (const [lx, ly] of CRATE_SLOTS.slice(0, count)) {
+  for (const [lx, ly] of car.slots.slice(0, count)) {
     const p = chassis.getWorldPoint(V(lx, ly));
     const body = world.createDynamicBody({ position: p, angle: ang });
     body.createFixture(new pl.Box(CRATE_H, CRATE_H), { density: 0.55, friction: 0.85, restitution: 0.05, userData: "crate" });
@@ -396,9 +544,10 @@ function onBoardCount() { return crates.filter((c) => !c.lost).length; }
 
 function updateCrates(dt) {
   for (const c of crates) {
-    if (c.lost) continue;
+    if (c.lost || broken) continue;
     const lp = chassis.getLocalPoint(c.body.getPosition());
-    const out = lp.x < -1.9 || lp.x > 0.55 || lp.y < -0.1 || lp.y > 2.4;
+    const [bx0, bx1, by0, by1] = car.bed;
+    const out = lp.x < bx0 || lp.x > bx1 || lp.y < by0 || lp.y > by1;
     c.outFor = out ? c.outFor + dt : 0;
     if (c.outFor > 0.35) {
       c.lost = true;
@@ -417,17 +566,17 @@ function updateCrates(dt) {
 function step(dt) {
   const throttle = state === "play" && fuel > 0 ? (input.gas ? 1 : 0) - (input.brake ? 1 : 0) : 0;
   const alive = state === "play" || state === "menu";
-  for (const j of [jointB, jointF]) {
+  if (!broken) for (const [j, w] of [[jointB, car.wheels[0]], [jointF, car.wheels[1]]]) {
     if (alive && throttle !== 0) {
-      j.setMotorSpeed(throttle > 0 ? -MAX_SPEED : MAX_SPEED * 0.55);
-      j.setMaxMotorTorque(MOTOR_TORQUE);
+      j.setMotorSpeed((throttle > 0 ? -1 : 0.55) * car.vmax / w.r);
+      j.setMaxMotorTorque(car.force * w.r);
     } else {
       j.setMotorSpeed(0);
-      j.setMaxMotorTorque(state === "menu" ? 30 : 0.6);
+      j.setMaxMotorTorque(state === "menu" ? car.force * w.r * 1.5 : 0.6);
     }
   }
   const airborne = wheelContacts === 0;
-  if (alive && throttle !== 0) chassis.applyTorque(throttle * (airborne ? 9 : 2.2), true);
+  if (!broken && alive && throttle !== 0) chassis.applyTorque(throttle * (airborne ? car.air : car.air * (car.tilt ?? 0.25)), true);
 
   world.step(dt, 8, 3);
   simTime += dt;
@@ -469,9 +618,10 @@ function step(dt) {
   if (p.x >= nextDepot) {
     const n = onBoardCount();
     let pay = n * 30;
-    if (n === 3) pay += 30;
+    const full = n > 0 && n === car.slots.length;
+    if (full) pay += 30;
     coins += pay; delivered += n; fuel = 100;
-    toast(n === 0 ? "Depot " + depotNo + ": nothing to deliver" : n === 3 ? "Full load!  +" + pay : n + " crate" + (n > 1 ? "s" : "") + " delivered  +" + pay);
+    toast(n === 0 ? "Depot " + depotNo + ": nothing to deliver" : full ? "Full load!  +" + pay : n + " crate" + (n > 1 ? "s" : "") + " delivered  +" + pay);
     sfx(n ? 760 : 220, 0.3, "triangle");
     track("level_complete", { depot: depotNo, crates: n, coins });
     depotNo += 1; nextDepot += DEPOT_GAP;
@@ -479,7 +629,7 @@ function step(dt) {
   }
 
   // ending conditions
-  if (crashFlag) { endReason = "Driver down"; state = "crashing"; crashTimer = 1.4; sfx(90, 0.4, "sawtooth"); }
+  if (crashFlag) { endReason = "Driver down"; state = "crashing"; crashTimer = 2.4; breakApart(); return; }
   const speed = chassis.getLinearVelocity().length();
   if (fuel <= 0 && speed < 0.4) stallTimer += dt; else stallTimer = 0;
   if (stallTimer > 2.2) { endReason = "Out of fuel"; finish(); }
@@ -487,6 +637,8 @@ function step(dt) {
 
 function finish() {
   state = "over";
+  bank += coins - runBanked; runBanked = coins; saveGarage();
+  $("sBank").textContent = bank;
   const d = Math.floor(maxX);
   if (d > best) { best = d; try { localStorage.setItem("cargoClimbBest", String(best)); } catch (e) {} }
   const isBest = d > todayBest;
@@ -504,19 +656,86 @@ function finish() {
   const canSave = !secondUsed && d >= 60;
   $("second").hidden = !canSave;
   if (canSave) track("reward_offered", { kind: "second_chance", distance: d });
+  refreshMenu();
   $("over").hidden = false;
   (canSave ? $("second") : $("again")).focus();
 }
 
+// ---------- Crash: the vehicle and the driver come apart, the helmet cracks in two ----------
+const DEBRIS = { filterCategoryBits: 8, filterMaskBits: 4, friction: 0.7, restitution: 0.25, userData: "debris" };
+const centroid = (p) => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
+function helmetHalf(head, side) {
+  const pts = [];
+  for (let i = 0; i <= 6; i++) { const a = (side > 0 ? -Math.PI / 2 : Math.PI / 2) + (i / 6) * Math.PI; pts.push([head[0] + 0.22 * Math.cos(a), head[1] + 0.22 * Math.sin(a)]); }
+  return pts;
+}
+function breakApart() {
+  const v = car, D = v.D;
+  const pos = chassis.getPosition(), ang = chassis.getAngle(), av = chassis.getAngularVelocity();
+  const parts = [];
+  const make = (draw, shape, density, ax, ay, pushX, lift) => {
+    const b = world.createDynamicBody({ position: V(pos.x, pos.y), angle: ang, angularDamping: 0.15 });
+    b.createFixture(shape, Object.assign({ density }, DEBRIS));
+    const at = chassis.getWorldPoint(V(ax, ay)), vel = chassis.getLinearVelocityFromWorldPoint(at), m = b.getMass();
+    b.setLinearVelocity(V(vel.x * 0.6, vel.y * 0.6));
+    b.setAngularVelocity(av * 0.5);
+    b.applyLinearImpulse(V(m * (pushX + (Math.random() - 0.5) * 2), m * (lift + Math.random() * 2.5)), b.getWorldCenter(), true);
+    b.applyAngularImpulse((Math.random() - 0.5) * 6 * b.getInertia(), true);
+    parts.push({ body: b, draw });
+    return b;
+  };
+  const P = (pts) => new pl.Polygon(pts.map(([a, b]) => V(a, b)));
+  for (const pc of v.pieces) {
+    const c = centroid(pc.poly);
+    make(() => drawPiece(pc), P(pc.poly), v.density, c[0], c[1], Math.sign(c[0] - 0.1) * 2.2, 3 + Math.random() * 1.5);
+  }
+  // the driver: a floppy cartoon ragdoll, helmet split into two halves
+  const torso = make(() => drawTorso(v), P(D.torso), 1, D.neck[0], D.neck[1] - 0.2, 0.5, 6);
+  const face = make(() => drawFace(v), new pl.Circle(V(D.head[0], D.head[1]), 0.17), 1, D.head[0], D.head[1], 0.5, 6.5);
+  make(() => drawHelmetHalf(v, -1), P(helmetHalf(D.head, -1)), 0.6, D.head[0] - 0.1, D.head[1], -3.5, 7.5);
+  make(() => drawHelmetHalf(v, 1), P(helmetHalf(D.head, 1)), 0.6, D.head[0] + 0.1, D.head[1], 3.5, 7.5);
+  const arm = make(() => drawArm(v), (() => { const s = new pl.Box(0.21, 0.045, V(D.ac[0], D.ac[1]), v.armA); return s; })(), 1, D.ac[0], D.ac[1], 1, 6);
+  const leg = make(() => drawLeg(v), new pl.Box(0.25, 0.07, V(D.lc[0], D.lc[1]), v.legA), 1, D.lc[0], D.lc[1], 1, 5.5);
+  const pin = (a, b, p, lim) => world.createJoint(new pl.RevoluteJoint({ enableLimit: true, lowerAngle: -lim, upperAngle: lim }, a, b, chassis.getWorldPoint(V(p[0], p[1]))));
+  pin(torso, face, D.neck, 0.9);
+  pin(torso, arm, D.sh, 2.2);
+  pin(torso, leg, D.lr, 1.4);
+  // wheels pop off and roll away
+  const kick = (w, dir) => { const m = w.getMass(); w.applyLinearImpulse(V(m * dir * (2 + Math.random() * 2), m * (3 + Math.random() * 2)), w.getWorldCenter(), true); };
+  kick(wheelB, -1); kick(wheelF, 1);
+  const headAt = chassis.getWorldPoint(V(D.head[0], D.head[1]));
+  world.destroyBody(chassis); // also removes the wheel joints
+  broken = { parts, torso, face, kept: onBoardCount() };
+  for (const c of crates) c.lost = true;
+  updateSlots();
+  // smoke and sparks at the vehicle, a white crack burst at the helmet
+  const n = lowFx ? 12 : 34;
+  for (let i = 0; i < n; i++) {
+    const spark = i % 3 === 0;
+    particles.push({ x: pos.x + (Math.random() - 0.5) * 2, y: pos.y + Math.random() * 0.8, vx: (Math.random() - 0.5) * (spark ? 9 : 3), vy: Math.random() * (spark ? 7 : 2.5), r: spark ? 0.05 : 0.22 + Math.random() * 0.25, life: 1, c: spark ? "255,196,80" : "70,70,80", g: spark ? 12 : -0.5 });
+  }
+  for (let i = 0; i < (lowFx ? 6 : 14); i++) {
+    const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 4;
+    particles.push({ x: headAt.x, y: headAt.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 0.05, life: 1, c: "255,255,255", g: 6 });
+  }
+  shakeT = reduceMotion ? 0 : 0.45;
+  sfx(90, 0.45, "sawtooth"); sfx(55, 0.7, "square"); setTimeout(() => sfx(1400, 0.08, "square"), 60); setTimeout(() => sfx(140, 0.2, "square"), 120);
+  toast("Crash!");
+}
+
+function focusBody() { return broken ? broken.torso : chassis; }
+
 function revive() {
   secondUsed = true;
   track("reward_taken", { kind: "second_chance", distance: Math.floor(maxX) });
-  const keep = onBoardCount();
-  const x = Math.max(3, chassis.getPosition().x - 2);
+  const keep = broken ? broken.kept : onBoardCount();
+  const x = Math.max(3, Math.min(focusBody().getPosition().x, maxX) - 2);
   for (const c of crates) world.destroyBody(c.body);
   crates = [];
-  world.destroyBody(wheelB); world.destroyBody(wheelF); world.destroyBody(chassis);
-  makeCar(x, Math.max(H(x - 1.1), H(x + 1.15), H(x)) + 1.15);
+  world.destroyBody(wheelB); world.destroyBody(wheelF);
+  if (broken) { for (const p of broken.parts) world.destroyBody(p.body); broken = null; }
+  else world.destroyBody(chassis);
+  makeCar(x);
   loadCrates(keep);
   wheelContacts = 0; crashFlag = false; crashTimer = 0; stallTimer = 0; airTime = 0;
   fuel = Math.max(fuel, 60);
@@ -527,7 +746,8 @@ function revive() {
 }
 
 // ---------- Rendering ----------
-const cv = document.getElementById("game"), ctx = cv.getContext("2d");
+const cv = document.getElementById("game");
+let ctx = cv.getContext("2d");
 let W = 0, Hh = 0, dpr = 1, ppm = 40, lowFx = false, slowFor = 0;
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, lowFx ? 1 : 2);
@@ -568,6 +788,7 @@ function draw() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   const ph = ((maxX + 600) / 2400) % 1;   // starts in daytime, dusk arrives around 360 m
   const sky = skyAt(ph), night = nightness(ph);
+  if (shakeT > 0) { const m = shakeT * 18; ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m); }
 
   const g = ctx.createLinearGradient(0, 0, 0, Hh);
   g.addColorStop(0, rgb(sky.top)); g.addColorStop(1, rgb(sky.bot));
@@ -577,14 +798,35 @@ function draw() {
     ctx.fillStyle = `rgba(255,255,240,${0.85 * night})`;
     for (const [x, y, r] of STARS) { ctx.beginPath(); ctx.arc(((x * W * 1.5 - camX * 2) % W + W) % W, y * Hh, r, 0, 7); ctx.fill(); }
   }
-  // sun or moon
-  const orbY = Hh * (0.18 + 0.5 * Math.abs(Math.sin(ph * Math.PI * 2)) * 0.4);
-  ctx.fillStyle = night > 0.5 ? "rgba(240,236,214,0.95)" : "rgba(255,226,140,0.95)";
-  ctx.beginPath(); ctx.arc(W * 0.78, orbY, Math.max(22, Math.min(W, Hh) * 0.05), 0, 7); ctx.fill();
+  // sun or moon, with a soft glow
+  const orbX = W * 0.78, orbY = Hh * (0.18 + 0.5 * Math.abs(Math.sin(ph * Math.PI * 2)) * 0.4);
+  const orbR = Math.max(22, Math.min(W, Hh) * 0.05), isMoon = night > 0.5;
+  if (!lowFx) {
+    const glow = ctx.createRadialGradient(orbX, orbY, orbR * 0.6, orbX, orbY, orbR * (isMoon ? 3 : 4.5));
+    glow.addColorStop(0, isMoon ? "rgba(240,236,214,0.28)" : "rgba(255,214,120,0.5)");
+    glow.addColorStop(1, isMoon ? "rgba(240,236,214,0)" : "rgba(255,214,120,0)");
+    ctx.fillStyle = glow; ctx.fillRect(orbX - orbR * 5, orbY - orbR * 5, orbR * 10, orbR * 10);
+  }
+  ctx.fillStyle = isMoon ? "#f0ecd6" : "#ffe28c";
+  ctx.beginPath(); ctx.arc(orbX, orbY, orbR, 0, 7); ctx.fill();
+  if (isMoon) {
+    ctx.fillStyle = "rgba(170,166,150,0.45)";
+    for (const [dx, dy, r] of [[-0.3, -0.2, 0.22], [0.25, 0.15, 0.16], [-0.05, 0.4, 0.12]]) {
+      ctx.beginPath(); ctx.arc(orbX + dx * orbR, orbY + dy * orbR, r * orbR, 0, 7); ctx.fill();
+    }
+  }
 
-  // parallax hills
-  if (!lowFx) hills(0.15, sky.far, 0.62, 3.2, 0.045, 1.7);
-  hills(0.35, sky.near, 0.7, 2.2, 0.08, 4.1);
+  if (!lowFx) { drawClouds(sky, night); drawBirds(night); }
+
+  // parallax layers: far peaks, a wooded ridge, then near hills; haze softens what is far away
+  if (!lowFx) {
+    hillLayer({ f: 0.06, col: mixc(sky.far, sky.top, 0.3), base: 0.47, amp: 3.8, freq: 0.11, seed: 0.9, sharp: true });
+    haze(sky.bot, 0.22);
+    hillLayer({ f: 0.15, col: sky.far, base: 0.63, amp: 3.0, freq: 0.045, seed: 1.7, trees: { gap: 1.6, size: 0.55, keep: 0.7 } });
+    haze(sky.bot, 0.18);
+  }
+  hillLayer({ f: 0.35, col: sky.near, base: 0.7, amp: 2.2, freq: 0.08, seed: 4.1, rim: true,
+    trees: lowFx ? null : { gap: 3, size: 0.8, keep: 0.6 } });
 
   // terrain
   const x0 = Math.floor(camX - (W * 0.38) / ppm) - 2, x1 = Math.ceil(camX + (W * 0.62) / ppm) + 2;
@@ -636,18 +878,20 @@ function draw() {
 
   // dust
   for (const p of particles) {
-    ctx.fillStyle = `rgba(200,170,130,${p.life * 0.6})`;
+    ctx.fillStyle = `rgba(${p.c || "200,170,130"},${p.life * 0.6})`;
     ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), p.r * ppm * (1.6 - p.life), 0, 7); ctx.fill();
   }
 
   // crates, then the truck
   for (const c of crates) drawCrate(c.body);
-  drawTruck();
+  if (broken) drawBroken(); else drawCar();
 
   // night falls over the world, headlights cut through it
   if (night > 0) {
-    ctx.fillStyle = `rgba(8,12,32,${0.42 * night})`; ctx.fillRect(0, 0, W, Hh);
-    const a = chassis.getAngle(), hp = chassis.getWorldPoint(V(1.62, 0.45));
+    ctx.fillStyle = `rgba(8,12,32,${0.42 * night})`; ctx.fillRect(-20, -20, W + 40, Hh + 40);
+  }
+  if (night > 0 && !broken) {
+    const a = chassis.getAngle(), hp = chassis.getWorldPoint(V(car.light[0], car.light[1]));
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.translate(sx(hp.x), sy(hp.y)); ctx.rotate(-a);
@@ -659,16 +903,88 @@ function draw() {
   }
 }
 
-function hills(f, col, base, amp, freq, seed) {
+const mixc = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const hash = (n) => { const s = Math.sin(n * 12.9898) * 43758.5453; return s - Math.floor(s); };
+
+// One parallax layer: rolling hills (or sharp peaks), optional pine trees and a sunlit top edge.
+function hillLayer(o) {
+  const { f, col, base, amp, freq, seed } = o;
+  const horizon = Hh * base + camY * ppm * f * 0.5;
+  const hAt = (wx) => o.sharp
+    ? amp * 1.6 * (1 - Math.abs(Math.sin(wx * freq + seed))) + amp * 0.35 * Math.sin(wx * freq * 3.3 + seed) - amp * 0.4
+    : amp * Math.sin(wx * freq + seed) + amp * 0.5 * Math.sin(wx * freq * 2.7 + seed * 2) + amp * 0.2 * Math.sin(wx * freq * 6.1);
+  const toPx = (wx) => (wx - camX * f) * ppm + W * 0.38;
+  const yAt = (wx) => horizon - hAt(wx) * ppm * 0.8;
+  const wxL = camX * f - (W * 0.38) / ppm;
+
   ctx.fillStyle = rgb(col);
   ctx.beginPath(); ctx.moveTo(0, Hh);
-  const horizon = Hh * base + camY * ppm * f * 0.5;
-  for (let px = 0; px <= W + 8; px += 8) {
-    const wx = camX * f + (px - W * 0.38) / ppm;
-    const h = amp * Math.sin(wx * freq + seed) + amp * 0.5 * Math.sin(wx * freq * 2.7 + seed * 2) + amp * 0.2 * Math.sin(wx * freq * 6.1);
-    ctx.lineTo(px, horizon - h * ppm * 0.8);
-  }
+  for (let px = 0; px <= W + 8; px += 8) ctx.lineTo(px, yAt(wxL + px / ppm));
   ctx.lineTo(W, Hh); ctx.closePath(); ctx.fill();
+
+  if (o.rim) {
+    ctx.beginPath();
+    for (let px = 0; px <= W + 8; px += 8) { const y = yAt(wxL + px / ppm) + 1; px ? ctx.lineTo(px, y) : ctx.moveTo(px, y); }
+    ctx.strokeStyle = rgb(mixc(col, [255, 244, 200], 0.35), 0.7); ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  if (o.trees) {
+    const t = o.trees, dark = rgb(mixc(col, [10, 20, 18], 0.22));
+    ctx.fillStyle = dark;
+    for (let i = Math.floor(wxL / t.gap) - 1; i * t.gap < wxL + W / ppm + t.gap; i++) {
+      const r = hash(i + seed * 100);
+      if (r > t.keep) continue;
+      const wx = i * t.gap + r * t.gap * 0.8, x = toPx(wx), y = yAt(wx) + 2;
+      const s = t.size * ppm * (0.7 + r * 0.7);
+      ctx.fillRect(x - s * 0.06, y - s * 0.35, s * 0.12, s * 0.4);
+      for (let k = 0; k < 2; k++) {
+        const top = y - s * (1.05 - k * 0.3), w = s * (0.32 + k * 0.08);
+        ctx.beginPath(); ctx.moveTo(x, top - s * 0.25); ctx.lineTo(x + w, top + s * 0.45); ctx.lineTo(x - w, top + s * 0.45); ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+}
+
+// Distance haze: fades the layers behind toward the horizon colour.
+function haze(col, a) {
+  const g = ctx.createLinearGradient(0, Hh * 0.35, 0, Hh);
+  g.addColorStop(0, rgb(col, 0)); g.addColorStop(1, rgb(col, a));
+  ctx.fillStyle = g; ctx.fillRect(0, Hh * 0.35, W, Hh * 0.65);
+}
+
+const CLOUDS = Array.from({ length: 7 }, (_, i) => ({ x: hash(i + 1), y: 0.07 + hash(i + 11) * 0.26, s: 0.7 + hash(i + 21) * 0.8, v: 6 + hash(i + 31) * 10 }));
+function drawClouds(sky, night) {
+  const span = W + 400, unit = Math.max(0.7, Math.min(W, Hh) / 700) * 46;
+  const body = mixc([255, 255, 255], sky.bot, 0.2), shade = mixc(body, sky.top, 0.35);
+  const a = 0.9 * (1 - night) + 0.14 * night;
+  for (const c of CLOUDS) {
+    const px = ((c.x * span - camX * ppm * 0.05 + simTime * c.v) % span + span) % span - 200;
+    const py = Hh * c.y, r = unit * c.s;
+    const puff = (dy) => {
+      ctx.beginPath();
+      for (const [ox, oy, k] of [[0, 0, 1], [-0.95, 0.3, 0.7], [1.0, 0.25, 0.78], [0.35, -0.4, 0.75]]) {
+        const cx = px + ox * r, cy = py + dy + oy * r;
+        ctx.moveTo(cx + k * r, cy); ctx.arc(cx, cy, k * r, 0, Math.PI * 2);
+      }
+      ctx.fill();
+    };
+    ctx.fillStyle = rgb(shade, a * 0.8); puff(r * 0.18);
+    ctx.fillStyle = rgb(body, a); puff(0);
+  }
+}
+
+function drawBirds(night) {
+  if (night > 0.3) return;
+  const a = 1 - night / 0.3, span = W + 200;
+  ctx.strokeStyle = `rgba(40,48,60,${0.55 * a})`; ctx.lineWidth = 1.6; ctx.lineCap = "round";
+  for (let i = 0; i < 4; i++) {
+    const bx = ((simTime * (16 + i * 3) + i * 137 - camX * ppm * 0.04) % span + span) % span - 100;
+    const by = Hh * (0.15 + i * 0.03) + Math.sin(simTime * 0.6 + i) * 8;
+    const flap = Math.sin(simTime * 7 + i * 2) * 3, s = 5 + i;
+    ctx.beginPath(); ctx.moveTo(bx - s, by - flap);
+    ctx.quadraticCurveTo(bx - s * 0.5, by - s * 0.25, bx, by);
+    ctx.quadraticCurveTo(bx + s * 0.5, by - s * 0.25, bx + s, by - flap); ctx.stroke();
+  }
 }
 
 function strokeGround(x0, x1, off, color, width) {
@@ -707,62 +1023,142 @@ function bodyTransform(b) {
 }
 function poly(pts) { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); }
 
-function drawCrate(b) {
-  bodyTransform(b);
+// ---------- Vehicle drawing (in vehicle coordinates: metres, y up) ----------
+function fillP(pts, c) { poly(pts); ctx.fillStyle = c; ctx.fill(); }
+function fillR(x0, y0, x1, y1, c) { ctx.fillStyle = c; ctx.fillRect(x0, y0, x1 - x0, y1 - y0); }
+function circ(x, y, r, c) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+function line(pts, c, w) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); }
+
+function drawPiece(pc) { fillP(pc.poly, pc.color); if (pc.deco) pc.deco(); }
+function drawTorso(v) { fillP(v.D.torso, "#2f6db5"); fillR(v.D.torso[0][0] + 0.02, v.hip[1] + 0.05, v.D.torso[1][0] - 0.02, v.hip[1] + 0.11, "#24263a"); }
+function drawArm(v) {
+  ctx.save(); ctx.translate(v.D.ac[0], v.D.ac[1]); ctx.rotate(v.armA);
+  fillR(-0.21, -0.045, 0.21, 0.045, "#285f9e"); circ(0.21, 0, 0.06, PAINT.dark);
+  ctx.restore();
+}
+function drawLeg(v) {
+  ctx.save(); ctx.translate(v.D.lc[0], v.D.lc[1]); ctx.rotate(v.legA);
+  fillR(-0.25, -0.07, 0.25, 0.07, PAINT.dark); fillR(0.18, -0.07, 0.3, 0.13, "#1b1b1f");
+  ctx.restore();
+}
+function drawHelmet(v) {
+  const [x, y] = v.D.head;
+  circ(x, y, 0.22, PAINT.dark);
+  ctx.fillStyle = "#f2a900"; ctx.beginPath(); ctx.arc(x, y, 0.22, 0.35, 2.6); ctx.lineTo(x, y); ctx.fill();
+  fillP([[x + 0.08, y - 0.07], [x + 0.22, y - 0.07], [x + 0.2, y + 0.07], [x + 0.08, y + 0.05]], PAINT.glass);
+}
+function drawDriver(v) { drawLeg(v); drawTorso(v); drawHelmet(v); drawArm(v); }
+// after a crash: the face under the helmet, dazed
+function drawFace(v) {
+  const [x, y] = v.D.head;
+  circ(x, y, 0.17, "#f1c27d");
+  fillP([[x - 0.17, y + 0.02], [x + 0.02, y + 0.17], [x - 0.12, y + 0.14]], "#5a3a22");
+  const X = (cx, cy) => line([[cx - 0.03, cy - 0.03], [cx + 0.03, cy + 0.03]], PAINT.dark, 0.025) || line([[cx - 0.03, cy + 0.03], [cx + 0.03, cy - 0.03]], PAINT.dark, 0.025);
+  X(x + 0.04, y + 0.04); X(x + 0.12, y + 0.04);
+  line([[x + 0.02, y - 0.07], [x + 0.06, y - 0.05], [x + 0.1, y - 0.08], [x + 0.14, y - 0.06]], PAINT.dark, 0.022);
+}
+function drawHelmetHalf(v, side) {
+  const [x, y] = v.D.head, pts = helmetHalf(v.D.head, side);
+  fillP(pts, PAINT.dark);
+  ctx.save(); poly(pts); ctx.clip();
+  ctx.fillStyle = "#f2a900"; ctx.beginPath(); ctx.arc(x, y, 0.22, 0.35, 2.6); ctx.lineTo(x, y); ctx.fill();
+  if (side > 0) fillP([[x + 0.08, y - 0.07], [x + 0.22, y - 0.07], [x + 0.2, y + 0.07], [x + 0.08, y + 0.05]], PAINT.glass);
+  ctx.restore();
+  // jagged crack along the split
+  const s = side * 0.025;
+  line([[x, y + 0.22], [x + s, y + 0.13], [x - s, y + 0.06], [x + s, y - 0.02], [x - s, y - 0.1], [x, y - 0.22]], PAINT.white, 0.02);
+}
+
+function drawVehicleLocal(v) {
+  if (!v.driverFront) drawDriver(v);
+  for (const pc of v.pieces) drawPiece(pc);
+  if (v.driverFront) drawDriver(v);
+}
+
+function drawWheelLocal(v, i) {
+  const r = v.wheels[i].r, st = v.wheelStyle;
+  circ(0, 0, r, "#1b1b1f");
+  if (st === "road" || st === "sport") {
+    ctx.strokeStyle = "#2c2c33"; ctx.lineWidth = r * 0.11;
+    for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.82, Math.sin(a) * r * 0.82); ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); ctx.stroke(); }
+  } else {
+    const n = st === "monster" ? 14 : st === "tractor" ? 12 : 16, d = st === "knobby" ? 0.07 : 0.12;
+    for (let k = 0; k < n; k++) {
+      ctx.save(); ctx.rotate(k * Math.PI * 2 / n);
+      if (st === "tractor") fillP([[r * 0.86, -r * 0.1], [r * 1.07, -r * 0.02], [r * 1.07, r * 0.12], [r * 0.86, r * 0.06]], "#1b1b1f");
+      else fillR(r * 0.9, -r * d, r * 1.07, r * d, "#1b1b1f");
+      ctx.restore();
+    }
+  }
+  if (st === "knobby") {
+    ctx.strokeStyle = "#9aa0aa"; ctx.lineWidth = 0.025;
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.74, 0, Math.PI * 2); ctx.stroke();
+    for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r * 0.74, Math.sin(a) * r * 0.74); ctx.stroke(); }
+    circ(0, 0, r * 0.14, "#5b6070");
+    return;
+  }
+  const rim = { road: 0.5, sport: 0.66, monster: 0.46, tractor: 0.52 }[st];
+  const rimCol = { road: "#b9bcc4", sport: "#dfe2e8", monster: "#8f96a3", tractor: "#f2a900" }[st];
+  circ(0, 0, r * rim, rimCol);
+  ctx.strokeStyle = st === "tractor" ? "#b37c00" : "#6d717b"; ctx.lineWidth = r * (st === "sport" ? 0.09 : 0.13);
+  for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r * rim * 0.92, Math.sin(a) * r * rim * 0.92); ctx.stroke(); }
+  circ(0, 0, r * 0.13, "#3a3d45");
+}
+
+function drawCrateLocal() {
   const h = CRATE_H;
-  ctx.fillStyle = "#b57a3c"; ctx.fillRect(-h, -h, 2 * h, 2 * h);
+  fillR(-h, -h, h, h, "#b57a3c");
   ctx.strokeStyle = "#6b4220"; ctx.lineWidth = 0.06; ctx.strokeRect(-h + 0.03, -h + 0.03, 2 * h - 0.06, 2 * h - 0.06);
   ctx.beginPath(); ctx.moveTo(-h + 0.06, -h + 0.06); ctx.lineTo(h - 0.06, h - 0.06); ctx.moveTo(-h + 0.06, h - 0.06); ctx.lineTo(h - 0.06, -h + 0.06); ctx.lineWidth = 0.05; ctx.stroke();
-  ctx.restore();
 }
+function drawCrate(b) { bodyTransform(b); drawCrateLocal(); ctx.restore(); }
 
-function drawWheel(w) {
-  bodyTransform(w);
-  const r = WHEEL_R;
-  ctx.fillStyle = "#1b1b1f"; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
-  ctx.strokeStyle = "#2c2c33"; ctx.lineWidth = 0.05;
-  for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * r * 0.82, Math.sin(a) * r * 0.82); ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); ctx.stroke(); }
-  ctx.fillStyle = "#b9bcc4"; ctx.beginPath(); ctx.arc(0, 0, r * 0.5, 0, 7); ctx.fill();
-  ctx.strokeStyle = "#6d717b"; ctx.lineWidth = 0.06;
-  for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * r * 0.46, Math.sin(a) * r * 0.46); ctx.stroke(); }
-  ctx.fillStyle = "#3a3d45"; ctx.beginPath(); ctx.arc(0, 0, r * 0.13, 0, 7); ctx.fill();
-  ctx.restore();
-}
-
-function drawTruck() {
-  // suspension struts
+function drawCar() {
   ctx.strokeStyle = "#3a3d45"; ctx.lineWidth = 0.12 * ppm; ctx.lineCap = "round";
-  for (const [w, lx] of [[wheelB, -1.1], [wheelF, 1.15]]) {
-    const a = chassis.getWorldPoint(V(lx, 0)), b = w.getPosition();
+  car.wheels.forEach((w, i) => {
+    if (!w.strut) return;
+    const a = chassis.getWorldPoint(V(w.strut[0], w.strut[1])), b = (i ? wheelF : wheelB).getPosition();
     ctx.beginPath(); ctx.moveTo(sx(a.x), sy(a.y)); ctx.lineTo(sx(b.x), sy(b.y)); ctx.stroke();
+  });
+  bodyTransform(chassis); drawVehicleLocal(car); ctx.restore();
+  [wheelB, wheelF].forEach((w, i) => { bodyTransform(w); drawWheelLocal(car, i); ctx.restore(); });
+}
+
+function drawStar(x, y, r) {
+  ctx.beginPath();
+  for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  ctx.closePath(); ctx.fillStyle = "#ffd23f"; ctx.fill();
+}
+function drawBroken() {
+  [wheelB, wheelF].forEach((w, i) => { bodyTransform(w); drawWheelLocal(car, i); ctx.restore(); });
+  for (const p of broken.parts) { bodyTransform(p.body); p.draw(); ctx.restore(); }
+  // dizzy stars circling the driver's head
+  const f = broken.face.getWorldPoint(V(car.D.head[0], car.D.head[1]));
+  for (let k = 0; k < 3; k++) {
+    const a = simTime * 4 + k * 2.09;
+    drawStar(sx(f.x + Math.cos(a) * 0.32), sy(f.y + 0.32 + Math.sin(a) * 0.1), 0.09 * ppm);
   }
-  bodyTransform(chassis);
-  // driver (behind the door panel)
-  ctx.fillStyle = "#2f6db5"; poly([[0.42, 0.6], [0.82, 0.6], [0.8, 1.0], [0.46, 1.0]]); ctx.fill();
-  ctx.fillStyle = "#2b2d42"; ctx.beginPath(); ctx.arc(0.62, 1.15, 0.22, 0, 7); ctx.fill();
-  ctx.fillStyle = "#f2a900"; ctx.beginPath(); ctx.arc(0.62, 1.15, 0.22, 0.35, 2.6); ctx.lineTo(0.62, 1.15); ctx.fill();
-  ctx.fillStyle = "#9fd3f0"; poly([[0.7, 1.08], [0.84, 1.08], [0.82, 1.22], [0.7, 1.2]]); ctx.fill();
-  // windshield frame
-  ctx.strokeStyle = "#2b2d42"; ctx.lineWidth = 0.07; ctx.beginPath(); ctx.moveTo(1.3, 0.65); ctx.lineTo(1.08, 1.05); ctx.stroke();
-  ctx.fillStyle = "rgba(160,215,240,0.45)"; poly([[1.3, 0.65], [1.08, 1.05], [1.0, 1.0], [1.18, 0.66]]); ctx.fill();
-  // body
-  ctx.fillStyle = "#e4572e";
-  poly([[-1.6, -0.15], [1.6, -0.15], [1.65, 0.05], [1.65, 0.55], [1.05, 0.75], [0.3, 0.75], [0.3, 0.25], [-1.46, 0.25], [-1.46, 0.65], [-1.6, 0.65]]); ctx.fill();
-  ctx.fillStyle = "#b8401f"; ctx.fillRect(-1.6, -0.15, 3.25, 0.12);
-  ctx.fillStyle = "#f4f1e6"; ctx.fillRect(-1.3, 0.02, 1.5, 0.08);
-  // door window and handle
-  ctx.fillStyle = "#9fd3f0"; poly([[0.42, 0.48], [0.95, 0.48], [0.95, 0.68], [0.42, 0.68]]); ctx.fill();
-  ctx.fillStyle = "#2b2d42"; ctx.fillRect(0.5, 0.36, 0.16, 0.04);
-  // headlight and tail light
-  ctx.fillStyle = "#ffe9a8"; ctx.fillRect(1.56, 0.36, 0.09, 0.14);
-  ctx.fillStyle = "#c8322a"; ctx.fillRect(-1.6, 0.36, 0.06, 0.16);
-  ctx.restore();
-  drawWheel(wheelB); drawWheel(wheelF);
+}
+
+// small picture of a vehicle for the garage
+function previewVehicle(cvs, v) {
+  const r = window.devicePixelRatio || 1, w = cvs.clientWidth || 220, h = cvs.clientHeight || 110;
+  cvs.width = Math.round(w * r); cvs.height = Math.round(h * r);
+  const saved = ctx; ctx = cvs.getContext("2d");
+  const xs = v.pieces.flatMap((p) => p.poly.map((q) => q[0])).concat(v.wheels.flatMap((q) => [q.x - q.r, q.x + q.r]));
+  const minX = Math.min(...xs), maxX = Math.max(...xs), drop = Math.max(...v.wheels.map((q) => q.r - q.y));
+  const s = Math.min((w - 20) / (maxX - minX), (h - 16) / (drop + v.D.head[1] + 0.3));
+  ctx.setTransform(r * s, 0, 0, -r * s, r * (w / 2 - s * (minX + maxX) / 2), r * (h - 10 - s * drop));
+  v.wheels.forEach((q) => { if (q.strut) line([q.strut, [q.x, q.y]], "#3a3d45", 0.12); });
+  drawVehicleLocal(v);
+  for (const [x, y] of v.slots) { ctx.save(); ctx.translate(x, y); drawCrateLocal(); ctx.restore(); }
+  v.wheels.forEach((q, i) => { ctx.save(); ctx.translate(q.x, q.y); drawWheelLocal(v, i); ctx.restore(); });
+  ctx = saved;
 }
 
 // ---------- Camera, particles, HUD ----------
 function updateCamera(dt) {
-  const p = chassis.getPosition(), v = chassis.getLinearVelocity();
+  const f = focusBody(), p = f.getPosition(), v = f.getLinearVelocity();
   const tx = p.x + Math.max(-2, Math.min(5, v.x * 0.35)) + 1.5, ty = p.y + 0.6;
   const k = 1 - Math.exp(-dt * 4);
   camX += (tx - camX) * k; camY += (ty - camY) * k;
@@ -777,11 +1173,11 @@ function updateParticles(dt) {
     for (const w of [wheelB, wheelF]) {
       if (Math.random() < 0.35) {
         const p = w.getPosition();
-        particles.push({ x: p.x - 0.3, y: p.y - WHEEL_R * 0.7, vx: -1 - Math.random() * 2, vy: Math.random() * 1.5, r: 0.12 + Math.random() * 0.1, life: 1 });
+        particles.push({ x: p.x - 0.3, y: p.y - 0.35, vx: -1 - Math.random() * 2, vy: Math.random() * 1.5, r: 0.12 + Math.random() * 0.1, life: 1 });
       }
     }
   }
-  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= 1.5 * dt; p.life -= dt * 1.6; }
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy -= (p.g ?? 1.5) * dt; p.life -= dt * (p.c ? 0.9 : 1.6); }
   particles = particles.filter((p) => p.life > 0);
 }
 
@@ -798,8 +1194,9 @@ function updateHud() {
   $("depot").textContent = Math.max(0, Math.ceil(nextDepot - maxX)) + " m";
 }
 function updateSlots() {
-  const n = onBoardCount();
-  [...$("slots").children].forEach((b, i) => b.classList.toggle("gone", i >= n));
+  const n = onBoardCount(), el = $("slots");
+  if (el.children.length !== car.slots.length) el.innerHTML = "<b></b>".repeat(car.slots.length);
+  [...el.children].forEach((b, i) => b.classList.toggle("gone", i >= n));
 }
 let toastTimer;
 function toast(msg) {
@@ -866,7 +1263,7 @@ function start() {
   if (muted && ac && !startedOnce) { muted = false; $("mute").textContent = "Sound on"; }
   startedOnce = true;
   resetWorld();
-  secondUsed = false;
+  secondUsed = false; runBanked = 0;
   markPlayedToday();
   track("level_start", { route: DAY_KEY });
   state = "play";
@@ -877,6 +1274,42 @@ let startedOnce = false;
 $("start").addEventListener("click", start);
 $("again").addEventListener("click", start);
 $("second").addEventListener("click", () => offerReward(revive));
+
+// ---------- Garage ----------
+let garageFrom = "menu";
+function openGarage(from) { garageFrom = from; $(from).hidden = true; renderGarage(); $("garage").hidden = false; $("gBack").focus(); }
+function closeGarage() { $("garage").hidden = true; $(garageFrom).hidden = false; refreshMenu(); }
+function refreshMenu() { $("mCar").textContent = car.name; $("mBank").textContent = bank; $("sCar").textContent = car.name; }
+function renderGarage() {
+  $("gBank").textContent = bank;
+  const grid = $("gGrid"); grid.innerHTML = "";
+  for (const v of VEHICLES) {
+    const has = owned.includes(v.id), sel = v.id === car.id;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "vcard" + (sel ? " sel" : "");
+    const bar = (n) => '<i><b style="width:' + n * 20 + '%"></b></i>';
+    b.innerHTML = '<canvas></canvas><span class="vname">' + v.name + '</span><span class="vblurb">' + v.blurb + '</span>' +
+      '<span class="vstat"><span>Speed</span>' + bar(v.stats.speed) + '<span>Power</span>' + bar(v.stats.power) + '<span>Grip</span>' + bar(v.stats.grip) + '<span>Crates</span><span class="vcrates">' + v.slots.length + '</span></span>' +
+      '<span class="vbtn ' + (sel ? "owned" : has ? "owned" : bank >= v.price ? "" : "locked") + '">' + (sel ? "Driving" : has ? "Drive this" : (bank >= v.price ? "Unlock · " : "Locked · ") + v.price + " coins") + '</span>';
+    b.addEventListener("click", () => pickVehicle(v));
+    grid.appendChild(b);
+    previewVehicle(b.querySelector("canvas"), v);
+  }
+}
+function pickVehicle(v) {
+  if (!owned.includes(v.id)) {
+    if (bank < v.price) { toast("Need " + (v.price - bank) + " more coins"); return; }
+    bank -= v.price; owned.push(v.id); toast(v.name + " unlocked!"); sfx(760, 0.3, "triangle");
+    track("vehicle_unlocked", { vehicle: v.id, price: v.price });
+  }
+  car = v; saveGarage();
+  if (state === "menu") { resetWorld(); updateSlots(); }
+  renderGarage();
+}
+$("gBack").addEventListener("click", closeGarage);
+$("mGarage").addEventListener("click", () => openGarage("menu"));
+$("oGarage").addEventListener("click", () => openGarage("over"));
+refreshMenu();
 $("mRoute").textContent = ROUTE_NAME;
 $("mToday").textContent = todayBest + " m";
 $("mStreak").textContent = days(streak);
@@ -894,7 +1327,8 @@ function frame(now) {
     if (state === "crashing") { crashTimer -= DT; if (crashTimer <= 0) finish(); }
     acc -= DT;
   }
-  ensureTerrain(chassis.getPosition().x);
+  ensureTerrain(focusBody().getPosition().x);
+  shakeT = Math.max(0, shakeT - dt);
   updateCamera(dt);
   updateParticles(dt);
   updateEngine();
