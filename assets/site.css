@@ -297,3 +297,7 @@ body.poki.side-open .pk-side .lb{opacity:1}
   .cg-noads,.cg-acts .cg-ib{display:none}
   .cg-login{height:40px;padding:0 14px;font-size:15px}
 }
+/* ===== game pages: like / dislike under the game ===== */
+.pk-vote.up.on{background:var(--blue);color:#fff}
+.pk-vote.down.on{background:#ff3d68;color:#fff}
+.pk-vote.on svg{fill:currentColor}

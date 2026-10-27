@@ -292,7 +292,9 @@ def pk_body(base, inner, attrs="", active="", nav=None, cls="", top=""):
             f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{pk_foot(base)}{PK_JS}</body></html>')
 
 # --- home page: Poki look (turquoise page, square logo box, mixed tile sizes) ---
-ICONS["user"] = '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'
+ICONS["thumbup"] = '<path d="M7 11v9H4v-9zM7 11l4-8c1.5 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>'
+ICONS["thumbdown"] = '<path d="M7 13V4H4v9zM7 13l4 8c1.5 0 2.5-1.2 2.2-2.7L12.6 15H19a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17.8 4H7"/>'
+ICONS["user"] ='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'
 
 def pz_nav():
     return (f'<div class="pk-nav pz-nav"><a class="pz-logo" href="./" aria-label="Stratos Games home">Stratos<b>Games</b></a>'
@@ -384,6 +386,12 @@ def build_play(g, fam, studio):
     if CLEAN:
         stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
                  f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
+                 f'<button class="pk-ib pk-vote up" type="button" data-v="1" title="I like this game" aria-label="Like" aria-pressed="false">{icon("thumbup", 19)}</button>'
+                 f'<button class="pk-ib pk-vote down" type="button" data-v="-1" title="I don\'t like this game" aria-label="Dislike" aria-pressed="false">{icon("thumbdown", 19)}</button>'
+                 f'<script>(function(){{var k="sg_votes",s={json.dumps(g["slug"])},b=[].slice.call(document.querySelectorAll(".pk-vote"));'
+                 f'function rd(){{try{{return JSON.parse(localStorage.getItem(k)||"{{}}")||{{}}}}catch(e){{return{{}}}}}}'
+                 f'function paint(){{var v=rd()[s]||0;b.forEach(function(x){{var o=+x.dataset.v===v;x.classList.toggle("on",o);x.setAttribute("aria-pressed",o)}})}}'
+                 f'b.forEach(function(x){{x.onclick=function(){{var m=rd(),v=+x.dataset.v;if(m[s]===v)delete m[s];else m[s]=v;try{{localStorage.setItem(k,JSON.stringify(m))}}catch(e){{}}paint()}}}});paint()}})()</script>'
                  f'<button class="pk-ib pk-like" id="pk-like" type="button" title="Add to favourites" aria-label="Favourite" aria-pressed="false">{icon("heart", 18)}</button>'
                  f'<button class="pk-ib" type="button" title="Share" aria-label="Share" onclick="var b=this;(navigator.share?navigator.share({{title:document.title,url:location.href}}):navigator.clipboard.writeText(location.href).then(function(){{b.title=\'Link copied\'}}))">{icon("share", 18)}</button>'
                  f'<a class="pk-ib" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'
