@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 19,
+ "count": 20,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -114,6 +114,19 @@
    "category": "kids",
    "url": "play/saiqulmodi-domino-wonder-dash/",
    "thumb": "games/saiqulmodi-domino-wonder-dash/thumbnail.png",
+   "added": "2026-10-27",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-ecos-synthetica",
+   "title": "Ecos-Synthetica: The Evolutionary Shield",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "A 3D journey from a single cell to a human: meet fungi, bacteria, viruses and insects from their own side, then answer them the way life really does.",
+   "category": "kids",
+   "url": "play/saiqulmodi-ecos-synthetica/",
+   "thumb": "games/saiqulmodi-ecos-synthetica/thumbnail.png",
    "added": "2026-10-27",
    "github": "saiqulmodi",
    "kind": "family",
