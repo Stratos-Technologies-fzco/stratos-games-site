@@ -1,6 +1,6 @@
 /* BrainRush Daily service worker: app shell + puzzle packs work offline after a first visit.
    Every URL is resolved against the worker's own scope, so the game works from any folder. */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL = `brd-shell-${VERSION}`;
 const PACKS = `brd-packs-${VERSION}`;
 const BASE = self.registration.scope; // always ends with "/"
@@ -20,8 +20,9 @@ async function precacheAll() {
   try {
     const manifest = await (await fetch(abs('packs/pack-manifest.json'))).json();
     await packs.add(abs('packs/pack-manifest.json'));
-    const today = new Date().toISOString().slice(0, 10);
-    const upcoming = Object.keys(manifest.packs).filter((d) => d >= today).sort().slice(0, 7);
+    // Local dates sit within a day of UTC, so start from yesterday (UTC) to cover every time zone.
+    const from = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const upcoming = Object.keys(manifest.packs).filter((d) => d >= from).sort().slice(0, 9);
     await Promise.all(upcoming.map((d) => packs.add(abs(`packs/${d}.json`)).catch(() => {})));
   } catch {
     /* packs are also cached on demand */
