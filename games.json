@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 20,
+ "count": 21,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -207,6 +207,19 @@
    "thumb": "assets/covers/generated/sahidmodi45.svg",
    "added": "2026-10-28",
    "github": "sahidmodi45",
+   "kind": "family",
+   "soon": true
+  },
+  {
+   "slug": "sksarfarajali-brainrush",
+   "title": "BrainRush",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "BrainRush Daily is a casual brain-puzzle game built around a short, satisfying daily session.",
+   "category": "puzzle",
+   "url": "play/sksarfarajali-brainrush/",
+   "thumb": "assets/covers/generated/sksarfarajali-brainrush.svg",
+   "added": "2026-10-28",
+   "github": "sksarfarajali",
    "kind": "family",
    "soon": true
   },
