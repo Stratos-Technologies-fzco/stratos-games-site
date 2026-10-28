@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 21,
+ "count": 22,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -49,6 +49,19 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-cargo-climb/",
    "thumb": "games/im-mohua-liza-cargo-climb/thumbnail.png",
+   "added": "2026-10-28",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-chroma-clash",
+   "title": "Chroma Clash",
+   "maker": "Mohua Liza",
+   "one_line": "A funky 3D color-matching card game: play bots, friends on one phone, or friends anywhere online.",
+   "category": "party",
+   "url": "play/im-mohua-liza-chroma-clash/",
+   "thumb": "games/im-mohua-liza-chroma-clash/thumbnail.png",
    "added": "2026-10-28",
    "github": "im-mohua-liza",
    "kind": "family",
