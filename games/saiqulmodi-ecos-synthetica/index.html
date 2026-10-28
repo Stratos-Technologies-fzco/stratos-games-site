@@ -726,7 +726,7 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
 </style>
 
 <div class="hud-actions">
-  <button id="btnViewQA" class="btn-hud">View Q/A Bank</button>
+  <a href="./qa-bank.html" target="_blank" class="btn-hud" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:#0284c7; color:#ffffff; font-weight:600;">📚 Q/A Bank (Learn First)</a>
   <button id="btnQuitApp" class="btn-hud btn-quit">Quit Game</button>
 </div>
 
@@ -750,7 +750,7 @@ blockquote { margin: 0 0 12px; padding: 8px 12px; border-left: 3px solid var(--g
   const qaModal = document.getElementById('qaModal');
   const qaList = document.getElementById('qaList');
 
-  document.getElementById('btnViewQA').onclick = async () => {
+  (document.getElementById('btnViewQA') || {}).onclick = async () => {
     qaModal.style.display = 'flex';
     try {
       const res = await fetch('./questions.json');

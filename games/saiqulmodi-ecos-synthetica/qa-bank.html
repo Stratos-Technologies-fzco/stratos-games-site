@@ -1,0 +1,546 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecos-Synthetica | Q/A Learning Bank</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 20px;
+      background: #0b0f17;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header-bar {
+      max-width: 900px;
+      margin: 0 auto 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 16px;
+    }
+    .header-title h1 { margin: 0; font-size: 24px; color: #f8fafc; }
+    .header-title p { margin: 4px 0 0; color: #94a3b8; font-size: 14px; }
+    .btn-action {
+      padding: 8px 16px;
+      background: #0284c7;
+      color: #ffffff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .game-tabs {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .game-tab {
+      flex: 1 1 200px;
+      padding: 10px 14px;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .game-tab.active {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+    .qa-container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .qa-card {
+      background: #141c2e;
+      border: 1px solid #24324d;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .qa-stage {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .qa-question {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .qa-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .qa-option {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      color: #94a3b8;
+    }
+    button.qa-option {
+      width: 100%;
+      text-align: left;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.qa-option:hover:not(:disabled) { border-color: #38bdf8; color: #e2e8f0; }
+    button.qa-option:disabled { cursor: default; }
+    .qa-option.correct {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: #22c55e;
+      color: #4ade80;
+      font-weight: 600;
+    }
+    .qa-option.wrong {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #ef4444;
+      color: #f87171;
+      font-weight: 600;
+    }
+    .qa-result { font-size: 13px; font-weight: 700; margin-top: 4px; }
+    .qa-result.plus { color: #4ade80; }
+    .qa-result.minus { color: #f87171; }
+    .player-bar {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      background: #141c2e;
+      border: 1px solid #24324d;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .player-bar input, .player-bar select {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 14px;
+      min-width: 0;
+    }
+    .player-bar input { flex: 1 1 180px; }
+    .player-bar .btn-nav { padding: 8px 14px; }
+    .player-name { font-weight: 700; color: #f8fafc; }
+    .score-card {
+      flex: 1 1 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+    }
+    .score-level {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .score-level.active { border-color: #0284c7; }
+    .score-level b { display: block; font-size: 20px; color: #f8fafc; }
+    .btn-reset {
+      margin-top: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #fbbf24;
+      cursor: pointer;
+    }
+    .btn-reset:disabled { color: #64748b; cursor: not-allowed; }
+    .player-note { flex: 1 1 100%; font-size: 13px; color: #94a3b8; margin: 0; }
+    .player-note.warn { color: #fbbf24; }
+    .qa-explanation {
+      font-size: 13px;
+      color: #cbd5e1;
+      border-left: 3px solid #38bdf8;
+      padding-left: 12px;
+      margin-top: 10px;
+    }
+    .pagination-bar {
+      max-width: 900px;
+      margin: 24px auto 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #1e293b;
+    }
+    .btn-nav {
+      padding: 10px 20px;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-nav:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-info {
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-title">
+      <h1>Core Curriculum & Q/A Bank</h1>
+      <p>Study concepts in batches before starting simulation stages.</p>
+    </div>
+    <a href="index.html" class="btn-action">Back to Simulation</a>
+  </div>
+
+  <div id="playerBar" class="player-bar"></div>
+
+  <div class="game-tabs">
+    <button class="game-tab" data-game="explorer" onclick="selectGame('explorer')">Eco Explorer · Class 1–10</button>
+    <button class="game-tab" data-game="scientist" onclick="selectGame('scientist')">Eco Scientist · Class 11–12</button>
+    <button class="game-tab" data-game="professional" onclick="selectGame('professional')">Eco Professional · NEET &amp; MBBS</button>
+  </div>
+
+  <div id="qaContainer" class="qa-container">
+    <p style="color: #94a3b8;">Loading knowledge bank...</p>
+  </div>
+
+  <div class="pagination-bar">
+    <button id="btnPrev" class="btn-nav" onclick="changeBatch(-1)" disabled>Previous Batch</button>
+    <span id="batchInfo" class="page-info">Batch 1</span>
+    <button id="btnNext" class="btn-nav" onclick="changeBatch(1)">Next Batch</button>
+  </div>
+
+  <script>
+    // The 5 questions added on 28-Oct, in the same shape as questions.json.
+    const extraQuestions = [
+      {
+        stageTitle: "Wolf Pack",
+        pillar: "Trophic Dynamics",
+        prompt: "How does apex predator predation regulate lower trophic biomass?",
+        options: [
+          "Top-down suppression of herbivore overgrazing",
+          "Direct nutrient injection into soil horizons",
+          "Suppression of primary solar capture",
+          "Elimination of primary decomposer bacteria"
+        ],
+        correctIndex: 0,
+        explanation: "Apex carnivores initiate trophic cascades that limit herbivore density and restore vegetation cover."
+      },
+      {
+        stageTitle: "Decomposer",
+        pillar: "Mineral Cycling",
+        prompt: "What biochemical role do saprophytic microbes serve in soil ecology?",
+        options: [
+          "Enzymatic breakdown of organic polymers into inorganic ions",
+          "Direct conversion of light into fixed carbon",
+          "Locking atmospheric nitrogen permanently into bedrock",
+          "Thermal sterilization of rhizosphere pathogens"
+        ],
+        correctIndex: 0,
+        explanation: "Saprophytes mineralize dead organic substrates, re-releasing soluble N, P, and K into the soil solution."
+      },
+      {
+        stageTitle: "Plant Seedling",
+        pillar: "Nutrient Uptake",
+        prompt: "Which root zone transport process moves mineral ions against their concentration gradient?",
+        options: [
+          "Active transport powered by ATP hydrolysis via proton pumps",
+          "Simple diffusion through cuticular wax layers",
+          "Passive bulk flow through dead xylem tracheids",
+          "Suberin membrane osmosis"
+        ],
+        correctIndex: 0,
+        explanation: "Proton ATPase pumps create an electrochemical gradient driving active secondary symport of mineral ions."
+      },
+      {
+        stageTitle: "Honey Bee",
+        pillar: "Ecological Interaction",
+        prompt: "In floral fidelity, how does pollinator consistency benefit the plant community?",
+        options: [
+          "Maximizes conspecific pollen transfer while minimizing gamete loss",
+          "Accelerates nectar depletion to starve competitor insects",
+          "Induces rapid somatic polyploidy in floral petals",
+          "Prevents root mycorrhizae from absorbing nitrogen"
+        ],
+        correctIndex: 0,
+        explanation: "Flower constancy prevents heterospecific pollen clogging, ensuring high fertilization efficiency."
+      },
+      {
+        stageTitle: "Canopy Forest",
+        pillar: "Light Attenuation",
+        prompt: "How do understory shade-tolerant plants adapt physiologically to low photosynthetic photon flux?",
+        options: [
+          "Lower light compensation point with high chlorophyll b to a ratio",
+          "Complete suppression of rubisco oxygenase activity",
+          "Production of thick, multi-layered cuticular epidermis",
+          "Direct conversion of thermal infrared into sucrose"
+        ],
+        correctIndex: 0,
+        explanation: "Understory plants invest in broader antenna complexes with higher chlorophyll b to harvest diffuse blue and red wavelengths."
+      }
+    ];
+
+    // Three games, three question banks:
+    //   explorer     - Class 1-10: content/questions/explorer/class-1..10 (+ Class 1-10 items of the Scientist packs)
+    //   scientist    - Class 11-12: content/questions/scientist/form-0..3 (Class 11-12 items) + simulation stages
+    //   professional - NEET & MBBS: content/questions/professional/neet-* (tools/build_neet_packs.py)
+    //                  + Class 11-12 items of the Scientist packs + data/neet_academic_bank.json + data/chapters/*
+    const explorerFiles = Array.from({ length: 10 }, (_, i) => `content/questions/explorer/class-${i + 1}.json`);
+    const scientistFiles = Array.from({ length: 4 }, (_, i) => `content/questions/scientist/form-${i}.json`);
+
+    let allQuestions = [];
+    let currentBatch = 0;
+    let currentGame = 'explorer';
+    const gameCache = {};
+    const batchSize = 3; // Shows 3 questions per batch
+
+    const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    async function getJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(url + ' HTTP ' + res.status);
+      return res.json();
+    }
+
+    // School bank items (explorer/scientist packs): {cls, subject, topic, q, opts, ans, why}
+    const fromSchool = (q) => ({
+      stageTitle: 'Class ' + q.cls + ' ' + (q.subject || ''),
+      pillar: q.topic || '',
+      prompt: q.q,
+      options: q.opts || [],
+      correctIndex: q.ans,
+      explanation: q.why || ''
+    });
+    // NEET items: {grade, subject, branch, chapter | chapter_key, question, options, answer, explanation}
+    const fromNeet = (q) => ({
+      stageTitle: 'NEET · Class ' + q.grade + ' ' + (q.subject || '') + (q.branch ? ' (' + q.branch + ')' : ''),
+      pillar: q.chapter || q.chapter_title || q.chapter_key || '',
+      prompt: q.question,
+      options: q.options || [],
+      correctIndex: q.answer,
+      explanation: q.explanation || ''
+    });
+    const loadAll = (files) => Promise.all(files.map(f => getJSON(f).catch(() => []))).then(p => p.flat());
+    const dedupe = (list) => { const seen = new Set(); return list.filter(q => !seen.has(q.prompt) && seen.add(q.prompt)); };
+
+    const gameLoaders = {
+      async explorer() {
+        const [own, sci] = await Promise.all([loadAll(explorerFiles), loadAll(scientistFiles)]);
+        return [...own, ...sci.filter(q => q.cls <= 10)].map(fromSchool);
+      },
+      async scientist() {
+        const stageData = await getJSON('./questions.json').catch(() => ({ stages: [] }));
+        const stageQuestions = (stageData.stages || []).flatMap(s =>
+          (s.questions || []).map(q => ({ ...q, stageTitle: s.title }))
+        );
+        const sci = await loadAll(scientistFiles);
+        return [...stageQuestions, ...extraQuestions, ...sci.filter(q => q.cls >= 11).map(fromSchool)];
+      },
+      async professional() {
+        const [packIndex, manifest] = await Promise.all([
+          getJSON('content/questions/professional/index.json').catch(() => []),
+          getJSON('data/manifest.json').catch(() => [])
+        ]);
+        const [neet, sci, data] = await Promise.all([
+          loadAll(packIndex.map(f => 'content/questions/professional/' + f)),
+          loadAll(scientistFiles),
+          loadAll(['data/neet_academic_bank.json', ...manifest.map(m => m.file)])
+        ]);
+        const school = [...sci.filter(q => q.cls >= 11), ...neet]
+          .sort((a, b) => a.subject.localeCompare(b.subject) || a.cls - b.cls || String(a.topic).localeCompare(String(b.topic)));
+        return [...data.map(fromNeet), ...school.map(q => ({ ...fromSchool(q), stageTitle: 'NEET · Class ' + q.cls + ' ' + q.subject }))];
+      }
+    };
+
+    // ---------- players and score cards (this device only) ----------
+    // Right answer +4, wrong answer -1, kept per level (game tab) on the player's card.
+    const PLAYER_KEY = 'ecos-qa-players-v1';
+    const LEVELS = { explorer: 'Eco Explorer · Class 1–10', scientist: 'Eco Scientist · Class 11–12', professional: 'Eco Professional · NEET & MBBS' };
+    const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f'];
+    const readStore = () => { try { const v = JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); return v && Array.isArray(v.list) ? v : null; } catch (e) { return null; } };
+    let players = readStore() || { active: null, list: [] };
+    const saveStore = () => { try { localStorage.setItem(PLAYER_KEY, JSON.stringify(players)); } catch (e) { /* storage blocked: lasts this visit */ } };
+    const activePlayer = () => players.list.find(p => p.name === players.active) || null;
+    const levelOf = (p, game) => (p.levels[game] = p.levels[game] || { score: 0, right: 0, wrong: 0, answered: {} });
+    // A level's score can be reset 3 hours after the level was started (or last reset);
+    // the player then starts that level again from 0 with every question open.
+    const RESET_WAIT = 3 * 60 * 60 * 1000;
+    const resetLeft = (l) => (l.since ? Math.max(0, l.since + RESET_WAIT - Date.now()) : RESET_WAIT);
+    function resetLevel(game) {
+      const p = activePlayer();
+      if (!p) return;
+      const l = levelOf(p, game);
+      if (!(l.right + l.wrong) || resetLeft(l) > 0) return;
+      if (!confirm('Reset your ' + LEVELS[game] + ' score (' + l.score + ') and start this level again?')) return;
+      p.levels[game] = { score: 0, right: 0, wrong: 0, answered: {}, since: Date.now() };
+      saveStore();
+      renderPlayer();
+      if (allQuestions.length) renderCurrentBatch();
+    }
+    function resetButton(g, l) {
+      if (!(l.right + l.wrong)) return '';
+      const left = resetLeft(l);
+      if (!left) return `<button class="btn-reset" onclick="resetLevel('${g}')">Reset score</button>`;
+      const mins = Math.ceil(left / 60000), h = Math.floor(mins / 60), m = mins % 60;
+      return `<button class="btn-reset" disabled>Reset in ${h}h ${m}m</button>`;
+    }
+    // Short key for a question, so a question scores only once per player.
+    const qKey = (q) => { let h = 5381; const s = q.prompt + '|' + q.options.join('|'); for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(36); };
+
+    // Suggests the name of the player who is playing the game on this device.
+    function gameProfileName() {
+      try { const g = JSON.parse(localStorage.getItem('ecos-profiles-v2') || 'null'); const p = g && g.list.find(x => x.id === g.active); return p ? p.name : ''; } catch (e) { return ''; }
+    }
+
+    function registerPlayer() {
+      const input = document.getElementById('playerName');
+      const name = input.value.trim().slice(0, 24);
+      if (!name) { input.focus(); return; }
+      if (!players.list.some(p => p.name.toLowerCase() === name.toLowerCase())) players.list.push({ name, created: new Date().toISOString(), levels: {} });
+      players.active = players.list.find(p => p.name.toLowerCase() === name.toLowerCase()).name;
+      saveStore();
+      renderPlayer();
+      renderCurrentBatch();
+    }
+
+    function switchPlayer(name) {
+      players.active = name || null;
+      saveStore();
+      renderPlayer();
+      if (allQuestions.length) renderCurrentBatch();
+    }
+
+    function renderPlayer(note) {
+      const bar = document.getElementById('playerBar');
+      const p = activePlayer();
+      const others = players.list.length
+        ? `<select onchange="switchPlayer(this.value)"><option value="">${p ? 'Change player…' : 'Choose a player…'}</option>${players.list.map(x => `<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('')}</select>`
+        : '';
+      if (!p) {
+        bar.innerHTML = `
+          <span class="player-name">Register to score:</span>
+          <input id="playerName" maxlength="24" placeholder="Your name" value="${esc(gameProfileName())}" onkeydown="if (event.key === 'Enter') registerPlayer()">
+          <button class="btn-nav" onclick="registerPlayer()">Register</button>
+          ${others}
+          <p class="player-note ${note ? 'warn' : ''}">${note || 'Right answer +4 marks, wrong answer −1 mark. Your score is added to your card for each level.'}</p>`;
+        return;
+      }
+      bar.innerHTML = `
+        <span>Player: <span class="player-name">${esc(p.name)}</span></span>
+        ${others}
+        <button class="btn-nav" onclick="switchPlayer('')">New player</button>
+        <div class="score-card">
+          ${Object.entries(LEVELS).map(([g, label]) => { const l = levelOf(p, g); return `
+            <div class="score-level ${g === currentGame ? 'active' : ''}">${esc(label)}<b>${l.score}</b>✓ ${l.right} right · ✗ ${l.wrong} wrong<br>${resetButton(g, l)}</div>`; }).join('')}
+        </div>`;
+    }
+
+    function answer(i, choice) {
+      const p = activePlayer();
+      if (!p) { renderPlayer('Please register your name first, so your marks go on your card.'); document.getElementById('playerName').focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      const q = allQuestions[i];
+      const l = levelOf(p, currentGame);
+      const k = qKey(q);
+      if (k in l.answered) return;
+      l.answered[k] = choice;
+      if (!l.since) l.since = Date.now();
+      if (choice === q.correctIndex) { l.right++; l.score += 4; } else { l.wrong++; l.score -= 1; }
+      saveStore();
+      renderPlayer();
+      document.getElementById('qa-' + i).outerHTML = cardHTML(q, i);
+    }
+
+    function cardHTML(q, i) {
+      const p = activePlayer();
+      const picked = p ? levelOf(p, currentGame).answered[qKey(q)] : undefined;
+      const done = picked !== undefined;
+      return `
+        <div class="qa-card" id="qa-${i}">
+          <div class="qa-stage">${esc(q.stageTitle)} • ${esc(q.pillar)}</div>
+          <div class="qa-question">${esc(q.prompt)}</div>
+          <div class="qa-options">
+            ${q.options.map((opt, j) => {
+              const cls = done && j === q.correctIndex ? 'correct' : done && j === picked ? 'wrong' : '';
+              return `<button class="qa-option ${cls}" ${done ? 'disabled' : ''} onclick="answer(${i}, ${j})">${LETTERS[j]}. ${esc(opt)}</button>`;
+            }).join('')}
+          </div>
+          ${done ? `<div class="qa-result ${picked === q.correctIndex ? 'plus' : 'minus'}">${picked === q.correctIndex ? 'Right answer: +4 marks' : 'Wrong answer: −1 mark'}</div>
+          <div class="qa-explanation"><em>${esc(q.explanation)}</em></div>` : ''}
+        </div>`;
+    }
+
+    async function selectGame(game) {
+      currentGame = game;
+      currentBatch = 0;
+      document.querySelectorAll('.game-tab').forEach(b => b.classList.toggle('active', b.dataset.game === game));
+      renderPlayer();
+      document.getElementById('qaContainer').innerHTML = '<p style="color: #94a3b8;">Loading knowledge bank...</p>';
+      try {
+        if (!gameCache[game]) gameCache[game] = dedupe(await gameLoaders[game]());
+        if (currentGame !== game) return;
+        allQuestions = gameCache[game];
+        if (!allQuestions.length) throw new Error('No questions found. Open the game through serve.py or GitHub Pages, not as a file.');
+        renderCurrentBatch();
+      } catch (err) {
+        document.getElementById('qaContainer').innerHTML = '<p style="color:#ef4444;">Error: ' + esc(err.message) + '</p>';
+      }
+    }
+
+    function loadQABank() {
+      const game = new URLSearchParams(location.search).get('game');
+      selectGame(gameLoaders[game] ? game : 'explorer');
+    }
+
+    function renderCurrentBatch() {
+      const container = document.getElementById('qaContainer');
+      const start = currentBatch * batchSize;
+      const end = start + batchSize;
+      const currentList = allQuestions.slice(start, end);
+      const totalBatches = Math.ceil(allQuestions.length / batchSize) || 1;
+
+      container.innerHTML = currentList.map((q, k) => cardHTML(q, start + k)).join('');
+
+      document.getElementById('batchInfo').innerText = `Batch ${currentBatch + 1} of ${totalBatches} (${allQuestions.length} Total Questions)`;
+      document.getElementById('btnPrev').disabled = currentBatch === 0;
+      document.getElementById('btnNext').disabled = end >= allQuestions.length;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changeBatch(direction) {
+      currentBatch += direction;
+      renderCurrentBatch();
+    }
+
+    loadQABank();
+  </script>
+</body>
+</html>
