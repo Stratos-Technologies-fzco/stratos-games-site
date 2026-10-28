@@ -185,6 +185,19 @@
    "soon": false
   },
   {
+   "slug": "sksarfarajali-brainrush",
+   "title": "BrainRush Daily",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "Three quick brain puzzles every day, plus endless puzzle rounds and 30 levels of Gem Match. No sign-up.",
+   "category": "puzzle",
+   "url": "play/sksarfarajali-brainrush/",
+   "thumb": "games/sksarfarajali-brainrush/thumbnail.png",
+   "added": "2026-10-28",
+   "github": "sksarfarajali",
+   "kind": "family",
+   "soon": false
+  },
+  {
    "slug": "sumaiyahsultana821-sys",
    "title": "Island Match Quest",
    "maker": "Sumaiyah Sultana",
@@ -220,19 +233,6 @@
    "thumb": "assets/covers/generated/sahidmodi45.svg",
    "added": "2026-10-28",
    "github": "sahidmodi45",
-   "kind": "family",
-   "soon": true
-  },
-  {
-   "slug": "sksarfarajali-brainrush",
-   "title": "BrainRush",
-   "maker": "Sk Sarfaraj Ali",
-   "one_line": "BrainRush Daily is a casual brain-puzzle game built around a short, satisfying daily session.",
-   "category": "puzzle",
-   "url": "play/sksarfarajali-brainrush/",
-   "thumb": "assets/covers/generated/sksarfarajali-brainrush.svg",
-   "added": "2026-10-28",
-   "github": "sksarfarajali",
    "kind": "family",
    "soon": true
   },
