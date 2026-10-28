@@ -1,8 +1,8 @@
 {
-  "title": "BrainRush",
+  "title": "BrainRush Daily",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "BrainRush Daily is a casual brain-puzzle game built around a short, satisfying daily session.",
+  "one_line": "Three quick brain puzzles every day, plus endless puzzle rounds and 30 levels of Gem Match. No sign-up.",
   "category": "puzzle",
   "github": "sksarfarajali",
-  "status": "coming_soon"
+  "how_to_play": "Tap to solve the daily Pattern, Sudoku and Logic puzzles, then keep playing in the Play tab: swap gems in Gem Match, count, sort and spot the odd one out."
 }
