@@ -1,8 +1,8 @@
 {
   "title": "Dino Frontier",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "Dino Frontier is a survival adventure game built around a short, satisfying daily session.",
-  "category": "adventure",
+  "one_line": "Survive the Frontier, discover eggs and evolve your dinosaur along one of three paths.",
+  "category": "arcade",
   "github": "sksarfarajali",
-  "status": "coming_soon"
+  "how_to_play": "Move with the joystick or WASD, attack with Space, dash with Shift, use your ability with E."
 }
