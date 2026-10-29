@@ -12,6 +12,8 @@ window.DF = window.DF || {};
   PHOTOS.forEach(function (n) { PATHS[n] = 'assets/images/' + n + '.jpg'; });
   PORTRAITS.forEach(function (n) { PATHS['pt-' + n] = 'assets/portraits/' + n + '.jpg'; }); // painted menu portraits
   DF.Sprites.names.forEach(function (n) { PATHS[n] = DF.Sprites.dataUrl(n); }); // in-game cut-out sprites, drawn in code
+  /* the player dinosaur is the owner's own art (cut out, with a recolour per evolution path) */
+  PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'prop-egg-nest', 'icon-dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
 
@@ -39,7 +41,7 @@ window.DF = window.DF || {};
     img: function (name) { return imgs[name] || placeholder(); },
     sprite: function (name, w) {
       var key = name + '|' + w; if (rasters[key]) return rasters[key];
-      var im = A.img(name), W = Math.round(w * 2), ratio = SQUARE.test(name) ? 1 : 0.75, H = Math.round(W * ratio);
+      var im = A.img(name), W = Math.round(w * 2), ratio = (im.naturalWidth && im.naturalHeight) ? im.naturalHeight / im.naturalWidth : (SQUARE.test(name) ? 1 : 0.75), H = Math.round(W * ratio);
       var c = document.createElement('canvas'); c.width = W; c.height = H;
       try { c.getContext('2d').drawImage(im, 0, 0, W, H); } catch (e) {}
       return (rasters[key] = c);
