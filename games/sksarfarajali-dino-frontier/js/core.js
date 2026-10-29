@@ -53,11 +53,11 @@ window.DF = window.DF || {};
       stam: { max: 5, base: 50, regenPerLevel: 0.15 }
     },
     enemies: {
-      raider: { hp: 32, speed: 92, dmg: 10, windup: 520, recover: 750, cooldown: 800, aggro: 250, range: 58, lunge: 300, lungeTime: 230, xp: 20, size: 92, sprite: 'enemy-raider', drop: 0.35 },
-      spitter: { hp: 24, speed: 58, dmg: 8, windup: 680, recover: 650, cooldown: 1500, aggro: 330, keep: 190, projSpeed: 250, xp: 28, size: 92, sprite: 'enemy-spitter', drop: 0.4 },
-      skimmer: { hp: 18, speed: 150, dmg: 7, windup: 380, recover: 520, cooldown: 700, aggro: 290, range: 50, lunge: 340, lungeTime: 200, xp: 24, size: 84, sprite: 'enemy-skimmer', drop: 0.3 }
+      raider: { hp: 32, speed: 92, dmg: 10, windup: 520, recover: 750, cooldown: 800, aggro: 250, range: 58, lunge: 300, lungeTime: 230, xp: 20, size: 120, sprite: 'enemy-raider', drop: 0.35 },
+      spitter: { hp: 24, speed: 58, dmg: 8, windup: 680, recover: 650, cooldown: 1500, aggro: 330, keep: 190, projSpeed: 250, xp: 28, size: 104, sprite: 'enemy-spitter', drop: 0.4 },
+      skimmer: { hp: 18, speed: 150, dmg: 7, windup: 380, recover: 520, cooldown: 700, aggro: 290, range: 50, lunge: 340, lungeTime: 200, xp: 24, size: 116, sprite: 'enemy-skimmer', drop: 0.3 }
     },
-    boss: { hp: 340, speed: 70, size: 190, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 24, slamWindup: 850, slamRadius: 140, slamDmg: 20, recover: 1100, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
+    boss: { hp: 340, speed: 70, size: 240, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 24, slamWindup: 850, slamRadius: 140, slamDmg: 20, recover: 1100, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
     objectives: {
       egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2600, berriesNeeded: 3, bushes: 5, raiders: 3, spitters: 0, skimmers: 0, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 3000, berriesNeeded: 6, bushes: 8, raiders: 3, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },

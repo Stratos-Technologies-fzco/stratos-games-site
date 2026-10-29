@@ -646,33 +646,33 @@ window.DF = window.DF || {};
     draw(name, w, x, y, o);
   }
   function dEnemy(e) {
-    var d = e.def, w = d.size, bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : Math.sin(S.t / 110 + e.id) * 1.8, a = 1;
+    var d = e.def, w = d.size, bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : Math.sin(S.t / 110 + e.id) * 1.8, a = 1, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w;
     if (e.state === 'dead') { a = Math.max(0, 1 - e.dead / 700); }
     shadow(e.x, e.y + 2, w * 0.8, 0.35 * a);
     var o = { flip: e.face > 0 ? false : true, alpha: a };
     if (e.state === 'windup' && e.type !== 'spitter') { var t = 1 - e.t / d.windup; o.flip = e.face < 0; e.xo = -e.face * 10 * t; }
     var lean = e.state === 'attack' ? 6 * e.face : 0;
-    drawFlash(d.sprite, w, e.x + lean, e.y + bob, { flip: e.face < 0, alpha: a }, e);
+    drawFlash(d.sprite, w, e.x + lean, e.y + bob, { flip: e.face < 0, alpha: a, feet: 0.97 }, e);
     if (e.state !== 'dead') {
-      if (e.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 18px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', e.x, e.y - w * 0.78); }
-      if (e.state === 'stun') { cx.fillStyle = '#9FE7DF'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('✦ ✦', e.x, e.y - w * 0.78); }
-      if (e.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '800 10px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('OPEN', e.x, e.y - w * 0.78); }
-      if (e.hp < e.maxHp) { var bw = 44, bx = e.x - bw / 2, by = e.y - w * 0.68; cx.fillStyle = 'rgba(14,23,18,.8)'; cx.fillRect(bx - 1, by - 1, bw + 2, 6); cx.fillStyle = '#E5534B'; cx.fillRect(bx, by, bw * Math.max(0, e.hp / e.maxHp), 4); }
+      if (e.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 18px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', e.x, e.y - hh - 6); }
+      if (e.state === 'stun') { cx.fillStyle = '#9FE7DF'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('✦ ✦', e.x, e.y - hh - 6); }
+      if (e.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '800 10px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('OPEN', e.x, e.y - hh - 6); }
+      if (e.hp < e.maxHp) { var bw = 44, bx = e.x - bw / 2, by = e.y - hh - 2; cx.fillStyle = 'rgba(14,23,18,.8)'; cx.fillRect(bx - 1, by - 1, bw + 2, 6); cx.fillStyle = '#E5534B'; cx.fillRect(bx, by, bw * Math.max(0, e.hp / e.maxHp), 4); }
     }
   }
   function dBoss(b) {
-    var def = B.boss, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
+    var def = B.boss, bsc = sprite(def.sprite, def.size), bhh = bsc.height / bsc.width * def.size, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
     shadow(b.x, b.y + 4, def.size * 0.9, 0.4 * a);
     // telegraph lane
     if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.14 + 0.1 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); }
     if (b.state === 'windup' && b.atk === 'slam') { cx.strokeStyle = 'rgba(229,83,75,.7)'; cx.lineWidth = 2; cx.setLineDash([6, 5]); cx.beginPath(); cx.ellipse(b.x, b.y, def.slamRadius, 40, 0, 0, 7); cx.stroke(); cx.setLineDash([]); }
-    var o = { flip: b.face > 0, alpha: a }, shakeX = (b.state === 'windup' ? Math.sin(S.t / 30) * 2 : 0);
+    var o = { flip: b.face > 0, alpha: a, feet: 0.97 }, shakeX = (b.state === 'windup' ? Math.sin(S.t / 30) * 2 : 0);
     o.flip = b.face < 0;
     if (b.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.6; } else if (b.state === 'windup') { o.tint = '#FFB199'; o.tintA = 0.3 + 0.25 * Math.sin(S.t / 50); } else if (b.phase === 2) { o.tint = '#E5534B'; o.tintA = 0.14; }
     var lift = b.state === 'windup' && b.atk === 'slam' ? -14 * (1 - b.t / (def.slamWindup * b.windMul)) : 0;
     draw(def.sprite, def.size, b.x + shakeX, b.y + lift, o);
-    if (b.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 26px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', b.x, b.y - def.size * 0.7); }
-    if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - def.size * 0.7); }
+    if (b.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 26px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', b.x, b.y - bhh - 8); }
+    if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
   function dPlayer(P) {
     var st = S.stats, w = 128, bob = Math.sin(P.anim / 90) * 2, o = { flip: P.face < 0, feet: 0.96 }, y = P.y + bob;

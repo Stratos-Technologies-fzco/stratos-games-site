@@ -11,9 +11,9 @@ window.DF = window.DF || {};
   ART.forEach(function (n) { PATHS[n] = 'assets/art/' + n + '.svg'; });
   PHOTOS.forEach(function (n) { PATHS[n] = 'assets/images/' + n + '.jpg'; });
   PORTRAITS.forEach(function (n) { PATHS['pt-' + n] = 'assets/portraits/' + n + '.jpg'; }); // painted menu portraits
-  DF.Sprites.names.forEach(function (n) { PATHS[n] = DF.Sprites.dataUrl(n); }); // in-game cut-out sprites, drawn in code
-  /* the player dinosaur is the owner's own art (cut out, with a recolour per evolution path) */
+  /* in-game dinosaurs are the owner's own art, cut out: the player (one recolour per evolution path), enemies and the boss */
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
+  ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'prop-egg-nest', 'icon-dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
 
