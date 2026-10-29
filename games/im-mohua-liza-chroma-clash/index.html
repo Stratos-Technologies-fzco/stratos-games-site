@@ -130,6 +130,51 @@ input.txt:focus{border-color:var(--wave)}
   .seat{font-size:12px;padding:3px 9px 3px 3px;gap:5px}.seat .av{width:24px;height:24px;font-size:11px}
   #meBar{font-size:13px}
 }
+
+/* ---------- animated manual ---------- */
+#manual{z-index:50}
+#manual .panel{position:relative;padding:20px 20px 18px;width:min(100%,400px)}
+#manual .panel.swap{animation:mswap .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes mswap{from{transform:scale(.96)}}
+#mClose{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:12px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:15px;cursor:pointer;z-index:2}
+#mStep{font:800 12px Outfit;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+#mTitle{font-family:Bungee;font-size:28px;margin:6px 0 0;text-shadow:0 3px 0 rgba(0,0,0,.35),0 0 24px currentColor}
+#mStage{position:relative;width:300px;height:220px;margin:12px auto 10px;border-radius:22px;overflow:hidden;touch-action:pan-y;
+  background:radial-gradient(circle at 50% 35%,#521c9a,#1c0840 75%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.1),inset 0 -30px 60px rgba(0,0,0,.35)}
+#mStage::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 10px,transparent 10px 26px);pointer-events:none}
+#mStage.sheet{height:auto;overflow:visible;background:none;box-shadow:none}
+#mStage.sheet::before{display:none}
+#mText{font-weight:600;color:#eee;line-height:1.45;min-height:66px;font-size:15px}
+#mText b{color:#fff}
+#mStage .o{position:absolute;left:50%;top:50%;will-change:transform,opacity}
+.mc{width:60px;height:90px;margin:-45px 0 0 -30px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));user-select:none;-webkit-user-drag:none;pointer-events:none}
+.mav{width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;display:grid;place-items:center;font:400 11px Bungee;color:#fff;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.mpill{margin:-14px 0 0 -60px;width:120px;text-align:center;font:400 14px Bungee;padding:5px 8px;border-radius:999px;box-shadow:0 4px 0 rgba(0,0,0,.3),0 0 18px rgba(255,255,255,.25);white-space:nowrap}
+.mlabel{margin:-9px 0 0 -50px;width:100px;text-align:center;font:800 11px Outfit;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mtrophy{font-size:64px;width:80px;margin:-40px 0 0 -40px;text-align:center;filter:drop-shadow(0 0 20px #ffae1a)}
+.mice{font-size:44px;width:60px;margin:-30px 0 0 -30px;text-align:center;color:#bdf3ff;filter:drop-shadow(0 0 12px #1fd2ff)}
+.mturn{font-size:18px;width:20px;margin:-10px 0 0 -10px;text-align:center;color:#fff;filter:drop-shadow(0 0 8px #fff)}
+.mfinger{font-size:34px;width:40px;margin:-6px 0 0 -14px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.mring{width:170px;height:170px;margin:-85px 0 0 -85px;border-radius:50%;border:4px dashed rgba(255,255,255,.45)}
+.mring i{position:absolute;font-style:normal;font-size:22px;color:#8cf03a;filter:drop-shadow(0 0 8px #8cf03a)}
+.mring .a1,.mring .b1{right:6px;top:14px}.mring .a1{transform:rotate(45deg)}.mring .b1{transform:rotate(-135deg)}
+.mring .a2,.mring .b2{left:6px;bottom:14px}.mring .a2{transform:rotate(-135deg)}.mring .b2{transform:rotate(45deg)}
+.mblob{width:66px;height:30px;margin:-15px 0 0 -33px;border-radius:999px;display:grid;place-items:center;font:400 12px Bungee;color:#fff;border:3px solid #fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.mdot{width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;border:3px solid #fff}
+.mglow{width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;background:radial-gradient(circle,rgba(31,210,255,.55),transparent 65%)}
+.mdeckglow{width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.5),transparent 65%)}
+.mlast{margin:-17px 0 0 -62px;width:124px;text-align:center;font:400 14px Bungee;color:#fff;padding:8px 6px;border-radius:999px;border:3px solid #fff;background:radial-gradient(circle at 30% 30%,#ff8cc0,#ff2e88 50%,#b0005a);box-shadow:0 0 22px #ff2e88,0 5px 0 #7a003e}
+.msheet{display:grid;gap:8px;text-align:left}
+.mrow{display:flex;align-items:center;gap:12px;padding:6px 10px 6px 6px;border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);animation:tin .4s cubic-bezier(.2,1.5,.4,1) both}
+.mrow img{width:34px;height:51px;flex:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}
+.mrow b{display:block;font:400 15px Bungee}
+.mrow span{font-size:13px;color:var(--muted);font-weight:600}
+.m-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;flex-wrap:wrap}
+#mDots{order:-1;width:100%;display:flex;justify-content:center;gap:6px;margin-bottom:8px}
+#mDots button{width:8px;height:8px;border-radius:9px;border:0;background:rgba(255,255,255,.25);padding:0;cursor:pointer;transition:.25s}
+#mDots button.on{background:#fff;width:20px}
+#mBack{min-width:72px}#mNext{min-width:110px}
+@media (max-width:360px){#mStage{transform:scale(.9);margin:0 auto}}
 </style>
 <script src="vendor/mqtt.min.js"></script>
 <script type="importmap">
@@ -143,7 +188,7 @@ input.txt:focus{border-color:var(--wave)}
 
 <div id="hud" class="hidden">
   <div id="topbar">
-    <button id="leaveBtn" class="iconbtn" title="Leave game">✕</button>
+    <div class="tr"><button id="leaveBtn" class="iconbtn" title="Leave game">✕</button><button id="helpBtn" class="iconbtn" title="How to play">?</button></div>
     <div id="statusPill"><span id="colorDot"></span><span id="colorName">POP</span><span id="dirIcon" title="Turn direction">↻</span><span id="pendingBadge" class="hidden">+2</span></div>
     <div class="tr"><button id="musicBtn" class="iconbtn" title="Music">♫</button><button id="soundBtn" class="iconbtn" title="Sound effects">🔊</button></div>
   </div>
@@ -164,7 +209,7 @@ input.txt:focus{border-color:var(--wave)}
       <button class="btn big c-pop" data-go="scr-bots">🤖 Play vs Bots</button>
       <button class="btn big c-wave" data-go="scr-local">🛋️ Pass &amp; Play</button>
       <button class="btn big c-zest" data-go="scr-online">🌍 Play Online</button>
-      <button class="btn ghost" data-go="scr-howto">How to play</button>
+      <button class="btn ghost" id="howtoBtn">📖 How to play</button>
     </div>
   </div></section>
 
@@ -206,22 +251,16 @@ input.txt:focus{border-color:var(--wave)}
     <div class="row"><button class="btn ghost" id="leaveLobby">Leave</button><button class="btn c-pop" id="startOnline">Start game</button></div>
   </div></section>
 
-  <section class="screen" id="scr-howto"><div class="panel howto">
-    <h2>How to play</h2>
-    <ul>
-      <li>Everyone gets <b>7 cards</b>. On your turn, play one that matches the top card's <b>color</b>, <b>number</b> or <b>symbol</b>.</li>
-      <li><span class="k" style="background:#1fd2ff">FREEZE</span> next player loses their turn.</li>
-      <li><span class="k" style="background:#8cf03a;color:#123">FLIP</span> reverses direction (with 2 players it works like Freeze).</li>
-      <li><span class="k" style="background:#ff2e88">+2</span> next player draws 2 and is skipped.</li>
-      <li><span class="k" style="background:linear-gradient(90deg,#ff2e88,#1fd2ff,#8cf03a,#ffae1a)">PRISM</span> plays on anything, you pick the new color. <b>Prism +4</b> also makes the next player draw 4.</li>
-      <li><b>Stacking</b> (optional): answer a +2 with a +2, or any draw card with a Prism +4. The total keeps piling up for the next player.</li>
-      <li>Can't play? <b>Tap the deck</b>. If the new card fits, play it or keep it.</li>
-      <li>Down to 1 card? Hit <b>LAST CARD!</b> within 3 seconds or draw 2 as a penalty.</li>
-      <li>First to empty their hand <b>wins</b>.</li>
-    </ul>
-    <div class="row"><button class="btn c-pop" data-go="scr-menu">Got it</button></div>
-  </div></section>
 </div>
+
+<div id="manual" class="overlay hidden"><div class="panel">
+  <button id="mClose" title="Close">✕</button>
+  <div id="mStep"></div>
+  <h2 id="mTitle"></h2>
+  <div id="mStage"></div>
+  <p id="mText"></p>
+  <div class="m-nav"><button class="btn ghost small" id="mBack">‹ Back</button><div id="mDots"></div><button class="btn c-wave" id="mNext">Next ›</button></div>
+</div></div>
 
 <div id="colorPick" class="overlay hidden"><div class="panel">
   <h2>Pick a color</h2>
@@ -984,7 +1023,7 @@ const R = {
     this.camera.position.set(cb.x + this.mouse.x * .35 + Math.sin(t * .4) * .12 + (Math.random() - .5) * this.shakeAmt, cb.y + this.mouse.y * .18 + (Math.random() - .5) * this.shakeAmt, cb.z);
     this.camera.lookAt(0, 0, .7);
     UI.placeLabels();
-    this.composer.render();
+    if (!this.paused) this.composer.render(); // paused while the manual covers the table
   },
 };
 
@@ -1154,6 +1193,201 @@ const UI = {
   },
 };
 
+/* ================= animated how-to-play manual ================= */
+// Card ids used below: Wave 7 = 38, Wave 3 = 30, Pop 7 = 13, Blaze 2 = 78, Pop 2 = 3, Blaze 5 = 84, Zest 5 = 59,
+// Freeze (Wave) = 44, Flip (Zest) = 71, +2 (Pop) = 23, +2 (Blaze) = 98, Prism = 100, Prism +4 = 104.
+const Manual = {
+  i: 0, imgs: {}, anims: [], onDone: null,
+  img(id) { if (!this.imgs[id]) this.imgs[id] = (id === 'back' ? drawBack() : drawFace(CARDS[id])).toDataURL(); return this.imgs[id]; },
+  T(x, y, r = 0, s = 1) { return `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})`; },
+  put(kind, o = {}) {
+    let e;
+    if (kind === 'card') { e = document.createElement('img'); e.className = 'o mc'; e.src = this.img(o.id); e.draggable = false; e.alt = ''; }
+    else { e = document.createElement('div'); e.className = 'o ' + kind; e.innerHTML = o.html || ''; }
+    if (o.style) Object.assign(e.style, o.style);
+    e.style.transform = this.T(o.x || 0, o.y || 0, o.r || 0, o.s ?? 1);
+    if (o.op != null) e.style.opacity = o.op;
+    this.stage.append(e); return e;
+  },
+  // frames: [offset, x, y, rotate, scale, opacity, easing]
+  loop(e, frames, dur) {
+    const kf = frames.map(([o, x, y, r = 0, s = 1, op = 1, ez]) => { const f = { offset: o, transform: this.T(x, y, r, s), opacity: op }; if (ez) f.easing = ez; return f; });
+    this.anims.push(e.animate(kf, { duration: dur, iterations: Infinity, easing: 'ease-in-out' }));
+  },
+  av(name, color, x, y) { return this.put('mav', { html: name, x, y, style: { background: color } }); },
+  pill(html, x, y, color) { return this.put('mpill', { html, x, y, s: 0, op: 0, style: { background: color || '#fff', color: color ? '#fff' : '#1a0833' } }); },
+  pop(e, x, y, a, b, d, s = 1) { this.loop(e, [[0, x, y, 0, 0, 0], [a, x, y, 0, 0, 0], [a + .05, x, y, 0, s * 1.25, 1, 'ease-out'], [a + .09, x, y, 0, s, 1], [b, x, y, 0, s, 1], [Math.min(b + .05, 1), x, y, 0, 0, 0], [1, x, y, 0, 0, 0]], d); },
+  fly(e, from, to, a, b, d, keep = .92) { // from/to: [x,y,r,s]
+    this.loop(e, [[0, ...from, 0], [a, ...from, 1], [b, ...to, 1, 'ease-out'], [keep, ...to, 1], [Math.min(keep + .04, 1), ...to, 0], [1, ...from, 0]], d);
+  },
+  slides: [
+    { t: 'Goal', c: '#ffae1a', h: 'Empty your hand first!', p: 'Everyone starts with 7 cards. Play them one by one. The first player with no cards left wins the round.', build(M) {
+      const D = 4400; M.put('card', { id: 59, x: 0, y: -38, s: .85, r: -6 });
+      const hand = [[30, -72, 58, -14], [13, -24, 52, -5], [71, 24, 52, 5], [100, 72, 58, 14]];
+      hand.forEach(([id, x, y, r], i) => {
+        const e = M.put('card', { id, x, y, r, s: .8 }); const t = .08 + i * .15, rr = (hash(id) - .5) * 30;
+        M.loop(e, [[0, x, y, r, .8, 1], [t, x, y, r, .8, 1], [t + .1, (hash(id + 1) - .5) * 14, -38, rr, .85, 1, 'ease-out'], [.86, (hash(id + 1) - .5) * 14, -38, rr, .85, 1], [.92, (hash(id + 1) - .5) * 14, -38, rr, .85, 0], [.97, x, y, r, .8, 0], [1, x, y, r, .8, 1]], D);
+      });
+      M.pop(M.put('mtrophy', { html: '🏆', s: 0, op: 0 }), 0, -30, .7, .9, D);
+      M.pop(M.pill('YOU WIN!', 0, 55, '#ff2e88'), 0, 55, .74, .9, D);
+    } },
+    { t: 'Matching', c: '#1fd2ff', h: 'Match the top card', p: 'Play a card with the same <b>color</b> or the same <b>number</b> (or the same symbol) as the card on top of the pile.', build(M) {
+      const D = 5600; M.put('card', { id: 38, x: 0, y: -50, s: .82 });
+      M.put('mlabel', { html: 'top card', x: 0, y: -100 });
+      const a = M.put('card', { id: 30, x: -88, y: 52, s: .72 }), b = M.put('card', { id: 13, x: 0, y: 52, s: .72 }), c = M.put('card', { id: 78, x: 88, y: 52, s: .72 });
+      M.loop(a, [[0, -88, 52, 0, .72], [.08, -88, 52, 0, .72], [.14, -88, 40, 0, .78], [.72, -88, 40, 0, .78], [.84, -6, -46, 8, .82, 1, 'ease-out'], [.94, -6, -46, 8, .82, 1], [.97, -88, 52, 0, .72, 0], [1, -88, 52, 0, .72, 1]], D);
+      M.loop(b, [[0, 0, 52, 0, .72], [.3, 0, 52, 0, .72], [.36, 0, 40, 0, .78], [.94, 0, 40, 0, .78], [1, 0, 52, 0, .72]], D);
+      M.loop(c, [[0, 88, 52, 0, .72], [.52, 88, 52, 0, .72], [.55, 80, 52, -6, .72], [.58, 96, 52, 6, .72], [.61, 82, 52, -4, .72], [.64, 94, 52, 4, .72], [.67, 88, 52, 0, .72], [1, 88, 52, 0, .72]], D);
+      M.pop(M.pill('✓ COLOR', -88, -4, '#19b35a'), -88, -4, .14, .94, D, .85);
+      M.pop(M.pill('✓ NUMBER', 0, -4, '#19b35a'), 0, -4, .36, .94, D, .85);
+      M.pop(M.pill('✗ NOPE', 88, -4, '#e0294f'), 88, -4, .56, .94, D, .85);
+    } },
+    { t: 'Freeze', c: '#1fd2ff', card: 44, h: 'FREEZE', p: 'The <b>next player loses their turn</b>. Brrr, they are frozen solid!', build(M) {
+      const D = 4800; const f = M.put('card', { id: 44, x: 0, y: -42, s: .8 });
+      M.loop(f, [[0, 0, -190, -20, 1.2, 1], [.1, 0, -42, 4, .95, 1, 'cubic-bezier(.3,1.6,.5,1)'], [.14, 0, -42, 0, .8, 1], [.92, 0, -42, 0, .8, 1], [.97, 0, -42, 0, .8, 0], [1, 0, -190, -20, 1.2, 0]], D);
+      M.av('YOU', '#ff2e88', -95, 58); const bo = M.av('BO', '#14b8f0', 0, 58); M.av('KIM', '#5fc416', 95, 58);
+      M.loop(bo, [[0, 0, 58, 0, 1, 1], [.28, 0, 58, 0, 1, 1], [.34, 0, 58, 0, .9, .45], [.9, 0, 58, 0, .9, .45], [1, 0, 58, 0, 1, 1]], D);
+      M.pop(M.put('mice', { html: '❄', s: 0, op: 0 }), 0, 56, .3, .9, D);
+      const arrow = M.put('mturn', { html: '▼', x: -95, y: 22 });
+      M.loop(arrow, [[0, -95, 22], [.4, -95, 22], [.5, 0, 6, 0, .7, .5], [.6, 95, 22, 0, 1, 1, 'ease-out'], [.92, 95, 22], [1, -95, 22, 0, 1, 0]], D);
+      M.pop(M.pill('SKIPPED!', 0, 96, '#14b8f0'), 0, 96, .5, .9, D, .8);
+    } },
+    { t: 'Flip', c: '#8cf03a', card: 71, h: 'FLIP', p: '<b>Turn order reverses.</b> Play goes the other way round the table. With only 2 players it works like Freeze.', build(M) {
+      const D = 5200; const ring = M.put('mring', { html: '<i class="a1">➤</i><i class="a2">➤</i><i class="b1">➤</i><i class="b2">➤</i>' });
+      M.anims.push(ring.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(160deg)', offset: .45 }, { transform: 'rotate(160deg)', offset: .55 }, { transform: 'rotate(0deg)' }], { duration: D, iterations: Infinity, easing: 'ease-in-out' }));
+      ring.querySelectorAll('.a1,.a2').forEach(a => M.anims.push(a.animate([{ opacity: 1 }, { opacity: 1, offset: .48 }, { opacity: 0, offset: .52 }, { opacity: 0 }], { duration: D, iterations: Infinity })));
+      ring.querySelectorAll('.b1,.b2').forEach(a => M.anims.push(a.animate([{ opacity: 0 }, { opacity: 0, offset: .48 }, { opacity: 1, offset: .52 }, { opacity: 1 }], { duration: D, iterations: Infinity })));
+      const f = M.put('card', { id: 71, s: .62 });
+      M.loop(f, [[0, 0, 0, 0, .62], [.45, 0, 0, 0, .62], [.5, 0, 0, 180, .75], [.55, 0, 0, 360, .62], [1, 0, 0, 360, .62]], D);
+      M.av('A', '#ff2e88', 0, -82); M.av('B', '#14b8f0', 110, 0); M.av('C', '#5fc416', 0, 82); M.av('D', '#ff9a0a', -110, 0);
+      M.pop(M.pill('REVERSED!', 0, -40, '#5fc416'), 0, -40, .5, .62, D, .8);
+    } },
+    { t: '+2', c: '#ff2e88', card: 23, h: '+2 (DUMP)', p: 'The <b>next player draws 2 cards</b> and misses their turn.', build(M) {
+      const D = 4800; for (let k = 0; k < 3; k++) M.put('card', { id: 'back', x: -100 - k * 2, y: -40 - k * 3, s: .66 });
+      const c = M.put('card', { id: 23, x: 10, y: -40, s: .8 });
+      M.loop(c, [[0, 10, -200, -25, 1.2, 1], [.1, 10, -40, 3, .95, 1, 'cubic-bezier(.3,1.6,.5,1)'], [.14, 10, -40, 0, .8], [.92, 10, -40, 0, .8], [.97, 10, -40, 0, .8, 0], [1, 10, -200, -25, 1.2, 0]], D);
+      const bo = M.av('BO', '#14b8f0', 95, 60);
+      for (let k = 0; k < 2; k++) M.fly(M.put('card', { id: 'back', x: -100, y: -40, s: .66, op: 0 }), [-100, -40, 0, .66], [95, 50, 20, .3], .3 + k * .1, .42 + k * .1, D, .7);
+      M.loop(bo, [[0, 95, 60], [.48, 95, 60], [.51, 88, 60, -8], [.54, 102, 60, 8], [.57, 90, 60, -5], [.6, 95, 60], [1, 95, 60]], D);
+      M.pop(M.pill('+2 😵', 95, 18, '#ff2e88'), 95, 18, .52, .9, D, .9);
+    } },
+    { t: 'Prism', c: '#ffae1a', card: 100, h: 'PRISM (wild)', p: 'Play it on <b>any</b> card, then <b>pick the new color</b>. Everyone must follow your color.', build(M) {
+      const D = 5400; const glow = M.put('mglow', { op: 0 });
+      M.loop(glow, [[0, 0, 0, 0, 1, 0], [.66, 0, 0, 0, 1, 0], [.74, 0, 0, 0, 1, .9], [.92, 0, 0, 0, 1, .9], [1, 0, 0, 0, 1, 0]], D);
+      const p = M.put('card', { id: 100, x: 0, y: -8, s: .85 });
+      M.loop(p, [[0, 0, -8, -200, 0, 0], [.14, 0, -8, 10, .95, 1, 'ease-out'], [.18, 0, -8, 0, .85], [.94, 0, -8, 0, .85], [1, 0, -8, 0, .85, 0]], D);
+      const spots = [[-100, -55], [100, -55], [100, 60], [-100, 60]];
+      COLORS.forEach((col, k) => {
+        const b = M.put('mblob', { html: col.name, x: spots[k][0], y: spots[k][1], s: 0, op: 0, style: { background: col.hex, boxShadow: `0 0 18px ${col.hex}` } });
+        const [x, y] = spots[k], a = .22 + k * .06, chosen = k === 1;
+        M.loop(b, [[0, x, y, 0, 0, 0], [a, x, y, 0, 0, 0], [a + .05, x, y, 0, 1.15, 1], [a + .08, x, y, 0, 1, 1], [.64, x, y, 0, 1, 1], [.7, x, y, 0, chosen ? 1.35 : .8, chosen ? 1 : .3], [.92, x, y, 0, chosen ? 1.35 : .8, chosen ? 1 : .3], [.97, x, y, 0, 0, 0], [1, x, y, 0, 0, 0]], D);
+      });
+      const hand = M.put('mfinger', { html: '👆', x: 30, y: 100, op: 0 });
+      M.loop(hand, [[0, 30, 100, 0, 1, 0], [.48, 30, 100, 0, 1, 0], [.52, 40, 70, 0, 1, 1], [.62, 104, -30, 0, 1, 1], [.65, 104, -30, 0, .8, 1], [.68, 104, -30, 0, 1, 1], [.8, 104, -30, 0, 1, 0], [1, 30, 100, 0, 1, 0]], D);
+    } },
+    { t: 'Prism +4', c: '#ff2e88', card: 104, h: 'PRISM +4', p: 'Pick the new color <b>and</b> the next player <b>draws 4 cards</b> and misses their turn. Ouch!', build(M) {
+      const D = 5600; for (let k = 0; k < 3; k++) M.put('card', { id: 'back', x: -105 - k * 2, y: -45 - k * 3, s: .62 });
+      const c = M.put('card', { id: 104, x: 0, y: -42, s: .8 });
+      M.loop(c, [[0, 0, -42, -200, 0, 0], [.12, 0, -42, 10, .95, 1, 'ease-out'], [.16, 0, -42, 0, .8], [.93, 0, -42, 0, .8], [1, 0, -42, 0, .8, 0]], D);
+      COLORS.forEach((col, k) => {
+        const x = -54 + k * 36, y = 32, d = M.put('mdot', { x, y, s: 0, op: 0, style: { background: col.hex, boxShadow: `0 0 14px ${col.hex}` } }), on = k === 3;
+        M.loop(d, [[0, x, y, 0, 0, 0], [.18 + k * .03, x, y, 0, 0, 0], [.22 + k * .03, x, y, 0, 1, 1], [.34, x, y, 0, 1, 1], [.38, x, y, 0, on ? 1.5 : .7, on ? 1 : .3], [.9, x, y, 0, on ? 1.5 : .7, on ? 1 : .3], [.95, x, y, 0, 0, 0], [1, x, y, 0, 0, 0]], D);
+      });
+      const bo = M.av('BO', '#14b8f0', 100, 70);
+      for (let k = 0; k < 4; k++) M.fly(M.put('card', { id: 'back', x: -105, y: -45, s: .62, op: 0 }), [-105, -45, 0, .62], [100, 62, 25, .28], .44 + k * .06, .54 + k * .06, D, .8);
+      M.loop(bo, [[0, 100, 70], [.6, 100, 70], [.63, 92, 70, -8], [.66, 108, 70, 8], [.69, 95, 70, -5], [.72, 100, 70], [1, 100, 70]], D);
+      M.pop(M.pill('+4 😱', 100, 28, '#ff2e88'), 100, 28, .62, .9, D, .9);
+    } },
+    { t: 'Stacking', c: '#9b5cff', h: 'Stack the pain!', p: 'If <b>stacking</b> is on: answer a +2 with a +2, or any draw card with a Prism +4. The total keeps growing and the <b>next</b> unlucky player takes it all!', build(M) {
+      const D = 6000;
+      [[23, -6, -8, .06], [98, 8, 12, .3], [104, -2, -4, .54]].forEach(([id, x, r, t]) => {
+        const e = M.put('card', { id, x, y: -40, r, s: .8, op: 0 });
+        M.loop(e, [[0, x, -220, r - 25, 1.2, 0], [t, x, -220, r - 25, 1.2, 1], [t + .08, x, -40, r, .95, 1, 'cubic-bezier(.3,1.6,.5,1)'], [t + .11, x, -40, r, .8, 1], [.92, x, -40, r, .8, 1], [.97, x, -40, r, .8, 0], [1, x, -220, r - 25, 1.2, 0]], D);
+      });
+      M.pop(M.pill('+2', 0, 62, '#ff2e88'), 0, 62, .12, .3, D, 1.3);
+      M.pop(M.pill('+4', 0, 62, '#ff9a0a'), 0, 62, .36, .54, D, 1.4);
+      M.pop(M.pill('+8 😱', 0, 62, '#9b5cff'), 0, 62, .6, .92, D, 1.6);
+    } },
+    { t: 'No match?', c: '#5fc416', h: 'Can\'t play? Draw!', p: 'No card fits? <b>Tap the deck</b> to draw one. If the new card fits, you can play it right away, or keep it.', build(M) {
+      const D = 5600; M.put('card', { id: 38, x: 55, y: -45, s: .74 });
+      const dg = M.put('mdeckglow', {}); M.loop(dg, [[0, -55, -45, 0, .9, .4], [.5, -55, -45, 0, 1.1, 1], [1, -55, -45, 0, .9, .4]], 1400);
+      for (let k = 0; k < 3; k++) M.put('card', { id: 'back', x: -55 - k * 2, y: -45 - k * 3, s: .74 });
+      M.put('card', { id: 3, x: -105, y: 58, s: .66, r: -8, style: { filter: 'brightness(.45)' } });
+      M.put('card', { id: 84, x: -62, y: 56, s: .66, r: -3, style: { filter: 'brightness(.45)' } });
+      const fin = M.put('mfinger', { html: '👆', x: -40, y: 40, op: 0 });
+      M.loop(fin, [[0, -10, 60, 0, 1, 0], [.06, -40, 0, 0, 1, 1], [.12, -48, -20, 0, 1, 1], [.15, -48, -20, 0, .8, 1], [.19, -48, -20, 0, 1, 1], [.26, -48, -20, 0, 1, 0], [1, -10, 60, 0, 1, 0]], D);
+      const back = M.put('card', { id: 'back', x: -55, y: -50, s: .74, op: 0 }), face = M.put('card', { id: 30, x: -15, y: 54, s: .66, op: 0 });
+      M.loop(back, [[0, -59, -51, 0, .74, 0], [.2, -59, -51, 0, .74, 1], [.34, -15, 54, 4, .66, 1, 'ease-out'], [.4, -15, 54, 4, .66, 0], [1, -15, 54, 4, .66, 0]], D);
+      M.loop(face, [[0, -15, 54, 4, .66, 0], [.38, -15, 54, 4, .66, 0], [.44, -15, 50, 4, .72, 1], [.66, -15, 46, 0, .72, 1], [.78, 50, -40, 10, .74, 1, 'ease-out'], [.92, 50, -40, 10, .74, 1], [.96, 50, -40, 10, .74, 0], [1, -15, 54, 4, .66, 0]], D);
+      M.pop(M.pill('It fits! Play it ✓', 60, 40, '#19b35a'), 60, 40, .46, .76, D, .85);
+    } },
+    { t: 'Last card', c: '#ff2e88', h: 'LAST CARD!', p: 'Down to <b>one card</b>? Hit the <b>LAST CARD!</b> button within 3 seconds, or you draw 2 as a penalty.', build(M) {
+      const D = 5200; M.put('card', { id: 38, x: -60, y: -42, s: .74, r: -5 });
+      const a = M.put('card', { id: 30, x: -80, y: 58, s: .68, r: -5 }), b = M.put('card', { id: 59, x: -40, y: 58, s: .68, r: 5 });
+      M.loop(a, [[0, -80, 58, -5, .68], [.1, -80, 58, -5, .68], [.2, -56, -38, 8, .74, 1, 'ease-out'], [.92, -56, -38, 8, .74], [.96, -56, -38, 8, .74, 0], [1, -80, 58, -5, .68, 0]], D);
+      M.loop(b, [[0, -40, 58, 5, .68], [.2, -40, 58, 5, .68], [.26, -60, 58, 0, .72], [1, -60, 58, 0, .72]], D);
+      const btn = M.put('mlast', { html: 'LAST CARD!', x: 70, y: 0 });
+      M.loop(btn, [[0, 70, 0, 0, .9, .35], [.22, 70, 0, 0, .9, .35], [.26, 70, 0, 0, 1.1, 1], [.31, 70, 0, 0, .97, 1], [.36, 70, 0, 0, 1.1, 1], [.41, 70, 0, 0, .97, 1], [.46, 70, 0, 0, 1.1, 1], [.5, 70, 0, 0, .97, 1], [.53, 70, 0, 0, .8, 1], [.57, 70, 0, 0, 1.2, 1], [.62, 70, 0, 0, 1, 1], [.92, 70, 0, 0, 1, 1], [1, 70, 0, 0, .9, .35]], D);
+      const fin = M.put('mfinger', { html: '👆', x: 80, y: 60, op: 0 });
+      M.loop(fin, [[0, 90, 90, 0, 1, 0], [.38, 90, 90, 0, 1, 0], [.44, 82, 40, 0, 1, 1], [.51, 76, 22, 0, 1, 1], [.54, 76, 22, 0, .8, 1], [.58, 76, 22, 0, 1, 1], [.68, 76, 22, 0, 1, 0], [1, 90, 90, 0, 1, 0]], D);
+      M.pop(M.pill('Safe! 🎉', 70, -48, '#19b35a'), 70, -48, .58, .9, D, .9);
+    } },
+    { t: 'Cheat sheet', c: '#fff', h: 'Cheat sheet', p: 'All the special cards in one place. You\'re ready to clash!', sheet: true },
+  ],
+  sheet() {
+    const rows = [[44, 'FREEZE', 'Next player is skipped'], [71, 'FLIP', 'Turn order reverses'], [23, '+2', 'Next player draws 2, skipped'], [100, 'PRISM', 'Play on anything, pick a color'], [104, 'PRISM +4', 'Pick a color, next draws 4']];
+    const g = document.createElement('div'); g.className = 'msheet';
+    rows.forEach(([id, n, d], k) => {
+      const r = document.createElement('div'); r.className = 'mrow'; r.style.animationDelay = (k * .08) + 's';
+      const im = document.createElement('img'); im.src = this.img(id); im.alt = ''; im.draggable = false;
+      const t = document.createElement('div'); t.innerHTML = '<b></b><span></span>'; t.querySelector('b').textContent = n; t.querySelector('span').textContent = d;
+      r.append(im, t); g.append(r);
+    });
+    this.stage.append(g);
+  },
+  open(onDone) {
+    this.onDone = onDone || null; this.stage = $('#mStage');
+    const dots = $('#mDots'); dots.innerHTML = '';
+    this.slides.forEach((s, k) => { const b = document.createElement('button'); b.setAttribute('aria-label', s.t); b.onclick = () => this.go(k); dots.append(b); });
+    $('#manual').classList.remove('hidden'); R.paused = true; this.go(0);
+  },
+  go(k) {
+    this.i = Math.max(0, Math.min(this.slides.length - 1, k));
+    this.anims.forEach(a => a.cancel()); this.anims = []; this.stage.innerHTML = '';
+    const s = this.slides[this.i];
+    $('#mStep').textContent = `${this.i + 1} / ${this.slides.length} · ${s.t}`;
+    const h = $('#mTitle'); h.textContent = s.h; h.style.color = s.c;
+    $('#mText').innerHTML = s.p;
+    this.stage.classList.toggle('sheet', !!s.sheet);
+    if (s.sheet) this.sheet(); else s.build(this);
+    $('#mDots').querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === this.i));
+    $('#mBack').style.visibility = this.i ? 'visible' : 'hidden';
+    const last = this.i === this.slides.length - 1;
+    $('#mNext').textContent = last ? "Let's play!" : 'Next ›';
+    $('#mNext').className = 'btn ' + (last ? 'c-pop' : 'c-wave');
+    const p = $('#manual .panel'); p.classList.remove('swap'); void p.offsetWidth; p.classList.add('swap');
+  },
+  close() {
+    this.anims.forEach(a => a.cancel()); this.anims = []; this.stage.innerHTML = '';
+    $('#manual').classList.add('hidden'); R.paused = false; store.set('cc-manual-seen', true);
+    const cb = this.onDone; this.onDone = null; if (cb) cb();
+  },
+  firstTime(cb) { if (store.get('cc-manual-seen', false)) { if (cb) cb(); } else this.open(cb); },
+  wire() {
+    $('#mNext').onclick = () => { SFX.click(); this.i === this.slides.length - 1 ? this.close() : this.go(this.i + 1); };
+    $('#mBack').onclick = () => { SFX.click(); this.go(this.i - 1); };
+    $('#mClose').onclick = () => this.close();
+    let sx = null;
+    const st = $('#mStage');
+    st.addEventListener('pointerdown', e => { sx = e.clientX; });
+    st.addEventListener('pointerup', e => { if (sx == null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) this.go(this.i + (dx < 0 ? 1 : -1)); });
+    addEventListener('keydown', e => {
+      if ($('#manual').classList.contains('hidden')) return;
+      if (e.key === 'ArrowRight') this.go(this.i + 1); else if (e.key === 'ArrowLeft') this.go(this.i - 1); else if (e.key === 'Escape') this.close();
+    });
+  },
+};
+
 /* ================= app / modes ================= */
 const App = {
   mode: null, host: null, viewSeat: 0, multiLocal: false, waitingFor: null, curT: null,
@@ -1237,7 +1471,7 @@ const Net = {
     }
     if (!this.client) { this.status('Could not open a room. Check your internet and try again.'); return; }
     this.lobby = [{ name, type: 'local', pid: null }]; App.mode = 'online-lobby';
-    this.status(''); UI.showLobby(); this.pushLobby();
+    this.status(''); UI.showLobby(); this.pushLobby(); Manual.firstTime();
     this.every(() => {
       const now = Date.now();
       for (const [pid, c] of this.conns) { if (now - c.lastSeen > 45000) this.drop(pid); else this.toClient(pid, { t: 'ping' }); }
@@ -1335,7 +1569,7 @@ const Net = {
     this.hostSeen = Date.now();
     if (d.t === 'lobby') {
       this.joined = true; App.mode = 'online-lobby'; this.stacking = d.stacking; this.status('');
-      if (!$('#scr-lobby').classList.contains('active')) UI.showLobby();
+      if (!$('#scr-lobby').classList.contains('active')) { UI.showLobby(); Manual.firstTime(); }
       UI.renderLobby(d.seats, d.you, false, d.stacking);
     } else if (d.t === 'reject') { const why = d.why; this.close(); this.status(why); UI.toast(why); }
     else if (d.t === 'state') {
@@ -1376,7 +1610,7 @@ function wire() {
   $('#startBots').onclick = () => {
     const names = shuffle(BOT_NAMES.slice());
     const seats = [{ name: myName(), type: 'local' }, ...Array.from({ length: bots }, (_, i) => ({ name: names[i], type: 'bot' }))];
-    App.startOffline(seats, { stacking: $('#stackBots').checked });
+    Manual.firstTime(() => App.startOffline(seats, { stacking: $('#stackBots').checked }));
   };
   // pass & play
   const local = [{ name: '', type: 'local' }, { name: 'Player 2', type: 'local' }];
@@ -1398,7 +1632,8 @@ function wire() {
   $('#addLocal').onclick = () => { local.push({ name: `Player ${local.length + 1}`, type: 'local' }); drawLocal(); };
   $('#startLocal').onclick = () => {
     if (!local.some(p => p.type === 'local')) { UI.toast('Add at least one human player'); return; }
-    App.startOffline(local.map(p => ({ name: cleanName(p.name), type: p.type })), { stacking: $('#stackLocal').checked });
+    const seats = local.map(p => ({ name: cleanName(p.name), type: p.type })), stacking = $('#stackLocal').checked;
+    Manual.firstTime(() => App.startOffline(seats, { stacking }));
   };
   // online
   $('#createRoom').onclick = () => Net.create(myName());
@@ -1421,6 +1656,9 @@ function wire() {
   $('#copyLink').onclick = () => copy(location.origin + location.pathname + '?room=' + Net.code);
   // in-game
   $('#leaveBtn').onclick = () => App.toMenu();
+  $('#helpBtn').onclick = () => { SFX.click(); Manual.open(); };
+  $('#howtoBtn').onclick = () => { SFX.init(); SFX.click(); Manual.open(); };
+  Manual.wire();
   $('#keepBtn').onclick = () => App.send({ t: 'keep' });
   $('#lastBtn').onclick = () => { if (UI.lastSeat != null) App.send({ t: 'last' }, UI.lastSeat); };
   $('#cancelPick').onclick = () => $('#colorPick').classList.add('hidden');
