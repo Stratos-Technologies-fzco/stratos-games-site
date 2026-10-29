@@ -37,7 +37,7 @@ window.DF = window.DF || {};
     G.onToast = function (m, k) { UI.toast(m, k); };
     G.onTutorial = function (step) { UI.tutCard(step); };
     G.onCombat = function (on) { A.play(on ? '03-combat-raider-ambush' : M.hud, 1000); };
-    G.onEnd = endRun; G.onPauseRequest = function () { if (Nav.demo) endDemo(); else pause(); };
+    G.onEnd = endRun; G.onPauseRequest = pause;
     DF.onSaveStatus = function (ok) {
       if (ok) { Nav.warned = false; return; }
       if (Nav.warned) return; Nav.warned = true;
@@ -105,11 +105,11 @@ window.DF = window.DF || {};
     DF.track('expedition_started', { objective: objId });
   }
   function pause() {
-    if (Nav.state !== 'hud' || !G.isRunning() || Nav.demo) return;
+    if (Nav.state !== 'hud' || !G.isRunning()) return;
     G.pause(); var snap = G.snapshot(); A.setDuck(0.3);
-    UI.st.restartConfirm = false; go('pause', { snap: snap, objId: Nav.run.objId }, { keepMusic: true });
+    UI.st.restartConfirm = false; go('pause', { snap: snap, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true });
   }
-  function resume() { A.setDuck(1); go('hud', { tutorial: Nav.run.tutorial, objId: Nav.run.objId }, { keepMusic: true }); G.resume(); }
+  function resume() { A.setDuck(1); go('hud', { tutorial: Nav.run.tutorial, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); if (Nav.demo) UI.demoMode(); G.resume(); }
   function leaveRun() { clearInterval(Nav.hudTimer); G.quitRun(); G.clear(); A.setDuck(1); }
 
   /* Commit rewards once, update progress, then show the summary (SCR-07). */
@@ -157,7 +157,7 @@ window.DF = window.DF || {};
 
   /* ---------- demo: the game plays a short scripted run by itself ---------- */
   function startDemo() {
-    Nav.demo = true; Nav.demoStage = -1; Nav.demoStageAt = 0;
+    Nav.demo = true; Nav.demoStage = -1; Nav.demoStageAt = 0; Nav.run = { objId: 'demo', tutorial: false, runId: 'demo' };
     A.setDuck(1); A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
     go('hud', { demo: true, objId: 'demo' }, { keepMusic: true });
     UI.demoMode(); G.resize(Nav.scale);
@@ -185,7 +185,7 @@ window.DF = window.DF || {};
     DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); go('story');
   }
   function toStratos() { try { (window.top || window).location.assign(S.stratosLink); } catch (e) { window.location.assign(S.stratosLink); } }
-  function settingsBack() { if (Nav.settingsFrom === 'pause') go('pause', { snap: G.snapshot(), objId: Nav.run.objId }, { keepMusic: true }); else go('title'); }
+  function settingsBack() { if (Nav.settingsFrom === 'pause') go('pause', { snap: G.snapshot(), objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); else go('title'); }
 
   var acts = {
     stratos: toStratos,
@@ -212,7 +212,8 @@ window.DF = window.DF || {};
     restartAsk: function () { UI.st.restartConfirm = true; UI.refresh(); },
     restartNo: function () { UI.st.restartConfirm = false; UI.refresh(); },
     restartYes: function () { leaveRun(); startRun(Nav.run.objId, Nav.run.tutorial, true); },
-    exitTitle: function () { leaveRun(); go('title'); },
+    exitTitle: function () { if (Nav.demo) { endDemo(); return; } leaveRun(); go('title'); },
+    hudSettings: function () { pause(); if (Nav.state === 'pause') acts.pauseSettings(); },
     skipTut: function () { leaveRun(); sv().profile.tutorialCompleted = true; persist(); startRun('egg', false); },
     toSanctuary: function () { go('sanctuary'); },
     again: function () { startRun(Nav.summary.objId, false); },
@@ -265,10 +266,10 @@ window.DF = window.DF || {};
 
   /* ---------- keyboard in menus ---------- */
   window.addEventListener('keydown', function (e) {
-    if (e.key !== 'Escape') return;
+    if (e.key !== 'Escape' && !(e.code === 'KeyP' && Nav.state === 'pause')) return;
     var back = { evolution: 'toSanctuary', upgrades: 'toSanctuary', codex: 'toSanctuary', missions: 'toSanctuary', sanctuary: 'toTitle', settings: 'settingsBack', credits: 'toTitle', pause: 'resume', lore: 'loreBack' }[Nav.state];
     if (UI.st.modal) { UI.st.modal = false; UI.refresh(); return; }
-    if (back) onAct(back);
+    if (back) { e.stopImmediatePropagation(); onAct(back); } // keep the game's own Esc/P handler from re-pausing in the same key press
   });
 
   /* ---------- focus, resize, visibility ---------- */
@@ -277,10 +278,10 @@ window.DF = window.DF || {};
     Nav.scale = sc; st.style.transform = 'translate(' + Math.round((iw - 844 * sc) / 2) + 'px,' + Math.round((ih - 390 * sc) / 2) + 'px) scale(' + sc + ')';
     if (G.resize) G.resize(sc);
   }
-  window.addEventListener('resize', function () { fit(); if (Nav.state === 'hud' && !Nav.demo) pause(); });
+  window.addEventListener('resize', function () { fit(); if (Nav.state === 'hud') pause(); });
   window.addEventListener('orientationchange', function () { setTimeout(function () { fit(); if (Nav.state === 'hud') pause(); }, 200); });
-  document.addEventListener('visibilitychange', function () { if (document.hidden && Nav.state === 'hud') { if (Nav.demo) endDemo(); else pause(); } });
-  window.addEventListener('blur', function () { if (Nav.state === 'hud' && !Nav.demo) pause(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden && Nav.state === 'hud') pause(); });
+  window.addEventListener('blur', function () { if (Nav.state === 'hud') pause(); });
   window.addEventListener('offline', function () { UI.toast('You’re offline. Expeditions still work.', ''); });
   window.addEventListener('pagehide', function () { if (DF.save && DF.hasSave) DF.Store.saveNow(DF.save); });
   document.addEventListener('contextmenu', function (e) { if (Nav.state === 'hud') e.preventDefault(); });

@@ -124,7 +124,7 @@ window.DF = window.DF || {};
   G.press = press;
   G.hold = function (a, v) { if (a === 'attack') held.attack = v; };
   G.setMove = function (x, y) { mv.x = x; mv.y = y; };
-  G.pause = function () { paused = true; keys = {}; held.attack = false; };
+  G.pause = function () { paused = true; keys = {}; held.attack = false; mv.x = 0; mv.y = 0; queue.length = 0; };
   G.resume = function () { if (!running) return; paused = false; last = performance.now(); };
   G.isPaused = function () { return paused; };
   G.isRunning = function () { return running; };
