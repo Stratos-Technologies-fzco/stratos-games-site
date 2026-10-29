@@ -618,8 +618,8 @@ window.DF = window.DF || {};
     if (b.berries > 0) { var a = 0.5 + 0.5 * Math.sin(b.bob); cx.fillStyle = 'rgba(207,232,176,' + (0.18 * a) + ')'; cx.beginPath(); cx.ellipse(b.x, b.y - 24, 40, 28, 0, 0, 7); cx.fill(); }
   }
   function dNest(n) {
-    shadow(n.x, n.y + 2, 84, 0.3);
-    draw('prop-egg-nest', 96, n.x, n.y, { feet: 0.97 });
+    shadow(n.x, n.y + 2, 84, 0.35);
+    draw(n.eggId === 'glade' ? 'egg-glade' : 'egg', 86, n.x, n.y, { feet: 0.97 });
     if (S.eggReady && !n.done) { var a = 0.5 + 0.5 * Math.sin(S.t / 260); var g = cx.createRadialGradient(n.x, n.y - 30, 6, n.x, n.y - 30, 70); g.addColorStop(0, 'rgba(245,210,127,' + (0.45 * a + 0.2) + ')'); g.addColorStop(1, 'rgba(245,210,127,0)'); cx.fillStyle = g; cx.fillRect(n.x - 80, n.y - 110, 160, 130); }
   }
   function dCrystal(c) {

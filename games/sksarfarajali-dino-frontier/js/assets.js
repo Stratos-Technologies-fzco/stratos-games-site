@@ -5,17 +5,18 @@ window.DF = window.DF || {};
   var imgs = {}, rasters = {}, sil = {};
   var SQUARE = /^(icon-|prop-genesis-crystal)/;
   var PATHS = {};
-  var ART = ['prop-berry-bush', 'prop-egg-nest', 'prop-genesis-crystal', 'icon-dna', 'icon-token', 'icon-food', 'icon-health', 'icon-energy', 'icon-egg', 'icon-xp', 'icon-crystal'];
-  var PORTRAITS = ['dino-starter', 'enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'egg-shadowscale', 'egg-glade'];
-  var PHOTOS = ['canyon_styracosaur', 'tribal_river_canyon', 'volcanic_ruins_chasm', 'other_9', 'raptor_nursery_sanctuary', 'other_8', 'other_1', 'other_5', 'lost_expedition_raptor', 'swiftclaw', 'crystal_magma_stegosaur', 'wildspark', 'aurora_celestial_sanctuary', 'bioluminescent_spino_swamp', 'celestial_sky_citadel', 'dino_valley_relic'];
+  var ART = ['prop-berry-bush', 'prop-genesis-crystal', 'icon-dna', 'icon-token', 'icon-food', 'icon-health', 'icon-energy', 'icon-egg', 'icon-xp', 'icon-crystal'];
+  var PORTRAITS = ['dino-starter', 'enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark'];
+  var PHOTOS = ['canyon_styracosaur', 'tribal_river_canyon', 'volcanic_ruins_chasm', 'other_9', 'raptor_nursery_sanctuary', 'other_1', 'lost_expedition_raptor', 'swiftclaw', 'crystal_magma_stegosaur', 'wildspark', 'aurora_celestial_sanctuary', 'bioluminescent_spino_swamp', 'celestial_sky_citadel', 'dino_valley_relic'];
   ART.forEach(function (n) { PATHS[n] = 'assets/art/' + n + '.svg'; });
   PHOTOS.forEach(function (n) { PATHS[n] = 'assets/images/' + n + '.jpg'; });
   PORTRAITS.forEach(function (n) { PATHS['pt-' + n] = 'assets/portraits/' + n + '.jpg'; }); // painted menu portraits
   /* in-game dinosaurs are the owner's own art, cut out: the player (one recolour per evolution path), enemies and the boss */
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
+  ['egg', 'egg-glade', 'egg-prism'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; }); // the owner's egg art (cut out) and two recolours
   ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
   /* Needed before the first screen can play. The rest is requested in the background. */
-  var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'prop-egg-nest', 'icon-dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
+  var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'icon-dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
 
   function loadOne(name) {
     return new Promise(function (resolve, reject) {

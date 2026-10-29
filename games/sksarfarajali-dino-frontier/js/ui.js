@@ -173,7 +173,7 @@ window.DF = window.DF || {};
 
   /* ---------- SCR-07 Summary ---------- */
   T.summary = function (p) {
-    var C = S.summary, ok = p.outcome === 'success', r = p.reward, hero = p.objId === 'boss' ? 'volcanic_ruins_chasm' : (ok ? 'other_8' : 'canyon_styracosaur');
+    var C = S.summary, ok = p.outcome === 'success', r = p.reward, hero = p.objId === 'boss' ? 'volcanic_ruins_chasm' : (ok ? '' : 'canyon_styracosaur'), eggKey = p.objId === 'forage' ? 'egg-glade' : 'egg';
     var pill = 'font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;';
     var cells = [[C.food, r.food, '#CFE8B0'], [C.dna, r.dna, '#CDB4F7'], [C.tokens, r.tokens, '#F5D27F'], [C.xp, r.xp, '#F3EBD7']].map(function (c) {
       return '<div class="col" style="padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);gap:2px"><span style="font-size:11.5px;color:var(--mut2);font-weight:700">' + c[0] + '</span><span style="font-size:20px;font-weight:800;color:' + c[2] + '">+' + c[1] + '</span></div>';
@@ -181,7 +181,7 @@ window.DF = window.DF || {};
     var next = p.next;
     var disc = p.newEgg && ok ? '<div style="position:absolute;left:14px;bottom:14px;padding:8px 12px;border-radius:12px;background:rgba(14,23,18,.88);border:1px solid var(--gold);font-size:13px;font-weight:800">' + F(C.discovery, { name: S.codex.eggs[p.newEgg].name }) + '<div style="font-size:11.5px;font-weight:600;color:var(--mut)">' + C.addedCodex + '</div></div>' : '';
     var lvl = p.levelUp ? '<span style="' + pill + 'background:var(--gold);color:#1A1408">' + F(C.levelUp, { lv: p.levelUp }) + '</span>' : '';
-    return '<div class="scr solid row" style="align-items:stretch"><div style="position:relative;width:330px;flex:none"><img class="bgimg" src="' + img(hero) + '" alt="' + (ok ? 'A newly discovered dinosaur egg' : 'Verdant Valley') + '"><div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,0) 60%,#0E1712)"></div>' + disc + '</div>' +
+    return '<div class="scr solid row" style="align-items:stretch"><div style="position:relative;width:330px;flex:none">' + (hero ? '<img class="bgimg" src="' + img(hero) + '" alt="' + (ok ? 'Thornback den' : 'Verdant Valley') + '">' : '<div class="fill" style="background:radial-gradient(circle at 50% 55%,#5B4520 0%,#2A2A18 45%,#0E1712 80%)"></div><img src="' + img(eggKey) + '" alt="A newly discovered dinosaur egg" style="position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:74%;max-height:84%;object-fit:contain">') + '<div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,0) 60%,#0E1712)"></div>' + disc + '</div>' +
       '<div class="col" style="flex:1;padding:22px 26px;gap:12px"><div class="row" style="gap:10px"><span style="' + pill + (ok ? 'background:#CFE8B0;color:#1C2A10' : 'background:#F2B8B0;color:#3A0E09') + '">' + (ok ? C.okBadge : C.failBadge) + '</span><span style="font-size:13px;color:var(--mut2)">' + F(C.where, { n: p.n }) + '</span>' + lvl + '</div>' +
       '<h2 class="serif" style="margin:0;font-size:26px">' + (ok ? C.okHead[p.objId] : (p.objId === 'boss' ? C.failHeadBoss : C.failHead)) + '</h2><div style="font-size:14px;color:var(--soft);line-height:1.45">' + (ok ? C.okSub : C.failSub) + '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">' + cells + '</div>' +
@@ -254,9 +254,9 @@ window.DF = window.DF || {};
   T.codex = function () {
     var C = S.codex, sv = DF.save, tab = UI.st.tab, items = [], a = 0, b = 0, tag;
     var D = { tag: C.found, border: '1px solid var(--line)' }, U = { tag: C.unknown, border: '1px dashed #4A5A4E' }, L = { tag: C.later, border: '1px dashed #4A5A4E' };
-    var artFor = { starter: 'dino-starter', raider: 'pt-enemy-raider', spitter: 'pt-enemy-spitter', skimmer: 'pt-enemy-skimmer', thornback: 'pt-boss-thornback', shadowscale: 'pt-egg-shadowscale', glade: 'pt-egg-glade', prism: 'pt-egg-shadowscale' };
+    var artFor = { starter: 'dino-starter', raider: 'pt-enemy-raider', spitter: 'pt-enemy-spitter', skimmer: 'pt-enemy-skimmer', thornback: 'pt-boss-thornback', shadowscale: 'egg', glade: 'egg-glade', prism: 'egg-prism' };
     if (tab === 'species') DF.SPECIES.forEach(function (id) { var f = sv.discoveries.codexSpecies.indexOf(id) >= 0, d = C.species[id]; b++; if (f) a++; items.push(f ? { s: D, name: d.name, text: d.text, img: artFor[id], art: id === 'starter' } : { s: U, name: C.unknownName, text: d.clue, img: artFor[id], art: false, sil: true }); });
-    else if (tab === 'eggs') DF.EGGS.forEach(function (id) { var f = sv.discoveries.eggs.indexOf(id) >= 0, d = C.eggs[id]; b++; if (f) a++; items.push(f ? { s: D, name: d.name, text: d.text, img: artFor[id], art: false, hue: id === 'prism' } : { s: U, name: C.unknownName, text: d.clue, img: id === 'prism' ? 'other_5' : artFor[id], art: false, sil: true }); });
+    else if (tab === 'eggs') DF.EGGS.forEach(function (id) { var f = sv.discoveries.eggs.indexOf(id) >= 0, d = C.eggs[id]; b++; if (f) a++; items.push(f ? { s: D, name: d.name, text: d.text, img: artFor[id], art: true } : { s: U, name: C.unknownName, text: d.clue, img: artFor[id], art: true, sil: true }); });
     else { var bm = { verdant: 'canyon_styracosaur', ember: 'volcanic_ruins_chasm', frost: 'aurora_celestial_sanctuary', mire: 'bioluminescent_spino_swamp', crater: 'celestial_sky_citadel' };
       Object.keys(bm).forEach(function (id) { var d = C.biomes[id], here = id === 'verdant'; b++; if (here) a++; items.push({ s: here ? { tag: C.here, border: '1px solid var(--line)' } : L, name: d.name, text: d.text, img: bm[id], dim: !here }); }); }
     var cards = items.map(function (c) {
