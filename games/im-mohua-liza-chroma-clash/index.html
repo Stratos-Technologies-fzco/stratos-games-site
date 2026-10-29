@@ -58,7 +58,7 @@ input.txt:focus{border-color:var(--wave)}
 .or{text-align:center;color:var(--muted);margin:18px 0 12px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
 .joinrow{display:flex;gap:10px}
 .joinrow input{text-transform:uppercase;font-family:Bungee;letter-spacing:.2em;text-align:center}
-#netStatus{margin-top:14px;min-height:20px;text-align:center}
+#netStatus{margin-top:14px;min-height:20px;text-align:center;color:#fff;font-weight:800}
 .lrow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .lrow input{flex:1;padding:10px 12px;font-size:15px}
 .lrow .kind{min-width:84px}
@@ -131,7 +131,7 @@ input.txt:focus{border-color:var(--wave)}
   #meBar{font-size:13px}
 }
 </style>
-<script src="vendor/peerjs.min.js"></script>
+<script src="vendor/mqtt.min.js"></script>
 <script type="importmap">
 {"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/jsm/"}}
 </script>
@@ -1195,67 +1195,109 @@ const App = {
   rematch() { if (this.host && this.mode !== 'online-client') { $('#win').classList.add('hidden'); this.host.start(); } },
 };
 
-/* ================= networking (PeerJS / WebRTC) ================= */
-const PREFIX = 'chromaclash-v1-';
-const genCode = () => Array.from({ length: 5 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[rnd(31)]).join('');
+/* ================= networking (relay over MQTT/WebSocket: works on any network) =================
+   Players never connect to each other directly. The host and each player talk through a public
+   relay, on topics named after the room code. The first letter of the code says which relay. */
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const ROOT = 'chromaclash/v2/';
+const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const rid = () => Math.random().toString(36).slice(2, 10);
+function genCode(b) { let f; do { f = rnd(ALPHA.length); } while (f % BROKERS.length !== b); return ALPHA[f] + Array.from({ length: 4 }, () => ALPHA[rnd(ALPHA.length)]).join(''); }
+const brokerOf = code => { const i = ALPHA.indexOf(code[0]); return i < 0 ? -1 : i % BROKERS.length; };
 const Net = {
-  peer: null, conns: new Map(), lobby: [], hostConn: null, code: null, stacking: true,
+  client: null, isHost: false, code: null, me: rid(), conns: new Map(), lobby: [], stacking: true,
+  timers: [], token: {}, joined: false, hostSeen: 0, outSeq: 0, stateSeq: 0, lastIn: 0,
   status(t) { $('#netStatus').textContent = t; },
-  ready() { if (!window.Peer) { this.status('Online play needs an internet connection (could not load the network library).'); return false; } return true; },
-  create(name) {
-    if (!this.ready()) return; this.close();
-    this.code = genCode(); this.status('Opening a room…');
-    const peer = this.peer = new Peer(PREFIX + this.code, { debug: 0 });
-    peer.on('open', () => {
-      if (peer !== this.peer) return;
-      this.lobby = [{ name, type: 'local', pid: null }]; App.mode = 'online-lobby';
-      this.status(''); UI.showLobby(); this.pushLobby();
+  ready() { if (!window.mqtt) { this.status('Online play could not load. Check your internet and reload.'); return false; } return true; },
+  every(fn, ms) { this.timers.push(setInterval(fn, ms)); },
+  connect(url, sub, onMsg) {
+    return new Promise((res, rej) => {
+      const c = mqtt.connect(url, { clientId: 'cc_' + rid() + rid(), connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 20, clean: true });
+      let done = false;
+      c.on('connect', () => { c.subscribe(sub, { qos: 1 }); if (!done) { done = true; res(c); } });
+      c.on('message', (topic, payload) => { let d; try { d = JSON.parse(payload.toString()); } catch (e) { return; } if (d && typeof d === 'object') onMsg(d); });
+      c.on('error', () => { });
+      setTimeout(() => { if (!done) { done = true; try { c.end(true); } catch (e) { } rej(new Error('timeout')); } }, 9000);
     });
-    peer.on('connection', c => this.onConn(c));
-    peer.on('error', e => {
-      if (peer !== this.peer) return;
-      if (e.type === 'unavailable-id') this.create(name);
-      else if (e.type !== 'peer-unavailable') { this.status('Network error: ' + e.type); UI.toast('Network error: ' + e.type); }
-    });
-    peer.on('disconnected', () => { if (peer === this.peer) try { peer.reconnect(); } catch (e) { } });
   },
-  onConn(c) {
-    c.on('data', d => this.onHostData(c, d));
-    c.on('close', () => this.onDrop(c)); c.on('error', () => this.onDrop(c));
+  pub(path, obj) { if (this.client) this.client.publish(ROOT + this.code + path, JSON.stringify(obj), { qos: 1 }); },
+  toClient(pid, obj) { this.pub('/c/' + pid, obj); },
+
+  /* ---------- host ---------- */
+  async create(name) {
+    if (!this.ready()) return; this.close(); const token = this.token;
+    this.isHost = true; this.status('Opening a room…');
+    for (let b = 0; b < BROKERS.length && !this.client; b++) {
+      const code = genCode(b);
+      try {
+        const c = await this.connect(BROKERS[b], ROOT + code + '/h', d => this.onHostData(d));
+        if (token !== this.token) { c.end(true); return; }
+        this.client = c; this.code = code;
+      } catch (e) { if (token !== this.token) return; }
+    }
+    if (!this.client) { this.status('Could not open a room. Check your internet and try again.'); return; }
+    this.lobby = [{ name, type: 'local', pid: null }]; App.mode = 'online-lobby';
+    this.status(''); UI.showLobby(); this.pushLobby();
+    this.every(() => {
+      const now = Date.now();
+      for (const [pid, c] of this.conns) { if (now - c.lastSeen > 45000) this.drop(pid); else this.toClient(pid, { t: 'ping' }); }
+    }, 2500);
   },
-  onHostData(c, d) {
-    if (!d || typeof d !== 'object') return;
+  onHostData(d) {
+    if (typeof d.from !== 'string' || d.from.length > 20) return;
+    const pid = d.from; const c = this.conns.get(pid);
+    if (!c && (d.t === 'hello' || d.t === 'sync')) {
+      // a player who dropped out and came back gets their seat back
+      const i = this.lobby.findIndex(s => s.oldPid === pid);
+      if (i >= 0 && App.mode === 'online-host' && App.host) {
+        const s = this.lobby[i]; s.type = 'remote'; s.pid = pid; s.oldPid = null; s.name = s.name.replace(/ \(bot\)$/, '');
+        const p = App.host.s.players[i]; p.type = 'remote'; p.name = s.name;
+        this.conns.set(pid, { lastSeen: Date.now(), seq: 1e9 });
+        UI.toast(`${s.name} is back!`); App.host.emit([]); return;
+      }
+    }
+    if (c) c.lastSeen = Date.now();
     if (d.t === 'hello') {
-      const reject = why => { c.send({ t: 'reject', why }); setTimeout(() => c.close(), 600); };
-      if (App.mode === 'online-host') return reject('That game already started. Ask the host to make a new room.');
-      if (this.lobby.length >= 6) return reject('Room is full (6 players max).');
-      if (this.conns.has(c.peer)) return;
+      if (c) { this.resync(pid); return; }
+      if (App.mode === 'online-host') return this.toClient(pid, { t: 'reject', why: 'That game already started. Ask the host to make a new room.' });
+      if (this.lobby.length >= 6) return this.toClient(pid, { t: 'reject', why: 'Room is full (6 players max).' });
       const name = cleanName(d.name);
-      this.conns.set(c.peer, c); this.lobby.push({ name, type: 'remote', pid: c.peer });
+      this.conns.set(pid, { lastSeen: Date.now(), seq: 0 });
+      this.lobby.push({ name, type: 'remote', pid });
       this.pushLobby(); SFX.click(); UI.toast(`${name} joined`);
-    } else if (d.t === 'act' && App.mode === 'online-host' && App.host && d.a && typeof d.a.t === 'string') {
-      const seat = this.lobby.findIndex(s => s.pid === c.peer);
+    } else if (!c) return;
+    else if (d.t === 'bye') this.drop(pid);
+    else if (d.t === 'sync') this.resync(pid);
+    else if (d.t === 'act' && App.mode === 'online-host' && App.host && d.a && typeof d.a.t === 'string') {
+      if (c.seq >= 1e9) c.seq = d.seq - 1; // came back: accept their numbering from here
+      if (!(d.seq > c.seq)) return; // the relay may deliver a message twice
+      c.seq = d.seq;
+      const seat = this.lobby.findIndex(s => s.pid === pid);
       if (seat >= 0) App.host.act(seat, { t: d.a.t, id: Number(d.a.id), color: Number(d.a.color) });
     }
   },
-  onDrop(c) {
-    if (!this.conns.has(c.peer) || this.conns.get(c.peer) !== c) return;
-    this.conns.delete(c.peer);
-    const i = this.lobby.findIndex(s => s.pid === c.peer); if (i < 0) return;
+  resync(pid) {
+    const i = this.lobby.findIndex(s => s.pid === pid); if (i < 0) return;
+    if (App.mode === 'online-host' && App.host && App.host.s) this.toClient(pid, { t: 'state', view: App.host.view(i), ev: [], n: ++this.stateSeq });
+    else this.pushLobby();
+  },
+  drop(pid) {
+    if (!this.conns.has(pid)) return; this.conns.delete(pid);
+    const i = this.lobby.findIndex(s => s.pid === pid); if (i < 0) return;
     const s = this.lobby[i];
     if (App.mode === 'online-host' && App.host) {
-      s.type = 'bot'; s.pid = null; s.name = s.name + ' (bot)';
+      s.type = 'bot'; s.oldPid = pid; s.pid = null; s.name = s.name + ' (bot)';
       const p = App.host.s.players[i]; p.type = 'bot'; p.name = s.name;
       UI.toast(`${s.name.replace(' (bot)', '')} left. A bot takes over.`); App.host.emit([]);
     } else { this.lobby.splice(i, 1); this.pushLobby(); UI.toast(`${s.name} left`); }
   },
   pushLobby() {
     const seats = this.lobby.map(s => ({ name: s.name, type: s.type }));
-    for (const [pid, c] of this.conns) { const you = this.lobby.findIndex(s => s.pid === pid); if (c.open) c.send({ t: 'lobby', seats, you, stacking: this.stacking, code: this.code }); }
+    for (const pid of this.conns.keys()) this.toClient(pid, { t: 'lobby', seats, you: this.lobby.findIndex(s => s.pid === pid), stacking: this.stacking, code: this.code });
     UI.renderLobby(seats, 0, true, this.stacking);
   },
   broadcastState(ev) {
-    this.lobby.forEach((s, i) => { if (s.type !== 'remote') return; const c = this.conns.get(s.pid); if (c && c.open) c.send({ t: 'state', view: App.host.view(i), ev }); });
+    this.lobby.forEach((s, i) => { if (s.type === 'remote' && this.conns.has(s.pid)) this.toClient(s.pid, { t: 'state', view: App.host.view(i), ev, n: ++this.stateSeq }); });
   },
   startGame() {
     if (this.lobby.length < 2) return;
@@ -1263,37 +1305,58 @@ const Net = {
     App.host = new Host(this.lobby, { stacking: this.stacking }, ev => App.onHost(ev));
     UI.enterGame(); App.host.start();
   },
-  join(code, name) {
-    if (!this.ready()) return; this.close();
-    this.code = code; this.status('Connecting…');
-    const peer = this.peer = new Peer({ debug: 0 });
-    const to = setTimeout(() => { if (peer === this.peer && !(this.hostConn && this.hostConn.open)) { this.status("Couldn't reach that room. Check the code and try again."); this.close(); } }, 15000);
-    peer.on('open', () => {
-      if (peer !== this.peer) return;
-      const c = this.hostConn = peer.connect(PREFIX + code, { reliable: true });
-      c.on('open', () => { clearTimeout(to); c.send({ t: 'hello', name }); this.status('Connected!'); });
-      c.on('data', d => { if (c === this.hostConn) this.onClientData(d); });
-      c.on('close', () => { if (c === this.hostConn) { UI.toast('Lost connection to the host'); App.toMenu(); } });
-    });
-    peer.on('error', e => {
-      if (peer !== this.peer) return; clearTimeout(to);
-      this.status(e.type === 'peer-unavailable' ? 'Room not found. Check the code.' : 'Network error: ' + e.type);
-      if (App.mode === 'online-client' || App.mode === 'online-lobby') { UI.toast('Network problem. Back to the menu.'); App.toMenu(); }
-    });
+
+  /* ---------- player joining a room ---------- */
+  async join(code, name) {
+    if (!this.ready()) return; this.close(); const token = this.token;
+    const b = brokerOf(code);
+    if (b < 0) { this.status('That code does not look right. Check it with the host.'); return; }
+    this.isHost = false; this.code = code; this.status('Connecting…');
+    let c;
+    try { c = await this.connect(BROKERS[b], ROOT + code + '/c/' + this.me, d => { if (token === this.token) this.onClientData(d); }); }
+    catch (e) { if (token === this.token) this.status('Could not reach the game server. Check your internet and try again.'); return; }
+    if (token !== this.token) { c.end(true); return; }
+    this.client = c; this.status('Looking for the room…');
+    const t0 = Date.now();
+    const hello = () => {
+      if (this.joined) return;
+      if (Date.now() - t0 > 25000) { this.close(); this.status('Room not found. Check the code, and ask the host to keep the game open on their screen.'); return; }
+      this.pub('/h', { t: 'hello', from: this.me, name });
+    };
+    hello(); this.every(hello, 2000);
+    this.every(() => {
+      if (!this.joined) return;
+      this.pub('/h', { t: 'ping', from: this.me });
+      if (Date.now() - this.hostSeen > 60000) { UI.toast('Lost connection to the host'); App.toMenu(); }
+    }, 3000);
+    c.on('connect', () => { if (this.joined) this.pub('/h', { t: 'sync', from: this.me }); }); // came back after a drop
   },
   onClientData(d) {
-    if (!d || typeof d !== 'object') return;
-    if (d.t === 'lobby') { App.mode = 'online-lobby'; this.code = d.code; this.stacking = d.stacking; UI.showLobby(); UI.renderLobby(d.seats, d.you, false, d.stacking); }
-    else if (d.t === 'reject') { const why = d.why; this.close(); this.status(why); UI.toast(why); }
+    this.hostSeen = Date.now();
+    if (d.t === 'lobby') {
+      this.joined = true; App.mode = 'online-lobby'; this.stacking = d.stacking; this.status('');
+      if (!$('#scr-lobby').classList.contains('active')) UI.showLobby();
+      UI.renderLobby(d.seats, d.you, false, d.stacking);
+    } else if (d.t === 'reject') { const why = d.why; this.close(); this.status(why); UI.toast(why); }
     else if (d.t === 'state') {
+      if (!(d.n > this.lastIn)) return; this.lastIn = d.n; this.joined = true;
       if (App.mode !== 'online-client') { App.mode = 'online-client'; UI.enterGame(); }
       UI.render(d.view, d.ev || []);
-    }
+    } else if (d.t === 'closed') { UI.toast('The host closed the room'); App.toMenu(); }
   },
-  send(m) { if (this.hostConn && this.hostConn.open) this.hostConn.send(m); },
+  send(m) { if (!this.client) return; m.from = this.me; if (m.t === 'act') m.seq = ++this.outSeq; this.pub('/h', m); },
   close() {
-    const p = this.peer; this.peer = null; this.hostConn = null; this.conns.clear(); this.lobby = [];
-    try { if (p) p.destroy(); } catch (e) { }
+    this.token = {};
+    this.timers.forEach(clearInterval); this.timers = [];
+    const c = this.client; this.client = null;
+    if (c) {
+      try {
+        if (this.isHost) for (const pid of this.conns.keys()) c.publish(ROOT + this.code + '/c/' + pid, JSON.stringify({ t: 'closed' }));
+        else if (this.joined) c.publish(ROOT + this.code + '/h', JSON.stringify({ t: 'bye', from: this.me }));
+      } catch (e) { }
+      setTimeout(() => { try { c.end(true); } catch (e) { } }, 400);
+    }
+    this.conns.clear(); this.lobby = []; this.joined = false; this.hostSeen = 0; this.outSeq = 0; this.lastIn = 0; this.me = rid();
   },
 };
 
