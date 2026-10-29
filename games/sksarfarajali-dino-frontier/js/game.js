@@ -675,7 +675,7 @@ window.DF = window.DF || {};
     if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
   function dPlayer(P) {
-    var st = S.stats, w = 128, bob = Math.sin(P.anim / 90) * 2, o = { flip: P.face < 0, feet: 0.96 }, y = P.y + bob;
+    var st = S.stats, w = st.path === 'ironhide' ? 156 : 128, bob = Math.sin(P.anim / 90) * 2, o = { flip: P.face < 0, feet: 0.96 }, y = P.y + bob;
     shadow(P.x, P.y + 2, w * 0.8, 0.4);
     if (P.dashT > 0) { for (var i = 1; i <= 3; i++) draw(st.sprite, w, P.x - P.dashDx * i * 18, y, { flip: P.face < 0, feet: 0.96, alpha: 0.16 * (4 - i) }); }
     var blink = P.inv > 0 && P.hurt <= 0 && P.dashT <= 0 && Math.floor(S.t / 70) % 2 === 0;
