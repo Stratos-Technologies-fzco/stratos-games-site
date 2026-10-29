@@ -21,8 +21,20 @@ DF.S = {
     no: 'No thanks', yes: 'Allow analytics', more: 'Read the full privacy notice',
     full: 'Privacy notice. Dino Frontier stores your progress, settings and an anonymous random install ID in your browser on this device. It does not collect your name, email, location or advertising ID. If you allow analytics, anonymous gameplay events (for example "tutorial finished") may be measured and are linked only to the install ID. If you decline, nothing is sent. You can change your choice any time in Settings. The game is for ages 13 and over.'
   },
-  title: { cont: 'Continue', newGame: 'New Game', settings: 'Settings', credits: 'Credits', replaceNote: 'New Game will ask before replacing your saved progress.', stratos: '← Stratos Games', confirmTitle: 'Start a new game?', confirmBody: 'This replaces your saved progress (Level {lv}, {tokens} Tokens). A backup of the old save is kept for recovery.', confirmYes: 'Yes, start new', confirmNo: 'Keep my save' },
+  title: { story: 'Story', demo: 'Demo', storyAria: 'Read the story', demoAria: 'Watch a demo', cont: 'Continue', newGame: 'New Game', settings: 'Settings', credits: 'Credits', replaceNote: 'New Game will ask before replacing your saved progress.', stratos: '← Stratos Games', confirmTitle: 'Start a new game?', confirmBody: 'This replaces your saved progress (Level {lv}, {tokens} Tokens). A backup of the old save is kept for recovery.', confirmYes: 'Yes, start new', confirmNo: 'Keep my save' },
   story: { eyebrow: 'CHAPTER ONE', title: 'Separated from the pack', body: 'Sixty-five million years ago the Genesis Pulse reshaped the world. Now you are a young dinosaur, alone on a living island called the Frontier — and the Pulse is returning.', go: 'Begin', skip: 'Skip' },
+  lore: {
+    eyebrow: 'THE STORY', title: 'The Genesis Pulse',
+    p1: 'Sixty-five million years ago, an unknown natural phenomenon called the Genesis Pulse changed the prehistoric world. Instead of a mass extinction, it created isolated ecosystems where dinosaurs developed extraordinary adaptations.',
+    p2: 'Millions of years later, you wake on a living island called the Frontier: a young dinosaur separated from its pack. And the Pulse is returning.',
+    goals: [['Survive', 'Outlast the next encounter. Read the flash, dodge, then strike.'], ['Evolve', 'Choose Swiftclaw, Ironhide or Wildspark and grow your sanctuary.'], ['Uncover', 'Find out what is calling the Genesis Pulse back.']],
+    back: 'Back', demo: 'Watch demo'
+  },
+  demo: {
+    badge: 'DEMO', skip: 'Skip demo',
+    caps: ['Explore Verdant Valley. Berries restore a little health.', 'Enemies flash before they strike. Dodge, then hit back.', 'Dash and abilities spend energy, which recharges.', 'Follow the marker to the egg site to discover an egg.', 'Then evolve, upgrade and face Thornback.'],
+    end: 'Ready? Tap New Game to start your own expedition.'
+  },
   tutorial: {
     step: 'STEP {n} OF 4',
     steps: [
@@ -44,6 +56,7 @@ DF.S = {
   obj: {
     egg: { name: 'Egg Hunt', meta: 'Lv 1+ · ~6 min', hud: 'Reach the egg site · {b}/{n} berries' },
     forage: { name: 'Forage the Falls', meta: 'Lv 2+ · ~5 min', hud: 'Reach the falls nest · {b}/{n} berries' },
+    demo: { name: 'Demo', meta: '', hud: 'Reach the egg site · {b}/{n} berries' },
     boss: { name: 'Thornback’s Den', meta: 'Lv 5+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat Thornback' },
     choose: 'CHOOSE AN OBJECTIVE', start: 'Start expedition', locked: 'Locked · Lv {lv}'
   },

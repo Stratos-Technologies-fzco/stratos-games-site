@@ -56,7 +56,7 @@ window.DF = window.DF || {};
       '<div style="font-size:12.5px;font-weight:800;letter-spacing:.16em;color:var(--gold);margin-bottom:10px">' + S.tagline.replace('&', '&amp;') + '</div>' +
       (has ? '<button class="btn pri" data-act="continue" data-focus style="justify-content:space-between"><span>' + C.cont + '</span><span style="font-size:12.5px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
       '<button class="btn ' + (has ? 'sec' : 'pri') + '" data-act="newGame" ' + (has ? '' : 'data-focus') + ' style="justify-content:flex-start">' + C.newGame + '</button>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn ghost" data-act="settings">' + C.settings + '</button><button class="btn ghost" data-act="credits">' + C.credits + '</button></div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><button class="btn ghost" data-act="lore" aria-label="' + C.storyAria + '" style="padding:0">' + C.story + '</button><button class="btn ghost" data-act="demo" aria-label="' + C.demoAria + '" style="padding:0">' + C.demo + '</button><button class="btn ghost" data-act="settings" style="padding:0">' + C.settings + '</button><button class="btn ghost" data-act="credits" style="padding:0">' + C.credits + '</button></div>' +
       (has ? '<div style="font-size:12px;color:var(--mut2);line-height:1.4">' + C.replaceNote + '</div>' : '') + '</div>' +
       '<button data-act="stratos" style="position:absolute;right:16px;top:14px;font-size:13px;font-weight:700;padding:10px 12px;border-radius:10px;background:rgba(14,23,18,.75);color:var(--text);border:0">' + C.stratos + '</button>' +
       '<div style="position:absolute;right:16px;bottom:12px;font-size:11.5px;color:var(--mut)">' + S.version + ' · English</div>' +
@@ -73,9 +73,21 @@ window.DF = window.DF || {};
       '<div class="row" style="gap:10px;margin-top:6px"><button class="btn pri" data-act="storyGo" data-focus style="padding:0 26px">' + C.go + '</button>' + (skip ? '<button class="btn outl" data-act="storySkip" style="padding:0 18px">' + C.skip + '</button>' : '') + '</div></div></div>';
   };
 
+  /* ---------- Story (title screen) ---------- */
+  T.lore = function () {
+    var L = S.lore, goals = L.goals.map(function (g, i) {
+      return '<div class="col" style="flex:1;padding:10px 12px;border-radius:12px;background:rgba(22,35,27,.92);border:1px solid var(--line);gap:3px"><span style="font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--gold)">' + (i + 1) + ' · ' + g[0].toUpperCase() + '</span><span style="font-size:12.5px;line-height:1.4;color:var(--soft)">' + g[1] + '</span></div>';
+    }).join('');
+    return '<div class="scr solid"><img class="bgimg" src="' + img('lost_expedition_raptor') + '" alt="" style="opacity:.55"><div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,.97) 52%,rgba(14,23,18,.25))"></div>' +
+      '<div class="col" style="position:absolute;left:44px;top:22px;bottom:22px;width:560px;justify-content:center;gap:10px"><div class="eyebrow">' + L.eyebrow + '</div><h2 class="serif" style="margin:0;font-size:28px">' + L.title + '</h2>' +
+      '<p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--soft)">' + L.p1 + '</p><p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--soft)">' + L.p2 + '</p>' +
+      '<div class="row" style="gap:8px;align-items:stretch">' + goals + '</div>' +
+      '<div class="row" style="gap:10px;margin-top:2px"><button class="btn pri" data-act="demo" style="padding:0 22px;height:44px;font-size:15px">' + L.demo + '</button><button class="btn outl" data-act="loreBack" data-focus style="padding:0 20px;height:44px">' + L.back + '</button></div></div></div>';
+  };
+
   /* ---------- SCR-04/05 HUD (with tutorial card) ---------- */
   T.hud = function (p) {
-    var H = S.hud, tut = p.tutorial, ret = DF.save.profile.tutorialCompleted;
+    var H = S.hud, tut = p.tutorial, demo = p.demo, ret = DF.save.profile.tutorialCompleted, hideCtl = (tut ? 'display:none' : '');
     var heart = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#E5534B" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/></svg>';
     var bolt = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#4FD1C5" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>';
     var lock = '<svg class="lk" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B9C2B0" stroke-width="2.5" aria-hidden="true" style="display:none"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>';
@@ -87,7 +99,8 @@ window.DF = window.DF || {};
       (tut ? '<div id="tut" class="hudp" role="status" aria-live="polite" style="left:50%;top:12px;transform:translateX(-50%);width:352px;padding:10px 14px;border-radius:14px;background:rgba(14,23,18,.92);border:1px solid var(--gold);display:flex;flex-direction:column;gap:6px"></div>'
         : '<div id="obj" class="hudp" style="left:50%;top:12px;transform:translateX(-50%);padding:8px 14px;border-radius:99px;font-size:13px;font-weight:700;white-space:nowrap"><span style="color:var(--gold);font-weight:800">' + H.objective + '</span> <span id="obj-t"></span></div>') +
       '<div class="hudp row" style="right:70px;top:12px;padding:8px 12px;border-radius:12px;gap:14px;font-size:13px;font-weight:800"><span title="Food" style="color:var(--food)">' + H.food + ' <span id="r-f">0</span></span><span title="DNA Fragments" style="color:var(--dna)">' + H.dna + ' <span id="r-d">0</span></span><span title="Frontier Tokens" style="color:var(--gold2)">◉ <span id="r-t">0</span></span></div>' +
-      '<button class="hudp hit row" data-act="pause" aria-label="' + H.pause + '" style="right:14px;top:12px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="#F3EBD7" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>' +
+      (demo ? '<button class="hudp hit btn" data-act="skipDemo" data-focus style="right:14px;top:12px;height:44px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--gold)">' + S.demo.skip + ' ✕</button><div class="hudp" style="left:14px;top:96px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.14em;color:#1A1408;background:var(--gold)">' + S.demo.badge + '</div>' :
+      '<button class="hudp hit row" data-act="pause" aria-label="' + H.pause + '" style="right:14px;top:12px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="#F3EBD7" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>') +
       '<div id="bossbar" class="hudp" style="display:none;left:50%;bottom:12px;transform:translateX(-50%);width:340px;padding:7px 12px;border-radius:12px"><div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:4px">THORNBACK</div><div class="meter" style="background:#3A2724;height:9px"><div id="boss-b" style="width:100%;height:100%;background:#C9A56A"></div></div></div>' +
       '<div id="joy" class="hit" aria-label="Move joystick" style="' + (UI.touch ? '' : 'display:none') + '"><i></i></div>' +
       '<div id="jlabel" style="position:absolute;left:34px;bottom:8px;font-size:11.5px;font-weight:700;width:120px;text-align:center;' + (UI.touch ? '' : 'display:none') + '">' + S.tutorial.dragOr.split(' · ')[0] + '</div>' +
@@ -331,6 +344,15 @@ window.DF = window.DF || {};
     cv.classList.toggle('on', gameView); cv.classList.toggle('blur', name === 'pause');
     var f = ui.querySelector('[data-focus]'); if (f && name !== 'hud') { try { f.focus({ preventScroll: true }); } catch (e) {} }
   };
+  /* demo: hide touch controls and the resource pill, add a caption bar */
+  UI.demoMode = function () {
+    ['joy', 'jlabel', 'b-atk', 'b-dash', 'b-abil', 'keys'].forEach(function (id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
+    var rf = document.getElementById('r-f'); if (rf) rf.parentNode.parentNode.style.display = 'none';
+    var cap = document.createElement('div'); cap.id = 'cap'; cap.setAttribute('role', 'status');
+    cap.style.cssText = 'position:absolute;left:50%;bottom:22px;transform:translateX(-50%);max-width:640px;padding:10px 18px;border-radius:14px;background:rgba(14,23,18,.92);border:1px solid var(--gold);font-size:15px;font-weight:800;text-align:center';
+    ui.firstChild.appendChild(cap);
+  };
+  UI.caption = function (t) { var c = document.getElementById('cap'); if (c && c.textContent !== t) c.textContent = t; };
   UI.refresh = function () { UI.show(UI.cur, UI.p); };
   UI.setProgress = function (pct) {
     var b = document.getElementById('ld-bar'), t = document.getElementById('ld-pct'), pb = document.getElementById('ld-pb');

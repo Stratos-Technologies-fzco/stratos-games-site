@@ -61,6 +61,7 @@ window.DF = window.DF || {};
     objectives: {
       egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2600, berriesNeeded: 3, bushes: 5, raiders: 3, spitters: 0, skimmers: 0, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 3000, berriesNeeded: 6, bushes: 8, raiders: 3, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
+      demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 } }
     },
     tutorial: { worldW: 2100 },

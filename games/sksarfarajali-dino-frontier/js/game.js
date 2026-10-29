@@ -46,14 +46,14 @@ window.DF = window.DF || {};
   };
 
   G.start = function (opts) {
-    var save = DF.save, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.objective];
-    var stats = DF.playerStats(save), rng = DF.createRng(opts.runId);
+    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? 'demo' : opts.objective];
+    var stats = DF.playerStats(demo ? demoSave() : save), rng = DF.createRng(opts.runId);
     S = G.S = {
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
       gained: { food: 0, dna: 0, tokens: 0, xp: 0 }, berries: 0, kills: {}, dodges: 0, abilitiesUsed: 0, seen: {}, newEggs: [], newSpecies: [],
       enemies: [], bushes: [], pickups: [], rocks: [], projectiles: [], parts: [], texts: [], nests: [], crystal: null, boss: null,
       shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
-      tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
+      demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
     S.P = { x: 110, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0 };
     buildWorld();
@@ -61,9 +61,13 @@ window.DF = window.DF || {};
     paused = false; running = true; last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
     if (G.onTutorial) G.onTutorial(S.tut ? S.tut.step : -1);
-    DF.track(opts.tutorial ? 'tutorial_start' : 'expedition_start', { objective: S.objId });
+    if (!demo) DF.track(opts.tutorial ? 'tutorial_start' : 'expedition_start', { objective: S.objId });
   };
 
+  /* The demo plays a fixed, mid-game character so it never touches or reads the player's save for stats. */
+  function demoSave() {
+    var d = DF.defaultSave(); d.player.experience = 450; d.player.level = 4; d.profile.selectedEvolution = 'swiftclaw'; d.upgrades = { hide: 1 }; return d;
+  }
   function addRock(x, y, rx, ry) { S.rocks.push({ x: x, y: y, rx: rx, ry: ry, seed: S.rng.next() }); }
   function addBush(x, y, berries) { S.bushes.push({ x: x, y: y, berries: berries || 1, bob: S.rng.next() * 6 }); }
   function addEnemy(type, x, y, mods) {
@@ -90,7 +94,7 @@ window.DF = window.DF || {};
     }
     var nb = o.bushes, step = (W - 900) / nb;
     for (i = 0; i < nb; i++) addBush(480 + i * step + rng.range(-40, 40), rng.range(YMIN + 20, YMAX - 20), 1);
-    for (i = 0; i < 8; i++) addRock(rng.range(350, W - 450), rng.range(YMIN + 10, YMAX - 10), rng.range(36, 60), rng.range(16, 24));
+    for (i = 0; i < (S.demo ? 0 : 8); i++) addRock(rng.range(350, W - 450), rng.range(YMIN + 10, YMAX - 10), rng.range(36, 60), rng.range(16, 24)); // the demo arena is rock-free so the pilot never snags
     var ne = o.raiders + o.spitters + o.skimmers, types = [], n;
     for (n = 0; n < o.raiders; n++) types.push('raider'); for (n = 0; n < o.spitters; n++) types.push('spitter'); for (n = 0; n < o.skimmers; n++) types.push('skimmer');
     for (i = 0; i < types.length; i++) {
@@ -141,6 +145,7 @@ window.DF = window.DF || {};
     // queued actions
     while (queue.length) { var a = queue.shift(); if (a === 'attack') doAttack(); else if (a === 'dash') doDash(); else if (a === 'ability') doAbility(); }
     if (held.attack && P.atkCd <= 0) doAttack();
+    if (S.demo) { demoAI(dt); if (S.t > 75000 && S.ending <= 0) { S.ending = 400; S.endOutcome = 'success'; } }
     updatePlayer(dt);
     for (i = 0; i < S.enemies.length; i++) updateEnemy(S.enemies[i], dt);
     if (S.boss) updateBoss(S.boss, dt);
@@ -281,10 +286,12 @@ window.DF = window.DF || {};
     var red = st.defence + (isBoss ? st.bossDefence : 0); if (P.shield > 0) red += 0.5;
     var d = Math.max(1, Math.round(dmg * (1 - Math.min(0.85, red))));
     if (S.tut) d = Math.max(1, Math.round(d * 0.5));
+    if (S.demo) d = Math.max(1, Math.round(d * 0.35));
     P.hp -= d; P.inv = 650; P.hurt = 260; P.kx = (P.x < fromX ? -1 : 1) * 130;
     float(P.x, P.y - 70, '-' + d, '#F2B8B0', false); DF.Audio.sfx('hurt'); shake(4); S.hurtFlash = reduced() ? 120 : 260; vibrate(30);
     burst(P.x, P.y - 30, '#E5534B', 6);
     if (P.hp <= 0) {
+      if (S.demo) { P.hp = Math.round(P.maxHp * 0.5); P.inv = 1500; return true; }
       if (S.tut) { P.hp = Math.round(P.maxHp * 0.6); P.inv = 1500; toast('Shake it off! Try again.', 'info'); return true; }
       P.hp = 0; S.ending = 900; S.endOutcome = 'defeat'; S.ended = false;
     }
@@ -410,6 +417,34 @@ window.DF = window.DF || {};
     }
   }
 
+  /* ---------- demo pilot: plays the scripted run by itself ---------- */
+  function demoAI(dt) {
+    S.demoAcc += dt; if (S.demoAcc < 100) return; S.demoAcc = 0; var tick = ++S.demoTick;
+    var P = S.P, st = S.stats, near = null, nd = 1e9, tx = null, ty = null, i;
+    for (i = 0; i < S.enemies.length; i++) { var e = S.enemies[i]; if (e.state === 'dead') continue; var d = Math.abs(e.x - P.x) + Math.abs(e.y - P.y) * 2; if (d < nd) { nd = d; near = e; } }
+    if (near && nd < 460) {
+      var dir = near.x < P.x ? 1 : -1; tx = near.x + (near.type === 'spitter' ? 44 : 58) * dir; ty = near.y;
+      if (near.state === 'windup' && Math.abs(near.x - P.x) < 130 && P.en >= st.dashCost && P.dashCd <= 0 && tick % 2 === 0) press('dash');
+    } else {
+      var b = null, bd = 1e9, n = S.nests[0];
+      for (i = 0; i < S.bushes.length; i++) if (S.bushes[i].berries > 0) { var bx = Math.abs(S.bushes[i].x - P.x); if (bx < bd) { bd = bx; b = S.bushes[i]; } }
+      var pk = null, pd = 1e9; for (i = 0; i < S.pickups.length; i++) { var px = Math.abs(S.pickups[i].x - P.x); if (px < pd) { pd = px; pk = S.pickups[i]; } }
+      if (S.berries < S.obj.berriesNeeded && b) { tx = b.x; ty = b.y; } else if (pk && pd < 260) { tx = pk.x; ty = pk.y; } else if (n) { tx = n.x; ty = n.y; }
+    }
+    var mx = 0, my = 0;
+    if (tx != null) { var dx = tx - P.x, dy = ty - P.y; if (Math.abs(dx) > 14) mx = dx > 0 ? 1 : -1; if (Math.abs(dy) > 8) my = dy > 0 ? 1 : -1; }
+    // sidestep rocks: if we are pushing sideways but not moving, drift up or down for a moment
+    if (mx !== 0 && Math.abs(P.x - (S.lastX == null ? -99 : S.lastX)) < 3) S.stuck = (S.stuck || 0) + 1; else S.stuck = 0;
+    S.lastX = P.x;
+    if (S.stuck >= 3 && !S.detour) { S.detour = 16; S.detourDir = P.y > 270 ? -1 : 1; }
+    if (S.detour > 0) { my = S.detourDir; S.detour--; if (!S.detour) S.stuck = 0; }
+    mv.x = mx; mv.y = my;
+    if (near) {
+      var ddx = (near.x - P.x) * P.face, ddy = Math.abs(near.y - P.y);
+      if (ddx > -10 && ddx < 92 && ddy < 40) { press('attack'); if (P.en >= st.ability.cost && tick % 14 === 0) press('ability'); }
+    }
+  }
+
   /* ---------- pickups / objective ---------- */
   function updatePickups(dt) {
     var P = S.P, i, b, p;
@@ -508,7 +543,7 @@ window.DF = window.DF || {};
   G.snapshot = function () {
     if (!S) return null; var P = S.P, st = S.stats, o = S.obj, b = S.boss;
     var abReady = P.en >= st.ability.cost, dashReady = P.en >= st.dashCost;
-    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1 };
+    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, combat: S.combat, kills: S.kills.total || 0, t: S.t };
   };
 
   /* ---------- rendering ---------- */
