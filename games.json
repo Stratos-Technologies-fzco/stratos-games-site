@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 23,
+ "count": 24,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -246,6 +246,19 @@
    "thumb": "assets/covers/generated/sahidmodi45.svg",
    "added": "2026-10-29",
    "github": "sahidmodi45",
+   "kind": "family",
+   "soon": true
+  },
+  {
+   "slug": "sksarfarajali-dino-frontier",
+   "title": "Dino Frontier",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "Dino Frontier is a survival adventure game built around a short, satisfying daily session.",
+   "category": "arcade",
+   "url": "play/sksarfarajali-dino-frontier/",
+   "thumb": "assets/covers/generated/sksarfarajali-dino-frontier.svg",
+   "added": "2026-10-29",
+   "github": "sksarfarajali",
    "kind": "family",
    "soon": true
   },
