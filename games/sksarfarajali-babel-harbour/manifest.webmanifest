@@ -1,0 +1,16 @@
+{
+  "name": "Babel Harbour",
+  "short_name": "Babel Harbour",
+  "description": "A calm daily word puzzle. Sort the crates, spot the false friends.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B2238",
+  "theme_color": "#0B2238",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
