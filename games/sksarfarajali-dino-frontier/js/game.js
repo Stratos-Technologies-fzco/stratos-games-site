@@ -503,8 +503,8 @@ window.DF = window.DF || {};
     }
     if (!S.boss && S.nests.length) {
       var n = S.nests[0]; S.eggReady = objectiveReady();
-      if (!n.done && Math.abs(P.x - n.x) < 70 && Math.abs(P.y - n.y) < 50) {
-        if (!S.eggReady) { if (!S.shown.needB || S.t - S.shown.needB > 3500) { S.shown.needB = S.t; toast(DF.t(DF.S.hud.needBerries, { n: S.obj.berriesNeeded }), 'info'); DF.Audio.sfx('deny'); } }
+      if (!n.done && Math.abs(P.x - n.x) < 100 && Math.abs(P.y - n.y) < 120) {
+        if (!S.eggReady) { if (!S.shown.needB || S.t - S.shown.needB > 3500) { S.shown.needB = S.t; toast(DF.t(DF.S.hud.needBerries, { n: Math.max(1, S.obj.berriesNeeded - S.berries) }), 'info'); DF.Audio.sfx('deny'); } }
         else {
           n.done = true; DF.Audio.sfx('claim'); burst(n.x, n.y - 40, '#F5D27F', 18); ring(n.x, n.y, 110, '#F5D27F');
           if (DF.save.discoveries.eggs.indexOf(n.eggId) < 0 && S.newEggs.indexOf(n.eggId) < 0) { S.newEggs.push(n.eggId); }
@@ -637,6 +637,10 @@ window.DF = window.DF || {};
   function dNest(n) {
     shadow(n.x, n.y + 2, 84, 0.35);
     draw(n.eggId === 'glade' ? 'egg-glade' : 'egg', 86, n.x, n.y, { feet: 0.97 });
+    if (!S.eggReady && !n.done && Math.abs(S.P.x - n.x) < 340 && (!S.tut || S.tut.step >= 3)) {
+      var left = Math.max(1, S.obj.berriesNeeded - S.berries), msg = DF.t(DF.S.hud.needBerriesHint, { n: left, s: left === 1 ? 'berry' : 'berries' });
+      cx.font = '800 13px system-ui, sans-serif'; cx.textAlign = 'center'; cx.lineWidth = 4; cx.strokeStyle = 'rgba(14,23,18,.95)'; cx.strokeText(msg, n.x, n.y - 104); cx.fillStyle = '#F5D27F'; cx.fillText(msg, n.x, n.y - 104);
+    }
     if (S.eggReady && !n.done) { var a = 0.5 + 0.5 * Math.sin(S.t / 260); var g = cx.createRadialGradient(n.x, n.y - 30, 6, n.x, n.y - 30, 70); g.addColorStop(0, 'rgba(245,210,127,' + (0.45 * a + 0.2) + ')'); g.addColorStop(1, 'rgba(245,210,127,0)'); cx.fillStyle = g; cx.fillRect(n.x - 80, n.y - 110, 160, 130); }
   }
   function dCrystal(c) {

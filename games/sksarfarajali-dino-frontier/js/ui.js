@@ -131,7 +131,7 @@ window.DF = window.DF || {};
     q('en-b').style.width = (100 * s.en / s.maxEn) + '%'; q('en-t').textContent = s.en + '/' + s.maxEn; q('en-m').setAttribute('aria-valuenow', Math.round(100 * s.en / s.maxEn));
     q('en-msg').style.display = s.en < s.dashCost ? 'block' : 'none';
     q('r-f').textContent = s.food; q('r-d').textContent = s.dna; q('r-t').textContent = s.tokens;
-    var ot = q('obj-t'); if (ot) { var o = S.obj[s.objId]; ot.textContent = s.objId === 'boss' ? o.hud : F(o.hud, { b: Math.min(s.berries, s.need), n: s.need }); }
+    var ot = q('obj-t'); if (ot) { var o = S.obj[s.objId]; ot.textContent = s.objId === 'boss' ? o.hud : F(o.hud, { b: Math.min(s.berries, s.need), n: s.need }) + (s.berries >= s.need ? ' ✓ ready' : ''); }
     var set = function (id, subId, ok, cost, label, cd) {
       var b = q(id); if (!b) return; var cls = 'hit circle ' + (ok ? 'on' : 'off') + (cd > 0 && ok ? ' cd' : '');
       if (b.className !== cls) b.className = cls;

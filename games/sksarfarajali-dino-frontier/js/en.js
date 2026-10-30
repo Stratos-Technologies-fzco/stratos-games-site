@@ -50,7 +50,7 @@ DF.S = {
     objective: 'OBJECTIVE', food: 'Food', dna: 'DNA', pause: 'Pause', attack: 'ATTACK', dash: 'DASH', ability: 'ABILITY',
     noEnergy: 'No energy', depleted: 'Out of energy — recharging. Basic attack still works.',
     keys: 'WASD move · Space attack · Shift dash · E ability · Esc pause',
-    needBerries: 'Gather {n} berries first', eggFound: 'Egg discovered!', levelUp: 'Level up! Lv {lv}',
+    needBerries: 'Gather {n} more berries first', needBerriesHint: 'Need {n} more {s} to claim the egg', eggFound: 'Egg discovered!', levelUp: 'Level up! Lv {lv}',
     crystalHint: 'Wildspark energy could wake this crystal.', crystalWake: 'The Genesis Crystal hums — a hidden egg appears!',
     cooldown: 'Recharging…', bossPhase: 'Thornback roars — it’s enraged!', berry: '+1 Food', dna_: '+1 DNA', token: '+5 Tokens'
   },
