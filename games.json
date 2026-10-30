@@ -10,7 +10,7 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza/",
    "thumb": "games/im-mohua-liza/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -23,7 +23,7 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-aetherhold/",
    "thumb": "games/im-mohua-liza-aetherhold/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -36,7 +36,7 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-ashgrove-extraction/",
    "thumb": "games/im-mohua-liza-ashgrove-extraction/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -49,7 +49,7 @@
    "category": "arcade",
    "url": "play/im-mohua-liza-cargo-climb/",
    "thumb": "games/im-mohua-liza-cargo-climb/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -62,7 +62,7 @@
    "category": "party",
    "url": "play/im-mohua-liza-chroma-clash/",
    "thumb": "games/im-mohua-liza-chroma-clash/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "im-mohua-liza",
    "kind": "family",
    "soon": false
@@ -75,7 +75,7 @@
    "category": "puzzle",
    "url": "play/mody-sahariar1/",
    "thumb": "games/mody-sahariar1/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "mody-sahariar1",
    "kind": "family",
    "soon": false
@@ -88,7 +88,7 @@
    "category": "kids",
    "url": "play/nikhatenglish89/",
    "thumb": "assets/covers/generated/nikhatenglish89.svg",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "nikhatenglish89",
    "kind": "family",
    "soon": false
@@ -101,20 +101,20 @@
    "category": "arcade",
    "url": "play/saiqulmodi/",
    "thumb": "games/saiqulmodi/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
   },
   {
    "slug": "saiqulmodi-bridge-genius",
-   "title": "Bridge Genius: Setu Builders",
+   "title": "BridgeWorks Campus",
    "maker": "Md. Saiqul Haque Modi",
-   "one_line": "Build real-physics bridges, railways and signals across India, and earn your building money by learning.",
+   "one_line": "Walk the campus road from Class 1 to Expert Engineer: answer your class's questions to earn parts, then build a real-physics bridge and test it with traffic.",
    "category": "kids",
    "url": "play/saiqulmodi-bridge-genius/",
    "thumb": "games/saiqulmodi-bridge-genius/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -127,7 +127,7 @@
    "category": "kids",
    "url": "play/saiqulmodi-domino-wonder-dash/",
    "thumb": "games/saiqulmodi-domino-wonder-dash/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -140,7 +140,7 @@
    "category": "kids",
    "url": "play/saiqulmodi-ecos-synthetica/",
    "thumb": "games/saiqulmodi-ecos-synthetica/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -153,7 +153,7 @@
    "category": "arcade",
    "url": "play/saiqulmodi-squirrel-vs-viper/",
    "thumb": "games/saiqulmodi-squirrel-vs-viper/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "saiqulmodi",
    "kind": "family",
    "soon": false
@@ -166,7 +166,7 @@
    "category": "arcade",
    "url": "play/shoaibul0926/",
    "thumb": "games/shoaibul0926/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "shoaibul0926",
    "kind": "family",
    "soon": false
@@ -179,7 +179,7 @@
    "category": "kids",
    "url": "play/sksarfarajali/",
    "thumb": "games/sksarfarajali/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -192,7 +192,7 @@
    "category": "word",
    "url": "play/sksarfarajali-babel-harbour/",
    "thumb": "games/sksarfarajali-babel-harbour/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -205,7 +205,7 @@
    "category": "puzzle",
    "url": "play/sksarfarajali-brainrush/",
    "thumb": "games/sksarfarajali-brainrush/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -218,7 +218,7 @@
    "category": "arcade",
    "url": "play/sksarfarajali-dino-frontier/",
    "thumb": "games/sksarfarajali-dino-frontier/thumbnail.png",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "sksarfarajali",
    "kind": "family",
    "soon": false
@@ -257,7 +257,7 @@
    "category": "puzzle",
    "url": "play/sahidmodi45/",
    "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-10-29",
+   "added": "2026-10-30",
    "github": "sahidmodi45",
    "kind": "family",
    "soon": true
