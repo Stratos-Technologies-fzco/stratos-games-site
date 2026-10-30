@@ -22,7 +22,7 @@ window.DF = window.DF || {};
     Nav.state = state;
     var m = MUSIC[state]; if (m && !opts.keepMusic) A.play(m, 900);
     if (state === 'sanctuary' || state === 'missions') { if (DF.rollDaily(sv())) DF.Store.saveSoon(sv()); }
-    if (state === 'sanctuary' && !DF.objectiveUnlocked(sv(), st.obj)) st.obj = 'egg';
+    if (state === 'sanctuary' && !DF.objectiveUnlocked(sv(), st.obj)) { st.obj = 'egg'; st.biome = 'verdant'; }
     if (state === 'evolution') st.evo = sv().profile.selectedEvolution || st.evo || 'swiftclaw';
     UI.show(state, p);
     if (state === 'hud') { UI.bindHud(G); if (G.S && G.S.tut) UI.tutCard(G.S.tut.step); UI.hudTick(G.snapshot()); }
@@ -96,7 +96,7 @@ window.DF = window.DF || {};
     Nav.run = { objId: objId, tutorial: !!tutorial, runId: base + (Nav.restarts ? '-r' + Nav.restarts : '') };
     A.setDuck(1); A.stopStinger && A.stopStinger();
     A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
-    if (objId === 'boss') A.preload('04-boss-thornback');
+    if (objId === 'boss' || objId === 'cinder') A.preload('04-boss-thornback');
     go('hud', { tutorial: !!tutorial, objId: objId }, { keepMusic: true });
     G.resize(Nav.scale);
     G.start({ objective: objId, tutorial: !!tutorial, runId: Nav.run.runId });
@@ -121,8 +121,8 @@ window.DF = window.DF || {};
     var firstExp = !s.profile.firstExpeditionCompleted;
     if (ok) {
       r.food += o.bonus.food; r.dna += o.bonus.dna; r.tokens += o.bonus.tokens; r.xp += o.bonus.xp;
-      if (res.objectiveId === 'boss' && s.progress.grantedRewardIds.indexOf('boss-thornback-first') < 0) {
-        DF.commitGrant(s, 'boss-thornback-first', { dna: 0 }); r.dna += o.firstKill.dna; r.tokens += o.firstKill.tokens;
+      if (res.bossDown && o.firstKill && s.progress.grantedRewardIds.indexOf('boss-' + res.bossId + '-first') < 0) {
+        DF.commitGrant(s, 'boss-' + res.bossId + '-first', { dna: 0 }); r.dna += o.firstKill.dna; r.tokens += o.firstKill.tokens;
       }
       if (firstExp) { var need = B.evolution.dnaCost - (s.inventory.dnaFragments + r.dna); if (need > 0) r.dna += need; } // guarantees the first evolution is affordable
     }
@@ -130,23 +130,25 @@ window.DF = window.DF || {};
     if (!applied.xp && !applied.food && !applied.dna && !applied.tokens) r = { food: 0, dna: 0, tokens: 0, xp: 0 };
     if (ok) {
       s.profile.firstExpeditionCompleted = true; if (res.tutorial) { s.profile.tutorialCompleted = true; s.profile.tutorialStep = 4; }
-      if (res.bossDown && s.progress.bossesDefeated.indexOf('thornback') < 0) s.progress.bossesDefeated.push('thornback');
+      if (res.bossDown && s.progress.bossesDefeated.indexOf(res.bossId) < 0) s.progress.bossesDefeated.push(res.bossId);
       DF.missionEvent(s, 'expedition', 1);
     }
     res.newEggs.forEach(function (id) { DF.discover(s, 'egg', id); });
     res.seen.forEach(function (id) { if (DF.SPECIES.indexOf(id) >= 0) DF.discover(s, 'species', id); });
-    if (res.bossDown) DF.discover(s, 'species', 'thornback');
+    if (res.bossDown) DF.discover(s, 'species', res.bossId);
     DF.missionEvent(s, 'berry', res.berries); DF.missionEvent(s, 'kill:raider', res.kills.raider || 0); DF.missionEvent(s, 'kill', res.kills.total || 0); DF.missionEvent(s, 'dodge', res.dodges); DF.missionEvent(s, 'ability', res.abilities);
     persist();
     var after = s.player.level, next;
     if (!ok) next = S.summary.nextTip;
     else if (!s.profile.selectedEvolution) next = S.summary.nextEvo;
+    else if (s.player.level >= B.objectives.ember.minLevel && res.objectiveId !== 'ember' && res.objectiveId !== 'cinder') next = S.summary.nextEmber;
+    else if (res.objectiveId === 'ember' || res.objectiveId === 'cinder') next = S.summary.nextGeneric;
     else if (res.objectiveId !== 'boss' && DF.objectiveUnlocked(s, 'boss')) next = S.summary.nextBoss;
     else next = S.summary.nextGeneric;
     var p = { outcome: res.outcome, objId: res.tutorial ? 'egg' : res.objectiveId, reward: r, n: s.progress.expeditions, newEgg: res.newEggs[0] || '', levelUp: after > before ? after : 0, next: next };
     Nav.summary = p; Nav.run.objId = res.tutorial ? 'egg' : res.objectiveId; Nav.run.tutorial = false;
     DF.track(ok ? 'expedition_complete' : 'expedition_failed', { objective: res.objectiveId, ms: Math.round(res.duration) });
-    if (res.bossDown) DF.track('boss_result', { result: 'win' }); else if (res.objectiveId === 'boss') DF.track('boss_result', { result: 'loss' });
+    if (res.bossDown) DF.track('boss_result', { result: 'win' }); else if (res.objectiveId === 'boss' || res.objectiveId === 'cinder') DF.track('boss_result', { result: 'loss' });
     if (res.tutorial && ok) DF.track('tutorial_complete', {});
     G.quitRun(); G.clear();
     A.setDuck(1);
@@ -229,6 +231,7 @@ window.DF = window.DF || {};
     codex: function () { go('codex'); },
     missions: function () { go('missions'); },
     pickObj: function (d) { UI.st.obj = d.id; UI.refresh(); },
+    pickBiome: function (d) { UI.st.biome = d.id; UI.st.obj = d.id === 'ember' ? 'ember' : 'egg'; UI.refresh(); },
     start: function () { var id = UI.st.obj; if (!DF.objectiveUnlocked(sv(), id)) id = 'egg'; startRun(id, false); },
     pickEvo: function (d) { UI.st.evo = d.id; UI.st.confirm = false; UI.refresh(); },
     evoAsk: function () { UI.st.confirm = true; UI.refresh(); },

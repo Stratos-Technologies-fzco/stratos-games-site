@@ -108,7 +108,7 @@ window.DF = window.DF || {};
       '<button class="hudp hit row" data-act="pause" aria-label="' + H.pause + '" style="right:14px;top:12px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="#F3EBD7" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>' +
       '<button class="hudp hit row" data-act="hudSettings" aria-label="' + S.pause.settings + ' (pauses the game)" title="' + S.pause.settings + '" style="right:14px;top:62px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3EBD7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15.5" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg></button>' +
       (demo ? '<button class="hudp hit btn" data-act="skipDemo" style="right:64px;top:12px;height:44px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--gold)">' + S.demo.skip + ' ✕</button><div class="hudp" style="left:14px;top:96px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.14em;color:#1A1408;background:var(--gold)">' + S.demo.badge + '</div>' : '') +
-      '<div id="bossbar" class="hudp" style="display:none;left:50%;bottom:12px;transform:translateX(-50%);width:340px;padding:7px 12px;border-radius:12px"><div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:4px">THORNBACK</div><div class="meter" style="background:#3A2724;height:9px"><div id="boss-b" style="width:100%;height:100%;background:#C9A56A"></div></div></div>' +
+      '<div id="bossbar" class="hudp" style="display:none;left:50%;bottom:12px;transform:translateX(-50%);width:340px;padding:7px 12px;border-radius:12px"><div id="boss-n" style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:4px">THORNBACK</div><div class="meter" style="background:#3A2724;height:9px"><div id="boss-b" style="width:100%;height:100%;background:#C9A56A"></div></div></div>' +
       '<div id="dpad" class="hit" role="group" aria-label="' + H.moveGroup + '" style="position:absolute;left:22px;bottom:18px;width:144px;height:144px">' + dpadBtn('up', 48, 0) + dpadBtn('left', 0, 48) + dpadBtn('right', 96, 48) + dpadBtn('down', 48, 96) + '<div aria-hidden="true" style="position:absolute;left:52px;top:52px;width:40px;height:40px;border-radius:50%;background:rgba(243,235,215,.12);border:2px solid rgba(243,235,215,.3)"></div></div>' +
       '<div style="position:absolute;right:24px;bottom:22px;width:200px;height:170px">' +
       '<button id="b-atk" class="hit circle" aria-label="Attack" style="right:0;bottom:0;width:84px;height:84px;border:3px solid var(--text);background:rgba(14,23,18,.8);font-size:12px">' + H.attack + '</button>' +
@@ -131,7 +131,7 @@ window.DF = window.DF || {};
     q('en-b').style.width = (100 * s.en / s.maxEn) + '%'; q('en-t').textContent = s.en + '/' + s.maxEn; q('en-m').setAttribute('aria-valuenow', Math.round(100 * s.en / s.maxEn));
     q('en-msg').style.display = s.en < s.dashCost ? 'block' : 'none';
     q('r-f').textContent = s.food; q('r-d').textContent = s.dna; q('r-t').textContent = s.tokens;
-    var ot = q('obj-t'); if (ot) { var o = S.obj[s.objId]; ot.textContent = s.objId === 'boss' ? o.hud : F(o.hud, { b: Math.min(s.berries, s.need), n: s.need }) + (s.berries >= s.need ? ' ✓ ready' : ''); }
+    var ot = q('obj-t'); if (ot) { var o = S.obj[s.objId]; ot.textContent = s.need === 0 ? o.hud : F(o.hud, { b: Math.min(s.berries, s.need), n: s.need }) + (s.berries >= s.need ? ' ✓ ready' : ''); }
     var set = function (id, subId, ok, cost, label, cd) {
       var b = q(id); if (!b) return; var cls = 'hit circle ' + (ok ? 'on' : 'off') + (cd > 0 && ok ? ' cd' : '');
       if (b.className !== cls) b.className = cls;
@@ -139,7 +139,7 @@ window.DF = window.DF || {};
       b.setAttribute('aria-label', ok ? label + ', costs ' + cost + ' energy' : label + ' unavailable, no energy');
     };
     set('b-dash', 'dash-s', s.dashOk, s.dashCost, 'Dash', s.dashCd); set('b-abil', 'abil-s', s.abOk, s.abCost, s.abName, s.abCd);
-    var bb = q('bossbar'); if (bb) { bb.style.display = s.boss ? 'block' : 'none'; if (s.boss) q('boss-b').style.width = (100 * s.boss.hp / s.boss.max) + '%'; }
+    var bb = q('bossbar'); if (bb) { bb.style.display = s.boss ? 'block' : 'none'; if (s.boss) { q('boss-b').style.width = (100 * s.boss.hp / s.boss.max) + '%'; q('boss-n').textContent = s.boss.name; } }
   };
   /* on-screen controls: movement D-pad and action buttons */
   UI.bindHud = function (G) {
@@ -164,7 +164,7 @@ window.DF = window.DF || {};
   /* ---------- SCR-06 Pause ---------- */
   T.pause = function (p) {
     var C = S.pause, g = p.snap || { food: 0, dna: 0, tokens: 0 }, o = S.obj[p.objId || 'egg'];
-    var objName = p.objId === 'boss' ? o.hud : o.hud.split(' ·')[0];
+    var bo = DF.balance.objectives[p.objId], objName = (bo && bo.berriesNeeded === 0) ? o.hud : o.hud.split(' ·')[0];
     var main = UI.st.restartConfirm
       ? '<p style="margin:0;font-size:14px;line-height:1.5;color:var(--soft);text-align:center">' + C.confirm + '</p><button class="btn danger" data-act="restartYes">' + C.yes + '</button><button class="btn pri" data-act="restartNo" data-focus style="height:44px;font-size:15px">' + C.keep + '</button>'
       : '<button class="btn pri" data-act="resume">' + C.resume + '</button><button class="btn dark" data-act="pauseSettings">' + C.settings + '</button>' + (p.demo ? '' : '<button class="btn dark" data-act="restartAsk">' + C.restart + '</button>') + '<button class="btn dark" data-act="exitTitle">' + (p.demo ? S.demo.skip : C.exit) + '</button>';
@@ -178,7 +178,7 @@ window.DF = window.DF || {};
 
   /* ---------- SCR-07 Summary ---------- */
   T.summary = function (p) {
-    var C = S.summary, ok = p.outcome === 'success', r = p.reward, hero = p.objId === 'boss' ? 'volcanic_ruins_chasm' : (ok ? '' : 'canyon_styracosaur'), eggKey = p.objId === 'forage' ? 'egg-glade' : 'egg';
+    var C = S.summary, ok = p.outcome === 'success', r = p.reward, bossLike = p.objId === 'boss' || p.objId === 'cinder', hero = bossLike ? 'volcanic_ruins_chasm' : (ok ? '' : (p.objId === 'ember' ? 'volcanic_ruins_chasm' : 'canyon_styracosaur')), eggKey = p.objId === 'forage' ? 'egg-glade' : p.objId === 'ember' ? 'egg-ember' : 'egg';
     var pill = 'font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;';
     var cells = [[C.food, r.food, '#CFE8B0'], [C.dna, r.dna, '#CDB4F7'], [C.tokens, r.tokens, '#F5D27F'], [C.xp, r.xp, '#F3EBD7']].map(function (c) {
       return '<div class="col" style="padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);gap:2px"><span style="font-size:11.5px;color:var(--mut2);font-weight:700">' + c[0] + '</span><span style="font-size:20px;font-weight:800;color:' + c[2] + '">+' + c[1] + '</span></div>';
@@ -187,23 +187,28 @@ window.DF = window.DF || {};
     var disc = p.newEgg && ok ? '<div style="position:absolute;left:14px;bottom:14px;padding:8px 12px;border-radius:12px;background:rgba(14,23,18,.88);border:1px solid var(--gold);font-size:13px;font-weight:800">' + F(C.discovery, { name: S.codex.eggs[p.newEgg].name }) + '<div style="font-size:11.5px;font-weight:600;color:var(--mut)">' + C.addedCodex + '</div></div>' : '';
     var lvl = p.levelUp ? '<span style="' + pill + 'background:var(--gold);color:#1A1408">' + F(C.levelUp, { lv: p.levelUp }) + '</span>' : '';
     return '<div class="scr solid row" style="align-items:stretch"><div style="position:relative;width:330px;flex:none">' + (hero ? '<img class="bgimg" src="' + img(hero) + '" alt="' + (ok ? 'Thornback den' : 'Verdant Valley') + '">' : '<div class="fill" style="background:radial-gradient(circle at 50% 55%,#5B4520 0%,#2A2A18 45%,#0E1712 80%)"></div><img src="' + img(eggKey) + '" alt="A newly discovered dinosaur egg" style="position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:74%;max-height:84%;object-fit:contain">') + '<div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,0) 60%,#0E1712)"></div>' + disc + '</div>' +
-      '<div class="col" style="flex:1;padding:22px 26px;gap:12px"><div class="row" style="gap:10px"><span style="' + pill + (ok ? 'background:#CFE8B0;color:#1C2A10' : 'background:#F2B8B0;color:#3A0E09') + '">' + (ok ? C.okBadge : C.failBadge) + '</span><span style="font-size:13px;color:var(--mut2)">' + F(C.where, { n: p.n }) + '</span>' + lvl + '</div>' +
-      '<h2 class="serif" style="margin:0;font-size:26px">' + (ok ? C.okHead[p.objId] : (p.objId === 'boss' ? C.failHeadBoss : C.failHead)) + '</h2><div style="font-size:14px;color:var(--soft);line-height:1.45">' + (ok ? C.okSub : C.failSub) + '</div>' +
+      '<div class="col" style="flex:1;padding:22px 26px;gap:12px"><div class="row" style="gap:10px"><span style="' + pill + (ok ? 'background:#CFE8B0;color:#1C2A10' : 'background:#F2B8B0;color:#3A0E09') + '">' + (ok ? C.okBadge : C.failBadge) + '</span><span style="font-size:13px;color:var(--mut2)">' + F((p.objId === 'ember' || p.objId === 'cinder') ? C.whereEmber : C.where, { n: p.n }) + '</span>' + lvl + '</div>' +
+      '<h2 class="serif" style="margin:0;font-size:26px">' + (ok ? C.okHead[p.objId] : (p.objId === 'cinder' ? C.failHeadCinder : p.objId === 'boss' ? C.failHeadBoss : C.failHead)) + '</h2><div style="font-size:14px;color:var(--soft);line-height:1.45">' + (ok ? C.okSub : C.failSub) + '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">' + cells + '</div>' +
       '<div style="padding:10px 12px;border-radius:12px;background:var(--card);border:1px dashed var(--gold);font-size:13.5px"><b style="color:var(--gold)">' + C.next + '</b> ' + next + '</div>' +
       '<div class="row" style="gap:10px;margin-top:auto"><button class="btn pri" data-act="' + (ok ? 'toSanctuary' : 'retry') + '" data-focus style="flex:1;font-size:15px">' + (ok ? C.sanctuary : C.retry) + '</button><button class="btn outl" data-act="' + (ok ? 'again' : 'toSanctuary') + '" style="flex:1;font-weight:800">' + (ok ? C.again : C.sanctuaryShort) + '</button></div></div></div>';
   };
 
   /* ---------- SCR-08 Sanctuary ---------- */
+  function biomeTab(id, cur, open) {
+    var on = id === cur, label = S.sanctuary.biomeShort[id], tip = open ? S.sanctuary.biomes[id] : F(S.sanctuary.biomeLocked, { lv: DF.balance.objectives.ember.minLevel });
+    return '<button data-act="pickBiome" data-id="' + id + '" ' + (open ? '' : 'disabled') + ' aria-pressed="' + on + '" title="' + tip + '" aria-label="' + tip + '" style="height:26px;padding:0 9px;border-radius:99px;font-size:11.5px;font-weight:800;' + (on ? 'background:var(--gold);color:#1A1408;border:0' : open ? 'background:var(--card);border:1px solid var(--line)' : 'background:#121D16;border:1px dashed #4A5A4E;color:#9AA597') + '">' + (open ? '' : '× ') + label + '</button>';
+  }
   T.sanctuary = function () {
     var C = S.sanctuary, sv = DF.save, st = DF.playerStats(sv), xp = DF.xpProgress(sv.player.experience), I = sv.inventory;
     var canEvo = sv.profile.firstExpeditionCompleted, choice = canEvo && !sv.profile.selectedEvolution;
     var pathName = sv.profile.selectedEvolution ? S.evo.paths[sv.profile.selectedEvolution].name : C.notChosen;
     var affordable = Object.keys(DF.balance.upgrades).filter(function (k) { var l = sv.upgrades[k] || 0; return l < DF.balance.upgrades[k].max && I.frontierTokens >= DF.upgradeCost(k, l); }).length;
     var ms = sv.missions, claimable = 0, done = 0; ms.active.forEach(function (id) { var d = DF.missionDef(id), c = (ms.progress[id] || 0) >= d.goal; if (c) { done++; if (ms.claimedRewardIds.indexOf(ms.resetKey + ':' + id) < 0) claimable++; } });
-    var disc = sv.discoveries.codexSpecies.length + sv.discoveries.eggs.length + 1;
+    var emberOpen = sv.player.level >= DF.balance.objectives.ember.minLevel, biome = (UI.st.biome === 'ember' && emberOpen) ? 'ember' : 'verdant';
+    var disc = sv.discoveries.codexSpecies.length + sv.discoveries.eggs.length + 1 + (emberOpen ? 1 : 0), discTotal = DF.SPECIES.length + DF.EGGS.length + 2;
     var tile = function (act, name, meta, hot, color) { return '<button class="col" data-act="' + act + '" style="position:relative;padding:10px 12px;border-radius:12px;background:var(--card);border:' + (hot ? '2px solid var(--gold)' : '1px solid var(--line)') + ';text-align:left;gap:2px"><span style="font-weight:800;font-size:14.5px">' + name + '</span><span style="font-size:12px;color:' + (color || 'var(--mut)') + ';font-weight:' + (color ? 700 : 400) + '">' + meta + '</span></button>'; };
-    var objs = ['egg', 'forage', 'boss'].map(function (id) {
+    var objs = (biome === 'ember' ? ['ember', 'cinder'] : ['egg', 'forage', 'boss']).map(function (id) {
       var o = DF.balance.objectives[id], locked = !DF.objectiveUnlocked(sv, id), sel = UI.st.obj === id && !locked, d = S.obj[id];
       var style = 'height:40px;padding:0 12px;border-radius:10px;font-size:13.5px;display:flex;justify-content:space-between;align-items:center;text-align:left;' + (locked ? 'background:#121D16;border:1px dashed #4A5A4E;color:#9AA597' : sel ? 'background:#2A2410;border:2px solid var(--gold)' : 'background:var(--card);border:1px solid var(--line)');
       return '<button data-act="pickObj" data-id="' + id + '" ' + (locked ? 'disabled' : '') + ' aria-pressed="' + sel + '" style="' + style + '"><span style="font-weight:800">' + (locked ? '×' : sel ? '●' : '○') + ' ' + d.name + '</span><span style="font-size:12px;font-weight:700">' + (locked ? F(d.locked || S.obj.locked, { lv: o.minLevel }) : d.meta) + '</span></button>';
@@ -211,13 +216,13 @@ window.DF = window.DF || {};
     var evoMeta = canEvo ? (choice ? C.evoReady : F(C.evoChosen, { p: pathName })) : C.evoLocked;
     return '<div class="scr solid"><img class="bgimg" src="' + img('raptor_nursery_sanctuary') + '" alt="The Sanctuary: a jungle shrine with eggs"><div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,.15) 0%,rgba(14,23,18,.55) 45%,rgba(14,23,18,.95) 62%)"></div>' +
       '<div class="row" style="position:absolute;left:14px;right:14px;top:10px;justify-content:space-between"><button class="back big" data-act="toTitle" aria-label="' + C.back + '">' + BACK + '</button><div class="row" style="gap:8px">' + res('Food', I.food, '#CFE8B0', 1) + res('DNA', I.dnaFragments, '#CDB4F7', 1) + res('◉', I.frontierTokens + ' ' + C.tokensLabel, '#F5D27F', 1) + '</div></div>' +
-      '<div class="col" style="position:absolute;left:14px;bottom:14px;width:250px;padding:12px 14px;border-radius:14px;background:rgba(14,23,18,.88);gap:6px"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="serif" style="font-size:18px;font-weight:700">' + C.yourDino + '</span><span style="font-size:13px;font-weight:800;color:var(--gold)">' + F(C.lv, { lv: sv.player.level }) + '</span></div>' +
+      '<div class="col" style="position:absolute;left:14px;bottom:14px;width:250px;padding:12px 14px;border-radius:14px;background:rgba(14,23,18,.88);gap:6px"><div class="row" style="justify-content:space-between;align-items:baseline"><span class="serif" style="font-size:18px;font-weight:700">' + C.yourDino + '</span><span style="font-size:13px;font-weight:800;color:var(--gold)">' + F(C.lv, { lv: sv.player.level, max: DF.balance.maxLevel }) + '</span></div>' +
       '<div role="meter" aria-label="Experience" aria-valuenow="' + xp.pct + '" aria-valuemin="0" aria-valuemax="100" style="height:6px;border-radius:99px;background:var(--line);overflow:hidden"><div style="width:' + xp.pct + '%;height:100%;background:var(--gold)"></div></div>' +
       '<div style="font-size:12.5px;color:var(--mut)">' + F(C.status, { hp: st.maxHealth, en: st.maxEnergy }) + ' <b style="color:var(--text)">' + pathName + '</b></div></div>' +
       '<div class="col" style="position:absolute;right:16px;top:64px;bottom:14px;width:320px;gap:8px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
       tile('evo', C.evo, evoMeta, choice, choice ? 'var(--gold2)' : '') + tile('upgrades', C.upgrades, affordable ? F(C.affordable, { n: affordable }) : C.none) +
-      tile('codex', C.codex, F(C.discovered, { a: disc, b: 9 })) + tile('missions', C.missions, claimable || done ? F(C.missionsMeta, { d: done, t: ms.active.length, c: claimable }) : F(C.missionsMeta0, { d: 0, t: ms.active.length })) + '</div>' +
-      '<div class="eyebrow" style="margin-top:2px">' + S.obj.choose + '</div>' + objs + '<button class="btn pri" data-act="start" data-focus style="margin-top:auto">' + S.obj.start + '</button></div></div>';
+      tile('codex', C.codex, F(C.discovered, { a: disc, b: discTotal })) + tile('missions', C.missions, claimable || done ? F(C.missionsMeta, { d: done, t: ms.active.length, c: claimable }) : F(C.missionsMeta0, { d: 0, t: ms.active.length })) + '</div>' +
+      '<div class="row" style="justify-content:space-between;margin-top:2px"><div class="eyebrow">' + S.obj.choose + '</div><div class="row" style="gap:5px">' + biomeTab('verdant', biome, true) + biomeTab('ember', biome, emberOpen) + '</div></div>' + objs + '<button class="btn pri" data-act="start" data-focus style="margin-top:auto">' + S.obj.start + '</button></div></div>';
   };
 
   /* ---------- SCR-09 Evolution ---------- */
@@ -259,18 +264,18 @@ window.DF = window.DF || {};
   T.codex = function () {
     var C = S.codex, sv = DF.save, tab = UI.st.tab, items = [], a = 0, b = 0, tag;
     var D = { tag: C.found, border: '1px solid var(--line)' }, U = { tag: C.unknown, border: '1px dashed #4A5A4E' }, L = { tag: C.later, border: '1px dashed #4A5A4E' };
-    var artFor = { starter: 'dino-starter', raider: 'enemy-raider', spitter: 'enemy-spitter', skimmer: 'enemy-skimmer', thornback: 'boss-thornback', shadowscale: 'egg', glade: 'egg-glade', prism: 'egg-prism' };
+    var artFor = { starter: 'dino-starter', raider: 'enemy-raider', spitter: 'enemy-spitter', skimmer: 'enemy-skimmer', thornback: 'boss-thornback', cinderjaw: 'boss-cinderjaw', shadowscale: 'egg', glade: 'egg-glade', prism: 'egg-prism', ember: 'egg-ember' };
     if (tab === 'species') DF.SPECIES.forEach(function (id) { var f = sv.discoveries.codexSpecies.indexOf(id) >= 0, d = C.species[id]; b++; if (f) a++; items.push(f ? { s: D, name: d.name, text: d.text, img: artFor[id], art: true } : { s: U, name: C.unknownName, text: d.clue, img: artFor[id], art: true, sil: true }); });
     else if (tab === 'eggs') DF.EGGS.forEach(function (id) { var f = sv.discoveries.eggs.indexOf(id) >= 0, d = C.eggs[id]; b++; if (f) a++; items.push(f ? { s: D, name: d.name, text: d.text, img: artFor[id], art: true } : { s: U, name: C.unknownName, text: d.clue, img: artFor[id], art: true, sil: true }); });
     else { var bm = { verdant: 'canyon_styracosaur', ember: 'volcanic_ruins_chasm', frost: 'aurora_celestial_sanctuary', mire: 'bioluminescent_spino_swamp', crater: 'celestial_sky_citadel' };
-      Object.keys(bm).forEach(function (id) { var d = C.biomes[id], here = id === 'verdant'; b++; if (here) a++; items.push({ s: here ? { tag: C.here, border: '1px solid var(--line)' } : L, name: d.name, text: d.text, img: bm[id], dim: !here }); }); }
+      Object.keys(bm).forEach(function (id) { var d = C.biomes[id], here = id === 'verdant', open = id === 'ember' && sv.player.level >= DF.balance.objectives.ember.minLevel; b++; if (here || open) a++; items.push({ s: here ? { tag: C.here, border: '1px solid var(--line)' } : open ? { tag: C.open, border: '1px solid var(--line)' } : L, name: d.name, text: d.text, img: bm[id], dim: !(here || open) }); }); }
     var cards = items.map(function (c) {
       var style = 'width:100%;height:100%;display:block;' + (c.art ? 'object-fit:contain;padding:6px 6px 0;background:radial-gradient(circle at 50% 75%,#3E4A30,#16231B 72%);' : 'object-fit:cover;') + (c.sil ? 'filter:blur(5px) brightness(.4) saturate(.4);transform:scale(1.08);' : c.dim ? 'filter:grayscale(.85) brightness(.55);' : c.hue ? 'filter:hue-rotate(150deg);' : '');
       return '<div class="col" style="border-radius:14px;overflow:hidden;background:var(--card);border:' + c.s.border + '"><div style="position:relative;height:150px;background:var(--bg);overflow:hidden"><img src="' + img(c.img) + '" alt="' + (c.sil ? 'Undiscovered silhouette' : c.name) + '" style="' + style + '"><span style="position:absolute;left:8px;top:8px;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:99px;background:rgba(14,23,18,.88)">' + c.s.tag + '</span></div>' +
         '<div class="col" style="padding:9px 11px;gap:3px"><span style="font-weight:800;font-size:14px">' + c.name + '</span><span style="font-size:12px;line-height:1.4;color:var(--mut)">' + c.text + '</span></div></div>';
     }).join('');
     var tabs = ['species', 'eggs', 'biomes'].map(function (id) { var on = tab === id; return '<button role="tab" aria-selected="' + on + '" data-act="tab" data-id="' + id + '" style="height:36px;padding:0 14px;border-radius:10px;font-weight:800;font-size:13px;' + (on ? 'background:var(--gold);color:#1A1408;border:0' : 'background:var(--card);border:1px solid var(--line)') + '">' + C.tabs[id] + '</button>'; }).join('');
-    return '<div class="scr solid page"><div class="hd"><button class="back" data-act="toSanctuary" aria-label="Back to Sanctuary">' + BACK + '</button><h2 class="h2" style="flex:none">' + C.title + '</h2><div role="tablist" class="row" style="gap:6px;margin-left:12px">' + tabs + '</div><span style="margin-left:auto;font-size:13px;font-weight:800;color:var(--mut)">' + F(C.prog[tab], { a: a, b: b }) + '</span></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:1;min-height:0">' + cards + '</div></div>';
+    return '<div class="scr solid page"><div class="hd"><button class="back" data-act="toSanctuary" aria-label="Back to Sanctuary">' + BACK + '</button><h2 class="h2" style="flex:none">' + C.title + '</h2><div role="tablist" class="row" style="gap:6px;margin-left:12px">' + tabs + '</div><span style="margin-left:auto;font-size:13px;font-weight:800;color:var(--mut)">' + F(C.prog[tab], { a: a, b: b }) + '</span></div><div style="display:grid;grid-template-columns:repeat(' + Math.max(5, items.length) + ',1fr);gap:10px;flex:1;min-height:0">' + cards + '</div></div>';
   };
 
   /* ---------- SCR-12 Missions ---------- */

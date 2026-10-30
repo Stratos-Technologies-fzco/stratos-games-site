@@ -52,12 +52,13 @@ window.DF = window.DF || {};
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
       gained: { food: 0, dna: 0, tokens: 0, xp: 0 }, berries: 0, kills: {}, dodges: 0, abilitiesUsed: 0, seen: {}, newEggs: [], newSpecies: [],
       enemies: [], bushes: [], pickups: [], rocks: [], projectiles: [], parts: [], texts: [], nests: [], crystal: null, boss: null,
-      formScale: 1, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
+      formScale: 1, biome: obj.biome || 'verdant', hz: { pools: [], vents: [] }, bossDef: null, heatAcc: 0, ambT: 0, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
     S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0 };
     S.formScale = (FORM_W[stats.path] || 128) / 128; // enemies are drawn in proportion to the player's form (art only; hit boxes do not change)
     buildWorld();
+    if (S.biome === 'ember' && !demo) toast(DF.S.hud.emberHint, 'info');
     held.attack = false; queue.length = 0; keys = {}; mv.x = 0; mv.y = 0;
     paused = false; running = true; last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -73,9 +74,12 @@ window.DF = window.DF || {};
   function addBush(x, y, berries) { S.bushes.push({ x: x, y: y, berries: berries || 1, bob: S.rng.next() * 6 }); }
   function addEnemy(type, x, y, mods) {
     var d = B.enemies[type], e = { kind: 'enemy', type: type, def: d, x: x, y: y, hp: d.hp, maxHp: d.hp, face: -1, state: 'idle', t: 0, cd: 400, hitFlash: 0, stun: 0, kx: 0, vx: 0, vy: 0, dirx: 1, diry: 0, didHit: false, near: false, wob: S.rng.next() * 6, dead: 0, id: S.enemies.length + 1 };
+    var em = S.obj && S.obj.enemyMul; if (em) { e.hp = e.maxHp = Math.round(d.hp * em.hp); e.dmgMul = em.dmg; }
     if (mods) { Object.keys(mods).forEach(function (k) { e[k] = mods[k]; }); }
     S.enemies.push(e); return e;
   }
+  function addPool(x, y, rx, ry) { S.hz.pools.push({ x: x, y: y, rx: rx, ry: ry, ph: S.rng.next() * 6 }); }
+  function addVent(x, y) { var H = B.hazards; S.hz.vents.push({ x: x, y: y, state: 'idle', t: S.rng.range(H.ventIdle[0] * 0.5, H.ventIdle[1]), hit: false }); }
   function buildWorld() {
     var o = S.obj, W = S.worldW, rng = S.rng, i, x;
     if (S.tut) {
@@ -86,10 +90,12 @@ window.DF = window.DF || {};
       S.nests.push({ x: W - 240, y: 285, eggId: 'shadowscale', done: false });
       return;
     }
-    if (o.id === 'boss') {
-      addBush(260, 215, 3); addBush(1040, 330, 3);
-      addRock(560, 215, 60, 22); addRock(760, 340, 56, 20);
-      S.boss = { kind: 'boss', x: 980, y: 270, hp: B.boss.hp, maxHp: B.boss.hp, state: 'sleep', t: 0, face: -1, phase: 1, hitFlash: 0, dirx: -1, atk: '', didHit: false, speedMul: 1, windMul: 1, stun: 0, kx: 0, wave: -1, id: 'boss' };
+    if (o.id === 'boss' || o.id === 'cinder') {
+      S.bossDef = B.bosses[o.bossId];
+      addBush(260, 215, 3); addBush(o.id === 'cinder' ? 1240 : 1040, 330, 3);
+      if (o.id === 'boss') { addRock(560, 215, 60, 22); addRock(760, 340, 56, 20); }
+      if (o.hazards && o.hazards.vents) for (i = 0; i < o.hazards.vents; i++) addVent(560 + i * 115 + rng.range(-25, 25), rng.range(YMIN + 16, YMAX - 16));
+      S.boss = { kind: 'boss', x: o.id === 'cinder' ? 1150 : 980, y: 270, hp: S.bossDef.hp, maxHp: S.bossDef.hp, state: 'sleep', t: 0, face: -1, phase: 1, hitFlash: 0, dirx: -1, atk: '', didHit: false, speedMul: 1, windMul: 1, stun: 0, kx: 0, wave: -1, id: 'boss' };
       S.P.x = 250;
       return;
     }
@@ -119,6 +125,12 @@ window.DF = window.DF || {};
     var nd = Math.max(4, Math.round(W / 900)), nc = Math.max(5, Math.round(W / 800));
     for (i = 0; i < nd; i++) { p = free(rng.range(600, W - 500), rng.range(YMIN + 12, YMAX - 8)); S.pickups.push(mkPick('dna', p[0], p[1])); }
     for (i = 0; i < nc; i++) { p = free(rng.range(500, W - 400), rng.range(YMIN + 12, YMAX - 8)); S.pickups.push(mkPick('coin', p[0], p[1])); }
+    if (o.hazards) { // Emberlands: lava pools and heat vents, spread along the trail but never on the first or last stretch
+      var hx0 = 1000, hx1 = W - 1500, tries, okp, q;
+      var clearOf = function (x, y, r) { for (q = 0; q < S.bushes.length; q++) if (Math.abs(S.bushes[q].x - x) < r + 40 && Math.abs(S.bushes[q].y - y) < 60) return false; for (q = 0; q < S.pickups.length; q++) if (Math.abs(S.pickups[q].x - x) < r + 30 && Math.abs(S.pickups[q].y - y) < 50) return false; return true; };
+      for (i = 0; i < o.hazards.pools; i++) { var rxp = rng.range(55, 85); for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 + (i + 0.5) * (hx1 - hx0) / o.hazards.pools + rng.range(-120, 120); var yp = rng.range(YMIN + 22, YMAX - 22); if (clearOf(x, yp, rxp)) { addPool(x, yp, rxp, rng.range(15, 21)); okp = true; } } }
+      for (i = 0; i < o.hazards.vents; i++) { for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 + 80 + (i + 0.5) * (hx1 - hx0) / o.hazards.vents + rng.range(-150, 150); var yv = rng.range(YMIN + 18, YMAX - 18); if (clearOf(x, yv, 50)) { addVent(x, yv); okp = true; } } }
+    }
     S.nests.push({ x: W - 240, y: 285, eggId: o.eggId, done: false });
     if (o.id === 'egg' || o.id === 'forage') S.crystal = { x: W - 520, y: 232, used: false };
   }
@@ -168,7 +180,7 @@ window.DF = window.DF || {};
     for (i = 0; i < S.enemies.length; i++) updateEnemy(S.enemies[i], dt);
     if (S.boss) updateBoss(S.boss, dt);
     separate();
-    updateProjectiles(dt); updatePickups(dt); updateEffects(dt);
+    updateProjectiles(dt); updatePickups(dt); updateHazards(dt); updateEffects(dt);
     updateObjective(dt); updateCombatMusic(dt);
     // camera
     var target = Math.max(0, Math.min(S.worldW - VW, P.x - VW * 0.42));
@@ -241,7 +253,7 @@ window.DF = window.DF || {};
     else if (e.state === 'recover') dmg = Math.round(dmg * 1.4);
     if (S.tut && e.type === 'raider') dmg = Math.round(dmg * 1.5);
     e.hp -= dmg; e.hitFlash = 130;
-    if (e.state === 'idle') { e.state = 'chase'; markSeen(e.type || 'thornback'); }
+    if (e.state === 'idle') { e.state = 'chase'; markSeen(e.type || (S.bossDef && S.bossDef.id)); }
     if (e.kind === 'enemy') { e.kx = (S.P.x < e.x ? 1 : -1) * (opts.knock || B.player.knockback) * (e.state === 'windup' ? 0.4 : 1); if (e.state === 'windup') { e.state = 'chase'; e.t = 0; e.cd = 500; } }
     float(e.x, e.y - 60, String(dmg), r.crit ? '#F5D27F' : '#F3EBD7', r.crit);
     DF.Audio.sfx(r.crit ? 'crit' : 'hit');
@@ -251,7 +263,7 @@ window.DF = window.DF || {};
   }
   function killEnemy(e) {
     e.state = 'dead'; e.dead = 0;
-    if (e.kind === 'boss') { S.gained.xp += B.boss.xp; S.kills.thornback = (S.kills.thornback || 0) + 1; shake(7); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
+    if (e.kind === 'boss') { S.gained.xp += S.bossDef.xp; S.kills[S.bossDef.id] = (S.kills[S.bossDef.id] || 0) + 1; shake(7); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
     S.gained.xp += e.def.xp; S.kills[e.type] = (S.kills[e.type] || 0) + 1; S.kills.total = (S.kills.total || 0) + 1;
     burst(e.x, e.y - 30, '#E5534B', 8);
     if (S.rng.next() < e.def.drop) S.pickups.push(mkPick(S.rng.next() < 0.5 ? 'coin' : 'dna', e.x, e.y));
@@ -320,7 +332,7 @@ window.DF = window.DF || {};
   }
 
   /* ---------- enemies ---------- */
-  function markSeen(type) { if (!type || S.seen[type]) return; S.seen[type] = 1; if (!S.firstEncounter && type !== 'thornback') { S.firstEncounter = true; S.timeToFirst = S.t; DF.track('first_encounter', { ms: Math.round(S.t) }); } }
+  function markSeen(type) { if (!type || S.seen[type]) return; S.seen[type] = 1; if (!S.firstEncounter && type !== 'thornback' && type !== 'cinderjaw') { S.firstEncounter = true; S.timeToFirst = S.t; DF.track('first_encounter', { ms: Math.round(S.t) }); } }
   function applyKnock(e, dt) { if (e.kx) { e.x += e.kx * dt / 1000 * 3; e.kx *= 0.84; if (Math.abs(e.kx) < 3) e.kx = 0; e.x = Math.max(20, Math.min(S.worldW - 20, e.x)); } }
   function contact(e, rx, ry) { var P = S.P; return Math.abs(P.x - e.x) < rx && Math.abs(P.y - e.y) < ry; }
 
@@ -364,7 +376,7 @@ window.DF = window.DF || {};
       case 'attack':
         e.x += e.dirx * d.lunge / (d.lungeTime / 1000) * dt / 1000; e.y += e.diry * d.lunge / (d.lungeTime / 1000) * dt / 1000;
         e.y = Math.max(YMIN, Math.min(YMAX, e.y)); e.x = Math.max(20, Math.min(S.worldW - 20, e.x));
-        if (!e.didHit && contact(e, 40, 28)) { e.didHit = hurtPlayer(d.dmg, e.x, false) || P.inv > 0 && false; if (!e.didHit && P.inv > 0) e.dodged = true; }
+        if (!e.didHit && contact(e, 40, 28)) { e.didHit = hurtPlayer(d.dmg * (e.dmgMul || 1), e.x, false) || P.inv > 0 && false; if (!e.didHit && P.inv > 0) e.dodged = true; }
         if (e.t <= 0) { if (!e.didHit && (e.startClose || e.dodged)) countDodge(); e.dodged = false; e.state = 'recover'; e.t = d.recover; }
         break;
       case 'recover':
@@ -377,7 +389,7 @@ window.DF = window.DF || {};
   function countDodge() { S.dodges++; if (S.tut && S.tut.step === 2) { /* dodging counts as progress, killing is the goal */ } if (G.onEvent) G.onEvent('dodge'); float(S.P.x, S.P.y - 80, 'Dodge!', '#9FE7DF', false); }
   function fireSpit(e) {
     DF.Audio.sfx('spit'); var P = S.P, dx = P.x - e.x, dy = P.y - e.y, l = Math.sqrt(dx * dx + dy * dy) || 1;
-    S.projectiles.push({ x: e.x + e.face * 30, y: e.y - 34, gy: e.y, vx: dx / l * e.def.projSpeed, vy: dy / l * e.def.projSpeed * 0.5, life: 2600, dmg: e.def.dmg, near: false });
+    S.projectiles.push({ x: e.x + e.face * 30, y: e.y - 34, gy: e.y, vx: dx / l * e.def.projSpeed, vy: dy / l * e.def.projSpeed * 0.5, life: 2600, dmg: e.def.dmg * (e.dmgMul || 1), near: false });
   }
   function updateProjectiles(dt) {
     var P = S.P;
@@ -390,15 +402,44 @@ window.DF = window.DF || {};
     }
   }
 
-  /* ---------- boss: Thornback ---------- */
+  /* ---------- Emberlands hazards: lava pools and heat vents ---------- */
+  function heatHurt(amount, kind) {
+    var P = S.P, st = S.stats; if (S.ended || S.ending > 0 || S.tut || S.demo) return;
+    var d = Math.max(1, Math.round(amount * (1 - st.heatResist))); if (P.shield > 0) d = Math.max(1, Math.round(d * 0.6));
+    P.hp -= d; P.calmT = 0; P.hurt = kind === 'vent' ? 260 : 120;
+    float(P.x, P.y - 70, '-' + d, '#FFB07A', false); burst(P.x, P.y - 30, '#FF7A2E', 4);
+    if (kind === 'vent') { DF.Audio.sfx('hurt'); shake(4); S.hurtFlash = reduced() ? 120 : 240; vibrate(25); }
+    if (P.hp <= 0) { P.hp = 0; S.ending = 900; S.endOutcome = 'defeat'; }
+  }
+  function updateHazards(dt) {
+    if (S.biome !== 'ember') return;
+    var H = B.hazards, P = S.P, i, p, v, near;
+    S.ambT += dt;
+    if (!reduced() && S.ambT > 90 && S.parts.length < 110) { S.ambT = 0; S.parts.push({ x: S.camX + Math.random() * VW, y: VH - 10 + Math.random() * 20, vx: (Math.random() - 0.5) * 24, vy: -34 - Math.random() * 40, t: 0, life: 1800 + Math.random() * 1400, c: '#FF9A3C', r: 1 + Math.random() * 1.6, ember: true }); }
+    var inPool = false;
+    for (i = 0; i < S.hz.pools.length; i++) { p = S.hz.pools[i]; var dx = (P.x - p.x) / p.rx, dy = (P.y - p.y) / p.ry; if (dx * dx + dy * dy < 1) { inPool = true; break; } }
+    if (inPool && P.dashT <= 0) { S.heatAcc += dt; if (S.heatAcc >= H.poolTick) { S.heatAcc -= H.poolTick; heatHurt(H.poolDps * H.poolTick / 1000, 'pool'); } } else S.heatAcc = Math.max(0, S.heatAcc - dt);
+    for (i = 0; i < S.hz.vents.length; i++) {
+      v = S.hz.vents[i]; v.t -= dt; near = Math.abs(v.x - P.x) < 520;
+      if (v.state === 'idle' && v.t <= 0) { v.state = 'warn'; v.t = H.ventWarn; if (near) DF.Audio.sfx('windup'); }
+      else if (v.state === 'warn' && v.t <= 0) { v.state = 'burst'; v.t = H.ventBurst; v.hit = false; if (near) { DF.Audio.sfx('slam'); shake(2); } burst(v.x, v.y - 30, '#FF8A2E', 8); }
+      else if (v.state === 'burst') {
+        if (!v.hit && Math.abs(P.x - v.x) < H.ventRx && Math.abs(P.y - v.y) < H.ventRy) { v.hit = true; if (P.inv > 0 || P.dashT > 0) countDodge(); else heatHurt(H.ventDamage, 'vent'); }
+        if (v.t <= 0) { v.state = 'idle'; v.t = S.rng.range(H.ventIdle[0], H.ventIdle[1]); }
+      }
+    }
+  }
+
+  function bossLabel() { var n = S.bossDef.name; return n.charAt(0) + n.slice(1).toLowerCase(); }
+  /* ---------- bosses: Thornback and Cinderjaw ---------- */
   function updateBoss(b, dt) {
-    var P = S.P, def = B.boss; if (b.state === 'dead') return;
+    var P = S.P, def = S.bossDef; if (b.state === 'dead') return;
     b.hitFlash = Math.max(0, b.hitFlash - dt); b.t -= dt;
     var dx = P.x - b.x, dy = P.y - b.y, dd = Math.sqrt(dx * dx + dy * dy * 2.9);
     if (b.kx) { b.x += b.kx * dt / 1000; b.kx *= 0.8; }
     switch (b.state) {
       case 'sleep':
-        if (Math.abs(dx) < 620) { b.state = 'roar'; b.t = 1300; DF.Audio.sfx('roar'); DF.Audio.play('04-boss-thornback', 700); shake(4); markSeen('thornback'); S.shown.boss = true; if (G.onEvent) G.onEvent('boss'); }
+        if (Math.abs(dx) < 620) { b.state = 'roar'; b.t = 1300; DF.Audio.sfx('roar'); DF.Audio.play('04-boss-thornback', 700); shake(4); markSeen(S.bossDef.id); S.shown.boss = true; if (G.onEvent) G.onEvent('boss'); }
         break;
       case 'roar':
         if (b.t <= 0) { b.state = 'approach'; b.t = 900 + S.rng.range(0, 600); }
@@ -420,7 +461,7 @@ window.DF = window.DF || {};
       case 'charge':
         b.x += b.dirx * def.chargeSpeed * b.speedMul * dt / 1000;
         if (!b.didHit && Math.abs(P.x - b.x) < 96 && Math.abs(P.y - b.y) < 36) { b.didHit = hurtPlayer(def.chargeDmg, b.x, true); if (!b.didHit && P.inv > 0) { b.didHit = true; countDodge(); } }
-        if (b.x < 90 || b.x > S.worldW - 90) { b.x = Math.max(90, Math.min(S.worldW - 90, b.x)); b.state = 'stun'; b.t = 1500; shake(8); DF.Audio.sfx('slam'); burst(b.x, b.y - 40, '#C9A56A', 14); toast('Thornback is stunned — strike now!', 'info'); }
+        if (b.x < 90 || b.x > S.worldW - 90) { b.x = Math.max(90, Math.min(S.worldW - 90, b.x)); b.state = 'stun'; b.t = 1500; shake(8); DF.Audio.sfx('slam'); burst(b.x, b.y - 40, '#C9A56A', 14); toast(DF.t(DF.S.hud.bossStun, { name: bossLabel() }), 'info'); }
         else if (b.t <= 0) { if (!b.didHit && b.startClose) countDodge(); b.state = 'recover'; b.t = def.recover; }
         break;
       case 'slam':
@@ -434,7 +475,7 @@ window.DF = window.DF || {};
     b.x = Math.max(60, Math.min(S.worldW - 60, b.x));
     if (b.phase === 1 && b.hp > 0 && b.hp <= b.maxHp * def.phase2At && b.state !== 'sleep') {
       b.phase = 2; b.state = 'roar'; b.t = 1400; b.speedMul = def.enrageSpeed; b.windMul = 0.8; DF.Audio.sfx('roar'); DF.Audio.phase2('04-boss-thornback', 32); shake(6);
-      toast(DF.S.hud.bossPhase, 'info');
+      toast(DF.t(DF.S.hud.bossPhase, { name: bossLabel() }), 'info');
       addEnemy('skimmer', Math.min(S.worldW - 60, b.x + 260), 240, { state: 'chase' }); addEnemy('skimmer', Math.max(60, b.x - 260), 320, { state: 'chase' });
     }
   }
@@ -546,7 +587,7 @@ window.DF = window.DF || {};
     var i, p;
     for (i = S.parts.length - 1; i >= 0; i--) {
       p = S.parts[i]; p.t += dt; if (p.t >= p.life) { S.parts.splice(i, 1); continue; }
-      if (p.ring) p.r = 10 + (p.max - 10) * (p.t / p.life); else if (!p.slash) { p.x += p.vx * dt / 1000; p.y += p.vy * dt / 1000; p.vy += 260 * dt / 1000; }
+      if (p.ring) p.r = 10 + (p.max - 10) * (p.t / p.life); else if (!p.slash) { p.x += p.vx * dt / 1000; p.y += p.vy * dt / 1000; if (!p.ember) p.vy += 260 * dt / 1000; }
     }
     for (i = S.texts.length - 1; i >= 0; i--) { p = S.texts[i]; p.t += dt; p.y -= 24 * dt / 1000; if (p.t > 900) S.texts.splice(i, 1); }
     S.shake = Math.max(0, S.shake - dt / 40); S.hurtFlash = Math.max(0, S.hurtFlash - dt);
@@ -557,7 +598,7 @@ window.DF = window.DF || {};
   /* ---------- end of run ---------- */
   function finish(outcome) {
     if (S.ended) return; S.ended = true;
-    var res = { outcome: outcome, objectiveId: S.objId, tutorial: S.tut != null, runId: S.runId, gained: { food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, xp: S.gained.xp }, kills: S.kills, dodges: S.dodges, berries: S.berries, abilities: S.abilitiesUsed, newEggs: S.newEggs.slice(), seen: Object.keys(S.seen), bossDown: !!S.bossDown, timeToFirst: S.timeToFirst, duration: S.t };
+    var res = { outcome: outcome, objectiveId: S.objId, tutorial: S.tut != null, runId: S.runId, gained: { food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, xp: S.gained.xp }, kills: S.kills, dodges: S.dodges, berries: S.berries, abilities: S.abilitiesUsed, newEggs: S.newEggs.slice(), seen: Object.keys(S.seen), bossDown: !!S.bossDown, bossId: S.bossDef ? S.bossDef.id : '', timeToFirst: S.timeToFirst, duration: S.t };
     running = true; paused = true;
     if (G.onEnd) G.onEnd(res);
   }
@@ -565,7 +606,7 @@ window.DF = window.DF || {};
   G.snapshot = function () {
     if (!S) return null; var P = S.P, st = S.stats, o = S.obj, b = S.boss;
     var abReady = P.en >= st.ability.cost, dashReady = P.en >= st.dashCost;
-    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, combat: S.combat, kills: S.kills.total || 0, t: S.t };
+    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, combat: S.combat, kills: S.kills.total || 0, t: S.t };
   };
 
   /* ---------- rendering ---------- */
@@ -582,14 +623,16 @@ window.DF = window.DF || {};
     if (S.crystal) list.push({ y: S.crystal.y, o: S.crystal, k: 'crystal' });
     if (S.ferns && S.tut.step === 0) list.push({ y: S.ferns.y, o: S.ferns, k: 'ferns' });
     for (i = 0; i < S.pickups.length; i++) list.push({ y: S.pickups[i].y, o: S.pickups[i], k: 'pick' });
+    for (i = 0; i < S.hz.vents.length; i++) list.push({ y: S.hz.vents[i].y, o: S.hz.vents[i], k: 'vent' });
     for (i = 0; i < S.enemies.length; i++) list.push({ y: S.enemies[i].y, o: S.enemies[i], k: 'enemy' });
     if (S.boss) list.push({ y: S.boss.y, o: S.boss, k: 'boss' });
     list.push({ y: S.P.y, o: S.P, k: 'player' });
     list.sort(function (a, b) { return a.y - b.y; });
     cx.translate(-S.camX, 0);
+    drawPools();
     for (i = 0; i < list.length; i++) {
       var it = list[i]; if (it.o.x < S.camX - 260 || it.o.x > S.camX + VW + 260) continue;
-      switch (it.k) { case 'rock': dRock(it.o); break; case 'bush': dBush(it.o); break; case 'nest': dNest(it.o); break; case 'crystal': dCrystal(it.o); break; case 'ferns': dFerns(it.o); break; case 'pick': dPick(it.o); break; case 'enemy': dEnemy(it.o); break; case 'boss': dBoss(it.o); break; case 'player': dPlayer(it.o); break; }
+      switch (it.k) { case 'rock': dRock(it.o); break; case 'bush': dBush(it.o); break; case 'nest': dNest(it.o); break; case 'crystal': dCrystal(it.o); break; case 'ferns': dFerns(it.o); break; case 'pick': dPick(it.o); break; case 'enemy': dEnemy(it.o); break; case 'boss': dBoss(it.o); break; case 'player': dPlayer(it.o); break; case 'vent': dVent(it.o); break; }
     }
     drawProjectiles(); drawFx(); drawMarker();
     cx.restore();
@@ -607,6 +650,7 @@ window.DF = window.DF || {};
       cx.restore();
     }
     cx.fillStyle = 'rgba(14,23,18,0.18)'; cx.fillRect(0, 0, VW, VH);
+    if (S.biome === 'ember') { cx.fillStyle = 'rgba(170,45,0,0.26)'; cx.fillRect(0, 0, VW, VH); }
   }
   function drawGround() {
     var g = cx.createLinearGradient(0, 140, 0, VH); g.addColorStop(0, 'rgba(14,30,20,0)'); g.addColorStop(0.35, 'rgba(18,40,24,0.55)'); g.addColorStop(1, 'rgba(10,24,14,0.82)');
@@ -619,6 +663,35 @@ window.DF = window.DF || {};
       cx.moveTo(gx, gy); cx.lineTo(gx - 3, gy - 9); cx.moveTo(gx, gy); cx.lineTo(gx + 1, gy - 11); cx.moveTo(gx, gy); cx.lineTo(gx + 4, gy - 8);
     }
     cx.stroke();
+  }
+  function drawPools() {
+    for (var i = 0; i < S.hz.pools.length; i++) {
+      var p = S.hz.pools[i]; if (p.x < S.camX - 140 || p.x > S.camX + VW + 140) continue;
+      var a = 0.78 + 0.22 * Math.sin(S.t / 320 + p.ph);
+      cx.save(); cx.translate(p.x, p.y); cx.scale(1, p.ry / p.rx);
+      var g = cx.createRadialGradient(0, 0, 4, 0, 0, p.rx); g.addColorStop(0, 'rgba(255,225,110,' + a + ')'); g.addColorStop(0.42, 'rgba(255,112,32,.92)'); g.addColorStop(1, 'rgba(80,14,6,.9)');
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, p.rx, 0, 7); cx.fill();
+      cx.strokeStyle = 'rgba(40,8,4,.75)'; cx.lineWidth = 5; cx.stroke(); cx.restore();
+      cx.fillStyle = 'rgba(255,236,160,.8)';
+      for (var k = 0; k < 3; k++) { var ph = (S.t / 700 + p.ph + k * 2.1) % 1, bx = p.x + Math.sin(k * 3 + p.ph) * p.rx * 0.5, by = p.y - ph * 14; cx.globalAlpha = 1 - ph; cx.beginPath(); cx.arc(bx, by, 1.5 + ph * 2, 0, 7); cx.fill(); }
+      cx.globalAlpha = 1;
+    }
+  }
+  function dVent(v) {
+    var H = B.hazards; if (v.x < S.camX - 100 || v.x > S.camX + VW + 100) return;
+    cx.fillStyle = 'rgba(25,8,4,.85)'; cx.beginPath(); cx.ellipse(v.x, v.y, 30, 9, 0, 0, 7); cx.fill();
+    var glow = v.state === 'warn' ? 0.35 + 0.5 * Math.abs(Math.sin(S.t / 70)) : v.state === 'burst' ? 1 : 0.18 + 0.1 * Math.sin(S.t / 400 + v.x);
+    var g = cx.createRadialGradient(v.x, v.y, 2, v.x, v.y, 30); g.addColorStop(0, 'rgba(255,170,60,' + glow + ')'); g.addColorStop(1, 'rgba(255,90,20,0)');
+    cx.fillStyle = g; cx.beginPath(); cx.ellipse(v.x, v.y, 34, 12, 0, 0, 7); cx.fill();
+    if (v.state === 'warn') { // danger ring shows where the eruption will reach
+      cx.strokeStyle = 'rgba(255,208,102,' + (0.55 + 0.4 * Math.sin(S.t / 60)) + ')'; cx.lineWidth = 2; cx.setLineDash([5, 4]); cx.beginPath(); cx.ellipse(v.x, v.y, H.ventRx, H.ventRy * 0.45, 0, 0, 7); cx.stroke(); cx.setLineDash([]);
+      cx.fillStyle = '#FFD166'; cx.font = '900 16px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', v.x, v.y - 20);
+    }
+    if (v.state === 'burst') {
+      var k = Math.min(1, 1.2 - v.t / H.ventBurst), h = 130 * (0.55 + 0.45 * Math.sin(Math.min(1, k) * 3.1)), w = 26 + 14 * Math.sin(S.t / 40);
+      var cg = cx.createLinearGradient(0, v.y - h, 0, v.y); cg.addColorStop(0, 'rgba(255,230,140,0)'); cg.addColorStop(0.35, 'rgba(255,170,50,.85)'); cg.addColorStop(1, 'rgba(255,70,20,.95)');
+      cx.fillStyle = cg; cx.beginPath(); cx.moveTo(v.x - w, v.y); cx.quadraticCurveTo(v.x - w * 0.4, v.y - h * 0.6, v.x + Math.sin(S.t / 30) * 8, v.y - h); cx.quadraticCurveTo(v.x + w * 0.4, v.y - h * 0.6, v.x + w, v.y); cx.closePath(); cx.fill();
+    }
   }
   function dRock(k) {
     var x = k.x, y = k.y, i, a, r, px, py;
@@ -641,7 +714,7 @@ window.DF = window.DF || {};
   }
   function dNest(n) {
     shadow(n.x, n.y + 2, 84, 0.35);
-    draw(n.eggId === 'glade' ? 'egg-glade' : 'egg', 86, n.x, n.y, { feet: 0.97 });
+    draw(n.eggId === 'glade' ? 'egg-glade' : n.eggId === 'ember' ? 'egg-ember' : 'egg', 86, n.x, n.y, { feet: 0.97 });
     if (!S.eggReady && !n.done && Math.abs(S.P.x - n.x) < 340 && (!S.tut || S.tut.step >= 3)) {
       var left = Math.max(1, S.obj.berriesNeeded - S.berries), msg = DF.t(DF.S.hud.needBerriesHint, { n: left, s: left === 1 ? 'berry' : 'berries' });
       cx.font = '800 13px system-ui, sans-serif'; cx.textAlign = 'center'; cx.lineWidth = 4; cx.strokeStyle = 'rgba(14,23,18,.95)'; cx.strokeText(msg, n.x, n.y - 104); cx.fillStyle = '#F5D27F'; cx.fillText(msg, n.x, n.y - 104);
@@ -669,6 +742,7 @@ window.DF = window.DF || {};
   function drawFlash(name, w, x, y, o, e) {
     if (e.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.75; }
     else if (e.state === 'windup') { var a = 0.35 + 0.35 * Math.sin(S.t / 40); o.tint = e.type === 'spitter' ? '#9BE070' : '#FFD166'; o.tintA = a; }
+    else if (S.biome === 'ember') { o.tint = '#FF7A2E'; o.tintA = 0.16; } // ember-touched
     draw(name, w, x, y, o);
   }
   function dEnemy(e) {
@@ -687,7 +761,7 @@ window.DF = window.DF || {};
     }
   }
   function dBoss(b) {
-    var def = B.boss, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
+    var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
     shadow(b.x, b.y + 4, bw * 0.9, 0.4 * a);
     // telegraph lane
     if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.14 + 0.1 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); }

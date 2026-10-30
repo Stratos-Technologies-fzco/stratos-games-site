@@ -29,8 +29,8 @@ window.DF = window.DF || {};
 
   /* ---------- balance (all values provisional and data-driven) ---------- */
   DF.balance = {
-    maxLevel: 10,
-    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200],
+    maxLevel: 20,
+    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200], // levels 1-20 (Emberlands covers 11-20)
     levelBonus: { healthPerLevel: 4, powerEveryTwoLevels: 1 },
     caps: { resource: 99999, xp: 99999 },
     player: { maxHealth: 100, maxEnergy: 100, energyRegen: 7, speed: 150, attackPower: 12, attackCooldown: 380, attackRange: 66, attackDepth: 34, knockback: 80 },
@@ -62,7 +62,10 @@ window.DF = window.DF || {};
       egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
       demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
-      boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 } }
+      boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 }, bossId: 'thornback' },
+      /* Emberlands (levels 11-20): lava pools and erupting heat vents, tougher enemies */
+      ember: { id: 'ember', minLevel: 11, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 11000, berriesNeeded: 5, bushes: 14, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 8, dna: 4, tokens: 70, xp: 180 }, eggId: 'ember', enemyMul: { hp: 1.4, dmg: 1.25 }, hazards: { pools: 9, vents: 9 } },
+      cinder: { id: 'cinder', minLevel: 15, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 6, tokens: 100, xp: 0 }, firstKill: { dna: 10, tokens: 120 }, bossId: 'cinderjaw', enemyMul: { hp: 1.4, dmg: 1.25 }, hazards: { pools: 0, vents: 7 } }
     },
     tutorial: { worldW: 2100 },
     missionPool: [
@@ -75,6 +78,16 @@ window.DF = window.DF || {};
     ],
     missionsPerDay: 3
   };
+
+  /* bosses: Thornback (Verdant Valley) and Cinderjaw (Emberlands) */
+  DF.balance.boss.id = 'thornback'; DF.balance.boss.name = 'THORNBACK';
+  DF.balance.bosses = {
+    thornback: DF.balance.boss,
+    cinderjaw: { id: 'cinderjaw', name: 'CINDERJAW', hp: 420, speed: 80, size: 235, xp: 520, chargeWindup: 800, chargeSpeed: 440, chargeTime: 700, chargeDmg: 26, slamWindup: 780, slamRadius: 150, slamDmg: 22, recover: 1150, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-cinderjaw' }
+  };
+  /* heat resistance by evolution path (Emberlands hazards) */
+  DF.balance.evolution.paths.ironhide.heat = 0.5; DF.balance.evolution.paths.wildspark.heat = 0.2;
+  DF.balance.hazards = { poolDps: 10, poolTick: 400, ventDamage: 20, ventIdle: [2600, 4200], ventWarn: 950, ventBurst: 650, ventRx: 50, ventRy: 46 };
 
   /* ---------- helpers ---------- */
   function clamp(n, lo, hi) { n = Number(n); if (!isFinite(n)) n = lo; return Math.min(hi, Math.max(lo, n)); }
@@ -114,6 +127,7 @@ window.DF = window.DF || {};
       dashCost: path ? path.dashCost : b.dash.cost,
       foodMul: 1 + (up.snout || 0) * b.upgrades.snout.foodPerLevel,
       ability: path ? path.ability : b.baseAbility,
+      heatResist: path ? (path.heat || 0) : 0,
       path: save.profile.selectedEvolution,
       sprite: path ? path.sprite : 'dino-starter'
     };
@@ -122,8 +136,8 @@ window.DF = window.DF || {};
 
   /* ---------- save defaults and validation (TECH 5.1, 7) ---------- */
   var EVOS = { swiftclaw: 1, ironhide: 1, wildspark: 1 };
-  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback'];
-  var EGGS = ['shadowscale', 'glade', 'prism'];
+  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback', 'cinderjaw'];
+  var EGGS = ['shadowscale', 'glade', 'prism', 'ember'];
   DF.SPECIES = SPECIES; DF.EGGS = EGGS;
 
   function uuid() {

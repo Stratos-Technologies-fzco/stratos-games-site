@@ -50,14 +50,17 @@ DF.S = {
     objective: 'OBJECTIVE', food: 'Food', dna: 'DNA', pause: 'Pause', attack: 'ATTACK', dash: 'DASH', ability: 'ABILITY',
     noEnergy: 'No energy', depleted: 'Out of energy — recharging. Basic attack still works.',
     keys: 'WASD move · Space attack · Shift dash · E ability · Esc pause',
+    emberHint: 'Lava burns! Go around glowing pools. Vents erupt after a warning glow: step aside or dash through.',
     needBerries: 'Gather {n} more berries first', needBerriesHint: 'Need {n} more {s} to claim the egg', eggFound: 'Egg discovered!', levelUp: 'Level up! Lv {lv}',
     crystalHint: 'Wildspark energy could wake this crystal.', crystalWake: 'The Genesis Crystal hums — a hidden egg appears!',
-    cooldown: 'Recharging…', bossPhase: 'Thornback roars — it’s enraged!', berry: '+1 Food', dna_: '+1 DNA', token: '+5 Tokens'
+    cooldown: 'Recharging…', bossPhase: '{name} roars — it’s enraged!', bossStun: '{name} is stunned — strike now!', berry: '+1 Food', dna_: '+1 DNA', token: '+5 Tokens'
   },
   obj: {
     egg: { name: 'Egg Hunt', meta: 'Lv 1+ · ~6 min', hud: 'Reach the egg site · {b}/{n} berries' },
     forage: { name: 'Forage the Falls', meta: 'Lv 2+ · ~5 min', hud: 'Reach the falls nest · {b}/{n} berries' },
     demo: { name: 'Demo', meta: '', hud: 'Reach the egg site · {b}/{n} berries' },
+    ember: { name: 'Ember Trail', meta: 'Lv 11+ · lava & heat', hud: 'Reach the Ember nest · {b}/{n} cinder berries' },
+    cinder: { name: 'Cinderjaw’s Furnace', meta: 'Lv 15+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat Cinderjaw' },
     boss: { name: 'Thornback’s Den', meta: 'Lv 5+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat Thornback' },
     choose: 'CHOOSE AN OBJECTIVE', start: 'Start expedition', locked: 'Locked · Lv {lv}'
   },
@@ -65,16 +68,17 @@ DF.S = {
   summary: {
     where: 'Verdant Valley · Expedition {n}',
     okBadge: '✓ OBJECTIVE COMPLETE', failBadge: '✕ DEFEATED',
-    okHead: { egg: 'You reached the egg site!', forage: 'You foraged the falls!', boss: 'Thornback is defeated!' },
+    okHead: { egg: 'You reached the egg site!', forage: 'You foraged the falls!', boss: 'Thornback is defeated!', ember: 'You reached the Ember nest!', cinder: 'Cinderjaw is defeated!' },
     okSub: 'Rewards have been added to your Sanctuary.',
-    failHead: 'The raiders overwhelmed you', failHeadBoss: 'Thornback was too strong', failSub: 'You keep everything you gathered before the fall. Nothing in your Sanctuary is lost.',
+    failHead: 'The raiders overwhelmed you', failHeadBoss: 'Thornback was too strong', failHeadCinder: 'Cinderjaw burned you out',
+    whereEmber: 'Emberlands · Expedition {n}', nextEmber: 'The Emberlands are open. Try the Ember Trail, and watch for lava and vents.', failSub: 'You keep everything you gathered before the fall. Nothing in your Sanctuary is lost.',
     food: 'Food', dna: 'DNA Fragments', tokens: 'Frontier Tokens', xp: 'Experience',
     next: 'Next:', nextEvo: 'Your first evolution is ready to choose in the Sanctuary.', nextGeneric: 'Spend your rewards on upgrades, or take on a harder objective.', nextBoss: 'Thornback’s Den is open. Evolve first — you will need it.', nextTip: 'Tip: dodge when an enemy flashes, then strike during its recovery.',
     sanctuary: 'Go to Sanctuary', again: 'Play again', retry: 'Retry', sanctuaryShort: 'Sanctuary',
     discovery: 'NEW DISCOVERY · {name}', addedCodex: 'Added to your Codex', levelUp: 'LEVEL UP · Lv {lv}'
   },
   sanctuary: {
-    yourDino: 'Your dinosaur', lv: 'Lv {lv} / 10', status: 'Health {hp} · Energy {en} · Path:', notChosen: 'not chosen',
+    yourDino: 'Your dinosaur', lv: 'Lv {lv} / {max}', biomeShort: { verdant: 'Valley', ember: 'Emberlands' }, biomes: { verdant: 'Verdant Valley', ember: 'Emberlands' }, biomeLocked: 'Emberlands unlock at level {lv}', status: 'Health {hp} · Energy {en} · Path:', notChosen: 'not chosen',
     evo: 'Evolution', evoReady: '● Choice ready', evoLocked: 'Unlocks after your first expedition', evoChosen: 'Path: {p}', upgrades: 'Upgrades', affordable: '{n} affordable', none: 'None affordable',
     codex: 'Codex', discovered: '{a} / {b} discovered', missions: 'Daily missions', missionsMeta: '{d} / {t} · {c} to claim', missionsMeta0: '{d} / {t} done', tokensLabel: 'Tokens', back: 'Back to title'
   },
@@ -82,7 +86,7 @@ DF.S = {
     title: 'Choose your evolution', switchNote: 'You can switch path later for a small Frontier Token fee.', evolveInto: 'Evolve into {n}', switchTo: 'Switch to {n}', confirm: 'Spend {c} on {n}?', cancel: 'Cancel', confirmBtn: 'Confirm', locked: 'Complete your first expedition to unlock evolution.', current: 'CURRENT', short: 'Need {n} more {r}.', signature: 'Signature:', energy: 'Energy',
     paths: {
       swiftclaw: { name: 'Swiftclaw', role: 'MOBILITY', strength: 'Speed, dodge and critical hits', weakness: 'Lower defence', sig: 'Phantom Dash', energy: 'normal', alt: 'Feathered teal raptor' },
-      ironhide: { name: 'Ironhide', role: 'DEFENCE', strength: 'Armour, health, less boss damage', weakness: 'Lower speed', sig: 'Fortress Roar', energy: 'normal', alt: 'Heavily armoured spiked dinosaur' },
+      ironhide: { name: 'Ironhide', role: 'DEFENCE', strength: 'Armour, health, less boss damage, resists heat', weakness: 'Lower speed', sig: 'Fortress Roar', energy: 'normal', alt: 'Heavily armoured spiked dinosaur' },
       wildspark: { name: 'Wildspark', role: 'SPECIAL', strength: 'Area and status effects', weakness: 'Higher energy cost, longer cooldowns', sig: 'Genesis Surge', energy: 'high', alt: 'Dinosaur with glowing blue crystal spines' }
     }
   },
@@ -96,22 +100,24 @@ DF.S = {
   },
   codex: {
     title: 'Dinosaur Codex', tabs: { species: 'Species', eggs: 'Eggs', biomes: 'Biomes' }, prog: { species: '{a} / {b} species', eggs: '{a} / {b} eggs', biomes: '{a} / {b} biomes' },
-    found: '✓ FOUND', unknown: '? UNKNOWN', later: '× LATER', here: '● HERE',
+    open: '● OPEN', found: '✓ FOUND', unknown: '? UNKNOWN', later: '× LATER', here: '● HERE',
     species: {
       starter: { name: 'You — young wanderer', text: 'Separated from its pack. Quick learner.' },
       raider: { name: 'Raider', text: 'Basic melee. Flashes before it lunges.', clue: 'Clue: red-scaled hunters stalk the trail.' },
       spitter: { name: 'Spitter', text: 'Ranged. Keeps its distance and spits.', clue: 'Clue: spits from the reeds near water.' },
       skimmer: { name: 'Skimmer', text: 'Fast skirmisher. Hits and runs.', clue: 'Clue: fast and travels in pairs at dusk.' },
-      thornback: { name: 'Thornback', text: 'Giant armoured herbivore. Charges and slams.', clue: 'Clue: the ground shakes in the eastern den.' }
+      thornback: { name: 'Thornback', text: 'Giant armoured herbivore. Charges and slams.', clue: 'Clue: the ground shakes in the eastern den.' },
+      cinderjaw: { name: 'Cinderjaw', text: 'Furnace-born brute. Charges and slams beside erupting vents.', clue: 'Clue: something huge waits where the lava never cools.' }
     },
     eggs: {
       shadowscale: { name: 'Shadowscale Egg', text: 'Found at the egg site. Hatching arrives in a later update.', clue: 'Clue: waits where the trail ends.' },
       glade: { name: 'Glade Egg', text: 'Found in a fern nest by the falls.', clue: 'Clue: a fern nest beside the falls.' },
-      prism: { name: 'Prism Egg', text: 'Revealed when a Genesis Crystal wakes.', clue: 'Clue: guarded near a waterfall shrine.' }
+      prism: { name: 'Prism Egg', text: 'Revealed when a Genesis Crystal wakes.', clue: 'Clue: guarded near a waterfall shrine.' },
+      ember: { name: 'Ember Egg', text: 'Warm to the touch. Waits at the end of the Ember Trail.', clue: 'Clue: kept warm by the Emberlands heat.' }
     },
     biomes: {
       verdant: { name: 'Verdant Valley', text: 'Lv 1–10 · Movement, hunting, first eggs.' },
-      ember: { name: 'Emberlands', text: 'Lv 11–20 · Lava and heat zones.' },
+      ember: { name: 'Emberlands', text: 'Lv 11–20 · Lava, heat vents, tougher foes. Open now.' },
       frost: { name: 'Frostfang Peaks', text: 'Lv 21–30 · Freezing weather.' },
       mire: { name: 'The Lost Mire', text: 'Lv 31–40 · Poison and camouflage.' },
       crater: { name: 'Genesis Crater', text: 'Endgame · Source of the Pulse.' }
