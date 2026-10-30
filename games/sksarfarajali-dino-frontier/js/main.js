@@ -4,7 +4,7 @@ window.DF = window.DF || {};
 (function (DF) {
   'use strict';
   var S = DF.S, UI = DF.UI, G = DF.Game, A = DF.Audio, B = DF.balance;
-  DF.build = '20261029'; DF.save = null; DF.hasSave = false;
+  DF.build = '20261030'; DF.save = null; DF.hasSave = false;
   var STATES = ['loading', 'privacy', 'title', 'story', 'lore', 'hud', 'pause', 'summary', 'sanctuary', 'evolution', 'upgrades', 'codex', 'missions', 'settings', 'credits', 'error'];
   var M = { title: '01-title-genesis-pulse', sanctuary: '05-sanctuary-dawn', hud: '02-explore-verdant-valley' };
   var MUSIC = { loading: M.title, privacy: M.title, title: M.title, story: M.title, lore: M.title, sanctuary: M.sanctuary, evolution: M.sanctuary, upgrades: M.sanctuary, codex: M.sanctuary, missions: M.sanctuary, credits: M.sanctuary };
