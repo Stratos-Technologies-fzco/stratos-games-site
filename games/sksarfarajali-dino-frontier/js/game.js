@@ -52,7 +52,7 @@ window.DF = window.DF || {};
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
       gained: { food: 0, dna: 0, tokens: 0, xp: 0 }, berries: 0, kills: {}, dodges: 0, abilitiesUsed: 0, seen: {}, newEggs: [], newSpecies: [],
       enemies: [], bushes: [], pickups: [], rocks: [], projectiles: [], parts: [], texts: [], nests: [], crystal: null, boss: null,
-      formScale: 1, biome: obj.biome || 'verdant', hz: { pools: [], vents: [], ice: [], fires: [] }, bossDef: null, heatAcc: 0, ambT: 0, snowT: 0, onIce: false, cold: false, freezeAcc: 0, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
+      formScale: 1, biome: obj.biome || 'verdant', hz: { pools: [], vents: [], ice: [], fires: [], bogs: [], glow: [] }, bossDef: null, heatAcc: 0, ambT: 0, snowT: 0, poison: 0, poisonAcc: 0, reveal: 0, onIce: false, cold: false, freezeAcc: 0, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
     S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0, ivx: 0, ivy: 0 };
@@ -61,6 +61,7 @@ window.DF = window.DF || {};
     buildWorld();
     if (S.biome === 'ember' && !demo) toast(DF.S.hud.emberHint, 'info');
     if (S.biome === 'frost' && !demo) toast(DF.S.hud.frostHint, 'info');
+    if (S.biome === 'mire' && !demo) toast(DF.S.hud.mireHint, 'info');
     held.attack = false; queue.length = 0; keys = {}; mv.x = 0; mv.y = 0;
     paused = false; running = true; last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
@@ -82,6 +83,8 @@ window.DF = window.DF || {};
   }
   function addPool(x, y, rx, ry) { S.hz.pools.push({ x: x, y: y, rx: rx, ry: ry, ph: S.rng.next() * 6 }); }
   function addIce(x, y, rx, ry) { S.hz.ice.push({ x: x, y: y, rx: rx, ry: ry }); }
+  function addBog(x, y, rx, ry) { S.hz.bogs.push({ x: x, y: y, rx: rx, ry: ry, ph: S.rng.next() * 6 }); }
+  function addGlow(x, y) { S.hz.glow.push({ x: x, y: y, used: false }); }
   function addFire(x, y) { S.hz.fires.push({ x: x, y: y }); }
   function addVent(x, y) { var H = B.hazards; S.hz.vents.push({ x: x, y: y, state: 'idle', t: S.rng.range(H.ventIdle[0] * 0.5, H.ventIdle[1]), hit: false }); }
   function buildWorld() {
@@ -101,6 +104,8 @@ window.DF = window.DF || {};
       if (o.hazards && o.hazards.vents) for (i = 0; i < o.hazards.vents; i++) addVent(560 + i * 115 + rng.range(-25, 25), rng.range(YMIN + 16, YMAX - 16));
       if (o.hazards && o.hazards.ice) for (i = 0; i < o.hazards.ice; i++) addIce(430 + i * 190 + rng.range(-40, 40), rng.range(YMIN + 20, YMAX - 20), rng.range(80, 120), rng.range(17, 23));
       if (o.hazards && o.hazards.fires) { addFire(330, 232); addFire(1210, 322); }
+      if (o.hazards && o.hazards.bogs) for (i = 0; i < o.hazards.bogs; i++) addBog(520 + i * 150 + rng.range(-30, 30), rng.range(YMIN + 22, YMAX - 22), rng.range(52, 78), rng.range(15, 20));
+      if (o.hazards && o.hazards.glow) for (i = 0; i < o.hazards.glow; i++) addGlow(330 + i * 380, i % 2 ? 330 : 225);
       S.boss = { kind: 'boss', x: o.id !== 'boss' ? 1150 : 980, y: 270, hp: S.bossDef.hp, maxHp: S.bossDef.hp, state: 'sleep', t: 0, face: -1, phase: 1, hitFlash: 0, dirx: -1, atk: '', didHit: false, speedMul: 1, windMul: 1, stun: 0, kx: 0, wave: -1, id: 'boss' };
       S.P.x = 250;
       return;
@@ -126,7 +131,7 @@ window.DF = window.DF || {};
     var span = Math.max(W - 2300, W * 0.55); // enemies stop about 1,300 px short of the egg so the last stretch is calm
     for (i = 0; i < types.length; i++) {
       x = 750 + (i + 0.5) * span / types.length + rng.range(-70, 70);
-      addEnemy(types[i], x, rng.range(YMIN + 10, YMAX - 6));
+      addEnemy(types[i], x, rng.range(YMIN + 10, YMAX - 6), o.camo && rng.next() < o.camo ? { camo: true } : null);
     }
     var nd = Math.max(4, Math.round(W / 900)), nc = Math.max(5, Math.round(W / 800));
     for (i = 0; i < nd; i++) { p = free(rng.range(600, W - 500), rng.range(YMIN + 12, YMAX - 8)); S.pickups.push(mkPick('dna', p[0], p[1])); }
@@ -137,6 +142,8 @@ window.DF = window.DF || {};
       for (i = 0; i < o.hazards.pools; i++) { var rxp = rng.range(55, 85); for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 + (i + 0.5) * (hx1 - hx0) / o.hazards.pools + rng.range(-120, 120); var yp = rng.range(YMIN + 22, YMAX - 22); if (clearOf(x, yp, rxp)) { addPool(x, yp, rxp, rng.range(15, 21)); okp = true; } } }
       for (i = 0; i < o.hazards.vents; i++) { for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 + 80 + (i + 0.5) * (hx1 - hx0) / o.hazards.vents + rng.range(-150, 150); var yv = rng.range(YMIN + 18, YMAX - 18); if (clearOf(x, yv, 50)) { addVent(x, yv); okp = true; } } }
       for (i = 0; i < (o.hazards.ice || 0); i++) { for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 - 300 + (i + 0.5) * (hx1 - hx0 + 300) / o.hazards.ice + rng.range(-160, 160); var yi = rng.range(YMIN + 20, YMAX - 20); if (clearOf(x, yi, 100)) { addIce(x, yi, rng.range(85, 150), rng.range(17, 24)); okp = true; } } }
+      for (i = 0; i < (o.hazards.bogs || 0); i++) { var rxb = rng.range(60, 92); for (tries = 0, okp = false; tries < 10 && !okp; tries++) { x = hx0 - 200 + (i + 0.5) * (hx1 - hx0 + 200) / o.hazards.bogs + rng.range(-130, 130); var yb = rng.range(YMIN + 22, YMAX - 22); if (clearOf(x, yb, rxb)) { addBog(x, yb, rxb, rng.range(16, 22)); okp = true; } } }
+      var ng = o.hazards.glow || 0; for (i = 0; i < ng; i++) addGlow(i === ng - 1 ? W - 520 : 900 + i * (W - 3300) / Math.max(1, ng - 2), rng.range(YMIN + 40, YMAX - 30)); // glowcaps spread along the trail; the last one waits near the egg
       var nf = o.hazards.fires || 0; for (i = 0; i < nf; i++) addFire(i === nf - 1 ? W - 450 : 900 + i * (W - 3000) / Math.max(1, nf - 2), rng.range(YMIN + 40, YMAX - 30)); // the last fire waits near the egg
     }
     S.nests.push({ x: W - 240, y: 285, eggId: o.eggId, done: false });
@@ -262,7 +269,7 @@ window.DF = window.DF || {};
     else if (e.state === 'recover') dmg = Math.round(dmg * 1.4);
     if (S.tut && e.type === 'raider') dmg = Math.round(dmg * 1.5);
     e.hp -= dmg; e.hitFlash = 130;
-    if (e.state === 'idle') { e.state = 'chase'; markSeen(e.type || (S.bossDef && S.bossDef.id)); }
+    if (e.state === 'idle') { e.rev = true; e.state = 'chase'; markSeen(e.type || (S.bossDef && S.bossDef.id)); }
     if (e.kind === 'enemy') { e.kx = (S.P.x < e.x ? 1 : -1) * (opts.knock || B.player.knockback) * (e.state === 'windup' ? 0.4 : 1); if (e.state === 'windup') { e.state = 'chase'; e.t = 0; e.cd = 500; } }
     float(e.x, e.y - 60, String(dmg), r.crit ? '#F5D27F' : '#F3EBD7', r.crit);
     DF.Audio.sfx(r.crit ? 'crit' : 'hit');
@@ -341,7 +348,7 @@ window.DF = window.DF || {};
   }
 
   /* ---------- enemies ---------- */
-  function markSeen(type) { if (!type || S.seen[type]) return; S.seen[type] = 1; if (!S.firstEncounter && type !== 'thornback' && type !== 'cinderjaw' && type !== 'whitetitan') { S.firstEncounter = true; S.timeToFirst = S.t; DF.track('first_encounter', { ms: Math.round(S.t) }); } }
+  function markSeen(type) { if (!type || S.seen[type]) return; S.seen[type] = 1; if (!S.firstEncounter && type !== 'thornback' && type !== 'cinderjaw' && type !== 'whitetitan' && type !== 'mirequeen') { S.firstEncounter = true; S.timeToFirst = S.t; DF.track('first_encounter', { ms: Math.round(S.t) }); } }
   function applyKnock(e, dt) { if (e.kx) { e.x += e.kx * dt / 1000 * 3; e.kx *= 0.84; if (Math.abs(e.kx) < 3) e.kx = 0; e.x = Math.max(20, Math.min(S.worldW - 20, e.x)); } }
   function contact(e, rx, ry) { var P = S.P; return Math.abs(P.x - e.x) < rx && Math.abs(P.y - e.y) < ry; }
 
@@ -358,7 +365,9 @@ window.DF = window.DF || {};
     switch (e.state) {
       case 'idle':
         e.wob += dt / 700; e.y += Math.sin(e.wob) * 0.1;
-        if (dd < d.aggro) { e.state = 'chase'; markSeen(e.type); }
+        if (e.camo && !e.rev) { // camouflaged ambusher: stays hidden until you are close (or a glowcap lights it up), then strikes at once
+          if (dd < B.mire.camoRadius || (S.reveal > 0 && dd < B.mire.revealRadius)) { e.rev = true; e.cd = 0; e.state = 'chase'; markSeen(e.type); burst(e.x, e.y - 30, '#9FFFD0', 8); DF.Audio.sfx('windup'); if (!S.shown.camo) { S.shown.camo = true; toast(DF.S.hud.camoHint, 'info'); } }
+        } else if (dd < d.aggro) { e.state = 'chase'; markSeen(e.type); }
         break;
       case 'chase':
         e.face = sgn(dx);
@@ -442,6 +451,31 @@ window.DF = window.DF || {};
     for (i = 0; i < S.hz.ice.length; i++) { ice = S.hz.ice[i]; var dx = (P.x - ice.x) / ice.rx, dy = (P.y - ice.y) / ice.ry; if (dx * dx + dy * dy < 1) { S.onIce = true; break; } }
   }
 
+  /* ---------- The Lost Mire: poison bogs, glowcaps and camouflaged ambushers ---------- */
+  function poisonHurt(amount) {
+    var P = S.P, st = S.stats; if (S.ended || S.ending > 0 || S.tut || S.demo) return;
+    var d = Math.max(1, Math.round(amount * (1 - st.poisonResist))); if (P.shield > 0) d = Math.max(1, Math.round(d * 0.6));
+    P.hp -= d; P.calmT = 0; P.hurt = 120;
+    float(P.x, P.y - 70, '-' + d, '#B6F07A', false); burst(P.x, P.y - 30, '#8BD84A', 3);
+    if (P.hp <= 0) { P.hp = 0; S.ending = 900; S.endOutcome = 'defeat'; }
+  }
+  function updateMire(dt) {
+    var M = B.mire, P = S.P, i, p, g, inBog = false;
+    S.reveal = Math.max(0, S.reveal - dt);
+    // drifting fireflies
+    S.ambT += dt;
+    if (!reduced() && S.ambT > 120 && S.parts.length < 110) { S.ambT = 0; S.parts.push({ x: S.camX + Math.random() * VW, y: 150 + Math.random() * 230, vx: (Math.random() - 0.5) * 18, vy: -6 - Math.random() * 12, t: 0, life: 2600 + Math.random() * 1800, c: '#B8FFC8', r: 1 + Math.random() * 1.5, ember: true }); }
+    // bogs poison you; dashing skims over them
+    for (i = 0; i < S.hz.bogs.length; i++) { p = S.hz.bogs[i]; var dx = (P.x - p.x) / p.rx, dy = (P.y - p.y) / p.ry; if (dx * dx + dy * dy < 1) { inBog = true; break; } }
+    if (inBog && P.dashT <= 0) { if (S.poison <= 0) { float(P.x, P.y - 90, DF.S.hud.poisoned, '#B6F07A', false); DF.Audio.sfx('hurt'); } S.poison = M.poisonMs; }
+    if (S.poison > 0) { S.poison -= dt; S.poisonAcc += dt; if (S.poisonAcc >= M.tick) { S.poisonAcc -= M.tick; poisonHurt(M.dps * M.tick / 1000); } } else S.poisonAcc = 0;
+    // glowcaps: cure poison and show where the camouflaged predators are hiding
+    for (i = 0; i < S.hz.glow.length; i++) {
+      g = S.hz.glow[i]; if (g.used) continue;
+      if (Math.abs(P.x - g.x) < M.glowRadius && Math.abs(P.y - g.y) < 60) { g.used = true; S.poison = 0; S.reveal = M.revealMs; burst(g.x, g.y - 24, '#B8FFC8', 14); DF.Audio.sfx('pickup'); toast(DF.S.hud.glowUsed, 'info'); }
+    }
+  }
+
   /* ---------- Emberlands hazards: lava pools and heat vents ---------- */
   function heatHurt(amount, kind) {
     var P = S.P, st = S.stats; if (S.ended || S.ending > 0 || S.tut || S.demo) return;
@@ -453,6 +487,7 @@ window.DF = window.DF || {};
   }
   function updateHazards(dt) {
     if (S.biome === 'frost') { updateFrost(dt); return; }
+    if (S.biome === 'mire') { updateMire(dt); return; }
     if (S.biome !== 'ember') return;
     var H = B.hazards, P = S.P, i, p, v, near;
     S.ambT += dt;
@@ -657,7 +692,7 @@ window.DF = window.DF || {};
   G.snapshot = function () {
     if (!S) return null; var P = S.P, st = S.stats, o = S.obj, b = S.boss;
     var abReady = P.en >= st.ability.cost, dashReady = P.en >= st.dashCost;
-    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name, hint: bossHint(b) } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, chill: S.biome === 'frost' ? Math.round(S.wx.chill) : -1, storm: S.biome === 'frost' ? S.wx.state : '', stormT: S.biome === 'frost' ? Math.ceil(S.wx.t / 1000) : 0, cold: !!S.cold, combat: S.combat, kills: S.kills.total || 0, t: S.t };
+    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name, hint: bossHint(b) } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, chill: S.biome === 'frost' ? Math.round(S.wx.chill) : -1, storm: S.biome === 'frost' ? S.wx.state : '', stormT: S.biome === 'frost' ? Math.ceil(S.wx.t / 1000) : 0, cold: !!S.cold, poison: S.biome === 'mire' ? Math.ceil(S.poison / 1000) : 0, reveal: S.reveal > 0, combat: S.combat, kills: S.kills.total || 0, t: S.t };
   };
 
   /* ---------- rendering ---------- */
@@ -676,16 +711,18 @@ window.DF = window.DF || {};
     for (i = 0; i < S.pickups.length; i++) list.push({ y: S.pickups[i].y, o: S.pickups[i], k: 'pick' });
     for (i = 0; i < S.hz.vents.length; i++) list.push({ y: S.hz.vents[i].y, o: S.hz.vents[i], k: 'vent' });
     for (i = 0; i < S.hz.fires.length; i++) list.push({ y: S.hz.fires[i].y, o: S.hz.fires[i], k: 'fire' });
+    for (i = 0; i < S.hz.glow.length; i++) list.push({ y: S.hz.glow[i].y, o: S.hz.glow[i], k: 'glow' });
     for (i = 0; i < S.enemies.length; i++) list.push({ y: S.enemies[i].y, o: S.enemies[i], k: 'enemy' });
     if (S.boss) list.push({ y: S.boss.y, o: S.boss, k: 'boss' });
     list.push({ y: S.P.y, o: S.P, k: 'player' });
     list.sort(function (a, b) { return a.y - b.y; });
     cx.translate(-S.camX, 0);
     drawIce();
+    drawBogs();
     drawPools();
     for (i = 0; i < list.length; i++) {
       var it = list[i]; if (it.o.x < S.camX - 260 || it.o.x > S.camX + VW + 260) continue;
-      switch (it.k) { case 'rock': dRock(it.o); break; case 'bush': dBush(it.o); break; case 'nest': dNest(it.o); break; case 'crystal': dCrystal(it.o); break; case 'ferns': dFerns(it.o); break; case 'pick': dPick(it.o); break; case 'enemy': dEnemy(it.o); break; case 'boss': dBoss(it.o); break; case 'player': dPlayer(it.o); break; case 'vent': dVent(it.o); break; case 'fire': dFire(it.o); break; }
+      switch (it.k) { case 'rock': dRock(it.o); break; case 'bush': dBush(it.o); break; case 'nest': dNest(it.o); break; case 'crystal': dCrystal(it.o); break; case 'ferns': dFerns(it.o); break; case 'pick': dPick(it.o); break; case 'enemy': dEnemy(it.o); break; case 'boss': dBoss(it.o); break; case 'player': dPlayer(it.o); break; case 'vent': dVent(it.o); break; case 'fire': dFire(it.o); break; case 'glow': dGlow(it.o); break; }
     }
     drawProjectiles(); drawFx(); drawMarker();
     cx.restore();
@@ -693,6 +730,7 @@ window.DF = window.DF || {};
     if (S.hurtFlash > 0) { cx.fillStyle = 'rgba(229,83,75,' + (0.28 * S.hurtFlash / 260) + ')'; cx.fillRect(0, 0, VW, VH); }
     var vg = cx.createRadialGradient(VW / 2, VH / 2, VH * 0.45, VW / 2, VH / 2, VW * 0.62); vg.addColorStop(0, 'rgba(6,10,8,0)'); vg.addColorStop(1, 'rgba(6,10,8,0.5)'); cx.fillStyle = vg; cx.fillRect(0, 0, VW, VH);
     if (S.biome === 'frost') { var sa = S.wx.state === 'storm' ? 0.3 : S.wx.state === 'warn' ? 0.12 : 0; if (sa) { cx.fillStyle = 'rgba(225,240,255,' + sa + ')'; cx.fillRect(0, 0, VW, VH); } if (S.cold) { cx.fillStyle = 'rgba(110,170,255,0.18)'; cx.fillRect(0, 0, VW, VH); } }
+    if (S.biome === 'mire') { cx.fillStyle = 'rgba(20,70,55,0.2)'; cx.fillRect(0, 0, VW, VH); if (S.poison > 0) { cx.fillStyle = 'rgba(130,210,50,0.14)'; cx.fillRect(0, 0, VW, VH); } }
     if (S.ending > 0 && S.endOutcome === 'defeat') { cx.fillStyle = 'rgba(6,10,8,' + Math.min(0.7, (900 - S.ending) / 900) + ')'; cx.fillRect(0, 0, VW, VH); }
   }
   function drawBackdrop() {
@@ -706,6 +744,7 @@ window.DF = window.DF || {};
     cx.fillStyle = 'rgba(14,23,18,0.18)'; cx.fillRect(0, 0, VW, VH);
     if (S.biome === 'ember') { cx.fillStyle = 'rgba(170,45,0,0.26)'; cx.fillRect(0, 0, VW, VH); }
     else if (S.biome === 'frost') { cx.fillStyle = 'rgba(140,185,235,0.16)'; cx.fillRect(0, 0, VW, VH); }
+    else if (S.biome === 'mire') { cx.fillStyle = 'rgba(10,40,34,0.3)'; cx.fillRect(0, 0, VW, VH); }
   }
   function drawGround() {
     var g = cx.createLinearGradient(0, 140, 0, VH); g.addColorStop(0, 'rgba(14,30,20,0)'); g.addColorStop(0.35, 'rgba(18,40,24,0.55)'); g.addColorStop(1, 'rgba(10,24,14,0.82)');
@@ -769,6 +808,28 @@ window.DF = window.DF || {};
     var h = 36 + 7 * Math.sin(t), g = cx.createLinearGradient(0, f.y - 10 - h, 0, f.y - 6); g.addColorStop(0, 'rgba(255,235,150,0)'); g.addColorStop(0.45, 'rgba(255,175,55,.92)'); g.addColorStop(1, 'rgba(255,90,25,.96)');
     cx.fillStyle = g; cx.beginPath(); cx.moveTo(f.x - 17, f.y - 8); cx.quadraticCurveTo(f.x - 9, f.y - 8 - h * 0.7, f.x + Math.sin(t * 1.3) * 5, f.y - 10 - h); cx.quadraticCurveTo(f.x + 11, f.y - 8 - h * 0.6, f.x + 17, f.y - 8); cx.closePath(); cx.fill();
   }
+  function drawBogs() {
+    for (var i = 0; i < S.hz.bogs.length; i++) {
+      var p = S.hz.bogs[i]; if (p.x < S.camX - 160 || p.x > S.camX + VW + 160) continue;
+      var a = 0.8 + 0.15 * Math.sin(S.t / 380 + p.ph);
+      cx.save(); cx.translate(p.x, p.y); cx.scale(1, p.ry / p.rx);
+      var g = cx.createRadialGradient(0, 0, 4, 0, 0, p.rx); g.addColorStop(0, 'rgba(170,230,70,' + a + ')'); g.addColorStop(0.55, 'rgba(70,150,50,.9)'); g.addColorStop(1, 'rgba(20,48,30,.92)');
+      cx.fillStyle = g; cx.beginPath(); cx.arc(0, 0, p.rx, 0, 7); cx.fill();
+      cx.strokeStyle = 'rgba(12,30,18,.8)'; cx.lineWidth = 5; cx.stroke(); cx.restore();
+      cx.fillStyle = 'rgba(210,255,150,.8)';
+      for (var k = 0; k < 3; k++) { var ph = (S.t / 900 + p.ph + k * 2.3) % 1, bx = p.x + Math.sin(k * 3 + p.ph) * p.rx * 0.5, by = p.y - ph * 16; cx.globalAlpha = 1 - ph; cx.beginPath(); cx.arc(bx, by, 1.5 + ph * 2.4, 0, 7); cx.fill(); }
+      cx.globalAlpha = 1;
+    }
+  }
+  function dGlow(g) {
+    if (g.x < S.camX - 120 || g.x > S.camX + VW + 120) return;
+    var t = S.t / 400 + g.x, on = !g.used, pulse = on ? 0.75 + 0.25 * Math.sin(t) : 0.25;
+    shadow(g.x, g.y + 3, 34, 0.3);
+    if (on) { var gl = cx.createRadialGradient(g.x, g.y - 20, 3, g.x, g.y - 20, 70); gl.addColorStop(0, 'rgba(160,255,200,' + 0.42 * pulse + ')'); gl.addColorStop(1, 'rgba(160,255,200,0)'); cx.fillStyle = gl; cx.beginPath(); cx.arc(g.x, g.y - 20, 70, 0, 7); cx.fill(); }
+    cx.fillStyle = on ? '#E8FFF0' : '#6F8A7C'; cx.fillRect(g.x - 3, g.y - 22, 6, 22);
+    cx.fillStyle = on ? 'rgba(120,255,190,' + pulse + ')' : '#4B6358'; cx.beginPath(); cx.ellipse(g.x, g.y - 26, 22, 14, 0, Math.PI, 0); cx.fill();
+    cx.fillStyle = on ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.25)'; cx.beginPath(); cx.arc(g.x - 8, g.y - 31, 2.4, 0, 7); cx.arc(g.x + 6, g.y - 29, 2, 0, 7); cx.fill();
+  }
   function dRock(k) {
     var x = k.x, y = k.y, i, a, r, px, py;
     shadow(x, y + k.ry * 0.7, k.rx * 2.1, 0.3);
@@ -790,7 +851,7 @@ window.DF = window.DF || {};
   }
   function dNest(n) {
     shadow(n.x, n.y + 2, 84, 0.35);
-    draw(n.eggId === 'glade' ? 'egg-glade' : n.eggId === 'ember' ? 'egg-ember' : n.eggId === 'frost' ? 'egg-frost' : 'egg', 86, n.x, n.y, { feet: 0.97 });
+    draw(n.eggId === 'glade' ? 'egg-glade' : n.eggId === 'ember' ? 'egg-ember' : n.eggId === 'frost' ? 'egg-frost' : n.eggId === 'mire' ? 'egg-mire' : 'egg', 86, n.x, n.y, { feet: 0.97 });
     if (!S.eggReady && !n.done && Math.abs(S.P.x - n.x) < 340 && (!S.tut || S.tut.step >= 3)) {
       var left = Math.max(1, S.obj.berriesNeeded - S.berries), msg = DF.t(DF.S.hud.needBerriesHint, { n: left, s: left === 1 ? 'berry' : 'berries' });
       cx.font = '800 13px system-ui, sans-serif'; cx.textAlign = 'center'; cx.lineWidth = 4; cx.strokeStyle = 'rgba(14,23,18,.95)'; cx.strokeText(msg, n.x, n.y - 104); cx.fillStyle = '#F5D27F'; cx.fillText(msg, n.x, n.y - 104);
@@ -820,12 +881,15 @@ window.DF = window.DF || {};
     else if (e.state === 'windup') { var a = 0.35 + 0.35 * Math.sin(S.t / 40); o.tint = e.type === 'spitter' ? '#9BE070' : '#FFD166'; o.tintA = a; }
     else if (S.biome === 'ember') { o.tint = '#FF7A2E'; o.tintA = 0.16; } // ember-touched
     else if (S.biome === 'frost') { o.tint = '#8FD0FF'; o.tintA = 0.18; } // frost-touched
+    else if (S.biome === 'mire') { o.tint = '#7BE0A8'; o.tintA = 0.16; } // mire-touched
     draw(name, w, x, y, o);
   }
   function dEnemy(e) {
     var d = e.def, w = d.size * S.formScale, bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : Math.sin(S.t / 110 + e.id) * 1.8, a = 1, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w;
     if (e.state === 'dead') { a = Math.max(0, 1 - e.dead / 700); }
+    else if (e.camo && !e.rev) a = 0.1 + 0.05 * Math.sin(S.t / 260 + e.id); // camouflaged: almost invisible, only a faint ripple gives it away
     shadow(e.x, e.y + 2, w * 0.8, 0.35 * a);
+    if (e.camo && !e.rev) { cx.strokeStyle = 'rgba(160,255,210,' + (0.25 + 0.2 * Math.sin(S.t / 300 + e.id)) + ')'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(e.x, e.y + 3, w * 0.55, 8, 0, 0, 7); cx.stroke(); }
     var o = { flip: e.face > 0 ? false : true, alpha: a };
     if (e.state === 'windup' && e.type !== 'spitter') { var t = 1 - e.t / d.windup; o.flip = e.face < 0; e.xo = -e.face * 10 * t; }
     var lean = e.state === 'attack' ? 6 * e.face : 0;
