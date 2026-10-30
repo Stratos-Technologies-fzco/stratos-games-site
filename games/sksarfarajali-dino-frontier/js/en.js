@@ -122,7 +122,7 @@ DF.S = {
   },
   codex: {
     title: 'Dinosaur Codex', tabs: { species: 'Species', eggs: 'Eggs', biomes: 'Biomes' }, prog: { species: '{a} / {b} species', eggs: '{a} / {b} eggs', biomes: '{a} / {b} biomes' },
-    open: '● OPEN', found: '✓ FOUND', unknown: '? UNKNOWN', later: '× LATER', here: '● HERE',
+    open: '● OPEN', found: '✓ FOUND', unknown: '? UNKNOWN', later: '× LATER', lockedLv: '× LV {lv}', here: '● HERE',
     species: {
       starter: { name: 'You — young wanderer', text: 'Separated from its pack. Quick learner.' },
       raider: { name: 'Raider', text: 'Basic melee. Flashes before it lunges.', clue: 'Clue: red-scaled hunters stalk the trail.' },
@@ -145,10 +145,10 @@ DF.S = {
     },
     biomes: {
       verdant: { name: 'Verdant Valley', text: 'Lv 1–10 · Movement, hunting, first eggs.' },
-      ember: { name: 'Emberlands', text: 'Lv 11–20 · Lava, heat vents, tougher foes. Open now.' },
-      frost: { name: 'Frostfang Peaks', text: 'Lv 21–30 · Blizzards, ice, campfires. Open now.' },
-      mire: { name: 'The Lost Mire', text: 'Lv 31–40 · Poison bogs, glowcaps, hidden ambushers. Open now.' },
-      crater: { name: 'Genesis Crater', text: 'Lv 41–50 · Energy fields, rare DNA, the final boss. Open now.' }
+      ember: { name: 'Emberlands', text: 'Lv 11–20 · Lava, heat vents, tougher foes.' },
+      frost: { name: 'Frostfang Peaks', text: 'Lv 21–30 · Blizzards, ice, campfires.' },
+      mire: { name: 'The Lost Mire', text: 'Lv 31–40 · Poison bogs, glowcaps, hidden ambushers.' },
+      crater: { name: 'Genesis Crater', text: 'Lv 41–50 · Energy fields, rare DNA, the final boss.' }
     },
     unknownName: '???', artNeeded: '[Art needed]'
   },
