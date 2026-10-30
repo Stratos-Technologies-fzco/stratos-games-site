@@ -111,8 +111,9 @@ window.DF = window.DF || {};
     var types = [], n;
     for (n = 0; n < o.raiders; n++) types.push('raider'); for (n = 0; n < o.spitters; n++) types.push('spitter'); for (n = 0; n < o.skimmers; n++) types.push('skimmer');
     for (n = types.length - 1; n > 0; n--) { var m = Math.floor(rng.next() * (n + 1)), tmp = types[n]; types[n] = types[m]; types[m] = tmp; } // mixed order along the trail
+    var span = Math.max(W - 2300, W * 0.55); // enemies stop about 1,300 px short of the egg so the last stretch is calm
     for (i = 0; i < types.length; i++) {
-      x = 750 + (i + 0.5) * (W - 1500) / types.length + rng.range(-70, 70);
+      x = 750 + (i + 0.5) * span / types.length + rng.range(-70, 70);
       addEnemy(types[i], x, rng.range(YMIN + 10, YMAX - 6));
     }
     var nd = Math.max(4, Math.round(W / 900)), nc = Math.max(5, Math.round(W / 800));
@@ -329,6 +330,7 @@ window.DF = window.DF || {};
     var dx = P.x - e.x, dy = P.y - e.y, dd = Math.sqrt(dx * dx + dy * dy * 2.9), spd = d.speed;
     var tooFar = Math.abs(dx) > 1400;
     if (tooFar && e.state === 'idle') return;
+    if (e.state === 'chase' && Math.abs(dx) > 620) { e.state = 'idle'; e.cd = 700; return; } // gave up the chase: back to waiting
     switch (e.state) {
       case 'idle':
         e.wob += dt / 700; e.y += Math.sin(e.wob) * 0.1;
