@@ -184,7 +184,13 @@ window.DF = window.DF || {};
     if (DF.hasSave) DF.Store.backupOf(old);
     DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); go('story');
   }
-  function toStratos() { try { (window.top || window).location.assign(S.stratosLink); } catch (e) { window.location.assign(S.stratosLink); } }
+  /* Back to the Stratos Games site: leave the play-page frame and load the full address (works on localhost too). */
+  function toStratos() {
+    var url = S.stratosLink;
+    try { window.top.location.href = url; } catch (e) {
+      try { window.open(url, '_top'); } catch (e2) { window.location.href = url; }
+    }
+  }
   function settingsBack() { if (Nav.settingsFrom === 'pause') go('pause', { snap: G.snapshot(), objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); else go('title'); }
 
   var acts = {

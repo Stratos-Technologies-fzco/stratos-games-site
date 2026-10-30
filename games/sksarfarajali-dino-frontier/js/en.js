@@ -138,7 +138,7 @@ DF.S = {
     attr: 'ASSET ATTRIBUTIONS', attrBody: 'Painted scene images are mood-board art supplied by the project owner (see the provenance register before public release).', fonts: 'Fonts: system serif and sans-serif fonts.'
   },
   rotate: 'Rotate your phone to landscape to play.',
-  stratosLink: '/'
+  stratosLink: 'https://stratos.games/'
 };
 DF.t = function (str, vars) {
   return String(str).replace(/\{(\w+)\}/g, function (_, k) { return vars && vars[k] != null ? vars[k] : '{' + k + '}'; });
