@@ -29,8 +29,8 @@ window.DF = window.DF || {};
 
   /* ---------- balance (all values provisional and data-driven) ---------- */
   DF.balance = {
-    maxLevel: 20,
-    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200], // levels 1-20 (Emberlands covers 11-20)
+    maxLevel: 30,
+    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200, 23500, 27000, 31000, 35500, 40500, 46000, 52000, 58500, 65500, 73000], // levels 1-30 (Emberlands 11-20, Frostfang Peaks 21-30)
     levelBonus: { healthPerLevel: 4, powerEveryTwoLevels: 1 },
     caps: { resource: 99999, xp: 99999 },
     player: { maxHealth: 100, maxEnergy: 100, energyRegen: 7, speed: 150, attackPower: 12, attackCooldown: 380, attackRange: 66, attackDepth: 34, knockback: 80 },
@@ -65,6 +65,9 @@ window.DF = window.DF || {};
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 }, bossId: 'thornback' },
       /* Emberlands (levels 11-20): lava pools and erupting heat vents, tougher enemies */
       ember: { id: 'ember', minLevel: 11, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 11000, berriesNeeded: 5, bushes: 14, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 8, dna: 4, tokens: 70, xp: 180 }, eggId: 'ember', enemyMul: { hp: 1.4, dmg: 1.25 }, hazards: { pools: 9, vents: 9 } },
+      /* Frostfang Peaks (levels 21-30): freezing weather, slippery ice, campfires, scarce food */
+      frost: { id: 'frost', minLevel: 21, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 11500, berriesNeeded: 4, bushes: 9, raiders: 4, spitters: 2, skimmers: 2, bonus: { food: 6, dna: 5, tokens: 90, xp: 240 }, eggId: 'frost', enemyMul: { hp: 1.9, dmg: 1.5 }, hazards: { ice: 11, fires: 6 }, regenMul: 0.5 },
+      titan: { id: 'titan', minLevel: 25, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 8, tokens: 140, xp: 0 }, firstKill: { dna: 14, tokens: 180 }, bossId: 'whitetitan', enemyMul: { hp: 1.9, dmg: 1.5 }, hazards: { ice: 6, fires: 2 }, regenMul: 0.5 },
       cinder: { id: 'cinder', minLevel: 15, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 6, tokens: 100, xp: 0 }, firstKill: { dna: 10, tokens: 120 }, bossId: 'cinderjaw', enemyMul: { hp: 1.4, dmg: 1.25 }, hazards: { pools: 0, vents: 7 } }
     },
     tutorial: { worldW: 2100 },
@@ -83,10 +86,17 @@ window.DF = window.DF || {};
   DF.balance.boss.id = 'thornback'; DF.balance.boss.name = 'THORNBACK';
   DF.balance.bosses = {
     thornback: DF.balance.boss,
+    whitetitan: { id: 'whitetitan', name: 'WHITE TITAN', hp: 850, speed: 74, size: 250, xp: 800, chargeWindup: 850, chargeSpeed: 450, chargeTime: 700, chargeDmg: 35, slamWindup: 800, slamRadius: 158, slamDmg: 30, recover: 1000, armor: 0.45, adds: 2, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-whitetitan' },
     cinderjaw: { id: 'cinderjaw', name: 'CINDERJAW', hp: 420, speed: 80, size: 235, xp: 520, chargeWindup: 800, chargeSpeed: 440, chargeTime: 700, chargeDmg: 26, slamWindup: 780, slamRadius: 150, slamDmg: 22, recover: 1150, armor: 0.55, adds: 2, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-cinderjaw' }
   };
   /* heat resistance by evolution path (Emberlands hazards) */
   DF.balance.evolution.paths.ironhide.heat = 0.5; DF.balance.evolution.paths.wildspark.heat = 0.2;
+  /* cold resistance (Frostfang Peaks): Swiftclaw's feathers keep the warmth in */
+  DF.balance.evolution.paths.swiftclaw.cold = 0.35; DF.balance.evolution.paths.ironhide.cold = 0.1; DF.balance.evolution.paths.wildspark.cold = 0.15;
+  /* Frostfang weather: calm spells, a warning, then a blizzard. Chill (0-100) rises outside warm spots; at 100 you freeze (slower, and losing health). */
+  DF.balance.weather = { calm: [15000, 22000], warn: 3200, storm: [9000, 12000], chillCalm: 0.9, chillStorm: 7, freezeDps: 4, freezeSlow: 0.78, fireRadius: 135, fireCool: 28, berryWarm: 30, iceAccelMs: 520 };
+  DF.balance.biomes = { verdant: { minLevel: 1, objs: ['egg', 'forage', 'boss'] }, ember: { minLevel: 11, objs: ['ember', 'cinder'] }, frost: { minLevel: 21, objs: ['frost', 'titan'] } };
+  DF.biomeOf = function (objId) { var o = DF.balance.objectives[objId]; return (o && o.biome) || 'verdant'; };
   DF.balance.hazards = { poolDps: 10, poolTick: 400, ventDamage: 20, ventIdle: [2600, 4200], ventWarn: 950, ventBurst: 650, ventRx: 50, ventRy: 46 };
 
   /* ---------- helpers ---------- */
@@ -128,6 +138,7 @@ window.DF = window.DF || {};
       foodMul: 1 + (up.snout || 0) * b.upgrades.snout.foodPerLevel,
       ability: path ? path.ability : b.baseAbility,
       heatResist: path ? (path.heat || 0) : 0,
+      coldResist: path ? (path.cold || 0) : 0,
       path: save.profile.selectedEvolution,
       sprite: path ? path.sprite : 'dino-starter'
     };
@@ -136,8 +147,8 @@ window.DF = window.DF || {};
 
   /* ---------- save defaults and validation (TECH 5.1, 7) ---------- */
   var EVOS = { swiftclaw: 1, ironhide: 1, wildspark: 1 };
-  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback', 'cinderjaw'];
-  var EGGS = ['shadowscale', 'glade', 'prism', 'ember'];
+  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback', 'cinderjaw', 'whitetitan'];
+  var EGGS = ['shadowscale', 'glade', 'prism', 'ember', 'frost'];
   DF.SPECIES = SPECIES; DF.EGGS = EGGS;
 
   function uuid() {

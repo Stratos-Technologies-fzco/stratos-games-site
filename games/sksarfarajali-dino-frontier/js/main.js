@@ -96,7 +96,7 @@ window.DF = window.DF || {};
     Nav.run = { objId: objId, tutorial: !!tutorial, runId: base + (Nav.restarts ? '-r' + Nav.restarts : '') };
     A.setDuck(1); A.stopStinger && A.stopStinger();
     A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
-    if (objId === 'boss' || objId === 'cinder') A.preload('04-boss-thornback');
+    if (B.objectives[objId] && B.objectives[objId].bossId) A.preload('04-boss-thornback');
     go('hud', { tutorial: !!tutorial, objId: objId }, { keepMusic: true });
     G.resize(Nav.scale);
     G.start({ objective: objId, tutorial: !!tutorial, runId: Nav.run.runId });
@@ -141,14 +141,15 @@ window.DF = window.DF || {};
     var after = s.player.level, next;
     if (!ok) next = S.summary.nextTip;
     else if (!s.profile.selectedEvolution) next = S.summary.nextEvo;
-    else if (s.player.level >= B.objectives.ember.minLevel && res.objectiveId !== 'ember' && res.objectiveId !== 'cinder') next = S.summary.nextEmber;
-    else if (res.objectiveId === 'ember' || res.objectiveId === 'cinder') next = S.summary.nextGeneric;
+    else if (s.player.level >= B.biomes.frost.minLevel && DF.biomeOf(res.objectiveId) !== 'frost') next = S.summary.nextFrost;
+    else if (s.player.level >= B.biomes.ember.minLevel && DF.biomeOf(res.objectiveId) === 'verdant') next = S.summary.nextEmber;
+    else if (DF.biomeOf(res.objectiveId) !== 'verdant') next = S.summary.nextGeneric;
     else if (res.objectiveId !== 'boss' && DF.objectiveUnlocked(s, 'boss')) next = S.summary.nextBoss;
     else next = S.summary.nextGeneric;
     var p = { outcome: res.outcome, objId: res.tutorial ? 'egg' : res.objectiveId, reward: r, n: s.progress.expeditions, newEgg: res.newEggs[0] || '', levelUp: after > before ? after : 0, next: next };
     Nav.summary = p; Nav.run.objId = res.tutorial ? 'egg' : res.objectiveId; Nav.run.tutorial = false;
     DF.track(ok ? 'expedition_complete' : 'expedition_failed', { objective: res.objectiveId, ms: Math.round(res.duration) });
-    if (res.bossDown) DF.track('boss_result', { result: 'win' }); else if (res.objectiveId === 'boss' || res.objectiveId === 'cinder') DF.track('boss_result', { result: 'loss' });
+    if (res.bossDown) DF.track('boss_result', { result: 'win' }); else if (B.objectives[res.objectiveId] && B.objectives[res.objectiveId].bossId) DF.track('boss_result', { result: 'loss' });
     if (res.tutorial && ok) DF.track('tutorial_complete', {});
     G.quitRun(); G.clear();
     A.setDuck(1);
@@ -231,7 +232,7 @@ window.DF = window.DF || {};
     codex: function () { go('codex'); },
     missions: function () { go('missions'); },
     pickObj: function (d) { UI.st.obj = d.id; UI.refresh(); },
-    pickBiome: function (d) { UI.st.biome = d.id; UI.st.obj = d.id === 'ember' ? 'ember' : 'egg'; UI.refresh(); },
+    pickBiome: function (d) { UI.st.biome = d.id; UI.st.obj = B.biomes[d.id].objs[0]; UI.refresh(); },
     start: function () { var id = UI.st.obj; if (!DF.objectiveUnlocked(sv(), id)) id = 'egg'; startRun(id, false); },
     pickEvo: function (d) { UI.st.evo = d.id; UI.st.confirm = false; UI.refresh(); },
     evoAsk: function () { UI.st.confirm = true; UI.refresh(); },
