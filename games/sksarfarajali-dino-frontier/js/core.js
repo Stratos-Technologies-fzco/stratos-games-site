@@ -59,8 +59,8 @@ window.DF = window.DF || {};
     },
     boss: { hp: 300, speed: 70, size: 240, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 20, slamWindup: 850, slamRadius: 140, slamDmg: 17, recover: 1250, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
     objectives: {
-      egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 7, spitters: 3, skimmers: 2, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
-      forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 8, spitters: 5, skimmers: 5, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
+      egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
+      forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
       demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 } }
     },
