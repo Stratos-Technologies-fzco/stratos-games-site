@@ -29,10 +29,10 @@ window.DF = window.DF || {};
 
   /* ---------- balance (all values provisional and data-driven) ---------- */
   DF.balance = {
-    maxLevel: 40,
-    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200, 23500, 27000, 31000, 35500, 40500, 46000, 52000, 58500, 65500, 73000, 81000, 89500, 98500, 108000, 118000, 128500, 139500, 151000, 163500, 176500], // levels 1-40 (Emberlands 11-20, Frostfang Peaks 21-30, Lost Mire 31-40)
+    maxLevel: 50,
+    xpThresholds: [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200, 23500, 27000, 31000, 35500, 40500, 46000, 52000, 58500, 65500, 73000, 81000, 89500, 98500, 108000, 118000, 128500, 139500, 151000, 163500, 176500, 190000, 204000, 219000, 235000, 252000, 270000, 289000, 309000, 330000, 352000], // levels 1-50 (Emberlands 11-20, Frostfang 21-30, Lost Mire 31-40, Genesis Crater 41-50)
     levelBonus: { healthPerLevel: 4, powerEveryTwoLevels: 1 },
-    caps: { resource: 99999, xp: 99999 },
+    caps: { resource: 99999, xp: 999999 },
     player: { maxHealth: 100, maxEnergy: 100, energyRegen: 7, speed: 150, attackPower: 12, attackCooldown: 380, attackRange: 66, attackDepth: 34, knockback: 80 },
     dash: { cost: 15, distance: 120, duration: 170, cooldown: 600, invuln: 240 },
     baseAbility: { id: 'tail-sweep', name: 'Tail Sweep', cost: 30, cooldown: 3500, radius: 92, damage: 14, knock: 120, stun: 0 },
@@ -68,6 +68,9 @@ window.DF = window.DF || {};
       /* Frostfang Peaks (levels 21-30): freezing weather, slippery ice, campfires, scarce food */
       frost: { id: 'frost', minLevel: 21, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 11500, berriesNeeded: 4, bushes: 9, raiders: 4, spitters: 2, skimmers: 2, bonus: { food: 6, dna: 5, tokens: 90, xp: 240 }, eggId: 'frost', enemyMul: { hp: 1.9, dmg: 1.5 }, hazards: { ice: 11, fires: 6 }, regenMul: 0.5 },
       titan: { id: 'titan', minLevel: 25, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 8, tokens: 140, xp: 0 }, firstKill: { dna: 14, tokens: 180 }, bossId: 'whitetitan', enemyMul: { hp: 1.9, dmg: 1.5 }, hazards: { ice: 6, fires: 2 }, regenMul: 0.5 },
+      /* Genesis Crater (levels 41-50, endgame): unstable energy fields, rare DNA, the Genesis Colossus */
+      genesis: { id: 'genesis', minLevel: 41, biome: 'crater', bg: 'celestial_sky_citadel', worldW: 12500, berriesNeeded: 4, bushes: 9, raiders: 5, spitters: 3, skimmers: 2, bonus: { food: 8, dna: 8, tokens: 130, xp: 360 }, eggId: 'genesis', enemyMul: { hp: 3.0, dmg: 2.1 }, hazards: { fields: 11, rare: 6 }, regenMul: 0.6 },
+      colossus: { id: 'colossus', minLevel: 45, biome: 'crater', bg: 'celestial_sky_citadel', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 14, tokens: 220, xp: 0 }, firstKill: { dna: 24, tokens: 320 }, bossId: 'colossus', enemyMul: { hp: 3.0, dmg: 2.1 }, hazards: { fields: 6, rare: 3 }, regenMul: 0.6 },
       /* The Lost Mire (levels 31-40): poison bogs, glowcaps, camouflaged ambushers */
       mire: { id: 'mire', minLevel: 31, biome: 'mire', bg: 'bioluminescent_spino_swamp', worldW: 12000, berriesNeeded: 4, bushes: 9, raiders: 5, spitters: 2, skimmers: 2, camo: 0.55, bonus: { food: 7, dna: 6, tokens: 110, xp: 300 }, eggId: 'mire', enemyMul: { hp: 2.4, dmg: 1.8 }, hazards: { bogs: 12, glow: 7 }, regenMul: 0.6 },
       queen: { id: 'queen', minLevel: 35, biome: 'mire', bg: 'bioluminescent_spino_swamp', worldW: 1500, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 10, tokens: 170, xp: 0 }, firstKill: { dna: 16, tokens: 220 }, bossId: 'mirequeen', enemyMul: { hp: 2.4, dmg: 1.8 }, hazards: { bogs: 6, glow: 3 }, regenMul: 0.6 },
@@ -90,20 +93,25 @@ window.DF = window.DF || {};
   DF.balance.bosses = {
     thornback: DF.balance.boss,
     whitetitan: { id: 'whitetitan', name: 'WHITE TITAN', hp: 850, speed: 74, size: 250, xp: 800, chargeWindup: 850, chargeSpeed: 450, chargeTime: 700, chargeDmg: 35, slamWindup: 800, slamRadius: 158, slamDmg: 30, recover: 1000, armor: 0.45, adds: 2, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-whitetitan' },
+    colossus: { id: 'colossus', name: 'GENESIS COLOSSUS', hp: 1150, speed: 68, size: 270, xp: 1500, chargeWindup: 820, chargeSpeed: 455, chargeTime: 700, chargeDmg: 38, slamWindup: 780, slamRadius: 165, slamDmg: 32, recover: 1000, armor: 0.45, adds: 3, phase2At: 0.5, enrageSpeed: 1.45, sprite: 'boss-colossus' },
     mirequeen: { id: 'mirequeen', name: 'MIRE QUEEN', hp: 1000, speed: 76, size: 250, xp: 1000, chargeWindup: 820, chargeSpeed: 455, chargeTime: 700, chargeDmg: 38, slamWindup: 780, slamRadius: 160, slamDmg: 32, recover: 1000, armor: 0.45, adds: 3, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-mirequeen' },
     cinderjaw: { id: 'cinderjaw', name: 'CINDERJAW', hp: 420, speed: 80, size: 235, xp: 520, chargeWindup: 800, chargeSpeed: 440, chargeTime: 700, chargeDmg: 26, slamWindup: 780, slamRadius: 150, slamDmg: 22, recover: 1150, armor: 0.55, adds: 2, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-cinderjaw' }
   };
   /* heat resistance by evolution path (Emberlands hazards) */
   DF.balance.evolution.paths.ironhide.heat = 0.5; DF.balance.evolution.paths.wildspark.heat = 0.2;
   /* cold resistance (Frostfang Peaks): Swiftclaw's feathers keep the warmth in */
+  /* energy resistance (Genesis Crater): Wildspark channels the Pulse best */
+  DF.balance.evolution.paths.swiftclaw.energy = 0.15; DF.balance.evolution.paths.ironhide.energy = 0.25; DF.balance.evolution.paths.wildspark.energy = 0.5;
   /* poison resistance (Lost Mire): Ironhide's thick hide shrugs off the bog */
   DF.balance.evolution.paths.swiftclaw.poison = 0.1; DF.balance.evolution.paths.ironhide.poison = 0.4; DF.balance.evolution.paths.wildspark.poison = 0.25;
   DF.balance.evolution.paths.swiftclaw.cold = 0.35; DF.balance.evolution.paths.ironhide.cold = 0.1; DF.balance.evolution.paths.wildspark.cold = 0.15;
   /* Frostfang weather: calm spells, a warning, then a blizzard. Chill (0-100) rises outside warm spots; at 100 you freeze (slower, and losing health). */
   DF.balance.weather = { calm: [15000, 22000], warn: 3200, storm: [9000, 12000], chillCalm: 0.9, chillStorm: 7, freezeDps: 4, freezeSlow: 0.78, fireRadius: 135, fireCool: 28, berryWarm: 30, iceAccelMs: 520 };
-  DF.balance.biomes = { verdant: { minLevel: 1, objs: ['egg', 'forage', 'boss'] }, ember: { minLevel: 11, objs: ['ember', 'cinder'] }, frost: { minLevel: 21, objs: ['frost', 'titan'] }, mire: { minLevel: 31, objs: ['mire', 'queen'] } };
+  DF.balance.biomes = { verdant: { minLevel: 1, objs: ['egg', 'forage', 'boss'] }, ember: { minLevel: 11, objs: ['ember', 'cinder'] }, frost: { minLevel: 21, objs: ['frost', 'titan'] }, mire: { minLevel: 31, objs: ['mire', 'queen'] }, crater: { minLevel: 41, objs: ['genesis', 'colossus'] } };
   /* Lost Mire rules: bog poison lingers after you leave; glowcaps cure it and expose hidden predators; camouflaged enemies reveal when you get close */
   DF.balance.mire = { poisonMs: 3500, tick: 500, dps: 6, glowRadius: 55, revealMs: 7000, camoRadius: 230, revealRadius: 520 };
+  /* Genesis Crater rules: energy fields glow, flash a warning, then discharge. Step out or dash through. Rare DNA sits inside the fields */
+  DF.balance.crater = { idle: [3200, 5200], warn: 1100, zap: 450, dmg: 32, rareValue: 3 };
   DF.biomeOf = function (objId) { var o = DF.balance.objectives[objId]; return (o && o.biome) || 'verdant'; };
   DF.balance.hazards = { poolDps: 10, poolTick: 400, ventDamage: 20, ventIdle: [2600, 4200], ventWarn: 950, ventBurst: 650, ventRx: 50, ventRy: 46 };
 
@@ -148,6 +156,7 @@ window.DF = window.DF || {};
       heatResist: path ? (path.heat || 0) : 0,
       coldResist: path ? (path.cold || 0) : 0,
       poisonResist: path ? (path.poison || 0) : 0,
+      energyResist: path ? (path.energy || 0) : 0,
       path: save.profile.selectedEvolution,
       sprite: path ? path.sprite : 'dino-starter'
     };
@@ -156,8 +165,8 @@ window.DF = window.DF || {};
 
   /* ---------- save defaults and validation (TECH 5.1, 7) ---------- */
   var EVOS = { swiftclaw: 1, ironhide: 1, wildspark: 1 };
-  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback', 'cinderjaw', 'whitetitan', 'mirequeen'];
-  var EGGS = ['shadowscale', 'glade', 'prism', 'ember', 'frost', 'mire'];
+  var SPECIES = ['starter', 'raider', 'spitter', 'skimmer', 'thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'];
+  var EGGS = ['shadowscale', 'glade', 'prism', 'ember', 'frost', 'mire', 'genesis'];
   DF.SPECIES = SPECIES; DF.EGGS = EGGS;
 
   function uuid() {

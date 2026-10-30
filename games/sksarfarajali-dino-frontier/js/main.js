@@ -141,6 +141,8 @@ window.DF = window.DF || {};
     var after = s.player.level, next;
     if (!ok) next = S.summary.nextTip;
     else if (!s.profile.selectedEvolution) next = S.summary.nextEvo;
+    else if (res.bossDown && res.bossId === 'colossus') next = S.summary.nextFinale;
+    else if (s.player.level >= B.biomes.crater.minLevel && DF.biomeOf(res.objectiveId) !== 'crater') next = S.summary.nextCrater;
     else if (s.player.level >= B.biomes.mire.minLevel && DF.biomeOf(res.objectiveId) !== 'mire') next = S.summary.nextMire;
     else if (s.player.level >= B.biomes.frost.minLevel && DF.biomeOf(res.objectiveId) !== 'frost') next = S.summary.nextFrost;
     else if (s.player.level >= B.biomes.ember.minLevel && DF.biomeOf(res.objectiveId) === 'verdant') next = S.summary.nextEmber;
