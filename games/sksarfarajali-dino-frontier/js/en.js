@@ -33,7 +33,15 @@ DF.S = {
   demo: {
     badge: 'DEMO', skip: 'Skip demo',
     caps: ['Explore Verdant Valley. Berries restore a little health.', 'Enemies flash before they strike. Dodge, then hit back.', 'Dash and abilities spend energy, which recharges.', 'Follow the marker to the egg site to discover an egg.', 'Then evolve, upgrade and face Thornback.'],
-    end: 'Ready? Tap New Game to start your own expedition.'
+    end: 'Ready? Tap New Game to start your own expedition.',
+    pick: { eyebrow: 'Watch a demo', title: 'Choose a biome', back: 'Back', watch: '▶ Watch', aria: 'Watch the {name} demo', note: 'Demos use a practice dinosaur. Your saved progress is never touched.',
+      cards: { verdant: { name: 'Verdant Valley', meta: 'LV 1–10', text: 'Berries, raiders and the first egg.' }, ember: { name: 'Emberlands', meta: 'LV 11–20', text: 'Lava pools and heat vents.' }, frost: { name: 'Frostfang Peaks', meta: 'LV 21–30', text: 'Blizzards, ice and campfires.' }, mire: { name: 'The Lost Mire', meta: 'LV 31–40', text: 'Poison bogs and hidden ambushers.' }, crater: { name: 'Genesis Crater', meta: 'LV 41–50', text: 'Energy fields and rare DNA.' } } },
+    biomeCaps: {
+      ember: ['Emberlands: lava pools burn, and heat vents glow before they erupt.', 'Enemies hit harder here. Dodge the flash, then strike back.', 'Dash and abilities spend energy. Dashing skims over lava.', 'Follow the marker to the Ember nest to discover the Ember Egg.'],
+      frost: ['Frostfang Peaks: blizzards chill you. Warm up at campfires and with berries.', 'Ice patches make you slide. Enemies hit harder, so dodge the flash.', 'Dash and abilities spend energy. Swiftclaw resists the cold best.', 'Follow the marker to the Frost nest to discover the Frost Egg.'],
+      mire: ['The Lost Mire: bog water poisons you. Glowcaps cure it and reveal hidden predators.', 'Camouflaged predators ambush when you get close. Watch for ripples.', 'Dash skims over bogs. Ironhide resists poison best.', 'Follow the marker to the Mire nest to discover the Mire Egg.'],
+      crater: ['Genesis Crater: energy fields flash gold, then discharge. Step out or dash through.', 'Rare DNA sits inside the fields. Time a dash to grab it.', 'Dash and abilities spend energy. Wildspark resists the Pulse best.', 'Follow the marker to the Genesis nest to discover the Genesis Egg.']
+    }
   },
   tutorial: {
     step: 'STEP {n} OF 4',

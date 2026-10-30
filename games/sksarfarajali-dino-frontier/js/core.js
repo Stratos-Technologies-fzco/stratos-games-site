@@ -61,6 +61,11 @@ window.DF = window.DF || {};
     objectives: {
       egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
+      /* demo arenas, one per biome: short, with a few of that biome's hazards. All share the id 'demo' so the HUD and run logic treat them alike. */
+      demo_ember: { id: 'demo', minLevel: 1, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'ember', hazards: { pools: 4, vents: 3 } },
+      demo_frost: { id: 'demo', minLevel: 1, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'frost', hazards: { ice: 4, fires: 2 } },
+      demo_mire: { id: 'demo', minLevel: 1, biome: 'mire', bg: 'bioluminescent_spino_swamp', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, camo: 0.6, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'mire', hazards: { bogs: 4, glow: 2 } },
+      demo_crater: { id: 'demo', minLevel: 1, biome: 'crater', bg: 'celestial_sky_citadel', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'genesis', hazards: { fields: 4, rare: 2 } },
       demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 }, bossId: 'thornback' },
       /* Emberlands (levels 11-20): lava pools and erupting heat vents, tougher enemies */

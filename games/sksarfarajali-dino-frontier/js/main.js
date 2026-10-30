@@ -5,9 +5,9 @@ window.DF = window.DF || {};
   'use strict';
   var S = DF.S, UI = DF.UI, G = DF.Game, A = DF.Audio, B = DF.balance;
   DF.build = '20261030'; DF.save = null; DF.hasSave = false;
-  var STATES = ['loading', 'privacy', 'title', 'story', 'lore', 'hud', 'pause', 'summary', 'sanctuary', 'evolution', 'upgrades', 'codex', 'missions', 'settings', 'credits', 'error'];
+  var STATES = ['loading', 'privacy', 'title', 'story', 'lore', 'demos', 'hud', 'pause', 'summary', 'sanctuary', 'evolution', 'upgrades', 'codex', 'missions', 'settings', 'credits', 'error'];
   var M = { title: '01-title-genesis-pulse', sanctuary: '05-sanctuary-dawn', hud: '02-explore-verdant-valley' };
-  var MUSIC = { loading: M.title, privacy: M.title, title: M.title, story: M.title, lore: M.title, sanctuary: M.sanctuary, evolution: M.sanctuary, upgrades: M.sanctuary, codex: M.sanctuary, missions: M.sanctuary, credits: M.sanctuary };
+  var MUSIC = { loading: M.title, privacy: M.title, title: M.title, story: M.title, lore: M.title, demos: M.title, sanctuary: M.sanctuary, evolution: M.sanctuary, upgrades: M.sanctuary, codex: M.sanctuary, missions: M.sanctuary, credits: M.sanctuary };
   var Nav = DF.Nav = { state: 'loading', run: null, settingsFrom: 'title', errCtx: null, warned: false, summary: null, scale: 1, hudTimer: 0 };
 
   function sv() { return DF.save; }
@@ -162,12 +162,12 @@ window.DF = window.DF || {};
   }
 
   /* ---------- demo: the game plays a short scripted run by itself ---------- */
-  function startDemo() {
-    Nav.demo = true; Nav.demoStage = -1; Nav.demoStageAt = 0; Nav.run = { objId: 'demo', tutorial: false, runId: 'demo' };
+  function startDemo(biome) {
+    Nav.demoBiome = biome || 'verdant'; Nav.demo = true; Nav.demoStage = -1; Nav.demoStageAt = 0; Nav.run = { objId: 'demo', tutorial: false, runId: 'demo' };
     A.setDuck(1); A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
     go('hud', { demo: true, objId: 'demo' }, { keepMusic: true });
     UI.demoMode(); G.resize(Nav.scale);
-    G.start({ demo: true, runId: 'demo' });
+    G.start({ demo: true, demoObj: Nav.demoBiome === 'verdant' ? 'demo' : 'demo_' + Nav.demoBiome, runId: 'demo' });
     clearInterval(Nav.hudTimer);
     Nav.hudTimer = setInterval(function () {
       if (Nav.state !== 'hud' || !Nav.demo) return;
@@ -175,7 +175,7 @@ window.DF = window.DF || {};
       var want = s.eggReady ? 3 : s.abilitiesUsed > 0 ? 2 : (s.combat || s.kills > 0) ? 1 : 0, now = Date.now();
       if (want > Nav.demoStage && now - Nav.demoStageAt > 3000) { Nav.demoStage = Math.min(want, Nav.demoStage + 1 > want ? want : Nav.demoStage + 1); Nav.demoStageAt = now; }
       if (Nav.demoStage < 0) { Nav.demoStage = 0; Nav.demoStageAt = now; }
-      UI.caption(S.demo.caps[Nav.demoStage]);
+      UI.caption((S.demo.biomeCaps[Nav.demoBiome] || S.demo.caps)[Nav.demoStage]);
     }, 100);
   }
   function endDemo() {
@@ -203,7 +203,8 @@ window.DF = window.DF || {};
     stratos: toStratos,
     lore: function () { go('lore'); },
     loreBack: function () { go('title'); },
-    demo: function () { startDemo(); },
+    demo: function () { go('demos'); },
+    demoBiome: function (d) { startDemo(d.id); },
     skipDemo: function () { endDemo(); },
     retryLoad: function () { runBoot(); },
     consent: function (d) { var c = sv().consent; c.analytics = d.v; c.decidedAt = new Date().toISOString(); c.policyVersion = 1; persist(); DF.track('consent_set', {}); go('title'); },
@@ -280,7 +281,7 @@ window.DF = window.DF || {};
   /* ---------- keyboard in menus ---------- */
   window.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape' && !(e.code === 'KeyP' && Nav.state === 'pause')) return;
-    var back = { evolution: 'toSanctuary', upgrades: 'toSanctuary', codex: 'toSanctuary', missions: 'toSanctuary', sanctuary: 'toTitle', settings: 'settingsBack', credits: 'toTitle', pause: 'resume', lore: 'loreBack' }[Nav.state];
+    var back = { evolution: 'toSanctuary', upgrades: 'toSanctuary', codex: 'toSanctuary', missions: 'toSanctuary', sanctuary: 'toTitle', settings: 'settingsBack', credits: 'toTitle', pause: 'resume', lore: 'loreBack', demos: 'toTitle' }[Nav.state];
     if (UI.st.modal) { UI.st.modal = false; UI.refresh(); return; }
     if (back) { e.stopImmediatePropagation(); onAct(back); } // keep the game's own Esc/P handler from re-pausing in the same key press
   });

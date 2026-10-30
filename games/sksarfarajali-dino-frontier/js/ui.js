@@ -85,6 +85,19 @@ window.DF = window.DF || {};
       '<div class="row" style="gap:10px;margin-top:2px"><button class="btn pri" data-act="demo" style="padding:0 22px;height:44px;font-size:15px">' + L.demo + '</button><button class="btn outl" data-act="loreBack" data-focus style="padding:0 20px;height:44px">' + L.back + '</button></div></div></div>';
   };
 
+  /* ---------- demo chooser: one short demo per biome ---------- */
+  T.demos = function () {
+    var D = S.demo.pick, bg = { verdant: 'canyon_styracosaur', ember: 'volcanic_ruins_chasm', frost: 'aurora_celestial_sanctuary', mire: 'bioluminescent_spino_swamp', crater: 'celestial_sky_citadel' };
+    var cards = ['verdant', 'ember', 'frost', 'mire', 'crater'].map(function (id) {
+      var c = D.cards[id];
+      return '<button data-act="demoBiome" data-id="' + id + '" aria-label="' + F(D.aria, { name: c.name }) + '" style="position:relative;overflow:hidden;flex:1;min-width:0;height:236px;border-radius:14px;border:1px solid var(--line);padding:0;text-align:left;background:var(--card)"><img src="' + img(bg[id]) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85"><span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(14,23,18,.97) 38%,rgba(14,23,18,.1))"></span>' +
+        '<span class="col" style="position:absolute;left:10px;right:10px;bottom:10px;gap:4px"><span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--gold)">' + c.meta + '</span><span class="serif" style="font-size:16px;font-weight:800;line-height:1.15">' + c.name + '</span><span style="font-size:11.5px;line-height:1.35;color:var(--soft)">' + c.text + '</span><span style="margin-top:4px;font-size:12px;font-weight:800;color:#1A1408;background:var(--gold);border-radius:8px;padding:6px 0;text-align:center">' + D.watch + '</span></span></button>';
+    }).join('');
+    return '<div class="scr solid"><img class="bgimg" src="' + img('lost_expedition_raptor') + '" alt="" style="opacity:.3"><div class="fill" style="background:rgba(14,23,18,.7)"></div>' +
+      '<div class="col" style="position:absolute;left:24px;right:24px;top:16px;bottom:16px;gap:12px;justify-content:center"><div class="row" style="gap:12px"><button class="back big" data-act="toTitle" data-focus aria-label="' + D.back + '">' + BACK + '</button><div class="col" style="gap:2px"><div class="eyebrow">' + D.eyebrow + '</div><h2 class="serif" style="margin:0;font-size:24px">' + D.title + '</h2></div></div>' +
+      '<div class="row" style="gap:10px;align-items:stretch">' + cards + '</div><div style="font-size:12px;color:var(--mut)">' + D.note + '</div></div></div>';
+  };
+
   /* ---------- SCR-04/05 HUD (with tutorial card) ---------- */
   /* on-screen movement buttons: Up, Down, Back (left) and Forward (right) */
   var ARROWS = { up: 'M12 6l-6.5 8h13z', down: 'M12 18l-6.5-8h13z', left: 'M6 12l8-6.5v13z', right: 'M18 12l-8-6.5v13z' };

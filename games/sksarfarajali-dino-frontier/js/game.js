@@ -46,7 +46,7 @@ window.DF = window.DF || {};
   };
 
   G.start = function (opts) {
-    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? 'demo' : opts.objective];
+    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? (opts.demoObj || 'demo') : opts.objective];
     var stats = DF.playerStats(demo ? demoSave() : save), rng = DF.createRng(opts.runId);
     S = G.S = {
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
@@ -56,7 +56,7 @@ window.DF = window.DF || {};
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
     S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0, ivx: 0, ivy: 0 };
-    S.wx = { state: 'calm', t: rng.range(B.weather.calm[0] * 0.6, B.weather.calm[1]), chill: 0 };
+    S.wx = { state: 'calm', t: demo ? 6000 : rng.range(B.weather.calm[0] * 0.6, B.weather.calm[1]), chill: 0 }; // the demo shows a blizzard early
     S.formScale = (FORM_W[stats.path] || 128) / 128; // enemies are drawn in proportion to the player's form (art only; hit boxes do not change)
     buildWorld();
     if (S.biome === 'ember' && !demo) toast(DF.S.hud.emberHint, 'info');
@@ -450,6 +450,7 @@ window.DF = window.DF || {};
     for (i = 0; i < S.hz.fires.length; i++) { f = S.hz.fires[i]; if (Math.abs(P.x - f.x) < W.fireRadius && Math.abs(P.y - f.y) < 90) { warm = true; break; } }
     var gain = (wx.state === 'storm' ? W.chillStorm : W.chillCalm) * (1 - st.coldResist);
     if (warm) wx.chill = Math.max(0, wx.chill - W.fireCool * dt / 1000); else wx.chill = Math.min(100, wx.chill + gain * dt / 1000);
+    if (S.demo) wx.chill = Math.min(wx.chill, 55); // the demo never freezes
     S.cold = wx.chill >= 100;
     S.speedMul = S.cold ? W.freezeSlow : 1;
     if (S.cold) { S.freezeAcc += dt; if (S.freezeAcc >= 500) { S.freezeAcc -= 500; coldHurt(W.freezeDps * 0.5); } } else S.freezeAcc = 0;
@@ -600,10 +601,21 @@ window.DF = window.DF || {};
   }
 
   /* ---------- demo pilot: plays the scripted run by itself ---------- */
+  /* biome demos: the pilot walks through that biome's hazards first, lingering until a timed one fires, so the viewer sees each one working */
+  function demoShow() {
+    if (S.biome === 'verdant' || S.t > 40000) return null;
+    if (!S.show) {
+      var h = S.hz, L = S.biome === 'ember' ? [h.pools[0], h.vents[0]] : S.biome === 'frost' ? [h.ice[0], h.fires[0]] : S.biome === 'mire' ? [h.bogs[0], h.glow[0]] : [h.fields[0]];
+      S.show = L.filter(Boolean).sort(function (a, b) { return a.x - b.x; }); S.showI = 0; S.showDwell = 0;
+    }
+    var t = S.show[S.showI]; if (!t) return null;
+    if (Math.abs(S.P.x - t.x) < 26 && Math.abs(S.P.y - t.y) < 14) { var need = t.state !== undefined ? (S.biome === 'crater' ? 75 : 55) : 14; if (++S.showDwell >= need) { S.showI++; S.showDwell = 0; } }
+    return t;
+  }
   function demoAI(dt) {
     S.demoAcc += dt; if (S.demoAcc < 100) return; S.demoAcc = 0; var tick = ++S.demoTick;
     var P = S.P, st = S.stats, near = null, nd = 1e9, tx = null, ty = null, i;
-    for (i = 0; i < S.enemies.length; i++) { var e = S.enemies[i]; if (e.state === 'dead') continue; var d = Math.abs(e.x - P.x) + Math.abs(e.y - P.y) * 2; if (d < nd) { nd = d; near = e; } }
+    for (i = 0; i < S.enemies.length; i++) { var e = S.enemies[i]; if (e.state === 'dead' || (e.camo && !e.rev)) continue; var d = Math.abs(e.x - P.x) + Math.abs(e.y - P.y) * 2; if (d < nd) { nd = d; near = e; } }
     if (near && nd < 460) {
       var dir = near.x < P.x ? 1 : -1; tx = near.x + (near.type === 'spitter' ? 44 : 58) * dir; ty = near.y;
       if (near.state === 'windup' && Math.abs(near.x - P.x) < 130 && P.en >= st.dashCost && P.dashCd <= 0 && tick % 2 === 0) press('dash');
@@ -611,7 +623,7 @@ window.DF = window.DF || {};
       var b = null, bd = 1e9, n = S.nests[0];
       for (i = 0; i < S.bushes.length; i++) if (S.bushes[i].berries > 0) { var bx = Math.abs(S.bushes[i].x - P.x); if (bx < bd) { bd = bx; b = S.bushes[i]; } }
       var pk = null, pd = 1e9; for (i = 0; i < S.pickups.length; i++) { var px = Math.abs(S.pickups[i].x - P.x); if (px < pd) { pd = px; pk = S.pickups[i]; } }
-      if (S.berries < S.obj.berriesNeeded && b) { tx = b.x; ty = b.y; } else if (pk && pd < 260) { tx = pk.x; ty = pk.y; } else if (n) { tx = n.x; ty = n.y; }
+      var sc = demoShow(); if (sc) { tx = sc.x; ty = sc.y; } else if (S.berries < S.obj.berriesNeeded && b) { tx = b.x; ty = b.y; } else if (pk && pd < 260) { tx = pk.x; ty = pk.y; } else if (n) { tx = n.x; ty = n.y; }
     }
     var mx = 0, my = 0;
     if (tx != null) { var dx = tx - P.x, dy = ty - P.y; if (Math.abs(dx) > 14) mx = dx > 0 ? 1 : -1; if (Math.abs(dy) > 8) my = dy > 0 ? 1 : -1; }
