@@ -52,10 +52,11 @@ window.DF = window.DF || {};
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
       gained: { food: 0, dna: 0, tokens: 0, xp: 0 }, berries: 0, kills: {}, dodges: 0, abilitiesUsed: 0, seen: {}, newEggs: [], newSpecies: [],
       enemies: [], bushes: [], pickups: [], rocks: [], projectiles: [], parts: [], texts: [], nests: [], crystal: null, boss: null,
-      shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
+      formScale: 1, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
     S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0 };
+    S.formScale = (FORM_W[stats.path] || 128) / 128; // enemies are drawn in proportion to the player's form (art only; hit boxes do not change)
     buildWorld();
     held.attack = false; queue.length = 0; keys = {}; mv.x = 0; mv.y = 0;
     paused = false; running = true; last = performance.now();
@@ -646,7 +647,7 @@ window.DF = window.DF || {};
     draw(name, w, x, y, o);
   }
   function dEnemy(e) {
-    var d = e.def, w = d.size, bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : Math.sin(S.t / 110 + e.id) * 1.8, a = 1, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w;
+    var d = e.def, w = d.size * S.formScale, bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : Math.sin(S.t / 110 + e.id) * 1.8, a = 1, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w;
     if (e.state === 'dead') { a = Math.max(0, 1 - e.dead / 700); }
     shadow(e.x, e.y + 2, w * 0.8, 0.35 * a);
     var o = { flip: e.face > 0 ? false : true, alpha: a };
@@ -661,8 +662,8 @@ window.DF = window.DF || {};
     }
   }
   function dBoss(b) {
-    var def = B.boss, bsc = sprite(def.sprite, def.size), bhh = bsc.height / bsc.width * def.size, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
-    shadow(b.x, b.y + 4, def.size * 0.9, 0.4 * a);
+    var def = B.boss, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
+    shadow(b.x, b.y + 4, bw * 0.9, 0.4 * a);
     // telegraph lane
     if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.14 + 0.1 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); }
     if (b.state === 'windup' && b.atk === 'slam') { cx.strokeStyle = 'rgba(229,83,75,.7)'; cx.lineWidth = 2; cx.setLineDash([6, 5]); cx.beginPath(); cx.ellipse(b.x, b.y, def.slamRadius, 40, 0, 0, 7); cx.stroke(); cx.setLineDash([]); }
@@ -670,7 +671,7 @@ window.DF = window.DF || {};
     o.flip = b.face < 0;
     if (b.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.6; } else if (b.state === 'windup') { o.tint = '#FFB199'; o.tintA = 0.3 + 0.25 * Math.sin(S.t / 50); } else if (b.phase === 2) { o.tint = '#E5534B'; o.tintA = 0.14; }
     var lift = b.state === 'windup' && b.atk === 'slam' ? -14 * (1 - b.t / (def.slamWindup * b.windMul)) : 0;
-    draw(def.sprite, def.size, b.x + shakeX, b.y + lift, o);
+    draw(def.sprite, bw, b.x + shakeX, b.y + lift, o);
     if (b.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 26px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', b.x, b.y - bhh - 8); }
     if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
