@@ -93,17 +93,31 @@ window.DF = window.DF || {};
       S.P.x = 250;
       return;
     }
-    var nb = o.bushes, step = (W - 900) / nb;
-    for (i = 0; i < nb; i++) addBush(480 + i * step + rng.range(-40, 40), rng.range(YMIN + 20, YMAX - 20), 1);
-    for (i = 0; i < (S.demo ? 0 : 8); i++) addRock(rng.range(350, W - 450), rng.range(YMIN + 10, YMAX - 10), rng.range(36, 60), rng.range(16, 24)); // the demo arena is rock-free so the pilot never snags
-    var ne = o.raiders + o.spitters + o.skimmers, types = [], n;
+    // rocks first, then everything else is placed clear of them (nothing may spawn inside a boulder)
+    var nr = Math.round(W / 330);
+    for (i = 0; i < nr; i++) addRock(380 + (i + 0.5) * (W - 1100) / nr + rng.range(-45, 45), rng.range(YMIN + 10, YMAX - 10), rng.range(36, 60), rng.range(16, 24)); // evenly spread so rocks can never wall off the lane
+    if (S.demo) S.rocks.length = 0; // the demo arena is rock-free so the pilot never snags
+    function free(x, y) {
+      for (var t = 0; t < 14; t++) {
+        var ok = true;
+        for (var r = 0; r < S.rocks.length; r++) { var k = S.rocks[r]; if (Math.abs(x - k.x) < k.rx + 50 && Math.abs(y - k.y) < k.ry * 2.4 + 38) { ok = false; break; } }
+        if (ok) return [x, y];
+        y = rng.range(YMIN + 12, YMAX - 8); x += rng.range(-40, 40);
+      }
+      return [x, y];
+    }
+    var nb = o.bushes, step = (W - 900) / nb, p;
+    for (i = 0; i < nb; i++) { p = free(480 + i * step + rng.range(-40, 40), rng.range(YMIN + 20, YMAX - 20)); addBush(p[0], p[1], 1); }
+    var types = [], n;
     for (n = 0; n < o.raiders; n++) types.push('raider'); for (n = 0; n < o.spitters; n++) types.push('spitter'); for (n = 0; n < o.skimmers; n++) types.push('skimmer');
+    for (n = types.length - 1; n > 0; n--) { var m = Math.floor(rng.next() * (n + 1)), tmp = types[n]; types[n] = types[m]; types[m] = tmp; } // mixed order along the trail
     for (i = 0; i < types.length; i++) {
-      x = 700 + (i + 0.5) * (W - 1300) / types.length + rng.range(-60, 60);
+      x = 750 + (i + 0.5) * (W - 1500) / types.length + rng.range(-70, 70);
       addEnemy(types[i], x, rng.range(YMIN + 10, YMAX - 6));
     }
-    for (i = 0; i < 4; i++) S.pickups.push(mkPick('dna', rng.range(600, W - 500), rng.range(YMIN + 12, YMAX - 8)));
-    for (i = 0; i < 5; i++) S.pickups.push(mkPick('coin', rng.range(500, W - 400), rng.range(YMIN + 12, YMAX - 8)));
+    var nd = Math.max(4, Math.round(W / 900)), nc = Math.max(5, Math.round(W / 800));
+    for (i = 0; i < nd; i++) { p = free(rng.range(600, W - 500), rng.range(YMIN + 12, YMAX - 8)); S.pickups.push(mkPick('dna', p[0], p[1])); }
+    for (i = 0; i < nc; i++) { p = free(rng.range(500, W - 400), rng.range(YMIN + 12, YMAX - 8)); S.pickups.push(mkPick('coin', p[0], p[1])); }
     S.nests.push({ x: W - 240, y: 285, eggId: o.eggId, done: false });
     if (o.id === 'egg' || o.id === 'forage') S.crystal = { x: W - 520, y: 232, used: false };
   }
@@ -128,6 +142,7 @@ window.DF = window.DF || {};
   G.pause = function () { paused = true; keys = {}; held.attack = false; mv.x = 0; mv.y = 0; queue.length = 0; };
   G.resume = function () { if (!running) return; paused = false; last = performance.now(); };
   G.isPaused = function () { return paused; };
+  G.step = function (dt) { if (S && !S.ended && !paused) update(dt); }; // test-only: advance the simulation without the animation frame
   G.isRunning = function () { return running; };
   G.stop = function () { running = false; paused = true; cancelAnimationFrame(raf); };
   G.clear = function () { if (cx) cx.clearRect(0, 0, cv.width, cv.height); };
@@ -137,12 +152,13 @@ window.DF = window.DF || {};
     if (!running) return;
     raf = requestAnimationFrame(loop);
     var dt = Math.min(50, now - last); last = now; // clamp large deltas after tab suspension
-    if (!paused && S && !S.ended) update(dt);
+    if (!paused && S && !S.ended) { for (var k = 0, n = G.fast || 1; k < n && !S.ended; k++) update(dt); } // G.fast: test-only speed multiplier
     render();
   }
 
   function update(dt) {
     S.t += dt; var P = S.P, i;
+    if (G.onTick) G.onTick(dt); // test-only hook
     // queued actions
     while (queue.length) { var a = queue.shift(); if (a === 'attack') doAttack(); else if (a === 'dash') doDash(); else if (a === 'ability') doAbility(); }
     if (held.attack && P.atkCd <= 0) doAttack();
@@ -637,9 +653,9 @@ window.DF = window.DF || {};
     cx.fillStyle = 'rgba(232,181,74,0.95)'; cx.font = '800 11px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('TRAIL', f.x, f.y - 100 + Math.sin(S.t / 300) * 3);
   }
   function dPick(p) {
-    var bob = Math.sin(p.t) * 4, ic = A.img(p.type === 'dna' ? 'icon-dna' : 'icon-token');
+    var bob = Math.sin(p.t) * 4, dna = p.type === 'dna', ic = A.img(dna ? 'dna' : 'icon-token'), pw = dna ? 34 : 26, ph = dna && ic.naturalWidth ? pw * ic.naturalHeight / ic.naturalWidth : 26;
     shadow(p.x, p.y + 4, 26, 0.3);
-    cx.drawImage(ic, p.x - 13, p.y - 32 + bob, 26, 26);
+    cx.drawImage(ic, p.x - pw / 2, p.y - 6 - ph + bob, pw, ph);
   }
   function drawFlash(name, w, x, y, o, e) {
     if (e.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.75; }

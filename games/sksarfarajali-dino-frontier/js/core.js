@@ -44,7 +44,7 @@ window.DF = window.DF || {};
         ironhide: { speedMul: 0.85, defence: 0.30, critChance: 0, critMul: 1, dashCost: 15, maxHealthAdd: 30, bossDefence: 0.15, sprite: 'evo-ironhide',
           ability: { id: 'fortress-roar', name: 'Fortress Roar', cost: 30, cooldown: 5500, radius: 130, damage: 10, stun: 1500, shield: 3500 } },
         wildspark: { speedMul: 1, defence: 0, critChance: 0, critMul: 1, dashCost: 20, maxHealthAdd: 0, bossDefence: 0, sprite: 'evo-wildspark',
-          ability: { id: 'genesis-surge', name: 'Genesis Surge', cost: 45, cooldown: 7000, radius: 160, damage: 30, stun: 1100 } }
+          ability: { id: 'genesis-surge', name: 'Genesis Surge', cost: 40, cooldown: 6500, radius: 160, damage: 42, stun: 1100 } }
       }
     },
     upgrades: {
@@ -57,10 +57,10 @@ window.DF = window.DF || {};
       spitter: { hp: 24, speed: 58, dmg: 8, windup: 680, recover: 650, cooldown: 1500, aggro: 330, keep: 190, projSpeed: 250, xp: 28, size: 104, sprite: 'enemy-spitter', drop: 0.4 },
       skimmer: { hp: 18, speed: 150, dmg: 7, windup: 380, recover: 520, cooldown: 700, aggro: 290, range: 50, lunge: 340, lungeTime: 200, xp: 24, size: 116, sprite: 'enemy-skimmer', drop: 0.3 }
     },
-    boss: { hp: 340, speed: 70, size: 240, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 24, slamWindup: 850, slamRadius: 140, slamDmg: 20, recover: 1100, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
+    boss: { hp: 300, speed: 70, size: 240, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 20, slamWindup: 850, slamRadius: 140, slamDmg: 17, recover: 1250, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
     objectives: {
-      egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2600, berriesNeeded: 3, bushes: 5, raiders: 3, spitters: 0, skimmers: 0, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
-      forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 3000, berriesNeeded: 6, bushes: 8, raiders: 3, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
+      egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 7, spitters: 3, skimmers: 2, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
+      forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 8, spitters: 5, skimmers: 5, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
       demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 } }
     },
