@@ -50,6 +50,8 @@ DF.S = {
     objective: 'OBJECTIVE', food: 'Food', dna: 'DNA', pause: 'Pause', attack: 'ATTACK', dash: 'DASH', ability: 'ABILITY',
     noEnergy: 'No energy', depleted: 'Out of energy — recharging. Basic attack still works.',
     keys: 'WASD move · Space attack · Shift dash · E ability · Esc pause',
+    bossIntro: 'Armoured! It only takes full damage when it says OPEN. Wait for each warning, dodge, then strike.',
+    bossHints: { wait: 'Wait for the warning, then dodge.', charge: 'Red lane! Move up or down out of it, or dash.', slam: 'Slam ring! Move away, or dash as it lands.', dodge: 'DODGE now!', open: 'OPEN: strike now!', stun: 'STUNNED: strike now!', skimmers: 'Enraged! Clear the Skimmers first.' },
     emberHint: 'Lava burns! Go around glowing pools. Vents erupt after a warning glow: step aside or dash through.',
     needBerries: 'Gather {n} more berries first', needBerriesHint: 'Need {n} more {s} to claim the egg', eggFound: 'Egg discovered!', levelUp: 'Level up! Lv {lv}',
     crystalHint: 'Wildspark energy could wake this crystal.', crystalWake: 'The Genesis Crystal hums — a hidden egg appears!',

@@ -57,7 +57,7 @@ window.DF = window.DF || {};
       spitter: { hp: 24, speed: 58, dmg: 8, windup: 680, recover: 650, cooldown: 1500, aggro: 330, keep: 190, projSpeed: 250, xp: 28, size: 104, sprite: 'enemy-spitter', drop: 0.4 },
       skimmer: { hp: 18, speed: 150, dmg: 7, windup: 380, recover: 520, cooldown: 700, aggro: 290, range: 50, lunge: 340, lungeTime: 200, xp: 24, size: 116, sprite: 'enemy-skimmer', drop: 0.3 }
     },
-    boss: { hp: 300, speed: 70, size: 240, xp: 300, chargeWindup: 950, chargeSpeed: 400, chargeTime: 700, chargeDmg: 20, slamWindup: 850, slamRadius: 140, slamDmg: 17, recover: 1250, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
+    boss: { hp: 240, speed: 70, size: 240, xp: 300, chargeWindup: 1100, chargeSpeed: 400, chargeTime: 700, chargeDmg: 16, slamWindup: 950, slamRadius: 140, slamDmg: 14, recover: 1500, armor: 0.7, adds: 1, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
     objectives: {
       egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
@@ -83,7 +83,7 @@ window.DF = window.DF || {};
   DF.balance.boss.id = 'thornback'; DF.balance.boss.name = 'THORNBACK';
   DF.balance.bosses = {
     thornback: DF.balance.boss,
-    cinderjaw: { id: 'cinderjaw', name: 'CINDERJAW', hp: 420, speed: 80, size: 235, xp: 520, chargeWindup: 800, chargeSpeed: 440, chargeTime: 700, chargeDmg: 26, slamWindup: 780, slamRadius: 150, slamDmg: 22, recover: 1150, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-cinderjaw' }
+    cinderjaw: { id: 'cinderjaw', name: 'CINDERJAW', hp: 420, speed: 80, size: 235, xp: 520, chargeWindup: 800, chargeSpeed: 440, chargeTime: 700, chargeDmg: 26, slamWindup: 780, slamRadius: 150, slamDmg: 22, recover: 1150, armor: 0.55, adds: 2, phase2At: 0.5, enrageSpeed: 1.4, sprite: 'boss-cinderjaw' }
   };
   /* heat resistance by evolution path (Emberlands hazards) */
   DF.balance.evolution.paths.ironhide.heat = 0.5; DF.balance.evolution.paths.wildspark.heat = 0.2;

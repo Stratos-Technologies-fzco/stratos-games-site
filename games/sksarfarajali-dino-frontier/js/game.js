@@ -93,7 +93,7 @@ window.DF = window.DF || {};
     if (o.id === 'boss' || o.id === 'cinder') {
       S.bossDef = B.bosses[o.bossId];
       addBush(260, 215, 3); addBush(o.id === 'cinder' ? 1240 : 1040, 330, 3);
-      if (o.id === 'boss') { addRock(560, 215, 60, 22); addRock(760, 340, 56, 20); }
+      if (o.id === 'boss') { addRock(560, 215, 60, 22); addRock(760, 340, 56, 20); addBush(650, 285, 3); }
       if (o.hazards && o.hazards.vents) for (i = 0; i < o.hazards.vents; i++) addVent(560 + i * 115 + rng.range(-25, 25), rng.range(YMIN + 16, YMAX - 16));
       S.boss = { kind: 'boss', x: o.id === 'cinder' ? 1150 : 980, y: 270, hp: S.bossDef.hp, maxHp: S.bossDef.hp, state: 'sleep', t: 0, face: -1, phase: 1, hitFlash: 0, dirx: -1, atk: '', didHit: false, speedMul: 1, windMul: 1, stun: 0, kx: 0, wave: -1, id: 'boss' };
       S.P.x = 250;
@@ -249,7 +249,7 @@ window.DF = window.DF || {};
   function hurtEnemy(e, base, melee, opts) {
     opts = opts || {};
     var r = critRoll(base), dmg = r.dmg;
-    if (e.kind === 'boss') { var vuln = (e.state === 'recover' || e.state === 'stun'); if (!vuln) dmg = Math.max(1, Math.round(dmg * 0.55)); if (e.state === 'roar' || e.state === 'dead') return; }
+    if (e.kind === 'boss') { var vuln = (e.state === 'recover' || e.state === 'stun'); if (!vuln) dmg = Math.max(1, Math.round(dmg * (S.bossDef.armor || 0.55))); if (e.state === 'roar' || e.state === 'dead') return; }
     else if (e.state === 'recover') dmg = Math.round(dmg * 1.4);
     if (S.tut && e.type === 'raider') dmg = Math.round(dmg * 1.5);
     e.hp -= dmg; e.hitFlash = 130;
@@ -430,6 +430,16 @@ window.DF = window.DF || {};
     }
   }
 
+  /* live coaching line under the boss bar */
+  function bossHint(b) {
+    var T = DF.S.hud.bossHints;
+    if (b.state === 'windup') return b.atk === 'charge' ? T.charge : T.slam;
+    if (b.state === 'recover') return T.open;
+    if (b.state === 'stun') return T.stun;
+    if (b.state === 'charge' || b.state === 'slam') return T.dodge;
+    if (b.phase === 2 && S.enemies.some(function (e) { return e.state !== 'dead'; })) return T.skimmers;
+    return T.wait;
+  }
   function bossLabel() { var n = S.bossDef.name; return n.charAt(0) + n.slice(1).toLowerCase(); }
   /* ---------- bosses: Thornback and Cinderjaw ---------- */
   function updateBoss(b, dt) {
@@ -439,7 +449,7 @@ window.DF = window.DF || {};
     if (b.kx) { b.x += b.kx * dt / 1000; b.kx *= 0.8; }
     switch (b.state) {
       case 'sleep':
-        if (Math.abs(dx) < 620) { b.state = 'roar'; b.t = 1300; DF.Audio.sfx('roar'); DF.Audio.play('04-boss-thornback', 700); shake(4); markSeen(S.bossDef.id); S.shown.boss = true; if (G.onEvent) G.onEvent('boss'); }
+        if (Math.abs(dx) < 620) { b.state = 'roar'; b.t = 1300; DF.Audio.sfx('roar'); DF.Audio.play('04-boss-thornback', 700); shake(4); markSeen(S.bossDef.id); S.shown.boss = true; toast(DF.S.hud.bossIntro, 'info'); if (G.onEvent) G.onEvent('boss'); }
         break;
       case 'roar':
         if (b.t <= 0) { b.state = 'approach'; b.t = 900 + S.rng.range(0, 600); }
@@ -476,7 +486,7 @@ window.DF = window.DF || {};
     if (b.phase === 1 && b.hp > 0 && b.hp <= b.maxHp * def.phase2At && b.state !== 'sleep') {
       b.phase = 2; b.state = 'roar'; b.t = 1400; b.speedMul = def.enrageSpeed; b.windMul = 0.8; DF.Audio.sfx('roar'); DF.Audio.phase2('04-boss-thornback', 32); shake(6);
       toast(DF.t(DF.S.hud.bossPhase, { name: bossLabel() }), 'info');
-      addEnemy('skimmer', Math.min(S.worldW - 60, b.x + 260), 240, { state: 'chase' }); addEnemy('skimmer', Math.max(60, b.x - 260), 320, { state: 'chase' });
+      addEnemy('skimmer', Math.min(S.worldW - 60, b.x + 260), 240, { state: 'chase' }); if ((def.adds || 2) > 1) addEnemy('skimmer', Math.max(60, b.x - 260), 320, { state: 'chase' }); // Thornback calls one Skimmer, Cinderjaw two
     }
   }
 
@@ -606,7 +616,7 @@ window.DF = window.DF || {};
   G.snapshot = function () {
     if (!S) return null; var P = S.P, st = S.stats, o = S.obj, b = S.boss;
     var abReady = P.en >= st.ability.cost, dashReady = P.en >= st.dashCost;
-    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, combat: S.combat, kills: S.kills.total || 0, t: S.t };
+    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name, hint: bossHint(b) } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, combat: S.combat, kills: S.kills.total || 0, t: S.t };
   };
 
   /* ---------- rendering ---------- */
@@ -764,7 +774,7 @@ window.DF = window.DF || {};
     var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
     shadow(b.x, b.y + 4, bw * 0.9, 0.4 * a);
     // telegraph lane
-    if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.14 + 0.1 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); }
+    if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.28 + 0.12 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); cx.strokeStyle = 'rgba(255,140,120,.9)'; cx.lineWidth = 2; cx.setLineDash([10, 7]); cx.strokeRect(lx, b.y - 26, 900, 52); cx.setLineDash([]); }
     if (b.state === 'windup' && b.atk === 'slam') { cx.strokeStyle = 'rgba(229,83,75,.7)'; cx.lineWidth = 2; cx.setLineDash([6, 5]); cx.beginPath(); cx.ellipse(b.x, b.y, def.slamRadius, 40, 0, 0, 7); cx.stroke(); cx.setLineDash([]); }
     var o = { flip: b.face > 0, alpha: a, feet: 0.97 }, shakeX = (b.state === 'windup' ? Math.sin(S.t / 30) * 2 : 0);
     o.flip = b.face < 0;
