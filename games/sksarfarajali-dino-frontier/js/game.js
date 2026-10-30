@@ -183,6 +183,9 @@ window.DF = window.DF || {};
     P.inv = Math.max(0, P.inv - dt); P.shield = Math.max(0, P.shield - dt); P.hurt = Math.max(0, P.hurt - dt); P.stun = Math.max(0, P.stun - dt); P.surgeT = Math.max(0, P.surgeT - dt);
     P.anim += dt * (len > 0.1 ? 1 : 0.4);
     P.en = Math.min(P.maxEn, P.en + st.energyRegen * dt / 1000);
+    // slow recovery after a few calm seconds (not during the boss fight)
+    if (S.combat || P.hurt > 0) P.calmT = 0; else P.calmT = (P.calmT || 0) + dt;
+    if (!S.boss && P.calmT > 4000 && P.hp > 0 && P.hp < P.maxHp) P.hp = Math.min(P.maxHp, P.hp + 3 * dt / 1000);
     if (P.dashT > 0) {
       P.dashT -= dt; P.x += P.dashDx * P.dashSpd * dt / 1000; P.y += P.dashDy * P.dashSpd * 0.5 * dt / 1000;
       if (P.dashHit) dashDamage();
@@ -305,7 +308,7 @@ window.DF = window.DF || {};
     var d = Math.max(1, Math.round(dmg * (1 - Math.min(0.85, red))));
     if (S.tut) d = Math.max(1, Math.round(d * 0.5));
     if (S.demo) d = Math.max(1, Math.round(d * 0.35));
-    P.hp -= d; P.inv = 650; P.hurt = 260; P.kx = (P.x < fromX ? -1 : 1) * 130;
+    P.hp -= d; P.inv = 650; P.hurt = 260; P.calmT = 0; P.kx = (P.x < fromX ? -1 : 1) * 130;
     float(P.x, P.y - 70, '-' + d, '#F2B8B0', false); DF.Audio.sfx('hurt'); shake(4); S.hurtFlash = reduced() ? 120 : 260; vibrate(30);
     burst(P.x, P.y - 30, '#E5534B', 6);
     if (P.hp <= 0) {
@@ -470,7 +473,7 @@ window.DF = window.DF || {};
     for (i = 0; i < S.bushes.length; i++) {
       b = S.bushes[i]; b.bob += dt / 500;
       if (b.berries > 0 && Math.abs(P.x - b.x) < 46 && Math.abs(P.y - b.y) < 30) {
-        b.berries--; var n = 1 + (S.rng.next() < S.stats.foodMul - 1 ? 1 : 0); S.gained.food += n; S.berries++; P.hp = Math.min(P.maxHp, P.hp + 6);
+        b.berries--; var n = 1 + (S.rng.next() < S.stats.foodMul - 1 ? 1 : 0); S.gained.food += n; S.berries++; P.hp = Math.min(P.maxHp, P.hp + 10);
         float(b.x, b.y - 50, '+' + n + ' Food', '#CFE8B0', false); DF.Audio.sfx('pickup'); burst(b.x, b.y - 24, '#CFE8B0', 6); if (G.onEvent) G.onEvent('berry');
         if (S.tut && S.tut.step === 1) advanceTut(2);
       }
