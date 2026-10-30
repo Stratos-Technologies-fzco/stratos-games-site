@@ -86,6 +86,12 @@ window.DF = window.DF || {};
   };
 
   /* ---------- SCR-04/05 HUD (with tutorial card) ---------- */
+  /* on-screen movement buttons: Up, Down, Back (left) and Forward (right) */
+  var ARROWS = { up: 'M12 6l-6.5 8h13z', down: 'M12 18l-6.5-8h13z', left: 'M6 12l8-6.5v13z', right: 'M18 12l-8-6.5v13z' };
+  function dpadBtn(dir, x, y) {
+    var H = S.hud, label = H.dir[dir];
+    return '<button class="dp" data-dir="' + dir + '" aria-label="' + H.dirAria[dir] + '" title="' + H.dirAria[dir] + '" style="left:' + x + 'px;top:' + y + 'px"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + ARROWS[dir] + '"/></svg><span>' + label + '</span></button>';
+  }
   T.hud = function (p) {
     var H = S.hud, tut = p.tutorial, demo = p.demo, ret = DF.save.profile.tutorialCompleted, hideCtl = (tut ? 'display:none' : '');
     var heart = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#E5534B" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/></svg>';
@@ -103,13 +109,12 @@ window.DF = window.DF || {};
       '<button class="hudp hit row" data-act="hudSettings" aria-label="' + S.pause.settings + ' (pauses the game)" title="' + S.pause.settings + '" style="right:14px;top:62px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3EBD7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15.5" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg></button>' +
       (demo ? '<button class="hudp hit btn" data-act="skipDemo" style="right:64px;top:12px;height:44px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--gold)">' + S.demo.skip + ' ✕</button><div class="hudp" style="left:14px;top:96px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.14em;color:#1A1408;background:var(--gold)">' + S.demo.badge + '</div>' : '') +
       '<div id="bossbar" class="hudp" style="display:none;left:50%;bottom:12px;transform:translateX(-50%);width:340px;padding:7px 12px;border-radius:12px"><div style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:4px">THORNBACK</div><div class="meter" style="background:#3A2724;height:9px"><div id="boss-b" style="width:100%;height:100%;background:#C9A56A"></div></div></div>' +
-      '<div id="joy" class="hit" aria-label="Move joystick" style="' + (UI.touch ? '' : 'display:none') + '"><i></i></div>' +
-      '<div id="jlabel" style="position:absolute;left:34px;bottom:8px;font-size:11.5px;font-weight:700;width:120px;text-align:center;' + (UI.touch ? '' : 'display:none') + '">' + S.tutorial.dragOr.split(' · ')[0] + '</div>' +
+      '<div id="dpad" class="hit" role="group" aria-label="' + H.moveGroup + '" style="position:absolute;left:22px;bottom:18px;width:144px;height:144px">' + dpadBtn('up', 48, 0) + dpadBtn('left', 0, 48) + dpadBtn('right', 96, 48) + dpadBtn('down', 48, 96) + '<div aria-hidden="true" style="position:absolute;left:52px;top:52px;width:40px;height:40px;border-radius:50%;background:rgba(243,235,215,.12);border:2px solid rgba(243,235,215,.3)"></div></div>' +
       '<div style="position:absolute;right:24px;bottom:22px;width:200px;height:170px">' +
       '<button id="b-atk" class="hit circle" aria-label="Attack" style="right:0;bottom:0;width:84px;height:84px;border:3px solid var(--text);background:rgba(14,23,18,.8);font-size:12px">' + H.attack + '</button>' +
       '<button id="b-dash" class="hit circle on" style="right:96px;bottom:6px;width:64px;height:64px;' + (tut ? 'display:none' : '') + '">' + lock + '<span>' + H.dash + '</span><span id="dash-s" style="font-size:10px;font-weight:700">−15</span></button>' +
       '<button id="b-abil" class="hit circle on" style="right:52px;bottom:98px;width:64px;height:64px;' + (tut ? 'display:none' : '') + '">' + lock + '<span>' + H.ability + '</span><span id="abil-s" style="font-size:10px;font-weight:700">−30</span></button></div>' +
-      '<div id="keys" style="position:absolute;left:14px;bottom:6px;font-size:11px;background:rgba(14,23,18,.7);padding:3px 8px;border-radius:6px;' + (UI.touch ? 'display:none' : '') + '">' + H.keys + '</div>' +
+      '<div id="keys" style="position:absolute;left:176px;bottom:6px;font-size:11px;background:rgba(14,23,18,.7);padding:3px 8px;border-radius:6px;' + (UI.touch ? 'display:none' : '') + '">' + H.keys + '</div>' +
       (tut && ret ? '<button class="btn hit" data-act="skipTut" style="position:absolute;left:50%;bottom:22px;transform:translateX(-50%);height:44px;padding:0 16px;border-radius:12px;background:rgba(14,23,18,.85);font-size:14px;font-weight:700">' + S.tutorial.skip + '</button>' : '') +
       '</div>';
   };
@@ -136,20 +141,19 @@ window.DF = window.DF || {};
     set('b-dash', 'dash-s', s.dashOk, s.dashCost, 'Dash', s.dashCd); set('b-abil', 'abil-s', s.abOk, s.abCost, s.abName, s.abCd);
     var bb = q('bossbar'); if (bb) { bb.style.display = s.boss ? 'block' : 'none'; if (s.boss) q('boss-b').style.width = (100 * s.boss.hp / s.boss.max) + '%'; }
   };
-  /* touch controls (virtual joystick and buttons) */
+  /* on-screen controls: movement D-pad and action buttons */
   UI.bindHud = function (G) {
-    var joy = document.getElementById('joy'), knob = joy && joy.firstChild, pid = null, cx0 = 0, cy0 = 0, R = 1;
-    function move(e) {
-      var sens = DF.save.settings.controlSensitivity, gain = 1.45 - sens * 0.06, dx = (e.clientX - cx0) / (R * gain), dy = (e.clientY - cy0) / (R * gain), l = Math.sqrt(dx * dx + dy * dy);
-      if (l > 1) { dx /= l; dy /= l; l = 1; } if (l < 0.12) { dx = dy = 0; }
-      G.setMove(dx, dy); knob.style.transform = 'translate(' + dx * 34 + 'px,' + dy * 34 + 'px)';
+    var held = { up: 0, down: 0, left: 0, right: 0 };
+    function applyDir() {
+      var x = held.right - held.left, y = held.down - held.up, l = Math.sqrt(x * x + y * y), g = Math.min(1, 0.7 + DF.save.settings.controlSensitivity * 0.05);
+      if (l) { x /= l; y /= l; } G.setMove(x * g, y * g);
     }
-    if (joy) {
-      joy.addEventListener('pointerdown', function (e) { var r = joy.getBoundingClientRect(); R = r.width / 2; cx0 = r.left + R; cy0 = r.top + R; pid = e.pointerId; try { joy.setPointerCapture(pid); } catch (x) {} move(e); e.preventDefault(); });
-      joy.addEventListener('pointermove', function (e) { if (e.pointerId === pid) move(e); });
-      var up = function (e) { if (e.pointerId === pid) { pid = null; G.setMove(0, 0); knob.style.transform = ''; } };
-      joy.addEventListener('pointerup', up); joy.addEventListener('pointercancel', up); joy.addEventListener('lostpointercapture', up);
-    }
+    [].forEach.call(document.querySelectorAll('#dpad [data-dir]'), function (b) {
+      var d = b.getAttribute('data-dir');
+      var down = function (e) { held[d] = 1; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (x) {} applyDir(); e.preventDefault(); };
+      var up = function () { if (!held[d]) return; held[d] = 0; b.classList.remove('on'); applyDir(); };
+      b.addEventListener('pointerdown', down); b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
+    });
     var atk = document.getElementById('b-atk'), dash = document.getElementById('b-dash'), ab = document.getElementById('b-abil');
     atk.addEventListener('pointerdown', function (e) { G.press('attack'); G.hold('attack', true); e.preventDefault(); });
     var rel = function () { G.hold('attack', false); }; atk.addEventListener('pointerup', rel); atk.addEventListener('pointercancel', rel); atk.addEventListener('pointerleave', rel);
@@ -335,7 +339,7 @@ window.DF = window.DF || {};
       if (UI.onSet) UI.onSet(t.getAttribute('data-set'), t.type === 'checkbox' ? t.checked : Number(t.value));
     };
     ui.addEventListener('input', setter); ui.addEventListener('change', function (e) { if (e.target.type === 'checkbox') setter(e); });
-    window.addEventListener('touchstart', function () { if (!UI.touch) { UI.touch = true; var j = document.getElementById('joy'); if (j) { j.style.display = ''; var l = document.getElementById('jlabel'); if (l) l.style.display = ''; var k = document.getElementById('keys'); if (k) k.style.display = 'none'; } } }, { passive: true });
+    window.addEventListener('touchstart', function () { if (!UI.touch) { UI.touch = true; var k = document.getElementById('keys'); if (k) k.style.display = 'none'; } }, { passive: true });
     UI.touch = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
   };
   UI.show = function (name, p) {
@@ -347,7 +351,7 @@ window.DF = window.DF || {};
   };
   /* demo: hide touch controls and the resource pill, add a caption bar */
   UI.demoMode = function () {
-    ['joy', 'jlabel', 'b-atk', 'b-dash', 'b-abil', 'keys'].forEach(function (id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
+    ['dpad', 'b-atk', 'b-dash', 'b-abil', 'keys'].forEach(function (id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
     var rf = document.getElementById('r-f'); if (rf) rf.parentNode.parentNode.style.display = 'none';
     var cap = document.createElement('div'); cap.id = 'cap'; cap.setAttribute('role', 'status');
     cap.style.cssText = 'position:absolute;left:50%;bottom:22px;transform:translateX(-50%);max-width:640px;padding:10px 18px;border-radius:14px;background:rgba(14,23,18,.92);border:1px solid var(--gold);font-size:15px;font-weight:800;text-align:center';

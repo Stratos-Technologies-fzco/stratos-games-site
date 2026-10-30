@@ -57,8 +57,8 @@ a{color:var(--gold)}
 .circle.on{border:3px solid var(--teal);background:rgba(14,23,18,.8);color:var(--text)}
 .circle.off{border:3px dashed #6B7A70;background:rgba(14,23,18,.6);color:var(--mut2)}
 .circle.cd{opacity:.8}
-#joy{position:absolute;left:34px;bottom:26px;width:120px;height:120px;border-radius:50%;background:rgba(243,235,215,.12);border:2px solid rgba(243,235,215,.4);touch-action:none}
-#joy i{position:absolute;left:34px;top:34px;width:52px;height:52px;border-radius:50%;background:rgba(243,235,215,.55);pointer-events:none}
+.dp{position:absolute;width:48px;height:48px;padding:0;border-radius:12px;border:2px solid rgba(243,235,215,.5);background:rgba(14,23,18,.62);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font:800 9px var(--sans);letter-spacing:.04em;touch-action:none;-webkit-user-select:none}
+.dp.on{background:var(--gold);color:#1A1408;border-color:var(--gold2)}
 #toast{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
 #toast div{padding:8px 14px;border-radius:12px;background:rgba(14,23,18,.94);border:1px solid var(--gold);font-size:13px;font-weight:800;animation:fadein .15s}
 #toast div.egg{border-color:var(--gold2);color:var(--gold2)}

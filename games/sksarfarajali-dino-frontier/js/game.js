@@ -55,7 +55,7 @@ window.DF = window.DF || {};
       shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
-    S.P = { x: 110, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0 };
+    S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0 };
     buildWorld();
     held.attack = false; queue.length = 0; keys = {}; mv.x = 0; mv.y = 0;
     paused = false; running = true; last = performance.now();
@@ -89,7 +89,7 @@ window.DF = window.DF || {};
       addBush(260, 215, 3); addBush(1040, 330, 3);
       addRock(560, 215, 60, 22); addRock(760, 340, 56, 20);
       S.boss = { kind: 'boss', x: 980, y: 270, hp: B.boss.hp, maxHp: B.boss.hp, state: 'sleep', t: 0, face: -1, phase: 1, hitFlash: 0, dirx: -1, atk: '', didHit: false, speedMul: 1, windMul: 1, stun: 0, kx: 0, wave: -1, id: 'boss' };
-      S.P.x = 120;
+      S.P.x = 250;
       return;
     }
     var nb = o.bushes, step = (W - 900) / nb;

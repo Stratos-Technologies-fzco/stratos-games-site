@@ -38,14 +38,15 @@ DF.S = {
   tutorial: {
     step: 'STEP {n} OF 4',
     steps: [
-      ['Find your pack’s trail', 'Drag the joystick (or use WASD / arrow keys) to walk to the glowing ferns.'],
+      ['Find your pack’s trail', 'Use the arrow buttons on the left (or WASD / arrow keys) to walk to the glowing ferns.'],
       ['Gather food', 'Walk over the berry bushes to collect Food. Food restores health between fights.'],
       ['A raider approaches!', 'Tap ATTACK (Space / click) to strike. When it flashes, move away to dodge.'],
       ['You survived!', 'Head for the marked egg site to finish your first expedition.']
     ],
-    dragOr: 'Drag · or WASD', skip: 'Skip tutorial'
+    skip: 'Skip tutorial'
   },
   hud: {
+    moveGroup: 'Movement buttons', dir: { up: 'UP', down: 'DOWN', left: 'BACK', right: 'FWD' }, dirAria: { up: 'Move up', down: 'Move down', left: 'Move backward', right: 'Move forward' },
     objective: 'OBJECTIVE', food: 'Food', dna: 'DNA', pause: 'Pause', attack: 'ATTACK', dash: 'DASH', ability: 'ABILITY',
     noEnergy: 'No energy', depleted: 'Out of energy — recharging. Basic attack still works.',
     keys: 'WASD move · Space attack · Shift dash · E ability · Esc pause',
@@ -123,7 +124,7 @@ DF.S = {
   },
   settings: {
     title: 'Settings', autosave: 'Changes save automatically on this device', sound: 'SOUND & FEEL', music: 'Music', sfx: 'Sound effects', mute: 'Mute all', vibration: 'Vibration', vibrationHint: 'Where supported', reduced: 'Reduced effects', reducedHint: 'Less shake & flashing',
-    controls: 'CONTROLS', sens: 'Joystick sensitivity', keys: 'Keyboard: WASD / arrows move · Space attack · Shift dash · E ability · Esc pause', privacy: 'PRIVACY', analytics: 'Share anonymous gameplay analytics', analyticsHint: 'Off by default. The game works the same either way.', viewPrivacy: 'View privacy notice'
+    controls: 'CONTROLS', sens: 'Touch control sensitivity', keys: 'Keyboard: WASD / arrows move · Space attack · Shift dash · E ability · Esc pause', privacy: 'PRIVACY', analytics: 'Share anonymous gameplay analytics', analyticsHint: 'Off by default. The game works the same either way.', viewPrivacy: 'View privacy notice'
   },
   error: {
     return: 'Return to title',
