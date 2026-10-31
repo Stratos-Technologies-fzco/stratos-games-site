@@ -206,7 +206,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <script>
 'use strict';
 /* ================= Stratos hooks (ads + analytics switch on later) ================= */
-function track(name, details) { /* site-wide analytics will hook in here */ }
+function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function offerReward(onDone) { track('reward_offered'); onDone(); track('reward_taken'); }
 
 /* ================= helpers ================= */

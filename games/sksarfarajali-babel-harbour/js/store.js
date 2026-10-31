@@ -101,4 +101,5 @@ export function track(name, props = {}) {
   if (S.events.length > 200) S.events.splice(0, S.events.length - 200);
   save('events');
   try { window.dispatchEvent(new CustomEvent('babelharbour:event', { detail: { name, ...props } })); } catch (e) {}
+  try { const S = window.Stratos || parent.Stratos; if (S) S.track(name, props); } catch (e) {}
 }

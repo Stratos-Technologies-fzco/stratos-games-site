@@ -336,7 +336,8 @@ window.DF = window.DF || {};
   };
   DF.objectiveUnlocked = function (save, id) { return save.player.level >= DF.balance.objectives[id].minLevel; };
 
-  /* analytics hook: no-op unless the player accepted (PRIV-01); no provider is wired yet */
+  /* analytics hook: no-op unless the player accepted (PRIV-01); events go to the shared Stratos analytics */
+  DF.analyticsSink = DF.analyticsSink || function (name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} };
   DF.track = function (name, details) {
     try { if (DF.save && DF.save.consent.analytics === 'granted' && DF.analyticsSink) DF.analyticsSink(name, details || {}, DF.save.installId); } catch (e) {}
   };

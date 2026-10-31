@@ -289,7 +289,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* ================= Stratos hooks (no-ops until site-wide analytics is switched on) ================= */
-function track(name, details) { /* stratos.games will wire this up later */ }
+function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 
 /* ================= utils ================= */
 const $ = s => document.querySelector(s);

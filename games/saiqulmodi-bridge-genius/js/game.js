@@ -11,7 +11,7 @@
   const $ = id => document.getElementById(id);
 
   // Stratos hooks: ads/analytics are not live; these stay empty / free.
-  function track(name, details) { /* intentionally empty until the site turns analytics on */ }
+  function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
   function offerReward(onDone) { onDone(); }
 
   const CORRECT_CASH = 10000, CORRECT_PTS = 4, WRONG_CASH = 1000, WRONG_PTS = 1, SUBSIDY_PER_POINT = 2500;

@@ -10,8 +10,9 @@ const FIRST_SESSION_KEY = 'ecos-first-session';
 let firstSession = true;
 try { firstSession = !localStorage.getItem(FIRST_SESSION_KEY); localStorage.setItem(FIRST_SESSION_KEY, '1'); } catch (e) { /* storage blocked */ }
 
-export function track(name, details = {}) { // eslint-disable-line no-unused-vars
-  // Intentionally empty until stratos.games switches on its own analytics.
+export function track(name, details = {}) {
+  // Hands the event to the shared Stratos analytics on the play page.
+  try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {}
 }
 
 export const isFirstSession = () => firstSession;

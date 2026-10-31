@@ -381,7 +381,7 @@ for (const v of VEHICLES) {
 }
 
 // ---------- Hooks for Stratos ads and analytics (switched on site-wide later) ----------
-function track(name, details) { /* does nothing yet */ }
+function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function offerReward(onDone) { onDone(); } // later: show a rewarded ad first
 
 // ---------- Daily route: the hills change every day ----------

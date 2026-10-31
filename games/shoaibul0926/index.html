@@ -203,7 +203,7 @@ function saveBestScore(){
 }
 
 // Stratos hooks: do nothing yet. Sahil switches them on later.
-function track(name,details){ /* analytics comes later */ }
+function track(name,details){ try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function offerReward(onDone){ onDone(); /* later: rewarded ad first */ }
 
 var usedSecondChance=false;
