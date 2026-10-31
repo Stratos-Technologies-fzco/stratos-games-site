@@ -72,7 +72,6 @@ window.DF = window.DF || {};
     paused = false; running = true; last = performance.now();
     cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
     if (G.onTutorial) G.onTutorial(S.tut ? S.tut.step : -1);
-    if (!demo) DF.track(opts.tutorial ? 'tutorial_start' : 'expedition_start', { objective: S.objId });
   };
 
   /* The demo plays a fixed, mid-game character so it never touches or reads the player's save for stats. */

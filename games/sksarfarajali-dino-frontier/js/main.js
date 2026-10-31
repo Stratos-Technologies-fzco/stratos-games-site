@@ -102,15 +102,17 @@ window.DF = window.DF || {};
     G.start({ objective: objId, tutorial: !!tutorial, runId: Nav.run.runId });
     clearInterval(Nav.hudTimer);
     Nav.hudTimer = setInterval(function () { if (Nav.state === 'hud' && !G.isPaused()) UI.hudTick(G.snapshot()); }, 100);
-    DF.track('expedition_started', { objective: objId });
+    DF.track('level_start', runInfo(objId, !!tutorial)); if (tutorial) DF.track('tutorial_start', {}); if (restart) DF.track('level_restart', { objective: objId });
   }
+  /* the facts every run event carries, so the dashboard can slice by biome, level and form */
+  function runInfo(objId, tutorial) { var s = sv(); return { objective: tutorial ? 'tutorial' : objId, biome: DF.biomeOf(objId) || '', level: s.player.level, form: s.profile.selectedEvolution || 'starter', tutorial: tutorial ? 1 : 0 }; }
   function pause() {
     if (Nav.state !== 'hud' || !G.isRunning()) return;
     G.pause(); var snap = G.snapshot(); A.setDuck(0.3);
     UI.st.restartConfirm = false; go('pause', { snap: snap, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true });
   }
   function resume() { A.setDuck(1); go('hud', { tutorial: Nav.run.tutorial, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); if (Nav.demo) UI.demoMode(); G.resume(); }
-  function leaveRun() { clearInterval(Nav.hudTimer); G.quitRun(); G.clear(); A.setDuck(1); }
+  function leaveRun() { if (Nav.state === 'hud' || Nav.state === 'pause') { if (Nav.demo) DF.track('demo_skipped', { biome: Nav.demoBiome }); else DF.track('run_quit', { objective: Nav.run.objId }); } clearInterval(Nav.hudTimer); G.quitRun(); G.clear(); A.setDuck(1); }
 
   /* Commit rewards once, update progress, then show the summary (SCR-07). */
   function endRun(res) {
@@ -151,9 +153,12 @@ window.DF = window.DF || {};
     else next = S.summary.nextGeneric;
     var p = { outcome: res.outcome, objId: res.tutorial ? 'egg' : res.objectiveId, reward: r, n: s.progress.expeditions, newEgg: res.newEggs[0] || '', levelUp: after > before ? after : 0, next: next };
     Nav.summary = p; Nav.run.objId = res.tutorial ? 'egg' : res.objectiveId; Nav.run.tutorial = false;
-    DF.track(ok ? 'expedition_complete' : 'expedition_failed', { objective: res.objectiveId, ms: Math.round(res.duration) });
-    if (res.bossDown) DF.track('boss_result', { result: 'win' }); else if (B.objectives[res.objectiveId] && B.objectives[res.objectiveId].bossId) DF.track('boss_result', { result: 'loss' });
+    var rinfo = runInfo(res.objectiveId, res.tutorial); rinfo.level = before; rinfo.seconds = Math.round(res.duration / 1000); rinfo.kills = res.kills.total || 0; rinfo.berries = res.berries; rinfo.dodges = res.dodges; rinfo.abilities = res.abilities; rinfo.xp = r.xp; rinfo.dna = r.dna; rinfo.tokens = r.tokens; rinfo.food = r.food;
+    DF.track(ok ? 'level_complete' : 'game_over', rinfo);
+    if (res.bossId && (res.bossDown || (B.objectives[res.objectiveId] && B.objectives[res.objectiveId].bossId))) DF.track(res.bossDown ? 'boss_beaten' : 'boss_lost', { boss: res.bossId || B.objectives[res.objectiveId].bossId, objective: res.objectiveId, level: before });
     if (res.tutorial && ok) DF.track('tutorial_complete', {});
+    if (after > before) DF.track('level_up', { level: after });
+    res.newEggs.forEach(function (id) { DF.track('egg_found', { egg: id }); });
     G.quitRun(); G.clear();
     A.setDuck(1);
     A.stinger(ok ? '06-stinger-victory' : '07-stinger-defeat', { stopMusic: true, onEnd: function () { if (Nav.state === 'summary') A.play(M.sanctuary, 1400); } });
@@ -163,6 +168,7 @@ window.DF = window.DF || {};
 
   /* ---------- demo: the game plays a short scripted run by itself ---------- */
   function startDemo(biome) {
+    DF.track('demo_start', { biome: biome || 'verdant' });
     Nav.demoBiome = biome || 'verdant'; Nav.demo = true; Nav.demoStage = -1; Nav.demoStageAt = 0; Nav.run = { objId: 'demo', tutorial: false, runId: 'demo' };
     A.setDuck(1); A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
     go('hud', { demo: true, objId: 'demo' }, { keepMusic: true });
@@ -188,7 +194,7 @@ window.DF = window.DF || {};
     var old = sv(), fresh = DF.defaultSave();
     fresh.installId = old.installId; fresh.settings = old.settings; fresh.consent = old.consent;
     if (DF.hasSave) DF.Store.backupOf(old);
-    DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); go('story');
+    DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); DF.track('new_game', {}); go('story');
   }
   /* Back to the Stratos Games site: leave the play-page frame and load the full address (works on localhost too). */
   function toStratos() {
@@ -216,7 +222,7 @@ window.DF = window.DF || {};
     newGameYes: function () { newGameStart(); },
     newGameNo: function () { UI.st.newConfirm = false; UI.refresh(); },
     settings: function () { Nav.settingsFrom = 'title'; go('settings', {}, { keepMusic: true }); },
-    credits: function () { go('credits'); },
+    credits: function () { DF.track('screen_credits', {}); go('credits'); },
     toTitle: function () { go('title'); },
     storyGo: function () { sv().profile.storySeen = true; persist(); startRun('egg', true); },
     storySkip: function () { sv().profile.storySeen = true; persist(); startRun('egg', true); },
@@ -233,13 +239,13 @@ window.DF = window.DF || {};
     retry: function () { startRun(Nav.summary.objId, false); },
     evo: function () { go('evolution'); },
     upgrades: function () { go('upgrades'); },
-    codex: function () { go('codex'); },
-    missions: function () { go('missions'); },
+    codex: function () { DF.track('screen_codex', {}); go('codex'); },
+    missions: function () { DF.track('screen_missions', {}); go('missions'); },
     pickObj: function (d) { UI.st.obj = d.id; UI.refresh(); },
-    pickBiome: function (d) { UI.st.biome = d.id; UI.st.obj = B.biomes[d.id].objs[0]; UI.refresh(); },
+    pickBiome: function (d) { DF.track('biome_viewed', { biome: d.id }); UI.st.biome = d.id; UI.st.obj = B.biomes[d.id].objs[0]; UI.refresh(); },
     start: function () { var id = UI.st.obj; if (!DF.objectiveUnlocked(sv(), id)) id = 'egg'; startRun(id, false); },
     pickEvo: function (d) { UI.st.evo = d.id; UI.st.confirm = false; UI.refresh(); },
-    evoAsk: function () { UI.st.confirm = true; UI.refresh(); },
+    evoAsk: function () { DF.track('evolution_viewed', { path: UI.st.evo });  UI.st.confirm = true; UI.refresh(); },
     evoCancel: function () { UI.st.confirm = false; UI.refresh(); },
     evoConfirm: function () {
       var s = sv(), id = UI.st.evo, cost = DF.evolveCost(s);
@@ -250,10 +256,10 @@ window.DF = window.DF || {};
     buy: function (d) {
       var s = sv(), id = d.id, def = B.upgrades[id], lv = s.upgrades[id] || 0; if (lv >= def.max) return;
       if (!DF.spend(s, { tokens: DF.upgradeCost(id, lv) })) { A.sfx('deny'); return; }
-      s.upgrades[id] = lv + 1; persist(); A.sfx('claim'); UI.refresh();
+      s.upgrades[id] = lv + 1; persist(); A.sfx('claim'); DF.track('upgrade_bought', { upgrade: id, level: lv + 1 }); UI.refresh();
     },
     tab: function (d) { UI.st.tab = d.id; UI.refresh(); },
-    claim: function (d) { var r = DF.claimMission(sv(), d.id); if (r) { persist(); A.sfx('claim'); UI.refresh(); } },
+    claim: function (d) { var r = DF.claimMission(sv(), d.id); if (r) { persist(); A.sfx('claim'); DF.track('mission_claimed', { mission: d.id }); UI.refresh(); } },
     settingsBack: settingsBack,
     errTitle: function () { go('title'); },
     errPlay: function () { Nav.warned = true; if (Nav.errCtx && Nav.errCtx.boot) afterLoad(); else go(Nav.errCtx && Nav.errCtx.from || 'title'); },
