@@ -1,7 +1,7 @@
 // sw.js - offline play. Pages, code and content: network first (so updates show
 // at once), cached copy when offline. Fonts: cache first. Map tiles and the
 // optional AI/sync servers are never stored (they do not count towards 20 MB).
-const CACHE = 'ecos-v3';
+const CACHE = 'ecos-v4';
 const CORE = ['./', 'index.html', 'css/tiers.css', 'vendor/three.module.min.js', 'js/main.js', 'js/app/Shell.js', 'js/app/Profile.js', 'js/app/strings.js'];
 
 self.addEventListener('install', (e) => {

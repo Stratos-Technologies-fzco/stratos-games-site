@@ -8,6 +8,38 @@ import random
 import sys
 import pygame
 
+
+# ---- Stratos analytics (rule: C:\Users\saiqu\GAME_ANALYTICS_RULE.md) ----
+# level_start starts the clock; level_complete / game_over also carry `seconds`
+# = how long that game lasted. Only the stratos.games play page has window.Stratos;
+# anywhere else (desktop, APK, GitHub Pages) nothing is sent and nothing can break.
+_track_started = 0.0
+
+
+def track(name, **details):
+    global _track_started
+    try:
+        import time as _time
+        if name == "level_start":
+            _track_started = _time.time()
+        elif name in ("level_complete", "game_over") and _track_started and "seconds" not in details:
+            details["seconds"] = int(round(_time.time() - _track_started))
+        if sys.platform != "emscripten":
+            return
+        import json, platform
+        w = platform.window
+        s = w.Stratos
+        if not s:
+            try:
+                s = w.parent.Stratos
+            except Exception:
+                s = None
+        if s:
+            s.track(name, w.JSON.parse(json.dumps(details)))
+    except Exception:
+        pass
+
+
 ON_PHONE = hasattr(sys, "getandroidapilevel") or "ANDROID_ARGUMENT" in os.environ
 # fingers stay fingers (the touch controls read them); taps outside the controls are turned into clicks by the game
 os.environ.setdefault("SDL_TOUCH_MOUSE_EVENTS", "0")
@@ -1888,6 +1920,7 @@ async def main():
                     say(f"{s['name']} DAMAGED BY {source}")
 
     running = True
+    track("level_start", level=current_level)   # analytics: the first flight starts
     while running:
         frame += 1
         speed_factor = level_speed(current_level)
@@ -2319,6 +2352,9 @@ async def main():
                         jet.down_timer = JET_REJOIN_FRAMES
                         add_blast(blasts, jet.x, jet.y, 50, 60)
                         crashing.append(CrashingJet(jet))
+                        if jet is cur_jet:   # analytics: the flight you fly ends (+ seconds); the next one starts
+                            track("game_over", level=current_level, jet=jet.callsign)
+                            track("level_start", level=current_level)
                         pilots.append(EjectedPilot(jet))
                         say(f"{jet.callsign} SHOT DOWN - PILOT EJECTED")
                     else:

@@ -1,6 +1,6 @@
 // hooks.js - the stratos.games moments, ready for the day the site turns on
 // its own (Stratos-run) numbers and rewarded ads. Until then:
-//   track()        does nothing: nothing is counted or sent anywhere
+//   track()        hands start/end (with seconds played) to the Stratos analytics only
 //   offerReward()  gives the reward straight away, free
 // Moments used: level_start, level_complete, game_over, reward_offered, reward_taken.
 // Rules from the makers' guide: rewarded only (never forced), never in the
@@ -10,9 +10,17 @@ const FIRST_SESSION_KEY = 'ecos-first-session';
 let firstSession = true;
 try { firstSession = !localStorage.getItem(FIRST_SESSION_KEY); localStorage.setItem(FIRST_SESSION_KEY, '1'); } catch (e) { /* storage blocked */ }
 
+let startedAt = 0;
+// Hands the event to the shared Stratos analytics on the play page (nothing is sent anywhere else).
+// level_start starts the clock; level_complete / game_over carry `seconds` = length of that game.
 export function track(name, details = {}) {
-  // Hands the event to the shared Stratos analytics on the play page.
-  try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {}
+  try {
+    details = Object.assign({}, details);
+    if (name === 'level_start') startedAt = Date.now();
+    else if ((name === 'level_complete' || name === 'game_over') && startedAt && details.seconds == null)
+      details.seconds = Math.round((Date.now() - startedAt) / 1000);
+    var S = window.Stratos || parent.Stratos; if (S) S.track(name, details);
+  } catch (e) {}
 }
 
 export const isFirstSession = () => firstSession;
