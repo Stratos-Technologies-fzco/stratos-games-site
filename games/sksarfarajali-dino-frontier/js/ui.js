@@ -125,6 +125,7 @@ window.DF = window.DF || {};
       '<button class="hudp hit row" data-act="hudSettings" aria-label="' + S.pause.settings + ' (pauses the game)" title="' + S.pause.settings + '" style="right:14px;top:62px;width:44px;height:44px;border-radius:12px;border:0;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F3EBD7" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M18 7h2M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15.5" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg></button>' +
       (demo ? '<button class="hudp hit btn" data-act="skipDemo" style="right:64px;top:12px;height:44px;padding:0 14px;border-radius:12px;font-size:13px;font-weight:800;border:1px solid var(--gold)">' + S.demo.skip + ' ✕</button><div class="hudp" style="left:14px;top:96px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.14em;color:#1A1408;background:var(--gold)">' + S.demo.badge + '</div>' : '') +
       '<div id="bossbar" class="hudp" style="display:none;left:50%;bottom:30px;transform:translateX(-50%);width:340px;padding:7px 12px;border-radius:12px"><div id="boss-n" style="font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:4px">THORNBACK</div><div class="meter" style="background:#3A2724;height:9px"><div id="boss-b" style="width:100%;height:100%;background:#C9A56A"></div></div><div id="boss-h" role="status" style="font-size:12px;font-weight:800;margin-top:5px;color:var(--soft);min-height:15px"></div></div>' +
+      (tut ? '' : '<div id="joyzone" class="hit" aria-hidden="true" style="position:absolute;left:0;top:62px;width:64%;bottom:0;touch-action:none"></div><div id="fjoy" aria-hidden="true" style="position:absolute;display:none;width:92px;height:92px;border-radius:50%;border:2px solid rgba(243,235,215,.5);background:rgba(243,235,215,.09);pointer-events:none"><div id="fjoy-k" style="position:absolute;width:38px;height:38px;left:27px;top:27px;border-radius:50%;background:rgba(243,235,215,.42);border:2px solid rgba(243,235,215,.75)"></div></div>') +
       '<div id="dpad" class="hit" role="group" aria-label="' + H.moveGroup + '" style="position:absolute;left:22px;bottom:18px;width:144px;height:144px">' + dpadBtn('up', 48, 0) + dpadBtn('left', 0, 48) + dpadBtn('right', 96, 48) + dpadBtn('down', 48, 96) + '<div aria-hidden="true" style="position:absolute;left:52px;top:52px;width:40px;height:40px;border-radius:50%;background:rgba(243,235,215,.12);border:2px solid rgba(243,235,215,.3)"></div></div>' +
       '<div style="position:absolute;right:24px;bottom:22px;width:200px;height:170px">' +
       '<button id="b-atk" class="hit circle" aria-label="Attack" style="right:0;bottom:0;width:84px;height:84px;border:3px solid var(--text);background:rgba(14,23,18,.8);font-size:12px">' + H.attack + '</button>' +
@@ -173,6 +174,20 @@ window.DF = window.DF || {};
       var up = function () { if (!held[d]) return; held[d] = 0; b.classList.remove('on'); applyDir(); };
       b.addEventListener('pointerdown', down); b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
     });
+    /* floating analog joystick: touch (or drag) anywhere in the left of the screen and a ring appears under your finger; how far you push sets how fast the dinosaur walks */
+    var zone = document.getElementById('joyzone'), fj = document.getElementById('fjoy'), fk = document.getElementById('fjoy-k');
+    if (zone && fj && fk) {
+      var jid = null, jx = 0, jy = 0, JR = 46, root = zone.parentNode;
+      var jpos = function (e) { var r = root.getBoundingClientRect(), k = root.offsetWidth / r.width; return [(e.clientX - r.left) * k, (e.clientY - r.top) * k]; };
+      var jmove = function (e) {
+        var p = jpos(e), dx = p[0] - jx, dy = p[1] - jy, l = Math.sqrt(dx * dx + dy * dy) || 1, m = Math.min(1, l / JR), dz = 0.14, g = Math.min(1, 0.7 + DF.save.settings.controlSensitivity * 0.05);
+        var a = m < dz ? 0 : (m - dz) / (1 - dz); fk.style.transform = 'translate(' + (dx / l * Math.min(l, JR)) + 'px,' + (dy / l * Math.min(l, JR)) + 'px)'; G.setMove(dx / l * a * g, dy / l * a * g);
+      };
+      var jend = function (e) { if (jid === null || (e && e.pointerId !== jid)) return; jid = null; fj.style.display = 'none'; fk.style.transform = 'none'; applyDir(); };
+      zone.addEventListener('pointerdown', function (e) { if (jid !== null) return; jid = e.pointerId; try { zone.setPointerCapture(jid); } catch (x) {} var p = jpos(e); jx = p[0]; jy = p[1]; fj.style.left = (jx - 46) + 'px'; fj.style.top = (jy - 46) + 'px'; fj.style.display = 'block'; jmove(e); e.preventDefault(); });
+      zone.addEventListener('pointermove', function (e) { if (e.pointerId === jid) jmove(e); });
+      zone.addEventListener('pointerup', jend); zone.addEventListener('pointercancel', jend); zone.addEventListener('lostpointercapture', jend);
+    }
     var atk = document.getElementById('b-atk'), dash = document.getElementById('b-dash'), ab = document.getElementById('b-abil');
     atk.addEventListener('pointerdown', function (e) { G.press('attack'); G.hold('attack', true); e.preventDefault(); });
     var rel = function () { G.hold('attack', false); }; atk.addEventListener('pointerup', rel); atk.addEventListener('pointercancel', rel); atk.addEventListener('pointerleave', rel);
@@ -376,7 +391,7 @@ window.DF = window.DF || {};
   };
   /* demo: hide touch controls and the resource pill, add a caption bar */
   UI.demoMode = function () {
-    ['dpad', 'b-atk', 'b-dash', 'b-abil', 'keys'].forEach(function (id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
+    ['dpad', 'b-atk', 'b-dash', 'b-abil', 'keys', 'joyzone', 'fjoy'].forEach(function (id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
     var rf = document.getElementById('r-f'); if (rf) rf.parentNode.parentNode.style.display = 'none';
     var cap = document.createElement('div'); cap.id = 'cap'; cap.setAttribute('role', 'status');
     cap.style.cssText = 'position:absolute;left:50%;bottom:22px;transform:translateX(-50%);max-width:640px;padding:10px 18px;border-radius:14px;background:rgba(14,23,18,.92);border:1px solid var(--gold);font-size:15px;font-weight:800;text-align:center';
