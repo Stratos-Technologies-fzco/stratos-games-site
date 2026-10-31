@@ -29,7 +29,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Sound off by default or a clear mute button. Never auto-play loud audio.
 - Works offline once loaded: everything it needs is inside the folder.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself).
-- Stratos analytics connected (see "Analytics before launch" below). Without it the game stays a "coming soon" box.
+- Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
 
 **What keeps players coming back (from our store games' numbers):**
 - Give a reason to come back from day one: a daily challenge, a streak, or levels that unlock. Games without one lose almost everyone after day one, and it is very hard to add later.
@@ -44,6 +44,34 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Never a forced ad in the first session. Never more often than every 2 or 3 levels, and never inside 90 seconds of the last one.
 - Offer a "save" at the moment of loss when the player has something worth saving (a streak, a high combo). One per level.
 
+## Before every publish: the 3 questions (Sahil 2026-10-31)
+
+Every change, big or small, game or site, must answer these. Before you publish, tell the maker the answers in 3 short lines, and put them in the commit message.
+
+1. **Retention:** how does this make players come back tomorrow, to this game and to stratos.games? Name the sticky thing: a streak, a daily challenge, levels that unlock, a collection to finish, a score to beat.
+2. **Time well spent:** will players happily play for hours *and* get something real from it (skill, learning, a creative result, fun with friends)? Not just time-wasting.
+3. **Money:** which moment can earn (see "What makes money" below), without hurting question 1?
+
+If a change answers none of the three, say so and suggest what would.
+
+## What makes money, and what doesn't (from our store games)
+
+Lifetime value = money per player x how long they stay. Retention is the multiplier: if nobody returns after day 7, great ads still earn almost nothing.
+
+**Makes money:**
+- A reason to return from launch: daily streak (with one forgiven missed day), daily challenge, Day 7/14/30 milestone rewards with a visible countdown.
+- Rewarded ads the player chooses: second chance at the moment of loss, a hint, double coins. Rewarded ads pay roughly 2 to 4 times more than forced ones.
+- 3 to 4 rewarded moments per session, each offering something the player actually wants.
+- Coins with something visible to spend them on (skins, power-ups, continues).
+- Competition: a best score, a leaderboard, something to share.
+
+**Loses money:**
+- Forced ads in the first session (players leave on day 1 and never come back).
+- Forced ads more often than every 2 to 3 levels or 60 to 90 seconds.
+- Bolting retention on later: a game launched without a reason to return is very hard to rescue.
+- Ads that break or never show: test that the moment actually fires.
+- Guessing: decide from real numbers (Stratos analytics), never from a feeling.
+
 ## Ads and analytics on the web: how it works here
 
 - Ads and analytics are set up ONCE for the whole site by Sahil and Sahariar, under Stratos's own Google accounts. Makers do not create ad accounts, paste ad codes, or add tracking scripts from other sites.
@@ -55,7 +83,9 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 
 ## Analytics before launch (go-live rule, Sahil 2026-10-31)
 
-No game goes live without Stratos analytics. The site build checks every new game; if it is missing, the game stays a "coming soon" box until it is added.
+No game goes live without Stratos analytics. The site build checks every new game; if it is missing, the game stays off the site until it is added.
+
+**Kids section is the exception:** games with `"category": "kids"` run with no analytics and no ads (the law treats child-directed games differently). Don't add `track()` calls expecting data from them, and never promise "no tracking" in a non-kids game.
 
 - Put this `track()` in your game and call it at the real moments:
 

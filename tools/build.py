@@ -61,7 +61,7 @@ def cover_svg(title, seed, sub=""):
 
 # Go-live rule (Sahil, 2026-10-31): a game goes live only when it hands its events to the shared Stratos analytics
 # (window.Stratos / parent.Stratos .track) and sends at least level_start plus level_complete or game_over.
-# Without that it stays a "coming soon" box. Games already live on that date are listed here until their makers add it.
+# Without that it stays off the site. Kids-section games are exempt: they run without analytics and ads. Games already live on that date are listed here until their makers add it.
 LIVE_BEFORE_ANALYTICS_RULE = {
     "im-mohua-liza", "im-mohua-liza-aetherhold", "im-mohua-liza-ashgrove-extraction", "im-mohua-liza-cargo-climb", "im-mohua-liza-chroma-clash",
     "im-mohua-liza-plot-twist", "Mdsadee527", "mody-sahariar1", "nikhatenglish89", "sahidmodi45", "saiqulmodi", "saiqulmodi-bridge-genius",
@@ -93,7 +93,7 @@ def load_games():
         g["slug"] = slug
         g["category"] = g.get("category") if g.get("category") in CATS and g.get("category") not in ("new", "studio") else "arcade"
         g["soon"] = str(g.get("status", "")).lower().replace("-", "_") in ("coming_soon", "placeholder", "soon", "wip")
-        if not g["soon"] and slug not in LIVE_BEFORE_ANALYTICS_RULE and not has_analytics(d):
+        if not g["soon"] and g["category"] != "kids" and slug not in LIVE_BEFORE_ANALYTICS_RULE and not has_analytics(d):
             g["soon"] = True; problems.append(f"{slug}: not live yet, needs Stratos analytics (see CLAUDE.md, \"Analytics before launch\")")
         thumb = g.get("thumbnail") or next((f for f in ("thumbnail.png", "thumbnail.jpg", "thumbnail.webp", "thumbnail.svg") if os.path.exists(os.path.join(d, f))), None)
         if thumb and not g["soon"]:
@@ -198,6 +198,7 @@ if(w.Stratos)return;
 try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
 var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),game=m?m[1]:"";
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
+if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var S=w.Stratos={config:C,game:game,
  track:function(n,x){if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
  offerReward:function(done){S.track("reward_offered");S.track("reward_taken");if(typeof done=="function")done()}};
@@ -219,8 +220,8 @@ if(game&&/\\/play\\//.test(location.pathname)){
 ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher account (same as AdMob); site ownership tag only, no ads yet
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
 
-def head(title, desc, canon, base="", og_image="", jsonld=None):
-    ga = f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
+def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False):
+    ga = ('<meta name="stratos-kids" content="1">' if kids else "") + f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     og = f'<meta property="og:image" content="{esc(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
@@ -421,13 +422,13 @@ def build_category(cid, items, fam, studio):
         n = len(pool)
         headcard = f'<div class="pk-head"><h1>{c.get("emoji", "")} {esc(c["label"])}</h1><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>'
         body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid)
-        write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base) + body)
+        write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
             f'<section class="row" id="results" hidden><div class="rh"><h2></h2></div><div class="grid"></div></section>'
             f'{wall(pool, base, bigs=1, title=c["label"], sub=f"{c.get('mood', '')} · {len(pool)} game{'s' if len(pool) != 1 else ''}") if pool else f"<section class=\"row\"><div class=\"rh\"><h2>{esc(c['label'])}</h2></div><div class=\"wall\"><div class=\"empty\">Nothing here yet. Be the first.</div>{cta_tile()}</div></section>"}'
             f'{row("From the studio", studio, base, cat_id="studio") if cid != "studio" and not CLEAN else ""}{footer(base)}</main></div>{JS}</body></html>')
-    write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base) + body)
+    write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
 
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
@@ -459,7 +460,7 @@ def build_play(g, fam, studio):
         gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
         body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False) + info + pk_cta() + pk_cats(base),
                        attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"])
-        write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld) + body)
+        write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'
             f'<div class="stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
@@ -470,7 +471,7 @@ def build_play(g, fam, studio):
             f'<section class="about-game"><h1>{esc(g["title"])}</h1><p class="lead">{esc(g.get("one_line"))}</p>{about}{howto}'
             f'<p class="meta">{esc(CATS[g["category"]]["label"])} · Made by {esc(g["maker"])}{gh} · Added {esc(g["added"])} · Free, no install, works on a phone</p></section></div>'
             f'<aside class="play-side"{" hidden" if CLEAN and not more else ""}><h3>More games</h3><div class="tiles">{"".join(tile(x, base) for x in more)}{"" if CLEAN else cta_tile()}</div></aside></div>{footer(base)}</main></div>{JS}</body></html>')
-    write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld) + body)
+    write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
 
 def build_extras(fam, studio):
     real = [g for g in fam if not g.get("soon")]; soon = [g for g in fam if g.get("soon")]
@@ -503,7 +504,10 @@ def prune(fam):
         if f not in used: os.remove(os.path.join(gbase, f)); print("  pruned:", f"assets/covers/generated/{f}")
 
 def main():
-    fam, problems = load_games(); studio = studio_games(); prune(fam)
+    fam, problems = load_games(); studio = studio_games()
+    problems += [f"{g['slug']}: coming soon, not shown on the site yet" for g in fam if g["soon"]]
+    fam = [g for g in fam if not g["soon"]]   # unfinished boxes stay off the public site
+    prune(fam)
     build_home(fam, studio)
     by_cat = {}
     for g in fam + studio:
