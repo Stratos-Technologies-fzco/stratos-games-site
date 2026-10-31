@@ -18,6 +18,14 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: build from the latest main, push, retry if someone pushed meanwhile
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         run: |
           git config user.name "stratos-games-bot"
           git config user.email "bot@stratos.games"
@@ -25,7 +33,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             python3 tools/build.py
-            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers
+            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers assets/stratos.js
             if git diff --cached --quiet; then echo "site already up to date"; exit 0; fi
             git commit -m "build: site pages [skip ci]"
             if git push origin HEAD:main; then echo "pushed"; exit 0; fi

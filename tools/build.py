@@ -7,6 +7,7 @@ Reads site.json and games/*/game.json, writes:
   c/<category>/index.html    one page per category (a wall of that category)
   games.json                 the catalog (search, future apps)
   sitemap.xml, robots.txt, llms.txt, 404.html
+  assets/stratos.js          shared Stratos analytics (Firebase settings from the FIREBASE_* secrets)
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
@@ -163,8 +164,40 @@ def footer(base=""):
     links = "".join(f'<a href="{base}{esc(f["href"])}">{esc(f["label"])}</a>' for f in SITE["footer"])
     return f'<footer class="foot"><div>{links}</div><div class="fine">© {YEAR} Stratos Games · {esc(SITE["tagline"])} · {esc(SITE["contact"])}</div></footer>'
 
+# Stratos analytics: one shared script on every page. The Firebase web settings come from the FIREBASE_* repo
+# secrets (public by design, key locked to stratos.games). Without a measurement ID it loads nothing and track() is a no-op.
+# Games call window.Stratos.track(name, details) / window.Stratos.offerReward(onDone); inside the play-page frame they reach the page's copy.
+FIREBASE = {k: os.environ.get("FIREBASE_" + e, "") for k, e in [("apiKey", "API_KEY"), ("authDomain", "AUTH_DOMAIN"), ("projectId", "PROJECT_ID"), ("storageBucket", "STORAGE_BUCKET"),
+            ("messagingSenderId", "MESSAGING_SENDER_ID"), ("appId", "APP_ID"), ("measurementId", "MEASUREMENT_ID")]}
+EEA = "AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE IS LI NO GB CH".split()
+STRATOS_JS = """/* stratos.js: shared Stratos analytics and rewards for every page and game. Written by tools/build.py, do not edit. */
+(function(w,d){
+if(w.Stratos)return;
+try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
+var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),game=m?m[1]:"";
+function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
+var S=w.Stratos={config:C,game:game,
+ track:function(n,x){if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
+ offerReward:function(done){S.track("reward_offered");S.track("reward_taken");if(typeof done=="function")done()}};
+if(C.measurementId){
+ gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"granted"});
+ gtag("consent","default",{analytics_storage:"denied",region:%s});
+ gtag("js",new Date());gtag("config",C.measurementId,game?{game:game}:{});
+ var s=d.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id="+C.measurementId;d.head.appendChild(s);
+}
+if(game&&/\\/play\\//.test(location.pathname)){
+ S.track("game_open");
+ var from=d.visibilityState=="hidden"?0:Date.now();
+ function flush(){if(from){var t=Math.round((Date.now()-from)/1000);from=0;if(t>0)S.track("play_time",{seconds:t})}}
+ d.addEventListener("visibilitychange",function(){if(d.visibilityState=="hidden")flush();else from=Date.now()});
+ w.addEventListener("pagehide",flush);
+}
+})(window,document);
+""" % (json.dumps(FIREBASE), json.dumps(EEA))
+STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
+
 def head(title, desc, canon, base="", og_image="", jsonld=None):
-    ga = f'<script async src="https://www.googletagmanager.com/gtag/js?id={SITE["analytics_id"]}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}gtag("js",new Date());gtag("config","{SITE["analytics_id"]}");</script>' if SITE.get("analytics_id") else ""
+    ga = f'<script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     og = f'<meta property="og:image" content="{esc(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
@@ -455,6 +488,7 @@ def main():
     for c in SITE["categories"]: build_category(c["id"], by_cat.get(c["id"], []), fam, studio)
     for g in fam: build_play(g, fam, studio)
     build_extras(fam, studio)
+    write("assets/stratos.js", STRATOS_JS)
     print(f"built: home, {len(fam)} play page(s), {len(SITE['categories'])} category pages, sitemap, robots, llms.txt, 404")
     for p in problems: print("  skipped:", p)
 
