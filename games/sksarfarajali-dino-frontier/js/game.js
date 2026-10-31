@@ -904,14 +904,29 @@ window.DF = window.DF || {};
     // trodden centre line and grass / drift edges
     var cg = g.createLinearGradient(0, 0, 0, TH); cg.addColorStop(0, 'rgba(0,0,0,.18)'); cg.addColorStop(0.5, 'rgba(255,255,255,.06)'); cg.addColorStop(1, 'rgba(0,0,0,.22)'); g.fillStyle = cg; g.fillRect(0, 0, TW, TH);
     g.strokeStyle = P[3]; g.lineWidth = 1.6; g.globalAlpha = biome === 'ember' ? 0.0 : 0.8; for (i = 0; i < 70; i++) { var ex = rnd() * TW, ey = rnd() < 0.5 ? rnd() * 20 : TH - rnd() * 20; g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex - 2, ey - 8 - rnd() * 6); g.moveTo(ex, ey); g.lineTo(ex + 3, ey - 7 - rnd() * 6); g.stroke(); }
-    g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; var mg = g.createLinearGradient(0, 0, 0, TH); mg.addColorStop(0, 'rgba(0,0,0,0)'); mg.addColorStop(0.2, 'rgba(0,0,0,.95)'); mg.addColorStop(0.8, 'rgba(0,0,0,.95)'); mg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = mg; g.fillRect(0, 0, TW, TH);
+    g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; var mg = g.createLinearGradient(0, 0, 0, TH); mg.addColorStop(0, 'rgba(0,0,0,1)'); mg.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = mg; g.fillRect(0, 0, TW, TH); // crisp road edges (edge rails are drawn separately)
     return c;
   }
-  function drawPath() {
-    var t = PATHT[S.biome] || (PATHT[S.biome] = buildPath(S.biome)), TW = 512, y0 = YMIN - 22, first = Math.floor(S.camX / TW);
-    cx.save(); cx.globalAlpha = 0.92;
-    for (var i = first; i <= first + Math.ceil(VW / TW) + 1; i++) cx.drawImage(t, i * TW - S.camX, y0, TW + 1, 200);
+  var ROAD0 = YMIN - 12, ROAD1 = YMAX + 12;
+  var EDGE = { verdant: ['#6B4A2A', '#A57C4C', 'post'], mire: ['#4A3A22', '#8A6C3C', 'rail'], frost: ['#EAF3FA', '#FFFFFF', 'bank'], ember: ['#17110F', '#FF7A2E', 'kerb'], crater: ['#58649A', '#7FD6FF', 'glow'] };
+  function roadEdge(y, dir) {
+    var E = EDGE[S.biome] || EDGE.verdant, st = E[2], step = 84, first = Math.floor(S.camX / step) - 1, i, px, ph = dir < 0 ? 26 : 16;
+    cx.save();
+    if (st === 'bank') { cx.fillStyle = E[0]; for (i = first; i < first + VW / step + 3; i++) { px = i * step - S.camX + 30; cx.beginPath(); cx.ellipse(px, y + dir * 2, 64, 12, 0, 0, 7); cx.fill(); } cx.fillStyle = 'rgba(120,160,200,.35)'; cx.fillRect(0, y + (dir < 0 ? -1 : 2), VW, 2); }
+    else if (st === 'kerb') { for (i = first; i < first + VW / 46 + 3; i++) { px = i * 46 - S.camX; var hh = 9 + ((i * 7) % 5); cx.fillStyle = E[0]; cx.fillRect(px, y - (dir < 0 ? hh : 0) - 1, 42, hh + 2); cx.fillStyle = 'rgba(255,255,255,.07)'; cx.fillRect(px, y - (dir < 0 ? hh : 0) - 1, 42, 2); } cx.fillStyle = 'rgba(255,122,46,.55)'; cx.fillRect(0, y - 1, VW, 2); }
+    else {
+      cx.fillStyle = E[0]; cx.fillRect(0, y - 4, VW, 8); cx.fillStyle = E[1]; cx.globalAlpha = st === 'glow' ? 0.9 : 0.55; cx.fillRect(0, y - 4, VW, 2); cx.globalAlpha = 1;
+      for (i = first; i < first + VW / step + 3; i++) { px = i * step - S.camX; cx.fillStyle = E[0]; cx.fillRect(px - 3, y - ph, 7, ph + 4); cx.fillStyle = E[1]; cx.globalAlpha = st === 'glow' ? 0.95 : 0.5; cx.fillRect(px - 3, y - ph, 2, ph); cx.globalAlpha = 1; if (st === 'glow') { var gg = cx.createRadialGradient(px, y - ph, 1, px, y - ph, 14); gg.addColorStop(0, 'rgba(127,214,255,.8)'); gg.addColorStop(1, 'rgba(127,214,255,0)'); cx.fillStyle = gg; cx.fillRect(px - 14, y - ph - 14, 28, 28); } }
+      if (st !== 'glow') { cx.strokeStyle = E[1]; cx.globalAlpha = 0.6; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(0, y - ph * 0.6); cx.lineTo(VW, y - ph * 0.6); cx.stroke(); cx.globalAlpha = 1; }
+    }
     cx.restore();
+  }
+  function drawPath() {
+    var t = PATHT[S.biome] || (PATHT[S.biome] = buildPath(S.biome)), TW = 512, y0 = ROAD0, first = Math.floor(S.camX / TW);
+    cx.save(); cx.globalAlpha = 1;
+    for (var i = first; i <= first + Math.ceil(VW / TW) + 1; i++) cx.drawImage(t, i * TW - S.camX, y0, TW + 1, ROAD1 - ROAD0);
+    cx.restore();
+    roadEdge(ROAD0, -1); roadEdge(ROAD1, 1); // the dinosaur cannot leave the road: rails, kerbs or banks mark both sides
   }
   function drawBackdrop() {
     var img = A.img(S.obj.bg), tw = 1180, th = tw * img.height / img.width, y = -(th - VH) * 0.5 - 18, shift = S.camX * 0.28;
