@@ -216,10 +216,11 @@ if(game&&/\\/play\\//.test(location.pathname)){
 }
 })(window,document);
 """ % (json.dumps(FIREBASE), json.dumps(EEA))
+ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher account (same as AdMob); site ownership tag only, no ads yet
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
 
 def head(title, desc, canon, base="", og_image="", jsonld=None):
-    ga = f'<script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
+    ga = f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     og = f'<meta property="og:image" content="{esc(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
