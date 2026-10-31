@@ -62,6 +62,7 @@ DF.S = {
     bossHints: { wait: 'Wait for the warning, then dodge.', charge: 'Red lane! Move up or down out of it, or dash.', slam: 'Slam ring! Move away, or dash as it lands.', dodge: 'DODGE now!', open: 'OPEN: strike now!', stun: 'STUNNED: strike now!', skimmers: 'Enraged! Clear the Skimmers first.' },
     frostHint: 'Blizzards chill you. Stay near campfires, eat berries to warm up, and watch for slippery ice.',
     blizzardWarn: 'A blizzard is coming! Get close to a campfire.', blizzardNow: 'Blizzard! Chill is rising fast', blizzardIn: 'Blizzard in {s}s', freezing: 'Freezing! Warm up at a campfire or eat a berry',
+    goal: 'GOAL',
     craterHint: 'Unstable energy fields! A bright ring means a discharge is coming. Step out or dash through. Rare DNA sits inside them.',
     mireHint: 'Bog water is poison! Glowcaps cure it and show hidden predators. Dash skims over bogs.',
     camoHint: 'An ambusher! Camouflaged predators hide until you get close. Look for ripples, or find a glowcap.',

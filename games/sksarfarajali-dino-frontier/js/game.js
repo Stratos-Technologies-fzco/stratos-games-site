@@ -78,7 +78,7 @@ window.DF = window.DF || {};
     var d = DF.defaultSave(); d.player.experience = 450; d.player.level = 4; d.profile.selectedEvolution = 'swiftclaw'; d.upgrades = { hide: 1 }; return d;
   }
   function addRock(x, y, rx, ry) { S.rocks.push({ x: x, y: y, rx: rx, ry: ry, seed: S.rng.next() }); }
-  function addBush(x, y, berries) { S.bushes.push({ x: x, y: y, berries: berries || 1, bob: S.rng.next() * 6 }); }
+  function addBush(x, y, berries) { S.bushes.push({ x: x, y: y, berries: berries || 1, max: berries || 1, bob: S.rng.next() * 6 }); }
   function addEnemy(type, x, y, mods) {
     var d = B.enemies[type], e = { kind: 'enemy', type: type, def: d, x: x, y: y, hp: d.hp, maxHp: d.hp, face: -1, state: 'idle', t: 0, cd: 400, hitFlash: 0, stun: 0, kx: 0, vx: 0, vy: 0, dirx: 1, diry: 0, didHit: false, near: false, wob: S.rng.next() * 6, dead: 0, id: S.enemies.length + 1 };
     var em = S.obj && S.obj.enemyMul; if (em) { e.hp = e.maxHp = Math.round(d.hp * em.hp); e.dmgMul = em.dmg; }
@@ -650,10 +650,11 @@ window.DF = window.DF || {};
       b = S.bushes[i]; b.bob += dt / 500;
       if (b.berries > 0 && Math.abs(P.x - b.x) < 46 && Math.abs(P.y - b.y) < 30) {
         b.berries--; var n = 1 + (S.rng.next() < S.stats.foodMul - 1 ? 1 : 0); S.gained.food += n; S.berries++; P.hp = Math.min(P.maxHp, P.hp + 10); if (S.biome === 'frost') S.wx.chill = Math.max(0, S.wx.chill - B.weather.berryWarm);
-        float(b.x, b.y - 50, '+' + n + ' Food', '#CFE8B0', false); DF.Audio.sfx('pickup'); burst(b.x, b.y - 24, '#CFE8B0', 6); if (G.onEvent) G.onEvent('berry');
+        float(b.x, b.y - 50, '+' + n + ' Food', '#CFE8B0', false); DF.Audio.sfx('pickup'); burst(b.x, b.y - 24, b.berries > 0 ? '#CFE8B0' : '#BEE6FF', b.berries > 0 ? 6 : 12); if (G.onEvent) G.onEvent('berry');
         if (S.tut && S.tut.step === 1) advanceTut(2);
       }
     }
+    for (i = S.bushes.length - 1; i >= 0; i--) { b = S.bushes[i]; if (b.berries <= 0) { b.gone = (b.gone || 0) + dt; if (b.gone > 380) S.bushes.splice(i, 1); } } // eaten food leaves the screen
     for (i = S.pickups.length - 1; i >= 0; i--) {
       p = S.pickups[i]; p.t += dt / 400; var dx = P.x - p.x, dy = P.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
       if (d < 90) { p.x += dx * Math.min(1, dt / 160); p.y += dy * Math.min(1, dt / 160); }
@@ -671,6 +672,14 @@ window.DF = window.DF || {};
     }
   }
   function objectiveReady() { return S.berries >= S.obj.berriesNeeded && (!S.tut || S.tut.step >= 3); }
+  /* percent of the current goal completed: trail = half berries, half distance to the nest; boss = damage dealt. Never goes backwards. */
+  function goalPct() {
+    if (S.tut) return 0;
+    var P = S.P, pct, b = S.boss;
+    if (b) pct = (S.bossDown || b.state === 'dead') ? 100 : b.state === 'sleep' ? 0 : Math.round(100 * (1 - Math.max(0, b.hp) / b.maxHp));
+    else { var n = S.nests[0], need = S.obj.berriesNeeded, fb = need > 0 ? Math.min(1, S.berries / need) : 1, fd = n ? Math.max(0, Math.min(1, (P.x - 250) / Math.max(1, n.x - 60 - 250))) : 0; pct = n && n.done ? 100 : Math.round(100 * (0.5 * fb + 0.5 * fd)); }
+    S.maxPct = Math.max(S.maxPct || 0, Math.min(100, pct)); return S.maxPct;
+  }
   function updateObjective(dt) {
     var P = S.P;
     // tutorial script
@@ -773,7 +782,7 @@ window.DF = window.DF || {};
   G.snapshot = function () {
     if (!S) return null; var P = S.P, st = S.stats, o = S.obj, b = S.boss;
     var abReady = P.en >= st.ability.cost, dashReady = P.en >= st.dashCost;
-    return { hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name, hint: bossHint(b) } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, chill: S.biome === 'frost' ? Math.round(S.wx.chill) : -1, storm: S.biome === 'frost' ? S.wx.state : '', stormT: S.biome === 'frost' ? Math.ceil(S.wx.t / 1000) : 0, cold: !!S.cold, poison: S.biome === 'mire' ? Math.ceil(S.poison / 1000) : 0, reveal: S.reveal > 0, combat: S.combat, kills: S.kills.total || 0, t: S.t };
+    return { pct: goalPct(), hp: Math.max(0, Math.round(P.hp)), maxHp: P.maxHp, en: Math.floor(P.en), maxEn: P.maxEn, food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, berries: S.berries, need: o.berriesNeeded, objId: S.objId, tutorial: !!S.tut, dashCost: st.dashCost, abCost: st.ability.cost, abName: st.ability.name, dashOk: dashReady, abOk: abReady, abCd: P.abCd, dashCd: P.dashCd, boss: b && b.state !== 'sleep' ? { hp: Math.max(0, b.hp), max: b.maxHp, name: S.bossDef.name, hint: bossHint(b) } : null, eggReady: S.eggReady, tutStep: S.tut ? S.tut.step : -1, abilitiesUsed: S.abilitiesUsed, chill: S.biome === 'frost' ? Math.round(S.wx.chill) : -1, storm: S.biome === 'frost' ? S.wx.state : '', stormT: S.biome === 'frost' ? Math.ceil(S.wx.t / 1000) : 0, cold: !!S.cold, poison: S.biome === 'mire' ? Math.ceil(S.poison / 1000) : 0, reveal: S.reveal > 0, combat: S.combat, kills: S.kills.total || 0, t: S.t };
   };
 
   /* ---------- rendering ---------- */
@@ -942,8 +951,9 @@ window.DF = window.DF || {};
     cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.beginPath(); cx.moveTo(x - k.rx * 0.5, y - H * 0.5); cx.lineTo(x - k.rx * 0.15, y - H * 0.78); cx.stroke();
   }
   function dBush(b) {
-    shadow(b.x, b.y + 2, 70, 0.3);
-    draw('prop-berry-bush', 84, b.x, b.y, { feet: 0.97, alpha: b.berries > 0 ? 1 : 0.45, sy: 1 + (b.berries > 0 ? 0.02 * Math.sin(b.bob) : 0) }); // the owner's glowing mushrooms; they dim once eaten
+    var gone = b.berries <= 0 ? Math.min(1, (b.gone || 0) / 380) : 0, part = b.max > 1 ? 0.72 + 0.28 * Math.max(0, b.berries) / b.max : 1; // shrinks as portions are eaten, then pops away
+    shadow(b.x, b.y + 2, 70 * part, 0.3 * (1 - gone));
+    draw('prop-berry-bush', 84, b.x, b.y, { feet: 0.97, alpha: 1 - gone, sx: part * (1 - 0.35 * gone), sy: part * (1 - 0.5 * gone) + (b.berries > 0 ? 0.02 * Math.sin(b.bob) : 0) }); // the owner's glowing mushrooms
     if (b.berries > 0) { var a = 0.5 + 0.5 * Math.sin(b.bob), gl = cx.createRadialGradient(b.x, b.y - 34, 4, b.x, b.y - 34, 52); gl.addColorStop(0, 'rgba(190,230,255,' + (0.3 * a + 0.08) + ')'); gl.addColorStop(1, 'rgba(190,230,255,0)'); cx.fillStyle = gl; cx.beginPath(); cx.ellipse(b.x, b.y - 34, 52, 44, 0, 0, 7); cx.fill(); }
   }
   function dNest(n) {
