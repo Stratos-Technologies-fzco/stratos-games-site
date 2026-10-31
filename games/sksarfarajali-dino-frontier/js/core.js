@@ -59,14 +59,14 @@ window.DF = window.DF || {};
     },
     boss: { hp: 240, speed: 70, size: 240, xp: 300, chargeWindup: 1100, chargeSpeed: 400, chargeTime: 700, chargeDmg: 16, slamWindup: 950, slamRadius: 140, slamDmg: 14, recover: 1500, armor: 0.7, adds: 1, phase2At: 0.5, enrageSpeed: 1.35, sprite: 'boss-thornback' },
     objectives: {
-      egg: { id: 'egg', minLevel: 1, bg: 'verdant_valley', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
+      egg: { id: 'egg', minLevel: 1, bg: 'canyon_styracosaur', worldW: 9500, berriesNeeded: 4, bushes: 10, raiders: 4, spitters: 1, skimmers: 1, bonus: { food: 6, dna: 3, tokens: 25, xp: 60 }, eggId: 'shadowscale' },
       forage: { id: 'forage', minLevel: 2, bg: 'tribal_river_canyon', worldW: 12000, berriesNeeded: 9, bushes: 15, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 5, dna: 2, tokens: 25, xp: 70 }, eggId: 'glade' },
       /* demo arenas, one per biome: short, with a few of that biome's hazards. All share the id 'demo' so the HUD and run logic treat them alike. */
       demo_ember: { id: 'demo', minLevel: 1, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'ember', hazards: { pools: 4, vents: 3 } },
       demo_frost: { id: 'demo', minLevel: 1, biome: 'frost', bg: 'aurora_celestial_sanctuary', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'frost', hazards: { ice: 4, fires: 2 } },
       demo_mire: { id: 'demo', minLevel: 1, biome: 'mire', bg: 'bioluminescent_spino_swamp', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, camo: 0.6, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'mire', hazards: { bogs: 4, glow: 2 } },
       demo_crater: { id: 'demo', minLevel: 1, biome: 'crater', bg: 'celestial_sky_citadel', worldW: 3600, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'genesis', hazards: { fields: 4, rare: 2 } },
-      demo: { id: 'demo', minLevel: 1, bg: 'verdant_valley', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
+      demo: { id: 'demo', minLevel: 1, bg: 'canyon_styracosaur', worldW: 2700, berriesNeeded: 3, bushes: 4, raiders: 3, spitters: 1, skimmers: 1, bonus: { food: 0, dna: 0, tokens: 0, xp: 0 }, eggId: 'shadowscale' },
       boss: { id: 'boss', minLevel: 5, bg: 'volcanic_ruins_chasm', worldW: 1300, berriesNeeded: 0, bushes: 2, raiders: 0, spitters: 0, skimmers: 0, bonus: { food: 0, dna: 4, tokens: 60, xp: 0 }, firstKill: { dna: 6, tokens: 60 }, bossId: 'thornback' },
       /* Emberlands (levels 11-20): lava pools and erupting heat vents, tougher enemies */
       ember: { id: 'ember', minLevel: 11, biome: 'ember', bg: 'volcanic_ruins_chasm', worldW: 11000, berriesNeeded: 5, bushes: 14, raiders: 5, spitters: 2, skimmers: 2, bonus: { food: 8, dna: 4, tokens: 70, xp: 180 }, eggId: 'ember', enemyMul: { hp: 1.4, dmg: 1.25 }, hazards: { pools: 9, vents: 9 } },

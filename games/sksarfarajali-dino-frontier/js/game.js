@@ -49,7 +49,7 @@ window.DF = window.DF || {};
   };
 
   G.start = function (opts) {
-    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'verdant_valley', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? (opts.demoObj || 'demo') : opts.objective];
+    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? (opts.demoObj || 'demo') : opts.objective];
     var stats = DF.playerStats(demo ? demoSave() : save), rng = DF.createRng(opts.runId);
     S = G.S = {
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
@@ -901,7 +901,6 @@ window.DF = window.DF || {};
     else if (S.biome === 'crater') { cx.fillStyle = 'rgba(20,30,90,0.26)'; cx.fillRect(0, 0, VW, VH); }
   }
   function drawGround() {
-    if (S.obj && S.obj.bg === 'verdant_valley') drawPath();
     var g = cx.createLinearGradient(0, 140, 0, VH); g.addColorStop(0, 'rgba(14,30,20,0)'); g.addColorStop(0.35, 'rgba(18,40,24,0.55)'); g.addColorStop(1, 'rgba(10,24,14,0.82)');
     cx.fillStyle = g; cx.fillRect(0, 140, VW, VH - 140);
     // grass tufts (world-anchored)
