@@ -58,7 +58,7 @@ window.DF = window.DF || {};
       formScale: 1, biome: obj.biome || 'verdant', hz: { pools: [], vents: [], ice: [], fires: [], bogs: [], glow: [], fields: [] }, bossDef: null, heatAcc: 0, ambT: 0, snowT: 0, poison: 0, poisonAcc: 0, reveal: 0, onIce: false, cold: false, freezeAcc: 0, shake: 0, flash: 0, hurtFlash: 0, ending: 0, ended: false, combat: false, combatT: 0, shown: {},
       demo: demo, demoAcc: 0, demoTick: 0, tut: opts.tutorial ? { step: 0, steps: 4, raiderSpawned: false, raider: null } : null, eggReady: false, crystalHint: 0, timeToFirst: 0, firstEncounter: false, speedMul: 1
     };
-    S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0, ivx: 0, ivy: 0, fv: 1, lastFace: 1, tail: 0, stride: 0, step: 1 };
+    S.P = { x: 250, y: 270, face: 1, hp: stats.maxHealth, maxHp: stats.maxHealth, en: stats.maxEnergy, maxEn: stats.maxEnergy, atkT: 0, atkCd: 0, dashCd: 0, abCd: 0, dashT: 0, dashDx: 1, dashDy: 0, dashSpd: 0, inv: 0, shield: 0, hurt: 0, anim: 0, stun: 0, hitIds: {}, surgeT: 0, ivx: 0, ivy: 0, gait: 0, gside: 1, plant: 0, fv: 1, lastFace: 1, tail: 0, stride: 0, step: 1 };
     S.wx = { state: 'calm', t: demo ? 6000 : rng.range(B.weather.calm[0] * 0.6, B.weather.calm[1]), chill: 0 }; // the demo shows a blizzard early
     S.formScale = (FORM_W[stats.path] || 128) / 128; // enemies are drawn in proportion to the player's form (art only; hit boxes do not change)
     buildWorld();
@@ -240,14 +240,18 @@ window.DF = window.DF || {};
       if (Math.random() < 0.7) spark(P.x - P.face * 20, P.y - 20, st.path === 'swiftclaw' ? '#9FE7DF' : '#F3EBD7', 1);
     } else if (P.stun <= 0 && !P.fxA) {
       if (S.onIce) { var kk = Math.min(1, dt / B.weather.iceAccelMs); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * kk; P.ivy += (iy * st.speed * 0.62 - P.ivy) * kk; P.x += P.ivx * dt / 1000; P.y += P.ivy * dt / 1000; } // slippery: you slide and steer slowly
-      else { var ak = Math.min(1, dt / (len > 0.05 ? 85 : 130)); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * ak; P.ivy += (iy * st.speed * 0.62 - P.ivy) * ak; P.x += P.ivx * dt / 1000; P.y += P.ivy * dt / 1000; } // analog stick: speed follows how far it is pushed, with soft acceleration
+      else { var ak = Math.min(1, dt / (len > 0.05 ? 85 : 130)); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * ak; P.ivy += (iy * st.speed * 0.62 - P.ivy) * ak; var gf = 0.4 + 0.94 * Math.sin(Math.PI * (P.gait - Math.floor(P.gait))); if (len < 0.05 && Math.abs(P.ivx) + Math.abs(P.ivy) < 30) gf = 1; P.x += P.ivx * gf * dt / 1000; P.y += P.ivy * gf * dt / 1000; } // analog stick sets the pace; each step pushes off, then the foot plants (speed pulses within the step)
       if (Math.abs(ix) > 0.12) P.face = sgn(ix);
     }
     P.fv += (P.face - P.fv) * Math.min(1, dt / 70); // turning around is a quick swing, not an instant flip
     if (P.face !== P.lastFace) { P.lastFace = P.face; P.tail = -P.face * 0.5; if (!reduced()) dust(P.x, P.y + 3, 2, 6, P.face); } // the tail whips the other way
     P.tail *= Math.pow(0.9, dt / 16.6);
-    var mvd = Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy) * dt / 1000; P.stride += mvd;
-    if (P.stride > 40 && P.dashT <= 0) { P.stride = 0; P.step = -P.step; if (S.parts.length < 150) S.parts.push({ fx: 'print', x: P.x - P.face * 6, y: P.y + 4 + P.step * 4, ang: Math.atan2(P.ivy * 0.5, P.ivx || P.face), t: 0, life: 2400, big: 1 }); } // three-toed footprints stay on the ground and fade
+    var gv = Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy), g0 = Math.floor(P.gait);
+    if (P.dashT <= 0 && gv > 22 && P.stun <= 0) { P.gait += gv * dt / 1000 / 48; P.plant = Math.max(0, P.plant - dt / 140); }
+    else { P.plant = Math.max(0, P.plant - dt / 140); if (gv <= 22) P.gait = Math.floor(P.gait) + (P.gait - Math.floor(P.gait) > 0.5 ? 1 : 0); }
+    if (Math.floor(P.gait) !== g0) { P.gside = -P.gside; P.plant = 1; // foot plants: thud, dust and a footprint land exactly on the step
+      dust(P.x - P.face * 10, P.y + 3, 2, 6, -P.face); if (!reduced() && gv > 90) shake(0.7);
+      if (S.parts.length < 150) S.parts.push({ fx: 'print', x: P.x - P.face * 6, y: P.y + 4 + P.gside * 4, ang: Math.atan2(P.ivy * 0.5, P.ivx || P.face), t: 0, life: 2400, big: 1 }); }
     P.x = Math.max(24, Math.min(S.worldW - 24, P.x)); P.y = Math.max(YMIN, Math.min(YMAX, P.y));
     rocks(P, 22);
     var knock = P.kx || 0; if (knock) { P.x += knock * dt / 1000; P.kx *= 0.86; if (Math.abs(P.kx) < 4) P.kx = 0; }
@@ -1164,9 +1168,9 @@ window.DF = window.DF || {};
   function dPlayer(P) {
     var st = S.stats, w = FORM_W[st.path] || 128, o = { flip: P.face < 0, feet: 0.96 };
     var spd = P.dashT > 0 ? 0 : Math.min(1, Math.sqrt(P.ivx * P.ivx + (P.ivy / 0.62) * (P.ivy / 0.62)) / (st.speed || 150)), ph = P.anim / 80, stp = Math.sin(ph);
-    var bob = -Math.abs(stp) * 3.4 * spd + Math.sin(S.t / 620) * 0.9 * (1 - spd), y = P.y + bob;
+    var gu = P.gait - Math.floor(P.gait), lift = Math.sin(Math.PI * gu) * spd, bob = -lift * 5.5 + P.plant * 2 * spd + Math.sin(S.t / 620) * 0.9 * (1 - spd), y = P.y + bob;
     var vyN = Math.max(-1, Math.min(1, P.ivy / (0.62 * (st.speed || 150)))), pf = 0.93 + 0.14 * (P.y - YMIN) / (YMAX - YMIN);
-    var rot = 0.07 * spd * (P.ivx * P.face > 0 ? 1 : 0.4) + stp * 0.016 * spd + 0.13 * vyN, sx = 1, sy = 1 + 0.012 * Math.sin(S.t / 620) * (1 - spd) + 0.022 * spd * Math.cos(ph * 2), skew = 0.05 * spd * Math.sin(ph - 0.9) + 0.012 * Math.sin(S.t / 900), lunge = 0;
+    var rot = 0.07 * spd * (P.ivx * P.face > 0 ? 1 : 0.4) + P.gside * 0.04 * lift + 0.13 * vyN, sx = 1, sy = 1 + 0.012 * Math.sin(S.t / 620) * (1 - spd) + 0.022 * spd * Math.cos(ph * 2) - 0.05 * P.plant * spd, skew = 0.07 * spd * (lift - 0.5) * P.gside + 0.012 * Math.sin(S.t / 900), lunge = 0;
     if (P.atkT > 0) { // 0-60 ms wind-back, 60-140 ms strike (the hit lands at 60), 140-260 ms recovery
       var el = 260 - P.atkT, q;
       if (el < 60) { q = el / 60; rot = -0.10 * q; sy = 1 - 0.05 * q; sx = 1 + 0.03 * q; lunge = -6 * q; skew = 0; }
