@@ -879,11 +879,38 @@ window.DF = window.DF || {};
     if (S.biome === 'mire') { cx.fillStyle = 'rgba(20,70,55,0.2)'; cx.fillRect(0, 0, VW, VH); if (S.poison > 0) { cx.fillStyle = 'rgba(130,210,50,0.14)'; cx.fillRect(0, 0, VW, VH); } }
     if (S.ending > 0 && S.endOutcome === 'defeat') { cx.fillStyle = 'rgba(6,10,8,' + Math.min(0.7, (900 - S.ending) / 900) + ')'; cx.fillRect(0, 0, VW, VH); }
   }
-  /* the owner's wooden boardwalk, tiled along the walking lane so the dinosaur walks on the path */
+  /* a worn trail in the walking lane, painted once per biome into a seamless tile: soft edges, a trodden centre, and details that suit the ground */
+  var PATHT = {};
+  function buildPath(biome) {
+    var TW = 512, TH = 200, c = document.createElement('canvas'); c.width = TW; c.height = TH; var g = c.getContext('2d'), seed = 7, i, j;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    function wrap(fn, x, w) { fn(x); if (x < w) fn(x + TW); if (x > TW - w) fn(x - TW); }
+    var P = { verdant: ['#8E7650', '#7A6342', '#A28C64', '#5E7A3A'], ember: ['#2B1F1B', '#1D1512', '#40302A', '#FF7A2E'], frost: ['#D3E3F0', '#B9CFE2', '#EEF6FC', '#8FB8DC'], mire: ['#4A3F2A', '#37301F', '#5D4F34', '#6F9440'], crater: ['#4A5478', '#3A4264', '#606C94', '#7FD6FF'] }[biome] || ['#8E7650', '#7A6342', '#A28C64', '#5E7A3A'];
+    g.fillStyle = P[0]; g.fillRect(0, 0, TW, TH);
+    for (i = 0; i < 260; i++) { var sx = rnd() * TW, sy = rnd() * TH, sr = 1 + rnd() * 3.5; g.fillStyle = rnd() < 0.5 ? P[1] : P[2]; g.globalAlpha = 0.35 + rnd() * 0.4; wrap(function (x) { g.beginPath(); g.ellipse(x, sy, sr * 1.6, sr, 0, 0, 7); g.fill(); }, sx, 8); }
+    g.globalAlpha = 1;
+    if (biome === 'mire') { // plank slats with dark gaps and a green mud edge
+      for (i = 0; i < TW; i += 64) { g.fillStyle = 'rgba(20,14,8,.7)'; g.fillRect(i, 0, 3, TH); g.fillStyle = 'rgba(0,0,0,.14)'; g.fillRect(i + 10 + rnd() * 20, 0, 1.5, TH); g.fillStyle = 'rgba(255,230,170,.07)'; g.fillRect(i + 5, 0, 18, TH); }
+    } else if (biome === 'crater') { // flagstones with glowing seams
+      g.strokeStyle = 'rgba(8,10,30,.7)'; g.lineWidth = 3; for (i = 0; i < TW; i += 128) { for (j = 0; j < TH; j += 62) { var off = ((j / 62) % 2) * 64; g.strokeRect(i + off, j, 128, 62); g.strokeRect(i + off - TW, j, 128, 62); } }
+      g.strokeStyle = 'rgba(127,214,255,.5)'; g.lineWidth = 1.4; for (i = 0; i < 6; i++) { var cx0 = rnd() * TW, cy0 = rnd() * TH; g.beginPath(); g.moveTo(cx0, cy0); for (j = 0; j < 4; j++) g.lineTo(cx0 + (j + 1) * 12 + rnd() * 8, cy0 + (rnd() - 0.5) * 22); g.stroke(); }
+    } else if (biome === 'ember') { // cracked basalt with glowing seams
+      g.lineJoin = 'round'; for (i = 0; i < 9; i++) { var px = rnd() * TW, py = rnd() * TH; g.beginPath(); g.moveTo(px, py); for (j = 0; j < 6; j++) { px += 14 + rnd() * 22; py += (rnd() - 0.5) * 38; g.lineTo(px, py); } g.strokeStyle = 'rgba(10,6,4,.85)'; g.lineWidth = 5; g.stroke(); g.strokeStyle = 'rgba(255,130,40,.8)'; g.lineWidth = 1.6; g.stroke(); }
+    } else if (biome === 'frost') { // packed snow with ice patches and drifts
+      for (i = 0; i < 14; i++) { var ix = rnd() * TW, iy = rnd() * TH; g.fillStyle = 'rgba(160,205,240,.35)'; wrap(function (x) { g.beginPath(); g.ellipse(x, iy, 22 + rnd() * 30, 5 + rnd() * 6, 0, 0, 7); g.fill(); }, ix, 60); }
+    } else { // verdant: dirt with embedded stones and sparse grass
+      for (i = 0; i < 40; i++) { var rx = rnd() * TW, ry = rnd() * TH, rr = 3 + rnd() * 6; g.fillStyle = 'rgba(70,60,48,.75)'; wrap(function (x) { g.beginPath(); g.ellipse(x, ry, rr * 1.3, rr * 0.8, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(190,175,150,.5)'; g.beginPath(); g.ellipse(x - 1, ry - 1, rr * 0.7, rr * 0.35, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(70,60,48,.75)'; }, rx, 12); }
+    }
+    // trodden centre line and grass / drift edges
+    var cg = g.createLinearGradient(0, 0, 0, TH); cg.addColorStop(0, 'rgba(0,0,0,.18)'); cg.addColorStop(0.5, 'rgba(255,255,255,.06)'); cg.addColorStop(1, 'rgba(0,0,0,.22)'); g.fillStyle = cg; g.fillRect(0, 0, TW, TH);
+    g.strokeStyle = P[3]; g.lineWidth = 1.6; g.globalAlpha = biome === 'ember' ? 0.0 : 0.8; for (i = 0; i < 70; i++) { var ex = rnd() * TW, ey = rnd() < 0.5 ? rnd() * 20 : TH - rnd() * 20; g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex - 2, ey - 8 - rnd() * 6); g.moveTo(ex, ey); g.lineTo(ex + 3, ey - 7 - rnd() * 6); g.stroke(); }
+    g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; var mg = g.createLinearGradient(0, 0, 0, TH); mg.addColorStop(0, 'rgba(0,0,0,0)'); mg.addColorStop(0.2, 'rgba(0,0,0,.95)'); mg.addColorStop(0.8, 'rgba(0,0,0,.95)'); mg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = mg; g.fillRect(0, 0, TW, TH);
+    return c;
+  }
   function drawPath() {
-    var im = A.img('path-strip'); if (!im.naturalWidth) return; var th = 176, tw = im.naturalWidth * th / im.naturalHeight, y0 = YMIN - 20, first = Math.floor(S.camX / tw);
-    cx.save(); cx.globalAlpha = 0.96;
-    for (var i = first; i <= first + Math.ceil(VW / tw) + 1; i++) cx.drawImage(im, i * tw - S.camX, y0, tw + 1, th);
+    var t = PATHT[S.biome] || (PATHT[S.biome] = buildPath(S.biome)), TW = 512, y0 = YMIN - 22, first = Math.floor(S.camX / TW);
+    cx.save(); cx.globalAlpha = 0.92;
+    for (var i = first; i <= first + Math.ceil(VW / TW) + 1; i++) cx.drawImage(t, i * TW - S.camX, y0, TW + 1, 200);
     cx.restore();
   }
   function drawBackdrop() {
@@ -903,6 +930,7 @@ window.DF = window.DF || {};
   function drawGround() {
     var g = cx.createLinearGradient(0, 140, 0, VH); g.addColorStop(0, 'rgba(14,30,20,0)'); g.addColorStop(0.35, 'rgba(18,40,24,0.55)'); g.addColorStop(1, 'rgba(10,24,14,0.82)');
     cx.fillStyle = g; cx.fillRect(0, 140, VW, VH - 140);
+    if (!S.tut || true) drawPath();
     // grass tufts (world-anchored)
     cx.strokeStyle = 'rgba(120,180,90,0.45)'; cx.lineWidth = 1.4; cx.beginPath();
     var first = Math.floor(S.camX / 46) - 1;
