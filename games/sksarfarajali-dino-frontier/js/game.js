@@ -1166,7 +1166,7 @@ window.DF = window.DF || {};
     if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
   var FORM_W = { swiftclaw: 134, ironhide: 156, wildspark: 150 }; // drawn width per evolution form (base form is 128)
-  var WALK = { starter: { key: 'walk-starter', n: 6, h: 300 }, ironhide: { key: 'walk-ironhide', n: 10, h: 320 } }; // frames in each walking sheet (cells are 480 wide)
+  var WALK = { starter: { key: 'walk-starter', n: 6, w: 480, h: 300 }, ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320 } }; // frames in each walking sheet and the cell size (the body is centred in the cell)
   function dPlayer(P) {
     var st = S.stats, w = FORM_W[st.path] || 128, o = { flip: P.face < 0, feet: 0.96 };
     var spd = P.dashT > 0 ? 0 : Math.min(1, Math.sqrt(P.ivx * P.ivx + (P.ivy / 0.62) * (P.ivy / 0.62)) / (st.speed || 150)), ph = P.anim / 80, stp = Math.sin(ph);
@@ -1193,7 +1193,7 @@ window.DF = window.DF || {};
     if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
     else if (WALK[st.path || 'starter'] && A.ready(WALK[st.path || 'starter'].key)) { // the owner's walking sheets: every foot plant is a real leg pose
       var wk = WALK[st.path || 'starter'], gp = P.gait / 2, fr = Math.floor((gp - Math.floor(gp)) * wk.n + 0.0001) % wk.n; if (spd < 0.05) fr = fr < wk.n / 2 ? 0 : wk.n / 2;
-      o.cell = { x: fr * 480, w: 480, h: wk.h }; o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; draw(wk.key, w, P.x + lunge * P.face, P.y + bob * 0.4, o);
+      o.cell = { x: fr * wk.w, w: wk.w, h: wk.h }; o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; draw(wk.key, w * wk.w / 480, P.x + lunge * P.face, P.y + bob * 0.4, o);
     } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
   }
   /* one frame of the owner's attack sheet, scaled so the resting body matches the normal sprite and pinned to the feet */
