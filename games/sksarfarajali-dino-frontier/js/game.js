@@ -12,6 +12,7 @@ window.DF = window.DF || {};
 
   /* ---------- assets helpers ---------- */
   function sprite(name, w) { return A.sprite(name, w); }
+  var cellSil = {};
   function draw(name, w, x, y, o) {
     o = o || {};
     var c = sprite(name, w), h = c.height / c.width * w, feet = o.feet == null ? 0.9 : o.feet;
@@ -22,6 +23,7 @@ window.DF = window.DF || {};
     if (o.skew) cx.transform(1, 0, o.skew, 1, 0, 0); // tail and neck sway, feet stay planted
     if (o.sx || o.sy) cx.scale(o.sx || 1, o.sy || 1);
     if (o.alpha != null) cx.globalAlpha = o.alpha;
+    if (o.cell) { var ci = A.img(name), ch = w * o.cell.h / o.cell.w; cx.drawImage(ci, o.cell.x, 0, o.cell.w, o.cell.h, -w / 2, -ch * feet, w, ch); if (o.tint) { var sk = name + '|' + o.cell.x + '|' + w + '|' + o.tint, sc2 = cellSil[sk]; if (!sc2) { sc2 = cellSil[sk] = document.createElement('canvas'); sc2.width = Math.round(w * 2); sc2.height = Math.round(ch * 2); var sg = sc2.getContext('2d'); sg.drawImage(ci, o.cell.x, 0, o.cell.w, o.cell.h, 0, 0, sc2.width, sc2.height); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = o.tint; sg.fillRect(0, 0, sc2.width, sc2.height); } cx.globalAlpha = (o.alpha == null ? 1 : o.alpha) * o.tintA; cx.drawImage(sc2, -w / 2, -ch * feet, w, ch); } cx.restore(); return; }
     cx.drawImage(c, -w / 2, -h * feet, w, h);
     if (o.tint) { cx.globalAlpha = (o.alpha == null ? 1 : o.alpha) * o.tintA; cx.drawImage(A.silhouette(name, w, o.tint), -w / 2, -h * feet, w, h); }
     cx.restore();
@@ -1188,7 +1190,11 @@ window.DF = window.DF || {};
     if (P.hurt > 0) { o.tint = '#FF6A5E'; o.tintA = 0.5; }
     if (P.shield > 0) { var sa = 0.2 + 0.1 * Math.sin(S.t / 90); cx.fillStyle = 'rgba(207,232,176,' + sa + ')'; cx.beginPath(); cx.ellipse(P.x, P.y - 34, 54, 46, 0, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(207,232,176,.8)'; cx.lineWidth = 2; cx.stroke(); }
     if (P.surgeT > 0 && !(P.fxA && sheetReady(P.fxA.k))) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
-    if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w); else draw(st.sprite, w, P.x + lunge * P.face, y, o);
+    if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
+    else if (!st.path && A.ready('walk-starter')) { // the owner's walking sheet: 6 frames, three per step, so every foot plant is a real leg pose
+      var gp = P.gait / 2, fr = Math.floor((gp - Math.floor(gp)) * 6 + 0.0001) % 6; if (spd < 0.05) fr = fr < 3 ? 0 : 3;
+      o.cell = { x: fr * 480, w: 480, h: 300 }; o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; draw('walk-starter', w, P.x + lunge * P.face, P.y + bob * 0.4, o);
+    } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
   }
   /* one frame of the owner's attack sheet, scaled so the resting body matches the normal sprite and pinned to the feet */
   function drawSheet(P, w) {
