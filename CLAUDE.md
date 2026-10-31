@@ -73,7 +73,15 @@ No game goes live without Stratos analytics. The site build checks every new gam
 - Ask what game they want in one question, then build a first playable version fast, then improve it with them.
 - Keep the whole game in `games/<their-username>/`. One file if you can.
 - Before they say "publish", run the quality bar above and tell them in three short lines what passed and what to fix.
-- Then pull with rebase, commit only their folder, push. If rejected, pull with rebase and push again.
+- Then commit only their folder. That's it: publishing is automatic (see "Syncing is automatic" below).
+
+## Syncing is automatic (Sahil 2026-10-31)
+
+This repo's `.claude/settings.json` runs these for every maker; nobody has to remember them:
+- **Get the latest:** at session start and before every message, Claude pulls the newest `main` (unsaved work is kept).
+- **Publish:** when Claude finishes a turn, any saved commit is pushed, retried up to 3 times if GitHub refuses, and checked on GitHub. Only say "it's live" after the "Published to GitHub" message. If it says publish failed, tell the maker plainly it is NOT live.
+- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; Sahil and Sahariar can edit everything except `app-ads.txt`.
+- Never change `.claude/` to switch these off.
 - If they ask how something works here (ads, analytics, store apps, the factory), answer from this file in plain words. If the answer is not here, say so and point them to Sahariar.
 
 ## Where the lessons come from
