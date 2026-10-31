@@ -4,6 +4,7 @@ if(w.Stratos)return;
 try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
 var C={"apiKey": "AIzaSyAtSE-_XuCMwgmFUIpp__Ue3Sui2kq3sjI", "authDomain": "stratos-analytics-497908.firebaseapp.com", "projectId": "stratos-analytics-497908", "storageBucket": "stratos-analytics-497908.firebasestorage.app", "messagingSenderId": "960886305896", "appId": "1:960886305896:web:c34f68575c9328cfb277dd", "measurementId": "G-VD9H9GF5XJ"},m=location.pathname.match(/\/(?:play|games)\/([^\/]+)\//),game=m?m[1]:"";
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
+if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var S=w.Stratos={config:C,game:game,
  track:function(n,x){if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
  offerReward:function(done){S.track("reward_offered");S.track("reward_taken");if(typeof done=="function")done()}};

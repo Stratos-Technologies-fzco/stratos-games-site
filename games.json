@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 25,
+ "count": 24,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -261,19 +261,6 @@
    "github": "Mdsadee527",
    "kind": "family",
    "soon": false
-  },
-  {
-   "slug": "sahidmodi45",
-   "title": "COPROB",
-   "maker": "Sahid Modi",
-   "one_line": "Plan sneaky routes past cops and guards to pull off colorful, Brawl-Stars-style heists in each puzzle level.",
-   "category": "puzzle",
-   "url": "play/sahidmodi45/",
-   "thumb": "assets/covers/generated/sahidmodi45.svg",
-   "added": "2026-10-31",
-   "github": "sahidmodi45",
-   "kind": "family",
-   "soon": true
   },
   {
    "slug": "bloxplode",
