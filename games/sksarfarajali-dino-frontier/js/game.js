@@ -220,6 +220,7 @@ window.DF = window.DF || {};
     P.atkCd = Math.max(0, P.atkCd - dt); P.atkT = Math.max(0, P.atkT - dt); P.dashCd = Math.max(0, P.dashCd - dt); P.abCd = Math.max(0, P.abCd - dt);
     P.inv = Math.max(0, P.inv - dt); P.shield = Math.max(0, P.shield - dt); P.hurt = Math.max(0, P.hurt - dt); P.stun = Math.max(0, P.stun - dt); P.surgeT = Math.max(0, P.surgeT - dt);
     P.anim += dt * (len > 0.1 ? 1 : 0.4);
+    if (P.fxA) { var fa = P.fxA; fa.t += dt; if (fa.deferred && !fa.hit && fa.t >= fa.hitAt) { fa.hit = true; applyAbility(S.stats.ability); } if (fa.t >= fa.dur) P.fxA = null; }
     if (P.pend > 0) { if (P.stun > 0 || P.dashT > 0) P.pend = 0; else { P.pend -= dt; if (P.pend <= 0) { P.pend = 0; strike(); } } }
     var sg = Math.sin(P.anim / 80) > 0 ? 1 : -1; if (P.dashT <= 0 && len > 0.3 && sg !== P.sg && P.stun <= 0) dust(P.x - P.face * 12, P.y + 3, 1, 6, -P.face); P.sg = sg; // footfall puff
     P.en = Math.min(P.maxEn, P.en + st.energyRegen * dt / 1000);
@@ -230,7 +231,7 @@ window.DF = window.DF || {};
       P.dashT -= dt; P.x += P.dashDx * P.dashSpd * dt / 1000; P.y += P.dashDy * P.dashSpd * 0.5 * dt / 1000;
       if (P.dashHit) dashDamage();
       if (Math.random() < 0.7) spark(P.x - P.face * 20, P.y - 20, st.path === 'swiftclaw' ? '#9FE7DF' : '#F3EBD7', 1);
-    } else if (P.stun <= 0) {
+    } else if (P.stun <= 0 && !P.fxA) {
       if (S.onIce) { var kk = Math.min(1, dt / B.weather.iceAccelMs); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * kk; P.ivy += (iy * st.speed * 0.62 - P.ivy) * kk; P.x += P.ivx * dt / 1000; P.y += P.ivy * dt / 1000; } // slippery: you slide and steer slowly
       else { P.ivx = ix * st.speed * S.speedMul; P.ivy = iy * st.speed * 0.62; P.x += P.ivx * dt / 1000; P.y += P.ivy * dt / 1000; }
       if (Math.abs(ix) > 0.12) P.face = sgn(ix);
@@ -258,7 +259,7 @@ window.DF = window.DF || {};
 
   /* ---------- player actions ---------- */
   function doAttack() {
-    var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0) return;
+    var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
     DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
@@ -293,7 +294,7 @@ window.DF = window.DF || {};
     if (S.tut && e.type === 'raider') advanceTut(3);
   }
   function doDash() {
-    var P = S.P, st = S.stats; if (P.dashCd > 0 || P.stun > 0 || P.dashT > 0) return;
+    var P = S.P, st = S.stats; if (P.dashCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     if (P.en < st.dashCost) { DF.Audio.sfx('deny'); if (G.onEvent) G.onEvent('noEnergy'); return; }
     P.en -= st.dashCost; P.dashCd = B.dash.cooldown; dust(P.x, P.y + 3, 5, 9, -P.face);
     var ix = mv.x + (keys.right ? 1 : 0) - (keys.left ? 1 : 0), iy = mv.y + (keys.down ? 1 : 0) - (keys.up ? 1 : 0), l = Math.sqrt(ix * ix + iy * iy);
@@ -302,11 +303,32 @@ window.DF = window.DF || {};
     if (Math.abs(P.dashDx) > 0.2) P.face = sgn(P.dashDx);
     DF.Audio.sfx('dash');
   }
+  /* The owner's signature-attack sprite sheets (half-size frames, 24 fps). from/to trim the idle frames at either end, hit is the frame the effect lands on,
+     x0 and rw are the resting body's left edge and width inside a frame, ay is the feet line as a fraction of frame height. */
+  var ANIM = {
+    swiftclaw: { fw: 443, fh: 207, cols: 6, from: 6, to: 24, hit: 14, x0: 28, rw: 240, ay: 0.904 },
+    ironhide: { fw: 403, fh: 212, cols: 6, from: 3, to: 30, hit: 12, x0: 45, rw: 260, ay: 0.906 },
+    wildspark: { fw: 450, fh: 228, cols: 6, from: 3, to: 32, hit: 15, x0: 40, rw: 260, ay: 0.912 }
+  };
+  function sheetReady(k) { return !!(ANIM[k] && A.ready('anim-' + k)); }
+  /* Plays the sheet in place of the standing sprite. Phantom Dash still dashes at once; Fortress Roar and Genesis Surge land on the sheet's hit frame. The dinosaur is rooted and untouchable while it plays. */
+  function startAbAnim(ab) {
+    var P = S.P, k = S.stats.path, an = ANIM[k]; if (!an || !sheetReady(k)) return false;
+    var dur = (an.to - an.from + 1) * 1000 / 24, deferred = ab.id !== 'phantom-dash';
+    P.fxA = { k: k, t: 0, dur: dur, hitAt: (an.hit - an.from) * 1000 / 24, hit: !deferred, deferred: deferred };
+    P.inv = Math.max(P.inv, dur); P.atkT = 0; P.pend = 0; P.ivx = 0; P.ivy = 0;
+    if (deferred) DF.Audio.sfx('windup_boss'); else applyAbility(ab);
+    return true;
+  }
   function doAbility() {
-    var P = S.P, st = S.stats, ab = st.ability; if (P.abCd > 0 || P.stun > 0 || P.dashT > 0) return;
+    var P = S.P, st = S.stats, ab = st.ability; if (P.abCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     if (P.en < ab.cost) { DF.Audio.sfx('deny'); if (G.onEvent) G.onEvent('noEnergy'); return; }
     P.en -= ab.cost; P.abCd = ab.cooldown; S.abilitiesUsed++;
-    var list = S.enemies.concat(S.boss ? [S.boss] : []), i, e;
+    if (!startAbAnim(ab)) applyAbility(ab);
+    if (G.onEvent) G.onEvent('ability');
+  }
+  function applyAbility(ab) {
+    var P = S.P, list = S.enemies.concat(S.boss ? [S.boss] : []), i, e;
     if (ab.id === 'phantom-dash') {
       P.dashDx = P.face; P.dashDy = 0; P.dashT = 220; P.dashSpd = ab.distance / 0.22; P.inv = ab.invuln; P.dashHit = true; P.hitIds = {}; DF.Audio.sfx('dash'); DF.Audio.sfx('ability');
     } else if (ab.id === 'fortress-roar') {
@@ -320,7 +342,6 @@ window.DF = window.DF || {};
       DF.Audio.sfx('ability'); ring(P.x, P.y, ab.radius, '#F3EBD7'); shake(2);
       for (i = 0; i < list.length; i++) { e = list[i]; if (e.state !== 'dead' && dist(e, P) < ab.radius + 28) hurtEnemy(e, ab.damage, false, { knock: ab.knock }); }
     }
-    if (G.onEvent) G.onEvent('ability');
   }
   function dashDamage() {
     var P = S.P, ab = S.stats.ability, list = S.enemies.concat(S.boss ? [S.boss] : []);
@@ -1055,13 +1076,20 @@ window.DF = window.DF || {};
     if (P.hurt > 0) { var hq = P.hurt / 260; rot = -0.16 * hq; sy *= 1 - 0.06 * hq; }
     o.rot = rot; o.sx = sx; o.sy = sy; o.skew = skew;
     shadow(P.x, P.y + 2, w * 0.8 * (1 + bob * 0.01), 0.4 * (1 + bob * 0.04));
-    if (P.dashT > 0) { for (var i = 1; i <= 3; i++) draw(st.sprite, w, P.x - P.dashDx * i * 18, y, { flip: P.face < 0, feet: 0.96, alpha: 0.16 * (4 - i), rot: 0.2, sx: 1.14, sy: 0.9 }); }
+    if (P.dashT > 0 && !P.fxA) { for (var i = 1; i <= 3; i++) draw(st.sprite, w, P.x - P.dashDx * i * 18, y, { flip: P.face < 0, feet: 0.96, alpha: 0.16 * (4 - i), rot: 0.2, sx: 1.14, sy: 0.9 }); }
     var blink = P.inv > 0 && P.hurt <= 0 && P.dashT <= 0 && Math.floor(S.t / 70) % 2 === 0;
     if (blink) o.alpha = 0.55;
     if (P.hurt > 0) { o.tint = '#FF6A5E'; o.tintA = 0.5; }
     if (P.shield > 0) { var sa = 0.2 + 0.1 * Math.sin(S.t / 90); cx.fillStyle = 'rgba(207,232,176,' + sa + ')'; cx.beginPath(); cx.ellipse(P.x, P.y - 34, 54, 46, 0, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(207,232,176,.8)'; cx.lineWidth = 2; cx.stroke(); }
-    if (P.surgeT > 0) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
-    draw(st.sprite, w, P.x + lunge * P.face, y, o);
+    if (P.surgeT > 0 && !(P.fxA && sheetReady(P.fxA.k))) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
+    if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w); else draw(st.sprite, w, P.x + lunge * P.face, y, o);
+  }
+  /* one frame of the owner's attack sheet, scaled so the resting body matches the normal sprite and pinned to the feet */
+  function drawSheet(P, w) {
+    var f = P.fxA, an = ANIM[f.k], idx = Math.min(an.to, an.from + Math.floor(f.t * 24 / 1000)), sc = w / an.rw, c = idx % an.cols, r = Math.floor(idx / an.cols);
+    cx.save(); cx.translate(P.x, P.y); if (P.face < 0) cx.scale(-1, 1);
+    cx.drawImage(A.img('anim-' + f.k), c * an.fw, r * an.fh, an.fw, an.fh, -w / 2 - an.x0 * sc, -an.ay * an.fh * sc, an.fw * sc, an.fh * sc);
+    cx.restore();
   }
   /* the swing sweeps from high to low over the first half of its life, then fades. A dark outline and a coloured glow keep it readable on bright backdrops. */
   function drawSlash(p, k) {
