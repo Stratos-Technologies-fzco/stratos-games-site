@@ -11,11 +11,12 @@ window.DF = window.DF || {};
   PHOTOS.forEach(function (n) { PATHS[n] = 'assets/images/' + n + '.jpg'; });
   /* in-game dinosaurs are the owner's own art, cut out: the player (one recolour per evolution path), enemies and the boss */
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
+  PATHS['prop-berry-bush'] = 'assets/sprites/food.png'; PATHS['icon-food'] = 'assets/sprites/food-icon.png'; // food: the owner's glowing mushroom art (cut out)
   PATHS['dna'] = 'assets/sprites/dna.png'; // DNA Fragment pickup (the owner's art, cut out)
   ['egg', 'egg-glade', 'egg-prism', 'egg-ember', 'egg-frost', 'egg-mire', 'egg-genesis'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; }); // the owner's egg art (cut out) and two recolours
   ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'boss-cinderjaw', 'boss-whitetitan', 'boss-mirequeen', 'boss-colossus'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261031b';
+  var V = '20261031c';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];

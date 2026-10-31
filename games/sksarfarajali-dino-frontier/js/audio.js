@@ -110,15 +110,16 @@ window.DF = window.DF || {};
     for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     return (noiseBuf = b);
   }
+  var pv = 1; // per-call pitch variation (0.93-1.07) so repeated hits do not sound identical
   function tone(type, f0, f1, dur, g, delay) {
-    var t0 = ctx.currentTime + (delay || 0), o = ctx.createOscillator(), gn = ctx.createGain();
+    var t0 = ctx.currentTime + (delay || 0), o = ctx.createOscillator(), gn = ctx.createGain(); f0 *= pv; if (f1) f1 *= pv;
     o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
     gn.gain.setValueAtTime(0.0001, t0); gn.gain.exponentialRampToValueAtTime(g, t0 + 0.012); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     o.connect(gn); gn.connect(sfxGain); o.start(t0); o.stop(t0 + dur + 0.02);
   }
   function burst(dur, g, ftype, f0, f1, delay) {
     var t0 = ctx.currentTime + (delay || 0), s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), gn = ctx.createGain();
-    s.buffer = noise(); f.type = ftype; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + dur); f.Q.value = 1.2;
+    f0 *= pv; f1 *= pv; s.buffer = noise(); f.type = ftype; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + dur); f.Q.value = 1.2;
     gn.gain.setValueAtTime(g, t0); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     s.connect(f); f.connect(gn); gn.connect(sfxGain); s.start(t0); s.stop(t0 + dur + 0.02);
   }
@@ -140,11 +141,34 @@ window.DF = window.DF || {};
     slam: function () { tone('sine', 90, 35, 0.45, 0.6); burst(0.4, 0.5, 'lowpass', 900, 90); },
     levelup: function () { tone('triangle', 523, 523, 0.14, 0.3); tone('triangle', 659, 659, 0.14, 0.3, 0.12); tone('triangle', 784, 784, 0.3, 0.3, 0.24); },
     crystal: function () { tone('sine', 880, 1760, 0.6, 0.25); tone('sine', 660, 1320, 0.6, 0.2, 0.1); },
-    claim: function () { tone('triangle', 660, 660, 0.1, 0.25); tone('triangle', 880, 880, 0.18, 0.25, 0.09); }
+    claim: function () { tone('triangle', 660, 660, 0.1, 0.25); tone('triangle', 880, 880, 0.18, 0.25, 0.09); },
+    /* fight sounds: every form swings differently, every enemy sounds different when it winds up, lunges, is hit and dies */
+    swing_swiftclaw: function () { burst(0.07, 0.3, 'highpass', 2500, 6000); burst(0.06, 0.28, 'bandpass', 3500, 1800, 0.06); tone('sawtooth', 1400, 700, 0.05, 0.07); },
+    swing_ironhide: function () { burst(0.2, 0.45, 'lowpass', 700, 120); tone('sine', 110, 55, 0.2, 0.35); },
+    swing_wildspark: function () { tone('square', 900, 2200, 0.05, 0.12); tone('square', 1800, 600, 0.07, 0.1, 0.04); burst(0.12, 0.25, 'highpass', 3000, 7000); },
+    hit_raider: function () { tone('sine', 150, 60, 0.14, 0.45); burst(0.1, 0.4, 'lowpass', 1400, 200); tone('sawtooth', 320, 160, 0.12, 0.18, 0.02); },
+    hit_skimmer: function () { tone('triangle', 1500, 700, 0.09, 0.3); burst(0.06, 0.3, 'bandpass', 3200, 1400); },
+    hit_spitter: function () { tone('sine', 260, 90, 0.16, 0.35); burst(0.14, 0.35, 'bandpass', 600, 200); tone('sine', 180, 60, 0.12, 0.2, 0.06); },
+    hit_boss_open: function () { tone('sine', 90, 40, 0.3, 0.55); burst(0.18, 0.55, 'lowpass', 1600, 120); tone('sawtooth', 200, 70, 0.2, 0.2); },
+    clank: function () { tone('square', 1180, 980, 0.12, 0.14); tone('square', 1760, 1500, 0.1, 0.1, 0.01); burst(0.05, 0.35, 'highpass', 3000, 5000); tone('sine', 140, 90, 0.12, 0.25); },
+    windup_raider: function () { tone('sawtooth', 120, 170, 0.25, 0.18); burst(0.2, 0.12, 'lowpass', 600, 300); },
+    windup_skimmer: function () { tone('triangle', 1100, 1900, 0.2, 0.16); },
+    windup_spitter: function () { tone('sine', 200, 320, 0.28, 0.18); burst(0.25, 0.12, 'bandpass', 400, 900); },
+    windup_boss: function () { tone('sawtooth', 80, 140, 0.4, 0.25); burst(0.35, 0.2, 'lowpass', 500, 200); },
+    lunge_raider: function () { burst(0.12, 0.3, 'bandpass', 1200, 500); tone('sawtooth', 210, 120, 0.1, 0.18); },
+    lunge_skimmer: function () { burst(0.1, 0.3, 'highpass', 1800, 4200); tone('triangle', 1500, 900, 0.08, 0.12); },
+    lunge_spitter: function () { tone('sine', 420, 180, 0.12, 0.2); },
+    die_raider: function () { tone('sawtooth', 260, 60, 0.45, 0.3); burst(0.3, 0.3, 'lowpass', 900, 100, 0.05); },
+    die_skimmer: function () { tone('triangle', 1400, 240, 0.35, 0.28); },
+    die_spitter: function () { tone('sine', 300, 50, 0.5, 0.35); burst(0.35, 0.35, 'bandpass', 500, 120); },
+    die_boss: function () { tone('sawtooth', 130, 35, 1.2, 0.45); burst(0.9, 0.4, 'lowpass', 900, 60); tone('sine', 70, 30, 1.0, 0.5, 0.1); },
+    dodge: function () { tone('sine', 700, 1400, 0.1, 0.18); burst(0.12, 0.18, 'highpass', 1500, 4000); }
   };
+  var FIXED = { click: 1, deny: 1, levelup: 1, claim: 1, crystal: 1, pickup: 1, coin: 1 }; // menu and reward sounds keep a steady pitch
   A.sfx = function (name) {
     if (!unlocked || !ctx || sfxVol() === 0 || hidden) return;
     if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
-    try { if (SFX[name]) SFX[name](); } catch (e) {}
+    pv = FIXED[name] ? 1 : 0.93 + Math.random() * 0.14;
+    try { if (SFX[name]) SFX[name](); else if (SFX[name.split('_')[0]]) SFX[name.split('_')[0]](); } catch (e) {} // a missing variant falls back to the generic sound
   };
 })(window.DF);

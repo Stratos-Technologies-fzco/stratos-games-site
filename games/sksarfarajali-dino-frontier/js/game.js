@@ -260,7 +260,7 @@ window.DF = window.DF || {};
   function doAttack() {
     var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
-    DF.Audio.sfx('swing');
+    DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
   function critRoll(base) {
     var st = S.stats;
@@ -277,7 +277,7 @@ window.DF = window.DF || {};
     if (e.state === 'idle') { e.rev = true; e.state = 'chase'; markSeen(e.type || (S.bossDef && S.bossDef.id)); }
     if (e.kind === 'enemy') { e.kx = (S.P.x < e.x ? 1 : -1) * (opts.knock || B.player.knockback) * (e.state === 'windup' ? 0.4 : 1); if (e.state === 'windup') { e.state = 'chase'; e.t = 0; e.cd = 500; } }
     float(e.x, e.y - 60, String(dmg), r.crit ? '#F5D27F' : '#F3EBD7', r.crit);
-    DF.Audio.sfx(r.crit ? 'crit' : 'hit');
+    DF.Audio.sfx(e.kind === 'boss' ? (vuln ? 'hit_boss_open' : 'clank') : 'hit_' + e.type); if (r.crit) DF.Audio.sfx('crit');
     var pw = r.crit ? 1.7 : (e.kind === 'boss' ? 1.2 : 1), hd = S.P.x < e.x ? 1 : -1;
     impact(e.x - hd * 8, e.y - 36, hd, pw, r.crit ? '#F5D27F' : '#FFD9A0');
     burst(e.x, e.y - 30, r.crit ? '#F5D27F' : '#F3EBD7', r.crit ? 6 : 3);
@@ -286,8 +286,8 @@ window.DF = window.DF || {};
   }
   function killEnemy(e) {
     e.state = 'dead'; e.dead = 0;
-    if (e.kind === 'boss') { S.gained.xp += S.bossDef.xp; S.kills[S.bossDef.id] = (S.kills[S.bossDef.id] || 0) + 1; shake(9); hitStop(220); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); ring(e.x, e.y, 170, '#E8B54A'); dust(e.x, e.y + 2, 12, 14, 0); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
-    S.gained.xp += e.def.xp; S.kills[e.type] = (S.kills[e.type] || 0) + 1; S.kills.total = (S.kills.total || 0) + 1;
+    if (e.kind === 'boss') { S.gained.xp += S.bossDef.xp; S.kills[S.bossDef.id] = (S.kills[S.bossDef.id] || 0) + 1; shake(9); hitStop(220); DF.Audio.sfx('die_boss'); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); ring(e.x, e.y, 170, '#E8B54A'); dust(e.x, e.y + 2, 12, 14, 0); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
+    DF.Audio.sfx('die_' + e.type); S.gained.xp += e.def.xp; S.kills[e.type] = (S.kills[e.type] || 0) + 1; S.kills.total = (S.kills.total || 0) + 1;
     impact(e.x, e.y - 34, S.P.x < e.x ? 1 : -1, 2.4, '#FF9A7A'); burst(e.x, e.y - 30, '#E5534B', 8); dust(e.x, e.y + 2, 5, 8, 0); hitStop(100); shake(5);
     if (S.rng.next() < e.def.drop) S.pickups.push(mkPick(S.rng.next() < 0.5 ? 'coin' : 'dna', e.x, e.y));
     if (S.tut && e.type === 'raider') advanceTut(3);
@@ -396,7 +396,7 @@ window.DF = window.DF || {};
         e.face = sgn(P.x - e.x) || e.face;
         if (e.t <= 0) {
           if (e.type === 'spitter') { fireSpit(e); e.state = 'recover'; e.t = d.recover; }
-          else { e.state = 'attack'; e.t = d.lungeTime; e.didHit = false; enemySlash(e); dust(e.x, e.y + 2, 2, 7, -e.face); var lx = P.x - e.x, ly = (P.y - e.y); var ll = Math.sqrt(lx * lx + ly * ly) || 1; e.dirx = lx / ll; e.diry = ly / ll * 0.4; e.startClose = dd < 140; }
+          else { e.state = 'attack'; e.t = d.lungeTime; e.didHit = false; enemySlash(e); DF.Audio.sfx('lunge_' + e.type); dust(e.x, e.y + 2, 2, 7, -e.face); var lx = P.x - e.x, ly = (P.y - e.y); var ll = Math.sqrt(lx * lx + ly * ly) || 1; e.dirx = lx / ll; e.diry = ly / ll * 0.4; e.startClose = dd < 140; }
         }
         break;
       case 'attack':
@@ -411,8 +411,8 @@ window.DF = window.DF || {};
         break;
     }
   }
-  function beginWindup(e, ms) { e.state = 'windup'; e.t = ms; DF.Audio.sfx('windup'); markSeen(e.type); }
-  function countDodge() { S.dodges++; if (S.tut && S.tut.step === 2) { /* dodging counts as progress, killing is the goal */ } if (G.onEvent) G.onEvent('dodge'); float(S.P.x, S.P.y - 80, 'Dodge!', '#9FE7DF', false); }
+  function beginWindup(e, ms) { e.state = 'windup'; e.t = ms; DF.Audio.sfx('windup_' + e.type); markSeen(e.type); }
+  function countDodge() { S.dodges++; DF.Audio.sfx('dodge'); if (S.tut && S.tut.step === 2) { /* dodging counts as progress, killing is the goal */ } if (G.onEvent) G.onEvent('dodge'); float(S.P.x, S.P.y - 80, 'Dodge!', '#9FE7DF', false); }
   function fireSpit(e) {
     DF.Audio.sfx('spit'); var P = S.P, dx = P.x - e.x, dy = P.y - e.y, l = Math.sqrt(dx * dx + dy * dy) || 1;
     S.projectiles.push({ x: e.x + e.face * 30, y: e.y - 34, gy: e.y, vx: dx / l * e.def.projSpeed, vy: dy / l * e.def.projSpeed * 0.5, life: 2600, dmg: e.def.dmg * (e.dmgMul || 1), near: false });
@@ -571,7 +571,7 @@ window.DF = window.DF || {};
         b.y = Math.max(YMIN + 10, Math.min(YMAX, b.y));
         b.stepT = (b.stepT || 0) + dt; if (b.stepT > 520) { b.stepT = 0; shake(1.4); dust(b.x - b.face * 20, b.y + 2, 2, 10, 0); } // heavy footfalls
         if (b.t <= 0) {
-          b.atk = (dd > 300 || S.rng.next() < 0.45) ? 'charge' : 'slam'; b.state = 'windup'; b.t = (b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul; b.dirx = sgn(dx); b.laneY = P.y; b.didHit = false; DF.Audio.sfx('windup');
+          b.atk = (dd > 300 || S.rng.next() < 0.45) ? 'charge' : 'slam'; b.state = 'windup'; b.t = (b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul; b.dirx = sgn(dx); b.laneY = P.y; b.didHit = false; DF.Audio.sfx('windup_boss');
         }
         break;
       case 'windup':
@@ -943,8 +943,8 @@ window.DF = window.DF || {};
   }
   function dBush(b) {
     shadow(b.x, b.y + 2, 70, 0.3);
-    draw('prop-berry-bush', 78, b.x, b.y, { feet: 0.97, alpha: b.berries > 0 ? 1 : 0.55 });
-    if (b.berries > 0) { var a = 0.5 + 0.5 * Math.sin(b.bob); cx.fillStyle = 'rgba(207,232,176,' + (0.18 * a) + ')'; cx.beginPath(); cx.ellipse(b.x, b.y - 24, 40, 28, 0, 0, 7); cx.fill(); }
+    draw('prop-berry-bush', 84, b.x, b.y, { feet: 0.97, alpha: b.berries > 0 ? 1 : 0.45, sy: 1 + (b.berries > 0 ? 0.02 * Math.sin(b.bob) : 0) }); // the owner's glowing mushrooms; they dim once eaten
+    if (b.berries > 0) { var a = 0.5 + 0.5 * Math.sin(b.bob), gl = cx.createRadialGradient(b.x, b.y - 34, 4, b.x, b.y - 34, 52); gl.addColorStop(0, 'rgba(190,230,255,' + (0.3 * a + 0.08) + ')'); gl.addColorStop(1, 'rgba(190,230,255,0)'); cx.fillStyle = gl; cx.beginPath(); cx.ellipse(b.x, b.y - 34, 52, 44, 0, 0, 7); cx.fill(); }
   }
   function dNest(n) {
     shadow(n.x, n.y + 2, 84, 0.35);
