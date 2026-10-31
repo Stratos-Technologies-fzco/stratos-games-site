@@ -29,6 +29,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Sound off by default or a clear mute button. Never auto-play loud audio.
 - Works offline once loaded: everything it needs is inside the folder.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself).
+- Stratos analytics connected (see "Analytics before launch" below). Without it the game stays a "coming soon" box.
 
 **What keeps players coming back (from our store games' numbers):**
 - Give a reason to come back from day one: a daily challenge, a streak, or levels that unlock. Games without one lose almost everyone after day one, and it is very hard to add later.
@@ -46,12 +47,26 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 ## Ads and analytics on the web: how it works here
 
 - Ads and analytics are set up ONCE for the whole site by Sahil and Sahariar, under Stratos's own Google accounts. Makers do not create ad accounts, paste ad codes, or add tracking scripts from other sites.
-- Not live yet. Until it is, build the hooks so your game is ready the day it switches on:
-  - Write a tiny `track(name, details)` function in your game that does nothing yet, and call it at the moments above (`level_start`, `level_complete`, `game_over`, `reward_offered`, `reward_taken`).
-  - Write a tiny `offerReward(onDone)` function that, for now, just calls `onDone()` straight away (the player gets the reward free). Later it will show a rewarded ad first.
+- Analytics is live: every page loads the shared Stratos script (`assets/stratos.js`, Firebase project `stratos-analytics-497908`). It already counts visits, game opens and play time for every game.
+- Ads are not live yet. Write a tiny `offerReward(onDone)` that, for now, just calls `onDone()` straight away (the player gets the reward free). Later it will show a rewarded ad first.
 - Never put mobile app ad IDs (anything starting `ca-app-pub-`) in a web game. They are for the store apps only.
 - Test ads only while building; real ads only on the live site once Sahil switches them on. If in doubt, test mode.
 - Ask the player before personalised ads. Until a consent choice exists, ads stay non-personalised.
+
+## Analytics before launch (go-live rule, Sahil 2026-10-31)
+
+No game goes live without Stratos analytics. The site build checks every new game; if it is missing, the game stays a "coming soon" box until it is added.
+
+- Put this `track()` in your game and call it at the real moments:
+
+  ```js
+  function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+  ```
+
+- Required events: `level_start` and at least one of `level_complete` or `game_over`.
+- Also send these where they fit: `reward_offered` and `reward_taken` (second chance, hint), plus your own moments (`boss_beaten`, `skin_unlocked`). Keep names short, lowercase, with underscores.
+- Never add your own Firebase, Google Analytics, or any other tracking. Stratos analytics is the only one.
+- Before you say "publish", play one full round on the play page and check there are no console errors.
 
 ## How to help a maker
 

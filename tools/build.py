@@ -11,7 +11,7 @@ Reads site.json and games/*/game.json, writes:
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
-import json, os, html, datetime, hashlib
+import json, os, re, html, datetime, hashlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -59,6 +59,26 @@ def cover_svg(title, seed, sub=""):
             f'<rect width="800" height="500" fill="url(#g)"/><circle cx="650" cy="120" r="140" fill="rgba(255,255,255,.08)"/><circle cx="150" cy="420" r="180" fill="rgba(0,0,0,.12)"/>'
             f'<text x="50%" y="{y}" text-anchor="middle" font-family="Nunito,Arial,sans-serif" font-size="64" font-weight="900" fill="#fff" style="paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:8px">{t}</text>{subline}</svg>')
 
+# Go-live rule (Sahil, 2026-10-31): a game goes live only when it hands its events to the shared Stratos analytics
+# (window.Stratos / parent.Stratos .track) and sends at least level_start plus level_complete or game_over.
+# Without that it stays a "coming soon" box. Games already live on that date are listed here until their makers add it.
+LIVE_BEFORE_ANALYTICS_RULE = {
+    "im-mohua-liza", "im-mohua-liza-aetherhold", "im-mohua-liza-ashgrove-extraction", "im-mohua-liza-cargo-climb", "im-mohua-liza-chroma-clash",
+    "im-mohua-liza-plot-twist", "Mdsadee527", "mody-sahariar1", "nikhatenglish89", "sahidmodi45", "saiqulmodi", "saiqulmodi-bridge-genius",
+    "saiqulmodi-domino-wonder-dash", "saiqulmodi-ecos-synthetica", "saiqulmodi-squirrel-vs-viper", "shoaibul0926", "sksarfarajali",
+    "sksarfarajali-babel-harbour", "sksarfarajali-brainrush", "sksarfarajali-dino-frontier", "sumaiyahsultana821-sys"}
+
+def has_analytics(d):
+    code = ""
+    for root, dirs, files in os.walk(d):
+        dirs[:] = [x for x in dirs if x not in ("node_modules", "vendor", "cdn", ".git")]
+        for f in files:
+            if f.endswith((".html", ".js", ".mjs")):
+                try: code += open(os.path.join(root, f), encoding="utf-8", errors="ignore").read()
+                except OSError: pass
+    return (bool(re.search(r"Stratos[\s\S]{0,80}\.track\(", code)) and "level_start" in code
+            and ("level_complete" in code or "game_over" in code))
+
 def load_games():
     games, problems = [], []
     for slug in sorted(os.listdir(GAMES)):
@@ -73,6 +93,8 @@ def load_games():
         g["slug"] = slug
         g["category"] = g.get("category") if g.get("category") in CATS and g.get("category") not in ("new", "studio") else "arcade"
         g["soon"] = str(g.get("status", "")).lower().replace("-", "_") in ("coming_soon", "placeholder", "soon", "wip")
+        if not g["soon"] and slug not in LIVE_BEFORE_ANALYTICS_RULE and not has_analytics(d):
+            g["soon"] = True; problems.append(f"{slug}: not live yet, needs Stratos analytics (see CLAUDE.md, \"Analytics before launch\")")
         thumb = g.get("thumbnail") or next((f for f in ("thumbnail.png", "thumbnail.jpg", "thumbnail.webp", "thumbnail.svg") if os.path.exists(os.path.join(d, f))), None)
         if thumb and not g["soon"]:
             g["thumb"] = f"games/{slug}/{thumb}"
