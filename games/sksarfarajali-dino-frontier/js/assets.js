@@ -6,21 +6,22 @@ window.DF = window.DF || {};
   var SQUARE = /^(icon-|prop-genesis-crystal)/;
   var PATHS = {};
   var ART = ['prop-berry-bush', 'prop-genesis-crystal', 'icon-token', 'icon-food', 'icon-health', 'icon-energy', 'icon-egg', 'icon-xp', 'icon-crystal'];
-  var PHOTOS = ['canyon_styracosaur', 'tribal_river_canyon', 'volcanic_ruins_chasm', 'other_9', 'raptor_nursery_sanctuary', 'other_1', 'lost_expedition_raptor', 'aurora_celestial_sanctuary', 'bioluminescent_spino_swamp', 'celestial_sky_citadel'];
+  var PHOTOS = ['verdant_valley', 'canyon_styracosaur', 'tribal_river_canyon', 'volcanic_ruins_chasm', 'other_9', 'raptor_nursery_sanctuary', 'other_1', 'lost_expedition_raptor', 'aurora_celestial_sanctuary', 'bioluminescent_spino_swamp', 'celestial_sky_citadel'];
   ART.forEach(function (n) { PATHS[n] = 'assets/art/' + n + '.svg'; });
   PHOTOS.forEach(function (n) { PATHS[n] = 'assets/images/' + n + '.jpg'; });
   /* in-game dinosaurs are the owner's own art, cut out: the player (one recolour per evolution path), enemies and the boss */
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
   PATHS['prop-berry-bush'] = 'assets/sprites/food.png'; PATHS['icon-food'] = 'assets/sprites/food-icon.png'; // food: the owner's glowing mushroom art (cut out)
+  PATHS['path-strip'] = 'assets/sprites/path-strip.png';
   PATHS['dna'] = 'assets/sprites/dna.png'; // DNA Fragment pickup (the owner's art, cut out)
   ['egg', 'egg-glade', 'egg-prism', 'egg-ember', 'egg-frost', 'egg-mire', 'egg-genesis'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; }); // the owner's egg art (cut out) and two recolours
   ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'boss-cinderjaw', 'boss-whitetitan', 'boss-mirequeen', 'boss-colossus'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
   ['swiftclaw', 'ironhide', 'wildspark'].forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; }); // the owner's signature-attack sprite sheets (half-size frames)
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261031i';
+  var V = '20261031k';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
-  var CRITICAL = ['canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
+  var CRITICAL = ['verdant_valley', 'path-strip', 'canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
 
   function loadOne(name) {
     return new Promise(function (resolve, reject) {

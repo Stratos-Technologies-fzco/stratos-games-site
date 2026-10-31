@@ -49,7 +49,7 @@ window.DF = window.DF || {};
   };
 
   G.start = function (opts) {
-    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'canyon_styracosaur', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? (opts.demoObj || 'demo') : opts.objective];
+    var save = DF.save, demo = !!opts.demo, obj = opts.tutorial ? { id: 'egg', bg: 'verdant_valley', worldW: B.tutorial.worldW, berriesNeeded: 3, bonus: B.objectives.egg.bonus, eggId: 'shadowscale' } : B.objectives[opts.demo ? (opts.demoObj || 'demo') : opts.objective];
     var stats = DF.playerStats(demo ? demoSave() : save), rng = DF.createRng(opts.runId);
     S = G.S = {
       runId: opts.runId, tutorial: !!opts.tutorial, objId: opts.tutorial ? 'egg' : obj.id, obj: obj, rng: rng, stats: stats, t: 0, worldW: obj.worldW, camX: 0,
@@ -879,6 +879,13 @@ window.DF = window.DF || {};
     if (S.biome === 'mire') { cx.fillStyle = 'rgba(20,70,55,0.2)'; cx.fillRect(0, 0, VW, VH); if (S.poison > 0) { cx.fillStyle = 'rgba(130,210,50,0.14)'; cx.fillRect(0, 0, VW, VH); } }
     if (S.ending > 0 && S.endOutcome === 'defeat') { cx.fillStyle = 'rgba(6,10,8,' + Math.min(0.7, (900 - S.ending) / 900) + ')'; cx.fillRect(0, 0, VW, VH); }
   }
+  /* the owner's wooden boardwalk, tiled along the walking lane so the dinosaur walks on the path */
+  function drawPath() {
+    var im = A.img('path-strip'); if (!im.naturalWidth) return; var th = 176, tw = im.naturalWidth * th / im.naturalHeight, y0 = YMIN - 20, first = Math.floor(S.camX / tw);
+    cx.save(); cx.globalAlpha = 0.96;
+    for (var i = first; i <= first + Math.ceil(VW / tw) + 1; i++) cx.drawImage(im, i * tw - S.camX, y0, tw + 1, th);
+    cx.restore();
+  }
   function drawBackdrop() {
     var img = A.img(S.obj.bg), tw = 1180, th = tw * img.height / img.width, y = -(th - VH) * 0.5 - 18, shift = S.camX * 0.28;
     var start = Math.floor(shift / tw);
@@ -894,6 +901,7 @@ window.DF = window.DF || {};
     else if (S.biome === 'crater') { cx.fillStyle = 'rgba(20,30,90,0.26)'; cx.fillRect(0, 0, VW, VH); }
   }
   function drawGround() {
+    if (S.obj && S.obj.bg === 'verdant_valley') drawPath();
     var g = cx.createLinearGradient(0, 140, 0, VH); g.addColorStop(0, 'rgba(14,30,20,0)'); g.addColorStop(0.35, 'rgba(18,40,24,0.55)'); g.addColorStop(1, 'rgba(10,24,14,0.82)');
     cx.fillStyle = g; cx.fillRect(0, 140, VW, VH - 140);
     // grass tufts (world-anchored)
