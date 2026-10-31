@@ -162,9 +162,11 @@ window.DF = window.DF || {};
     die_skimmer: function () { tone('triangle', 1400, 240, 0.35, 0.28); },
     die_spitter: function () { tone('sine', 300, 50, 0.5, 0.35); burst(0.35, 0.35, 'bandpass', 500, 120); },
     die_boss: function () { tone('sawtooth', 130, 35, 1.2, 0.45); burst(0.9, 0.4, 'lowpass', 900, 60); tone('sine', 70, 30, 1.0, 0.5, 0.1); },
+    splat: function () { burst(0.16, 0.45, 'lowpass', 1200, 150); tone('sine', 200, 70, 0.18, 0.4); tone('triangle', 500, 250, 0.1, 0.15, 0.03); },
+    chomp: function () { tone('square', 320, 200, 0.05, 0.18); tone('square', 260, 160, 0.06, 0.18, 0.07); },
     dodge: function () { tone('sine', 700, 1400, 0.1, 0.18); burst(0.12, 0.18, 'highpass', 1500, 4000); }
   };
-  var FIXED = { click: 1, deny: 1, levelup: 1, claim: 1, crystal: 1, pickup: 1, coin: 1 }; // menu and reward sounds keep a steady pitch
+  var FIXED = { chomp: 1, click: 1, deny: 1, levelup: 1, claim: 1, crystal: 1, pickup: 1, coin: 1 }; // menu and reward sounds keep a steady pitch
   A.sfx = function (name) {
     if (!unlocked || !ctx || sfxVol() === 0 || hidden) return;
     if (ctx.state === 'suspended' && ctx.resume) ctx.resume();

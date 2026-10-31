@@ -159,6 +159,13 @@ window.DF = window.DF || {};
     if (o.id === 'egg' || o.id === 'forage') S.crystal = { x: W - 520, y: 232, used: false };
   }
   function mkPick(type, x, y) { return { type: type, x: x, y: y, t: Math.random() * 6, got: false }; }
+  /* meat pieces: the first is a drumstick worth 1 Food, the rest are chunks that restore a little health */
+  function meatBurst(e, n, foodPieces) {
+    for (var i = 0; i < n && S.pickups.length < 70; i++) {
+      var p = mkPick('meat', e.x + (Math.random() - 0.5) * 24, e.y); p.z = 24 + Math.random() * 26; p.vz = 190 + Math.random() * 170; p.vx = (Math.random() - 0.5) * 280; p.vy = (Math.random() - 0.5) * 80; p.age = 0; p.rest = false;
+      p.food = i < (foodPieces || 1) ? 1 : 0; p.kind = p.food ? 'leg' : (i % 2 ? 'chunk' : 'steak'); S.pickups.push(p);
+    }
+  }
   function mkRare(x, y) { var p = mkPick('dna', x, y); p.rare = true; return p; }
 
   /* ---------- input ---------- */
@@ -287,9 +294,10 @@ window.DF = window.DF || {};
   }
   function killEnemy(e) {
     e.state = 'dead'; e.dead = 0;
-    if (e.kind === 'boss') { S.gained.xp += S.bossDef.xp; S.kills[S.bossDef.id] = (S.kills[S.bossDef.id] || 0) + 1; shake(9); hitStop(220); DF.Audio.sfx('die_boss'); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); ring(e.x, e.y, 170, '#E8B54A'); dust(e.x, e.y + 2, 12, 14, 0); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
+    if (e.kind === 'boss') { S.gained.xp += S.bossDef.xp; S.kills[S.bossDef.id] = (S.kills[S.bossDef.id] || 0) + 1; shake(9); hitStop(220); DF.Audio.sfx('die_boss'); DF.Audio.sfx('splat'); meatBurst(e, 12, 3); ring(e.x, e.y, 200, '#FFE2C8'); DF.Audio.sfx('slam'); burst(e.x, e.y - 50, '#E8B54A', 24); ring(e.x, e.y, 170, '#E8B54A'); dust(e.x, e.y + 2, 12, 14, 0); S.ending = 1600; S.endOutcome = 'success'; S.bossDown = true; return; }
     DF.Audio.sfx('die_' + e.type); S.gained.xp += e.def.xp; S.kills[e.type] = (S.kills[e.type] || 0) + 1; S.kills.total = (S.kills.total || 0) + 1;
-    impact(e.x, e.y - 34, S.P.x < e.x ? 1 : -1, 2.4, '#FF9A7A'); burst(e.x, e.y - 30, '#E5534B', 8); dust(e.x, e.y + 2, 5, 8, 0); if (e.type === 'spitter') puddle(e.x, e.y + 2, 34); debris(e.x, e.y - 20, 6, e.type === 'skimmer' ? '#E8C9A0' : '#8A5A3A'); hitStop(100); shake(5);
+    DF.Audio.sfx('splat'); ring(e.x, e.y, 64, '#FFE2C8'); meatBurst(e, e.type === 'spitter' ? 3 : e.type === 'skimmer' ? 3 : 4, 1); // bursts into meat
+    impact(e.x, e.y - 34, S.P.x < e.x ? 1 : -1, 2.4, '#FF9A7A'); burst(e.x, e.y - 30, '#C8543A', 12); dust(e.x, e.y + 2, 5, 8, 0); if (e.type === 'spitter') puddle(e.x, e.y + 2, 34); debris(e.x, e.y - 20, 6, e.type === 'skimmer' ? '#E8C9A0' : '#8A5A3A'); hitStop(100); shake(5);
     if (S.rng.next() < e.def.drop) S.pickups.push(mkPick(S.rng.next() < 0.5 ? 'coin' : 'dna', e.x, e.y));
     if (S.tut && e.type === 'raider') advanceTut(3);
   }
@@ -680,10 +688,13 @@ window.DF = window.DF || {};
     }
     for (i = S.bushes.length - 1; i >= 0; i--) { b = S.bushes[i]; if (b.berries <= 0) { b.gone = (b.gone || 0) + dt; if (b.gone > 380) S.bushes.splice(i, 1); } } // eaten food leaves the screen
     for (i = S.pickups.length - 1; i >= 0; i--) {
-      p = S.pickups[i]; p.t += dt / 400; var dx = P.x - p.x, dy = P.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
+      p = S.pickups[i]; p.t += dt / 400;
+      if (p.type === 'meat') { p.age += dt; if (p.age > 16000) { S.pickups.splice(i, 1); continue; } if (!p.rest) { p.vz -= 720 * dt / 1000; p.z += p.vz * dt / 1000; p.x += p.vx * dt / 1000; p.y = Math.max(YMIN, Math.min(YMAX, p.y + p.vy * dt / 1000)); if (p.z <= 0) { p.z = 0; if (Math.abs(p.vz) > 100) { p.vz = -p.vz * 0.42; p.vx *= 0.6; p.vy *= 0.6; dust(p.x, p.y + 2, 1, 5, 0); } else { p.rest = true; p.vx = p.vy = 0; } } continue; } }
+      var dx = P.x - p.x, dy = P.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
       if (d < 90) { p.x += dx * Math.min(1, dt / 160); p.y += dy * Math.min(1, dt / 160); }
       if (d < 24) {
         S.pickups.splice(i, 1);
+        if (p.type === 'meat') { P.hp = Math.min(P.maxHp, P.hp + 4); if (p.food) { S.gained.food += 1; float(p.x, p.y - 30, '+1 Food', '#CFE8B0', false); } else float(p.x, p.y - 30, '+4 HP', '#F2B8B0', false); DF.Audio.sfx('chomp'); burst(p.x, p.y - 8, '#C8543A', 5); continue; }
         if (p.type === 'dna') { var dv = p.rare ? B.crater.rareValue : 1; S.gained.dna += dv; float(p.x, p.y - 30, '+' + dv + ' DNA', p.rare ? '#FFE9A8' : '#CDB4F7', false); DF.Audio.sfx('pickup'); }
         else { S.gained.tokens += 5; float(p.x, p.y - 30, '+5', '#F5D27F', false); DF.Audio.sfx('coin'); }
         burst(p.x, p.y, p.type === 'dna' ? '#CDB4F7' : '#F5D27F', 5);
@@ -1016,7 +1027,18 @@ window.DF = window.DF || {};
     for (var i = 0; i < 7; i++) { var ang = -2.6 + i * 0.37, len = 46 + (i % 3) * 10 + Math.sin(S.t / 600 + i) * 3; cx.beginPath(); cx.moveTo(f.x, f.y); cx.quadraticCurveTo(f.x + Math.cos(ang) * len * 0.6, f.y + Math.sin(ang) * len * 1.1, f.x + Math.cos(ang) * len, f.y + Math.sin(ang) * len * 0.8); cx.stroke(); }
     cx.fillStyle = 'rgba(232,181,74,0.95)'; cx.font = '800 11px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('TRAIL', f.x, f.y - 100 + Math.sin(S.t / 300) * 3);
   }
+  function drawMeat(p) {
+    var z = p.z || 0, y = p.y - 9 - z + (p.rest ? Math.sin(p.t * 2) * 1.5 : 0);
+    shadow(p.x, p.y + 3, 24 - Math.min(12, z * 0.14), 0.32);
+    if (p.rest) { cx.strokeStyle = 'rgba(255,230,160,' + (0.25 + 0.2 * Math.sin(p.t * 2)) + ')'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(p.x, p.y + 2, 20, 6, 0, 0, 7); cx.stroke(); }
+    cx.save(); cx.translate(p.x, y); cx.rotate(p.rest ? 0.25 : p.t * 6); cx.lineWidth = 2.5; cx.strokeStyle = '#3A1810'; cx.lineJoin = 'round';
+    if (p.kind === 'leg') { cx.fillStyle = '#F3EBD7'; cx.fillRect(4, -3, 17, 6); cx.strokeRect(4, -3, 17, 6); cx.beginPath(); cx.arc(21, -4, 4, 0, 7); cx.arc(21, 4, 4, 0, 7); cx.fill(); cx.stroke(); cx.fillStyle = '#C8543A'; cx.beginPath(); cx.ellipse(-4, 0, 14, 11, 0, 0, 7); cx.fill(); cx.stroke(); cx.fillStyle = 'rgba(255,205,175,.6)'; cx.beginPath(); cx.ellipse(-8, -4, 6, 3, -0.4, 0, 7); cx.fill(); }
+    else if (p.kind === 'steak') { cx.fillStyle = '#D9604A'; cx.beginPath(); cx.ellipse(0, 0, 14, 10, 0.3, 0, 7); cx.fill(); cx.stroke(); cx.strokeStyle = '#F2A592'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(-7, -2); cx.lineTo(1, 2); cx.moveTo(-2, -5); cx.lineTo(6, -1); cx.stroke(); }
+    else { cx.fillStyle = '#B8432F'; cx.beginPath(); cx.ellipse(0, 0, 11, 9, -0.2, 0, 7); cx.fill(); cx.stroke(); cx.fillStyle = 'rgba(255,190,160,.5)'; cx.beginPath(); cx.ellipse(-3, -3, 4, 2.4, -0.4, 0, 7); cx.fill(); }
+    cx.restore();
+  }
   function dPick(p) {
+    if (p.type === 'meat') { drawMeat(p); return; }
     var bob = Math.sin(p.t) * 4, dna = p.type === 'dna', ic = A.img(dna ? 'dna' : 'icon-token'), pw = dna ? (p.rare ? 50 : 34) : 26, ph = dna && ic.naturalWidth ? pw * ic.naturalHeight / ic.naturalWidth : 26;
     shadow(p.x, p.y + 4, 26, 0.3);
     if (p.rare) { var rg = cx.createRadialGradient(p.x, p.y - 20, 3, p.x, p.y - 20, 42); rg.addColorStop(0, 'rgba(255,235,160,' + (0.5 + 0.2 * Math.sin(p.t * 2)) + ')'); rg.addColorStop(1, 'rgba(255,235,160,0)'); cx.fillStyle = rg; cx.beginPath(); cx.arc(p.x, p.y - 20, 42, 0, 7); cx.fill(); }
@@ -1041,7 +1063,7 @@ window.DF = window.DF || {};
     else if (e.state === 'recover') { rot = 0.04; sy = 0.97; }
     else if (e.state === 'stun') { skew = Math.sin(S.t / 45) * 0.09; rot = -0.05; }
     if (e.hitT > 0) { var hq = e.hitT / 160; sx *= 1 + 0.12 * hq; sy *= 1 - 0.1 * hq; rot += (e.hitDir === e.face ? 0.12 : -0.14) * hq; } // squash and recoil on a hit
-    if (dead) { var ease = 1 - Math.pow(1 - Math.min(1, e.dead / 380), 3); rot = (e.hitDir === e.face ? 1 : -1) * 1.25 * ease; sy = 1 - 0.12 * ease; sx = 1; skew = 0; lean = 0; bob = 0; a = e.dead < 330 ? 1 : Math.max(0, 1 - (e.dead - 330) / 370); } // topples, then fades
+    if (dead) { var pq = Math.min(1, e.dead / 130); sx = 1 + 0.28 * pq; sy = 1 + 0.2 * pq; rot = 0; skew = 0; lean = 0; bob = 0; a = 1 - pq; } // swells and pops into meat
     else if (e.camo && !e.rev) a = 0.1 + 0.05 * Math.sin(S.t / 260 + e.id); // camouflaged: almost invisible, only a faint ripple gives it away
     shadow(e.x, e.y + 2, w * 0.8 * (1 + bob * 0.01), 0.35 * a);
     if (e.camo && !e.rev) { cx.strokeStyle = 'rgba(160,255,210,' + (0.25 + 0.2 * Math.sin(S.t / 300 + e.id)) + ')'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(e.x, e.y + 3, w * 0.55, 8, 0, 0, 7); cx.stroke(); }
@@ -1059,7 +1081,7 @@ window.DF = window.DF || {};
     }
   }
   function dBoss(b) {
-    var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 1400) : 1;
+    var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 550) : 1;
     shadow(b.x, b.y + 4, bw * 0.9, 0.4 * a);
     // telegraph lane
     if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.28 + 0.12 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); cx.strokeStyle = 'rgba(255,140,120,.9)'; cx.lineWidth = 2; cx.setLineDash([10, 7]); cx.strokeRect(lx, b.y - 26, 900, 52); cx.setLineDash([]); }
