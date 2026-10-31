@@ -2184,8 +2184,10 @@ function doCrouch() { if (!P.run) P.crouch = !P.crouch; }
 function switchWeapon(n) { if (n !== P.w) { P.w = n; P.reloading = 0; P.fireCD = 0.4; sfxClick(1500, 0.2, 0.05); } }
 function useMedkit() { if (P.medkits > 0 && P.hp < 100 && P.healing <= 0) { P.medkits--; P.healing = 2.2; P.reloading = 0; } else if (P.medkits <= 0) toast('No medkits'); else if (P.hp >= 100) toast('Health is full'); }
 function toggleMara() { if (!MA.joined || MA.dead) return; if (MA.mode === 'follow') { MA.mode = 'hold'; MA.hold = { x: MA.x, z: MA.z }; say('mara', 'Okay. I will wait here. Do not be long.'); } else { MA.mode = 'follow'; MA.hold = null; say('mara', 'Coming. Right behind you.'); } }
+function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function begin(fromCheckpoint, afterIntro) {
   initAudio(); applyGfx();
+  track('level_start', { difficulty: S.diffKey, from_checkpoint: !!(fromCheckpoint && CP) });
   if (fromCheckpoint && CP) restoreCheckpoint(); else { CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {} resetMission(); }
   S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0; canvas.focus();
   if (TOUCH.on) goFullscreen(); else if (afterIntro && !S.noLock) toast('Click the game to take control'); else { requestLock(); setTimeout(() => { if (S.running && !S.locked) toast('Move the mouse over the game to look. Arrow keys also turn.'); }, 1500); }
@@ -2196,6 +2198,7 @@ function resume() { S.paused = false; showPanel(null); canvas.focus(); if (!TOUC
 function toTitle() { S.running = false; S.paused = false; S.over = false; hud.hidden = true; heliSound(false); refreshContinue(); showPanel('startPanel'); try { document.exitPointerLock(); } catch (e) {} }
 function endGame(won, text) {
   if (S.over) return; S.over = true;
+  if (!S.demo) { const det = { difficulty: S.diffKey, time: Math.round(S.t), kills: M.kills }; if (won) track('level_complete', det); else track('game_over', det); }
   setTimeout(() => {
     S.running = false; try { document.exitPointerLock(); } catch (e) {}
     $('endEy').textContent = won ? 'Mission complete' : 'Mission failed'; const tt = $('endTitle'); tt.textContent = won ? 'Extracted' : 'Lost'; tt.className = won ? '' : 'fail';

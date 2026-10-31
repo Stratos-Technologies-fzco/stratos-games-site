@@ -1109,7 +1109,7 @@ function finishBattle(){
  if(win){rew=stageReward(n,first);give(rew);if(first)S.cleared=n;S.stars[n]=Math.max(S.stars[n]||0,stars);S.stats.wins++;
   const xp=stageXp(n);S.team.forEach(k=>{const u=addXp(k,xp);if(u)ups.push(`${HEROES[k].n.split(' ')[0]} +${u} level${u>1?'s':''}`)})}
  save();renderActive();
- sfx(win?'win':'lose');track(win?'level_complete':'game_over',{stage:n,stars});lastLost=win?{}:lost;if(!win&&Object.keys(lost).length)track('reward_offered',{kind:'rally'});const lostTxt=Object.keys(lost).map(k=>`${lost[k]} ${TROOPS[k].n}`).join(', ');
+ sfx(win?'win':'lose');if(win)track('level_complete',{stage:n,stars});else track('game_over',{stage:n,stars});lastLost=win?{}:lost;if(!win&&Object.keys(lost).length)track('reward_offered',{kind:'rally'});const lostTxt=Object.keys(lost).map(k=>`${lost[k]} ${TROOPS[k].n}`).join(', ');
  showModal(win?`<div style="text-align:center"><div class="label">Stage ${n}</div><h3 style="font-size:32px">Victory</h3><div class="stars" style="font-size:34px;margin:4px 0">${'★'.repeat(stars)}<span class="off">${'★'.repeat(3-stars)}</span></div></div>
   <div class="sec"><span class="label">Spoils</span>${costHTML(rew,false)}</div><div class="sec"><span class="label">Heroes</span><div>+${fmt(stageXp(n))} XP each${ups.length?' · '+ups.join(', '):''}</div></div>${lostTxt?`<div class="sec"><span class="label">Lost for good</span><div class="muted">${lostTxt}</div></div>`:''}
   <div class="actions"><button class="btn ghost" data-act="endBattle">Return</button>${S.cleared<STAGES&&first?`<button class="btn red" data-act="nextStage">Next stage</button>`:''}</div>`
