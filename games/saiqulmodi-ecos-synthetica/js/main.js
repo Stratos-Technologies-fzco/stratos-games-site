@@ -7,6 +7,7 @@ import { addDaily } from './app/daily.js';
 import { track } from './app/hooks.js';
 import { watchPerformance } from './app/perf.js';
 import { addStrings } from './app/strings.js';
+import { Backdrop3D } from './app/Backdrop3D.js';
 
 addStrings({
   en: { 'hk.second': 'Second chance: keep going here' },
@@ -52,6 +53,11 @@ const tiers = {
 };
 
 const shell = new Shell(tiers);
+// The living 3D world behind the path screen; it stops while a tier is being played
+const backdrop = new Backdrop3D();
+const showShell = shell.show.bind(shell), hideShell = shell.hide.bind(shell);
+shell.show = () => { showShell(); backdrop.start(); document.body.classList.toggle('has-3d', !!backdrop.renderer); };
+shell.hide = () => { hideShell(); backdrop.stop(); document.body.classList.remove('has-3d'); };
 addShareButtons(shell);
 addServerButton(shell);
 addDaily(shell);

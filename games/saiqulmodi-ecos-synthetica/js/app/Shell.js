@@ -7,6 +7,7 @@ import {
   tierOpen, EXPLORER_MODULES, saveKeyFor, scientistDone,
 } from './Profile.js';
 import { bankItems } from '../Quiz.js';
+import { ecosEmblem } from './emblem.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const $ = (id) => document.getElementById(id);
@@ -48,6 +49,7 @@ export class Shell {
           <div class="lang-row" id="pathLang">${langs}</div>
           <div class="who">${who} <button class="mini-btn" id="btnWho">${esc(tr('shell.switch'))}</button></div>
         </div>
+        <div class="paths-emblem" aria-hidden="true">${ecosEmblem(true)}</div>
         <h1 class="paths-title">Ecos-Synthetica<span>${esc(tr('shell.tag'))}</span></h1>
         <p class="thesis">${esc(tr('shell.lead'))}</p>
         <div class="path-cards">${['explorer', 'scientist', 'professional'].map((k) => this.card(k, p)).join('<div class="path-arrow" aria-hidden="true">→</div>')}</div>

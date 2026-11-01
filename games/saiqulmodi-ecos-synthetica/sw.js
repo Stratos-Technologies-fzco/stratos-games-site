@@ -1,8 +1,8 @@
 // sw.js - offline play. Pages, code and content: network first (so updates show
 // at once), cached copy when offline. Fonts: cache first. Map tiles and the
 // optional AI/sync servers are never stored (they do not count towards 20 MB).
-const CACHE = 'ecos-v4';
-const CORE = ['./', 'index.html', 'css/tiers.css', 'vendor/three.module.min.js', 'js/main.js', 'js/app/Shell.js', 'js/app/Profile.js', 'js/app/strings.js'];
+const CACHE = 'ecos-v5'; // v5: 3D living world behind the path screen + emblem/icons (01-Nov)
+const CORE = ['./', 'index.html', 'css/tiers.css', 'vendor/three.module.min.js', 'js/main.js', 'js/app/Shell.js', 'js/app/Profile.js', 'js/app/strings.js', 'js/app/emblem.js', 'js/app/Backdrop3D.js', 'icons/favicon-32.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).catch(() => {}));

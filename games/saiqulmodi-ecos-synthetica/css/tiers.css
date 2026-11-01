@@ -12,6 +12,25 @@
 .paths-top .tab { margin: 0; font-size: 15px; padding: 7px 16px; }
 .who { font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .paths-title { font: 800 clamp(38px, 8vw, 76px)/0.95 var(--display); letter-spacing: -0.02em; margin: 6px 0 0; }
+/* emblem (js/app/emblem.js): no words; energy stream flows, sun breathes, the fungal network glows */
+.paths-emblem { width: clamp(96px, 16vw, 150px); filter: drop-shadow(0 6px 22px rgba(132, 201, 107, 0.35)); }
+.paths-emblem svg { display: block; width: 100%; height: auto; }
+.ecos-emblem .ee-flow { animation: ee-flow 2.4s linear infinite; }
+.ecos-emblem .ee-sun { transform-box: fill-box; transform-origin: center; animation: ee-breathe 3.2s ease-in-out infinite; }
+.ecos-emblem .ee-net, .ecos-emblem .ee-nodes { animation: ee-pulse 2.8s ease-in-out infinite; }
+.ecos-emblem .ee-membrane { transform-box: view-box; transform-origin: 256px 256px; animation: ee-spin 60s linear infinite; }
+.ecos-emblem .ee-sprout { transform-box: fill-box; transform-origin: 50% 100%; animation: ee-sway 5s ease-in-out infinite; }
+@keyframes ee-flow { to { stroke-dashoffset: -80; } }
+@keyframes ee-breathe { 0%, 100% { scale: 1; } 50% { scale: 1.08; } }
+@keyframes ee-pulse { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes ee-spin { to { rotate: 360deg; } }
+@keyframes ee-sway { 0%, 100% { rotate: -1.5deg; } 50% { rotate: 1.5deg; } }
+@media (prefers-reduced-motion: reduce) { .ecos-emblem * { animation: none !important; } }
+/* the living 3D world behind the path screen (js/app/Backdrop3D.js) */
+#backdrop3d { position: fixed; inset: 0; z-index: 44; display: block; transition: opacity 0.4s linear; pointer-events: none; }
+body.has-3d #paths { background:
+  radial-gradient(110% 80% at 15% 10%, rgba(132, 201, 107, 0.12), transparent 60%),
+  linear-gradient(180deg, rgba(8, 24, 28, 0.35), rgba(8, 24, 28, 0.62)); }
 .paths-title span { display: block; font-weight: 500; font-size: 0.36em; letter-spacing: 0; color: var(--green); margin-top: 10px; }
 .path-cards { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; }
 .path-arrow { align-self: center; font: 700 22px var(--display); color: var(--muted); }
