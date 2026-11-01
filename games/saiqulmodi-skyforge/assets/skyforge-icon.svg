@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="SkyForge">
+  <title>SkyForge</title>
+  <defs>
+    <linearGradient id="sfRim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/><stop offset="0.55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="sfBg" cx="0.5" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#070d1f"/>
+    </radialGradient>
+    <linearGradient id="sfJet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#93c5fd"/>
+    </linearGradient>
+    <radialGradient id="sfFlame" cx="0.5" cy="0.12" r="0.9">
+      <stop offset="0" stop-color="#fffbe6"/><stop offset="0.3" stop-color="#facc15"/>
+      <stop offset="0.7" stop-color="#f97316"/><stop offset="1" stop-color="#dc2626" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- badge -->
+  <path d="M60 4 L108 30 L108 90 L60 116 L12 90 L12 30 Z" fill="url(#sfBg)" stroke="url(#sfRim)" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M60 13 L100 35 L100 85 L60 107 L20 85 L20 35 Z" fill="none" stroke="#38bdf8" stroke-opacity="0.25" stroke-width="1.5"/>
+  <!-- forge flame from the afterburners -->
+  <path d="M60 78 C47 92 50 103 60 114 C70 103 73 92 60 78 Z" fill="url(#sfFlame)"/>
+  <circle cx="43" cy="99" r="1.9" fill="#facc15"/><circle cx="78" cy="96" r="1.6" fill="#fb923c"/>
+  <circle cx="71" cy="108" r="1.2" fill="#fde68a"/><circle cx="48" cy="109" r="1.1" fill="#fb923c"/>
+  <!-- twin-fin jet, climbing -->
+  <path d="M60 15 L64 33 L65 47 L95 69 L95 75 L66 68 L66 78 L75 86 L75 89 L60 85 L45 89 L45 86 L54 78 L54 68 L25 75 L25 69 L55 47 L56 33 Z"
+        fill="url(#sfJet)" stroke="#070d1f" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M54.5 71 L48.5 83 L51.5 84.5 L57.5 73.5 Z M65.5 71 L71.5 83 L68.5 84.5 L62.5 73.5 Z" fill="#38bdf8"/>
+  <ellipse cx="60" cy="33" rx="2.6" ry="6.5" fill="#0ea5e9"/>
+</svg>

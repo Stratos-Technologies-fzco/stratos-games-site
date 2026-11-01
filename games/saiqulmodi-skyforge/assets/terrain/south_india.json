@@ -1,0 +1,10 @@
+{
+  "latMin": 8.0,
+  "latMax": 19.5,
+  "lonMin": 74.0,
+  "lonMax": 85.0,
+  "width": 1056,
+  "height": 1104,
+  "stepM": 11,
+  "attribution": "Terrain: SRTM, GMTED2010, ETOPO1 via Mapzen Terrain Tiles (AWS Open Data)"
+}
