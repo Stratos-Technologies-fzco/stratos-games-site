@@ -251,11 +251,15 @@ def pk_nav(base=""):
     return (f'<div class="pk-nav"><div class="pk-nr"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button><a class="pk-logo" href="{base}./" aria-label="Stratos Games home"><span class="lm">S</span><span>Stratos<b>Games</b></span></a></div>'
             f'<label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games"></label></div>')
 
-def pk_tile(g, base="", size="s1"):
+def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
     q = f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
-    return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}" title="{esc(g["title"])}">'
-            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}</span></a>')
+    # home page only: hover preview clip (assets/previews/<slug>.mp4) + category chip, CrazyGames style
+    clip = f'assets/previews/{g["slug"]}.mp4'
+    pva = f' data-pv="{esc(clip)}"' if pv and os.path.exists(os.path.join(ROOT, clip)) else ""
+    meta = f'<span class="pk-meta"><i>{esc(CATS[g["category"]]["label"])}</i></span>' if pv else ""
+    return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
+            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}{meta}</span></a>')
 
 def pk_tiles(items, base="", first_big=True):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
@@ -337,6 +341,14 @@ var hero=D.querySelector('.pk-hero');if(hero){var sl=[].slice.call(hero.querySel
  var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  function start(){clearInterval(tm);if(!rm&&sl.length>1)tm=setInterval(function(){go(i+1)},5000)}
  hero.addEventListener('mouseenter',function(){clearInterval(tm)});hero.addEventListener('mouseleave',start);start()}
+/* home page: play a short preview clip while the mouse rests on a game */
+if(window.matchMedia&&matchMedia('(hover: hover)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
+ [].slice.call(D.querySelectorAll('.pk-t[data-pv]')).forEach(function(t){var tm,v;
+  t.addEventListener('mouseenter',function(){tm=setTimeout(function(){
+   if(!v){v=D.createElement('video');v.className='pk-pv';v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('muted','');v.setAttribute('aria-hidden','true');
+    v.src=B+t.dataset.pv;t.insertBefore(v,t.querySelector('.pk-name'))}
+   v.currentTime=0;var p=v.play();if(p&&p.catch)p.catch(function(){});t.classList.add('pv')},250)});
+  t.addEventListener('mouseleave',function(){clearTimeout(tm);t.classList.remove('pv');if(v)v.pause()})});
 /* search */
 var q=D.getElementById('pkq'),none=D.getElementById('pk-none');if(!q)return;
 q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,seen={};
@@ -383,7 +395,7 @@ PZ_SIZES = ["s3", "s2", "s2", "s1", "s1", "s2", "s3", "s1", "s2", "s1", "s2", "s
 
 def pz_tiles(items):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
-    return "".join([pk_tile(g, "", PZ_SIZES[i % len(PZ_SIZES)]) for i, g in enumerate(real)] + [pk_tile(g, "", "s1") for g in soon])
+    return "".join([pk_tile(g, "", PZ_SIZES[i % len(PZ_SIZES)], pv=True) for i, g in enumerate(real)] + [pk_tile(g, "", "s1") for g in soon])
 
 def build_home_cards(fam):
     jsonld = {"@context": "https://schema.org", "@graph": [
