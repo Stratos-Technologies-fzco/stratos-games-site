@@ -175,6 +175,17 @@ body {
   #gas { height: 128px; }
   .hide-narrow { display: none; }
 }
+/* Phone sideways: keep the menu buttons on screen */
+.overlay { overflow-y: auto; }
+.card { max-height: calc(100dvh - 32px); overflow-y: auto; }
+@media (max-height: 500px) {
+  .card { padding: 12px 16px; gap: 8px; width: min(560px, 100%); }
+  .card h1 { font-size: 30px; }
+  #menu .card > p, #menu .keys { display: none; }
+  .daily { font-size: 14px; padding-top: 6px; }
+  .btnrow { grid-template-columns: 1fr 1fr; }
+  .cta { padding: 9px 12px; font-size: 17px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .toast.show { animation-duration: 1.8s; }
   .pedal { transition: none; }

@@ -1073,9 +1073,22 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .intro-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.2s, transform 0.2s; }
 .intro-dots span.on { background: var(--accent-2); transform: scale(1.3); }
 
+/* Phone sideways: Magic Shot is an upright game, so ask to turn the phone */
+#rotate-note { display: none; }
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  #rotate-note {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    position: fixed; inset: 0; z-index: 9999; padding: 24px; text-align: center;
+    background: radial-gradient(120% 90% at 50% 0%, var(--bg-glow) 0%, transparent 60%), linear-gradient(180deg, var(--bg-mid), var(--bg-deep));
+    color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 20px;
+  }
+  #rotate-note .rot-icon { font-size: 52px; animation: rotHint 1.8s ease-in-out infinite; }
+  @keyframes rotHint { 0%, 30% { transform: rotate(-90deg); } 60%, 100% { transform: rotate(0deg); } }
+}
 </style>
 </head>
 <body>
+<div id="rotate-note" role="alert"><div class="rot-icon">📱</div><div>Turn your phone upright to play Magic Shot</div></div>
 <div id="phone">
 
   <!-- MAIN MENU -->
