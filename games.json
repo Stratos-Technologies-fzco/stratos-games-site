@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 24,
+ "count": 25,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -166,6 +166,19 @@
    "category": "kids",
    "url": "play/saiqulmodi-failspan/",
    "thumb": "games/saiqulmodi-failspan/thumbnail.png",
+   "added": "2026-11-01",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "saiqulmodi-skyforge",
+   "title": "SkyForge",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "Fly a trainer, cargo jet, stealth fighter or helicopter over real South India terrain and land on 29 real airports.",
+   "category": "arcade",
+   "url": "play/saiqulmodi-skyforge/",
+   "thumb": "games/saiqulmodi-skyforge/thumbnail.png",
    "added": "2026-11-01",
    "github": "saiqulmodi",
    "kind": "family",
