@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 25,
+ "count": 26,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -75,6 +75,19 @@
    "category": "puzzle",
    "url": "play/im-mohua-liza-plot-twist/",
    "thumb": "games/im-mohua-liza-plot-twist/thumbnail.png",
+   "added": "2026-11-01",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-wordbloom",
+   "title": "Wordbloom: Word Journey",
+   "maker": "Mohua Liza",
+   "one_line": "Swipe letters to fill crossword grids across 8 dreamy worlds, from cherry blossoms to a starfall nebula.",
+   "category": "puzzle",
+   "url": "play/im-mohua-liza-wordbloom/",
+   "thumb": "games/im-mohua-liza-wordbloom/thumbnail.png",
    "added": "2026-11-01",
    "github": "im-mohua-liza",
    "kind": "family",
