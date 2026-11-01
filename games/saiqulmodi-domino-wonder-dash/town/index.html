@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Domino Game</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<!-- Wonder Town in 3D (three.js): the front door of Domino Game. No words anywhere: the domino ring starts,
+     houses, figures and the pointing hand lead the way; a subject block opens the game at that subject
+     (../index.html?open=<key>). The pygame town stays inside the game as before. -->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #7fd3ff; -webkit-tap-highlight-color: transparent; }
+  #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .stone { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); width: 74px; height: 74px; border: 0; padding: 0;
+           border-radius: 24px; background: linear-gradient(160deg, #f4efe6, #c9bfae); box-shadow: 0 6px 0 #8f8473, 0 10px 18px rgba(0,0,0,0.3);
+           cursor: pointer; display: grid; place-items: center; transition: transform 0.12s; }
+  .stone:active { transform: translateY(4px); box-shadow: 0 2px 0 #8f8473, 0 6px 12px rgba(0,0,0,0.3); }
+  .stone svg { width: 44px; height: 44px; }
+  #back { left: calc(18px + env(safe-area-inset-left, 0px)); }
+  #home { right: calc(18px + env(safe-area-inset-right, 0px)); }
+  .stone[hidden] { display: none; }
+  #fade { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<button id="back" class="stone" aria-label="Back" hidden>
+  <svg viewBox="0 0 48 48"><path d="M20 10 L8 21 L20 32 V25 C30 25 36 28 40 37 C39 24 32 17 20 17 Z" fill="#c98a3a" stroke="#7a4f1c" stroke-width="2.5" stroke-linejoin="round"/></svg>
+</button>
+<button id="home" class="stone" aria-label="Home" hidden>
+  <svg viewBox="0 0 48 48"><path d="M24 7 L42 23 H37 V40 H28 V30 H20 V40 H11 V23 H6 Z" fill="#ff6a3d" stroke="#9a2f12" stroke-width="2.5" stroke-linejoin="round"/><rect x="21" y="16" width="6" height="6" rx="1" fill="#fff3c4"/></svg>
+</button>
+<div id="fade"></div>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<script type="module" src="town.js"></script>
+</body>
+</html>

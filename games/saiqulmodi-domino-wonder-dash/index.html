@@ -310,6 +310,9 @@ function show_infobox() {
         });
       }
     </script>
+    <script data-town-door>
+      if (!/[?&](open|game)(=|&|$)/.test(location.search)) { location.replace('town/' + location.hash); }
+    </script>
 </head>
 
 <body>
