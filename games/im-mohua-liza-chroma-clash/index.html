@@ -121,6 +121,45 @@ input.txt:focus{border-color:var(--wave)}
 #standings li:first-child{background:linear-gradient(90deg,rgba(255,174,26,.35),rgba(255,46,136,.25));border:1px solid rgba(255,255,255,.3)}
 #standings .n{font-family:Bungee;width:28px}
 #standings .c{margin-left:auto;color:var(--muted);font-size:13px}
+/* ---------- win celebration ---------- */
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#win .panel{z-index:1}
+#win{overflow:hidden}
+#win .panel{position:relative;max-height:calc(100dvh - 24px);overflow:auto;padding-top:22px}
+.win-rays{position:fixed;left:50%;top:50%;width:200vmax;height:200vmax;margin:-100vmax 0 0 -100vmax;pointer-events:none;opacity:0;
+  background:repeating-conic-gradient(rgba(255,214,90,.16) 0 9deg,rgba(255,214,90,0) 9deg 18deg);
+  -webkit-mask:radial-gradient(circle,#000 0,transparent 55%);mask:radial-gradient(circle,#000 0,transparent 55%)}
+#win.won .win-rays{opacity:1;animation:raysSpin 18s linear infinite}
+@keyframes raysSpin{to{transform:rotate(360deg)}}
+.win-badge{font-size:64px;line-height:1;display:inline-block;filter:drop-shadow(0 0 22px rgba(255,200,40,.75));animation:trophyIn .9s cubic-bezier(.2,1.6,.4,1) both,trophyBob 2.4s ease-in-out .9s infinite}
+@keyframes trophyIn{0%{transform:translateY(-140px) scale(.3) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes trophyBob{50%{transform:translateY(-6px) rotate(4deg)}}
+#winTitle{margin:6px 0 4px}
+#winTitle .w{display:inline-block;white-space:nowrap;background:inherit;-webkit-background-clip:text;background-clip:text}
+#winTitle .l{display:inline-block;animation:letterIn .6s cubic-bezier(.2,1.6,.4,1) both;background:inherit;-webkit-background-clip:text;background-clip:text}
+@keyframes letterIn{0%{transform:translateY(40px) scale(.2) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+.win-cheer{font-weight:800;font-size:17px;color:#fff;margin:0 0 10px;animation:fadeUp .5s ease .5s both}
+.win-streak{display:inline-flex;gap:6px;align-items:center;font-weight:900;font-size:14px;padding:6px 14px;border-radius:999px;margin:0 0 12px;
+  background:linear-gradient(90deg,#ff6a00,#ff2e88);box-shadow:0 0 18px rgba(255,90,40,.6);animation:fadeUp .5s ease .7s both,pulse 1.4s ease-in-out 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+@keyframes fadeUp{0%{transform:translateY(14px);opacity:0}100%{transform:none;opacity:1}}
+.rewards{background:rgba(0,0,0,.28);border:1px solid rgba(255,214,90,.35);border-radius:18px;padding:12px 14px;margin:2px 0 6px;text-align:left}
+.rewards .rw{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:14.5px;padding:3px 0;opacity:0;animation:fadeUp .4s ease both}
+.rewards .rw b{color:#ffd65a;font-family:Bungee;font-weight:400}
+.rewards .tot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:9px;border-top:1px dashed rgba(255,255,255,.25)}
+.rewards .tot span{font-weight:800}
+.rewards .tot b{font-family:Bungee;font-size:30px;font-weight:400;color:#ffd65a;text-shadow:0 0 16px rgba(255,200,40,.7)}
+.rewards .tot b.tick{animation:tick .12s ease}
+@keyframes tick{50%{transform:scale(1.18)}}
+.wallet-line{font-size:13px;color:var(--muted);font-weight:700;margin:4px 0 0;text-align:right}
+#win.lost .rewards{border-color:rgba(255,255,255,.18)}
+#win #standings{margin-top:10px}
+#win #standings li{padding:6px 12px;font-size:14px}
+.coin-fly{position:fixed;z-index:41;font-size:22px;pointer-events:none;will-change:transform}
+.wallet{display:flex;justify-content:center;gap:10px;margin:-6px 0 12px}
+.wallet span{font-weight:900;font-size:14px;padding:5px 12px;border-radius:999px;background:rgba(0,0,0,.3);border:1px solid rgba(255,214,90,.35);color:#ffd65a}
+.wallet span.st{color:#fff;border-color:rgba(255,120,60,.5)}
+@media (prefers-reduced-motion:reduce){#win.won .win-rays,.win-badge,#winTitle .l,.win-streak{animation:none!important}}
 #loading{position:fixed;inset:0;display:grid;place-items:center;z-index:60;background:var(--bg);font-family:Bungee;font-size:28px;color:var(--pop);transition:opacity .5s}
 @media (max-width:520px){
   #statusPill{font-size:13px;gap:7px}#colorDot{width:24px;height:24px}
@@ -175,6 +214,52 @@ input.txt:focus{border-color:var(--wave)}
 #mDots button.on{background:#fff;width:20px}
 #mBack{min-width:72px}#mNext{min-width:110px}
 @media (max-width:360px){#mStage{transform:scale(.9);margin:0 auto}}
+
+/* ---------- table chat (online games) ---------- */
+#chatBtn{position:relative}
+#chatBadge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;border-radius:999px;background:var(--pop);color:#fff;font:800 11px Outfit;display:grid;place-items:center;padding:0 5px;box-shadow:0 0 12px var(--pop);animation:throb .5s infinite alternate}
+#chat{position:fixed;right:max(12px,env(safe-area-inset-right));top:66px;width:min(340px,calc(100vw - 24px));height:min(460px,calc(100vh - 170px));z-index:32;display:flex;flex-direction:column;background:var(--panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.5);overflow:hidden;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.ch-head{display:flex;align-items:center;gap:8px;padding:12px 12px 10px 16px;border-bottom:1px solid var(--line)}
+.ch-head b{font-family:Bungee;font-size:16px;flex:1;background:linear-gradient(90deg,var(--wave),var(--pop));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ch-head button{width:32px;height:32px;border-radius:10px;border:0;background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
+#chatLog{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;user-select:text;-webkit-user-select:text}
+#chatLog .empty{margin:auto;text-align:center;color:var(--muted);font-size:13px;font-weight:600;max-width:22ch}
+.cm{max-width:85%;align-self:flex-start;display:grid;gap:2px}
+.cm .who{font-size:11px;font-weight:800;letter-spacing:.04em}
+.cm .tx{background:rgba(255,255,255,.1);border-radius:4px 14px 14px 14px;padding:7px 11px;font-size:14px;font-weight:600;line-height:1.35;word-wrap:break-word;overflow-wrap:anywhere}
+.cm.me{align-self:flex-end;text-align:right}
+.cm.me .tx{background:linear-gradient(135deg,#ff2e88,#9b5cff);border-radius:14px 4px 14px 14px;text-align:left}
+.ch-quick{display:flex;gap:6px;overflow-x:auto;padding:8px 10px 2px;scrollbar-width:none}
+.ch-quick::-webkit-scrollbar{display:none}
+.ch-quick button{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:6px 11px;font:700 13px Outfit;cursor:pointer}
+.ch-quick button:active{transform:scale(.94)}
+#chatForm{display:flex;gap:8px;padding:8px 10px 12px}
+#chatIn{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:rgba(0,0,0,.3);color:#fff;font:600 14px Outfit;outline:none;user-select:text;-webkit-user-select:text}
+#chatIn:focus{border-color:var(--wave)}
+#chatForm button{border:0;border-radius:12px;padding:0 14px;background:var(--wave);color:#062033;font:400 13px Bungee;cursor:pointer}
+.bubble{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);max-width:200px;width:max-content;background:#fff;color:#1a0833;font:700 13px Outfit;padding:6px 11px;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.4);white-space:normal;text-align:center;animation:tin .3s cubic-bezier(.2,1.5,.4,1),tout .4s 3.6s forwards;pointer-events:none;z-index:2}
+.bubble::after{content:'';position:absolute;left:50%;top:100%;margin-left:-7px;border:7px solid transparent;border-top-color:#fff}
+#meBar .bubble{left:20px;transform:none}
+#meBar .bubble::after{left:24px}
+.seat{position:absolute}
+#lobbyChat{position:relative}
+/* ---------- emoji reactions (online games) ---------- */
+#react{position:fixed;left:14px;bottom:74px;z-index:31;display:flex;align-items:flex-end;gap:8px;pointer-events:auto}
+#reactBtn{width:46px;height:46px;flex:none;border-radius:50%;border:2px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:22px;cursor:pointer;display:grid;place-items:center;padding:0}
+#react.prompt #reactBtn{border-color:#fff;animation:throb .5s infinite alternate}
+#reactBar{display:none;flex-direction:column;gap:2px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;padding:6px 6px 4px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#react.open #reactBar{display:flex;animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+#reactWhat{font-size:11px;font-weight:800;color:var(--muted);padding:0 6px;letter-spacing:.03em;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#reactWhat:empty{display:none}
+#reactEmojis{display:flex;gap:1px}
+#reactEmojis button{width:40px;height:40px;border:0;border-radius:12px;background:transparent;font-size:24px;cursor:pointer;transition:transform .15s;padding:0}
+#reactEmojis button:hover{transform:scale(1.25);background:rgba(255,255,255,.1)}
+#reactEmojis button:active{transform:scale(.9)}
+.fly{position:fixed;z-index:45;pointer-events:none;font-size:48px;line-height:1;text-align:center;transform:translate(-50%,-50%);animation:fly 2.4s cubic-bezier(.2,.8,.3,1) forwards;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.fly small{display:block;font:800 11px Outfit;color:#fff;background:rgba(0,0,0,.6);border-radius:999px;padding:2px 8px;margin-top:4px;white-space:nowrap}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,-20%) scale(.3)}14%{opacity:1;transform:translate(-50%,-90%) scale(1.3)}28%{transform:translate(-50%,-100%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),-280%) scale(1.05) rotate(var(--rot))}}
+@media (max-width:520px){#react{bottom:62px;left:10px}#reactBtn{width:40px;height:40px;font-size:19px}#reactEmojis button{width:33px;height:34px;font-size:20px}.fly{font-size:38px}}
+#lobbyChat .dot{position:absolute;top:-5px;right:-5px;width:12px;height:12px;border-radius:50%;background:var(--pop);box-shadow:0 0 10px var(--pop)}
 </style>
 <script src="vendor/mqtt.min.js"></script>
 <script type="importmap">
@@ -190,7 +275,7 @@ input.txt:focus{border-color:var(--wave)}
   <div id="topbar">
     <div class="tr"><button id="leaveBtn" class="iconbtn" title="Leave game">✕</button><button id="helpBtn" class="iconbtn" title="How to play">?</button></div>
     <div id="statusPill"><span id="colorDot"></span><span id="colorName">POP</span><span id="dirIcon" title="Turn direction">↻</span><span id="pendingBadge" class="hidden">+2</span></div>
-    <div class="tr"><button id="musicBtn" class="iconbtn" title="Music">♫</button><button id="soundBtn" class="iconbtn" title="Sound effects">🔊</button></div>
+    <div class="tr"><button id="chatBtn" class="iconbtn hidden" title="Chat with the table">💬<span id="chatBadge" class="hidden">0</span></button><button id="musicBtn" class="iconbtn" title="Music">♫</button><button id="soundBtn" class="iconbtn" title="Sound effects">🔊</button></div>
   </div>
   <div id="hint"></div>
   <div id="meBar"><span class="av" id="meAv"></span><span id="meName"></span><span id="meCount"></span></div>
@@ -204,6 +289,7 @@ input.txt:focus{border-color:var(--wave)}
   <section class="screen active" id="scr-menu"><div class="panel">
     <h1 class="logo"><span>CHROMA</span><span>CLASH</span></h1>
     <p class="tag">Match colors. Drop bombs. Empty your hand first.</p>
+    <div class="wallet"><span id="walletCoins">🪙 0</span><span class="st hidden" id="walletStreak">🔥 0</span></div>
     <label class="field"><span>Your name</span><input class="txt" id="nameIn" maxlength="14" placeholder="Player"></label>
     <div class="menu-btns">
       <button class="btn big c-pop" data-go="scr-bots">🤖 Play vs Bots</button>
@@ -243,7 +329,7 @@ input.txt:focus{border-color:var(--wave)}
   <section class="screen" id="scr-lobby"><div class="panel">
     <h2>Room <span id="roomCode"></span></h2>
     <p class="sub" id="lobbySub">Share this code with friends. They tap Play Online → Join.</p>
-    <div class="sharerow"><button class="btn small ghost" id="copyCode">Copy code</button><button class="btn small ghost" id="copyLink">Copy invite link</button></div>
+    <div class="sharerow"><button class="btn small ghost" id="copyCode">Copy code</button><button class="btn small ghost" id="copyLink">Copy invite link</button><button class="btn small ghost" id="lobbyChat">💬 Chat</button></div>
     <ul id="lobbyList"></ul>
     <div id="hostCtl"><button class="btn small ghost" id="addBot">+ Add bot</button></div>
     <label class="toggle"><input type="checkbox" id="stackOnline" checked><span>Stack +2 / +4 cards</span></label>
@@ -252,6 +338,15 @@ input.txt:focus{border-color:var(--wave)}
   </div></section>
 
 </div>
+
+<div id="chat" class="hidden" role="dialog" aria-label="Table chat">
+  <div class="ch-head"><b>Table chat</b><button id="chatClose" title="Close chat">✕</button></div>
+  <div id="chatLog"><p class="empty">Say hi! Everyone in this room sees your messages.</p></div>
+  <div class="ch-quick" id="chatQuick"></div>
+  <form id="chatForm" autocomplete="off"><input id="chatIn" maxlength="120" placeholder="Type a message…" aria-label="Message"><button type="submit">Send</button></form>
+</div>
+
+<div id="react" class="hidden"><button id="reactBtn" type="button" title="React with an emoji" aria-label="React with an emoji">😊</button><div id="reactBar"><span id="reactWhat"></span><div id="reactEmojis"></div></div></div>
 
 <div id="manual" class="overlay hidden"><div class="panel">
   <button id="mClose" title="Close">✕</button>
@@ -274,8 +369,12 @@ input.txt:focus{border-color:var(--wave)}
   <button class="btn big c-pop" id="curtainGo">I'm ready, show my cards</button>
 </div></div>
 
-<div id="win" class="overlay hidden"><div class="panel">
+<div id="win" class="overlay hidden"><canvas id="fx"></canvas><div class="win-rays"></div><div class="panel">
+  <div class="win-badge" id="winBadge">🏆</div>
   <div class="big-name" id="winTitle">YOU WIN!</div>
+  <p class="win-cheer" id="winCheer"></p>
+  <div class="win-streak hidden" id="winStreak"></div>
+  <div class="rewards" id="rewards"></div>
   <ol id="standings"></ol>
   <p class="sub hidden" id="winWait" style="margin-top:12px">Waiting for the host to deal again…</p>
   <div class="row"><button class="btn ghost" id="winMenu">Menu</button><button class="btn c-pop" id="winAgain">Play again</button></div>
@@ -289,7 +388,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* ================= Stratos hooks (no-ops until site-wide analytics is switched on) ================= */
-function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+function track(name, details) { /* stratos.games will wire this up later */ }
 
 /* ================= utils ================= */
 const $ = s => document.querySelector(s);
@@ -512,7 +611,68 @@ const SFX = {
   bad() { this.t(160, .25, 'sawtooth', .07, 90); },
   win() { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => this.t(f, .25, 'triangle', .13, null, i * .11)); },
   click() { this.t(880, .04, 'sine', .07); },
+  coin() { this.t(1568, .09, 'square', .045); this.t(2093, .14, 'sine', .07, null, .05); },
+  pop() { this.t(180, .18, 'sine', .16, 60); },
+  // big win: rising fanfare + bright chord + crowd cheer made from filtered noise
+  fanfare() {
+    [392, 523, 659, 784].forEach((f, i) => this.t(f, .18, 'sawtooth', .05, null, i * .09));
+    [523, 659, 784, 1046].forEach(f => this.t(f, 1.1, 'triangle', .07, null, .42));
+    this.cheer(2.2, .2, .45);
+  },
+  cheer(dur = 1.6, vol = .16, delay = 0) {
+    if (!this.ctx || !this.on || !this.noise) return;
+    const c = this.ctx, t0 = c.currentTime + delay, src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noise; src.loop = true; bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = .7;
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .25); g.gain.setValueAtTime(vol, t0 + dur * .55); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    src.connect(bp).connect(g).connect(c.destination); src.start(t0); src.stop(t0 + dur + .05);
+    for (let k = 0; k < 7; k++) this.t(700 + Math.random() * 700, .12, 'triangle', .03, 1200 + Math.random() * 600, delay + .2 + Math.random() * dur * .6);
+  },
+  aww() { this.t(392, .35, 'triangle', .1, 330); this.t(330, .5, 'triangle', .09, 262, .3); },
 };
+// Coins and win streak, saved on this device.
+const Wallet = {
+  coins: store.get('cc-coins', 0), streak: store.get('cc-streak', 0), best: store.get('cc-best', 0),
+  save() { store.set('cc-coins', this.coins); store.set('cc-streak', this.streak); store.set('cc-best', this.best); this.paint(); },
+  paint() {
+    const c = document.getElementById('walletCoins'), st = document.getElementById('walletStreak');
+    if (c) c.textContent = '🪙 ' + this.coins.toLocaleString();
+    if (st) { st.textContent = '🔥 ' + this.streak + ' win streak'; st.classList.toggle('hidden', this.streak < 2); }
+  },
+};
+// Full-screen 2D confetti and fireworks for the win screen.
+const FX = {
+  cv: null, g: null, parts: [], raf: 0, until: 0,
+  setup() { if (this.cv) return; this.cv = document.getElementById('fx'); this.g = this.cv.getContext('2d'); addEventListener('resize', () => this.size()); this.size(); },
+  size() { if (!this.cv) return; const r = Math.min(devicePixelRatio || 1, 2); this.cv.width = innerWidth * r; this.cv.height = innerHeight * r; this.g.setTransform(r, 0, 0, r, 0, 0); },
+  cols: ['#ff2e88', '#1fd2ff', '#8cf03a', '#ffae1a', '#ffd65a', '#9b5cff', '#ffffff'],
+  add(x, y, vx, vy, opt = {}) { this.parts.push({ x, y, vx, vy, r: Math.random() * 6.28, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 7, h: 4 + Math.random() * 5, c: opt.c || this.cols[Math.random() * this.cols.length | 0], life: opt.life || 1, dot: !!opt.dot, g: opt.g == null ? .16 : opt.g, drag: opt.drag || .992 }); },
+  cannon(fromLeft, n = 90) {
+    const W = innerWidth, H = innerHeight, x = fromLeft ? -10 : W + 10;
+    for (let i = 0; i < n; i++) { const ang = (50 + Math.random() * 28) * Math.PI / 180, sp = 12 + Math.random() * 10; this.add(x, H * .85, Math.cos(ang) * sp * (fromLeft ? 1 : -1), -Math.sin(ang) * sp); }
+  },
+  firework(x, y) { const c = this.cols[Math.random() * 5 | 0]; for (let i = 0; i < 46; i++) { const a = i / 46 * 6.283, sp = 3 + Math.random() * 3.2; this.add(x, y, Math.cos(a) * sp, Math.sin(a) * sp, { c, dot: true, g: .05, drag: .975, life: 1 }); } SFX.pop(); },
+  rain(n = 4) { if (n < 1 && Math.random() > n) return; for (let i = 0; i < Math.max(1, n | 0); i++) this.add(Math.random() * innerWidth, -12, (Math.random() - .5) * 2, 2 + Math.random() * 2, { g: .03 }); },
+  go(ms, opts = {}) {
+    this.setup(); this.until = performance.now() + ms; this.opts = opts;
+    if (!this.raf) { const loop = t => { this.step(t); this.raf = (this.parts.length || t < this.until) ? requestAnimationFrame(loop) : 0; if (!this.raf) this.g.clearRect(0, 0, innerWidth, innerHeight); }; this.raf = requestAnimationFrame(loop); }
+  },
+  step(t) {
+    const g = this.g; g.clearRect(0, 0, innerWidth, innerHeight);
+    if (t < this.until) { if (this.opts.rain) this.rain(this.opts.rain); if (this.opts.fireworks && Math.random() < .035) this.firework(innerWidth * (.15 + Math.random() * .7), innerHeight * (.12 + Math.random() * .3)); }
+    this.parts = this.parts.filter(p => p.life > 0 && p.y < innerHeight + 30);
+    for (const p of this.parts) {
+      p.vx *= p.drag; p.vy = p.vy * p.drag + p.g; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      if (p.dot) p.life -= .016;
+      g.globalAlpha = Math.max(0, Math.min(1, p.life)); g.fillStyle = p.c;
+      if (p.dot) { g.beginPath(); g.arc(p.x, p.y, 2.6, 0, 6.283); g.fill(); }
+      else { g.save(); g.translate(p.x, p.y); g.rotate(p.r); g.scale(1, Math.abs(Math.cos(p.r * 1.7)) + .15); g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); g.restore(); }
+    }
+    g.globalAlpha = 1;
+  },
+  stop() { this.until = 0; this.parts = []; },
+};
+const PRAISE = ['Brilliant play!', 'Unstoppable!', 'What a finish!', 'Card master!', 'Total legend!', 'Flawless!'];
+const CHEER_UP = ['Next round is yours!', 'Shake it off, deal again!', 'The cards owe you one!', 'Great fight! Go again?'];
 const Music = {
   on: store.get('cc-music', true), playing: false, step: 0, next: 0, timer: null, g: null,
   start() {
@@ -1045,7 +1205,7 @@ const UI = {
   banner(txt, color) { const b = $('#banner'); b.textContent = txt; b.style.color = color || '#fff'; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); },
   enterGame() {
     this.show(null); $('#hud').classList.remove('hidden'); $('#win').classList.add('hidden');
-    R.setAttract(false); R.clearGame(); this.view = null; this.resetLabels();
+    R.setAttract(false); R.clearGame(); this.view = null; this.resetLabels(); Chat.refresh();
   },
   exitGame() {
     $('#hud').classList.add('hidden'); $('#win').classList.add('hidden'); $('#colorPick').classList.add('hidden'); $('#lastBtn').classList.add('hidden');
@@ -1121,6 +1281,7 @@ const UI = {
   fx(e, view) {
     const nm = i => view.players[i] ? view.players[i].name : '?';
     const you = i => i === view.me && !App.multiLocal;
+    Reacts.fromEvent(e, view);
     switch (e.t) {
       case 'start': this.toast('New round! First to empty their hand wins'); SFX.draw(); track('level_start', { mode: App.mode, players: view.players.length }); break;
       case 'play': {
@@ -1136,7 +1297,7 @@ const UI = {
       case 'last': SFX.last(); this.toast(`${nm(e.seat)}: LAST CARD!`, { big: true, color: '#ff2e88' }); break;
       case 'penalty': SFX.bad(); this.toast(`${you(e.seat) ? 'You' : nm(e.seat)} forgot LAST CARD! +2`, { color: '#ffae1a' }); break;
       case 'shuffle': this.toast('Reshuffling the pile'); break;
-      case 'win': track(e.seat === view.me ? 'level_complete' : 'game_over', { mode: App.mode, players: view.players.length }); SFX.win(); R.burst(null, 0, 500, { rain: true }); R.shake(.3); setTimeout(() => this.showWin(), 1100); break;
+      case 'win': if (e.seat === view.me) track('level_complete', { mode: App.mode, players: view.players.length }); else track('game_over', { mode: App.mode, players: view.players.length }); SFX.win(); R.burst(null, 0, 500, { rain: true }); R.shake(.3); setTimeout(() => this.showWin(), 1100); break;
     }
   },
   showWin() {
@@ -1153,7 +1314,79 @@ const UI = {
     });
     const client = App.mode === 'online-client';
     $('#winAgain').classList.toggle('hidden', client); $('#winWait').classList.toggle('hidden', !client);
+    this.celebrate(v);
     $('#win').classList.remove('hidden');
+  },
+  celebrate(v) {
+    const w = v.winner, winP = v.players[w];
+    // Who counts as "you": in pass and play, any human at the table winning counts as a win for this device.
+    const iWon = App.multiLocal ? winP.type === 'local' : w === v.me;
+    const key = v.round + ':' + w;
+    const fresh = this.paidRound !== key; this.paidRound = key;
+    const rows = [];
+    if (iWon) {
+      if (fresh) { Wallet.streak++; Wallet.best = Math.max(Wallet.best, Wallet.streak); }
+      const left = v.players.reduce((n, p, i) => n + (i === w ? 0 : p.count), 0);
+      rows.push(['🏆 Victory', 50]);
+      if (left) rows.push([`🃏 Rivals' cards left (${left})`, Math.min(left * 2, 40)]);
+      if (Wallet.streak >= 2) rows.push([`🔥 ${Wallet.streak} wins in a row`, Math.min((Wallet.streak - 1) * 10, 50)]);
+    } else {
+      if (fresh) Wallet.streak = 0;
+      rows.push(['🎮 For playing', 10]);
+      const mine = App.multiLocal ? null : v.players[v.me];
+      if (mine && mine.count <= 2) rows.push([`💪 So close bonus (${mine.count} left)`, 5]);
+    }
+    const total = rows.reduce((n, r) => n + r[1], 0);
+    const before = Wallet.coins;
+    if (fresh) { Wallet.coins += total; Wallet.save(); }
+
+    const ov = $('#win'); ov.classList.toggle('won', iWon); ov.classList.toggle('lost', !iWon);
+    $('#winBadge').textContent = iWon ? '🏆' : (App.multiLocal ? '🎉' : '💫');
+    const title = $('#winTitle'), txt = title.textContent; title.innerHTML = '';
+    let k = 0; title.style.fontSize = txt.length > 11 ? 'clamp(26px,7.5vw,42px)' : '';
+    txt.split(' ').forEach((word, wi) => {
+      if (wi) title.append(' ');
+      const wd = document.createElement('span'); wd.className = 'w';
+      [...word].forEach(ch => { const sp = document.createElement('span'); sp.className = 'l'; sp.textContent = ch; sp.style.animationDelay = (.25 + k++ * .05) + 's'; wd.append(sp); });
+      title.append(wd);
+    });
+    const mine = App.multiLocal ? null : v.players[v.me];
+    $('#winCheer').textContent = iWon ? PRAISE[Math.random() * PRAISE.length | 0]
+      : (mine && mine.count <= 2 ? `So close! Only ${mine.count} card${mine.count > 1 ? 's' : ''} left.` : CHEER_UP[Math.random() * CHEER_UP.length | 0]);
+    const st = $('#winStreak'); st.classList.toggle('hidden', !(iWon && Wallet.streak >= 2)); st.textContent = `🔥 ${Wallet.streak} win streak!`;
+
+    const box = $('#rewards'); box.innerHTML = '';
+    rows.forEach(([label, n], i) => { const r = document.createElement('div'); r.className = 'rw'; r.style.animationDelay = (.8 + i * .25) + 's'; r.innerHTML = '<span></span><b></b>'; r.firstChild.textContent = label; r.lastChild.textContent = '+' + n; box.append(r); });
+    const tot = document.createElement('div'); tot.className = 'tot'; tot.innerHTML = '<span>Coins earned</span><b>🪙 0</b>'; box.append(tot);
+    const wl = document.createElement('p'); wl.className = 'wallet-line'; wl.textContent = 'Wallet: 🪙 ' + before.toLocaleString(); box.append(wl);
+    const tb = tot.lastChild, start = .8 + rows.length * .25 + .2;
+    clearInterval(this.coinTimer);
+    setTimeout(() => {
+      let shown = 0; const stepN = Math.max(1, Math.ceil(total / 22));
+      this.coinTimer = setInterval(() => {
+        shown = Math.min(total, shown + stepN); tb.textContent = '🪙 +' + shown; tb.classList.remove('tick'); void tb.offsetWidth; tb.classList.add('tick'); SFX.coin();
+        wl.textContent = 'Wallet: 🪙 ' + (before + shown).toLocaleString();
+        if (shown >= total) { clearInterval(this.coinTimer); this.flyCoins(tb); }
+      }, 55);
+    }, start * 1000);
+
+    // Confetti, fireworks and sound
+    if (iWon) {
+      SFX.fanfare(); FX.go(3200, { rain: .6, fireworks: true });
+      FX.cannon(true); FX.cannon(false);
+      setTimeout(() => { FX.cannon(true, 60); FX.cannon(false, 60); }, 650);
+    } else {
+      SFX.aww(); FX.go(1500, { rain: .25 });
+    }
+  },
+  flyCoins(from) {
+    const r = from.getBoundingClientRect();
+    for (let i = 0; i < 10; i++) {
+      const c = document.createElement('div'); c.className = 'coin-fly'; c.textContent = '🪙'; document.body.append(c);
+      const x0 = r.left + r.width / 2, y0 = r.top, dx = (Math.random() - .5) * 220, dy = -90 - Math.random() * 120;
+      c.animate([{ transform: `translate(${x0}px,${y0}px) scale(.6)`, opacity: 1 }, { transform: `translate(${x0 + dx}px,${y0 + dy}px) scale(1.2)`, opacity: 1, offset: .55 }, { transform: `translate(${x0 + dx * 1.2}px,${y0 + dy + 140}px) scale(.8)`, opacity: 0 }],
+        { duration: 900 + Math.random() * 300, delay: i * 40, easing: 'cubic-bezier(.2,.8,.4,1)' }).onfinish = () => c.remove();
+    }
   },
   onCardClick(id) {
     const v = this.view; if (!this.myTurn()) return;
@@ -1388,6 +1621,133 @@ const Manual = {
   },
 };
 
+/* ================= table chat (online rooms) ================= */
+const Chat = {
+  msgs: [], unread: 0, isOpen: false,
+  QUICK: ['👍', '😂', '😮', '🔥', 'GG!', 'Nice one!', 'Your turn!', 'Hurry up 😴', 'Noooo 😭', 'Good luck!'],
+  online() { return App.mode === 'online-host' || App.mode === 'online-client' || App.mode === 'online-lobby'; },
+  clean(t) { return String(t || '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120); },
+  send(text) {
+    text = this.clean(text); if (!text) return;
+    if (App.mode === 'online-host' || (App.mode === 'online-lobby' && Net.isHost)) Net.hostChat(0, text);
+    else Net.send({ t: 'chat', text });
+  },
+  receive(m) {
+    if (!m || typeof m.text !== 'string') return;
+    const msg = { name: cleanName(m.name), seat: Number(m.seat), text: this.clean(m.text) };
+    if (!msg.text) return;
+    this.msgs.push(msg); if (this.msgs.length > 100) this.msgs.shift();
+    const mine = msg.seat === Net.mySeat;
+    this.draw();
+    if (!this.isOpen && !mine) { this.unread++; SFX.t(1046, .07, 'sine', .08); SFX.t(1318, .09, 'sine', .07, null, .06); }
+    this.badge();
+    this.bubble(msg, mine);
+  },
+  draw() {
+    const log = $('#chatLog'); log.innerHTML = '';
+    if (!this.msgs.length) { const p = document.createElement('p'); p.className = 'empty'; p.textContent = 'Say hi! Everyone in this room sees your messages.'; log.append(p); return; }
+    for (const m of this.msgs) {
+      const d = document.createElement('div'); d.className = 'cm' + (m.seat === Net.mySeat ? ' me' : '');
+      const w = document.createElement('span'); w.className = 'who'; w.textContent = m.seat === Net.mySeat ? 'You' : m.name; w.style.color = AVC[(m.seat >= 0 ? m.seat : 0) % AVC.length];
+      const t = document.createElement('span'); t.className = 'tx'; t.textContent = m.text;
+      d.append(w, t); log.append(d);
+    }
+    log.scrollTop = log.scrollHeight;
+  },
+  badge() {
+    const b = $('#chatBadge'); b.textContent = this.unread > 9 ? '9+' : String(this.unread); b.classList.toggle('hidden', !this.unread);
+    const lb = $('#lobbyChat'); const dot = lb.querySelector('.dot');
+    if (this.unread && !dot) { const s = document.createElement('span'); s.className = 'dot'; lb.append(s); } else if (!this.unread && dot) dot.remove();
+  },
+  bubble(m, mine) {
+    let host = null;
+    if (mine) host = $('#hud').classList.contains('hidden') ? null : $('#meBar');
+    else if (UI.labels && UI.labels[m.seat]) host = UI.labels[m.seat];
+    if (!host) return;
+    host.querySelectorAll('.bubble').forEach(b => b.remove());
+    const b = document.createElement('div'); b.className = 'bubble'; b.textContent = m.text.length > 60 ? m.text.slice(0, 57) + '…' : m.text;
+    host.append(b); setTimeout(() => b.remove(), 4100);
+  },
+  open() { this.isOpen = true; $('#chat').classList.remove('hidden'); this.unread = 0; this.badge(); this.draw(); setTimeout(() => { try { $('#chatIn').focus({ preventScroll: true }); } catch (e) { } }, 50); },
+  close() { this.isOpen = false; $('#chat').classList.add('hidden'); },
+  refresh() { $('#chatBtn').classList.toggle('hidden', !this.online()); if (!this.online()) this.close(); Reacts.refresh(); },
+  reset() { this.msgs = []; this.unread = 0; this.close(); this.badge(); this.draw(); this.refresh(); },
+  wire() {
+    const q = $('#chatQuick');
+    for (const t of this.QUICK) { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.onclick = () => this.send(t); q.append(b); }
+    $('#chatForm').addEventListener('submit', e => { e.preventDefault(); const i = $('#chatIn'); this.send(i.value); i.value = ''; });
+    $('#chatBtn').onclick = () => { SFX.click(); this.isOpen ? this.close() : this.open(); };
+    $('#lobbyChat').onclick = () => { SFX.click(); this.isOpen ? this.close() : this.open(); };
+    $('#chatClose').onclick = () => this.close();
+    $('#chatIn').addEventListener('keydown', e => { if (e.key === 'Escape') this.close(); e.stopPropagation(); });
+  },
+};
+
+/* ================= emoji reactions (online games) ================= */
+const Reacts = {
+  EMO: ['😂', '😮', '🔥', '👏', '😡', '😭', '🤯', '😎'],
+  ctx: null, timer: null,
+  inGame() { return App.mode === 'online-host' || App.mode === 'online-client'; },
+  refresh() { $('#react').classList.toggle('hidden', !this.inGame()); if (!this.inGame()) this.close(); },
+  // another player just did something: offer a quick reaction for a few seconds
+  fromEvent(e, view) {
+    if (!this.inGame() || e.seat == null || e.seat === view.me || !view.players[e.seat]) return;
+    const nm = view.players[e.seat].name.replace(/ \(bot\)$/, '');
+    let what = null;
+    if (e.t === 'play') {
+      const c = CARDS[e.id];
+      const label = { skip: 'Freeze', rev: 'Flip', draw2: '+2', wild: 'Prism', wild4: 'Prism+4' }[c.kind] || `${COLORS[c.color].name} ${c.value}`;
+      what = `${nm}'s ${label}`;
+    } else if (e.t === 'draw' && e.forced) what = `${nm} drawing ${e.n}`;
+    else if (e.t === 'skip' && !e.quiet) what = `${nm} getting frozen`;
+    else if (e.t === 'last') what = `${nm}'s LAST CARD`;
+    else if (e.t === 'penalty') what = `${nm}'s penalty`;
+    if (what) this.open({ to: e.seat, what });
+  },
+  open(ctx) {
+    this.ctx = ctx || null; clearTimeout(this.timer);
+    $('#reactWhat').textContent = ctx ? 'React to ' + ctx.what : 'React';
+    const r = $('#react'); r.classList.add('open'); r.classList.toggle('prompt', !!ctx);
+    this.timer = setTimeout(() => this.close(), ctx ? 6000 : 10000);
+  },
+  close() { clearTimeout(this.timer); this.ctx = null; $('#react').classList.remove('open', 'prompt'); },
+  send(i) {
+    const m = { e: i, to: this.ctx ? this.ctx.to : -1, what: this.ctx ? this.ctx.what : '' };
+    this.close();
+    if (App.mode === 'online-host') Net.hostReact(0, m);
+    else Net.send(Object.assign({ t: 'react' }, m));
+  },
+  receive(m) {
+    const e = Number(m && m.e); if (!Number.isInteger(e) || e < 0 || e >= this.EMO.length) return;
+    const seat = Number(m.seat), emo = this.EMO[e], what = Chat.clean(m.what).slice(0, 40);
+    const mine = seat === Net.mySeat;
+    // flying emoji over the sender
+    let host = mine ? $('#meBar') : (UI.labels && UI.labels[seat]);
+    if (host) {
+      const r = host.getBoundingClientRect();
+      const f = document.createElement('div'); f.className = 'fly'; f.textContent = emo;
+      const to = Number(m.to);
+      if (UI.view && Number.isInteger(to) && to >= 0 && UI.view.players[to]) {
+        const s = document.createElement('small'); s.textContent = '→ ' + (to === Net.mySeat ? 'You' : UI.view.players[to].name.replace(/ \(bot\)$/, '')); f.append(s);
+      }
+      f.style.left = (mine ? r.left + 40 : r.left + r.width / 2) + 'px'; f.style.top = r.top + 'px';
+      f.style.setProperty('--dx', (Math.random() * 60 - 30).toFixed(0) + 'px');
+      f.style.setProperty('--rot', (Math.random() * 30 - 15).toFixed(0) + 'deg');
+      document.body.append(f); setTimeout(() => f.remove(), 2500);
+    }
+    SFX.t(660, .05, 'sine', .07); SFX.t(990, .07, 'sine', .06, null, .05);
+    // also note it in the chat log (no unread count, so reactions don't nag)
+    Chat.msgs.push({ name: cleanName(m.name), seat, text: what ? `${emo} at ${what}` : emo });
+    if (Chat.msgs.length > 100) Chat.msgs.shift();
+    Chat.draw();
+  },
+  wire() {
+    const box = $('#reactEmojis');
+    this.EMO.forEach((t, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.onclick = () => this.send(i); box.append(b); });
+    $('#reactBtn').onclick = () => { SFX.click(); $('#react').classList.contains('open') ? this.close() : this.open(null); };
+  },
+};
+
 /* ================= app / modes ================= */
 const App = {
   mode: null, host: null, viewSeat: 0, multiLocal: false, waitingFor: null, curT: null,
@@ -1425,8 +1785,8 @@ const App = {
     UI.render(this.host.view(this.viewSeat), [], true);
   },
   reset() { if (this.host) this.host.destroy(); this.host = null; clearTimeout(this.curT); this.waitingFor = null; this.multiLocal = false; UI.hideCurtain(); },
-  toMenu() { this.reset(); Net.close(); this.mode = null; UI.exitGame(); UI.show('scr-menu'); },
-  rematch() { if (this.host && this.mode !== 'online-client') { $('#win').classList.add('hidden'); this.host.start(); } },
+  toMenu() { this.reset(); Net.close(); this.mode = null; UI.exitGame(); Chat.reset(); FX.stop(); Wallet.paint(); UI.show('scr-menu'); },
+  rematch() { if (this.host && this.mode !== 'online-client') { $('#win').classList.add('hidden'); FX.stop(); this.host.start(); } },
 };
 
 /* ================= networking (relay over MQTT/WebSocket: works on any network) =================
@@ -1439,7 +1799,7 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 function genCode(b) { let f; do { f = rnd(ALPHA.length); } while (f % BROKERS.length !== b); return ALPHA[f] + Array.from({ length: 4 }, () => ALPHA[rnd(ALPHA.length)]).join(''); }
 const brokerOf = code => { const i = ALPHA.indexOf(code[0]); return i < 0 ? -1 : i % BROKERS.length; };
 const Net = {
-  client: null, isHost: false, code: null, me: rid(), conns: new Map(), lobby: [], stacking: true,
+  client: null, isHost: false, code: null, me: rid(), mySeat: -1, conns: new Map(), lobby: [], stacking: true,
   timers: [], token: {}, joined: false, hostSeen: 0, outSeq: 0, stateSeq: 0, lastIn: 0,
   status(t) { $('#netStatus').textContent = t; },
   ready() { if (!window.mqtt) { this.status('Online play could not load. Check your internet and reload.'); return false; } return true; },
@@ -1470,7 +1830,7 @@ const Net = {
       } catch (e) { if (token !== this.token) return; }
     }
     if (!this.client) { this.status('Could not open a room. Check your internet and try again.'); return; }
-    this.lobby = [{ name, type: 'local', pid: null }]; App.mode = 'online-lobby';
+    this.lobby = [{ name, type: 'local', pid: null }]; App.mode = 'online-lobby'; this.mySeat = 0; Chat.reset();
     this.status(''); UI.showLobby(); this.pushLobby(); Manual.firstTime();
     this.every(() => {
       const now = Date.now();
@@ -1501,6 +1861,20 @@ const Net = {
       this.pushLobby(); SFX.click(); UI.toast(`${name} joined`);
     } else if (!c) return;
     else if (d.t === 'bye') this.drop(pid);
+    else if (d.t === 'chat') {
+      const now = Date.now(); c.chat = (c.chat || []).filter(t => now - t < 5000);
+      if (c.chat.length >= 5) return; // at most 5 messages in 5 seconds per player
+      c.chat.push(now);
+      const seat = this.lobby.findIndex(s => s.pid === pid);
+      if (seat >= 0) this.hostChat(seat, d.text);
+    }
+    else if (d.t === 'react') {
+      const now = Date.now(); c.re = (c.re || []).filter(t => now - t < 5000);
+      if (c.re.length >= 8) return; // at most 8 reactions in 5 seconds per player
+      c.re.push(now);
+      const seat = this.lobby.findIndex(s => s.pid === pid);
+      if (seat >= 0) this.hostReact(seat, d);
+    }
     else if (d.t === 'sync') this.resync(pid);
     else if (d.t === 'act' && App.mode === 'online-host' && App.host && d.a && typeof d.a.t === 'string') {
       if (c.seq >= 1e9) c.seq = d.seq - 1; // came back: accept their numbering from here
@@ -1509,6 +1883,19 @@ const Net = {
       const seat = this.lobby.findIndex(s => s.pid === pid);
       if (seat >= 0) App.host.act(seat, { t: d.a.t, id: Number(d.a.id), color: Number(d.a.color) });
     }
+  },
+  hostReact(seat, d) {
+    const s = this.lobby[seat], e = Number(d.e); if (!s || !Number.isInteger(e) || e < 0 || e >= Reacts.EMO.length) return;
+    const to = Number(d.to);
+    const m = { t: 'react', name: s.name.replace(/ \(bot\)$/, ''), seat, e, to: Number.isInteger(to) && to >= 0 && to < this.lobby.length ? to : -1, what: Chat.clean(d.what).slice(0, 40) };
+    for (const pid of this.conns.keys()) this.toClient(pid, m);
+    Reacts.receive(m);
+  },
+  hostChat(seat, text) {
+    const s = this.lobby[seat]; text = Chat.clean(text); if (!s || !text) return;
+    const m = { t: 'chat', name: s.name.replace(/ \(bot\)$/, ''), seat, text };
+    for (const pid of this.conns.keys()) this.toClient(pid, m);
+    Chat.receive(m);
   },
   resync(pid) {
     const i = this.lobby.findIndex(s => s.pid === pid); if (i < 0) return;
@@ -1545,7 +1932,7 @@ const Net = {
     if (!this.ready()) return; this.close(); const token = this.token;
     const b = brokerOf(code);
     if (b < 0) { this.status('That code does not look right. Check it with the host.'); return; }
-    this.isHost = false; this.code = code; this.status('Connecting…');
+    this.isHost = false; this.code = code; this.status('Connecting…'); Chat.reset();
     let c;
     try { c = await this.connect(BROKERS[b], ROOT + code + '/c/' + this.me, d => { if (token === this.token) this.onClientData(d); }); }
     catch (e) { if (token === this.token) this.status('Could not reach the game server. Check your internet and try again.'); return; }
@@ -1570,13 +1957,15 @@ const Net = {
     if (d.t === 'lobby') {
       this.joined = true; App.mode = 'online-lobby'; this.stacking = d.stacking; this.status('');
       if (!$('#scr-lobby').classList.contains('active')) { UI.showLobby(); Manual.firstTime(); }
-      UI.renderLobby(d.seats, d.you, false, d.stacking);
+      this.mySeat = d.you; UI.renderLobby(d.seats, d.you, false, d.stacking);
     } else if (d.t === 'reject') { const why = d.why; this.close(); this.status(why); UI.toast(why); }
     else if (d.t === 'state') {
-      if (!(d.n > this.lastIn)) return; this.lastIn = d.n; this.joined = true;
+      if (!(d.n > this.lastIn)) return; this.lastIn = d.n; this.joined = true; if (d.view) this.mySeat = d.view.me;
       if (App.mode !== 'online-client') { App.mode = 'online-client'; UI.enterGame(); }
       UI.render(d.view, d.ev || []);
-    } else if (d.t === 'closed') { UI.toast('The host closed the room'); App.toMenu(); }
+    } else if (d.t === 'chat') Chat.receive(d);
+    else if (d.t === 'react') Reacts.receive(d);
+    else if (d.t === 'closed') { UI.toast('The host closed the room'); App.toMenu(); }
   },
   send(m) { if (!this.client) return; m.from = this.me; if (m.t === 'act') m.seq = ++this.outSeq; this.pub('/h', m); },
   close() {
@@ -1659,6 +2048,7 @@ function wire() {
   $('#helpBtn').onclick = () => { SFX.click(); Manual.open(); };
   $('#howtoBtn').onclick = () => { SFX.init(); SFX.click(); Manual.open(); };
   Manual.wire();
+  Chat.wire(); Reacts.wire();
   $('#keepBtn').onclick = () => App.send({ t: 'keep' });
   $('#lastBtn').onclick = () => { if (UI.lastSeat != null) App.send({ t: 'last' }, UI.lastSeat); };
   $('#cancelPick').onclick = () => $('#colorPick').classList.add('hidden');
@@ -1683,7 +2073,8 @@ function wire() {
   R.setAttract(true);
   wire();
   const l = $('#loading'); l.style.opacity = 0; setTimeout(() => l.remove(), 500);
-  window.__cc = { App, UI, R, Net }; // handy for debugging in the console
+  Wallet.paint();
+  window.__cc = { App, UI, R, Net, Chat, Reacts, Wallet, FX }; // handy for debugging in the console
 })();
 </script>
 </body>
