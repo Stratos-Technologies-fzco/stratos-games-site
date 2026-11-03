@@ -301,3 +301,17 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .pk-vote.up.on{background:var(--blue);color:#fff}
 .pk-vote.down.on{background:#ff3d68;color:#fff}
 .pk-vote.on svg{fill:currentColor}
+/* ===== home page: CrazyGames-style hover preview (mouse only; phones unchanged) ===== */
+.pk-meta{display:none}
+.pk-pv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s}
+.pk-t.pv .pk-pv{opacity:1}
+@media (hover:hover){
+  body.poki .pk-t:not(.mine):hover,body.poki .pk-t:not(.mine):focus-visible{transform:scale(1.1);z-index:5;
+    box-shadow:0 0 0 3px #7b5cff,0 0 28px rgba(123,92,255,.55),0 18px 40px rgba(0,0,0,.6)}
+  body.poki .pk-t.s1:not(.mine):hover,body.poki .pk-t.s1:not(.mine):focus-visible{transform:scale(1.35)}
+  body.poki .pk-t.s3:hover,body.poki .pk-t.s3:focus-visible{transform:scale(1.05)}
+  body.poki .pk-t:hover .pk-name,body.poki .pk-t:focus-visible .pk-name{background:linear-gradient(180deg,rgba(104,66,255,0),rgba(104,66,255,.92) 60%)}
+  body.poki .pk-t:hover .pk-meta,body.poki .pk-t:focus-visible .pk-meta{display:flex;gap:6px;margin-top:6px}
+  .pk-meta i{font-style:normal;font-size:12px;font-weight:800;line-height:1;padding:4px 9px;border-radius:999px;background:rgba(25,12,70,.6);color:#fff}
+  body.poki .s1 .pk-meta i{font-size:9px;padding:3px 6px}
+}
