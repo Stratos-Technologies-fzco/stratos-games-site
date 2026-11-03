@@ -68,6 +68,28 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
 .tiles>div{background:rgba(255,255,255,.07);border-radius:12px;padding:8px 4px}
 .tiles b{color:#ffd23a}
 #snd{top:calc(12px + env(safe-area-inset-top))}
+
+/* ---- 30 second demo ---- */
+#demoUI{position:fixed;inset:0;display:none;pointer-events:none;z-index:4}
+#demoUI.on{display:block}
+.dz{position:absolute;top:0;bottom:0;width:50%;opacity:0;transition:opacity .15s;display:flex;align-items:center;justify-content:center;font:900 54px system-ui;color:#fff}
+.dz.dl{left:0;background:linear-gradient(90deg,rgba(80,150,255,.45),transparent)}
+.dz.dr{right:0;background:linear-gradient(270deg,rgba(80,150,255,.45),transparent)}
+.dz.on{opacity:1}
+.dcap{position:absolute;left:50%;transform:translateX(-50%);top:calc(190px + env(safe-area-inset-top));width:calc(100% - 28px);max-width:400px;text-align:center;padding:12px 14px;border-radius:16px;background:rgba(10,12,28,.8);border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.dtag{display:inline-block;font-size:10px;letter-spacing:.25em;font-weight:800;background:#ff5a36;border-radius:6px;padding:2px 8px;margin-bottom:6px}
+#dtitle{display:block;font-size:24px;font-style:italic;font-weight:900;letter-spacing:.04em}
+#dsub2{display:block;font-size:14px;color:#cfd2ea;margin-top:3px;line-height:1.35}
+.dkeys{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:calc(100% - 24px);max-width:400px}
+.dk{background:rgba(14,16,34,.78);border:2px solid rgba(255,255,255,.18);border-radius:14px;padding:8px 2px;text-align:center;transition:all .12s}
+.dk b{display:block;font-size:22px;line-height:1.1}
+.dk small{display:block;font-size:11px;font-weight:800;letter-spacing:.1em}
+.dk i{display:block;font-style:normal;font-size:10px;color:#9ea2c2;margin-top:2px}
+.dk.on{background:linear-gradient(#ffd23a,#ff8a1f);border-color:#fff;color:#1a1200;transform:translateY(-6px) scale(1.05);box-shadow:0 0 24px rgba(255,170,40,.8)}
+.dk.on i{color:#4a2c00}
+.dbar{position:absolute;left:14px;right:14px;bottom:calc(112px + env(safe-area-inset-bottom));max-width:400px;margin:0 auto;height:5px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}
+.dbar i{display:block;height:100%;width:0;background:#ff5a36}
+#dskip{position:fixed;pointer-events:auto;bottom:calc(126px + env(safe-area-inset-bottom));right:14px;border:0;border-radius:12px;background:rgba(20,20,34,.85);color:#fff;font:800 13px system-ui;padding:9px 14px;cursor:pointer;touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -89,8 +111,8 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
       <button class="btn" id="ride">RIDE<small>endless traffic run</small></button>
       <button class="btn alt" id="daily">DAILY RUN<small id="dsub">same road for everyone today</small></button>
     </div>
+    <button class="btn ghost" id="demo">&#9654; WATCH DEMO (30 s)</button>
     <div class="garage"><span id="bname">Flame</span><div class="sw" id="sw"></div></div>
-    <div class="hint">Touch left or right to steer. Hold NITRO to boost. Pass close to cars for a NEAR MISS and free nitro.</div>
   </div>
 </div>
 
@@ -106,6 +128,18 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
   </div>
 </div>
 
+<div id="demoUI">
+  <div class="dz dl" id="dzL">&#9664;</div><div class="dz dr" id="dzR">&#9654;</div>
+  <div class="dcap"><span class="dtag">DEMO &middot; <span id="dtime">30</span>s</span><b id="dtitle"></b><span id="dsub2"></span></div>
+  <div class="dbar"><i id="dprog"></i></div>
+  <div class="dkeys">
+    <div class="dk" id="dkL"><b>&#9664;</b><small>LEFT</small><i>&larr; / A</i></div>
+    <div class="dk" id="dkR"><b>&#9654;</b><small>RIGHT</small><i>&rarr; / D</i></div>
+    <div class="dk" id="dkB"><b>&#9632;</b><small>BRAKE</small><i>&darr; / S</i></div>
+    <div class="dk" id="dkN"><b>&#9889;</b><small>NITRO</small><i>Space / Shift</i></div>
+  </div>
+  <button id="dskip">SKIP</button>
+</div>
 <div id="ctl"><button class="cbtn" id="brake">BRAKE</button><button class="cbtn" id="nitro">NITRO</button></div>
 <button id="snd">Sound: off</button>
 
@@ -217,6 +251,7 @@ var pos = 0, speed = 0, playerX = 0, steerV = 0, nitro = 60, nitroOn = false, wh
 var chain = 0, chainT = 0, crashT = 0, revived = false, time = 0, bgOff = 0, shake = 0, nextKm = 1000, themeIdx = 0, lastTheme = -1, draft = 0;
 var cars = [], pops = [], sparks = [], rand = rng(1), rngDeco = 0;
 var tilt = 0, bikeRot = 0, bikeLift = 0, bikeDX = 0;
+var demo = null, demoIn = { steer: 0, nitro: false, brake: false };
 var stars = []; (function () { var q = rng(77); for (var i = 0; i < 50; i++) stars.push([q(), q() * 0.9, q()]); })();
 
 function initCars() { cars = []; for (var i = 0; i < MAXCARS; i++) cars.push({ z: 0, off: 0, speed: 0, w: 0.34, truck: false, col: CARCOLS[0], active: false, next: -1 }); }
@@ -234,7 +269,7 @@ function placeCar(c, minA, maxA) {
 
 function resetRun(m) {
   mode = m; var seed;
-  if (m === 'daily') seed = strSeed(todayStr()); else seed = (Math.random() * 1e9) | 0;
+  if (m === 'daily') seed = strSeed(todayStr()); else if (m === 'demo') seed = 2024; else seed = (Math.random() * 1e9) | 0;
   buildTrack(seed); rand = rng(seed ^ 0x9e3779b9);
   pos = SEG * 4; speed = 0; playerX = 0; steerV = 0; nitro = 60; nitroOn = false; wheelT = 0; wheelAmt = 0; dist = 0; bonus = 0;
   chain = 0; chainT = 0; crashT = 0; revived = false; shake = 0; nextKm = 1000; pops = []; sparks = []; bgOff = 0; draft = 0;
@@ -258,9 +293,9 @@ function holdBtn(id, setter) {
   el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('lostpointercapture', up);
 }
 holdBtn('nitro', function (v) { btnNitro = v; }); holdBtn('brake', function (v) { btnBrake = v; });
-function getSteer() { var s = touchSteer(); if (keys.ArrowLeft || keys.KeyA) s -= 1; if (keys.ArrowRight || keys.KeyD) s += 1; return clamp(s, -1, 1); }
-function wantNitro() { return btnNitro || keys.Space || keys.ShiftLeft || keys.ShiftRight || keys.ArrowUp || keys.KeyW; }
-function wantBrake() { return btnBrake || keys.ArrowDown || keys.KeyS; }
+function getSteer() { if (demo) return demoIn.steer; var s = touchSteer(); if (keys.ArrowLeft || keys.KeyA) s -= 1; if (keys.ArrowRight || keys.KeyD) s += 1; return clamp(s, -1, 1); }
+function wantNitro() { if (demo) return demoIn.nitro; return btnNitro || keys.Space || keys.ShiftLeft || keys.ShiftRight || keys.ArrowUp || keys.KeyW; }
+function wantBrake() { if (demo) return demoIn.brake; return btnBrake || keys.ArrowDown || keys.KeyS; }
 
 /* ---- sound (off by default) ---- */
 var aud = null, osc, oscGain, soundOn = store.get('snd', false);
@@ -306,9 +341,71 @@ sndLabel();
 function pop(text, col) { pops.push({ t: text, life: 1.3, col: col || '#fff' }); if (pops.length > 4) pops.shift(); }
 function addScore(p) { bonus += p; }
 
+/* ---- 30 second demo: the bike rides itself and every control lights up as it is used ---- */
+var DEMO_LEN = 30;
+var DEMO_STEPS = [
+  [0, 3, 'AUTO RIDE', 'Your bike speeds up by itself. You only steer.'],
+  [3, 5.2, 'STEER LEFT', 'Touch the LEFT side of the screen, or press the left arrow / A.'],
+  [5.2, 8.4, 'STEER RIGHT', 'Touch the RIGHT side of the screen, or press the right arrow / D.'],
+  [8.4, 11, 'BRAKE', 'Hold the BRAKE button, or press the down arrow / S, to slow down.'],
+  [11, 17.5, 'NITRO BOOST', 'Hold NITRO (or Space / Shift) to go faster. Boosting also gives WHEELIE points.'],
+  [17.5, 24.5, 'NEAR MISS', 'Pass close to a car (not touching!) for bonus points and free nitro.'],
+  [24.5, 27.5, 'WATCH THE ROAD', 'Hit a car and the run ends. You get one SECOND CHANCE per run.'],
+  [27.5, 30, 'READY?', 'Try the DAILY RUN: the same road for everyone, and a streak to keep.']
+];
+function demoEl(id) { return document.getElementById(id); }
+function startDemo() {
+  resetRun('demo'); state = 'play'; touches = {}; demo = { t: 0, step: -1 };
+  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.remove('on'); demoEl('demoUI').classList.add('on');
+  track('demo_start', {});
+}
+function endDemo(done) {
+  demo = null; demoIn.steer = 0; demoIn.nitro = false; demoIn.brake = false; demoEl('demoUI').classList.remove('on');
+  if (done) track('demo_complete', {});
+  goMenu();
+}
+var demoRecs = 0;
+function demoRecover() {
+  demoRecs++; (window.__rt = window.__rt || []).push(demo.t.toFixed(1));
+  speed = Math.max(speed, 6000); pop('Oops! Back on track', '#ffb347');
+  for (var i = 0; i < cars.length; i++) { var c = cars[i]; if (c.active && Math.abs(wrapS(c.z - pos)) < 6000) placeCar(c, DRAW * SEG + 500, DRAW * SEG + 14000); }
+}
+function demoUpdate(dt) {
+  demo.t += dt; var t = demo.t;
+  if (t >= DEMO_LEN) { endDemo(true); return true; }
+  var ahead = [], i, c, d;
+  for (i = 0; i < cars.length; i++) { c = cars[i]; if (!c.active) continue; d = wrapS(c.z - pos); if (d > 0 && d < 9000) ahead.push({ d: d, off: c.off, w: c.w }); }
+  var forced = null, nitroHold = false, brake = false;
+  if (t >= 3 && t < 5.2) forced = -0.75; else if (t >= 5.2 && t < 8.2) forced = 0.75;
+  if (t >= 8.4 && t < 10) brake = true;
+  if (t >= 11 && t < 17) { nitroHold = true; if (nitro < 15) nitro = 60; }
+  var nm = t >= 17.5 && t < 24.5, cand = forced != null ? [forced] : LANES.slice(), k;
+  if (nm) { for (k = 0; k < ahead.length; k++) if (ahead[k].d < 6500) { cand.push(clamp(ahead[k].off + (playerX >= ahead[k].off ? 1 : -1) * (ahead[k].w / 2 + 0.16), -0.9, 0.9)); } }
+  var best = 0, bp = 1e9;
+  for (k = 0; k < cand.length; k++) {
+    var x = cand[k], pen = 0;
+    for (i = 0; i < ahead.length; i++) { if (Math.abs(ahead[i].off - x) < (nm ? ahead[i].w / 2 + 0.13 : 0.4) && ahead[i].d < 7000) pen += 7000 / Math.max(ahead[i].d, 300); }
+    pen += Math.abs(x - playerX) * 0.5; if (nm && k >= LANES.length) pen -= 1.5;
+    if (pen < bp) { bp = pen; best = x; }
+  }
+  demoIn.steer = clamp((best - playerX) * 5, -1, 1); demoIn.nitro = nitroHold; demoIn.brake = brake;
+  /* captions and control lights */
+  var si = -1; for (i = 0; i < DEMO_STEPS.length; i++) if (t >= DEMO_STEPS[i][0] && t < DEMO_STEPS[i][1]) si = i;
+  if (si !== demo.step && si >= 0) { demo.step = si; demoEl('dtitle').textContent = DEMO_STEPS[si][2]; demoEl('dsub2').textContent = DEMO_STEPS[si][3]; }
+  var L = demoIn.steer < -0.25, R = demoIn.steer > 0.25;
+  demoEl('dkL').classList.toggle('on', L); demoEl('dzL').classList.toggle('on', L);
+  demoEl('dkR').classList.toggle('on', R); demoEl('dzR').classList.toggle('on', R);
+  demoEl('dkB').classList.toggle('on', brake); demoEl('dkN').classList.toggle('on', nitroHold);
+  demoEl('dprog').style.width = (t / DEMO_LEN * 100) + '%'; demoEl('dtime').textContent = Math.ceil(DEMO_LEN - t);
+  return false;
+}
+document.getElementById('demo').addEventListener('click', startDemo);
+document.getElementById('dskip').addEventListener('click', function () { endDemo(false); });
+
 /* ---- simulation ---- */
 function stepSim(dt) {
   time += dt;
+  if (demo && state === 'play') { if (demoUpdate(dt)) return; }
   var playing = state === 'play', crashing = state === 'crash', menu = state === 'menu';
   var seg = segs[segIdx(pos)], sp = speed / MAXS;
 
@@ -316,7 +413,7 @@ function stepSim(dt) {
     var steerIn = getSteer();
     steerV += (steerIn - steerV) * Math.min(1, dt * 10);
     playerX += dt * steerV * (0.6 + 1.6 * Math.min(sp, 1.45));
-    playerX -= dt * 2 * sp * sp * seg.curve * CENTRI;
+    playerX -= dt * 2 * sp * sp * seg.curve * CENTRI * (demo ? 0.3 : 1);
     var wantN = wantNitro();
     nitroOn = !!(wantN && nitro > 0 && speed > 2500);
     if (nitroOn) nitro = Math.max(0, nitro - 30 * dt);
@@ -351,7 +448,7 @@ function stepSim(dt) {
   bgAng += seg.curve * K_BEND * (speed / SEG) * dt * 0.5;
 
   /* cars */
-  var activeWant = menu ? 8 : Math.min(MAXCARS, 12 + Math.floor(dist / 150));
+  var activeWant = menu ? 8 : demo ? (demo.t < 17 ? 5 : 10) : Math.min(MAXCARS, 12 + Math.floor(dist / 150));
   var hit = false, draftNow = false;
   for (var i = 0; i < cars.length; i++) {
     var c = cars[i];
@@ -378,7 +475,7 @@ function stepSim(dt) {
     if (chainT > 0) { chainT -= dt; if (chainT <= 0) chain = 0; }
     draft = draftNow ? Math.min(1, draft + dt * 3) : Math.max(0, draft - dt * 3);
     if (draftNow) nitro = Math.min(100, nitro + 9 * dt);
-    if (hit) crash();
+    if (hit) { if (demo) demoRecover(); else crash(); }
   }
   /* pops + sparks */
   for (i = pops.length - 1; i >= 0; i--) { pops[i].life -= dt; if (pops[i].life <= 0) pops.splice(i, 1); }
@@ -431,6 +528,7 @@ function finishRun() {
 /* ---- screens ---- */
 var menuEl = document.getElementById('menu'), overEl = document.getElementById('over'), ctlEl = document.getElementById('ctl');
 function startRun(m) {
+  demo = null; demoEl('demoUI').classList.remove('on');
   resetRun(m); state = 'play'; touches = {};
   menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.add('on');
   sndStart(); track('level_start', { mode: m });
@@ -856,7 +954,7 @@ if (!glOK) { document.getElementById('menu').insertAdjacentHTML('afterbegin', '<
 resize();
 resetRun('free'); state = 'menu'; speed = 0; renderMenu();
 /* test hook for the maker's checks */
-window.__moto = { start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
+window.__moto = { demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
 requestAnimationFrame(frame);
 })();
 </script>
