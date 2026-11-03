@@ -1,8 +1,9 @@
 {
   "title": "MOTO RUSH",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "Race your bike through traffic, dodge everything and chase the longest run.",
+  "one_line": "Race a 3D superbike through traffic, boost with nitro, chain near misses and chase the longest run.",
   "category": "arcade",
   "github": "sksarfarajali",
-  "status": "coming_soon"
+  "how_to_play": "Touch the left or right side of the screen to steer, hold NITRO to boost, and pass close to cars for near-miss bonuses.",
+  "description": "Ride beyond limits in a 3D motorcycle rush. Dodge endless traffic across sunset coast, neon night, desert and alpine roads. Squeeze past cars for near-miss combos and free nitro, take on the Daily Run (the same road for everyone, with a streak), and spend coins on new bike colours."
 }
