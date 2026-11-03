@@ -24,6 +24,14 @@ var hero=D.querySelector('.pk-hero');if(hero){var sl=[].slice.call(hero.querySel
  var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  function start(){clearInterval(tm);if(!rm&&sl.length>1)tm=setInterval(function(){go(i+1)},5000)}
  hero.addEventListener('mouseenter',function(){clearInterval(tm)});hero.addEventListener('mouseleave',start);start()}
+/* home page: play a short preview clip while the mouse rests on a game */
+if(window.matchMedia&&matchMedia('(hover: hover)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
+ [].slice.call(D.querySelectorAll('.pk-t[data-pv]')).forEach(function(t){var tm,v;
+  t.addEventListener('mouseenter',function(){tm=setTimeout(function(){
+   if(!v){v=D.createElement('video');v.className='pk-pv';v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('muted','');v.setAttribute('aria-hidden','true');
+    v.src=B+t.dataset.pv;t.insertBefore(v,t.querySelector('.pk-name'))}
+   v.currentTime=0;var p=v.play();if(p&&p.catch)p.catch(function(){});t.classList.add('pv')},250)});
+  t.addEventListener('mouseleave',function(){clearTimeout(tm);t.classList.remove('pv');if(v)v.pause()})});
 /* search */
 var q=D.getElementById('pkq'),none=D.getElementById('pk-none');if(!q)return;
 q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,seen={};
