@@ -299,7 +299,8 @@ var save = {
   coins: store.get('coins', 0), best: store.get('best', 0), owned: store.get('owned', [0]), sel: store.get('sel', 0), bikes: store.get('bikes', [0]), bike: store.get('bike', 0), upg: store.get('upg', {}), chal: store.get('chal', null),
   streak: store.get('streak', 0), last: store.get('last', ''), grace: store.get('grace', false), dailyBest: store.get('dailyBest', {})
 };
-function persist() { store.set('bikes', save.bikes); store.set('bike', save.bike); store.set('upg', save.upg); store.set('chal', save.chal); store.set('coins', save.coins); store.set('best', save.best); store.set('owned', save.owned); store.set('sel', save.sel); store.set('streak', save.streak); store.set('last', save.last); store.set('grace', save.grace); store.set('dailyBest', save.dailyBest); }
+var PREVIEW = false;
+function persist() { if (PREVIEW) return; store.set('bikes', save.bikes); store.set('bike', save.bike); store.set('upg', save.upg); store.set('chal', save.chal); store.set('coins', save.coins); store.set('best', save.best); store.set('owned', save.owned); store.set('sel', save.sel); store.set('streak', save.streak); store.set('last', save.last); store.set('grace', save.grace); store.set('dailyBest', save.dailyBest); }
 
 /* ---- track ---- */
 var segs = [], N = 0, L = 0, startTheme = 0;
@@ -672,7 +673,7 @@ function renderMenu() {
   document.getElementById('mbadge').textContent = chalDone() + '/3';
 }
 function statBar(label, base, total, max) { return '<div class="stat"><span>' + label + '</span><div class="bar"><i class="up" style="width:' + Math.min(100, total / max * 100) + '%"></i><i class="bs" style="width:' + Math.min(100, base / max * 100) + '%"></i></div></div>'; }
-var videoOn = false;
+var videoOn = false, vidShow = false;
 function garageVideo(b) {
   var gv = document.getElementById('gvid'), tg = document.getElementById('vtag');
   if (b && b.video) {
@@ -683,8 +684,9 @@ function garageVideo(b) {
 }
 function renderGarage() {
   var b = BIKES[viewBike], owned = save.bikes.indexOf(viewBike) >= 0, u = getUpg(viewBike), p = calcPerf(viewBike);
-  document.getElementById('gcoins').textContent = save.coins; garageVideo(b);
+  document.getElementById('gcoins').textContent = save.coins; garageVideo(vidShow ? b : null);
   var h = '<div class="bhead"><div><b class="bn">' + b.n + '</b><small>' + b.cls.toUpperCase() + ' &middot; ' + b.blurb + '</small></div>' + (owned ? (save.bike === viewBike ? '<span class="tagok">EQUIPPED</span>' : '') : '<span class="taglock">LOCKED</span>') + '</div>';
+  if (b.video) h += '<button class="btn ghost sm" id="gVid" style="width:100%">' + (vidShow ? '&#9664; BACK TO 3D VIEW' : '&#9654; WATCH THE REAL BIKE VIDEO') + '</button>';
   h += statBar('SPEED', b.base.spd, p.spd, 1.5) + statBar('PICKUP', b.base.acc, p.acc, 1.9) + statBar('HANDLING', b.base.hnd, p.hnd, 1.5) + statBar('NITRO', b.base.nit, p.nit, 2.5);
   if (!owned) { var need = b.cost - save.coins; h += '<button class="btn' + (need > 0 ? ' dim' : '') + '" id="gAct">' + (need > 0 ? 'UNLOCK ' + b.cost + ' (need ' + need + ' more)' : 'UNLOCK FOR ' + b.cost) + '</button>'; }
   else if (save.bike !== viewBike) h += '<button class="btn" id="gAct">RIDE THIS BIKE</button>';
@@ -696,6 +698,7 @@ function renderGarage() {
   });
   h += b.livery ? '<div class="sec">PAINT</div><div class="note">Factory livery: the colours of the real bike.</div>' : '<div class="sec">PAINT</div><div class="sw" id="gsw"></div>';
   document.getElementById('gbody').innerHTML = h;
+  var gvb = document.getElementById('gVid'); if (gvb) gvb.onclick = function () { vidShow = !vidShow; renderGarage(); };
   var act = document.getElementById('gAct');
   if (act) act.onclick = function () {
     if (save.bikes.indexOf(viewBike) < 0) { if (save.coins < b.cost) { shakeEl(act); return; } save.coins -= b.cost; save.bikes.push(viewBike); save.bike = viewBike; track('bike_unlocked', { bike: b.n }); }
@@ -741,12 +744,12 @@ function applyLook(bi) {
   wheelieG = m.w; rearWheel = m.rear; frontWheel = m.front; frontG = m.fg; riderG = m.rider; flames = m.flames; flameGlow = m.fglow; glowMesh = m.glow;
   glowMesh.visible = !!l.glow; bikeRoot.scale.set(l.sc, l.sc, l.sc);
 }
-document.getElementById('bGarage').addEventListener('click', function () { viewBike = save.bike; scr = 'garage'; show('garage'); renderGarage(); });
+document.getElementById('bGarage').addEventListener('click', function () { vidShow = false; viewBike = save.bike; scr = 'garage'; show('garage'); renderGarage(); });
 document.getElementById('bMissions').addEventListener('click', function () { scr = 'missions'; show('missions'); renderMissions(); });
 document.getElementById('gBack').addEventListener('click', function () { scr = 'menu'; viewBike = save.bike; show('menu'); renderMenu(); });
 document.getElementById('mBack').addEventListener('click', function () { scr = 'menu'; show('menu'); renderMenu(); });
-document.getElementById('gPrev').addEventListener('click', function () { viewBike = (viewBike + BIKES.length - 1) % BIKES.length; renderGarage(); });
-document.getElementById('gNext').addEventListener('click', function () { viewBike = (viewBike + 1) % BIKES.length; renderGarage(); });
+document.getElementById('gPrev').addEventListener('click', function () { vidShow = false; viewBike = (viewBike + BIKES.length - 1) % BIKES.length; renderGarage(); });
+document.getElementById('gNext').addEventListener('click', function () { vidShow = false; viewBike = (viewBike + 1) % BIKES.length; renderGarage(); });
 document.getElementById('ride').addEventListener('click', function () { startRun('free'); });
 document.getElementById('daily').addEventListener('click', function () { startRun('daily'); });
 document.getElementById('again').addEventListener('click', function () { startRun(mode); });
@@ -1272,12 +1275,27 @@ function frame(t) {
   render(dt);
 }
 
+/* local test switch: file:///.../index.html?bike=4&start=free  (only on this computer, nothing is saved) */
+(function () {
+  try {
+    var loc = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    var q = new URLSearchParams(location.search), bi = parseInt(q.get('bike'), 10);
+    if (loc && bi >= 0 && bi < BIKES.length) { PREVIEW = true; save.bike = bi; if (save.bikes.indexOf(bi) < 0) save.bikes.push(bi); }
+  } catch (e) {}
+})();
 resize();
 glOK = init3D();
 if (!glOK) { document.getElementById('menu').insertAdjacentHTML('afterbegin', '<div class="hint" style="color:#ff8a70">This phone cannot show 3D graphics (WebGL is off).</div>'); }
 resize();
 resetRun('free'); state = 'menu'; speed = 0; renderMenu();
 /* test hook for the maker's checks */
+(function () {
+  try {
+    var loc = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1', m = new URLSearchParams(location.search).get('start');
+    if (loc && (m === 'free' || m === 'daily')) setTimeout(function () { startRun(m); }, 600);
+    if (loc && new URLSearchParams(location.search).get('screen') === 'garage') setTimeout(function () { document.getElementById('bGarage').click(); }, 300);
+  } catch (e) {}
+})();
 window.__moto = { ui: { save: save, chal: chal, calc: calcPerf, gen: genChal, ensure: ensureChal, garage: function () { document.getElementById('bGarage').click(); }, missions: function () { document.getElementById('bMissions').click(); } }, demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
 requestAnimationFrame(frame);
 })();
