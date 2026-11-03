@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { createTrainer } from '../aircraft/trainer.js';
 import { createFighter } from '../aircraft/fighter.js';
 import { createAirliner } from '../aircraft/airliner.js';
-import { createHelicopter } from '../aircraft/helicopter.js';
 import { stepRotorcraft } from '../physics/aero.js';
 
 // Player 2 (same screen as player 1 - no split; second PS5 / any gamepad). Own aircraft and state;
@@ -11,7 +9,7 @@ import { stepRotorcraft } from '../physics/aero.js';
 // slip decay, ground roll, rotate at Vr) and the shared rotorcraft model for the helicopter.
 // P2 pad: right stick pitch/roll, left stick throttle + rudder, L2/R2 throttle, Cross = gun (fighter),
 // Square = missile on lock (fighter), D-pad left/right = change aircraft, Options = respawn beside player 1.
-const FACTORIES = { trainer: createTrainer, airliner: createAirliner, fighter: createFighter, heli: createHelicopter };
+const FACTORIES = { fighter: createFighter };
 const ORDER = ['trainer', 'airliner', 'fighter', 'heli'];
 const NAMES = { trainer: 'TRAINER', airliner: 'AIRLINER', fighter: 'FIGHTER', heli: 'HELICOPTER' };
 
@@ -30,6 +28,7 @@ export class Wingman {
     this.missiles = 6;
     this.active = false;
     this.hud = document.createElement('div');
+    this.hud.id = 'wingman-hud';
     this.hud.style.cssText = 'position:fixed;bottom:96px;right:12px;z-index:10002;padding:8px 12px;font:bold 13px monospace;' +
       'color:#fbbf24;background:rgba(6,12,18,0.82);border:1px solid rgba(251,191,36,0.6);border-radius:4px;display:none;pointer-events:none;white-space:pre;';
     document.body.appendChild(this.hud);

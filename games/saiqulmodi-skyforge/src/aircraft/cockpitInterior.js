@@ -872,6 +872,8 @@ export function buildCockpit(aircraftId, eyeOffset) {
     reset() {
       fuelKg = spec.fuelKg;
     },
+    get fuelKg() { return fuelKg; },
+    set fuelKg(v) { fuelKg = v; },
 
     // d: flight data, inputs: { pitch, roll, yaw } in -1..1. Fuel burns in every view;
     // HOTAS animation, HUD (30 Hz) and MFDs (15 Hz) only run while the cockpit is on screen.

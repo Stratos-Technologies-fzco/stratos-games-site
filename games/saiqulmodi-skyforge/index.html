@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- full = all aircraft, not for Stratos. tools/build_web.py makes the fighter-only web edition (web/) for Stratos. -->
+  <meta name="skyforge-edition" content="web">
   <title>Skyforge - Full Unified Flight Simulator & Combat Range</title>
   <link rel="icon" type="image/svg+xml" href="assets/skyforge-icon.svg">
   <style>
@@ -369,6 +371,15 @@
     background: rgba(15, 23, 42, 0.94) !important; color: #38bdf8; font-size: 20px !important; padding: 0 !important;
     cursor: pointer; pointer-events: auto; }
   .deck-arrow[disabled] { opacity: 0.3; cursor: default; }
+  /* 03-Nov-2026 (user): every version shows only the first two tabs at the bottom (aircraft, camera).
+     The other panels stay in the page hidden, so their keyboard keys keep working. */
+  html body #control-deck > .panel-box:nth-child(n+3) { display: none !important; }
+  html body #control-deck { justify-content: safe center !important; backdrop-filter: none !important; }
+  .deck-arrow { display: none !important; }
+  /* 03-Nov-2026 (user): no write-up in the centre of the screen on any version (warning sounds stay) */
+  #flight-msg, #track-cue, #audio-banner { display: none !important; }
+  /* Web edition: the fighter only */
+  body[data-edition="web"] #btn-trainer, body[data-edition="web"] #btn-airliner, body[data-edition="web"] #btn-heli { display: none !important; }
 </style>
 <script>
   // ◀ ▶ beside the control deck: slide one screen of panels; each arrow dims at its end; same height as the deck
@@ -479,6 +490,7 @@
           <button id="btn-cam" onclick="toggleCameraView()" class="active">VIEW: COCKPIT [C]</button>
           <button onclick="lookCockpit('center')">RESET HEAD [5]</button>
           <button onclick="startApproach()">APPROACH [L]</button>
+          <button id="btn-sound" onclick="toggleSound()" class="active">SOUND</button>
       </div>
     </div>
 
@@ -548,7 +560,9 @@
     import * as THREE from 'three';
     import { FleetManager } from './src/aircraft/FleetManager.js';
     import { getFlightProfile, stepRotorcraft } from './src/physics/aero.js';
+    import { stepFixedWingAir, groundRollAccel, trimThrottle, trimAlpha, atmosphere, AIR } from './src/physics/flight.js';
     import { GamepadInput } from './src/core/gamepad.js';
+    import { initTouchControls, isTouchPlay } from './src/core/touchControls.js';
     import { initPhase6Environment } from './src/environment/phase6/index.js';
     import { initPhase7Weather } from './src/environment/phase7/index.js';
     import { initPhase8Navigation } from './src/environment/phase8/index.js';
@@ -562,6 +576,7 @@
     import { Airports } from './src/world/airports.js';
     import { createVisuals, addSurfaceDetail } from './src/render/visuals.js';
     import { CrashSequence } from './src/fx/crashSequence.js';
+    import { FighterFx } from './src/fx/fighterFx.js';
     // Altitude above sea level in feet (world y = 0 is VOBL at 915 m / 3,002 ft)
     const amslFt = (y) => (y - SEA_LEVEL_Y) * 3.28084;
 
@@ -704,6 +719,27 @@
         source.stop(this.ctx.currentTime + 0.1);
       }
 
+      // Sonic boom as the aircraft goes through Mach 1: a deep double thump
+      playBoom() {
+        if (!this.initialized || this.ctx.state !== 'running') return;
+        [0, 0.14].forEach((at) => {
+          const source = this.ctx.createBufferSource();
+          source.buffer = this.cannonBuffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(170, this.ctx.currentTime);
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.0001, this.ctx.currentTime + at);
+          gain.gain.exponentialRampToValueAtTime(0.9, this.ctx.currentTime + at + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + at + 0.55);
+          source.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterCompressor);
+          source.start(this.ctx.currentTime + at);
+          source.stop(this.ctx.currentTime + at + 0.6);
+        });
+      }
+
       playTouchdown() {
         if (!this.initialized || this.ctx.state !== 'running') return;
         const osc = this.ctx.createOscillator();
@@ -722,6 +758,13 @@
 
     const audio = new ProceduralAudioEngine();
     window.initAudio = () => audio.init();
+    // Sound on / off, in the camera tab (Stratos: a clear mute button)
+    window.toggleSound = () => {
+      audio.init();
+      audio.muted = !audio.muted;
+      if (audio.muted) audio.ctx.suspend(); else audio.ctx.resume();
+      document.getElementById('btn-sound').classList.toggle('active', !audio.muted);
+    };
     window.addEventListener('keydown', () => audio.init(), { once: true });
     window.addEventListener('pointerdown', () => audio.init(), { once: true });
 
@@ -864,9 +907,11 @@
     let cockpit = null;  // its 3D cockpit
     let profile = null;  // active flight profile (pushed into aero.js by FleetManager)
 
+    const WEB_EDITION = document.querySelector('meta[name="skyforge-edition"]').content === 'web';
+    document.body.dataset.edition = WEB_EDITION ? 'web' : 'full';
     window.selectAircraft = (type) => {
       if (type === currentAircraft) return;
-      const airborne = aircraft !== null && !state.onGround;
+      if (WEB_EDITION && type !== 'fighter') return;   // the web edition is the fighter only
       aircraft = fleet.switchTo(type);
       cockpit = fleet.cockpit;
       visuals.enhanceAircraft(aircraft.mesh, cockpit.group);
@@ -874,12 +919,8 @@
       currentAircraft = type;
       navComputer.setCruise(CRUISE_FT[type] || 9500);
 
-      if (airborne) {
-        // Keep position, heading and speed; just keep the new airframe's gear clear of the ground
-        state.pos.y = Math.max(state.pos.y, profile.groundHeight + 1);
-      } else {
-        resetToThreshold();
-      }
+      // A different aircraft is always a fresh start on the runway, never a jump in mid-air (user, 03-Nov-2026)
+      resetToThreshold();
       updateAPReadout();
     };
 
@@ -896,6 +937,13 @@
       terrain.prime(state.pos.x, state.pos.z);
       state.rot.set(0, yawFor(e.dirX, e.dirZ), 0);
       state.vel.set(0, 0, 0);
+      state.altZeroFt = 0;
+      state.gStress = 0;
+      state.loadG = 1;
+      state.stalled = false;
+      state.overspeed = false;
+      state.structuralFail = false;
+      if (cockpit) cockpit.reset();   // full tanks on a fresh start
       state.throttle = 0;
       state.power = 0;
       state.ias = 0;
@@ -923,6 +971,7 @@
     const GLIDE_RAD = 3 * Math.PI / 180;
 
     const flightMsgEl = document.createElement('div');
+    flightMsgEl.id = 'flight-msg';
     flightMsgEl.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:10002;padding:8px 18px;' +
       'font:bold 15px monospace;background:rgba(6,12,18,0.88);border:1px solid currentColor;display:none;text-align:center;';
     document.body.appendChild(flightMsgEl);
@@ -948,6 +997,7 @@
     const CUE = { green: '#4ade80', yellow: '#facc15', red: '#ef4444' };
     let cueBeepAt = 0, cueKey = '';
     function cueBeep() {
+      if (audio.muted) return;
       try {
         const ac = cueBeep.ac || (cueBeep.ac = new (window.AudioContext || window.webkitAudioContext)());
         const o = ac.createOscillator(), g = ac.createGain();
@@ -1027,6 +1077,31 @@
       track(landed ? 'level_complete' : 'game_over', Object.assign({ level: currentAircraft, seconds }, extra));
     }
 
+    // A reason to come back: stars for every landing (smooth = 3), a running total, and a daily streak. No words.
+    const starsEl = document.createElement('nav');
+    starsEl.id = 'landing-stars';
+    starsEl.style.cssText = 'position:fixed;top:26%;left:50%;transform:translateX(-50%) scale(0.6);z-index:10003;pointer-events:none;opacity:0;' +
+      'transition:opacity .25s ease, transform .35s cubic-bezier(.2,1.6,.4,1);text-align:center;font:bold 22px monospace;color:#fff;text-shadow:0 2px 8px #000;white-space:nowrap;';
+    document.body.appendChild(starsEl);
+    function awardLanding(stars) {
+      // One award per landing: a bounce on the same runway does not count twice
+      if (performance.now() - (starsEl._at || -1e9) < 30000) return;
+      starsEl._at = performance.now();
+      let save = { total: 0, streak: 0, day: '' };
+      try { save = Object.assign(save, JSON.parse(localStorage.getItem('skyforge.stars') || '{}')); } catch (e) { /* storage blocked */ }
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now() - 864e5).toDateString();
+      if (save.day !== today) save.streak = save.day === yesterday ? save.streak + 1 : 1;
+      save.day = today;
+      save.total += stars;
+      try { localStorage.setItem('skyforge.stars', JSON.stringify(save)); } catch (e) { /* storage blocked */ }
+      starsEl.innerHTML = `<div style="font-size:54px;color:#fde047;letter-spacing:6px;">${'&#9733;'.repeat(stars)}<span style="opacity:.25">${'&#9733;'.repeat(3 - stars)}</span></div>&#9733; ${save.total} &nbsp; &#128293; ${save.streak}`;
+      starsEl.style.opacity = '1';
+      starsEl.style.transform = 'translateX(-50%) scale(1)';
+      clearTimeout(starsEl._t);
+      starsEl._t = setTimeout(() => { starsEl.style.opacity = '0'; starsEl.style.transform = 'translateX(-50%) scale(0.6)'; }, 3500);
+    }
+
     function crash(reason) {
       if (landing.crashResetAt) return;
       flightMsg(`CRASH: ${reason} - PILOT EJECTED. New start at ${activeEnd.icao} RWY ${activeEnd.ident} in 10 s`, '#ef4444', 6000);
@@ -1037,6 +1112,13 @@
       aircraft.mesh.traverse((o) => { if (paint === 0x8896a8 && o.isMesh && o.material && o.material.color) paint = o.material.color.getHex(); });
       crashFx.start(state.pos, velBefore, terrain.groundY(state.pos.x, state.pos.z), paint);
       aircraft.mesh.visible = false;
+      // The wreck is on the ground, so the aircraft's numbers are too, wherever the crash began (0 ft, 0 kt, level)
+      state.pos.y = terrain.groundY(state.pos.x, state.pos.z) + profile.groundHeight;
+      state.altZeroFt = 0;
+      state.rot.x = 0;
+      state.rot.z = 0;
+      state.onGround = true;
+      state.prevOnGround = true;
       state.vel.set(0, 0, 0);
       state.throttle = 0;
       state.power = 0;
@@ -1066,6 +1148,7 @@
       if (profile.approachKt && state.ias > profile.approachKt * 1.5) return crash(`TOUCHDOWN FAR TOO FAST (${Math.round(state.ias)} KT)`);
       if (!rwy && state.ias > 40) return crash(onHigherGround ? 'TERRAIN IMPACT' : 'OFF-RUNWAY TOUCHDOWN');
       const grade = fpm < 240 ? 'SMOOTH' : fpm < 600 ? 'NORMAL' : 'FIRM';
+      awardLanding(grade === 'SMOOTH' ? 3 : grade === 'NORMAL' ? 2 : 1);
       const arrived = destEnd && rwy.icao === destEnd.icao && rwy.icao !== landing.depIcao;
       const trip = arrived && landing.depMs ? ` - ARRIVED from ${landing.depIcao}, flight time ${Math.round((performance.now() - landing.depMs) / 60000)} min` : '';
       flightMsg(`${grade} LANDING - ${fpm} FPM, ${rwy.icao} RWY ${rwy.ident}, ${rwy.distPast} M past threshold${trip}. Brakes: B / L3`, '#4ade80', 9000);
@@ -1084,6 +1167,8 @@
       state.onGround = false;
       state.apMaster = false;
       state.altHold = false;
+      state.holdGamma = -GLIDE_RAD;
+      state.rollRate = 0;
       landing.airTime = 10;
       landing.crashResetAt = 0;
       if (profile.rotorcraft) {
@@ -1092,12 +1177,9 @@
         state.power = 66;
       } else {
         // Trim for the 3 degree path: lift = weight at this speed, thrust = drag minus the glide's help
-        const clMax = profile.cl0 + profile.clAlpha * profile.stallAoA;
-        const cl = clMax * (profile.stallKt / profile.approachKt) ** 2;
-        const alpha = (cl - profile.cl0) / profile.clAlpha;
-        state.rot.set(alpha - GLIDE_RAD, yawFor(e.dirX, e.dirZ), 0);
-        const drag = 0.0006 * v * v + 9.81 * cl * 0.05;
-        state.throttle = Math.max(0, Math.min(1, (drag - 9.81 * Math.sin(GLIDE_RAD)) / profile.maxThrust));
+        const hM = amslFt(state.pos.y) * 0.3048;
+        state.rot.set(trimAlpha(profile, v, hM) - GLIDE_RAD, yawFor(e.dirX, e.dirZ), 0);
+        state.throttle = trimThrottle(currentAircraft, profile, v, -GLIDE_RAD, hM);
         state.power = state.throttle * 100;
       }
       updateAPReadout();
@@ -1175,7 +1257,7 @@
       });
     });
 
-    selectAircraft('trainer');
+    selectAircraft('fighter'); // the fighter is always the starting aircraft (user, 03-Nov-2026)
 
     // ==========================================
     // 5. CONTROLS & AUTOPILOT
@@ -1238,6 +1320,7 @@
     window.toggleCameraView = () => {
       if (twoPlayer && cameraMode === 'chase') { flightMsg('2 PLAYERS: shared outside view (cockpit view is one-player)', '#fbbf24', 2500); return; }
       cameraMode = cameraMode === 'chase' ? 'cockpit' : 'chase';
+      document.body.dataset.cam = cameraMode;   // the phone tab shows the matching icon
       const btn = document.getElementById('btn-cam');
       if (btn) btn.innerText = cameraMode === 'cockpit' ? 'VIEW: COCKPIT [C]' : 'VIEW: CHASE [C]';
     };
@@ -1320,6 +1403,7 @@
     let lastGunShotMs = 0;
 
     const padNote = document.createElement('div');
+    padNote.id = 'pad-note';
     padNote.style.cssText = 'position:fixed;bottom:96px;right:12px;z-index:10002;padding:6px 12px;font:bold 12px monospace;' +
       'color:#00ffcc;background:rgba(6,12,18,0.88);border:1px solid rgba(0,255,170,0.4);display:none;';
     document.body.appendChild(padNote);
@@ -1391,6 +1475,43 @@
     window.addEventListener('resize', resize);
     resize();
 
+    initTouchControls(movingMap); // phones and tablets only: on-screen flight buttons, clean screen
+    const touchPlay = isTouchPlay();
+
+    // Altitude shown to the pilot: height above the ground under the aircraft, 0 on the ground (user, 03-Nov-2026).
+    // Navigation and the autopilot keep working in height above sea level.
+    function heightAboveGroundFt() {
+      return Math.max(0, (state.pos.y - terrain.groundY(state.pos.x, state.pos.z) - profile.groundHeight) * 3.28084 - (state.altZeroFt || 0));
+    }
+    window.skyforgeHeightFt = heightAboveGroundFt; // console check
+    window.skyforgeCockpit = () => cockpit;        // console check: fuelKg
+
+    // The pilot's own view under g: the edges darken, then everything goes black
+    const gVision = document.createElement('nav');
+    gVision.id = 'g-vision';
+    gVision.style.cssText = 'position:fixed;inset:0;z-index:9000;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%, transparent 15%, #000 72%);';
+    document.body.appendChild(gVision);
+    function drawGVision() {
+      const stress = crashFx.active ? 0 : Math.min(1, state.gStress || 0);
+      gVision.style.opacity = stress;
+      gVision.style.backgroundColor = stress >= 1 ? '#000' : 'transparent';
+    }
+
+    // Before take-off: no power while the altitude does not read 0 (user, 03-Nov-2026). Tap the alert to set it to zero.
+    const zeroAlert = document.createElement('button');
+    zeroAlert.id = 'zero-alert';
+    zeroAlert.type = 'button';
+    zeroAlert.innerHTML = '&#9888; SET ALTITUDE 0';
+    zeroAlert.style.cssText = 'position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:10006;display:none;height:auto !important;' +
+      'padding:10px 18px !important;font:bold 16px monospace !important;color:#fff;background:#dc2626 !important;border:2px solid #fff;border-radius:8px !important;cursor:pointer;';
+    zeroAlert.onclick = () => { state.altZeroFt = (state.altZeroFt || 0) + heightAboveGroundFt(); };
+    document.body.appendChild(zeroAlert);
+    function altitudeInterlock() {
+      const blocked = state.onGround && state.ias < 5 && !crashFx.active && heightAboveGroundFt() > 3;
+      if (blocked) { state.throttle = 0; state.power = 0; }
+      zeroAlert.style.setProperty('display', blocked ? 'block' : 'none');
+    }
+
     function drawAvionics() {
       ctx.clearRect(0, 0, hudCanvas.width, hudCanvas.height);
       if (cameraMode === 'cockpit') return; // cockpit view uses the collimated HUD on the combiner glass
@@ -1409,7 +1530,7 @@
 
       ctx.fillStyle = '#38bdf8';
       ctx.textAlign = 'right';
-      ctx.fillText(`${Math.max(0, Math.round(amslFt(state.pos.y)))} FT`, cx + 80, cy - 55);
+      ctx.fillText(`${Math.round(heightAboveGroundFt())} FT`, cx + 80, cy - 55);
 
       ctx.textAlign = 'left';
       ctx.fillStyle = state.isAfterburner ? '#f59e0b' : '#f8fafc';
@@ -1422,30 +1543,21 @@
       ctx.fillStyle = '#f8fafc';
       ctx.font = '11px monospace';
       ctx.fillText(`PITCH: ${(state.rot.x * 180 / Math.PI).toFixed(1)}°`, cx - 80, cy + 68);
-
-      if (currentAircraft === 'fighter') {
-        const mx = hudCanvas.width / 2;
-        const my = hudCanvas.height / 2;
-        ctx.strokeStyle = state.mach >= 1.0 ? '#ef4444' : '#10b981';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(mx, my, 18, 0, Math.PI * 2);
-        ctx.moveTo(mx - 30, my); ctx.lineTo(mx - 18, my);
-        ctx.moveTo(mx + 18, my); ctx.lineTo(mx + 30, my);
-        ctx.moveTo(mx, my - 30); ctx.lineTo(mx, my - 18);
-        ctx.moveTo(mx, my + 18); ctx.lineTo(mx, my + 30);
-        ctx.stroke();
-
-        ctx.fillStyle = '#10b981';
-        ctx.font = '12px monospace';
-        ctx.fillText(`MACH ${state.mach.toFixed(2)} | 9.0G FBW`, mx - 60, my + 50);
-      }
     }
 
     // ==========================================
     // 7. SUPERSONIC AERODYNAMICS LOOP
     // ==========================================
-    const dt = 1 / 60;
+    // Real time per frame: flight runs at true speed on a slow phone or a 120 Hz screen alike
+    let dt = 1 / 60;
+    let lastFrameMs = 0;
+    let lastMach = 0;
+    const fighterFx = new FighterFx(fleetContainer, scene, LAYER_EXTERIOR);
+    const chaseUp = new THREE.Vector3(0, 1, 0);
+    const blendUp = new THREE.Vector3();
+    const upTurn = new THREE.Quaternion();
+    const upStep = new THREE.Quaternion();
+    window.skyforgeCamera = camera;   // console check
 
     // Cockpit camera / HUD helpers
     let gLoad = 1.0;
@@ -1463,6 +1575,9 @@
 
     function animate() {
       requestAnimationFrame(animate);
+      const frameNow = performance.now();
+      dt = lastFrameMs ? Math.max(1 / 240, Math.min(1 / 20, (frameNow - lastFrameMs) / 1000)) : 1 / 60;
+      lastFrameMs = frameNow;
       velBefore.copy(state.vel);
 
       if (keys['ShiftLeft'] || keys['ShiftRight']) state.throttle = Math.min(1.0, state.throttle + 0.4 * dt);
@@ -1473,8 +1588,14 @@
         handlePadActions(pad);
         state.throttle = Math.max(0.0, Math.min(1.0, state.throttle + pad.throttleRate * 0.4 * dt));
       }
+      altitudeInterlock();
+      // Engine follows the throttle at its own speed; it stops when the tanks run dry
+      const engineOut = !profile.rotorcraft && cockpit.fuelKg <= 0;
+      state.engineOut = engineOut;
+      if (engineOut) state.throttle = 0;
 
-      state.power += (state.throttle * 100 - state.power) * 3.5 * dt;
+      const spool = (AIR[currentAircraft] && AIR[currentAircraft].spool) || 3.5;
+      state.power += (state.throttle * 100 - state.power) * Math.min(1, spool * dt);
       state.isAfterburner = (profile.afterburnerThrust !== undefined && state.throttle > 0.70);
 
       let pIn = (keys['KeyS'] ? 1 : 0) - (keys['KeyW'] ? 1 : 0);
@@ -1486,6 +1607,14 @@
         rIn = Math.max(-1, Math.min(1, rIn + pad.roll));
         yIn = Math.max(-1, Math.min(1, yIn + pad.yaw));
       }
+      // Touch stick on phones (analog)
+      const touchStick = window.skyforgeTouchStick;
+      if (touchStick) {
+        pIn = Math.max(-1, Math.min(1, pIn + touchStick.pitch));
+        rIn = Math.max(-1, Math.min(1, rIn + touchStick.roll));
+      }
+      // Pilot blacked out by sustained g: no control until the blood returns
+      if (state.gStress >= 1) { pIn = 0; rIn = 0; yIn = 0; }
 
       if (state.navMode && (!state.apMaster || state.onGround || profile.rotorcraft || !lastNav || lastNav.complete)) {
         state.navMode = false;
@@ -1509,8 +1638,11 @@
       // Nose direction in the horizontal plane (heading); airspeed = velocity along it
       fwdDir.set(-Math.sin(state.rot.y), 0, -Math.cos(state.rot.y));
       const forwardSpeed = Math.max(0, state.vel.x * fwdDir.x + state.vel.z * fwdDir.z);
-      state.ias = forwardSpeed * 1.94384;
-      state.mach = state.ias / 661.47;
+      const heightM = amslFt(state.pos.y) * 0.3048;
+      const air = atmosphere(heightM);
+      const trueSpeed = state.onGround ? forwardSpeed : state.vel.length(); // in the air: true 3D speed
+      state.ias = trueSpeed * Math.sqrt(air.sigma) * 1.94384;               // what the airspeed indicator reads
+      state.mach = trueSpeed / air.soundMs;
 
       const braking = !!(keys['KeyB'] || (pad && pad.brake));
       const terrainY = terrain.groundY(state.pos.x, state.pos.z); // real ground under the aircraft (0 at VOBL)
@@ -1519,18 +1651,41 @@
         // Rotorcraft branch (aero.js): collective = lift, cyclic = disc tilt, pedals = yaw
         state.prevOnGround = state.onGround;
         stepRotorcraft(state, { pitch: pIn, roll: rIn, yaw: yIn }, profile, dt, terrainY);
+      } else if (state.pos.y > terrainY + profile.groundHeight) {
+        // Fixed-wing in the air: real rolling, pitching, banked turns and speed (src/physics/flight.js)
+        state.prevOnGround = state.onGround;
+        state.onGround = false;
+        stepFixedWingAir(state, {
+          pitch: pIn, roll: rIn, yaw: yIn,
+          autoAltFt: state.apMaster && state.altHold ? state.targetAlt - amslFt(state.pos.y) : null,
+          wingsLevel: state.apMaster && !state.navMode,
+          gentleRoll: !!state.navMode,
+          hM: heightM
+        }, profile, currentAircraft, dt);
+        // Human limit: holding more g than the pilot tolerates narrows the view, then blacks it out
+        const tolerance = AIR[currentAircraft].gTolerance;
+        state.gStress = Math.max(0, Math.min(1.2, (state.gStress || 0) + (state.loadG > tolerance ? (state.loadG - tolerance) * 0.2 : -0.35) * dt));
+        // Warning horn past the never-exceed speed; well past it the airframe breaks up
+        if (state.overspeed && performance.now() > cueBeepAt) { cueBeep(); cueBeepAt = performance.now() + 450; }
+        if (state.structuralFail && !landing.crashResetAt) crash('STRUCTURE FAILED - OVERSPEED');
       } else {
-        // Fixed-wing: per-aircraft numbers come from the active profile
+        // Fixed-wing on the ground: per-aircraft numbers come from the active profile
+        state.rollRate = 0;
+        state.holdGamma = null;
+        state.stick = 0;
         const vr = profile.vr;
-        const pitchRate = profile.maxPitchRate;
+        const pitchRate = Math.min(profile.maxPitchRate, 0.35);   // rotation for take-off is a slow, steady raise of the nose
         const rollRate = profile.maxRollRate;
 
         const cEff = Math.max(0.35, Math.min(1.2, forwardSpeed / 25));
         // Attitude holds like a real aircraft when the stick is let go (user, 01-Nov-2026); only the
         // autopilot (AP / ALT HOLD / NAV) brings the wings and nose back to level
         const levelK = state.apMaster ? 1 : 0;
-        state.rot.x += (pIn * pitchRate * cEff - state.rot.x * 0.08 * levelK) * dt;
-        state.rot.z += (-rIn * rollRate * cEff - state.rot.z * 0.3 * levelK) * dt;
+        // On the wheels the controls need airflow: nothing moves at a standstill, the nose can only be raised near
+        // take-off speed and settles back on its wheel otherwise, and the wings stay level on the gear
+        const groundAuthority = Math.min(1, (forwardSpeed / (vr / 1.94384)) ** 2);
+        state.rot.x += (pIn * pitchRate * groundAuthority - state.rot.x * 0.08 * levelK) * dt;
+        if (pIn <= 0) state.rot.x -= state.rot.x * (1 - groundAuthority) * 1.5 * dt;
 
         state.prevOnGround = state.onGround;
         const groundHeight = terrainY + profile.groundHeight;
@@ -1551,7 +1706,10 @@
         // (turn rate = L sin(bank) / v), so pulling back in a bank tightens the turn. Turn lift capped at -3..6 g.
         const turnLift = Math.max(-3 * 9.81, Math.min(6 * 9.81, liftAccel));
         const turnRate = wheelsDown ? 0 : turnLift * Math.sin(-state.rot.z) / Math.max(25, forwardSpeed);
-        state.rot.y += (yIn * profile.maxYawRate * cEff - turnRate) * dt;
+        // Nose-wheel steering, as on any aircraft: a tight turn (18 m radius) at taxi speed, gentle at speed so the
+        // tyres hold (0.25 g sideways at most); the rudder keeps a little authority on the take-off roll
+        const steering = forwardSpeed < 0.1 ? 0 : Math.max(Math.min(forwardSpeed / 18, 2.45 / forwardSpeed), forwardSpeed > 30 ? 0.05 : 0);
+        state.rot.y += (yIn * steering - turnRate) * dt;
 
         // Velocity follows the nose: sideways slip dies out (quickly on the tyres, slower in the air)
         fwdDir.set(-Math.sin(state.rot.y), 0, -Math.cos(state.rot.y));
@@ -1565,12 +1723,15 @@
           if (!state.prevOnGround) { landing.cPitch = state.rot.x; landing.cRoll = state.rot.z; }
           state.pos.y = groundHeight;
           state.onGround = true;
-          if (state.rot.x > 0.22) state.rot.x = 0.22;
-          if (state.rot.x < 0.0) state.rot.x = 0.0;
-          state.rot.z *= 0.85;
+          // Tail-scrape and wheels-level limits are reached smoothly, never snapped
+          const settle = 1 - Math.exp(-6 * dt);
+          if (state.rot.x > 0.22) state.rot.x += (0.22 - state.rot.x) * settle;
+          if (state.rot.x < 0.0) state.rot.x += (0.0 - state.rot.x) * settle;
+          state.rot.z *= Math.exp(-8 * dt);
 
           // Ground roll: rolling resistance at idle, wheel brakes (B / L3) for the landing rollout
-          const groundDecel = (state.throttle < 0.05 ? 1.2 : 0) + (braking ? 5.0 * phase7.brakeFactor(state.ias) : 0);
+          // With the power off it coasts down on tyre drag; on the landing roll the ground spoilers add more
+          const groundDecel = (state.throttle < 0.05 ? (landing.rollout ? 1.2 : 0.3) : 0) + (braking ? 5.0 * phase7.brakeFactor(state.ias) : 0);
           const rollSpeed = Math.hypot(state.vel.x, state.vel.z);
           if (groundDecel > 0 && rollSpeed > 0) {
             const k = Math.max(0, rollSpeed - groundDecel * dt) / rollSpeed;
@@ -1578,11 +1739,12 @@
             state.vel.z *= k;
           }
           if (state.throttle >= 0.05) {
-            let groundThrust = (state.power / 100) * profile.groundThrust;
-            state.vel.x += fwdDir.x * groundThrust * dt;
-            state.vel.z += fwdDir.z * groundThrust * dt;
-            state.vel.x *= 0.998;
-            state.vel.z *= 0.998;
+            // Engine against air drag and rolling resistance, each aircraft's own (src/physics/flight.js)
+            const rollingNow = Math.max(0, state.vel.x * fwdDir.x + state.vel.z * fwdDir.z);   // after the brakes above
+            const rollAccel = groundRollAccel(state, currentAircraft, profile, rollingNow, heightM);
+            const nextSpeed = Math.max(0, rollingNow + rollAccel * dt);
+            state.vel.x = fwdDir.x * nextSpeed;
+            state.vel.z = fwdDir.z * nextSpeed;
           }
 
           // Landing rollout: nose wheel comes down and the aircraft stays down unless the pilot
@@ -1612,25 +1774,6 @@
             if (state.ias > 40) audio.playTouchdown();
             onTouchdown(-velBefore.y);
           }
-        } else {
-          state.onGround = false;
-
-          // Lift acts through the wings: its vertical share shrinks with bank
-          state.vel.y += (liftAccel * Math.cos(state.rot.z) - 9.81) * dt;
-          state.vel.y = Math.max(-35, Math.min(40, state.vel.y));
-
-          const maxThrust = state.isAfterburner ? profile.afterburnerThrust : profile.maxThrust;
-
-          let waveDragCoeff = 0.0006;
-          if (state.mach > 0.85 && state.mach < 1.25) {
-            waveDragCoeff = 0.0014;
-          }
-
-          // Along the flight path: thrust - parasite/wave drag - induced drag - climb (g sin gamma)
-          const aeroDrag = waveDragCoeff * forwardSpeed * forwardSpeed;
-          const alongAccel = (state.power / 100) * maxThrust - aeroDrag - inducedDrag - 9.81 * Math.sin(gamma);
-          state.vel.x += fwdDir.x * alongAccel * dt;
-          state.vel.z += fwdDir.z * alongAccel * dt;
         }
       }
 
@@ -1680,7 +1823,7 @@
         else groundLine = `T/O RWY ${activeEnd.ident} ${activeEnd.icao}: ${(Math.hypot(activeEnd.thrX - state.pos.x, activeEnd.thrZ - state.pos.z) / 1000).toFixed(1)} KM (${Math.round(activeEnd.lengthM).toLocaleString('en-IN')} M LONG)`;
       }
       movingMap.extras = { wind, ils: ilsNow, traffic: p8.traffic, targets: combatNow.targets, lock: currentAircraft === 'fighter' ? combatNow.lockedTarget : null,
-        active: activeEnd, ground: groundLine };
+        active: activeEnd, ground: groundLine, groundFt: amslFt(terrain.groundY(state.pos.x, state.pos.z)) };
       movingMap.draw(state, navData, headingNow, performance.now());
       updateTrackCue(navData, headingNow, terrain.groundY(state.pos.x, state.pos.z));
 
@@ -1710,15 +1853,19 @@
         throttle: state.throttle,
         power: state.power,
         isAfterburner: state.isAfterburner,
-        iasKt: state.ias
+        iasKt: state.ias,
+        gearDown: state.onGround || heightAboveGroundFt() < 300
       });
+      fighterFx.update(dt, state, currentAircraft === 'fighter');
+      if (state.mach >= 1 && lastMach < 1 && !state.onGround) audio.playBoom();
+      lastMach = state.mach;
 
       bodyVel.copy(state.vel).applyQuaternion(headQuat.copy(bodyQuat).invert());
       const fwdSpeed = -bodyVel.z;
       cockpit.update({
         dt,
         iasKt: state.ias,
-        altFt: amslFt(state.pos.y),
+        altFt: heightAboveGroundFt(),
         mach: state.mach,
         gLoad,
         pitch: state.rot.x,
@@ -1737,7 +1884,7 @@
 
       if (cameraMode === 'cockpit') {
         camera.layers.set(0);
-        camera.layers.enable(LAYER_COCKPIT);
+        if (!touchPlay) camera.layers.enable(LAYER_COCKPIT); // phones: clear view of the runway, no cockpit panels
 
         // Head shake from G-load above 1.5 G and transonic Mach buffet; head pushed down under positive G
         const buffet = Math.max(0, 1 - Math.abs(state.mach - 1.0) / 0.2) * (state.mach > 0.85 ? 1 : 0);
@@ -1766,7 +1913,21 @@
         if (chaseOffsetSmooth.lengthSq() === 0 || camera.position.distanceTo(state.pos) > 1000) chaseOffsetSmooth.copy(camOffset);
         else chaseOffsetSmooth.lerp(camOffset, 1 - Math.exp(-6 * dt));
         camera.position.copy(state.pos).add(chaseOffsetSmooth);
+        // Level flight keeps the horizon level. Near the vertical or inverted the camera goes with the airframe's own
+        // up, eased, so it follows through loops and rolls without flipping at the top.
+        const pitchShare = THREE.MathUtils.smoothstep(Math.abs(state.rot.x), 0.8, 1.25);
+        const invertShare = THREE.MathUtils.smoothstep(-Math.cos(state.rot.z), -0.45, 0.25);
+        const share = Math.max(pitchShare, invertShare);
+        blendUp.set(0, 1 - share, 0).addScaledVector(tmpUp, share);
+        if (blendUp.lengthSq() > 1e-4) {
+          // Turn the camera's up towards it at a limited rate (never faster than 2 rad/s), whichever way it has to go
+          upTurn.setFromUnitVectors(chaseUp, blendUp.normalize());
+          upStep.identity().rotateTowards(upTurn, 2 * dt);
+          chaseUp.applyQuaternion(upStep).normalize();
+        }
+        camera.up.copy(chaseUp);
         camera.lookAt(state.pos.clone().add(new THREE.Vector3(0, 1.0, -4.0).applyEuler(state.rot)));
+        camera.up.set(0, 1, 0);
       }
 
       if (twoPlayer) {
@@ -1788,6 +1949,7 @@
       visuals.render();
       drawAvionics();
       drawCombatAndIls();
+      drawGVision();
     }
 
     // Radar lock box + ILS needles, drawn over the HUD canvas in both views

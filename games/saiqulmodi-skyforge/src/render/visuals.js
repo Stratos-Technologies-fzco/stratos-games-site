@@ -27,7 +27,7 @@ const WEATHER = {
 };
 
 const QUALITY = {
-  low:    { ratio: 1.0, shadows: false, shadowSize: 1024, bloom: false },
+  low:    { ratio: 1.5, shadows: false, shadowSize: 1024, bloom: false },   // sharp on a phone; the FPS guard lowers it if needed
   medium: { ratio: 1.5, shadows: true,  shadowSize: 2048, bloom: false },
   high:   { ratio: 2.0, shadows: true,  shadowSize: 4096, bloom: true }
 };
@@ -475,6 +475,8 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
       const next = st.quality === 'high' ? 'medium' : 'low';
       console.info(`[visuals] ${fps.toFixed(0)} FPS - graphics ${st.quality} -> ${next}`);
       setQuality(next, false);
+    } else if (fps < 24 && st.quality === 'low' && renderer.getPixelRatio() > 1) {
+      renderer.setPixelRatio(1);   // last step on a slow phone: softer picture, smoother flight
     }
   }
 

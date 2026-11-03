@@ -12,6 +12,7 @@ const toLine = (route) => route.map(([lat, lon]) => geoToWorld(lat, lon));
 export class MovingMap {
   constructor() {
     this.size = 'small';
+    this.simple = false; // phones: runways, flight path and the aircraft only
     this.airports = null;
     this.home = { icao: 'VOBL', ident: '09L', thrX: 0, thrZ: 2000 };
     this.nearest = null; // nearest runway end to land on (always shown)
@@ -77,12 +78,52 @@ export class MovingMap {
     this.applySize();
   }
 
+  // Phone map: runways, the flight path still to fly, and the aircraft. No words.
+  drawSimple(ctx, W, H, sx, sy, k, state, nav, headingDeg) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
+    const runways = this.airports ? this.airports.runways : [
+      { ax: 0, az: RUNWAY.halfLength, bx: 0, bz: -RUNWAY.halfLength },
+      { ax: SOUTH_RUNWAY_X, az: RUNWAY.halfLength, bx: SOUTH_RUNWAY_X, bz: -RUNWAY.halfLength }
+    ];
+    const rwW = Math.max(5, RUNWAY.width * k);
+    const nr = this.nearest;
+    ctx.lineCap = 'butt';
+    runways.forEach((rw) => {
+      const isNearest = nr && rw.icao === nr.end.icao && (rw.le === nr.end.ident || rw.he === nr.end.ident);
+      ctx.strokeStyle = isNearest ? '#22d3ee' : rw.icao === this.home.icao ? '#ffffff' : '#9ca3af';
+      ctx.lineWidth = rwW;
+      ctx.beginPath(); ctx.moveTo(sx(rw.ax, rw.az), sy(rw.ax, rw.az)); ctx.lineTo(sx(rw.bx, rw.bz), sy(rw.bx, rw.bz)); ctx.stroke();
+    });
+    if (nav && !nav.complete) {
+      ctx.strokeStyle = '#e879f9';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([7, 5]);
+      ctx.beginPath();
+      ctx.moveTo(sx(state.pos.x, state.pos.z), sy(state.pos.x, state.pos.z));
+      for (let i = nav.index; i < nav.route.length; i++) ctx.lineTo(sx(nav.route[i].x, nav.route[i].z), sy(nav.route[i].x, nav.route[i].z));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.translate(sx(state.pos.x, state.pos.z), sy(state.pos.x, state.pos.z));
+    ctx.rotate(headingDeg * Math.PI / 180);
+    ctx.fillStyle = '#facc15'; ctx.strokeStyle = '#0b1120'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -13); ctx.lineTo(9, 10); ctx.lineTo(0, 5); ctx.lineTo(-9, 10);
+    ctx.closePath(); ctx.stroke(); ctx.fill();
+    ctx.restore();
+  }
+
   // state: sim state, nav: NavComputer output (or null), headingDeg
   draw(state, nav, headingDeg, nowMs) {
     if (nowMs - this.lastDrawMs < 1000 / MAP_HZ) return;
     this.lastDrawMs = nowMs;
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
-    const cx = W / 2, cy = (H - 54) / 2; // guidance box takes the bottom 54 px
+    const boxH = this.simple ? 0 : 54;   // guidance box takes the bottom 54 px
+    const cx = W / 2, cy = (H - boxH) / 2;
     const gsMs = Math.hypot(state.vel.x, state.vel.z);
     this.nearest = this.findNearest(state.pos.x, state.pos.z, gsMs);
     const nr = this.nearest;
@@ -95,9 +136,10 @@ export class MovingMap {
     if (nr) pts.push({ x: nr.end.thrX, z: nr.end.thrZ });
     const need = Math.max(...pts.map((p) => Math.max(Math.abs(p.x - midX), Math.abs(p.z - midZ)))) * 1.1 + 1500;
     const half = SCALES_M.find((s) => s >= need) || SCALES_M[SCALES_M.length - 1];
-    const k = (Math.min(W, H - 54) / 2 - 14) / half;
+    const k = (Math.min(W, H - boxH) / 2 - 14) / half;
     const sx = (x, z) => cx + (-(z - midZ)) * k; // east is right
     const sy = (x, z) => cy + (x - midX) * k;    // south is down
+    if (this.simple) { this.drawSimple(ctx, W, H, sx, sy, k, state, nav, headingDeg); return; }
     const tag = (text, x, y, color) => {          // small boxed label that reads over anything
       ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
       const w = ctx.measureText(text).width + 8;
@@ -199,7 +241,8 @@ export class MovingMap {
         if (!large && !active) return;
         ctx.font = active ? 'bold 11px monospace' : '10px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(large ? `${wp.name} ${wp.altFt}ft` : wp.name, px, i % 2 ? py + 17 : py - 9);
+        const aboveGround = Math.max(0, Math.round(wp.altFt - ((this.extras && this.extras.groundFt) || 0)));
+        ctx.fillText(large ? `${wp.name} ${aboveGround}ft` : wp.name, px, i % 2 ? py + 17 : py - 9);
         ctx.textAlign = 'left';
       });
     }
@@ -311,7 +354,9 @@ export class MovingMap {
       ctx.fillText(`NEXT ${nav.name}  BRG ${String(Math.round(nav.bearing)).padStart(3, '0')}  ${nav.distNm.toFixed(1)} NM  ${mins}:${String(secs).padStart(2, '0')}`, 8, H - 36);
       const turnTxt = Math.abs(nav.turn) < 5 ? 'ON COURSE' : `TURN ${nav.turn > 0 ? 'RIGHT' : 'LEFT'} ${Math.round(Math.abs(nav.turn))} DEG`;
       const altDiff = nav.targetAltFt - nav.altFt;
-      const altTxt = Math.abs(altDiff) < 200 ? `ALT ${Math.round(nav.altFt)} OK` : `${altDiff > 0 ? 'CLIMB' : 'DESCEND'} TO ${nav.targetAltFt} FT`;
+      // Same altitude as the pilot's readout: above the ground under the aircraft
+      const groundFt = (ex && ex.groundFt) || 0;
+      const altTxt = Math.abs(altDiff) < 200 ? `ALT ${Math.max(0, Math.round(nav.altFt - groundFt))} OK` : `${altDiff > 0 ? 'CLIMB' : 'DESCEND'} TO ${Math.max(0, Math.round(nav.targetAltFt - groundFt))} FT`;
       const col = (v, y, r) => (v < y ? '#4ade80' : v < r ? '#facc15' : '#ef4444');
       const hCol = col(Math.abs(nav.turn), 5, 25), aCol = col(Math.abs(altDiff), 300, 1000);
       ctx.fillStyle = hCol;

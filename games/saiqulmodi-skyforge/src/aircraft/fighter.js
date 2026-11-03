@@ -5,13 +5,16 @@ export function createFighter() {
   const fighterGroup = new THREE.Group();
   fighterGroup.name = "stealth_fighter";
 
-  // Materials
+  // Materials: air-superiority grey that catches the sun, darker metal for the engines
   const radarAbsorbentMat = new THREE.MeshStandardMaterial({
-    color: 0x24282f,
-    roughness: 0.45,
-    metalness: 0.65,
-    flatShading: true
+    color: 0x7d8a97,
+    roughness: 0.5,
+    metalness: 0.2,
+    flatShading: true,
+    side: THREE.DoubleSide
   });
+  const darkPanelMat = new THREE.MeshStandardMaterial({ color: 0x39424c, roughness: 0.55, metalness: 0.3, flatShading: true });
+  const nozzleMat = new THREE.MeshStandardMaterial({ color: 0x4a443e, roughness: 0.35, metalness: 0.8, side: THREE.DoubleSide });
 
   const canopyMat = new THREE.MeshPhysicalMaterial({
     color: 0x997722, // Gold tinted radar-reflective bubble
@@ -23,24 +26,48 @@ export function createFighter() {
   });
 
   const burnerMat = new THREE.MeshBasicMaterial({
-    color: 0x00aaff,
+    color: 0xff7a1a,
     transparent: true,
-    opacity: 0.0
+    opacity: 0.25,
+    toneMapped: false
   });
 
-  // 1. Chiseled Stealth Fuselage
-  const fuselageGeo = new THREE.ConeGeometry(1.4, 11, 6);
-  fuselageGeo.rotateX(Math.PI / 2);
-  fuselageGeo.scale(1.2, 0.45, 1.0);
+  // 1. Chiseled stealth fuselage: lofted through cross-sections, sharp nose to wide twin-engine tail
+  const SECTION = [[0, 1.05], [0.55, 0.8], [1, 0], [0.6, -0.7], [0, -0.85], [-0.6, -0.7], [-1, 0], [-0.55, 0.8]];
+  const STATIONS = [ // z (nose = +), half width, half height, centre height
+    [6.4, 0.02, 0.02, -0.02], [5.2, 0.32, 0.2, 0.0], [3.8, 0.6, 0.34, 0.04], [2.2, 0.82, 0.48, 0.08],
+    [0.6, 1.22, 0.54, 0.08], [-1.5, 1.55, 0.54, 0.06], [-3.2, 1.5, 0.5, 0.04], [-4.5, 1.2, 0.44, 0.02]
+  ];
+  const fuselagePos = [];
+  const ring = (st, i) => {
+    const [px, py] = SECTION[i % SECTION.length];
+    return [px * st[1], py * st[2] + st[3], st[0]];
+  };
+  for (let s = 0; s < STATIONS.length - 1; s++) {
+    for (let i = 0; i < SECTION.length; i++) {
+      const a = ring(STATIONS[s], i), b = ring(STATIONS[s], i + 1), c = ring(STATIONS[s + 1], i), d = ring(STATIONS[s + 1], i + 1);
+      fuselagePos.push(...a, ...c, ...b, ...b, ...c, ...d);
+    }
+  }
+  const fuselageGeo = new THREE.BufferGeometry();
+  fuselageGeo.setAttribute('position', new THREE.Float32BufferAttribute(fuselagePos, 3));
+  fuselageGeo.computeVertexNormals();
   const fuselage = new THREE.Mesh(fuselageGeo, radarAbsorbentMat);
-  fuselage.position.set(0, 0, 0);
   fighterGroup.add(fuselage);
+
+  // Air intakes either side, ahead of the wing
+  [-1, 1].forEach((side) => {
+    const intake = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.4, 2.4), darkPanelMat);
+    intake.position.set(side * 1.02, -0.12, 0.7);
+    intake.rotation.y = side * 0.12;
+    fighterGroup.add(intake);
+  });
 
   // 2. Cockpit Canopy Bubble
   const canopyGeo = new THREE.SphereGeometry(0.65, 16, 12);
-  canopyGeo.scale(0.7, 0.65, 2.8);
+  canopyGeo.scale(0.66, 0.62, 2.5);
   const canopy = new THREE.Mesh(canopyGeo, canopyMat);
-  canopy.position.set(0, 0.45, 1.2);
+  canopy.position.set(0, 0.42, 1.7);
   fighterGroup.add(canopy);
 
   // 3. Diamond Delta Main Wings with Chines
@@ -86,17 +113,36 @@ export function createFighter() {
   rightFin.rotation.z = -0.38; // ~22 degrees outward cant
   fighterGroup.add(rightFin);
 
-  // 5. Twin Reheat Afterburner Cones
-  const abGeo = new THREE.ConeGeometry(0.35, 1.6, 12);
-  abGeo.rotateX(-Math.PI / 2);
+  // Tailplanes between the fins and the wing tips
+  const tailShape = new THREE.Shape();
+  tailShape.moveTo(0, 0.5);
+  tailShape.lineTo(1.9, -0.55);
+  tailShape.lineTo(1.9, -1.15);
+  tailShape.lineTo(0, -0.95);
+  tailShape.closePath();
+  const tailGeo = new THREE.ExtrudeGeometry(tailShape, { depth: 0.06, bevelEnabled: false });
+  tailGeo.rotateX(Math.PI / 2);
+  [-1, 1].forEach((side) => {
+    const tail = new THREE.Mesh(tailGeo, radarAbsorbentMat);
+    tail.position.set(side * 1.25, 0.02, -3.6);
+    tail.scale.x = side;
+    fighterGroup.add(tail);
+  });
 
-  const leftAB = new THREE.Mesh(abGeo, burnerMat);
-  leftAB.position.set(-0.55, 0.0, -5.2);
-  const rightAB = new THREE.Mesh(abGeo, burnerMat);
-  rightAB.position.set(0.55, 0.0, -5.2);
-
-  fighterGroup.add(leftAB);
-  fighterGroup.add(rightAB);
+  // 5. Twin engine nozzles with a hot glow inside (brightens with power)
+  const nozzleGeo = new THREE.CylinderGeometry(0.46, 0.56, 1.3, 16, 1, true);
+  nozzleGeo.rotateX(Math.PI / 2);
+  const glowGeo = new THREE.CircleGeometry(0.42, 16);
+  glowGeo.rotateY(Math.PI);
+  const nozzles = [-0.62, 0.62].map((x) => {
+    const nozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+    nozzle.position.set(x, 0.02, -4.75);
+    fighterGroup.add(nozzle);
+    const glow = new THREE.Mesh(glowGeo, burnerMat);
+    glow.position.set(x, 0.02, -5.2);
+    fighterGroup.add(glow);
+    return glow;
+  });
 
   // ---- Fleet contract wrapper ----
   // The stealth model above is built nose towards +Z; the flight loop flies nose towards -Z,
@@ -111,38 +157,43 @@ export function createFighter() {
     elevonR: addSurface(mesh, radarAbsorbentMat, 2.4, 0.08, 0.45, 2.4, -0.01, 3.55)
   };
 
-  // Afterburner plume: additive, un-tonemapped so it glows
-  const plumeMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8, transparent: true, opacity: 0.85,
+  // Afterburner flame: an orange outer flame round a short bright core; both grow smoothly with the throttle
+  const flameMat = new THREE.MeshBasicMaterial({
+    color: 0xff8a2a, transparent: true, opacity: 0.55,
     blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
   });
-  const plumeGeo = new THREE.ConeGeometry(0.33, 3.2, 12);
-  plumeGeo.rotateX(Math.PI / 2);
-  const plumes = [-0.55, 0.55].map((x) => {
-    const plume = new THREE.Mesh(plumeGeo, plumeMat);
-    plume.position.set(x, 0, 7.2);
-    plume.visible = false;
-    mesh.add(plume);
-    return plume;
+  const coreMat = new THREE.MeshBasicMaterial({
+    color: 0xa8dcff, transparent: true, opacity: 0.8,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+  });
+  const flameGeo = new THREE.ConeGeometry(0.4, 1, 14);
+  flameGeo.rotateX(Math.PI / 2);   // tip points aft
+  flameGeo.translate(0, 0, 0.5);
+  const flames = [-0.62, 0.62].map((x) => {
+    const flame = new THREE.Mesh(flameGeo, flameMat);
+    const core = new THREE.Mesh(flameGeo, coreMat);
+    flame.position.set(x, 0.02, 5.25);
+    core.position.copy(flame.position);
+    flame.visible = core.visible = false;
+    mesh.add(flame, core);
+    return { flame, core };
   });
 
+  // Landing gear folds away after take-off and comes down low on approach
   const gearMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7 });
-  addGearLeg(mesh, gearMat, 0, -0.3, -3.2, -1.2, 0.2);
-  addGearLeg(mesh, gearMat, -1.1, -0.1, 1.0, -1.2, 0.25);
-  addGearLeg(mesh, gearMat, 1.1, -0.1, 1.0, -1.2, 0.25);
-
-  const reheat = function(throttle) {
-    // Light up reheat cones past 70% throttle
-    const abIntensity = throttle > 0.7 ? (throttle - 0.7) / 0.3 : 0.0;
-    burnerMat.opacity = abIntensity * 0.9;
-  };
+  const gear = new THREE.Group();
+  addGearLeg(gear, gearMat, 0, -0.3, -3.2, -1.2, 0.2);
+  addGearLeg(gear, gearMat, -1.1, -0.1, 1.0, -1.2, 0.25);
+  addGearLeg(gear, gearMat, 1.1, -0.1, 1.0, -1.2, 0.25);
+  mesh.add(gear);
+  let gearOut = 1, burn = 0;
 
   return {
     id: 'fighter',
     name: '5th-Gen Stealth Fighter',
     mesh,
     type: 'fighter',
-    afterburners: [leftAB, rightAB],
+    afterburners: nozzles,
     // Flight loop's existing fighter numbers (feel unchanged)
     profile: {
       dryMass: 13300,
@@ -152,9 +203,9 @@ export function createFighter() {
       maxRollRate: 3.0,
       maxPitchRate: 1.8,
       maxYawRate: 0.5,
-      vr: 110,
-      stallKt: 92,     // clean stall speed (lift model)
-      approachKt: 135, // ~1.45 x stall: keeps the nose low enough to see the runway
+      vr: 135,         // 1.13 x stall
+      stallKt: 119,    // from L = 1/2 rho V^2 S CLmax with this aircraft's mass and wing (tools/validate_flight.py)
+      approachKt: 160, // 1.35 x stall
       groundThrust: 65.0,
       groundHeight: 1.2,
       mass: 13300, wingArea: 42.7, aspectRatio: 2.7, oswaldEfficiency: 0.7, cd0: 0.02, cl0: 0.1,
@@ -164,15 +215,23 @@ export function createFighter() {
     chaseOffset: new THREE.Vector3(0, 3.4, 14.0),
 
     update(dt, flightState) {
-      reheat(flightState.throttle);
       deflectSurfaces(surfaces, flightState.input);
-      plumes.forEach((p) => {
-        p.visible = flightState.isAfterburner;
-        if (flightState.isAfterburner) {
-          const flameScale = 1.0 + Math.random() * 0.4;
-          p.scale.set(flameScale, flameScale, flameScale * 1.5);
-        }
+      // Nozzle glow follows engine power; the flame builds and dies over a moment past the afterburner gate
+      burnerMat.opacity = 0.2 + 0.7 * flightState.power / 100;
+      const burnGoal = flightState.throttle > 0.7 ? (flightState.power / 100 - 0.6) / 0.4 : 0;
+      burn += (Math.max(0, burnGoal) - burn) * Math.min(1, 5 * dt);
+      flames.forEach(({ flame, core }) => {
+        flame.visible = core.visible = burn > 0.02;
+        if (!flame.visible) return;
+        const flicker = 1 + Math.random() * 0.12;
+        flame.scale.set(0.8 + 0.25 * burn, 0.8 + 0.25 * burn, (1.2 + 3.0 * burn) * flicker);
+        core.scale.set(0.55, 0.55, (0.6 + 1.3 * burn) * flicker);
       });
+      const gearGoal = flightState.gearDown === false ? 0 : 1;
+      gearOut += Math.max(-dt / 2.5, Math.min(dt / 2.5, gearGoal - gearOut));
+      gear.visible = gearOut > 0.02;
+      gear.scale.y = Math.max(0.02, gearOut);
+      gear.position.y = -0.1 * (1 - gearOut);
     },
 
     dispose() {

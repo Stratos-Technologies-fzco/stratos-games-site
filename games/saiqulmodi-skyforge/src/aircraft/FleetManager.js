@@ -1,17 +1,12 @@
-import { createTrainer } from './trainer.js';
 import { createFighter } from './fighter.js';
-import { createAirliner } from './airliner.js';
-import { createHelicopter } from './helicopter.js';
 import { buildCockpit } from './cockpitInterior.js';
 import { setFlightProfile } from '../physics/aero.js';
 
 // Registry of the 4 airframes. Each factory returns the common contract:
 // { id, name, mesh, profile, cockpitOffset, chaseOffset, update(dt, flightState), dispose() }
 const FACTORIES = {
-  trainer: createTrainer,
-  airliner: createAirliner,
-  fighter: createFighter,
-  heli: createHelicopter
+  fighter: createFighter
+
 };
 
 export class FleetManager {

@@ -122,9 +122,9 @@ export function createAirliner() {
       maxRollRate: 0.8,
       maxPitchRate: 0.6,
       maxYawRate: 0.35,
-      vr: 90,
-      stallKt: 78,     // clean stall speed (lift model)
-      approachKt: 101, // 1.3 x stall
+      vr: 130,         // 1.13 x stall
+      stallKt: 114,    // from L = 1/2 rho V^2 S CLmax with this aircraft's mass and wing (tools/validate_flight.py)
+      approachKt: 148, // 1.3 x stall
       groundThrust: 24.0,
       groundHeight: 2.2,
       mass: 128000, wingArea: 353, aspectRatio: 7.2, oswaldEfficiency: 0.8, cd0: 0.024, cl0: 0.35,
