@@ -328,6 +328,8 @@ function wrapS(d) { d = ((d % L) + L) % L; if (d > L / 2) d -= L; return d; }
 /* ---- game state ---- */
 var state = 'menu', mode = 'free';
 var pos = 0, speed = 0, playerX = 0, steerV = 0, nitro = 60, nitroOn = false, wheelT = 0, wheelAmt = 0, dist = 0, bonus = 0;
+var rs = { near: 0, wheelies: 0, nitro: 0, passed: 0, chain: 0, t0: 0 };
+function bikeName() { return BIKES[save.bike] ? BIKES[save.bike].n : ''; }
 var chain = 0, chainT = 0, crashT = 0, revived = false, time = 0, bgOff = 0, shake = 0, nextKm = 1000, themeIdx = 0, lastTheme = -1, draft = 0;
 var cars = [], pops = [], sparks = [], rand = rng(1), rngDeco = 0;
 var tilt = 0, bikeRot = 0, bikeLift = 0, bikeDX = 0;
@@ -442,6 +444,7 @@ function genChal(dateStr) {
 function ensureChal() { var t = todayStr(); if (!save.chal || save.chal.d !== t || !save.chal.g) { save.chal = genChal(t); persist(); } return save.chal; }
 function chalDone() { var c = ensureChal(); return c.dn[0] + c.dn[1] + c.dn[2]; }
 function chal(type, val) {
+  if (!demo) { if (type === 'near') rs.near++; else if (type === 'wheelie') rs.wheelies++; else if (type === 'nitro') rs.nitro += val; else if (type === 'pass') rs.passed++; else if (type === 'combo') rs.chain = Math.max(rs.chain, val); }
   if (demo || !save.chal) return;
   var c = save.chal;
   for (var i = 0; i < 3; i++) {
@@ -450,7 +453,7 @@ function chal(type, val) {
     if (c.p[i] >= g.n) {
       c.dn[i] = 1; save.coins += g.r; persist(); beep(1040);
       pop('CHALLENGE DONE +' + g.r, '#1fd47a'); runDone.push('Challenge complete +' + g.r + ' coins');
-      track('challenge_complete', { type: type, target: g.n });
+      track('challenge_complete', { type: type, target: g.n, reward: g.r, bike: bikeName() });
       if (c.dn[0] && c.dn[1] && c.dn[2] && !c.bonus) { c.bonus = 1; save.coins += CH_BONUS; persist(); pop('ALL 3 DONE +' + CH_BONUS, '#ffd23a'); runDone.push('All challenges done! +' + CH_BONUS + ' coins'); track('challenges_all_done', {}); }
     }
   }
@@ -475,8 +478,8 @@ function startDemo() {
   track('demo_start', {});
 }
 function endDemo(done) {
+  var dsec = demo ? Math.round(demo.t) : 0; track(done ? 'demo_complete' : 'demo_skip', { seconds: dsec });
   demo = null; demoIn.steer = 0; demoIn.nitro = false; demoIn.brake = false; demoEl('demoUI').classList.remove('on');
-  if (done) track('demo_complete', {});
   goMenu();
 }
 var demoRecs = 0;
@@ -553,7 +556,7 @@ function stepSim(dt) {
   var oldPos = pos; pos += speed * dt;
   var moved = pos - oldPos; if (pos >= L) pos -= L;
   if (playing) { dist += moved * 0.0065; chal('dist', dist); chal('score', curScore()); }
-  if (playing && dist >= nextKm) { track('level_complete', { km: nextKm / 1000, mode: mode }); nextKm += 1000; pop((nextKm / 1000 - 1) + ' KM', '#ffd23a'); }
+  if (playing && dist >= nextKm) { track('level_complete', { km: nextKm / 1000, mode: mode, bike: bikeName(), score: curScore() }); nextKm += 1000; pop((nextKm / 1000 - 1) + ' KM', '#ffd23a'); }
 
   /* scenery theme */
   if (playing || menu) {
@@ -625,13 +628,13 @@ function finishRun() {
       if (gap === 1) { save.streak += 1; }
       else if (gap === 2 && !save.grace) { save.streak += 1; save.grace = true; msg.push('Missed day forgiven!'); }
       else { save.streak = 1; save.grace = false; }
-      save.last = t;
+      save.last = t; track('streak_update', { streak: save.streak, gap_days: gap });
       var MS = { 3: 100, 7: 300, 14: 700, 30: 2000 };
       if (MS[save.streak]) { coins += MS[save.streak]; msg.push('Streak ' + save.streak + '! +' + MS[save.streak] + ' coins'); }
     }
   }
   save.coins += coins; persist();
-  track('game_over', { score: sc, distance: Math.round(dist), mode: mode, revived: revived });
+  track('game_over', { score: sc, distance: Math.round(dist), mode: mode, bike: bikeName(), paint: PAINTS[save.sel].n, revived: revived, new_best: newBest, duration_s: Math.round(time - rs.t0), near_misses: rs.near, wheelies: rs.wheelies, nitro_s: Math.round(rs.nitro), cars_passed: rs.passed, max_chain: rs.chain, coins_earned: coins, challenges_done: chalDone() });
   var el = document.getElementById('over');
   document.getElementById('otitle').textContent = newBest && sc > 0 ? 'NEW BEST!' : 'CRASHED';
   document.getElementById('oscore').textContent = sc;
@@ -649,13 +652,15 @@ function startRun(m) {
   demo = null; demoEl('demoUI').classList.remove('on'); perf = calcPerf(save.bike); runDone = []; ensureChal();
   resetRun(m); state = 'play'; touches = {};
   menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.add('on');
-  sndStart(); track('level_start', { mode: m });
+  rs = { near: 0, wheelies: 0, nitro: 0, passed: 0, chain: 0, t0: time };
+  sndStart(); track('level_start', { mode: m, bike: bikeName(), paint: PAINTS[save.sel].n, coins: save.coins, streak: save.streak });
 }
 function goMenu() {
   resetRun('free'); state = 'menu'; speed = 0; ctlEl.classList.remove('on'); scr = 'menu'; viewBike = save.bike; show('menu'); renderMenu();
 }
 var viewBike = 0, scr = 'menu';
-function show(id) { if (id !== 'garage' && typeof garageVideo === 'function') garageVideo(null); document.body.classList.toggle('sub', id === 'garage' || id === 'missions'); ['menu', 'garage', 'missions', 'over'].forEach(function (x) { document.getElementById(x).classList.toggle('on', x === id); }); }
+var lastScr = '';
+function show(id) { if (id !== lastScr) { lastScr = id; track('screen_view', { screen_name: id }); } if (id !== 'garage' && typeof garageVideo === 'function') garageVideo(null); document.body.classList.toggle('sub', id === 'garage' || id === 'missions'); ['menu', 'garage', 'missions', 'over'].forEach(function (x) { document.getElementById(x).classList.toggle('on', x === id); }); }
 function shakeEl(el) { if (el && el.animate) el.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); }
 function renderMenu() {
   var t = todayStr(), db = save.dailyBest[t] || 0, ms = [3, 7, 14, 30], nextM = 0, prevM = 0;
@@ -698,18 +703,18 @@ function renderGarage() {
   });
   h += b.livery ? '<div class="sec">PAINT</div><div class="note">Factory livery: the colours of the real bike.</div>' : '<div class="sec">PAINT</div><div class="sw" id="gsw"></div>';
   document.getElementById('gbody').innerHTML = h;
-  var gvb = document.getElementById('gVid'); if (gvb) gvb.onclick = function () { vidShow = !vidShow; renderGarage(); };
+  var gvb = document.getElementById('gVid'); if (gvb) gvb.onclick = function () { vidShow = !vidShow; if (vidShow) track('video_view', { bike: b.n }); renderGarage(); };
   var act = document.getElementById('gAct');
   if (act) act.onclick = function () {
-    if (save.bikes.indexOf(viewBike) < 0) { if (save.coins < b.cost) { shakeEl(act); return; } save.coins -= b.cost; save.bikes.push(viewBike); save.bike = viewBike; track('bike_unlocked', { bike: b.n }); }
-    else save.bike = viewBike;
+    if (save.bikes.indexOf(viewBike) < 0) { if (save.coins < b.cost) { shakeEl(act); return; } save.coins -= b.cost; save.bikes.push(viewBike); save.bike = viewBike; track('bike_unlocked', { bike: b.n, cost: b.cost, coins_left: save.coins }); }
+    else { save.bike = viewBike; track('bike_select', { bike: b.n }); }
     persist(); renderGarage();
   };
   [].forEach.call(document.querySelectorAll('#gbody .ubtn'), function (btn) {
     btn.onclick = function () {
       var i = +btn.getAttribute('data-u'), lv = u[i], cost = upgCost(viewBike, lv);
       if (save.coins < cost) { shakeEl(btn); return; }
-      save.coins -= cost; u[i] = lv + 1; save.upg[viewBike] = u; persist(); track('upgrade', { bike: b.n, part: UPG[i].n, level: lv + 1 }); renderGarage();
+      save.coins -= cost; u[i] = lv + 1; save.upg[viewBike] = u; persist(); track('upgrade', { bike: b.n, part: UPG[i].n, level: lv + 1, cost: cost, coins_left: save.coins }); renderGarage();
     };
   });
   var sw = document.getElementById('gsw');
@@ -718,8 +723,8 @@ function renderGarage() {
     if (save.sel === i) el.className = 'sel';
     if (save.owned.indexOf(i) < 0) { var lk = document.createElement('div'); lk.className = 'lock'; lk.textContent = pt.cost; el.appendChild(lk); }
     el.addEventListener('click', function () {
-      if (save.owned.indexOf(i) >= 0) { save.sel = i; }
-      else if (save.coins >= pt.cost) { save.coins -= pt.cost; save.owned.push(i); save.sel = i; track('skin_unlocked', { skin: pt.n }); }
+      if (save.owned.indexOf(i) >= 0) { save.sel = i; track('skin_equip', { skin: pt.n }); }
+      else if (save.coins >= pt.cost) { save.coins -= pt.cost; save.owned.push(i); save.sel = i; track('skin_unlocked', { skin: pt.n, cost: pt.cost }); }
       else { shakeEl(el); return; }
       persist(); renderGarage();
     });
@@ -755,9 +760,9 @@ document.getElementById('daily').addEventListener('click', function () { startRu
 document.getElementById('again').addEventListener('click', function () { startRun(mode); });
 document.getElementById('home').addEventListener('click', goMenu);
 document.getElementById('revive').addEventListener('click', function () {
-  track('reward_offered', { type: 'second_chance' });
+  track('reward_offered', { type: 'second_chance', score: curScore(), distance: Math.round(dist), bike: bikeName() });
   offerReward(function () {
-    track('reward_taken', { type: 'second_chance' });
+    track('reward_taken', { type: 'second_chance', score: curScore(), distance: Math.round(dist), bike: bikeName() });
     revived = true; state = 'play'; crashT = 0; bikeRot = 0; bikeLift = 0; bikeDX = 0; speed = 4500; nitro = Math.max(nitro, 40); touches = {};
     for (var i = 0; i < cars.length; i++) { var c = cars[i]; if (c.active && Math.abs(wrapS(c.z - pos)) < 9000) placeCar(c, DRAW * SEG + 500, DRAW * SEG + 14000); }
     overEl.classList.remove('on'); ctlEl.classList.add('on'); sndStart();
