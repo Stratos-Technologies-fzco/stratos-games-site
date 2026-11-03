@@ -722,12 +722,10 @@ function renderMissions() {
   document.getElementById('mtimer').textContent = 'New challenges in ' + Math.floor(ms / 3600000) + 'h ' + Math.floor(ms % 3600000 / 60000) + 'm. Play any run to progress.';
 }
 function applyLook(bi) {
-  var b = BIKES[bi], l = b.look; lookIdx = bi;
-  bikeRoot.scale.set(l.sc, l.sc, l.sc);
-  rearWheel.children[0].scale.x = l.tire; frontWheel.children[0].scale.x = 1 + (l.tire - 1) * 0.6;
-  tailMesh.scale.set(0.21 * l.tail, 0.17 * (0.9 + 0.1 * l.tail), 0.5 * l.tail);
-  towerG.visible = !!l.tower; spoilerG.visible = !!l.spoil; glowMesh.visible = !!l.glow;
-  suitMat.color.set(b.suit);
+  var b = BIKES[bi], l = b.look, m = models[bi]; lookIdx = bi;
+  for (var i = 0; i < models.length; i++) models[i].w.visible = i === bi;
+  wheelieG = m.w; rearWheel = m.rear; frontWheel = m.front; frontG = m.fg; riderG = m.rider; flames = m.flames; flameGlow = m.fglow; glowMesh = m.glow;
+  glowMesh.visible = !!l.glow; bikeRoot.scale.set(l.sc, l.sc, l.sc);
 }
 document.getElementById('bGarage').addEventListener('click', function () { viewBike = save.bike; scr = 'garage'; show('garage'); renderGarage(); });
 document.getElementById('bMissions').addEventListener('click', function () { scr = 'missions'; show('missions'); renderMissions(); });
@@ -752,7 +750,7 @@ document.getElementById('revive').addEventListener('click', function () {
 /* ---- 3D world (Three.js, bundled in vendor/) ---- */
 var M = 0.01, SEGM = SEG * M, ROADM = 4.8, K_BEND = 0.012, NSEG_MAX = 144, Q = 8;
 var glOK = false, renderer, scene, camera, hemi, sun, horizon, skyGeo, skyMesh, groundMesh, roadGeo, roadMesh, sunMesh, hillsMesh, cityMesh, starsPts;
-var lookIdx = -1, tailMesh, towerG, spoilerG, glowMesh, suitMat;
+var lookIdx = -1, models = [], neonMat, glowMesh;
 var bikeRoot, wheelieG, frontG, rearWheel, frontWheel, flames = [], flameGlow, tailMat, paintMat, helmetStripe, riderG, shadowBlob;
 var decoMeshes = {}, carObjs = [], carMats = {}, dummy, wheelSpin = 0, bgAng = 0, camShakeX = 0, envTex = null;
 var Px = new Float32Array(NSEG_MAX + 2), Pz = new Float32Array(NSEG_MAX + 2), Th = new Float32Array(NSEG_MAX + 2);
@@ -884,87 +882,179 @@ function buildBike() {
   var dark = new THREE.MeshStandardMaterial({ color: 0x2b2d38, metalness: 0.8, roughness: 0.4, envMap: env });
   var chrome = new THREE.MeshStandardMaterial({ color: 0xd2d7e2, metalness: 1, roughness: 0.14, envMap: env });
   var rubber = new THREE.MeshLambertMaterial({ color: 0x0d0d11 });
-  var suit = new THREE.MeshStandardMaterial({ color: 0x1f2336, metalness: 0.1, roughness: 0.6, envMap: env, envMapIntensity: 0.5 });
-  suitMat = suit;
-  var helmet = new THREE.MeshStandardMaterial({ color: 0xf4f4f8, metalness: 0.3, roughness: 0.14, envMap: env });
   var visor = new THREE.MeshStandardMaterial({ color: 0x07080d, metalness: 0.9, roughness: 0.05, envMap: env });
+  var glass = new THREE.MeshStandardMaterial({ color: 0x101722, metalness: 0.9, roughness: 0.08, transparent: true, opacity: 0.72, envMap: env });
+  var accW = new THREE.MeshStandardMaterial({ color: 0xf3f3f7, metalness: 0.3, roughness: 0.3, envMap: env });
+  var accK = new THREE.MeshStandardMaterial({ color: 0x14151c, metalness: 0.6, roughness: 0.35, envMap: env });
+  var lamp = new THREE.MeshBasicMaterial({ color: 0xfff3c0 });
+  neonMat = new THREE.MeshBasicMaterial({ color: 0xb46bff });
   tailMat = new THREE.MeshBasicMaterial({ color: 0xb01c1c });
   var sph = new THREE.SphereGeometry(1, 18, 14), bx = new THREE.BoxGeometry(1, 1, 1), cy = new THREE.CylinderGeometry(1, 1, 1, 14);
+  var glowTex = radialTex('rgba(255,255,255,.9)', 'rgba(255,255,255,0)'), flTex = radialTex('rgba(160,220,255,1)', 'rgba(40,120,255,0)');
+  var fg0 = new THREE.ConeGeometry(0.11, 1, 8); fg0.translate(0, 0.5, 0); fg0.rotateX(Math.PI / 2);
   function mk(g, m, x, y, z, sx, sy, sz) { var o = new THREE.Mesh(g, m); o.position.set(x, y, z); if (sx != null) o.scale.set(sx, sy, sz == null ? sx : sz); return o; }
   function limb(a, b, r, m) {
     var A = new THREE.Vector3(a[0], a[1], a[2]), B = new THREE.Vector3(b[0], b[1], b[2]), d = B.clone().sub(A), len = d.length();
     var o = new THREE.Mesh(cy, m); o.scale.set(r, len, r); o.position.copy(A.clone().add(B).multiplyScalar(0.5)); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); return o;
   }
-  function wheel() {
-    var g = new THREE.Group();
-    var tire = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.085, 10, 28), rubber); tire.rotation.y = Math.PI / 2; g.add(tire);
-    var rim = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.022, 8, 24), chrome); rim.rotation.y = Math.PI / 2; g.add(rim);
-    g.add(mk(cy, chrome, 0.07, 0, 0, 0.14, 0.02, 0.14)); g.children[2].rotation.z = Math.PI / 2;
-    g.add(mk(cy, dark, 0, 0, 0, 0.06, 0.16, 0.06)); g.children[3].rotation.z = Math.PI / 2;
-    for (var i = 0; i < 3; i++) { var sp = mk(bx, dark, 0, 0, 0, 0.03, 0.4, 0.03); sp.rotation.x = i * Math.PI / 3; g.add(sp); }
+  function wheel(R, tube, kind) {
+    var g = new THREE.Group(), r0 = R - tube, i;
+    var tire = new THREE.Mesh(new THREE.TorusGeometry(r0, tube, 10, 28), rubber); tire.rotation.y = Math.PI / 2; g.add(tire);
+    if (kind === 'disc') {
+      var d = mk(cy, dark, 0, 0, 0, r0 - tube * 0.2, 0.09, r0 - tube * 0.2); d.rotation.z = Math.PI / 2; g.add(d);
+      [-0.05, 0.05].forEach(function (x) { var nr = new THREE.Mesh(new THREE.TorusGeometry(r0 * 0.74, 0.022, 8, 24), neonMat); nr.rotation.y = Math.PI / 2; nr.position.x = x; g.add(nr); });
+      for (i = 0; i < 4; i++) { var a = i * Math.PI / 2; g.add(mk(bx, neonMat, 0.06, Math.sin(a) * r0 * 0.42, Math.cos(a) * r0 * 0.42, 0.02, 0.07, 0.07)); }
+    } else {
+      var rim = new THREE.Mesh(new THREE.TorusGeometry(Math.max(0.1, r0 - tube * 0.6), 0.022, 8, 24), chrome); rim.rotation.y = Math.PI / 2; g.add(rim);
+      var disc = mk(cy, chrome, 0.07, 0, 0, 0.14, 0.02, 0.14); disc.rotation.z = Math.PI / 2; g.add(disc);
+      var hub = mk(cy, dark, 0, 0, 0, 0.06, 0.16, 0.06); hub.rotation.z = Math.PI / 2; g.add(hub);
+      for (i = 0; i < 3; i++) { var sp = mk(bx, dark, 0, 0, 0, 0.03, 2 * Math.max(0.1, r0 - tube * 0.7), 0.03); sp.rotation.x = i * Math.PI / 3; g.add(sp); }
+    }
     return g;
   }
-  var inner = new THREE.Group(); inner.position.set(0, -0.33, -0.78);
-  wheelieG = new THREE.Group(); wheelieG.position.set(0, 0.33, 0.78); wheelieG.add(inner);
-  rearWheel = wheel(); rearWheel.position.set(0, 0.33, 0.78); inner.add(rearWheel);
-  /* front end pivots at the steering head */
-  frontG = new THREE.Group(); frontG.position.set(0, 1.05, -0.6); inner.add(frontG);
-  frontWheel = wheel(); frontWheel.position.set(0, -0.72, -0.18); frontG.add(frontWheel);
-  frontG.add(limb([-0.12, 0.02, 0], [-0.1, -0.72, -0.18], 0.035, chrome)); frontG.add(limb([0.12, 0.02, 0], [0.1, -0.72, -0.18], 0.035, chrome));
-  frontG.add(mk(bx, dark, 0, 0.0, -0.02, 0.34, 0.06, 0.14));
-  var bar = limb([-0.4, 0.14, 0.12], [0.4, 0.14, 0.12], 0.022, chrome); frontG.add(bar);
-  frontG.add(mk(sph, rubber, -0.4, 0.14, 0.12, 0.05)); frontG.add(mk(sph, rubber, 0.4, 0.14, 0.12, 0.05));
-  frontG.add(mk(sph, paintMat, 0, 0.16, -0.12, 0.22, 0.17, 0.2));
-  frontG.add(mk(sph, new THREE.MeshBasicMaterial({ color: 0xfff3c0 }), 0, 0.14, -0.3, 0.1, 0.07, 0.03));
-  frontG.add(mk(sph, dark, -0.34, 0.3, 0.1, 0.05, 0.04, 0.02)); frontG.add(mk(sph, dark, 0.34, 0.3, 0.1, 0.05, 0.04, 0.02));
-  /* body */
-  inner.add(mk(sph, paintMat, 0, 1.02, -0.22, 0.3, 0.25, 0.56));
-  tailMesh = mk(sph, paintMat, 0, 0.99, 0.62, 0.21, 0.17, 0.5); inner.add(tailMesh);
-  inner.add(mk(bx, tailMat, 0, 0.99, 1.1, 0.2, 0.05, 0.04));
-  inner.add(mk(bx, new THREE.MeshBasicMaterial({ color: 0xf2f2f2 }), 0, 0.8, 1.12, 0.22, 0.14, 0.01));
-  inner.add(mk(bx, dark, 0, 0.78, 0.92, 0.2, 0.03, 0.5));
-  inner.add(mk(bx, dark, 0, 0.5, 0.08, 0.34, 0.4, 0.56));
-  inner.add(mk(bx, dark, -0.1, 0.4, 0.5, 0.05, 0.07, 0.8)); inner.add(mk(bx, dark, 0.1, 0.4, 0.5, 0.05, 0.07, 0.8));
-  inner.add(mk(sph, rubber, 0, 0.9, 0.12, 0.21, 0.08, 0.45));
-  [-1, 1].forEach(function (s) {
-    var ex = limb([s * 0.2, 0.34, 0.0], [s * 0.2, 0.52, 1.05], 0.06, chrome); inner.add(ex);
-    inner.add(mk(cy, dark, s * 0.2, 0.52, 1.07, 0.075, 0.05, 0.075)); inner.children[inner.children.length - 1].rotation.x = Math.PI / 2;
-  });
-  /* bike variants: tower exhaust, rear wing, underglow */
-  towerG = new THREE.Group();
-  [-1, 1].forEach(function (sd) { var tw = mk(cy, chrome, sd * 0.25, 0.84, 0.95, 0.085, 0.6, 0.085); tw.rotation.x = Math.PI / 2; towerG.add(tw); var tp = mk(cy, dark, sd * 0.25, 0.84, 1.26, 0.1, 0.06, 0.1); tp.rotation.x = Math.PI / 2; towerG.add(tp); });
-  inner.add(towerG);
-  spoilerG = new THREE.Group();
-  spoilerG.add(mk(bx, paintMat, 0, 1.24, 1.1, 0.8, 0.035, 0.22));
-  [-1, 1].forEach(function (sd) { spoilerG.add(mk(bx, dark, sd * 0.2, 1.1, 1.04, 0.03, 0.32, 0.05)); spoilerG.add(mk(bx, paintMat, sd * 0.4, 1.28, 1.1, 0.025, 0.13, 0.24)); });
-  inner.add(spoilerG);
-  glowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 3.4), new THREE.MeshBasicMaterial({ map: radialTex('rgba(255,255,255,.9)', 'rgba(255,255,255,0)'), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-  glowMesh.rotation.x = -Math.PI / 2; glowMesh.position.set(0, 0.07, 0.35); inner.add(glowMesh);
-  /* flames */
-  var fg = new THREE.ConeGeometry(0.11, 1, 8); fg.translate(0, 0.5, 0); fg.rotateX(Math.PI / 2);
-  [-1, 1].forEach(function (s) {
-    var f = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: 0x69c8ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
-    f.position.set(s * 0.2, 0.52, 1.1); f.visible = false; inner.add(f); flames.push(f);
-  });
-  flameGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: radialTex('rgba(160,220,255,1)', 'rgba(40,120,255,0)'), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-  flameGlow.position.set(0, 0.55, 1.4); flameGlow.scale.set(1.8, 1.8, 1); flameGlow.visible = false; inner.add(flameGlow);
-  /* rider */
-  riderG = new THREE.Group(); inner.add(riderG);
-  var H = [0, 0.98, 0.22], Sh = [0, 1.66, -0.16];
-  riderG.add(limb(H, Sh, 0.2, suit)); riderG.add(mk(sph, suit, 0, 1.66, -0.16, 0.22));
-  riderG.add(mk(sph, paintMat, 0, 1.7, 0.02, 0.17, 0.12, 0.2));
-  riderG.add(mk(sph, helmet, 0, 1.93, -0.3, 0.2));
-  riderG.add(mk(sph, visor, 0, 1.9, -0.44, 0.15, 0.085, 0.08));
-  helmetStripe = mk(bx, paintMat, 0, 2.125, -0.3, 0.05, 0.012, 0.36); riderG.add(helmetStripe);
-  [-1, 1].forEach(function (s) {
-    riderG.add(limb([s * 0.22, 1.62, -0.18], [s * 0.36, 1.4, -0.4], 0.075, suit)); riderG.add(limb([s * 0.36, 1.4, -0.4], [s * 0.38, 1.17, -0.56], 0.065, suit));
-    riderG.add(mk(sph, rubber, s * 0.38, 1.16, -0.56, 0.07));
-    riderG.add(limb([s * 0.17, 0.98, 0.2], [s * 0.34, 0.84, -0.12], 0.115, suit)); riderG.add(limb([s * 0.34, 0.84, -0.12], [s * 0.27, 0.46, 0.1], 0.085, suit));
-    riderG.add(mk(bx, rubber, s * 0.27, 0.4, 0.04, 0.11, 0.1, 0.3));
-  });
-  bikeRoot = new THREE.Group(); bikeRoot.add(wheelieG); bikeRoot.scale.set(1.65, 1.65, 1.65); scene.add(bikeRoot);
+  function rider(m, o) {
+    var rg = new THREE.Group(); m.inner.add(rg);
+    var suit = new THREE.MeshStandardMaterial({ color: o.suit, metalness: 0.1, roughness: 0.6, envMap: env, envMapIntensity: 0.5 });
+    var helm = new THREE.MeshStandardMaterial({ color: o.helm, metalness: 0.05, roughness: 0.3, envMap: env, envMapIntensity: 0.6 });
+    var H = o.H, Sh = o.Sh, hd = o.hd;
+    rg.add(limb(H, Sh, 0.2, suit)); rg.add(mk(sph, suit, Sh[0], Sh[1], Sh[2], 0.22));
+    rg.add(mk(sph, paintMat, 0, Sh[1] + 0.04, Sh[2] + 0.18, 0.17, 0.12, 0.2));
+    rg.add(mk(sph, helm, hd[0], hd[1], hd[2], 0.2));
+    rg.add(mk(sph, visor, hd[0], hd[1] - 0.03, hd[2] - 0.14, 0.15, 0.085, 0.08));
+    rg.add(mk(bx, paintMat, hd[0], hd[1] + 0.195, hd[2], 0.05, 0.012, 0.36));
+    [-1, 1].forEach(function (s) {
+      var sx = s * 0.22, el = [(sx + s * o.gx) / 2 + s * 0.05, (Sh[1] + o.gy) / 2 - 0.05, (Sh[2] + o.gz) / 2];
+      rg.add(limb([sx, Sh[1] - 0.04, Sh[2] - 0.02], el, 0.075, suit)); rg.add(limb(el, [s * o.gx, o.gy, o.gz], 0.065, suit));
+      rg.add(mk(sph, rubber, s * o.gx, o.gy - 0.01, o.gz, 0.07));
+      rg.add(limb([s * 0.17, H[1], H[2]], [s * o.kx, o.ky, o.kz], 0.115, suit)); rg.add(limb([s * o.kx, o.ky, o.kz], [s * o.ax, o.ay, o.az], 0.085, suit));
+      rg.add(mk(bx, rubber, s * o.ax, o.ay - 0.06, o.az - 0.04, 0.11, 0.1, 0.3));
+    });
+    m.rider = rg;
+  }
+  function flamesAt(m, pts, k, gp) {
+    pts.forEach(function (p) {
+      var f = new THREE.Mesh(fg0, new THREE.MeshBasicMaterial({ color: 0x69c8ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
+      f.position.set(p[0], p[1], p[2]); f.userData.k = k; f.visible = false; m.inner.add(f); m.flames.push(f);
+    });
+    var g = new THREE.Sprite(new THREE.SpriteMaterial({ map: flTex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    g.position.set(gp[0], gp[1], gp[2]); g.scale.set(1.4, 1.4, 1); g.visible = false; m.inner.add(g); m.fglow = g;
+  }
+  function underglow(m) {
+    var gm = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 3.4), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    gm.rotation.x = -Math.PI / 2; gm.position.set(0, 0.07, 0.35); m.inner.add(gm); m.glow = gm;
+  }
+  /* per-bike layout */
+  var CFG = [
+    { R: 0.33, rt: 0.085, ft: 0.085, rz: 0.78, fz: -0.78, kind: 'spoke', headY: 1.05, headZ: -0.6, barW: 0.4, barY: 0.14, barZ: 0.12 },
+    { R: 0.31, rt: 0.095, ft: 0.08, rz: 0.76, fz: -0.78, kind: 'spoke', headY: 1.0, headZ: -0.62, barW: 0.27, barY: 0.08, barZ: 0.04 },
+    { R: 0.34, rt: 0.15, ft: 0.095, rz: 0.8, fz: -0.82, kind: 'spoke', headY: 1.08, headZ: -0.64, barW: 0.37, barY: 0.14, barZ: 0.1 },
+    { R: 0.3, rt: 0.115, ft: 0.1, rz: 0.74, fz: -0.82, kind: 'disc', headY: 0.95, headZ: -0.7, barW: 0.19, barY: 0.07, barZ: 0.1 }
+  ];
+  bikeRoot = new THREE.Group(); scene.add(bikeRoot);
+  for (var i = 0; i < 4; i++) {
+    var c = CFG[i], m = { flames: [] };
+    var inner = new THREE.Group(); inner.position.set(0, -c.R, -c.rz);
+    m.w = new THREE.Group(); m.w.position.set(0, c.R, c.rz); m.w.add(inner); m.inner = inner;
+    m.rear = wheel(c.R, c.rt, c.kind); m.rear.position.set(0, c.R, c.rz); inner.add(m.rear);
+    var fg = new THREE.Group(); fg.position.set(0, c.headY, c.headZ); inner.add(fg);
+    var fy = c.R - c.headY, fzr = c.fz - c.headZ, fw = wheel(c.R, c.ft, c.kind); fw.position.set(0, fy, fzr); fg.add(fw);
+    var legM = i === 3 ? dark : chrome, legR = i === 3 ? 0.055 : 0.035;
+    fg.add(limb([-0.12, 0.02, 0], [-0.1, fy, fzr], legR, legM)); fg.add(limb([0.12, 0.02, 0], [0.1, fy, fzr], legR, legM));
+    fg.add(mk(bx, dark, 0, 0, -0.02, 0.34, 0.06, 0.14));
+    fg.add(limb([-c.barW, c.barY, c.barZ], [c.barW, c.barY, c.barZ], 0.022, chrome));
+    fg.add(mk(sph, rubber, -c.barW, c.barY, c.barZ, 0.05)); fg.add(mk(sph, rubber, c.barW, c.barY, c.barZ, 0.05));
+    m.fg = fg; m.front = fw;
+    if (i === 0) {
+      /* ROVER 250: upright street roadster, round lamp, exposed engine, twin chrome pipes */
+      fg.add(mk(sph, paintMat, 0, 0.16, -0.12, 0.22, 0.17, 0.2)); fg.add(mk(sph, lamp, 0, 0.14, -0.3, 0.1, 0.07, 0.03));
+      fg.add(mk(sph, dark, -0.34, 0.3, 0.1, 0.05, 0.04, 0.02)); fg.add(mk(sph, dark, 0.34, 0.3, 0.1, 0.05, 0.04, 0.02));
+      inner.add(mk(sph, paintMat, 0, 1.02, -0.22, 0.3, 0.25, 0.56));
+      inner.add(mk(sph, paintMat, 0, 0.99, 0.62, 0.21, 0.17, 0.5));
+      inner.add(mk(bx, tailMat, 0, 0.99, 1.1, 0.2, 0.05, 0.04));
+      inner.add(mk(bx, new THREE.MeshBasicMaterial({ color: 0xf2f2f2 }), 0, 0.8, 1.12, 0.22, 0.14, 0.01));
+      inner.add(mk(bx, dark, 0, 0.78, 0.92, 0.2, 0.03, 0.5));
+      inner.add(mk(bx, dark, 0, 0.5, 0.08, 0.34, 0.4, 0.56));
+      inner.add(mk(bx, dark, -0.1, 0.4, 0.5, 0.05, 0.07, 0.8)); inner.add(mk(bx, dark, 0.1, 0.4, 0.5, 0.05, 0.07, 0.8));
+      inner.add(mk(sph, rubber, 0, 0.9, 0.12, 0.21, 0.08, 0.45));
+      var amb = new THREE.MeshBasicMaterial({ color: 0xffa020 });
+      [-1, 1].forEach(function (s) { inner.add(mk(bx, accK, s * 0.36, 0.76, 0.86, 0.2, 0.36, 0.54)); inner.add(mk(bx, amb, s * 0.36, 0.86, 1.14, 0.08, 0.05, 0.03)); inner.add(limb([s * 0.2, 0.88, 0.62], [s * 0.2, 1.0, 1.05], 0.022, chrome)); });
+      inner.add(limb([-0.2, 1.0, 1.05], [0.2, 1.0, 1.05], 0.022, chrome));
+      [-1, 1].forEach(function (s) { inner.add(limb([s * 0.2, 0.34, 0.0], [s * 0.2, 0.52, 1.05], 0.06, chrome)); var tp = mk(cy, dark, s * 0.2, 0.52, 1.07, 0.075, 0.05, 0.075); tp.rotation.x = Math.PI / 2; inner.add(tp); });
+      rider(m, { suit: BIKES[0].suit, helm: 0xf4f4f8, H: [0, 0.98, 0.22], Sh: [0, 1.66, -0.16], hd: [0, 1.93, -0.3], gx: 0.38, gy: 1.17, gz: -0.56, kx: 0.34, ky: 0.84, kz: -0.12, ax: 0.27, ay: 0.46, az: 0.1 });
+      flamesAt(m, [[-0.2, 0.52, 1.1], [0.2, 0.52, 1.1]], 1, [0, 0.55, 1.4]);
+    } else if (i === 1) {
+      /* FALCON R: full-fairing sport bike, tucked rider, high pointed tail, belly pipe */
+      inner.add(mk(sph, paintMat, 0, 0.9, -0.86, 0.26, 0.2, 0.46));
+      var ws = mk(bx, glass, 0, 1.16, -0.64, 0.3, 0.3, 0.03); ws.rotation.x = -0.75; inner.add(ws);
+      [-1, 1].forEach(function (s) {
+        inner.add(mk(bx, lamp, s * 0.11, 0.93, -1.27, 0.12, 0.05, 0.03));
+        var sp = mk(bx, paintMat, s * 0.22, 0.62, -0.2, 0.07, 0.46, 0.95); sp.rotation.z = s * 0.12; inner.add(sp);
+        inner.add(mk(bx, accW, s * 0.255, 0.62, -0.2, 0.012, 0.2, 0.6));
+        inner.add(mk(sph, dark, s * 0.32, 1.06, -0.66, 0.05, 0.04, 0.03));
+      });
+      inner.add(mk(sph, paintMat, 0, 0.97, -0.3, 0.27, 0.2, 0.52));
+      inner.add(mk(sph, paintMat, 0, 1.08, 0.72, 0.17, 0.17, 0.58));
+      inner.add(mk(bx, paintMat, 0, 1.17, 1.28, 0.12, 0.1, 0.16));
+      inner.add(mk(bx, tailMat, 0, 1.12, 1.4, 0.36, 0.035, 0.03));
+      inner.add(mk(bx, accW, 0, 0.9, 1.34, 0.18, 0.12, 0.012));
+      var rd = mk(cy, accW, 0, 1.16, 1.02, 0.11, 0.012, 0.11); rd.rotation.x = Math.PI / 2 - 0.45; inner.add(rd);
+      inner.add(mk(bx, accW, 0, 1.02, 0.5, 0.012, 0.06, 0.5));
+      inner.add(mk(bx, dark, 0, 0.5, 0.05, 0.3, 0.36, 0.5));
+      inner.add(mk(bx, dark, -0.1, 0.4, 0.5, 0.05, 0.07, 0.8)); inner.add(mk(bx, dark, 0.1, 0.4, 0.5, 0.05, 0.07, 0.8));
+      inner.add(mk(sph, rubber, 0, 0.93, 0.18, 0.18, 0.07, 0.42));
+      var sil = mk(cy, chrome, 0.17, 0.5, 0.55, 0.095, 0.95, 0.095); sil.rotation.x = Math.PI / 2; inner.add(sil);
+      var st = mk(cy, dark, 0.17, 0.5, 1.04, 0.1, 0.05, 0.1); st.rotation.x = Math.PI / 2; inner.add(st);
+      rider(m, { suit: BIKES[1].suit, helm: 0xe8f1ff, H: [0, 0.95, 0.3], Sh: [0, 1.42, -0.4], hd: [0, 1.6, -0.56], gx: 0.27, gy: 1.04, gz: -0.66, kx: 0.25, ky: 0.88, kz: -0.22, ax: 0.23, ay: 0.46, az: 0.12 });
+      flamesAt(m, [[0.17, 0.5, 1.06]], 1.2, [0.1, 0.55, 1.35]);
+    } else if (i === 2) {
+      /* VIPER S: muscle superbike, huge tank, fat rear tyre, tall twin canisters, winglets */
+      fg.add(mk(sph, paintMat, 0, 0.16, -0.14, 0.2, 0.16, 0.26)); fg.add(mk(sph, lamp, 0, 0.14, -0.36, 0.11, 0.06, 0.03));
+      [-1, 1].forEach(function (s) { var wg = mk(bx, accK, s * 0.34, 0.16, -0.12, 0.34, 0.02, 0.15); wg.rotation.z = s * -0.35; fg.add(wg); fg.add(mk(sph, dark, s * 0.4, 0.3, 0.1, 0.05, 0.04, 0.02)); });
+      inner.add(mk(sph, paintMat, 0, 1.1, -0.2, 0.34, 0.3, 0.64));
+      inner.add(mk(bx, accK, 0, 1.39, -0.2, 0.08, 0.02, 0.72));
+      inner.add(mk(sph, paintMat, 0, 1.14, 0.74, 0.23, 0.2, 0.58));
+      inner.add(mk(bx, tailMat, 0, 1.12, 1.3, 0.34, 0.04, 0.04));
+      inner.add(mk(bx, accK, 0, 0.9, 1.32, 0.22, 0.15, 0.012));
+      inner.add(mk(bx, dark, 0, 0.52, 0.05, 0.42, 0.46, 0.62));
+      [-1, 1].forEach(function (s) {
+        inner.add(mk(bx, accK, s * 0.22, 0.55, 0.05, 0.03, 0.3, 0.4));
+        inner.add(mk(bx, dark, s * 0.14, 0.42, 0.52, 0.06, 0.09, 0.85));
+        var cn = mk(cy, chrome, s * 0.3, 0.8, 0.8, 0.115, 0.95, 0.115); cn.rotation.x = Math.PI / 2 - 0.2; inner.add(cn);
+        var ct = mk(cy, dark, s * 0.3, 0.9, 1.27, 0.125, 0.05, 0.125); ct.rotation.x = Math.PI / 2 - 0.2; inner.add(ct);
+      });
+      inner.add(mk(sph, rubber, 0, 0.98, 0.14, 0.2, 0.08, 0.46));
+      [-1, 1].forEach(function (s) { var w2 = mk(bx, accK, s * 0.5, 1.12, 0.95, 0.32, 0.025, 0.2); w2.rotation.z = s * -0.25; inner.add(w2); inner.add(mk(bx, paintMat, s * 0.66, 1.18, 0.95, 0.02, 0.07, 0.2)); });
+      inner.add(mk(sph, accK, 0, 0.66, 1.0, 0.22, 0.12, 0.32));
+      rider(m, { suit: BIKES[2].suit, helm: 0x15161c, H: [0, 1.0, 0.3], Sh: [0, 1.58, -0.28], hd: [0, 1.84, -0.44], gx: 0.4, gy: 1.2, gz: -0.6, kx: 0.36, ky: 0.92, kz: -0.15, ax: 0.3, ay: 0.47, az: 0.12 });
+      flamesAt(m, [[-0.3, 0.9, 1.3], [0.3, 0.9, 1.3]], 1.15, [0, 0.9, 1.6]);
+    } else {
+      /* PHANTOM X: futuristic hyperbike, enclosed shell, glass canopy, rear turbine, neon trim */
+      fg.add(mk(sph, accK, 0, 0.12, -0.02, 0.2, 0.14, 0.16));
+      var nose = mk(new THREE.ConeGeometry(0.21, 1.2, 12), paintMat, 0, 0.74, -1.1, 1, 1, 1); nose.rotation.x = -Math.PI / 2; inner.add(nose);
+      inner.add(mk(sph, paintMat, 0, 0.84, 0.18, 0.37, 0.25, 1.3));
+      [-1, 1].forEach(function (s) {
+        inner.add(mk(bx, neonMat, s * 0.355, 0.8, 0.1, 0.03, 0.04, 1.8));
+        var pd = mk(sph, accK, s * 0.3, 0.56, 0.5, 0.1, 0.16, 0.5); inner.add(pd);
+        inner.add(mk(bx, neonMat, s * 0.5, 1.3, 1.36, 0.03, 0.04, 0.26));
+        var ep = mk(bx, paintMat, s * 0.54, 1.3, 1.36, 0.025, 0.2, 0.3); inner.add(ep);
+        inner.add(mk(bx, accK, s * 0.2, 1.1, 1.3, 0.03, 0.32, 0.05));
+      });
+      var cano = mk(sph, glass, 0, 1.2, -0.05, 0.31, 0.27, 0.6); inner.add(cano);
+      inner.add(mk(bx, paintMat, 0, 1.3, 1.36, 1.1, 0.04, 0.28));
+      var tur = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.06, 10, 24), chrome); tur.position.set(0, 0.86, 1.46); inner.add(tur);
+      var tin = mk(cy, accK, 0, 0.86, 1.43, 0.22, 0.1, 0.22); tin.rotation.x = Math.PI / 2; inner.add(tin);
+      var tg = new THREE.Mesh(new THREE.CircleGeometry(0.2, 20), neonMat); tg.position.set(0, 0.86, 1.495); inner.add(tg);
+      inner.add(mk(bx, tailMat, 0, 1.08, 1.4, 0.42, 0.035, 0.03));
+      rider(m, { suit: BIKES[3].suit, helm: 0xc9d0ff, H: [0, 0.9, 0.35], Sh: [0, 1.26, -0.3], hd: [0, 1.4, -0.52], gx: 0.19, gy: 0.98, gz: -0.74, kx: 0.25, ky: 0.8, kz: -0.3, ax: 0.2, ay: 0.5, az: 0.15 });
+      flamesAt(m, [[0, 0.86, 1.5]], 1.9, [0, 0.9, 1.9]);
+    }
+    underglow(m);
+    bikeRoot.add(m.w); models.push(m);
+  }
+  bikeRoot.scale.set(1.65, 1.65, 1.65);
   shadowBlob = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 5.4), new THREE.MeshBasicMaterial({ map: radialTex('rgba(0,0,0,.6)', 'rgba(0,0,0,0)'), transparent: true, depthWrite: false }));
   shadowBlob.rotation.x = -Math.PI / 2; shadowBlob.position.set(0, 0.04, 0); scene.add(shadowBlob);
+  applyLook(save.bike);
 }
 
 /* ---- per-frame: build the road, place everything, draw ---- */
@@ -1057,10 +1147,9 @@ function render(dt) {
     frontG.rotation.y = -tl * 0.22;
     riderG.position.x = tl * 0.06; riderG.rotation.z = -tl * 0.08; riderG.position.y = -wheelAmt * 0.02;
     var lb = state === 'menu' ? viewBike : save.bike; if (lb !== lookIdx) applyLook(lb);
-    paintMat.color.set(PAINTS[save.sel].c); glowMesh.material.color.copy(paintMat.color);
-    helmetStripe.material = paintMat;
+    paintMat.color.set(PAINTS[save.sel].c); glowMesh.material.color.copy(paintMat.color); neonMat.color.copy(paintMat.color);
     var braking = state === 'play' && wantBrake(); tailMat.color.setHex(braking ? 0xff2a2a : 0xb01c1c);
-    for (i = 0; i < flames.length; i++) { flames[i].visible = nitroOn; if (nitroOn) { flames[i].scale.set(0.8 + Math.random() * 0.3, 0.8 + Math.random() * 0.3, 0.5 + Math.random() * 0.5); } }
+    for (i = 0; i < flames.length; i++) { flames[i].visible = nitroOn; if (nitroOn) { var fk = flames[i].userData.k || 1; flames[i].scale.set((0.8 + Math.random() * 0.3) * fk, (0.8 + Math.random() * 0.3) * fk, 0.5 + Math.random() * 0.5); } }
     flameGlow.visible = nitroOn; if (nitroOn) { var gs = 1.0 + Math.random() * 0.4; flameGlow.scale.set(gs, gs, 1); }
     shadowBlob.position.x = bx0; shadowBlob.visible = by0 < 1.5; shadowBlob.scale.set(1 - by0 * 0.15, 1, 1);
     bikeRoot.visible = state !== 'over' || true;
