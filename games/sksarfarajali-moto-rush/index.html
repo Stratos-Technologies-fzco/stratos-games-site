@@ -136,6 +136,10 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
 .mrow.done{background:rgba(31,138,76,.25)}
 .mrow.done .rbar i{background:#1fd47a}
 .mtitle{font-size:22px;font-style:italic;font-weight:900}
+
+#gvid{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:18px;border:1px solid rgba(255,255,255,.16);box-shadow:0 10px 30px rgba(0,0,0,.5);background:#cfd1d6}
+.vtag{display:none;position:absolute;left:10px;bottom:10px;padding:4px 9px;border-radius:8px;background:rgba(10,12,28,.75);font-size:10px;letter-spacing:.16em;font-weight:800;z-index:2}
+.arrow{z-index:3}
 </style>
 </head>
 <body>
@@ -168,7 +172,7 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
 
 <div id="garage" class="layer">
   <div class="top"><button class="btn ghost sm" id="gBack">&#9664; BACK</button><div class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc83a"/><circle cx="12" cy="12" r="7" fill="none" stroke="#c98a00" stroke-width="2"/></svg><b id="gcoins">0</b></div></div>
-  <div class="mid"><button class="arrow" id="gPrev">&#9664;</button><button class="arrow" id="gNext">&#9654;</button></div>
+  <div class="mid"><video id="gvid" muted loop playsinline preload="none" poster="motorush-rr.jpg"></video><span class="vtag" id="vtag">REAL BIKE &middot; FACTORY VIDEO</span><button class="arrow" id="gPrev">&#9664;</button><button class="arrow" id="gNext">&#9654;</button></div>
   <div class="panel scroll"><div id="gbody" style="display:flex;flex-direction:column;gap:9px"></div></div>
 </div>
 
@@ -281,6 +285,7 @@ var BIKES = [
   { n: 'Viper S', cls: 'Superbike', cost: 1800, suit: '#1a2a1c', blurb: 'Big power, big nitro', base: { spd: 1.12, acc: 1.2, hnd: 1.05, nit: 1.2 }, look: { sc: 1.7, tire: 1.35, tail: 1.25, spoil: 0, tower: 1, glow: 0 } },
   { n: 'Phantom X', cls: 'Hyperbike', cost: 4500, suit: '#1d1233', blurb: 'Fastest and hardest to tame', base: { spd: 1.2, acc: 1.3, hnd: 1.0, nit: 1.35 }, look: { sc: 1.75, tire: 1.6, tail: 1.4, spoil: 1, tower: 1, glow: 1 } }
 ];
+BIKES.push({ n: 'MotoRush RR', cls: 'Prototype', cost: 8000, suit: '#f4f4f6', blurb: 'The factory race bike', livery: 1, video: 'motorush-rr.mp4', base: { spd: 1.25, acc: 1.3, hnd: 1.15, nit: 1.4 }, look: { sc: 1.75, glow: 0 } });
 var UPG = [{ n: 'Engine', d: 'Top speed and pickup' }, { n: 'Nitro tank', d: 'Longer boosts' }, { n: 'Tyres', d: 'Grip and steering' }, { n: 'Brakes', d: 'Stop faster' }];
 var UPG_COST = [60, 120, 200, 320, 500];
 function upgCost(bi, lv) { return Math.round(UPG_COST[lv] * (1 + bi * 0.6)); }
@@ -649,7 +654,7 @@ function goMenu() {
   resetRun('free'); state = 'menu'; speed = 0; ctlEl.classList.remove('on'); scr = 'menu'; viewBike = save.bike; show('menu'); renderMenu();
 }
 var viewBike = 0, scr = 'menu';
-function show(id) { document.body.classList.toggle('sub', id === 'garage' || id === 'missions'); ['menu', 'garage', 'missions', 'over'].forEach(function (x) { document.getElementById(x).classList.toggle('on', x === id); }); }
+function show(id) { if (id !== 'garage' && typeof garageVideo === 'function') garageVideo(null); document.body.classList.toggle('sub', id === 'garage' || id === 'missions'); ['menu', 'garage', 'missions', 'over'].forEach(function (x) { document.getElementById(x).classList.toggle('on', x === id); }); }
 function shakeEl(el) { if (el && el.animate) el.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], 220); }
 function renderMenu() {
   var t = todayStr(), db = save.dailyBest[t] || 0, ms = [3, 7, 14, 30], nextM = 0, prevM = 0;
@@ -667,11 +672,20 @@ function renderMenu() {
   document.getElementById('mbadge').textContent = chalDone() + '/3';
 }
 function statBar(label, base, total, max) { return '<div class="stat"><span>' + label + '</span><div class="bar"><i class="up" style="width:' + Math.min(100, total / max * 100) + '%"></i><i class="bs" style="width:' + Math.min(100, base / max * 100) + '%"></i></div></div>'; }
+var videoOn = false;
+function garageVideo(b) {
+  var gv = document.getElementById('gvid'), tg = document.getElementById('vtag');
+  if (b && b.video) {
+    if (gv.getAttribute('data-src') !== b.video) { gv.src = b.video; gv.setAttribute('data-src', b.video); }
+    gv.style.display = 'block'; tg.style.display = 'block'; videoOn = true;
+    var pr = gv.play(); if (pr && pr.catch) pr.catch(function () {});
+  } else { try { gv.pause(); } catch (e) {} gv.style.display = 'none'; tg.style.display = 'none'; videoOn = false; }
+}
 function renderGarage() {
   var b = BIKES[viewBike], owned = save.bikes.indexOf(viewBike) >= 0, u = getUpg(viewBike), p = calcPerf(viewBike);
-  document.getElementById('gcoins').textContent = save.coins;
+  document.getElementById('gcoins').textContent = save.coins; garageVideo(b);
   var h = '<div class="bhead"><div><b class="bn">' + b.n + '</b><small>' + b.cls.toUpperCase() + ' &middot; ' + b.blurb + '</small></div>' + (owned ? (save.bike === viewBike ? '<span class="tagok">EQUIPPED</span>' : '') : '<span class="taglock">LOCKED</span>') + '</div>';
-  h += statBar('SPEED', b.base.spd, p.spd, 1.45) + statBar('PICKUP', b.base.acc, p.acc, 1.8) + statBar('HANDLING', b.base.hnd, p.hnd, 1.45) + statBar('NITRO', b.base.nit, p.nit, 2.4);
+  h += statBar('SPEED', b.base.spd, p.spd, 1.5) + statBar('PICKUP', b.base.acc, p.acc, 1.9) + statBar('HANDLING', b.base.hnd, p.hnd, 1.5) + statBar('NITRO', b.base.nit, p.nit, 2.5);
   if (!owned) { var need = b.cost - save.coins; h += '<button class="btn' + (need > 0 ? ' dim' : '') + '" id="gAct">' + (need > 0 ? 'UNLOCK ' + b.cost + ' (need ' + need + ' more)' : 'UNLOCK FOR ' + b.cost) + '</button>'; }
   else if (save.bike !== viewBike) h += '<button class="btn" id="gAct">RIDE THIS BIKE</button>';
   h += '<div class="sec">UPGRADES</div>';
@@ -680,7 +694,7 @@ function renderGarage() {
     var lv = u[i], max = lv >= 5, cost = max ? 0 : upgCost(viewBike, lv), pips = ''; for (var k = 0; k < 5; k++) pips += '<i class="' + (k < lv ? 'on' : '') + '"></i>';
     h += '<div class="urow"><div class="ut"><b>' + g.n + '</b><small>' + g.d + '</small><div class="pips">' + pips + '</div></div>' + (max ? '<span class="umax">MAX</span>' : '<button class="ubtn' + (save.coins < cost ? ' dim' : '') + '" data-u="' + i + '">' + cost + '</button>') + '</div>';
   });
-  h += '<div class="sec">PAINT</div><div class="sw" id="gsw"></div>';
+  h += b.livery ? '<div class="sec">PAINT</div><div class="note">Factory livery: the colours of the real bike.</div>' : '<div class="sec">PAINT</div><div class="sw" id="gsw"></div>';
   document.getElementById('gbody').innerHTML = h;
   var act = document.getElementById('gAct');
   if (act) act.onclick = function () {
@@ -696,7 +710,7 @@ function renderGarage() {
     };
   });
   var sw = document.getElementById('gsw');
-  PAINTS.forEach(function (pt, i) {
+  if (sw) PAINTS.forEach(function (pt, i) {
     var el = document.createElement('button'); el.style.background = pt.c; el.title = pt.n; el.setAttribute('aria-label', pt.n + (save.owned.indexOf(i) < 0 ? ' costs ' + pt.cost : ''));
     if (save.sel === i) el.className = 'sel';
     if (save.owned.indexOf(i) < 0) { var lk = document.createElement('div'); lk.className = 'lock'; lk.textContent = pt.cost; el.appendChild(lk); }
@@ -918,10 +932,10 @@ function buildBike() {
     var helm = new THREE.MeshStandardMaterial({ color: o.helm, metalness: 0.05, roughness: 0.3, envMap: env, envMapIntensity: 0.6 });
     var H = o.H, Sh = o.Sh, hd = o.hd;
     rg.add(limb(H, Sh, 0.2, suit)); rg.add(mk(sph, suit, Sh[0], Sh[1], Sh[2], 0.22));
-    rg.add(mk(sph, paintMat, 0, Sh[1] + 0.04, Sh[2] + 0.18, 0.17, 0.12, 0.2));
+    rg.add(mk(sph, o.acc || paintMat, 0, Sh[1] + 0.04, Sh[2] + 0.18, 0.17, 0.12, 0.2));
     rg.add(mk(sph, helm, hd[0], hd[1], hd[2], 0.2));
     rg.add(mk(sph, visor, hd[0], hd[1] - 0.03, hd[2] - 0.14, 0.15, 0.085, 0.08));
-    rg.add(mk(bx, paintMat, hd[0], hd[1] + 0.195, hd[2], 0.05, 0.012, 0.36));
+    rg.add(mk(bx, o.acc || paintMat, hd[0], hd[1] + 0.195, hd[2], 0.05, 0.012, 0.36));
     [-1, 1].forEach(function (s) {
       var sx = s * 0.22, el = [(sx + s * o.gx) / 2 + s * 0.05, (Sh[1] + o.gy) / 2 - 0.05, (Sh[2] + o.gz) / 2];
       rg.add(limb([sx, Sh[1] - 0.04, Sh[2] - 0.02], el, 0.075, suit)); rg.add(limb(el, [s * o.gx, o.gy, o.gz], 0.065, suit));
@@ -948,17 +962,26 @@ function buildBike() {
     { R: 0.33, rt: 0.085, ft: 0.085, rz: 0.78, fz: -0.78, kind: 'spoke', headY: 1.05, headZ: -0.6, barW: 0.4, barY: 0.14, barZ: 0.12 },
     { R: 0.31, rt: 0.095, ft: 0.08, rz: 0.76, fz: -0.78, kind: 'spoke', headY: 1.0, headZ: -0.62, barW: 0.27, barY: 0.08, barZ: 0.04 },
     { R: 0.34, rt: 0.15, ft: 0.095, rz: 0.8, fz: -0.82, kind: 'spoke', headY: 1.08, headZ: -0.64, barW: 0.37, barY: 0.14, barZ: 0.1 },
-    { R: 0.3, rt: 0.115, ft: 0.1, rz: 0.74, fz: -0.82, kind: 'disc', headY: 0.95, headZ: -0.7, barW: 0.19, barY: 0.07, barZ: 0.1 }
+    { R: 0.3, rt: 0.115, ft: 0.1, rz: 0.74, fz: -0.82, kind: 'disc', headY: 0.95, headZ: -0.7, barW: 0.19, barY: 0.07, barZ: 0.1 },
+    { R: 0.31, rt: 0.13, ft: 0.09, rz: 0.78, fz: -0.8, kind: 'spoke', headY: 1.0, headZ: -0.62, barW: 0.26, barY: 0.1, barZ: 0.03 }
   ];
   bikeRoot = new THREE.Group(); scene.add(bikeRoot);
-  for (var i = 0; i < 4; i++) {
+  var redM = new THREE.MeshStandardMaterial({ color: 0xd8201c, metalness: 0.35, roughness: 0.3, envMap: env });
+  var blueM = new THREE.MeshStandardMaterial({ color: 0x1d3fb8, metalness: 0.45, roughness: 0.25, envMap: env });
+  var greenM = new THREE.MeshStandardMaterial({ color: 0x1f9a3f, metalness: 0.35, roughness: 0.3, envMap: env });
+  var yellowM = new THREE.MeshStandardMaterial({ color: 0xf2c400, metalness: 0.3, roughness: 0.35, envMap: env });
+  var goldM = new THREE.MeshStandardMaterial({ color: 0xc99a2a, metalness: 1, roughness: 0.22, envMap: env });
+  var aluM = new THREE.MeshStandardMaterial({ color: 0xb8bcc6, metalness: 0.9, roughness: 0.3, envMap: env });
+  var dc = document.createElement('canvas'); dc.width = 256; dc.height = 64; var dx = dc.getContext('2d'); dx.fillStyle = '#ffffff'; dx.font = 'italic 800 40px system-ui,sans-serif'; dx.textAlign = 'center'; dx.textBaseline = 'middle'; dx.fillText('MotoRush', 128, 34);
+  var decalM = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(dc), transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  for (var i = 0; i < 5; i++) {
     var c = CFG[i], m = { flames: [] };
     var inner = new THREE.Group(); inner.position.set(0, -c.R, -c.rz);
     m.w = new THREE.Group(); m.w.position.set(0, c.R, c.rz); m.w.add(inner); m.inner = inner;
     m.rear = wheel(c.R, c.rt, c.kind); m.rear.position.set(0, c.R, c.rz); inner.add(m.rear);
     var fg = new THREE.Group(); fg.position.set(0, c.headY, c.headZ); inner.add(fg);
     var fy = c.R - c.headY, fzr = c.fz - c.headZ, fw = wheel(c.R, c.ft, c.kind); fw.position.set(0, fy, fzr); fg.add(fw);
-    var legM = i === 3 ? dark : chrome, legR = i === 3 ? 0.055 : 0.035;
+    var legM = i === 3 ? dark : i === 4 ? goldM : chrome, legR = i === 3 ? 0.055 : i === 4 ? 0.04 : 0.035;
     fg.add(limb([-0.12, 0.02, 0], [-0.1, fy, fzr], legR, legM)); fg.add(limb([0.12, 0.02, 0], [0.1, fy, fzr], legR, legM));
     fg.add(mk(bx, dark, 0, 0, -0.02, 0.34, 0.06, 0.14));
     fg.add(limb([-c.barW, c.barY, c.barZ], [c.barW, c.barY, c.barZ], 0.022, chrome));
@@ -1027,7 +1050,7 @@ function buildBike() {
       inner.add(mk(sph, accK, 0, 0.66, 1.0, 0.22, 0.12, 0.32));
       rider(m, { suit: BIKES[2].suit, helm: 0x15161c, H: [0, 1.0, 0.3], Sh: [0, 1.58, -0.28], hd: [0, 1.84, -0.44], gx: 0.4, gy: 1.2, gz: -0.6, kx: 0.36, ky: 0.92, kz: -0.15, ax: 0.3, ay: 0.47, az: 0.12 });
       flamesAt(m, [[-0.3, 0.9, 1.3], [0.3, 0.9, 1.3]], 1.15, [0, 0.9, 1.6]);
-    } else {
+    } else if (i === 3) {
       /* PHANTOM X: futuristic hyperbike, enclosed shell, glass canopy, rear turbine, neon trim */
       fg.add(mk(sph, accK, 0, 0.12, -0.02, 0.2, 0.14, 0.16));
       var nose = mk(new THREE.ConeGeometry(0.21, 1.2, 12), paintMat, 0, 0.74, -1.1, 1, 1, 1); nose.rotation.x = -Math.PI / 2; inner.add(nose);
@@ -1047,6 +1070,33 @@ function buildBike() {
       inner.add(mk(bx, tailMat, 0, 1.08, 1.4, 0.42, 0.035, 0.03));
       rider(m, { suit: BIKES[3].suit, helm: 0xc9d0ff, H: [0, 0.9, 0.35], Sh: [0, 1.26, -0.3], hd: [0, 1.4, -0.52], gx: 0.19, gy: 0.98, gz: -0.74, kx: 0.25, ky: 0.8, kz: -0.3, ax: 0.2, ay: 0.5, az: 0.15 });
       flamesAt(m, [[0, 0.86, 1.5]], 1.9, [0, 0.9, 1.9]);
+    } else {
+      /* MOTORUSH RR: the factory race bike from the video (red fairing, blue tank, green tail, yellow belly, gold forks) */
+      var dec;
+      fg.add(mk(sph, redM, 0, 0.18, -0.14, 0.14, 0.1, 0.18));
+      inner.add(mk(sph, redM, 0, 0.92, -0.86, 0.27, 0.22, 0.5));
+      inner.add(mk(bx, dark, 0, 0.84, -1.34, 0.15, 0.07, 0.03));
+      var scr2 = mk(bx, glass, 0, 1.22, -0.64, 0.3, 0.3, 0.03); scr2.rotation.x = -0.8; inner.add(scr2);
+      [-1, 1].forEach(function (s) {
+        var sd = mk(bx, redM, s * 0.21, 0.66, -0.2, 0.07, 0.52, 1.0); sd.rotation.z = s * 0.1; inner.add(sd);
+        dec = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.14), decalM); dec.position.set(s * 0.258, 0.74, -0.42); dec.rotation.y = s * Math.PI / 2; inner.add(dec);
+        inner.add(limb([s * 0.17, 1.0, -0.45], [s * 0.2, 0.62, 0.5], 0.045, aluM));
+        inner.add(mk(bx, aluM, s * 0.1, 0.4, 0.5, 0.06, 0.09, 0.85));
+        inner.add(mk(sph, dark, s * 0.31, 1.06, -0.64, 0.05, 0.04, 0.03));
+      });
+      inner.add(mk(sph, yellowM, 0, 0.36, -0.1, 0.27, 0.14, 0.72));
+      inner.add(mk(sph, blueM, 0, 1.03, -0.28, 0.27, 0.2, 0.5));
+      inner.add(mk(sph, greenM, 0, 1.1, 0.74, 0.2, 0.17, 0.64));
+      inner.add(mk(bx, greenM, 0, 1.2, 1.32, 0.15, 0.1, 0.22));
+      dec = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.1), decalM); dec.rotation.x = -Math.PI / 2 + 0.25; dec.position.set(0, 1.285, 0.95); inner.add(dec);
+      inner.add(mk(bx, tailMat, 0, 1.12, 1.46, 0.34, 0.035, 0.03));
+      inner.add(mk(bx, dark, 0, 0.5, 0.05, 0.3, 0.38, 0.5));
+      inner.add(mk(sph, rubber, 0, 1.0, 0.2, 0.17, 0.07, 0.4));
+      var tit = mk(cy, aluM, 0.26, 0.66, 0.78, 0.105, 1.0, 0.105); tit.rotation.x = Math.PI / 2 - 0.22; inner.add(tit);
+      var tcap = mk(cy, dark, 0.26, 0.78, 1.27, 0.115, 0.05, 0.115); tcap.rotation.x = Math.PI / 2 - 0.22; inner.add(tcap);
+      inner.add(limb([0.2, 0.42, 0.1], [0.26, 0.62, 0.45], 0.05, aluM));
+      rider(m, { suit: '#f4f4f6', helm: 0xd8201c, acc: blueM, H: [0, 0.97, 0.3], Sh: [0, 1.44, -0.4], hd: [0, 1.62, -0.56], gx: 0.27, gy: 1.04, gz: -0.66, kx: 0.25, ky: 0.88, kz: -0.22, ax: 0.23, ay: 0.46, az: 0.12 });
+      flamesAt(m, [[0.26, 0.78, 1.3]], 1.25, [0.2, 0.8, 1.55]);
     }
     underglow(m);
     bikeRoot.add(m.w); models.push(m);
@@ -1152,7 +1202,7 @@ function render(dt) {
     for (i = 0; i < flames.length; i++) { flames[i].visible = nitroOn; if (nitroOn) { var fk = flames[i].userData.k || 1; flames[i].scale.set((0.8 + Math.random() * 0.3) * fk, (0.8 + Math.random() * 0.3) * fk, 0.5 + Math.random() * 0.5); } }
     flameGlow.visible = nitroOn; if (nitroOn) { var gs = 1.0 + Math.random() * 0.4; flameGlow.scale.set(gs, gs, 1); }
     shadowBlob.position.x = bx0; shadowBlob.visible = by0 < 1.5; shadowBlob.scale.set(1 - by0 * 0.15, 1, 1);
-    bikeRoot.visible = state !== 'over' || true;
+    bikeRoot.visible = !(state === 'menu' && videoOn); shadowBlob.visible = shadowBlob.visible && bikeRoot.visible;
 
     /* camera */
     var sp2 = speed / MAXS, asp = W / H;
