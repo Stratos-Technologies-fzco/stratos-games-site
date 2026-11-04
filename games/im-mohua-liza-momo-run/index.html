@@ -38,6 +38,29 @@
   kbd{background:rgba(255,255,255,.2);border-radius:6px;padding:1px 8px;font-family:inherit}
   .hidden{display:none!important}
   #paused{font-size:44px;font-weight:700;text-shadow:0 3px 20px rgba(0,0,0,.5)}
+  .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
+  button.alt{background:linear-gradient(90deg,#7afcff,#b69bff);color:#1d0b2e;box-shadow:0 6px 0 #5a3aa8,0 10px 30px rgba(120,160,255,.3)}
+  button.alt:active{box-shadow:0 3px 0 #5a3aa8}
+  button.small{font-size:17px;padding:9px 24px;margin-top:12px}
+  button.ghost{background:rgba(255,255,255,.16);color:#fff;box-shadow:none}
+  button:disabled{opacity:.45;cursor:default}
+  .txt{font:inherit;font-size:20px;padding:10px 16px;border-radius:14px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;text-align:center;width:min(260px,70vw);outline:none;margin-top:12px}
+  .txt:focus{border-color:#ffe259}
+  .txt::placeholder{color:rgba(255,255,255,.55)}
+  #netStatus{min-height:22px;color:#ffe9a8;font-size:15px;margin-top:10px}
+  .code{letter-spacing:5px;background:linear-gradient(90deg,#ffe259,#ff7eb3,#7afcff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .plist{list-style:none;padding:0;margin:14px 0 4px;text-align:left;min-width:min(320px,76vw)}
+  .plist li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.09);margin:6px 0;font-size:18px}
+  .plist li.empty{opacity:.45;font-size:15px}
+  .plist li .sc{margin-left:auto;font-variant-numeric:tabular-nums;font-size:16px}
+  .plist li.me{box-shadow:inset 0 0 0 2px rgba(255,226,89,.7)}
+  .dot{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 2px #fff}
+  #board{position:fixed;right:16px;top:96px;z-index:2;pointer-events:none;padding:8px 12px;min-width:180px}
+  .brow{display:flex;align-items:center;gap:8px;font-size:15px;padding:3px 0}
+  .brow.you{font-weight:700}
+  .brow .bn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
+  .brow .bs{font-variant-numeric:tabular-nums}
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(12,18,32,.78);padding:10px 20px;border-radius:99px;z-index:6;font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
   #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;z-index:5;background:#0d1220}
 </style>
 </head>
@@ -61,7 +84,7 @@
     <p>Run, jump and duck through a living world.</p>
     <div class="weathers">☀️🌇🌧️⛈️❄️🌫️🌙</div>
     <p style="font-size:14px;opacity:.85">A new sky every level, and every level gets faster.</p>
-    <button id="startBtn">Play</button>
+    <div class="btnrow"><button id="startBtn">Play solo</button><button id="onlineBtn" class="alt">🌍 Race online</button></div>
     <div class="keys">
       <kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>↓</kbd> duck · <kbd>←</kbd><kbd>→</kbd> change lane<br>
       <kbd>P</kbd> pause · <kbd>M</kbd> sound on/off · Phone: swipe, tap to jump
@@ -81,6 +104,38 @@
 </div>
 <div class="overlay hidden" id="paused">Paused</div>
 
+<div class="overlay hidden" id="online">
+  <div class="card">
+    <h2>Race online</h2>
+    <p style="opacity:.9">2 to 4 players, anywhere. Same road, same gems. Most points after 2 minutes wins!</p>
+    <input class="txt" id="nameIn" maxlength="12" placeholder="Your name" autocomplete="off">
+    <div><button id="createRoom">Create a room</button></div>
+    <p style="margin-top:16px;opacity:.85">or join a friend's room</p>
+    <div class="btnrow"><input class="txt" id="codeIn" maxlength="5" placeholder="CODE" autocomplete="off" style="width:150px;text-transform:uppercase;letter-spacing:4px"><button class="small alt" id="joinRoom">Join</button></div>
+    <div id="netStatus"></div>
+    <button class="small ghost" id="onlineBack">Back</button>
+  </div>
+</div>
+<div class="overlay hidden" id="lobby">
+  <div class="card">
+    <h2>Room <span class="code" id="roomCode"></span></h2>
+    <p id="lobbySub" style="opacity:.9"></p>
+    <button class="small alt" id="copyLink">Copy invite link</button>
+    <ul class="plist" id="plist"></ul>
+    <div class="btnrow"><button class="small ghost" id="leaveLobby">Leave</button><button class="small" id="startRace">Start race</button></div>
+  </div>
+</div>
+<div class="overlay hidden" id="results">
+  <div class="card">
+    <h2 id="resTitle">Race over!</h2>
+    <ul class="plist" id="resList"></ul>
+    <p id="resSub" style="opacity:.85;min-height:22px"></p>
+    <div class="btnrow"><button class="small ghost" id="resLeave">Leave room</button><button class="small" id="raceAgain">Race again</button></div>
+  </div>
+</div>
+<div id="board" class="panel hidden"></div>
+<div id="toast"></div>
+
 <script src="vendor/three.min.js"></script>
 <script src="vendor/CopyShader.js"></script>
 <script src="vendor/LuminosityHighPassShader.js"></script>
@@ -88,12 +143,19 @@
 <script src="vendor/RenderPass.js"></script>
 <script src="vendor/ShaderPass.js"></script>
 <script src="vendor/UnrealBloomPass.js"></script>
+<script src="vendor/mqtt.min.js"></script>
 <script>
 (() => {
 'use strict';
 const $ = id => document.getElementById(id);
-const rand = (a, b) => a + Math.random() * (b - a);
-const pick = a => a[Math.floor(Math.random() * a.length)];
+// RNG is swapped for a seeded one while the race course is built, so every player gets the same road
+let RNG = Math.random;
+const rand = (a, b) => a + RNG() * (b - a);
+const pick = a => a[Math.floor(RNG() * a.length)];
+function seeded(seed) {
+  let x = seed >>> 0;
+  return () => { x = (x + 0x6D2B79F5) >>> 0; let t = x; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const LANES = [-2.4, 0, 2.4];
 const isMobile = matchMedia('(pointer:coarse)').matches;
@@ -281,6 +343,9 @@ const SND = (() => {
       noise(sfx, t, 0.9, { vol: 0.08, type: 'bandpass', freq: 300, freqEnd: 4000, q: 1, a: 0.5 });
       bell(sfx, mtof(79), t + 0.85, 0.09, 1.2); bell(sfx, mtof(86), t + 1.0, 0.09, 1.4);
     },
+    count(go) { if (!ok()) return; const t = now(); if (go) { bell(sfx, mtof(84), t, 0.13, 1.2); bell(sfx, mtof(91), t + 0.05, 0.08, 1.2); } else tone(sfx, mtof(72), t, 0.12, { type: 'triangle', vol: 0.1, a: 0.005, r: 0.25 }); },
+    bonk() { if (!ok()) return; const t = now(); tone(sfx, 160, t, 0.2, { vol: 0.4, a: 0.002, r: 0.3, glide: 40 }); noise(sfx, t, 0.4, { vol: 0.25, type: 'lowpass', freq: 2000, freqEnd: 200 }); [0, 1, 2].forEach(i => bell(sfx, mtof(96 - i * 3), t + 0.2 + i * 0.1, 0.035, 0.35)); },
+    join() { if (!ok()) return; const t = now(); bell(sfx, mtof(79), t, 0.08, 0.8); bell(sfx, mtof(84), t + 0.08, 0.08, 0.9); },
     start() { if (!ok()) return; const t = now(); [72, 76, 79].forEach((n, i) => bell(sfx, mtof(n), t + i * 0.08, 0.08, 0.8)); },
     thunder(delay) {
       if (!ok()) return; const t = ac.currentTime + delay;
@@ -857,38 +922,43 @@ function applyWeather(dt) {
 /* =========================================================
    PLAYER: Momo
    ========================================================= */
-const player = { group: new THREE.Group(), inner: new THREE.Group(), x: 0, y: 0, vy: 0, lane: 1, onGround: true, runT: 0, duckTimer: 0, jumpBuffer: 0 };
-const feet = []; let antennaBall;
-(function buildMomo() {
-  const pink = mat(0xff5fa2, { roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.35 }, true);
-  const belly = mat(0xfff0f5, { roughness: 0.6 }, true);
-  const white = mat(0xffffff, { roughness: 0.08, clearcoat: 1 }, true);
-  const dark = mat(0x1d0b2e, { roughness: 0.1, clearcoat: 1 }, true);
-  const blush = mat(0xff9ccc, { roughness: 0.6 });
-  const orange = mat(0xffa64d, { roughness: 0.5, clearcoat: 0.3 }, true);
-  const glowM = mat(0xffe95c, { emissive: 0xffd400, emissiveIntensity: 3 });
-  const I = player.inner;
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.64, 40, 28), pink); body.position.y = 0.8;
+function makeMomo(bodyHex, ghost) {
+  const T = m => { if (ghost) { m.transparent = true; m.opacity = 0.62; } return m; };
+  const body = T(mat(bodyHex, { roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.35 }, true));
+  const belly = T(mat(0xfff0f5, { roughness: 0.6 }, true));
+  const white = T(mat(0xffffff, { roughness: 0.08, clearcoat: 1 }, true));
+  const dark = T(mat(0x1d0b2e, { roughness: 0.1, clearcoat: 1 }, true));
+  const blush = T(mat(0xff9ccc, { roughness: 0.6 }));
+  const orange = T(mat(0xffa64d, { roughness: 0.5, clearcoat: 0.3 }, true));
+  const glowM = T(mat(0xffe95c, { emissive: 0xffd400, emissiveIntensity: 3 }));
+  const glintM = T(mat(0xffffff, { emissive: 0xffffff, emissiveIntensity: 2 }));
+  const root = new THREE.Group(), I = new THREE.Group(), feetArr = [];
+  const bodyM = new THREE.Mesh(new THREE.SphereGeometry(0.64, 40, 28), body); bodyM.position.y = 0.8;
   const tummy = new THREE.Mesh(new THREE.SphereGeometry(0.46, 28, 20), belly); tummy.position.set(0, 0.72, -0.3); tummy.scale.set(1, 1, 0.55);
-  I.add(body, tummy);
+  I.add(bodyM, tummy);
   for (const s of [-1, 1]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.17, 20, 14), white); eye.position.set(s * 0.23, 1.0, -0.5);
     const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 12), dark); pupil.position.set(s * 0.23, 1.0, -0.64);
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), mat(0xffffff, { emissive: 0xffffff, emissiveIntensity: 2 })); glint.position.set(s * 0.23 + 0.03, 1.04, -0.72);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), glintM); glint.position.set(s * 0.23 + 0.03, 1.04, -0.72);
     const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), blush); cheek.position.set(s * 0.41, 0.82, -0.5); cheek.scale.set(1, 0.6, 0.5);
-    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.5, 18), pink); ear.position.set(s * 0.36, 1.38, 0); ear.rotation.z = -s * 0.35;
+    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.5, 18), body); ear.position.set(s * 0.36, 1.38, 0); ear.rotation.z = -s * 0.35;
     const foot = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 12), orange); foot.position.set(s * 0.26, 0.16, 0); foot.scale.set(1, 0.7, 1.3);
-    feet.push(foot);
+    feetArr.push(foot);
     I.add(eye, pupil, glint, cheek, ear, foot);
   }
   const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 8), dark); stalk.position.set(0, 1.62, 0);
-  antennaBall = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), glowM); antennaBall.position.set(0, 1.9, 0);
-  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.55, 14), pink); tail.rotation.x = Math.PI / 2; tail.position.set(0, 0.6, 0.65);
-  I.add(stalk, antennaBall, tail);
-  shade(I);
-  player.group.add(I);
-  scene.add(player.group);
-})();
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), glowM); ball.position.set(0, 1.9, 0);
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.55, 14), body); tail.rotation.x = Math.PI / 2; tail.position.set(0, 0.6, 0.65);
+  I.add(stalk, ball, tail);
+  if (!ghost) shade(I);
+  root.add(I);
+  return { root, inner: I, feet: feetArr, ball, bodyMat: body };
+}
+const momo = makeMomo(0xff5fa2, false);
+const player = { group: momo.root, inner: momo.inner, x: 0, y: 0, vy: 0, lane: 1, onGround: true, runT: 0, duckTimer: 0, jumpBuffer: 0 };
+const feet = momo.feet, antennaBall = momo.ball;
+scene.add(player.group);
+function setMomoColor(hex) { momo.bodyMat.color.copy(L(hex)); }
 
 /* =========================================================
    OBSTACLES, GEMS, FINISH GATE
@@ -991,24 +1061,24 @@ function addGem(x, y, z) { const m = new THREE.Mesh(gemGeo, pick(gemMats)); m.po
 function gemLine(lane, z0, n) { for (let i = 0; i < n; i++) addGem(LANES[lane], 0.8, z0 + i * 2.4); }
 function gemArc(lane, z) { for (let i = -2; i <= 2; i++) addGem(LANES[lane], 0.9 + (1 - (i * i) / 4) * 1.6, z + i * 1.6); }
 
-function spawnPattern(z) {
-  const lv = level, opts = ['rock', 'rock', 'log'];
+function spawnPattern(z, lv = level) {
+  const opts = ['rock', 'rock', 'log'];
   if (lv >= 2) opts.push('gate', 'rock2');
   if (lv >= 3) opts.push('crates', 'crates');
   if (lv >= 4) opts.push('barrel', 'gate');
   if (lv >= 5) opts.push('rock3', 'barrel', 'crates');
-  const kind = pick(opts), lane = Math.floor(Math.random() * 3);
-  const free = Math.floor(Math.random() * 3), others = [0, 1, 2].filter(l => l !== free);
+  const kind = pick(opts), lane = Math.floor(RNG() * 3);
+  const free = Math.floor(RNG() * 3), others = [0, 1, 2].filter(l => l !== free);
   switch (kind) {
-    case 'rock': boulder(lane, z); if (Math.random() < 0.5) gemArc(lane, z); break;
-    case 'rock2': others.forEach(l => boulder(l, z)); if (Math.random() < 0.6) gemLine(free, z - 3, 3); break;
+    case 'rock': boulder(lane, z); if (RNG() < 0.5) gemArc(lane, z); break;
+    case 'rock2': others.forEach(l => boulder(l, z)); if (RNG() < 0.6) gemLine(free, z - 3, 3); break;
     case 'rock3': [0, 1, 2].forEach(l => boulder(l, z)); gemArc(1, z); break;
-    case 'log': fallenLog(z); if (Math.random() < 0.5) gemArc(lane, z); break;
-    case 'gate': gate(z); if (Math.random() < 0.6) gemLine(lane, z - 2.4, 3); break;
+    case 'log': fallenLog(z); if (RNG() < 0.5) gemArc(lane, z); break;
+    case 'gate': gate(z); if (RNG() < 0.6) gemLine(lane, z - 2.4, 3); break;
     case 'crates': crates(others, z); gemLine(free, z - 2.4, 3); break;
     case 'barrel': barrel(lane, z - 30); break;
   }
-  if (Math.random() < 0.35) gemLine(Math.floor(Math.random() * 3), z + 6, 4);
+  if (RNG() < (race ? 0.65 : 0.35)) gemLine(Math.floor(RNG() * 3), z + 6, 4);
 }
 
 /* =========================================================
@@ -1067,6 +1137,8 @@ function completeLevel() {
 }
 function start() {
   SND.init(); SND.start();
+  if (race || Net.client) leaveRoom(true);
+  setMomoColor(0xff5fa2); player.group.visible = true;
   clearWorld();
   state = 'play'; paused = false; canRestart = false;
   speed = 14; dist = 0; score = 0; bonus = 0; gemCount = 0; combo = 0;
@@ -1078,6 +1150,7 @@ function start() {
   startLevel(1);
 }
 function crash() {
+  if (race) { stumble(); return; }
   state = 'over'; canRestart = false; overTimer = 0;
   track('game_over', { level, score, gems: gemCount });
   shake = 0.8; flash = Math.max(flash, 0.5);
@@ -1096,7 +1169,7 @@ function crash() {
   }, 1400);
 }
 function togglePause() {
-  if (state !== 'play') return;
+  if (state !== 'play' || race) return;
   paused = !paused; $('paused').classList.toggle('hidden', !paused); SND.pause(paused);
 }
 
@@ -1104,19 +1177,22 @@ function togglePause() {
    INPUT
    ========================================================= */
 function jump() {
+  if (race && race.stun > 0) return;
   if (player.onGround) { player.vy = 12.5; player.onGround = false; player.duckTimer = 0; SND.jump(); }
   else player.jumpBuffer = 0.14;
 }
-function moveLane(d) { const n = clamp(player.lane + d, 0, 2); if (n !== player.lane) { player.lane = n; SND.lane(); } }
+function moveLane(d) { if (race && race.stun > 0) return; const n = clamp(player.lane + d, 0, 2); if (n !== player.lane) { player.lane = n; SND.lane(); } }
 let audioUnlocked = false;
 function unlockAudio() { if (audioUnlocked) return; audioUnlocked = true; SND.init(); if (state === 'menu') SND.play('menu'); }
 addEventListener('pointerdown', unlockAudio);
 addEventListener('keydown', e => {
   unlockAudio();
   const k = e.code;
+  if (e.target && e.target.tagName === 'INPUT') return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) e.preventDefault();
   if (k === 'KeyM') { const m = SND.toggleMute(); showBanner(m ? '🔇 Sound off' : '🔊 Sound on'); return; }
-  if (state === 'menu') { if (k === 'Space' || k === 'Enter') start(); return; }
+  if (state === 'menu') { if ((k === 'Space' || k === 'Enter') && !$('menu').classList.contains('hidden')) start(); return; }
+  if (state === 'countdown' || state === 'raceEnd') return;
   if (state === 'over') { if ((k === 'Space' || k === 'Enter') && canRestart) start(); return; }
   if (k === 'KeyP' || k === 'Escape') { togglePause(); return; }
   if (paused || e.repeat) return;
@@ -1138,6 +1214,388 @@ addEventListener('touchend', e => {
 $('startBtn').addEventListener('click', start);
 $('againBtn').addEventListener('click', () => canRestart && start());
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play' && !paused) togglePause(); });
+
+/* =========================================================
+   ONLINE RACE
+   Players talk through a free public relay (MQTT over WebSocket), on topics named
+   after the room code, the same way Chroma Clash does. Everyone gets the same seed,
+   so the road, obstacles and gems are the same for all racers.
+   ========================================================= */
+const RACE_DUR = 120;
+const COLORS = [0xff5fa2, 0x37b6ff, 0x5be37d, 0xffa64d];
+const COLOR_CSS = ['#ff5fa2', '#37b6ff', '#5be37d', '#ffa64d'];
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const ROOT = 'momorun/v1/';
+const ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const rid = () => Math.random().toString(36).slice(2, 10);
+const rint = n => Math.floor(Math.random() * n);
+function genCode(b) { let f; do { f = rint(ALPHA.length); } while (f % BROKERS.length !== b); return ALPHA[f] + Array.from({ length: 4 }, () => ALPHA[rint(ALPHA.length)]).join(''); }
+const brokerOf = code => { const i = ALPHA.indexOf(code[0]); return i < 0 ? -1 : i % BROKERS.length; };
+const cleanName = n => String(n || '').replace(/[<>&"]/g, '').trim().slice(0, 12) || 'Player';
+let race = null, boardT = 0;
+const ghosts = new Map();
+
+function toastMsg(t) { const el = $('toast'); el.textContent = t; el.style.opacity = 1; clearTimeout(toastMsg.h); toastMsg.h = setTimeout(() => (el.style.opacity = 0), 2400); }
+function showScreen(id) { ['menu', 'online', 'lobby', 'over', 'results', 'paused'].forEach(s => $(s).classList.toggle('hidden', s !== id)); }
+
+const Net = {
+  client: null, isHost: false, code: null, me: rid(), timers: [], token: {}, players: [], seen: new Map(), joined: false, hostSeen: 0,
+  status(t) { $('netStatus').textContent = t; },
+  every(fn, ms) { this.timers.push(setInterval(fn, ms)); },
+  ready() { if (!window.mqtt) { this.status('Online play could not load. Check your internet and reload.'); return false; } return true; },
+  connect(url, subs, onMsg) {
+    return new Promise((res, rej) => {
+      const c = mqtt.connect(url, { clientId: 'mr_' + rid() + rid(), connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 20, clean: true });
+      let done = false;
+      c.on('connect', () => { c.subscribe(subs, { qos: 1 }); if (!done) { done = true; res(c); } });
+      c.on('message', (topic, payload) => { let d; try { d = JSON.parse(payload.toString()); } catch (e) { return; } if (d && typeof d === 'object') onMsg(d); });
+      c.on('error', () => { });
+      setTimeout(() => { if (!done) { done = true; try { c.end(true); } catch (e) { } rej(new Error('timeout')); } }, 9000);
+    });
+  },
+  all(obj, qos = 1) { if (!this.client) return; obj.from = this.me; this.client.publish(ROOT + this.code + '/all', JSON.stringify(obj), { qos }); },
+  hostPid() { return this.players[0] && this.players[0].pid; },
+
+  /* ----- host ----- */
+  async create(name) {
+    if (!this.ready()) return; this.close(); const token = this.token;
+    this.isHost = true; this.status('Opening a room…');
+    for (let b = 0; b < BROKERS.length && !this.client; b++) {
+      const code = genCode(b);
+      try {
+        const c = await this.connect(BROKERS[b], [ROOT + code + '/all'], d => this.onData(d));
+        if (token !== this.token) { c.end(true); return; }
+        this.client = c; this.code = code;
+      } catch (e) { if (token !== this.token) return; }
+    }
+    if (!this.client) { this.status('Could not open a room. Check your internet and try again.'); return; }
+    this.players = [{ pid: this.me, name, color: 0 }]; this.joined = true; this.status('');
+    showLobby(); this.pushLobby();
+    this.every(() => {
+      const now = Date.now(); let changed = false;
+      this.players = this.players.filter(p => {
+        if (p.pid === this.me || now - (this.seen.get(p.pid) || 0) < 20000) return true;
+        changed = true; toastMsg(p.name + ' left'); dropGhost(p.pid); return false;
+      });
+      if (!race) this.pushLobby(); else this.all({ t: 'ping' }, 0);
+      if (changed && race) renderBoard();
+    }, 2500);
+  },
+  pushLobby() { if (!this.isHost) return; this.all({ t: 'lobby', players: this.players }); renderLobby(); },
+  startRace() {
+    if (!this.isHost || this.players.length < 2) return;
+    const seed = rint(2147483647);
+    this.all({ t: 'start', seed, players: this.players });
+    startRace(seed, this.players);
+  },
+
+  /* ----- player joining ----- */
+  async join(code, name) {
+    if (!this.ready()) return; this.close(); const token = this.token;
+    const b = brokerOf(code);
+    if (b < 0) { this.status('That code does not look right. Check it with the host.'); return; }
+    this.isHost = false; this.code = code; this.status('Connecting…');
+    let c;
+    try { c = await this.connect(BROKERS[b], [ROOT + code + '/all'], d => { if (token === this.token) this.onData(d); }); }
+    catch (e) { if (token === this.token) this.status('Could not reach the game server. Check your internet and try again.'); return; }
+    if (token !== this.token) { c.end(true); return; }
+    this.client = c; this.status('Looking for the room…');
+    const t0 = Date.now(); this.hostSeen = Date.now();
+    const beat = () => {
+      if (!this.joined) {
+        if (Date.now() - t0 > 25000) { this.close(); this.status('Room not found. Check the code, and ask the host to keep the game open on their screen.'); return; }
+      } else if (Date.now() - this.hostSeen > 30000) { toastMsg('Lost connection to the host'); leaveRoom(); return; }
+      this.all(race ? { t: 'ping' } : { t: 'hello', name }, 0);
+    };
+    beat(); this.every(beat, 2000);
+  },
+
+  onData(d) {
+    if (!d || typeof d.from !== 'string' || d.from.length > 20 || d.from === this.me) return;
+    this.seen.set(d.from, Date.now());
+    if (!this.isHost && d.from === this.hostPid()) this.hostSeen = Date.now();
+    switch (d.t) {
+      case 'hello': {
+        if (!this.isHost || this.players.some(p => p.pid === d.from)) return;
+        if (race || this.players.length >= 4) { this.all({ t: 'reject', to: d.from, why: race ? 'That race already started. Ask the host to make a new room.' : 'Room is full (4 players max).' }); return; }
+        const used = new Set(this.players.map(p => p.color)); let color = 0; while (used.has(color)) color++;
+        const name = cleanName(d.name);
+        this.players.push({ pid: d.from, name, color }); this.pushLobby(); toastMsg(name + ' joined'); SND.join();
+        break;
+      }
+      case 'lobby':
+        if (this.isHost || !Array.isArray(d.players)) return;
+        this.hostSeen = Date.now(); this.players = d.players;
+        if (d.players.some(p => p.pid === this.me)) {
+          if (!this.joined) { this.joined = true; this.status(''); SND.join(); }
+          if (!race) showLobby();
+        }
+        break;
+      case 'reject':
+        if (d.to === this.me && !this.joined) { const why = String(d.why || 'Could not join.'); this.close(); this.status(why); }
+        break;
+      case 'start':
+        if (this.isHost || !Array.isArray(d.players)) return;
+        this.hostSeen = Date.now(); this.players = d.players;
+        if (d.players.some(p => p.pid === this.me)) startRace(d.seed >>> 0, d.players);
+        break;
+      case 'st': onRemoteState(d); break;
+      case 'done': onRemoteDone(d); break;
+      case 'bye':
+        if (this.isHost) { this.players = this.players.filter(p => p.pid !== d.from); if (!race) this.pushLobby(); }
+        dropGhost(d.from);
+        break;
+      case 'closed':
+        if (!this.isHost && d.from === this.hostPid()) { toastMsg('The host closed the room'); leaveRoom(); }
+        break;
+    }
+  },
+  close() {
+    this.token = {};
+    this.timers.forEach(clearInterval); this.timers = [];
+    const c = this.client; this.client = null;
+    if (c) {
+      try { c.publish(ROOT + this.code + '/all', JSON.stringify({ t: this.isHost ? 'closed' : 'bye', from: this.me })); } catch (e) { }
+      setTimeout(() => { try { c.end(true); } catch (e) { } }, 300);
+    }
+    this.players = []; this.seen.clear(); this.joined = false; this.isHost = false; this.code = null;
+  },
+};
+
+function myName() {
+  const n = cleanName($('nameIn').value);
+  try { localStorage.setItem('momoName', n); } catch (e) { }
+  return n;
+}
+function openOnline() {
+  try { $('nameIn').value = localStorage.getItem('momoName') || ''; } catch (e) { }
+  Net.status(''); showScreen('online');
+}
+function showLobby() { showScreen('lobby'); renderLobby(); }
+function renderLobby() {
+  $('roomCode').textContent = Net.code || '';
+  const ul = $('plist'); ul.innerHTML = '';
+  Net.players.forEach((p, i) => {
+    const li = document.createElement('li'); if (p.pid === Net.me) li.className = 'me';
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = COLOR_CSS[p.color] || '#fff';
+    const nm = document.createElement('span'); nm.textContent = p.name + (p.pid === Net.me ? ' (you)' : '') + (i === 0 ? ' 👑' : '');
+    li.append(dot, nm); ul.append(li);
+  });
+  for (let i = Net.players.length; i < 4; i++) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Waiting for a friend…'; ul.append(li); }
+  $('startRace').classList.toggle('hidden', !Net.isHost);
+  $('startRace').disabled = Net.players.length < 2;
+  $('lobbySub').textContent = Net.isHost
+    ? (Net.players.length < 2 ? 'Share the code or the invite link with 1 to 3 friends.' : 'Everyone in? Start the race!')
+    : "You're in! The host will start the race.";
+}
+function leaveRoom(silent) {
+  Net.close();
+  race = null; clearGhosts(); $('board').classList.add('hidden');
+  if (!silent) backToMenu();
+}
+function backToMenu() {
+  race = null; clearGhosts(); clearWorld();
+  state = 'menu'; paused = false; speed = 0;
+  showScreen('menu'); $('hud').classList.remove('on'); $('board').classList.add('hidden');
+  setMomoColor(0xff5fa2); player.group.visible = true;
+  Object.assign(player, { x: 0, y: 0, vy: 0, lane: 1, onGround: true });
+  player.inner.rotation.set(0, 0, 0);
+  setWeather(WEATHERS[0]); SND.play('menu');
+}
+
+/* ----- ghost racers (the other players) ----- */
+function makeTag(name, css) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d');
+  g.font = '700 30px Fredoka, sans-serif'; const w = Math.min(244, g.measureText(name).width + 44);
+  g.fillStyle = 'rgba(12,18,32,.72)'; rr(g, (256 - w) / 2, 8, w, 48, 24); g.fill();
+  g.fillStyle = css; g.beginPath(); g.arc((256 - w) / 2 + 22, 32, 9, 0, 7); g.fill();
+  g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(name, (256 - w) / 2 + 38, 33, w - 46);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
+  sp.scale.set(1.8, 0.45, 1); sp.renderOrder = 10;
+  return sp;
+}
+function addGhost(p) {
+  const m = makeMomo(COLORS[p.color] || 0xffffff, true);
+  const tag = makeTag(p.name, COLOR_CSS[p.color] || '#fff'); tag.position.y = 2.45; m.root.add(tag);
+  m.root.visible = false; scene.add(m.root);
+  ghosts.set(p.pid, { pid: p.pid, name: p.name, color: p.color, m, x: 0, y: 0, dist: 0, tx: 0, ty: 0, tdist: 0, speed: 0, duck: false, stun: false, at: performance.now(), got: false, score: 0, gems: 0, done: false, left: false, runT: 0 });
+}
+function dropGhost(pid) { const g = ghosts.get(pid); if (g && !g.left) { g.left = true; scene.remove(g.m.root); } }
+function clearGhosts() { ghosts.forEach(g => scene.remove(g.m.root)); ghosts.clear(); }
+function onRemoteState(d) {
+  const g = ghosts.get(d.from); if (!g || g.left) return;
+  g.tdist = Math.max(0, +d.d || 0); g.tx = clamp(+d.x || 0, -3, 3); g.ty = clamp(+d.y || 0, 0, 4);
+  g.duck = !!d.du; g.stun = !!d.k; g.speed = clamp(+d.sp || 0, 0, 60);
+  g.gems = Math.max(0, d.g | 0); g.score = Math.max(0, d.s | 0); g.at = performance.now();
+  if (!g.got) { g.got = true; g.dist = g.tdist; g.x = g.tx; g.y = g.ty; }
+}
+function onRemoteDone(d) {
+  const g = ghosts.get(d.from); if (!g) return;
+  g.done = true; g.score = Math.max(0, d.s | 0); g.gems = Math.max(0, d.g | 0);
+}
+function updateGhosts(dt) {
+  const now = performance.now();
+  ghosts.forEach(g => {
+    if (g.left) return;
+    const age = Math.min(0.5, (now - g.at) / 1000);
+    const td = g.tdist + (g.done ? 0 : g.speed * age);
+    g.dist += (td - g.dist) * Math.min(1, dt * 8);
+    g.x += (g.tx - g.x) * Math.min(1, dt * 12); g.y += (g.ty - g.y) * Math.min(1, dt * 14);
+    const z = dist - g.dist, vis = g.got && z > -150 && z < 3;
+    g.m.root.visible = vis; if (!vis) return;
+    g.m.root.position.set(g.x, g.y, z);
+    g.runT += dt * g.speed * 0.7;
+    const I = g.m.inner, k = Math.min(1, dt * 15);
+    I.scale.y += ((g.duck ? 0.55 : 1) - I.scale.y) * k; I.scale.x = I.scale.z = g.duck ? 1.25 : 1;
+    I.rotation.y = g.stun ? time * 14 : 0;
+    g.m.feet.forEach((f, i) => { const ph = g.runT + (i ? Math.PI : 0); f.position.z = g.y < 0.05 ? Math.sin(ph) * 0.28 : 0.12; });
+  });
+}
+function standings() {
+  const me = race && race.me;
+  const rows = [{ name: me ? me.name : 'You', color: me ? me.color : 0, score, gems: gemCount, you: true, done: !!(race && race.done), left: false }];
+  ghosts.forEach(g => rows.push({ name: g.name, color: g.color, score: g.score, gems: g.gems, done: g.done, left: g.left }));
+  return rows.sort((a, b) => b.score - a.score);
+}
+function renderBoard() {
+  if (!race) return;
+  const b = $('board'); b.innerHTML = '';
+  standings().forEach((r, i) => {
+    const row = document.createElement('div'); row.className = 'brow' + (r.you ? ' you' : '');
+    const n = document.createElement('b'); n.textContent = i + 1;
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = COLOR_CSS[r.color];
+    const nm = document.createElement('span'); nm.className = 'bn'; nm.textContent = r.name + (r.left ? ' (left)' : '');
+    const sc = document.createElement('span'); sc.className = 'bs'; sc.textContent = '💎' + r.gems + ' · ' + r.score;
+    row.append(n, dot, nm, sc); b.append(row);
+  });
+}
+function renderResults() {
+  if (!race) return;
+  const rows = standings();
+  const waiting = rows.some(r => !r.done && !r.left);
+  const final = !waiting || performance.now() - race.endAt > 15000;
+  const ul = $('resList'); ul.innerHTML = '';
+  rows.forEach((r, i) => {
+    const li = document.createElement('li'); if (r.you) li.className = 'me';
+    const medal = document.createElement('b'); medal.textContent = final ? (['🥇', '🥈', '🥉'][i] || (i + 1) + '.') : (i + 1) + '.';
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = COLOR_CSS[r.color];
+    const nm = document.createElement('span'); nm.textContent = r.name + (r.you ? ' (you)' : '') + (r.left ? ' (left)' : '') + (!r.done && !r.left && !final ? ' · running…' : '');
+    const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = '💎' + r.gems + '  ·  ' + r.score;
+    li.append(medal, dot, nm, sc); ul.append(li);
+  });
+  if (final) $('resTitle').textContent = rows[0].you ? 'You win! 🏆' : rows[0].name + ' wins! 🏆';
+  if (final && !race.announced) {
+    race.announced = true;
+    const winner = rows[0];
+    if (winner.you) { SND.newBest(); burst(new THREE.Vector3(player.x, 3, -2), [0xff5fa2, 0xffe259, 0x37b6ff, 0x5be37d, 0xb46bff, 0xffffff], isMobile ? 60 : 120, 7, { confetti: true, grav: 5, life: 2, spread: 3 }); }
+    track('race_end', { players: rows.length, place: rows.findIndex(r => r.you) + 1, score });
+  }
+  if (!final) $('resTitle').textContent = 'Race over!';
+  $('resSub').textContent = !final ? 'Waiting for the others to finish…'
+    : Net.isHost ? 'Race again with the same friends?' : (Net.client ? 'Waiting for the host to start another race.' : 'The host left the room.');
+  $('raceAgain').classList.toggle('hidden', !Net.isHost);
+  $('raceAgain').disabled = !final || Net.players.length < 2;
+}
+
+/* ----- the race itself ----- */
+function startRace(seed, players) {
+  SND.init();
+  clearWorld(); clearGhosts();
+  const me = players.find(p => p.pid === Net.me) || { name: 'You', color: 0 };
+  race = { seed, rng: seeded(seed), t: RACE_DUR, me, count: 3.2, lastCount: 9, sendT: 0, stun: 0, safe: 0, done: false, endAt: 0, wIdx: 0, nextAt: 60, lastSec: -1, announced: false };
+  players.forEach(p => { if (p.pid !== Net.me) addGhost(p); });
+  setMomoColor(COLORS[me.color] || COLORS[0]);
+  state = 'countdown'; paused = false; canRestart = false;
+  speed = 0; dist = 0; score = 0; bonus = 0; gemCount = 0; combo = 0;
+  Object.assign(player, { x: 0, y: 0, vy: 0, lane: 1, onGround: true, duckTimer: 0, jumpBuffer: 0 });
+  player.inner.rotation.set(0, 0, 0); player.inner.scale.set(1, 1, 1); player.group.rotation.y = 0; player.group.visible = true;
+  showScreen(null); $('hud').classList.add('on'); $('board').classList.remove('hidden');
+  $('gems').textContent = '💎 0'; $('score').textContent = '0'; $('lvlBar').style.width = '0%';
+  $('lvlNum').textContent = 'RACE 2:00'; $('lvlName').textContent = WEATHERS[0].icon + ' ' + WEATHERS[0].name;
+  setWeather(WEATHERS[0]); SND.stop(0.4); renderBoard();
+  track('race_start', { players: players.length });
+}
+function raceCountdown(dt) {
+  const R = race; if (!R) return;
+  R.count -= dt;
+  const n = Math.ceil(R.count);
+  if (n !== R.lastCount && n > 0 && n <= 3) { R.lastCount = n; showBanner(String(n), n === 3 ? 'Get ready!' : ''); SND.count(false); }
+  if (R.count <= 0) { state = 'play'; speed = 12; showBanner('GO!', 'Grab the most gems!'); SND.count(true); SND.play(WEATHERS[0].song); }
+}
+function stumble() {
+  const R = race; if (!R || R.stun > 0 || R.safe > 0) return;
+  R.stun = 1.3; R.safe = 3.0; speed *= 0.35;
+  shake = 0.6; flash = Math.max(flash, 0.3);
+  burst(new THREE.Vector3(player.x, player.y + 0.8, 0), [COLORS[R.me.color] || 0xff5fa2, 0xffe259, 0xffffff], 30, 7);
+  SND.bonk(); toastMsg('Bonk! Keep running!');
+}
+function raceStep(dt) {
+  const R = race;
+  R.t = Math.max(0, R.t - dt); R.stun = Math.max(0, R.stun - dt); R.safe = Math.max(0, R.safe - dt);
+  const target = Math.min(40, 17 + dist * 0.008);
+  if (R.stun > 0) speed *= Math.pow(0.25, dt);
+  else speed += (target - speed) * Math.min(1, dt * 0.8);
+  const v = speed * dt; dist += v;
+  // the course depends only on the seed and the distance, so it is the same for every racer
+  while (dist + 135 >= R.nextAt) {
+    const saved = RNG; RNG = R.rng;
+    const at = R.nextAt, lv = Math.min(5, 1 + Math.floor(at / 600)), s = Math.min(40, 17 + at * 0.008);
+    spawnPattern(-(at - dist), lv);
+    R.nextAt = at + Math.max(s * 0.95, rand(16, 25)) + rand(0, s * 0.45);
+    RNG = saved;
+  }
+  const wi = Math.floor(dist / 650) % WEATHERS.length;
+  if (wi !== R.wIdx) { R.wIdx = wi; const w = WEATHERS[wi]; setWeather(w); showBanner(w.icon + ' ' + w.name, 'Faster!'); SND.play(w.song); $('lvlName').textContent = w.icon + ' ' + w.name; }
+  score = Math.floor(dist * 0.5) + bonus;
+  const sec = Math.ceil(R.t);
+  if (sec !== R.lastSec) {
+    R.lastSec = sec;
+    $('lvlNum').textContent = 'RACE ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    if (sec <= 5 && sec > 0) SND.count(false);
+  }
+  $('lvlBar').style.width = ((1 - R.t / RACE_DUR) * 100) + '%';
+  $('score').textContent = score.toLocaleString();
+  $('spd').textContent = Math.round(speed * 3.6) + ' km/h';
+  R.sendT -= dt;
+  if (R.sendT <= 0) {
+    R.sendT = 0.1;
+    Net.all({ t: 'st', d: +dist.toFixed(2), x: +player.x.toFixed(2), y: +player.y.toFixed(2), du: player.inner.scale.y < 0.75 ? 1 : 0, sp: +speed.toFixed(1), g: gemCount, s: score, k: R.stun > 0 ? 1 : 0 }, 0);
+  }
+  if (R.t <= 0) finishRace();
+  return v;
+}
+function finishRace() {
+  const R = race; R.done = true; R.endAt = performance.now();
+  state = 'raceEnd';
+  Net.all({ t: 'done', s: score, g: gemCount });
+  setTimeout(() => { if (race === R) Net.all({ t: 'done', s: score, g: gemCount }); }, 1000);
+  SND.stop(0.3); SND.levelComplete();
+  showBanner('Time!', '💎 ' + gemCount + ' · ' + score + ' points');
+  $('board').classList.add('hidden');
+  setTimeout(() => { if (race === R) { showScreen('results'); renderResults(); } }, 1600);
+}
+
+// buttons
+$('onlineBtn').addEventListener('click', openOnline);
+$('onlineBack').addEventListener('click', () => { Net.close(); showScreen('menu'); });
+$('createRoom').addEventListener('click', () => Net.create(myName()));
+$('joinRoom').addEventListener('click', () => {
+  const code = $('codeIn').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 5) { Net.status('Room codes have 5 letters or numbers.'); return; }
+  Net.join(code, myName());
+});
+$('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinRoom').click(); });
+$('copyLink').addEventListener('click', () => {
+  const link = location.origin + location.pathname + '?room=' + Net.code;
+  const done = () => toastMsg('Invite link copied! Send it to your friends.');
+  if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => toastMsg(link)); else toastMsg(link);
+});
+$('leaveLobby').addEventListener('click', () => leaveRoom());
+$('startRace').addEventListener('click', () => Net.startRace());
+$('resLeave').addEventListener('click', () => leaveRoom());
+$('raceAgain').addEventListener('click', () => Net.startRace());
+addEventListener('beforeunload', () => Net.close());
 
 /* =========================================================
    UPDATE
@@ -1231,7 +1689,13 @@ function update(dt) {
   time += dt; skyUniforms.time.value = time;
   if (paused) return;
   let v = 0;
-  if (state === 'play') {
+  if (state === 'play' && race) {
+    v = raceStep(dt);
+  } else if (state === 'countdown') {
+    raceCountdown(dt);
+  } else if (state === 'raceEnd') {
+    speed *= Math.pow(0.03, dt); v = speed * dt;
+  } else if (state === 'play') {
     const len = levelLen(level), prog = clamp(levelDist / len, 0, 1);
     const target = levelSpeed(level) + prog * 2.2;
     speed += (target - speed) * Math.min(1, dt * 0.5);
@@ -1297,7 +1761,7 @@ function update(dt) {
     });
     // collisions
     const py0 = P.y + 0.05, py1 = P.y + (I.scale.y < 0.75 ? 0.88 : 1.5);
-    outer: for (const o of obstacles) {
+    if (!(race && race.safe > 0)) outer: for (const o of obstacles) {
       const oz = o.group.position.z;
       for (const b of o.boxes) if (Math.abs(oz) < b.hd + 0.36 && Math.abs(P.x - b.x) < b.hw + 0.38 && py1 > b.y0 && py0 < b.y1) { crash(); break outer; }
     }
@@ -1307,7 +1771,7 @@ function update(dt) {
         burst(g.position, [0xffffff, 0xfff3a0], 10, 4, { glow: 3 });
         scene.remove(g); gems.splice(i, 1);
         combo = time - lastGem < 1.2 ? combo + 1 : 0; lastGem = time;
-        gemCount++; bonus += 10; $('gems').textContent = '💎 ' + gemCount;
+        gemCount++; bonus += race ? 25 : 10; $('gems').textContent = '💎 ' + gemCount;
         SND.gem(combo);
       }
     }
@@ -1324,6 +1788,13 @@ function update(dt) {
     I.scale.lerp(new THREE.Vector3(1, 1, 1), Math.min(1, dt * 8));
   }
   P.group.position.set(P.x, P.y, 0);
+  if (race) {
+    I.rotation.y = race.stun > 0 ? race.stun * 14 : 0;
+    P.group.visible = !(race.safe > 0 && race.stun <= 0 && Math.floor(time * 12) % 2 === 0);
+    updateGhosts(dt);
+    boardT -= dt;
+    if (boardT <= 0) { boardT = 0.25; if (state === 'raceEnd') renderResults(); else renderBoard(); }
+  }
   antennaBall.position.x = Math.sin(time * 9) * 0.06;
 
   // ----- obstacles / gems / particles -----
@@ -1369,6 +1840,10 @@ const camLook = new THREE.Vector3(0, 1, 0), tmpLook = new THREE.Vector3();
    START
    ========================================================= */
 camera.position.set(0, 1.7, 4.4);
+try {
+  const room = new URLSearchParams(location.search).get('room');
+  if (room) { openOnline(); $('codeIn').value = room.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); Net.status('Type your name, then tap Join.'); }
+} catch (e) { }
 applyWeather(0);
 updateEnv();
 $('loading').remove();
