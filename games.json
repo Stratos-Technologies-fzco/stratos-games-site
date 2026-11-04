@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 29,
+ "count": 30,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -62,6 +62,19 @@
    "category": "party",
    "url": "play/im-mohua-liza-chroma-clash/",
    "thumb": "games/im-mohua-liza-chroma-clash/thumbnail.png",
+   "added": "2026-11-04",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-momo-run",
+   "title": "Momo Run",
+   "maker": "Mohua Liza",
+   "one_line": "A 3D endless runner: help Momo dash, jump and duck down a cobblestone road while the sky changes every level.",
+   "category": "arcade",
+   "url": "play/im-mohua-liza-momo-run/",
+   "thumb": "games/im-mohua-liza-momo-run/thumbnail.png",
    "added": "2026-11-04",
    "github": "im-mohua-liza",
    "kind": "family",
