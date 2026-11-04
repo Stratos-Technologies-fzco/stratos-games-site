@@ -91,6 +91,20 @@ body {
 #brake { left: max(16px, env(safe-area-inset-left, 0px)); background-color: #8c2f25; }
 #gas { right: max(16px, env(safe-area-inset-right, 0px)); background-color: var(--sign-green); height: 150px; }
 
+.cta-big { font-size: 26px; padding: 16px 30px; }
+.coach {
+  position: fixed; z-index: 4; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-family: var(--font-display); font-size: 17px; color: var(--sign-white);
+  text-shadow: 0 2px 0 var(--ink), 0 0 10px rgba(0,0,0,0.6); white-space: nowrap;
+}
+.coach .finger { font-size: 42px; line-height: 1; animation: tapfinger 0.9s ease-in-out infinite; }
+#coachGas { right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 176px); }
+#coachBrake { left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 156px); }
+.pedal.pulse { animation: pedalpulse 1s ease-in-out infinite; }
+@keyframes tapfinger { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+@keyframes pedalpulse { 0%, 100% { box-shadow: 0 5px 0 rgba(0,0,0,0.45), 0 0 0 0 rgba(255,200,40,0.9); } 60% { box-shadow: 0 5px 0 rgba(0,0,0,0.45), 0 0 0 16px rgba(255,200,40,0); } }
+
 .toast {
   position: fixed; left: 50%; top: 32%;
   transform: translate(-50%, 0);
@@ -187,6 +201,7 @@ body {
   .cta { padding: 9px 12px; font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .coach .finger, .pedal.pulse { animation: none; }
   .toast.show { animation-duration: 1.8s; }
   .pedal { transition: none; }
 }
@@ -224,23 +239,18 @@ body {
 <button class="pedal" id="brake" type="button" aria-label="Brake and reverse">BRAKE</button>
 <button class="pedal" id="gas" type="button" aria-label="Gas">GAS</button>
 
+<div class="coach" id="coachGas" hidden><span class="finger" aria-hidden="true">👇</span><span>Hold to drive</span></div>
+<div class="coach" id="coachBrake" hidden><span class="finger" aria-hidden="true">👇</span><span>Brake to tip down</span></div>
+
 <div class="toast" id="toast"></div>
 
 <div class="overlay" id="menu">
   <div class="card">
-    <span class="exit">Route 1 · Hill country</span>
     <h1>Cargo Climb</h1>
-    <p>Haul loose crates over the hills. Each crate still on board when you pass a depot pays 30 coins, and the depot refuels you and loads more. Drive too wild and they bounce off.</p>
-    <div class="keys">
-      <kbd>→ / D</kbd><span>Gas. In the air it tips the nose up.</span>
-      <kbd>← / A</kbd><span>Brake and reverse. In the air it tips the nose down.</span>
-      <kbd>Flip</kbd><span>Land a full flip for 40 coins. Don't land on your head.</span>
-    </div>
-    <div class="daily"><span>Today's route: <b id="mRoute">-</b></span><span>Today's best: <b id="mToday">0 m</b></span><span>Streak: <b id="mStreak">0 days</b></span></div>
-    <div class="daily"><span>Vehicle: <b id="mCar">Pickup</b></span><span>Garage coins: <b id="mBank">0</b></span></div>
+    <div class="daily"><span>Today's best: <b id="mToday">0 m</b></span><span>Streak: <b id="mStreak">0 days</b></span></div>
     <div class="btnrow">
-      <button class="cta" id="start" type="button">Start driving</button>
-      <button class="cta ghost" id="mGarage" type="button">Garage: change vehicle</button>
+      <button class="cta cta-big" id="start" type="button">Start driving</button>
+      <button class="cta ghost" id="mGarage" type="button">Garage</button>
     </div>
   </div>
 </div>
@@ -592,7 +602,7 @@ function step(dt) {
   world.step(dt, 8, 3);
   simTime += dt;
 
-  if (state !== "play") { updateCrates(dt); return; }
+  if (state !== "play") { if (brakeCoachT >= 0 || !$("coachGas").hidden) hideCoaches(); updateCrates(dt); return; }
 
   // fuel
   fuel = Math.max(0, fuel - dt * (0.9 + (throttle !== 0 ? 1.9 : 0)));
@@ -616,6 +626,7 @@ function step(dt) {
 
   const p = chassis.getPosition();
   maxX = Math.max(maxX, p.x);
+  teach(dt, throttle, airborne, p);
 
   // pickups
   const pts = [p, wheelB.getPosition(), wheelF.getPosition()];
@@ -1210,6 +1221,30 @@ function updateSlots() {
   [...el.children].forEach((b, i) => b.classList.toggle("gone", i >= n));
 }
 let toastTimer;
+// ---------- First-run tips (issue #15) ----------
+let taught = {};
+try { taught = JSON.parse(localStorage.getItem("cargoClimbTaught") || "{}") || {}; } catch (e) {}
+function learn(k) { taught[k] = 1; try { localStorage.setItem("cargoClimbTaught", JSON.stringify(taught)); } catch (e) {} }
+let brakeCoachT = -1;
+function coach(which, on) {
+  const c = $(which === "gas" ? "coachGas" : "coachBrake"); if (c) c.hidden = !on;
+  const p = $(which); if (p) p.classList.toggle("pulse", on);
+}
+function hideCoaches() { coach("gas", false); coach("brake", false); brakeCoachT = -1; }
+function teach(dt, throttle, airborne, p) {
+  if (!taught.gas && throttle > 0) { learn("gas"); coach("gas", false); }
+  if (!taught.brake) {
+    const a = chassis.getAngle(), tilt = Math.atan2(Math.sin(a), Math.cos(a));
+    if (brakeCoachT < 0 && taught.gas && tilt > 0.75) { brakeCoachT = 0; coach("brake", true); }
+    else if (brakeCoachT >= 0) {
+      brakeCoachT += dt;
+      if (throttle < 0 || brakeCoachT > 4) { learn("brake"); coach("brake", false); brakeCoachT = -1; }
+    }
+  }
+  if (!taught.flip && airborne && airTime > 0.35) { learn("flip"); toast("Flip = +40 coins"); }
+  if (!taught.depot && nextDepot - p.x < 70) { learn("depot"); toast("+30 per crate at the depot"); }
+}
+
 function toast(msg) {
   const t = $("toast"); t.textContent = msg; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1500);
@@ -1279,6 +1314,7 @@ function start() {
   track("level_start", { route: DAY_KEY });
   state = "play";
   $("menu").hidden = true; $("over").hidden = true;
+  hideCoaches(); if (!taught.gas) coach("gas", true);
   lastHud = ""; updateHud(); updateSlots();
 }
 let startedOnce = false;
@@ -1290,7 +1326,7 @@ $("second").addEventListener("click", () => offerReward(revive));
 let garageFrom = "menu";
 function openGarage(from) { garageFrom = from; $(from).hidden = true; renderGarage(); $("garage").hidden = false; $("gBack").focus(); }
 function closeGarage() { $("garage").hidden = true; $(garageFrom).hidden = false; refreshMenu(); }
-function refreshMenu() { $("mCar").textContent = car.name; $("mBank").textContent = bank; $("sCar").textContent = car.name; }
+function refreshMenu() { $("sCar").textContent = car.name; }
 function renderGarage() {
   $("gBank").textContent = bank;
   const grid = $("gGrid"); grid.innerHTML = "";
@@ -1321,7 +1357,6 @@ $("gBack").addEventListener("click", closeGarage);
 $("mGarage").addEventListener("click", () => openGarage("menu"));
 $("oGarage").addEventListener("click", () => openGarage("over"));
 refreshMenu();
-$("mRoute").textContent = ROUTE_NAME;
 $("mToday").textContent = todayBest + " m";
 $("mStreak").textContent = days(streak);
 
