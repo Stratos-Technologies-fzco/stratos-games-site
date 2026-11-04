@@ -18,9 +18,12 @@ window.DF = window.DF || {};
   PATHS['dna'] = 'assets/sprites/dna.png'; // DNA Fragment pickup (the owner's art, cut out)
   ['egg', 'egg-glade', 'egg-prism', 'egg-ember', 'egg-frost', 'egg-mire', 'egg-genesis'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; }); // the owner's egg art (cut out) and two recolours
   ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'boss-cinderjaw', 'boss-whitetitan', 'boss-mirequeen', 'boss-colossus'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
-  ['swiftclaw', 'ironhide', 'wildspark'].forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; }); // the owner's signature-attack sprite sheets (half-size frames)
+  /* the owner's attack sprite sheets (half-size frames): the player's forms, the three enemies and a charge + stomp sheet for every boss */
+  var SHEETS = ['starter', 'swiftclaw', 'ironhide', 'wildspark', 'raider', 'skimmer', 'spitter'], LAZY = [];
+  ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) { SHEETS.push(b + '-charge', b + '-stomp'); LAZY.push('anim-' + b + '-charge', 'anim-' + b + '-stomp'); });
+  SHEETS.forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; });
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261031u';
+  var V = '20261104a';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['verdant_valley', 'path-strip', 'canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
@@ -43,9 +46,10 @@ window.DF = window.DF || {};
       return Promise.all(CRITICAL.map(function (n) {
         return loadOne(n).then(function () { done++; if (onProgress) onProgress(done / total); });
       })).then(function () {
-        Object.keys(PATHS).forEach(function (n) { if (CRITICAL.indexOf(n) < 0) loadOne(n).catch(function () {}); });
+        Object.keys(PATHS).forEach(function (n) { if (CRITICAL.indexOf(n) < 0 && LAZY.indexOf(n) < 0) loadOne(n).catch(function () {}); }); // boss sheets wait until a boss fight is near
       });
     },
+    want: function (name) { if (PATHS[name]) loadOne(name).catch(function () {}); },
     img: function (name) { return imgs[name] || placeholder(); },
     ready: function (name) { return !!(imgs[name] && imgs[name].naturalWidth); },
     sprite: function (name, w) {

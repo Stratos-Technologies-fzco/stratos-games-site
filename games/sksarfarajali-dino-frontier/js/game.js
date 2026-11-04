@@ -23,7 +23,7 @@ window.DF = window.DF || {};
     if (o.skew) cx.transform(1, 0, o.skew, 1, 0, 0); // tail and neck sway, feet stay planted
     if (o.sx || o.sy) cx.scale(o.sx || 1, o.sy || 1);
     if (o.alpha != null) cx.globalAlpha = o.alpha;
-    if (o.cell) { var ci = A.img(name), ch = w * o.cell.h / o.cell.w; cx.drawImage(ci, o.cell.x, 0, o.cell.w, o.cell.h, -w / 2, -ch * feet, w, ch); if (o.tint) { var sk = name + '|' + o.cell.x + '|' + w + '|' + o.tint, sc2 = cellSil[sk]; if (!sc2) { sc2 = cellSil[sk] = document.createElement('canvas'); sc2.width = Math.round(w * 2); sc2.height = Math.round(ch * 2); var sg = sc2.getContext('2d'); sg.drawImage(ci, o.cell.x, 0, o.cell.w, o.cell.h, 0, 0, sc2.width, sc2.height); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = o.tint; sg.fillRect(0, 0, sc2.width, sc2.height); } cx.globalAlpha = (o.alpha == null ? 1 : o.alpha) * o.tintA; cx.drawImage(sc2, -w / 2, -ch * feet, w, ch); } cx.restore(); return; }
+    if (o.cell) { var ci = A.img(name), ch = w * o.cell.h / o.cell.w; cx.drawImage(ci, o.cell.x, o.cell.y || 0, o.cell.w, o.cell.h, -w / 2, -ch * feet, w, ch); if (o.tint) { var sk = name + '|' + o.cell.x + '|' + (o.cell.y || 0) + '|' + w + '|' + o.tint, sc2 = cellSil[sk]; if (!sc2) { sc2 = cellSil[sk] = document.createElement('canvas'); sc2.width = Math.round(w * 2); sc2.height = Math.round(ch * 2); var sg = sc2.getContext('2d'); sg.drawImage(ci, o.cell.x, o.cell.y || 0, o.cell.w, o.cell.h, 0, 0, sc2.width, sc2.height); sg.globalCompositeOperation = 'source-in'; sg.fillStyle = o.tint; sg.fillRect(0, 0, sc2.width, sc2.height); } cx.globalAlpha = (o.alpha == null ? 1 : o.alpha) * o.tintA; cx.drawImage(sc2, -w / 2, -ch * feet, w, ch); } cx.restore(); return; }
     cx.drawImage(c, -w / 2, -h * feet, w, h);
     if (o.tint) { cx.globalAlpha = (o.alpha == null ? 1 : o.alpha) * o.tintA; cx.drawImage(A.silhouette(name, w, o.tint), -w / 2, -h * feet, w, h); }
     cx.restore();
@@ -104,7 +104,7 @@ window.DF = window.DF || {};
       return;
     }
     if (o.bossId) {
-      S.bossDef = B.bosses[o.bossId];
+      S.bossDef = B.bosses[o.bossId]; A.want('anim-' + S.bossDef.id + '-charge'); A.want('anim-' + S.bossDef.id + '-stomp');
       addBush(260, 215, 3); addBush(o.id !== 'boss' ? 1240 : 1040, 330, 3);
       if (o.id === 'boss') { addRock(560, 215, 60, 22); addRock(760, 340, 56, 20); addBush(650, 285, 3); }
       if (o.hazards && o.hazards.vents) for (i = 0; i < o.hazards.vents; i++) addVent(560 + i * 115 + rng.range(-25, 25), rng.range(YMIN + 16, YMAX - 16));
@@ -228,6 +228,7 @@ window.DF = window.DF || {};
     P.atkCd = Math.max(0, P.atkCd - dt); P.atkT = Math.max(0, P.atkT - dt); P.dashCd = Math.max(0, P.dashCd - dt); P.abCd = Math.max(0, P.abCd - dt);
     P.inv = Math.max(0, P.inv - dt); P.shield = Math.max(0, P.shield - dt); P.hurt = Math.max(0, P.hurt - dt); P.stun = Math.max(0, P.stun - dt); P.surgeT = Math.max(0, P.surgeT - dt);
     P.anim += dt * (len > 0.1 ? 1 : 0.4);
+    if (P.atkA) { P.atkA.t += dt; if (P.atkA.t >= P.atkA.dur || P.stun > 0 || P.dashT > 0) P.atkA = null; }
     if (P.fxA) { var fa = P.fxA; fa.t += dt; if (fa.deferred && !fa.hit && fa.t >= fa.hitAt) { fa.hit = true; applyAbility(S.stats.ability); } if (fa.t >= fa.dur) P.fxA = null; }
     if (P.pend > 0) { if (P.stun > 0 || P.dashT > 0) P.pend = 0; else { P.pend -= dt; if (P.pend <= 0) { P.pend = 0; strike(); } } }
     var sg = Math.sin(P.anim / 80) > 0 ? 1 : -1; if (P.dashT <= 0 && len > 0.3 && sg !== P.sg && P.stun <= 0) dust(P.x - P.face * 12, P.y + 3, 1, 6, -P.face); P.sg = sg; // footfall puff
@@ -278,6 +279,7 @@ window.DF = window.DF || {};
   function doAttack() {
     var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
+    var ak = st.path || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
     DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
   function critRoll(base) {
@@ -324,17 +326,26 @@ window.DF = window.DF || {};
   /* The owner's signature-attack sprite sheets (half-size frames, 24 fps). from/to trim the idle frames at either end, hit is the frame the effect lands on,
      x0 and rw are the resting body's left edge and width inside a frame, ay is the feet line as a fraction of frame height. */
   var ANIM = {
-    swiftclaw: { fw: 443, fh: 207, cols: 6, from: 6, to: 24, hit: 14, x0: 28, rw: 240, ay: 0.904 },
-    ironhide: { fw: 403, fh: 212, cols: 6, from: 3, to: 30, hit: 12, x0: 45, rw: 260, ay: 0.906 },
-    wildspark: { fw: 450, fh: 228, cols: 6, from: 3, to: 32, hit: 15, x0: 40, rw: 260, ay: 0.912 }
+    swiftclaw: { fw: 443, fh: 207, cols: 6, n: 30, from: 6, to: 24, hit: 14, x0: 28, rw: 240, ay: 0.904 },
+    ironhide: { fw: 403, fh: 212, cols: 6, n: 34, from: 3, to: 30, hit: 12, x0: 45, rw: 260, ay: 0.906 },
+    wildspark: { fw: 450, fh: 228, cols: 6, n: 36, from: 3, to: 32, hit: 15, x0: 40, rw: 260, ay: 0.912 },
+    starter: { fw: 347, fh: 177, cols: 6, n: 22, from: 0, to: 21, hit: 9, x0: 13, rw: 239, ay: 0.924 }, // the basic bite
+    raider: { fw: 437, fh: 199, cols: 6, n: 28, hit: 14, x0: 26, rw: 260, ay: 0.932 },
+    skimmer: { fw: 457, fh: 182, cols: 6, n: 26, hit: 8, x0: 35, rw: 260, ay: 0.942 },
+    spitter: { fw: 498, fh: 219, cols: 6, n: 32, hit: 22, x0: 33, rw: 220, ay: 0.936 }
   };
+  ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) {
+    ANIM[b + '-charge'] = { fw: 482, fh: 256, cols: 6, n: 34, hit: 17, x0: 18, rw: 299, ay: 0.941 };
+    ANIM[b + '-stomp'] = { fw: 453, fh: 257, cols: 6, n: 36, hit: 15, x0: 35, rw: 300, ay: 0.942 };
+  });
+  var BASIC_FPS = 36, BASIC_PRE = 2, BASIC_POST = 4; // the normal attack plays the frames around the hit: 2 before it (the wind-back) and 4 after
   function sheetReady(k) { return !!(ANIM[k] && A.ready('anim-' + k)); }
   /* Plays the sheet in place of the standing sprite. Phantom Dash still dashes at once; Fortress Roar and Genesis Surge land on the sheet's hit frame. The dinosaur is rooted and untouchable while it plays. */
   function startAbAnim(ab) {
     var P = S.P, k = S.stats.path, an = ANIM[k]; if (!an || !sheetReady(k)) return false;
     var dur = (an.to - an.from + 1) * 1000 / 24, deferred = ab.id !== 'phantom-dash';
     P.fxA = { k: k, t: 0, dur: dur, hitAt: (an.hit - an.from) * 1000 / 24, hit: !deferred, deferred: deferred };
-    P.inv = Math.max(P.inv, dur); P.atkT = 0; P.pend = 0; P.ivx = 0; P.ivy = 0;
+    P.inv = Math.max(P.inv, dur); P.atkT = 0; P.pend = 0; P.atkA = null; P.ivx = 0; P.ivy = 0;
     if (deferred) DF.Audio.sfx('windup_boss'); else applyAbility(ab);
     return true;
   }
@@ -435,7 +446,7 @@ window.DF = window.DF || {};
         e.face = sgn(P.x - e.x) || e.face;
         if (e.t <= 0) {
           if (e.type === 'spitter') { fireSpit(e); e.state = 'recover'; e.t = d.recover; }
-          else { e.state = 'attack'; e.t = d.lungeTime; e.didHit = false; enemySlash(e); DF.Audio.sfx('lunge_' + e.type); dust(e.x, e.y + 2, 2, 7, -e.face); var lx = P.x - e.x, ly = (P.y - e.y); var ll = Math.sqrt(lx * lx + ly * ly) || 1; e.dirx = lx / ll; e.diry = ly / ll * 0.4; e.startClose = dd < 140; }
+          else { e.state = 'attack'; e.t = d.lungeTime; e.didHit = false; if (!sheetReady(e.type)) enemySlash(e); DF.Audio.sfx('lunge_' + e.type); dust(e.x, e.y + 2, 2, 7, -e.face); var lx = P.x - e.x, ly = (P.y - e.y); var ll = Math.sqrt(lx * lx + ly * ly) || 1; e.dirx = lx / ll; e.diry = ly / ll * 0.4; e.startClose = dd < 140; }
         }
         break;
       case 'attack':
@@ -451,7 +462,7 @@ window.DF = window.DF || {};
         break;
     }
   }
-  function beginWindup(e, ms) { e.state = 'windup'; e.t = ms; DF.Audio.sfx('windup_' + e.type); markSeen(e.type); }
+  function beginWindup(e, ms) { e.state = 'windup'; e.t = ms; e.wTot = ms; DF.Audio.sfx('windup_' + e.type); markSeen(e.type); }
   function countDodge() { S.dodges++; DF.Audio.sfx('dodge'); if (S.tut && S.tut.step === 2) { /* dodging counts as progress, killing is the goal */ } if (G.onEvent) G.onEvent('dodge'); float(S.P.x, S.P.y - 80, 'Dodge!', '#9FE7DF', false); }
   function fireSpit(e) {
     DF.Audio.sfx('spit'); burst(e.x + e.face * 30, e.y - 34, '#B8F07A', 8); var P = S.P, dx = P.x - e.x, dy = P.y - e.y, l = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -802,7 +813,7 @@ window.DF = window.DF || {};
       var dx = (e.x - P.x) * P.face, dy = Math.abs(e.y - P.y), reach = range + (e.kind === 'boss' ? 70 : 28);
       if (dx > -14 && dx < reach && dy < B.player.attackDepth + (e.kind === 'boss' ? 14 : 0)) { hurtEnemy(e, st.attackPower, true); hit = true; }
     }
-    slashFx(P);
+    if (!P.atkA) slashFx(P); // the sheet carries its own bite / claw effect
     dust(P.x - P.face * 14, P.y + 3, hit ? 2 : 3, 6, -P.face);
     if (st.path === 'ironhide') { ring(P.x + P.face * 46, P.y + 2, 74, '#E8B54A'); shake(hit ? 0 : 1.5); }
     return hit;
@@ -1106,12 +1117,12 @@ window.DF = window.DF || {};
   }
   function drawFlash(name, w, x, y, o, e) {
     if (e.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.75; }
-    else if (e.state === 'windup') { var a = 0.35 + 0.35 * Math.sin(S.t / 40); o.tint = e.type === 'spitter' ? '#9BE070' : '#FFD166'; o.tintA = a; }
+    else if (e.state === 'windup') { var a = (0.35 + 0.35 * Math.sin(S.t / 40)) * (o.anim ? 0.4 : 1); o.tint = e.type === 'spitter' ? '#9BE070' : '#FFD166'; o.tintA = a; }
     else if (S.biome === 'ember') { o.tint = '#FF7A2E'; o.tintA = 0.16; } // ember-touched
     else if (S.biome === 'frost') { o.tint = '#8FD0FF'; o.tintA = 0.18; } // frost-touched
     else if (S.biome === 'mire') { o.tint = '#7BE0A8'; o.tintA = 0.16; } // mire-touched
     else if (S.biome === 'crater') { o.tint = '#9FC8FF'; o.tintA = 0.14; } // crater-touched
-    draw(name, w, x, y, o);
+    if (o.anim) drawAnim(o.anim.k, o.anim.idx, x, y, w, o.anim.right, o); else draw(name, w, x, y, o);
   }
   function dEnemy(e) {
     var d = e.def, w = d.size * S.formScale, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w, a = 1, dead = e.state === 'dead';
@@ -1130,9 +1141,11 @@ window.DF = window.DF || {};
     if (e.state === 'windup') drawEnemyTelegraph(e, d); // the danger lane shows where the lunge will land
     var pr3 = e.state === 'windup' ? 1 - e.t / d.windup : 0;
     if (e.state === 'windup') { var ac = e.type === 'spitter' ? '155,224,112' : '255,110,70', ag = cx.createRadialGradient(e.x, e.y - 30, 4, e.x, e.y - 30, 72); ag.addColorStop(0, 'rgba(' + ac + ',' + (0.2 + 0.3 * pr3) + ')'); ag.addColorStop(1, 'rgba(' + ac + ',0)'); cx.fillStyle = ag; cx.beginPath(); cx.arc(e.x, e.y - 30, 72, 0, 7); cx.fill(); var rr = 24 + 60 * (1 - pr3); cx.strokeStyle = 'rgba(' + ac + ',' + (0.35 + 0.5 * pr3) + ')'; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(e.x, e.y + 2, rr, rr * 0.3, 0, 0, 7); cx.stroke(); } // charging aura and a ring closing in
-    if (e.state === 'attack') { for (var gi = 1; gi <= 2; gi++) draw(d.sprite, w, e.x - e.dirx * gi * 16 + lean, e.y + bob, { flip: e.face < 0, alpha: 0.26 / gi * a, feet: 0.97, rot: rot, sx: sx, sy: sy }); } // lunge afterimages
+    if (e.state === 'attack' && !sheetReady(e.type)) { for (var gi = 1; gi <= 2; gi++) draw(d.sprite, w, e.x - e.dirx * gi * 16 + lean, e.y + bob, { flip: e.face < 0, alpha: 0.26 / gi * a, feet: 0.97, rot: rot, sx: sx, sy: sy }); } // lunge afterimages
     var epf = 0.93 + 0.14 * (e.y - YMIN) / (YMAX - YMIN); sx *= epf; sy *= epf;
-    drawFlash(d.sprite, w, e.x + lean, e.y + bob, { flip: e.face < 0, alpha: a, feet: 0.97, rot: rot, sx: sx, sy: sy, skew: skew }, e);
+    var eo = { flip: e.face < 0, alpha: a, feet: 0.97, rot: rot, sx: sx, sy: sy, skew: skew }, ean = ANIM[e.type];
+    if (!dead && ean && sheetReady(e.type) && (e.state === 'windup' || e.state === 'attack' || (e.state === 'recover' && e.wTot))) { eo.anim = { k: e.type, idx: atkFrame(ean, e.state, e.t, e.wTot || d.windup, d.lungeTime, d.recover, e.type === 'spitter'), right: e.face > 0 }; eo.sx = epf; eo.sy = epf; lean = 0; bob = 0; } // the sheet carries the lunge itself
+    drawFlash(d.sprite, w, e.x + lean, e.y + bob, eo, e);
     if (e.state === 'windup' && e.type === 'spitter') { var ox = e.x + e.face * 34, oy = e.y - 36, orr = 3 + 11 * pr3, og = cx.createRadialGradient(ox, oy, 1, ox, oy, orr * 2.4); og.addColorStop(0, 'rgba(210,255,150,.95)'); og.addColorStop(1, 'rgba(155,224,112,0)'); cx.fillStyle = og; cx.beginPath(); cx.arc(ox, oy, orr * 2.4, 0, 7); cx.fill(); cx.fillStyle = '#E4FFC0'; cx.beginPath(); cx.arc(ox, oy, orr * 0.55, 0, 7); cx.fill(); } // acid orb charging at the mouth
     if (!dead) {
       if (e.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 18px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', e.x, e.y - hh - 6); }
@@ -1160,8 +1173,12 @@ window.DF = window.DF || {};
     if (b.state === 'dead') { var be = Math.min(1, (b.dead || 0) / 700); brot = -0.5 * be; bsy = 1 - 0.08 * be; }
     o.rot = brot; o.sx = bsx; o.sy = bsy;
     if (b.state === 'windup') { var bwp = 1 - b.t / ((b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul), bh0 = isFinite(bhh) && bhh > 0 ? bhh : bw * 0.7, bg = cx.createRadialGradient(b.x, b.y - bh0 * 0.5, 10, b.x, b.y - bh0 * 0.5, bw * 0.8); bg.addColorStop(0, 'rgba(255,100,70,' + (0.18 + 0.32 * bwp) + ')'); bg.addColorStop(1, 'rgba(255,100,70,0)'); cx.fillStyle = bg; cx.beginPath(); cx.arc(b.x, b.y - bh0 * 0.5, bw * 0.8, 0, 7); cx.fill(); var brr = def.slamRadius * (1 - bwp * 0.7); cx.strokeStyle = 'rgba(255,140,110,' + (0.3 + 0.5 * bwp) + ')'; cx.lineWidth = 3; cx.beginPath(); cx.ellipse(b.x, b.y + 2, brr, brr * 0.3, 0, 0, 7); cx.stroke(); } // wind-up aura and a ring closing in
-    if (b.state === 'charge') { for (var gi = 1; gi <= 3; gi++) draw(def.sprite, bw, b.x - b.dirx * gi * 26, b.y + bbob, { flip: o.flip, alpha: 0.13 * (4 - gi) * a, feet: 0.97, rot: 0.14, sx: 1.08, sy: 0.95 }); }
-    draw(def.sprite, bw, b.x + shakeX, b.y + lift + bbob, o);
+    if (b.state === 'charge' && !sheetReady(def.id + '-charge')) { for (var gi = 1; gi <= 3; gi++) draw(def.sprite, bw, b.x - b.dirx * gi * 26, b.y + bbob, { flip: o.flip, alpha: 0.13 * (4 - gi) * a, feet: 0.97, rot: 0.14, sx: 1.08, sy: 0.95 }); }
+    var bk = def.id + (b.atk === 'charge' ? '-charge' : '-stomp'), ban = ANIM[bk];
+    if (ban && sheetReady(bk) && b.atk && (b.state === 'windup' || b.state === 'charge' || b.state === 'slam' || b.state === 'recover')) {
+      o.tintA = (o.tintA || 0) * 0.4; o.sx = 1; o.sy = 1; var bchg = b.atk === 'charge', bst = b.state === 'windup' ? 'windup' : (b.state === 'recover' ? 'recover' : 'attack');
+      drawAnim(bk, atkFrame(ban, bst, b.t, (bchg ? def.chargeWindup : def.slamWindup) * b.windMul, bchg ? def.chargeTime : 420, bchg ? def.recover : def.recover * 0.9), b.x + shakeX, b.y + bbob, bw, b.face > 0, o);
+    } else draw(def.sprite, bw, b.x + shakeX, b.y + lift + bbob, o);
     if (b.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 26px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', b.x, b.y - bhh - 8); }
     if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
@@ -1191,10 +1208,25 @@ window.DF = window.DF || {};
     if (P.shield > 0) { var sa = 0.2 + 0.1 * Math.sin(S.t / 90); cx.fillStyle = 'rgba(207,232,176,' + sa + ')'; cx.beginPath(); cx.ellipse(P.x, P.y - 34, 54, 46, 0, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(207,232,176,.8)'; cx.lineWidth = 2; cx.stroke(); }
     if (P.surgeT > 0 && !(P.fxA && sheetReady(P.fxA.k))) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
     if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
+    else if (P.atkA && sheetReady(P.atkA.k)) { var aan = ANIM[P.atkA.k], afi = Math.min(aan.hit + BASIC_POST, aan.hit - BASIC_PRE + Math.floor(P.atkA.t * BASIC_FPS / 1000)); drawAnim(P.atkA.k, afi, P.x, P.y, w, P.face > 0, { alpha: o.alpha, tint: o.tint, tintA: o.tintA, sx: pf, sy: pf }); } // the owner's attack frames: lunge, bite or claw, recover
     else if (WALK[st.path || 'starter'] && A.ready(WALK[st.path || 'starter'].key)) { // the owner's walking sheets: every foot plant is a real leg pose
       var wk = WALK[st.path || 'starter'], gp = P.gait / 2, fr = Math.floor((gp - Math.floor(gp)) * wk.n + 0.0001) % wk.n; if (spd < 0.05) fr = fr < wk.n / 2 ? 0 : wk.n / 2;
       o.cell = { x: fr * wk.w, w: wk.w, h: wk.h }; o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; draw(wk.key, w * wk.w / 480, P.x + lunge * P.face, P.y + bob * 0.4, o);
     } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
+  }
+  /* one frame of a sheet at a world spot: the resting body is scaled to width w and pinned to the feet; right = the dinosaur faces right */
+  function drawAnim(k, idx, x, y, w, right, o) {
+    var an = ANIM[k], sc = w / an.rw, c = idx % an.cols, r = Math.floor(idx / an.cols), off = (an.fw / 2 - an.x0 - an.rw / 2) * sc;
+    o.cell = { x: c * an.fw, y: r * an.fh, w: an.fw, h: an.fh }; o.feet = an.ay; o.flip = !right; o.rot = 0; o.skew = 0;
+    draw('anim-' + k, an.fw * sc, x + (right ? off : -off), y, o);
+  }
+  /* which frame an enemy or boss shows: the wind-up runs to the sheet's hit frame, the strike and the recovery share the frames after it */
+  function atkFrame(an, state, t, wind, strike, rec, noStrike) {
+    var post = an.n - 1 - an.hit, f;
+    if (state === 'windup') f = (1 - Math.max(0, t) / wind) * an.hit;
+    else if (state === 'attack') f = an.hit + (1 - Math.max(0, t) / strike) * post * 0.55;
+    else f = an.hit + post * (noStrike ? 0 : 0.55) + (1 - Math.max(0, t) / rec) * post * (noStrike ? 1 : 0.45);
+    return Math.max(0, Math.min(an.n - 1, Math.floor(f)));
   }
   /* one frame of the owner's attack sheet, scaled so the resting body matches the normal sprite and pinned to the feet */
   function drawSheet(P, w) {
