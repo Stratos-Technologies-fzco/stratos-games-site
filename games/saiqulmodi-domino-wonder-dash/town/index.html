@@ -20,6 +20,18 @@
   #back { left: calc(18px + env(safe-area-inset-left, 0px)); }
   #home { right: calc(18px + env(safe-area-inset-right, 0px)); }
   .stone[hidden] { display: none; }
+  /* RUN or FLY: two big symbols, clear on every phone */
+  #chooser { position: fixed; left: 0; right: 0; bottom: calc(112px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; gap: min(6vw, 36px); pointer-events: none; z-index: 5; }
+  #chooser[hidden] { display: none; }
+  .choice { pointer-events: auto; width: min(40vw, 38vh, 190px); height: min(40vw, 38vh, 190px); border: 6px solid #fff; border-radius: 32px; padding: 8px; cursor: pointer; touch-action: manipulation;
+            box-shadow: 0 9px 0 rgba(0,0,0,0.3), 0 14px 26px rgba(0,0,0,0.35); animation: choicePop 0.28s ease-out, choiceBob 1.3s ease-in-out 0.28s infinite alternate; }
+  .choice svg { width: 100%; height: 100%; display: block; }
+  .choice:active { transform: translateY(6px) scale(0.97); }
+  #goRun { background: linear-gradient(160deg, #4fdc62, #15993a); }
+  #goFly { background: linear-gradient(160deg, #4cc4ff, #1c6fe0); }
+  @keyframes choicePop { from { transform: scale(0.2); } to { transform: scale(1); } }
+  @keyframes choiceBob { from { transform: translateY(0); } to { transform: translateY(-9px); } }
+  @media (max-height: 500px) { #chooser { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); } .choice { width: 46vh; height: 46vh; } }
   #fade { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
 </style>
 </head>
@@ -31,6 +43,14 @@
 <button id="home" class="stone" aria-label="Home" hidden>
   <svg viewBox="0 0 48 48"><path d="M24 7 L42 23 H37 V40 H28 V30 H20 V40 H11 V23 H6 Z" fill="#ff6a3d" stroke="#9a2f12" stroke-width="2.5" stroke-linejoin="round"/><rect x="21" y="16" width="6" height="6" rx="1" fill="#fff3c4"/></svg>
 </button>
+<div id="chooser" hidden>
+  <button id="goRun" class="choice" aria-label="Run">
+    <svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><circle cx="63" cy="16" r="9" fill="#fff" stroke="none"/><path d="M57 33 L44 55 L60 67 L56 90"/><path d="M44 55 L33 72 L14 74"/><path d="M57 33 L74 46 L88 42"/><path d="M57 33 L38 33 L28 47"/></svg>
+  </button>
+  <button id="goFly" class="choice" aria-label="Fly">
+    <svg viewBox="0 0 100 100" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"><path d="M50 58 C38 34 22 22 4 20 C6 32 10 38 16 42 C10 42 8 44 8 46 C14 54 22 56 30 56 C26 60 26 62 28 64 C36 66 44 64 50 58 Z"/><path d="M50 58 C62 34 78 22 96 20 C94 32 90 38 84 42 C90 42 92 44 92 46 C86 54 78 56 70 56 C74 60 74 62 72 64 C64 66 56 64 50 58 Z"/><ellipse cx="50" cy="60" rx="6" ry="20"/><circle cx="50" cy="36" r="8"/></svg>
+  </button>
+</div>
 <div id="fade"></div>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 <script type="module" src="town.js"></script>
