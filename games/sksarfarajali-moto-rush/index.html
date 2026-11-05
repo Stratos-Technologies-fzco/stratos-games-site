@@ -890,20 +890,68 @@ function buildDeco() {
   for (var y = 6; y < 124; y += 12) for (var x = 6; x < 60; x += 14) { wx.fillStyle = rw() > 0.45 ? (rw() > 0.5 ? '#ffe28a' : '#8fe8ff') : '#1d2048'; wx.fillRect(x, y, 8, 7); }
   var wtex = new THREE.CanvasTexture(win);
   var brown = [0.33, 0.25, 0.17], green = [0.21, 0.34, 0.19], cact = [0.38, 0.5, 0.33], pineG = [0.14, 0.28, 0.22], snow = [0.88, 0.92, 0.95];
-  var geos = {
-    palm: mergeParts([{ g: new THREE.CylinderGeometry(0.14, 0.22, 5.6, 6), m: T(0, 2.8, 0), c: brown }, { g: new THREE.ConeGeometry(2.6, 1.2, 8), m: T(0, 5.9, 0), c: green }, { g: new THREE.ConeGeometry(1.6, 1.0, 8), m: T(0, 6.5, 0), c: [0.29, 0.43, 0.23] }]),
-    cactus: mergeParts([{ g: new THREE.CylinderGeometry(0.3, 0.34, 3.2, 8), m: T(0, 1.6, 0), c: cact }, { g: new THREE.CylinderGeometry(0.17, 0.17, 1.0, 8), m: T(-0.7, 1.9, 0), c: cact }, { g: new THREE.CylinderGeometry(0.17, 0.17, 0.8, 8), m: T(-0.45, 1.4, 0, 0, 0, Math.PI / 2, 1, 0.9, 1), c: cact }, { g: new THREE.CylinderGeometry(0.17, 0.17, 0.9, 8), m: T(0.7, 2.3, 0), c: cact }, { g: new THREE.CylinderGeometry(0.17, 0.17, 0.8, 8), m: T(0.45, 1.8, 0, 0, 0, Math.PI / 2), c: cact }]),
-    pine: mergeParts([{ g: new THREE.CylinderGeometry(0.16, 0.2, 1.2, 6), m: T(0, 0.6, 0), c: brown }, { g: new THREE.ConeGeometry(1.8, 2.6, 8), m: T(0, 2.4, 0), c: pineG }, { g: new THREE.ConeGeometry(1.4, 2.2, 8), m: T(0, 3.8, 0), c: pineG }, { g: new THREE.ConeGeometry(0.95, 1.8, 8), m: T(0, 5.0, 0), c: snow }])
-  };
+  var brown2 = [0.27, 0.2, 0.13], green2 = [0.26, 0.4, 0.22], pineG2 = [0.11, 0.23, 0.19];
+  /* a palm leaf: a curved, tapered blade that rises and then droops */
+  function frond(len, wid, droop) {
+    var seg = 8, pos = [], idx = [], i;
+    for (i = 0; i <= seg; i++) {
+      var u = i / seg, x = len * u, y = 0.18 * len * Math.sin(u * 2.2) - droop * u * u * len, w = wid * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.04)), 0.75) * (1 - 0.25 * u) + 0.01;
+      pos.push(x, y, -w / 2, x, y, w / 2);
+    }
+    for (i = 0; i < seg; i++) { var q = i * 2; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); }
+    var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  }
+  var fa = frond(3.0, 0.7, 0.85), fb = frond(2.6, 0.62, 1.1), fc = frond(2.2, 0.55, 0.55), sph8 = new THREE.SphereGeometry(1, 10, 8);
+  function palmParts() {
+    var parts = [], H = 7.2, lean = 0.9, n = 8, i, prev = [0, 0];
+    for (i = 1; i <= n; i++) {
+      var u = i / n, pt = [lean * Math.pow(u, 1.6), H * u], dx = pt[0] - prev[0], dy = pt[1] - prev[1], len = Math.hypot(dx, dy), rb = 0.24 - 0.1 * (i - 1) / n, rt = 0.24 - 0.1 * i / n;
+      parts.push({ g: new THREE.CylinderGeometry(rt, rb, len, 7), m: T((pt[0] + prev[0]) / 2, (pt[1] + prev[1]) / 2, 0, 0, 0, -Math.atan2(dx, dy)), c: i % 2 ? brown : brown2 });
+      prev = pt;
+    }
+    var tx = prev[0], ty = prev[1], k, fr = [fa, fb, fc];
+    for (k = 0; k < 12; k++) {
+      var ang = k / 12 * Math.PI * 2 + (k % 3) * 0.13, tilt = (k % 2 ? 0.34 : 0.05) + (k % 3) * 0.06;
+      parts.push({ g: fr[k % 3], m: T(tx, ty + 0.1, 0, 0, ang, tilt), c: k % 2 ? green : green2 });
+    }
+    for (k = 0; k < 3; k++) parts.push({ g: sph8, m: T(tx + Math.cos(k * 2.1) * 0.22, ty - 0.12, Math.sin(k * 2.1) * 0.22, 0, 0, 0, 0.14, 0.14, 0.14), c: [0.2, 0.14, 0.08] });
+    return parts;
+  }
+  function pineParts() {
+    var parts = [{ g: new THREE.CylinderGeometry(0.15, 0.22, 1.6, 6), m: T(0, 0.8, 0), c: brown }], rad = [2.0, 1.7, 1.42, 1.15, 0.88, 0.6], y = 1.1, i;
+    for (i = 0; i < 6; i++) {
+      var h = 1.5 - i * 0.05;
+      parts.push({ g: new THREE.ConeGeometry(rad[i], h, 10), m: T(0, y + h / 2, 0, 0, i * 0.5, 0), c: i % 2 ? pineG : pineG2 });
+      if (i >= 3) parts.push({ g: new THREE.ConeGeometry(rad[i] * 0.62, h * 0.55, 10), m: T(0, y + h * 0.62, 0, 0, i * 0.5, 0), c: snow });
+      y += h * 0.62;
+    }
+    return parts;
+  }
+  function cactusParts() {
+    var parts = [];
+    parts.push({ g: new THREE.CylinderGeometry(0.32, 0.36, 3.8, 10), m: T(0, 1.9, 0), c: cact });
+    parts.push({ g: sph8, m: T(0, 3.8, 0, 0, 0, 0, 0.32, 0.34, 0.32), c: cact });
+    [[-1, 1.5, 1.2], [1, 2.2, 0.9]].forEach(function (a) {
+      var sx = a[0], y0 = a[1], up = a[2];
+      parts.push({ g: new THREE.CylinderGeometry(0.17, 0.17, 0.9, 8), m: T(sx * 0.62, y0, 0, 0, 0, Math.PI / 2), c: cact });
+      parts.push({ g: new THREE.CylinderGeometry(0.17, 0.17, up, 8), m: T(sx * 1.02, y0 + up / 2, 0), c: cact });
+      parts.push({ g: sph8, m: T(sx * 1.02, y0 + up, 0, 0, 0, 0, 0.17, 0.2, 0.17), c: cact });
+    });
+    return parts;
+  }
+  var ico = new THREE.IcosahedronGeometry(1, 1), dod = new THREE.DodecahedronGeometry(1, 0), bushParts = [], bcols = [[0.30, 0.36, 0.20], [0.26, 0.33, 0.18], [0.34, 0.40, 0.22], [0.28, 0.35, 0.19], [0.32, 0.38, 0.21]];
+  [[0, 0.45, 0, 0.8], [0.6, 0.35, 0.2, 0.6], [-0.55, 0.3, 0.25, 0.62], [0.2, 0.3, -0.55, 0.55], [-0.2, 0.62, -0.1, 0.55]].forEach(function (o, i) { bushParts.push({ g: ico, m: T(o[0], o[1], o[2], 0, 0, 0, o[3], o[3] * 0.75, o[3]), c: bcols[i] }); });
+  var rockParts = [{ g: dod, m: T(0, 0.35, 0, 0, 0.5, 0, 0.9, 0.6, 0.8), c: [0.40, 0.37, 0.34] }, { g: dod, m: T(0.8, 0.2, 0.3, 0, 1.2, 0, 0.5, 0.35, 0.45), c: [0.36, 0.34, 0.32] }, { g: dod, m: T(-0.7, 0.18, -0.2, 0, 2, 0, 0.4, 0.3, 0.4), c: [0.42, 0.39, 0.35] }];
+  var geos = { palm: mergeParts(palmParts()), cactus: mergeParts(cactusParts()), pine: mergeParts(pineParts()), bush: mergeParts(bushParts), rock: mergeParts(rockParts) };
   /* darker at the base, lighter at the top, so trees have depth instead of one flat colour */
   Object.keys(geos).forEach(function (k) {
     var G = geos[k], pa = G.attributes.position, ca = G.attributes.color, ymax = 0, i;
     for (i = 0; i < pa.count; i++) ymax = Math.max(ymax, pa.getY(i));
     for (i = 0; i < pa.count; i++) { var f = 0.7 + 0.42 * Math.min(1, pa.getY(i) / ymax); ca.setXYZ(i, ca.getX(i) * f, ca.getY(i) * f, ca.getZ(i) * f); }
   });
-  ['palm', 'cactus', 'pine'].forEach(function (k) {
-    var im = new THREE.InstancedMesh(geos[k], new THREE.MeshLambertMaterial({ vertexColors: true }), 70); im.count = 0; im.frustumCulled = false; scene.add(im); decoMeshes[k] = im;
-    for (var ci = 0; ci < 70; ci++) im.setColorAt(ci, new THREE.Color(1, 1, 1));
+  ['palm', 'cactus', 'pine', 'bush', 'rock'].forEach(function (k) {
+    var im = new THREE.InstancedMesh(geos[k], new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 90); im.count = 0; im.frustumCulled = false; scene.add(im); decoMeshes[k] = im;
+    for (var ci = 0; ci < 90; ci++) im.setColorAt(ci, new THREE.Color(1, 1, 1));
   });
   var bg = new THREE.BoxGeometry(1, 1, 1); bg.translate(0, 0.5, 0);
   var cm = new THREE.InstancedMesh(bg, new THREE.MeshBasicMaterial({ map: wtex }), 70); cm.count = 0; cm.frustumCulled = false; scene.add(cm); decoMeshes.city = cm;
@@ -1208,6 +1256,20 @@ function render(dt) {
       }
     }
     kinds.forEach(function (kn) { var m = decoMeshes[kn]; m.count = kn === dk ? cnt[kn] : 0; if (kn === dk) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; } });
+    var sm2 = (dk === 'palm' || dk === 'cactus') ? decoMeshes.bush : dk === 'pine' ? decoMeshes.rock : null, cs = 0;
+    decoMeshes.bush.count = 0; decoMeshes.rock.count = 0;
+    if (sm2) {
+      for (k = 0; k < nseg && cs < 90; k++) {
+        sg = segs[(((base + k - 4) % N) + N) % N]; if (sg.i % 3 !== 1 || (state === 'menu' && k < 14)) continue;
+        var hv = hash(sg.i * 7 + 3); if (hv < 0.3) continue;
+        var sd2 = hv > 0.65 ? 1 : -1, lt2 = sd2 * (1.18 + ((hv * 97) % 1) * 0.75) * ROADM, c3 = Math.cos(Th[k]), s3 = Math.sin(Th[k]), sc3 = 0.7 + ((hv * 53) % 1) * 0.9;
+        dummy.position.set(Px[k] + lt2 * c3, 0, -(Pz[k] - lt2 * s3)); dummy.rotation.set(0, hv * 6.28, 0); dummy.scale.set(sc3, sc3, sc3); dummy.updateMatrix();
+        sm2.setMatrixAt(cs, dummy.matrix);
+        if (dk === 'cactus') decoCol.setRGB(1.15, 0.95, 0.7); else if (dk === 'pine') decoCol.setRGB(1.25, 1.25, 1.3); else decoCol.setRGB(0.9 + hv * 0.2, 0.92 + hv * 0.18, 0.85 + hv * 0.1);
+        sm2.setColorAt(cs, decoCol); cs++;
+      }
+      sm2.count = cs; sm2.instanceMatrix.needsUpdate = true; if (sm2.instanceColor) sm2.instanceColor.needsUpdate = true;
+    }
     decoMeshes.city.material.color.setRGB(1, 1, 1);
 
     /* traffic */
@@ -1355,7 +1417,7 @@ resetRun('free'); state = 'menu'; speed = 0; renderMenu();
     if (loc && new URLSearchParams(location.search).get('screen') === 'garage') setTimeout(function () { document.getElementById('bGarage').click(); }, 300);
   } catch (e) {}
 })();
-window.__moto = { gl: function () { return { renderer: renderer, scene: scene, camera: camera, bike: bikeRoot, THREE: THREE, models: models, apply: applyLook, state: function () { return { pos: pos, playerX: playerX }; }, horizon: horizon, segs: segs, cars: cars, carObjs: carObjs, sunMesh: sunMesh, skyMesh: skyMesh, P: { x: Px, z: Pz, t: Th }, wrapS: wrapS, M: M, SEG: SEG, ROADM: ROADM, LANES: LANES, set: function (o) { if (o.pos != null) pos = o.pos; if (o.playerX != null) playerX = o.playerX; if (o.theme != null) { themeIdx = o.theme; lastTheme = o.theme; } if (o.bgAng != null) bgAng = o.bgAng; } }; }, ui: { save: save, chal: chal, calc: calcPerf, gen: genChal, ensure: ensureChal, garage: function () { document.getElementById('bGarage').click(); }, missions: function () { document.getElementById('bMissions').click(); } }, demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
+window.__moto = { gl: function () { return { renderer: renderer, scene: scene, camera: camera, bike: bikeRoot, THREE: THREE, models: models, apply: applyLook, state: function () { return { pos: pos, playerX: playerX }; }, horizon: horizon, segs: segs, cars: cars, carObjs: carObjs, sunMesh: sunMesh, skyMesh: skyMesh, P: { x: Px, z: Pz, t: Th }, wrapS: wrapS, M: M, SEG: SEG, ROADM: ROADM, LANES: LANES, set: function (o) { if (o.pos != null) pos = o.pos; if (o.playerX != null) playerX = o.playerX; if (o.theme != null) { themeIdx = o.theme; lastTheme = o.theme; } if (o.bgAng != null) bgAng = o.bgAng; if (o.startTheme != null) startTheme = o.startTheme; } }; }, ui: { save: save, chal: chal, calc: calcPerf, gen: genChal, ensure: ensureChal, garage: function () { document.getElementById('bGarage').click(); }, missions: function () { document.getElementById('bMissions').click(); } }, demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
 requestAnimationFrame(frame);
 })();
 </script>
