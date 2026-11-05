@@ -129,6 +129,16 @@
     #hint { bottom: calc(env(safe-area-inset-bottom) + 84px); }
     h1 { font-size: 34px; }
   }
+  /* Short frames (the play page on a phone): Start first, how-to below it. Nothing is hidden, it scrolls. */
+  @media (max-height: 640px) {
+    #scrMenu .card { display: flex; flex-direction: column; padding: 18px 18px 20px; }
+    #scrMenu .tag { margin: 6px 0 4px; }
+    #scrMenu #btnStart { order: 1; }
+    #scrMenu .row { order: 2; }
+    #scrMenu .levels { order: 3; }
+    #scrMenu .how { order: 4; margin: 16px 0 12px; }
+    #scrMenu .keys { order: 5; margin: 0; }
+  }
 </style>
 </head>
 <body>
