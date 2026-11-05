@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 30,
+ "count": 31,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -62,6 +62,19 @@
    "category": "party",
    "url": "play/im-mohua-liza-chroma-clash/",
    "thumb": "games/im-mohua-liza-chroma-clash/thumbnail.png",
+   "added": "2026-11-05",
+   "github": "im-mohua-liza",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "im-mohua-liza-ink-velocity",
+   "title": "Ink Velocity",
+   "maker": "Mohua Liza",
+   "one_line": "Draw the road and send a red supercar across the Darjeeling hills, under real Kanchenjunga peaks.",
+   "category": "puzzle",
+   "url": "play/im-mohua-liza-ink-velocity/",
+   "thumb": "games/im-mohua-liza-ink-velocity/thumbnail.png",
    "added": "2026-11-05",
    "github": "im-mohua-liza",
    "kind": "family",
