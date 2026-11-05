@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ink Velocity</title>
+<style>
+@font-face{font-family:'Rajdhani';font-weight:500;font-style:normal;font-display:swap;src:url(fonts/Rajdhani-500.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:600;font-style:normal;font-display:swap;src:url(fonts/Rajdhani-600.woff2) format('woff2')}
+@font-face{font-family:'Rajdhani';font-weight:700;font-style:normal;font-display:swap;src:url(fonts/Rajdhani-700.woff2) format('woff2')}
+@font-face{font-family:'Russo One';font-weight:400;font-style:normal;font-display:swap;src:url(fonts/RussoOne-400.woff2) format('woff2')}
+:root{
+  --glass:rgba(12,16,26,.58); --glass2:rgba(255,255,255,.08); --line:rgba(255,255,255,.14);
+  --txt:#f3f6fb; --dim:#a9b4c6; --red:#ff2d3d; --gold:#ffc83d; --cyan:#27d9ff; --green:#3cf08a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0d14;color:var(--txt);font-family:Rajdhani,system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.hidden{display:none!important}
+button{font-family:inherit;color:inherit;border:0;cursor:pointer;background:none}
+.disp{font-family:"Russo One",Rajdhani,sans-serif;letter-spacing:.04em}
+
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none}
+#hud>*{pointer-events:auto}
+.panel{background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#lvlBox{position:absolute;left:16px;top:14px;padding:10px 16px}
+#lvlBox .n{font-size:13px;color:var(--dim);font-weight:700;letter-spacing:.18em}
+#lvlBox .t{font-size:22px;line-height:1.1}
+#lvlBox .tm{font-size:15px;color:var(--dim);margin-top:2px}
+#inkBox{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:10px 18px;width:min(420px,calc(100% - 340px));min-width:220px}
+.row{display:flex;align-items:center;gap:10px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--dim)}
+.bar{position:relative;height:12px;flex:1;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;width:100%;border-radius:8px;background:linear-gradient(90deg,#27d9ff,#7b6bff,#ff3d77);transition:width .08s}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;box-shadow:0 0 6px #fff}
+#coinsTxt{font-weight:700;font-size:18px;color:var(--gold);min-width:48px;text-align:right}
+#topRight{position:absolute;right:16px;top:14px;display:flex;gap:8px}
+.ib{width:46px;height:46px;border-radius:14px;font-size:20px;display:grid;place-items:center}
+.ib:hover{background:rgba(255,255,255,.14)}
+
+#tools{position:absolute;left:16px;bottom:16px;padding:8px;display:flex;gap:6px}
+.tool{padding:10px 14px;border-radius:12px;font-weight:700;font-size:15px;letter-spacing:.06em;display:flex;align-items:center;gap:8px;color:var(--dim)}
+.tool:hover{background:var(--glass2);color:#fff}
+.tool.on{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+.kbd{font-size:11px;opacity:.6;border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:0 5px}
+
+#goBtn{position:absolute;right:20px;bottom:20px;width:132px;height:132px;border-radius:50%;font-size:34px;
+  background:radial-gradient(circle at 35% 30%,#ff6b74,#e3101f 55%,#8d0612);box-shadow:0 0 0 6px rgba(255,255,255,.12),0 14px 40px rgba(227,16,31,.55);animation:pulse 1.6s infinite}
+#goBtn small{display:block;font-family:Rajdhani;font-size:13px;letter-spacing:.2em;opacity:.85}
+@keyframes pulse{50%{box-shadow:0 0 0 14px rgba(255,255,255,.05),0 14px 40px rgba(227,16,31,.7)}}
+#driveCtl{position:absolute;right:16px;bottom:16px;display:flex;gap:10px;align-items:flex-end}
+.big{width:96px;height:96px;border-radius:50%;font-weight:700;font-size:15px;letter-spacing:.12em;display:grid;place-items:center;touch-action:none}
+#nitroBtn{background:radial-gradient(circle at 35% 30%,#7ff3ff,#14a8d6 55%,#06506a);box-shadow:0 10px 30px rgba(20,168,214,.5);width:110px;height:110px}
+#brakeBtn{background:rgba(255,255,255,.12);border:1px solid var(--line)}
+.sm{width:62px;height:62px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--line);font-size:22px;touch-action:none}
+.big:active,.sm:active,.big.held,.sm.held{transform:scale(.94);filter:brightness(1.25)}
+
+#speedo{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);padding:10px 22px;text-align:center;min-width:200px}
+#speedo .v{font-size:44px;line-height:1}
+#speedo .u{font-size:12px;color:var(--dim);letter-spacing:.25em}
+#nitroBar{margin-top:6px;height:7px}
+#nitroBar i{background:linear-gradient(90deg,#27d9ff,#bff8ff)}
+
+#hint{position:absolute;left:50%;top:84px;transform:translateX(-50%);padding:8px 16px;font-size:16px;color:#e8eefa;white-space:nowrap;border-radius:30px;transition:opacity .4s}
+#toast{position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);font-size:46px;text-shadow:0 4px 24px rgba(0,0,0,.6);pointer-events:none;white-space:nowrap;opacity:0}
+#toast.show{animation:toast 1.3s ease-out}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}30%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%)}}
+
+/* Screens */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;background:linear-gradient(180deg,rgba(5,8,15,.25),rgba(5,8,15,.65))}
+#title{justify-content:space-between}
+.logo{text-align:center;margin-top:3vh}
+.logo h1{font-family:"Russo One";font-size:clamp(46px,9vw,108px);line-height:.9;letter-spacing:.02em;
+  background:linear-gradient(180deg,#fff 20%,#ffb3b9 60%,#ff2d3d);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 26px rgba(255,45,61,.45));font-style:italic}
+.logo p{margin-top:10px;font-size:clamp(15px,2vw,20px);letter-spacing:.35em;color:#dfe7f5;text-transform:uppercase}
+.menuBtns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:5vh}
+.mb{padding:16px 30px;border-radius:16px;font-family:"Russo One";font-size:20px;letter-spacing:.06em;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);min-width:170px;transition:transform .15s,background .15s}
+.mb:hover{transform:translateY(-2px);background:rgba(255,255,255,.16)}
+.mb.primary{background:linear-gradient(180deg,#ff4654,#c80d1c);border-color:#ff7d87;box-shadow:0 10px 30px rgba(200,13,28,.45)}
+.card{padding:24px;max-width:860px;width:100%}
+.card h2{font-family:"Russo One";font-size:30px;margin-bottom:4px}
+.card .sub{color:var(--dim);margin-bottom:18px;font-size:17px}
+#lvlGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.lv{position:relative;text-align:left;padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid var(--line);min-height:112px;transition:transform .15s,background .15s}
+.lv:hover:not(:disabled){transform:translateY(-2px);background:rgba(255,255,255,.14)}
+.lv:disabled{opacity:.4;cursor:not-allowed}
+.lv .num{font-family:"Russo One";font-size:28px;opacity:.9}
+.lv .nm{font-weight:700;font-size:17px}
+.lv .th{font-size:12px;color:var(--dim);letter-spacing:.15em;text-transform:uppercase}
+.stars{color:#5b6475;font-size:20px;letter-spacing:2px;margin-top:4px}
+.stars .on{color:var(--gold);text-shadow:0 0 10px rgba(255,200,61,.6)}
+.foot{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+#garage{justify-content:flex-end}
+#garage .card{max-width:760px}
+.swrow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.swb{width:46px;height:46px;border-radius:50%;border:3px solid transparent;box-shadow:inset 0 -6px 10px rgba(0,0,0,.35),inset 0 6px 10px rgba(255,255,255,.3)}
+.swb.on{border-color:#fff;transform:scale(1.08)}
+.swname{font-family:"Russo One";font-size:18px}
+
+.modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(4,6,12,.45);padding:16px}
+.modal .card{max-width:440px;text-align:center}
+.bigStars{font-size:64px;letter-spacing:8px;color:#4a5263;margin:6px 0 10px}
+.bigStars span{display:inline-block;transform:scale(0)}
+.bigStars span.on{color:var(--gold);text-shadow:0 0 22px rgba(255,200,61,.8)}
+.bigStars span.pop{animation:pop .5s cubic-bezier(.2,1.8,.4,1) forwards}
+@keyframes pop{to{transform:scale(1)}}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px}
+.stat{background:rgba(255,255,255,.07);border-radius:12px;padding:10px}
+.stat b{display:block;font-size:24px}
+.stat span{font-size:12px;color:var(--dim);letter-spacing:.15em}
+.mbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.mbtns .mb{min-width:120px;padding:13px 20px;font-size:17px}
+.help{font-size:15px;color:#cfd8e8;line-height:1.6;text-align:left;margin:8px 0 16px}
+.help b{color:#fff}
+
+@media (max-width:760px){
+  #inkBox{top:auto;bottom:auto;left:16px;right:16px;transform:none;width:auto;top:96px}
+  #hint{top:150px;font-size:14px}
+  #goBtn{width:104px;height:104px;font-size:28px}
+  .tool span.t{display:none}
+  .kbd{display:none}
+  #tools{left:8px;right:8px;bottom:8px;padding:5px;justify-content:space-between}
+  .tool{padding:10px 12px;font-size:18px}
+  #goBtn{bottom:84px;right:14px}
+  #driveCtl{bottom:78px;right:10px}
+  #speedo{bottom:auto;top:200px;left:auto;right:16px;transform:none;min-width:120px;padding:6px 14px}
+  #speedo .v{font-size:30px}
+  .big{width:80px;height:80px}
+  #nitroBtn{width:92px;height:92px}
+}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="lvlBox" class="panel"><div class="n" id="lvlNum">LEVEL 1</div><div class="t disp" id="lvlName">First Sketch</div><div class="tm" id="timeTxt">0.00s</div></div>
+  <div id="inkBox" class="panel">
+    <div class="row"><span class="lbl">INK</span><div class="bar" id="inkBar"><i></i><b></b></div><span id="coinsTxt">◉ 0/0</span></div>
+  </div>
+  <div id="topRight"><button class="ib panel" id="helpBtn" title="How to play">?</button><button class="ib panel" id="muteBtn" title="Sound (M)">🔊</button><button class="ib panel" id="menuBtn" title="Menu (Esc)">☰</button></div>
+  <div id="hint" class="panel">Draw a road from the cliff to the finish, then press GO</div>
+  <div id="tools" class="panel">
+    <button class="tool on" data-pen="road"><span class="sw" style="background:#3a3d44;box-shadow:inset 0 0 0 2px #f0c43a"></span><span class="t">ROAD</span> <span class="kbd">1</span></button>
+    <button class="tool" data-pen="turbo"><span class="sw" style="background:#27d9ff"></span><span class="t">TURBO</span> <span class="kbd">2</span></button>
+    <button class="tool" id="undoBtn">↶ <span class="t">UNDO</span> <span class="kbd">Z</span></button>
+    <button class="tool" id="clearBtn">✕ <span class="t">CLEAR</span> <span class="kbd">C</span></button>
+    <button class="tool" id="resetBtn">⟲ <span class="t">RESET CAR</span> <span class="kbd">R</span></button>
+  </div>
+  <button id="goBtn" class="disp">GO<small>SPACE</small></button>
+  <div id="driveCtl" class="hidden">
+    <button class="sm" id="tiltL" title="Lean back (A / ←)">⟲</button>
+    <button class="sm" id="tiltR" title="Lean forward (D / →)">⟳</button>
+    <button class="big" id="brakeBtn">BRAKE</button>
+    <button class="big disp" id="nitroBtn">NITRO</button>
+  </div>
+  <div id="speedo" class="panel hidden"><div class="v disp" id="spdTxt">0</div><div class="u">KM/H</div><div class="bar" id="nitroBar"><i></i></div></div>
+</div>
+<div id="toast" class="disp"></div>
+
+<div id="title" class="screen">
+  <div class="logo"><h1>INK<br>VELOCITY</h1><p>Draw the road · Drive the dream</p></div>
+  <div class="menuBtns">
+    <button class="mb primary" id="playBtn">PLAY</button>
+    <button class="mb" id="levelsBtn">LEVELS</button>
+    <button class="mb" id="garageBtn">GARAGE</button>
+  </div>
+</div>
+
+<div id="levels" class="screen hidden">
+  <div class="card panel">
+    <h2>Select a canyon</h2>
+    <div class="sub">Earn ★ for finishing, ★ for staying under the ink target, ★ for every coin.</div>
+    <div id="lvlGrid"></div>
+    <div class="foot"><button class="mb" data-back>← BACK</button><div class="sub" id="starTotal" style="margin:0;align-self:center"></div></div>
+  </div>
+</div>
+
+<div id="garage" class="screen hidden">
+  <div class="card panel">
+    <h2>Garage · <span id="carName">Vento GT</span></h2>
+    <div class="sub">Mid-engine, 4 wheels, zero ink stains. Pick a finish.</div>
+    <div class="lbl">PAINT</div><div class="swrow" id="paintRow"></div>
+    <div class="lbl">WHEELS</div><div class="swrow" id="rimRow"></div>
+    <div class="foot"><div class="swname" id="finishName"></div><button class="mb primary" data-back>DONE</button></div>
+  </div>
+</div>
+
+<div id="winModal" class="modal hidden">
+  <div class="card panel">
+    <h2 id="winTitle">Level clear!</h2>
+    <div class="bigStars" id="winStars"><span>★</span><span>★</span><span>★</span></div>
+    <div class="stats">
+      <div class="stat"><b id="sTime">0s</b><span>TIME</span></div>
+      <div class="stat"><b id="sInk">0m</b><span>INK USED</span></div>
+      <div class="stat"><b id="sCoins">0/0</b><span>COINS</span></div>
+      <div class="stat"><b id="sStunts">0</b><span>STUNTS</span></div>
+    </div>
+    <div class="mbtns"><button class="mb" id="wRetry">RETRY</button><button class="mb" id="wMenu">LEVELS</button><button class="mb primary" id="wNext">NEXT ▶</button></div>
+  </div>
+</div>
+
+<div id="failModal" class="modal hidden">
+  <div class="card panel">
+    <h2 id="failTitle">Into the canyon!</h2>
+    <div class="sub" id="failSub">Your roads are saved. Fix them and try again.</div>
+    <div class="mbtns"><button class="mb primary" id="fRetry">FIX ROAD</button><button class="mb" id="fClear">START OVER</button><button class="mb" id="fMenu">LEVELS</button></div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="card panel">
+    <h2>How to play</h2>
+    <div class="help">
+      <b>Draw</b> roads with mouse or finger. Ink is limited.<br>
+      <b>Turbo</b> pen (2) makes boost strips. Costs double ink.<br>
+      <b>GO</b> (Space) starts the car. You can keep drawing while it drives.<br>
+      <b>Nitro</b>: hold Shift. <b>Brake</b>: hold S / ↓.<br>
+      <b>Lean</b> in the air with A / D or ← / →. Land flips for stunts.<br>
+      <b>R</b> resets the car and keeps your roads. <b>Z</b> undo, <b>C</b> clear.
+    </div>
+    <div class="help" style="font-size:12px;color:#a9b4c6;line-height:1.5">Kangchenjunga photos via Wikimedia Commons: "The Kangchenjunga from darjeeling" by Istiakuddin Ahmed (CC BY 4.0); "Panorama Kangchenjunga from Darjeeling" by Carsten.nebel (CC BY-SA 3.0). Trees, textures and sky lighting: Poly Haven (CC0).</div>
+    <div class="mbtns"><button class="mb primary" id="helpClose">GOT IT</button></div>
+  </div>
+</div>
+
+<script src="vendor/planck.min.js"></script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+<script type="module" src="game.js"></script>
+</body>
+</html>
