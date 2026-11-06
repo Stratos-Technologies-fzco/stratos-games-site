@@ -23,7 +23,7 @@ window.DF = window.DF || {};
   ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) { SHEETS.push(b + '-charge', b + '-stomp'); LAZY.push('anim-' + b + '-charge', 'anim-' + b + '-stomp'); });
   SHEETS.forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; });
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261104a';
+  var V = '20261106a';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['verdant_valley', 'path-strip', 'canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];

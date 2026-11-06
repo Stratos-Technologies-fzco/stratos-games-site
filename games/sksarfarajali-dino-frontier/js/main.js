@@ -112,7 +112,7 @@ window.DF = window.DF || {};
     UI.st.restartConfirm = false; go('pause', { snap: snap, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true });
   }
   function resume() { A.setDuck(1); go('hud', { tutorial: Nav.run.tutorial, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); if (Nav.demo) UI.demoMode(); G.resume(); }
-  function leaveRun() { if (Nav.state === 'hud' || Nav.state === 'pause') { if (Nav.demo) DF.track('demo_skipped', { biome: Nav.demoBiome }); else DF.track('run_quit', { objective: Nav.run.objId }); } clearInterval(Nav.hudTimer); G.quitRun(); G.clear(); A.setDuck(1); }
+  function leaveRun() { if (Nav.state === 'hud' || Nav.state === 'pause') { if (!Nav.demo && Nav.run && Nav.run.objId !== 'demo') DF.track('run_quit', { objective: Nav.run.objId }); } clearInterval(Nav.hudTimer); G.quitRun(); G.clear(); A.setDuck(1); }
 
   /* Commit rewards once, update progress, then show the summary (SCR-07). */
   function endRun(res) {
@@ -185,7 +185,7 @@ window.DF = window.DF || {};
     }, 100);
   }
   function endDemo() {
-    if (!Nav.demo) return; Nav.demo = false; leaveRun();
+    if (!Nav.demo) return; DF.track('demo_end', { biome: Nav.demoBiome }); Nav.demo = false; leaveRun();
     go('title'); UI.toast(S.demo.end, 'egg');
   }
 
@@ -212,6 +212,7 @@ window.DF = window.DF || {};
     demo: function () { go('demos'); },
     demoBiome: function (d) { startDemo(d.id); },
     skipDemo: function () { endDemo(); },
+    demoPlay: function () { if (!Nav.demo) return; DF.track('demo_takeover', { biome: Nav.demoBiome }); Nav.demo = false; leaveRun(); acts.continue(); },
     retryLoad: function () { runBoot(); },
     consent: function (d) { var c = sv().consent; c.analytics = d.v; c.decidedAt = new Date().toISOString(); c.policyVersion = 1; persist(); DF.track('consent_set', {}); go('title'); },
     privacyFull: function () { UI.st.modal = true; UI.refresh(); },

@@ -31,7 +31,7 @@ DF.S = {
     back: 'Back', demo: 'Watch demo'
   },
   demo: {
-    badge: 'DEMO', skip: 'Skip demo',
+    badge: 'DEMO', skip: 'Skip demo', play: 'Play now',
     caps: ['Explore Verdant Valley. Berries restore a little health.', 'Enemies flash before they strike. Dodge, then hit back.', 'Dash and abilities spend energy, which recharges.', 'Follow the marker to the egg site to discover an egg.', 'Then evolve, upgrade and face Thornback.'],
     end: 'Ready? Tap New Game to start your own expedition.',
     pick: { eyebrow: 'Watch a demo', title: 'Choose a biome', back: 'Back', watch: '▶ Watch', aria: 'Watch the {name} demo', note: 'Demos use a practice dinosaur. Your saved progress is never touched.',
@@ -73,19 +73,19 @@ DF.S = {
     cooldown: 'Recharging…', bossPhase: '{name} roars — it’s enraged!', bossStun: '{name} is stunned — strike now!', berry: '+1 Food', dna_: '+1 DNA', token: '+5 Tokens'
   },
   obj: {
-    egg: { name: 'Egg Hunt', meta: 'Lv 1+ · ~6 min', hud: 'Reach the egg site · {b}/{n} berries' },
-    forage: { name: 'Forage the Falls', meta: 'Lv 2+ · ~5 min', hud: 'Reach the falls nest · {b}/{n} berries' },
-    demo: { name: 'Demo', meta: '', hud: 'Reach the egg site · {b}/{n} berries' },
-    ember: { name: 'Ember Trail', meta: 'Lv 11+ · lava & heat', hud: 'Reach the Ember nest · {b}/{n} cinder berries' },
-    genesis: { name: 'Genesis Trail', meta: 'Lv 41+ · energy fields & rare DNA', hud: 'Reach the Genesis nest · {b}/{n} crystalberries' },
+    egg: { name: 'Egg Hunt', meta: 'Lv 1+ · ~6 min', hud: 'Gather {b}/{n} berries, then reach the egg site' },
+    forage: { name: 'Forage the Falls', meta: 'Lv 2+ · ~5 min', hud: 'Gather {b}/{n} berries, then reach the falls nest' },
+    demo: { name: 'Demo', meta: '', hud: 'Gather {b}/{n} berries, then reach the egg site' },
+    ember: { name: 'Ember Trail', meta: 'Lv 11+ · lava & heat', hud: 'Gather {b}/{n} cinder berries, then reach the Ember nest' },
+    genesis: { name: 'Genesis Trail', meta: 'Lv 41+ · energy fields & rare DNA', hud: 'Gather {b}/{n} crystalberries, then reach the Genesis nest' },
     colossus: { name: 'Genesis Colossus’ Core', meta: 'Lv 45+ · final boss', locked: 'Locked · Lv {lv}', hud: 'Defeat the Genesis Colossus' },
-    mire: { name: 'Mire Trail', meta: 'Lv 31+ · poison & ambushers', hud: 'Reach the Mire nest · {b}/{n} mireberries' },
+    mire: { name: 'Mire Trail', meta: 'Lv 31+ · poison & ambushers', hud: 'Gather {b}/{n} mireberries, then reach the Mire nest' },
     queen: { name: 'Mire Queen’s Hollow', meta: 'Lv 35+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat the Mire Queen' },
-    frost: { name: 'Frost Trail', meta: 'Lv 21+ · blizzards & ice', hud: 'Reach the Frost nest · {b}/{n} frostberries' },
+    frost: { name: 'Frost Trail', meta: 'Lv 21+ · blizzards & ice', hud: 'Gather {b}/{n} frostberries, then reach the Frost nest' },
     titan: { name: 'White Titan’s Peak', meta: 'Lv 25+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat the White Titan' },
     cinder: { name: 'Cinderjaw’s Furnace', meta: 'Lv 15+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat Cinderjaw' },
     boss: { name: 'Thornback’s Den', meta: 'Lv 5+ · boss', locked: 'Locked · Lv {lv}', hud: 'Defeat Thornback' },
-    choose: 'CHOOSE AN OBJECTIVE', start: 'Start expedition', locked: 'Locked · Lv {lv}'
+    choose: 'OBJECTIVE', start: 'Start expedition', locked: 'Locked · Lv {lv}'
   },
   pause: { title: 'Paused', resume: 'Resume', settings: 'Settings', restart: 'Restart expedition', exit: 'Exit to Title', confirm: 'Restart this expedition? Items picked up since you set out will be lost. Your Sanctuary progress is kept.', yes: 'Yes, restart', keep: 'Keep playing', panel: 'THIS EXPEDITION', objective: 'Objective', food: 'Food', dna: 'DNA Fragments', tokens: 'Frontier Tokens', note: 'Game time is stopped. You can’t take damage while paused.' },
   summary: {

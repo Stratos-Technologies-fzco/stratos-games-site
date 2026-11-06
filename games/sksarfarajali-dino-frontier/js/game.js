@@ -821,7 +821,10 @@ window.DF = window.DF || {};
 
   /* ---------- effects ---------- */
   function shake(a) { if (!reduced()) S.shake = Math.max(S.shake, a); }
-  function float(x, y, txt, color, big) { if (S.texts.length < 24) S.texts.push({ x: x, y: y, txt: txt, color: color, t: 0, big: big }); }
+  function float(x, y, txt, color, big) { // numbers that appear together fan out instead of piling on one spot
+    if (S.texts.length >= 24) return; var k = 0; S.texts.forEach(function (q) { if (q.t < 700 && Math.abs(q.x0 - x) < 56 && Math.abs(q.y0 - y) < 30) k++; });
+    S.texts.push({ x: x + (k % 2 ? 14 : -14) * Math.min(k, 2), y: y - 14 * k, x0: x, y0: y, txt: txt, color: color, t: 0, big: big });
+  }
   function spark(x, y, color, n) { burst(x, y, color, n); }
   function burst(x, y, color, n) {
     n = reduced() ? Math.ceil(n / 3) : n;
@@ -1151,7 +1154,7 @@ window.DF = window.DF || {};
       if (e.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 18px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', e.x, e.y - hh - 6); }
       if (e.state === 'stun') { cx.fillStyle = '#9FE7DF'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('✦ ✦', e.x, e.y - hh - 6); }
       if (e.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '800 10px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('OPEN', e.x, e.y - hh - 6); }
-      if (e.hp < e.maxHp) { var bw = 44, bx = e.x - bw / 2, by = e.y - hh - 2; cx.fillStyle = 'rgba(14,23,18,.8)'; cx.fillRect(bx - 1, by - 1, bw + 2, 6); cx.fillStyle = '#E5534B'; cx.fillRect(bx, by, bw * Math.max(0, e.hp / e.maxHp), 4); }
+      if (e.hp < e.maxHp) { var bw = 62, bx = e.x - bw / 2, by = e.y - hh - 4; cx.fillStyle = 'rgba(14,23,18,.9)'; cx.fillRect(bx - 2, by - 2, bw + 4, 10); cx.fillStyle = '#E5534B'; cx.fillRect(bx, by, bw * Math.max(0, e.hp / e.maxHp), 6); }
     }
   }
   function dBoss(b) {
