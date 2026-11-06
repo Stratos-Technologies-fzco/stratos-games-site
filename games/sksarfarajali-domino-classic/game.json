@@ -4,6 +4,6 @@
   "one_line": "Classic Draw and Block dominoes against smart computer opponents, with a new daily challenge every day.",
   "category": "puzzle",
   "github": "sksarfarajali",
-  "how_to_play": "Tap a glowing tile, then tap the gold end of the chain to place it. Stuck? Draw (or pass in Block mode). Empty your hand first.",
+  "how_to_play": "Tap a glowing tile, then tap (or drag it to) the gold end of the chain. Stuck? Draw (or pass in Block mode). Empty your hand first.",
   "description": "A polished take on classic dominoes. Play Draw or Block dominoes for 2 players, or team up with a partner in 4-player games. Three computer levels (Easy, Medium, Hard), a hard daily challenge with the same deal for everyone, hints, statistics and a winning streak to beat. Works on phones, tablets and desktop, and runs fully offline once loaded."
 }
