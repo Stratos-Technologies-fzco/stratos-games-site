@@ -149,6 +149,52 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
   #garage #gvid{position:fixed;left:24px;top:76px;width:calc(100vw - min(400px,36vw) - 48px);height:calc(100vh - 170px);object-fit:contain;background:#cfd1d6}
   #garage .vtag{position:fixed;left:40px;top:90px;bottom:auto}
 }
+
+/* ---- Barlow fonts, bundled so the game works offline ---- */
+@font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-500.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlowcond-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlowcond-700.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-display:swap;src:url(fonts/barlowcond-700i.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-display:swap;src:url(fonts/barlowcond-800i.woff2) format('woff2')}
+:root{--u:1}
+/* ---- race HUD (sizes follow the mockup and scale with --u) ---- */
+#hud{position:fixed;inset:0;display:none;pointer-events:none;z-index:3;font-family:Barlow,Arial,sans-serif;color:#F4F1EA}
+body.racing #hud{display:block}
+#hud .hl{position:absolute;left:calc(24px*var(--u));top:calc(20px*var(--u) + env(safe-area-inset-top));width:calc(236px*var(--u));display:flex;flex-direction:column;gap:calc(12px*var(--u))}
+#hud .hhead{display:flex;justify-content:space-between;align-items:center;padding:calc(6px*var(--u)) calc(14px*var(--u));background:#FF6A2A;color:#0B0D12;font:700 calc(18px*var(--u))/1.2 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(2px*var(--u))}
+#hud .hrow{display:flex;justify-content:space-between;align-items:baseline}
+#hud .hrow span{font-size:calc(14px*var(--u));letter-spacing:calc(1.5px*var(--u));color:#D8DAE2}
+#hud .hscore{padding:calc(10px*var(--u)) calc(14px*var(--u));background:rgba(11,13,18,.86)}
+#hud .hscore b{font:italic 800 calc(48px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hbest{padding:calc(6px*var(--u)) calc(14px*var(--u));background:rgba(27,31,43,.9)}
+#hud .hbest b{font:700 calc(24px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hnm{align-self:flex-start;display:none;gap:calc(12px*var(--u));align-items:baseline;padding:calc(8px*var(--u)) calc(30px*var(--u)) calc(8px*var(--u)) calc(18px*var(--u));background:rgba(255,194,74,.96);color:#0B0D12;font:italic 800 calc(28px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif;clip-path:polygon(0 0,100% 0,calc(100% - 14px*var(--u)) 100%,0 100%)}
+#hud #hToasts{display:flex;flex-direction:column;gap:calc(5px*var(--u));align-items:flex-start}
+#hud .ht{padding:calc(4px*var(--u)) calc(12px*var(--u));background:rgba(11,13,18,.8);border-left:calc(4px*var(--u)) solid #FFC24A;font:italic 800 calc(20px*var(--u))/1.15 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(.5px*var(--u));animation:htfade 1.3s ease-out forwards}
+@keyframes htfade{0%{opacity:0;transform:translateX(-10px)}12%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0}}
+#hud .hr{position:absolute;right:calc(24px*var(--u));top:calc(20px*var(--u) + env(safe-area-inset-top));width:calc(372px*var(--u));background:rgba(11,13,18,.86)}
+#hud .hgrid{display:grid;grid-template-columns:calc(74px*var(--u)) minmax(0,1fr) calc(84px*var(--u));align-items:end;gap:calc(8px*var(--u));padding:calc(12px*var(--u)) calc(16px*var(--u)) calc(8px*var(--u))}
+#hud .hc{display:flex;flex-direction:column}#hud .hc.r{align-items:flex-end}
+#hud .hc span{font-size:calc(13px*var(--u));letter-spacing:calc(1.5px*var(--u));color:#D8DAE2}
+#hud .hc b{font:italic 800 calc(40px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hc b.or{font-size:calc(58px*var(--u));color:#FF6A2A}
+#hud .hspd{display:flex;align-items:baseline;justify-content:center;gap:calc(6px*var(--u))}
+#hud .hspd b{font:italic 800 calc(82px*var(--u))/.9 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hspd i{font:700 calc(18px*var(--u)) 'Barlow Condensed','Arial Narrow',sans-serif;font-style:normal;color:#D8DAE2}
+#hud .hrev{display:flex;gap:calc(3px*var(--u));padding:0 calc(16px*var(--u)) calc(10px*var(--u))}
+#hud .hrev i{flex:1;height:calc(12px*var(--u));background:#2B3040}
+#hud .hrev i.on{background:#F4F1EA}#hud .hrev i.hot.on{background:#FF6A2A}
+#hud .hnit{display:flex;align-items:center;gap:calc(10px*var(--u));padding:calc(8px*var(--u)) calc(16px*var(--u));background:rgba(27,31,43,.9)}
+#hud .hnit span{font:700 calc(17px*var(--u)) 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(2px*var(--u));color:#8FB6FF}
+#hud .hbar{flex:1;height:calc(10px*var(--u));background:#2B3040}#hud .hbar i{display:block;height:100%;width:0;background:#4C8DFF}
+/* sound button, touch buttons */
+#snd{border-radius:0;background:rgba(11,13,18,.72);font:600 14px Barlow,Arial,sans-serif;min-height:44px;padding:0 16px;color:#F4F1EA}
+body.racing #snd{top:calc(20px*var(--u) + 176px*var(--u) + env(safe-area-inset-top));right:calc(24px*var(--u))}
+#ctl .cbtn{font:italic 800 clamp(20px,5vmin,32px)/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.5px}
+#ctl #brake{left:calc(28px*var(--u));width:clamp(78px,17vmin,128px);height:clamp(78px,17vmin,128px);border:3px solid rgba(244,241,234,.85);background:rgba(11,13,18,.62);box-shadow:none;color:#F4F1EA}
+#ctl #nitro{right:calc(28px*var(--u));width:clamp(94px,20vmin,144px);height:clamp(94px,20vmin,144px);border:3px solid #8FB6FF;background:rgba(33,84,196,.82);box-shadow:none;color:#fff}
+.dcap{top:calc(max(232px,30vh) + env(safe-area-inset-top))}
 </style>
 </head>
 <body>
@@ -215,6 +261,26 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
   </div>
   <button id="dskip">SKIP</button>
 </div>
+<div id="hud">
+  <div class="hl">
+    <div>
+      <div class="hhead"><span id="hMode">ENDLESS RUN</span><span id="hNo">24</span></div>
+      <div class="hrow hscore"><span>SCORE</span><b id="hS">0</b></div>
+      <div class="hrow hbest"><span>BEST</span><b id="hB">0</b></div>
+    </div>
+    <div class="hnm" id="hNM"><span>NEAR MISS</span><span id="hNMx">&times;2</span></div>
+    <div id="hToasts"></div>
+  </div>
+  <div class="hr">
+    <div class="hgrid">
+      <div class="hc"><span>GEAR</span><b class="or" id="hG">1</b></div>
+      <div class="hspd"><b id="hSpd">0</b><i>KM/H</i></div>
+      <div class="hc r"><span>LEAN</span><b id="hL">0&deg;</b></div>
+    </div>
+    <div class="hrev" id="hRev"></div>
+    <div class="hnit"><span>NITRO</span><div class="hbar"><i id="hNit"></i></div></div>
+  </div>
+</div>
 <div id="ctl"><button class="cbtn" id="brake">BRAKE</button><button class="cbtn" id="nitro">NITRO</button></div>
 <button id="snd">Sound: off</button>
 
@@ -258,7 +324,9 @@ function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x
 /* ---- canvas ---- */
 var cv = document.getElementById('game'), ctx = cv.getContext('2d');
 var W = 300, H = 500, S = 300, HY = 200, dpr = 1;
+function setU() { var u = innerWidth < innerHeight * 1.1 ? Math.max(0.5, Math.min(1, innerWidth / 700)) : Math.max(0.58, Math.min(1, Math.min(innerWidth / 1100, innerHeight / 640))); document.documentElement.style.setProperty('--u', u.toFixed(3)); }
 function resize() {
+  setU();
   dpr = Math.min(window.devicePixelRatio || 1, quality > 0 ? 1.5 : 1);
   W = cv.width = Math.max(100, Math.floor(innerWidth * dpr));
   H = cv.height = Math.max(100, Math.floor(innerHeight * dpr));
@@ -1467,7 +1535,7 @@ function render(dt) {
     var pv = new THREE.Vector3(bikeRoot.position.x, 1.4, 0).project(camera), px = (pv.x * 0.5 + 0.5) * W, py = (-pv.y * 0.5 + 0.5) * H;
     ctx.fillStyle = '#ffb347'; for (var s3 = 0; s3 < sparks.length; s3++) { var spk = sparks[s3]; ctx.fillRect(px + spk.x * dpr, py + spk.y * dpr, 3 * dpr, 3 * dpr); }
   }
-  if (state === 'play' || state === 'crash') drawHUD();
+  updateHUD();
 }
 
 var edgeSprite = null;
@@ -1484,30 +1552,33 @@ function makeEdgeSprite() {
   }
   edgeSprite = c;
 }
-function drawHUD() {
-  var fs = Math.max(14 * dpr, S / 20), pad = 14 * dpr, top = pad + (window.visualViewport ? 0 : 0);
-  ctx.textBaseline = 'top';
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.textAlign = 'left';
-  ctx.fillText('SCORE', pad, top);
-  ctx.font = 'italic 900 ' + fs * 1.6 + 'px system-ui,sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(curScore(), pad, top + fs * 0.6);
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText('BEST ' + Math.max(save.best, curScore()), pad, top + fs * 2.3);
-  ctx.textAlign = 'right';
-  var kmh = Math.round(speed / MAXS * 260);
-  ctx.font = 'italic 900 ' + fs * 1.4 + 'px system-ui,sans-serif'; ctx.fillStyle = nitroOn ? '#7fe4ff' : '#fff'; ctx.fillText(kmh, W - pad, top + fs * 1.6);
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText('KM/H', W - pad, top + fs * 3.0);
-  /* nitro bar */
-  var bw = W * 0.5, bh = fs * 0.55, bx = (W - bw) / 2, byy = top + fs * 0.1;
-  ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(bx, byy, bw, bh, bh / 2); ctx.fill();
-  var fillw = bw * clamp(nitro / 100, 0, 1);
-  if (fillw > 2) { var gg = ctx.createLinearGradient(bx, 0, bx + bw, 0); gg.addColorStop(0, '#3a7bff'); gg.addColorStop(1, '#7fe4ff'); ctx.fillStyle = gg; rr(bx, byy, fillw, bh, bh / 2); ctx.fill(); }
-  ctx.textAlign = 'center'; ctx.font = 'italic 800 ' + fs * 0.5 + 'px system-ui,sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(nitro >= 30 ? 'NITRO' : 'NITRO LOW', W / 2, byy + bh + 3 * dpr);
-  /* popups */
-  for (var i = 0; i < pops.length; i++) {
-    var p = pops[i], a = clamp(p.life / 0.5, 0, 1), y = top + fs * 4.4 + (1.3 - p.life) * fs * 1.2 - i * fs * 0.2 + i * fs * 1.2;
-    ctx.globalAlpha = a; ctx.font = 'italic 900 ' + fs * 1.0 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(p.t, W / 2 + 2 * dpr, y + 2 * dpr); ctx.fillStyle = p.col; ctx.fillText(p.t, W / 2, y); ctx.globalAlpha = 1;
+/* ---- race HUD: HTML panels, updated only when a value changes. Gear, lean and the rev bar come from speed and steering. ---- */
+var hudE = null, hudC = {};
+function hudInit() {
+  var g = function (i) { return document.getElementById(i); };
+  hudE = { mode: g('hMode'), no: g('hNo'), s: g('hS'), b: g('hB'), g: g('hG'), spd: g('hSpd'), l: g('hL'), rev: g('hRev'), nit: g('hNit'), nm: g('hNM'), nmx: g('hNMx'), toasts: g('hToasts'), segs: [] };
+  for (var i = 0; i < 16; i++) { var e = document.createElement('i'); if (i >= 10) e.className = 'hot'; hudE.rev.appendChild(e); hudE.segs.push(e); }
+}
+function hudSet(el, key, v) { if (hudC[key] !== v) { hudC[key] = v; el.textContent = v; } }
+function updateHUD() {
+  var on = state === 'play' || state === 'crash';
+  if (hudC.on !== on) { hudC.on = on; document.body.classList.toggle('racing', on); }
+  if (!on) return;
+  if (!hudE) hudInit();
+  var E = hudE, sc = curScore();
+  hudSet(E.s, 's', sc); hudSet(E.b, 'b', Math.max(save.best, sc)); hudSet(E.mode, 'mode', demo ? 'DEMO' : mode === 'daily' ? 'DAILY RUN' : 'ENDLESS RUN'); hudSet(E.no, 'no', LIV[save.bike].no);
+  var sf = clamp(speed / (MAXS * 1.5), 0, 1), gr = Math.min(5, Math.floor(sf * 6)), rpm = 0.18 + 0.82 * Math.min(1, sf * 6 - gr), i;
+  hudSet(E.spd, 'spd', Math.round(speed / MAXS * 260)); hudSet(E.g, 'g', gr + 1); hudSet(E.l, 'l', Math.round(Math.abs(leanA) * 57.2958) + '°');
+  var seg = Math.round(rpm * 16); if (hudC.seg !== seg) { hudC.seg = seg; for (i = 0; i < 16; i++) E.segs[i].classList.toggle('on', i < seg); }
+  var np = Math.round(clamp(nitro, 0, 100)); if (hudC.nit !== np) { hudC.nit = np; E.nit.style.width = np + '%'; }
+  var nm = chain > 0 && chainT > 0; if (hudC.nm !== nm) { hudC.nm = nm; E.nm.style.display = nm ? 'flex' : 'none'; } if (nm) hudSet(E.nmx, 'nmx', '×' + chain);
+  /* short messages (wheelie, km, challenge done, slipstream) stack under the callout and fade by themselves */
+  var kids = E.toasts.children, q, el;
+  for (i = kids.length - 1; i >= 0; i--) if (pops.indexOf(kids[i]._q) < 0) E.toasts.removeChild(kids[i]);
+  for (i = 0; i < pops.length; i++) {
+    q = pops[i]; if (q._el && q._el.parentNode === E.toasts) continue;
+    el = document.createElement('div'); el.className = 'ht'; el.textContent = q.t.replace(/\s+x[\d.]+$/, ''); el.style.borderLeftColor = q.col; el._q = q; q._el = el; E.toasts.appendChild(el);
   }
-  if (draft > 0.5) { ctx.font = 'italic 800 ' + fs * 0.65 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText('SLIPSTREAM', W / 2, top + fs * 3.0); }
-  if (chain > 1 && chainT > 0) { ctx.font = 'italic 900 ' + fs * 0.8 + 'px system-ui,sans-serif'; ctx.fillStyle = '#ffd23a'; ctx.fillText('COMBO x' + chain, W / 2, top + fs * 3.7); }
 }
 
 /* ---- main loop ---- */
