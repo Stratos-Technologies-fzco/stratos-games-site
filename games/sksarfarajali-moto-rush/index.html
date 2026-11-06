@@ -140,6 +140,15 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
 #gvid{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:18px;border:1px solid rgba(255,255,255,.16);box-shadow:0 10px 30px rgba(0,0,0,.5);background:#cfd1d6}
 .vtag{display:none;position:absolute;left:10px;bottom:10px;padding:4px 9px;border-radius:8px;background:rgba(10,12,28,.75);font-size:10px;letter-spacing:.16em;font-weight:800;z-index:2}
 .arrow{z-index:3}
+/* garage on a wide screen: the panel becomes a full-height column on the right and the bike stands in the open space on the left */
+@media (min-aspect-ratio: 11/10) {
+  #garage{padding:0;background:none}
+  #garage .top{position:absolute;left:24px;top:20px;width:auto;max-width:none;gap:14px;justify-content:flex-start}
+  #garage .panel{position:absolute;right:0;top:0;bottom:0;width:min(400px,36vw);max-width:none;max-height:none;border-radius:0;padding:24px 26px;overflow-y:auto;background:rgba(14,16,24,.94)}
+  #garage .mid{position:absolute;left:24px;bottom:24px;top:auto;width:210px;height:48px;max-width:none;flex:none}
+  #garage #gvid{position:fixed;left:24px;top:76px;width:calc(100vw - min(400px,36vw) - 48px);height:calc(100vh - 170px);object-fit:contain;background:#cfd1d6}
+  #garage .vtag{position:fixed;left:40px;top:90px;bottom:auto}
+}
 </style>
 </head>
 <body>
@@ -1296,7 +1305,7 @@ function render(dt) {
       fenceQ(k, -(BT + 0.12), sg.i); fenceQ(k, BT + 0.12, sg.i);                                            /* catch fence above it */
     }
     roadGeo.attributes.position.needsUpdate = true; roadGeo.attributes.color.needsUpdate = true; roadGeo.setDrawRange(0, nseg * Q * 6);
-    fenceGeo.attributes.position.needsUpdate = true; fenceGeo.attributes.uv.needsUpdate = true; fenceGeo.setDrawRange(0, nseg * 2 * 6); fenceMesh.visible = quality > 0;
+    fenceGeo.attributes.position.needsUpdate = true; fenceGeo.attributes.uv.needsUpdate = true; fenceGeo.setDrawRange(0, nseg * 2 * 6); fenceMesh.visible = quality > 0 && !(state === 'menu' && scr === 'garage');
 
     /* colours */
     var fc = cur.bot; scene.fog.color.setRGB(fc[0] / 255, fc[1] / 255, fc[2] / 255); renderer.setClearColor(scene.fog.color, 1);
@@ -1322,6 +1331,7 @@ function render(dt) {
     } else { sun.intensity = 0.35; sun.castShadow = false; shadowPlane.visible = false; }
 
     /* scenery: trees, blocks, bushes and rocks stand beyond the catch fence */
+    var gx = state === 'menu' && scr === 'garage';   /* in the garage the camera stands on the right, so keep that side clear */
     var dk = th.deco, cnt = { palm: 0, cactus: 0, acacia: 0, pine: 0, city: 0, strtree: 0, sign: 0, grand: 0, bush: 0, rock: 0, lamp: 0 };
     var SCOL = [[1, 0.25, 0.7], [0.3, 0.85, 1], [1, 0.85, 0.3]], sm2 = (dk === 'palm' || dk === 'cactus') ? 'bush' : dk === 'pine' ? 'rock' : null;
     for (k = 0; k < nseg; k++) {
@@ -1330,7 +1340,7 @@ function render(dt) {
       if (dd) {
         kind = dk === 'cactus' ? (dd.v < 0.5 ? 'cactus' : 'acacia') : dk === 'city' ? (dd.v < 0.55 ? 'city' : 'strtree') : dk;
         im2 = decoMeshes[kind];
-        if (cnt[kind] < 70) {
+        if (cnt[kind] < 70 && !(gx && dd.side > 0)) {
           lat = dd.side * (BT + (kind === 'city' ? 5 + dd.v * 8 : 1.8 + (dd.off - 1.35) * 5));
           dummy.position.set(Px[k] + lat * c2, 0, -(Pz[k] - lat * s2)); dummy.rotation.set(0, -Th[k], 0);
           if (kind === 'city') { bw = 5 + dd.v * 5; bh = 12 + dd.v * 30; dummy.scale.set(bw, bh, bw); } else { sc0 = 0.8 + dd.v * 0.6; dummy.scale.set(sc0, sc0, sc0); }
@@ -1344,13 +1354,13 @@ function render(dt) {
           }
         }
       }
-      if (dk === 'palm' && fx && sg.i % 120 === 7 && cnt.grand < 6) {   /* a grandstand, Sunset Coast only */
+      if (dk === 'palm' && fx && sg.i % 120 === 7 && cnt.grand < 6 && !(gx && sg.i % 240 === 7)) {   /* a grandstand, Sunset Coast only */
         var gl = (sg.i % 240 === 7 ? 1 : -1) * (BT + 9);
         dummy.position.set(Px[k] + gl * c2, 0, -(Pz[k] - gl * s2)); dummy.rotation.set(0, -Th[k], 0); dummy.scale.set(9, 7, 44); dummy.updateMatrix(); decoMeshes.grand.setMatrixAt(cnt.grand++, dummy.matrix);
       }
       if (sm2 && sg.i % 3 === 1 && cnt[sm2] < 90) {
         var hv = hash(sg.i * 7 + 3);
-        if (hv >= 0.3) {
+        if (hv >= 0.3 && !(gx && hv > 0.65)) {
           var sd2 = hv > 0.65 ? 1 : -1, lt2 = sd2 * (BT + 0.7 + ((hv * 97) % 1) * 2.4), sc3 = 0.7 + ((hv * 53) % 1) * 0.9, sMesh = decoMeshes[sm2];
           dummy.position.set(Px[k] + lt2 * c2, 0, -(Pz[k] - lt2 * s2)); dummy.rotation.set(0, hv * 6.28, 0); dummy.scale.set(sc3, sc3, sc3); dummy.updateMatrix();
           sMesh.setMatrixAt(cnt[sm2], dummy.matrix);
@@ -1358,7 +1368,7 @@ function render(dt) {
           sMesh.setColorAt(cnt[sm2], decoCol); cnt[sm2]++;
         }
       }
-      if (sg.i % 8 === 0 && cnt.lamp < 24) {   /* curved-arm street lights, staggered on the two verges */
+      if (sg.i % 8 === 0 && cnt.lamp < 24 && !(gx && (sg.i / 8 | 0) % 2)) {   /* curved-arm street lights, staggered on the two verges */
         var ls = (sg.i / 8 | 0) % 2 ? 1 : -1, ll = ls * (BT + 0.9), lh = ll - ls * 3.3, lpd = ls * R * 0.62, pc2 = SCOL[cnt.lamp % 2];
         dummy.position.set(Px[k] + ll * c2, 0, -(Pz[k] - ll * s2)); dummy.rotation.set(0, -Th[k] + (ls < 0 ? Math.PI : 0), 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); decoMeshes.lampPost.setMatrixAt(cnt.lamp, dummy.matrix);
         dummy.position.set(Px[k] + lh * c2, 8.0, -(Pz[k] - lh * s2)); dummy.rotation.set(0, 0, 0); dummy.scale.set(2.8, 2.8, 1); dummy.updateMatrix(); decoMeshes.lampGlow.setMatrixAt(cnt.lamp, dummy.matrix);
@@ -1424,7 +1434,8 @@ function render(dt) {
       if (scr === 'garage') {   /* side-on showroom view, gently swaying */
         var ga = Math.sin(time * 0.4) * 0.3, wide = asp >= 1, dg = wide ? 8.6 : 11.5;
         camera.position.set(Math.cos(ga) * dg, wide ? 1.4 : 2.0, Math.sin(ga) * dg);
-        camera.lookAt(0, wide ? 1.0 : -0.9, wide ? -1.1 : 0);
+        var pf = wide ? Math.min(0.42, 400 / innerWidth) : 0, visW = 2 * dg * Math.tan(camera.fov * Math.PI / 360) * asp;
+        camera.lookAt(0, wide ? 1.0 : -0.9, wide ? -(pf * 0.5 * visW) : 0);   /* keep the bike clear of the panel */
       } else {
         var oa = Math.sin(time * 0.35) * 0.95, dd = 7.8;
         camera.position.set(Math.sin(oa) * dd, 2.7 + Math.sin(time * 0.5) * 0.2, Math.cos(oa) * dd);
