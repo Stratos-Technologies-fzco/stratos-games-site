@@ -250,7 +250,7 @@ window.DF = window.DF || {};
     P.tail *= Math.pow(0.9, dt / 16.6);
     P.x = Math.max(24, Math.min(S.worldW - 24, P.x)); P.y = Math.max(YMIN, Math.min(YMAX, P.y)); // (clamped first, so pushing into a wall does not walk the legs)
     var pwk = walkOf(st.path), pdx = P.x - P.lx, pdy = (P.y - P.ly) / 0.62, pdm = Math.sqrt(pdx * pdx + pdy * pdy); // lane distance: up and down count as far as sideways
-    if (P.dashT <= 0 && P.stun <= 0 && dt > 0 && pdm / dt * 1000 > 22) advanceGait(P, pdm, pwk ? pwk.step : 40); else settleGait(P, dt);
+    if (P.dashT <= 0 && P.stun <= 0 && dt > 0 && pdm < 90 && pdm / dt * 1000 > 22) advanceGait(P, pdm, pwk ? pwk.step : 40); else settleGait(P, dt);
     P.plant = Math.max(0, P.plant - dt / 140);
     rocks(P, 22);
     var knock = P.kx || 0; if (knock) { P.x += knock * dt / 1000; P.kx *= 0.86; if (Math.abs(P.kx) < 4) P.kx = 0; }
@@ -276,8 +276,7 @@ window.DF = window.DF || {};
   function doAttack() {
     var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
-    /* Mobility bites like the Starter */
-    var ak = (st.path === 'swiftclaw' ? '' : st.path) || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
+    var ak = st.path || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
     DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
   function critRoll(base) {
@@ -1190,17 +1189,17 @@ window.DF = window.DF || {};
      Sheets that are not loaded are skipped, so those dinosaurs keep their still image. Steps are starting values to tune in play. */
   var WALK = {
     starter: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 128, gait: 'sprinter' },
-    ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320, cols: 9, rw: 480, feet: 0.96, step: 40, bw: 156, gait: 'tank' },
-    swiftclaw: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 134, gait: 'sprinter' }, // Mobility looks like the Starter, so it walks with the Starter sheet
-    wildspark: { key: 'walk-wildspark', n: 12, w: 560, h: 420, cols: 4, rw: 450, feet: 0.92, step: 50, bw: 150, gait: 'stalker' },
-    raider: { key: 'walk-raider', n: 12, w: 450, h: 300, cols: 4, rw: 360, feet: 0.92, step: 40, bw: 120, gait: 'stalker' },
-    skimmer: { key: 'walk-skimmer', n: 12, w: 440, h: 300, cols: 4, rw: 350, feet: 0.92, step: 42, bw: 116, gait: 'sprinter' },
-    spitter: { key: 'walk-spitter', n: 12, w: 390, h: 340, cols: 4, rw: 310, feet: 0.92, step: 31, bw: 104, gait: 'stalker' },
-    thornback: { key: 'walk-thornback', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 53, bw: 240, gait: 'tank' },
-    cinderjaw: { key: 'walk-cinderjaw', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 52, bw: 235, gait: 'tank' },
-    whitetitan: { key: 'walk-whitetitan', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 55, bw: 250, gait: 'tank' },
-    mirequeen: { key: 'walk-mirequeen', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 55, bw: 250, gait: 'tank' },
-    colossus: { key: 'walk-colossus', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 59, bw: 270, gait: 'tank' }
+    ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320, cols: 9, rw: 480, feet: 0.96, step: 36, bw: 156, gait: 'tank' },
+    swiftclaw: { key: 'walk-swiftclaw', n: 12, w: 500, h: 420, cols: 4, rw: 400, feet: 0.92, step: 33.5, bw: 134, gait: 'sprinter' },
+    wildspark: { key: 'walk-wildspark', n: 12, w: 560, h: 420, cols: 4, rw: 450, feet: 0.92, step: 34.6, bw: 150, gait: 'stalker' },
+    raider: { key: 'walk-raider', n: 12, w: 450, h: 300, cols: 4, rw: 360, feet: 0.92, step: 25.8, bw: 120, gait: 'stalker' },
+    skimmer: { key: 'walk-skimmer', n: 12, w: 440, h: 300, cols: 4, rw: 350, feet: 0.92, step: 31.9, bw: 116, gait: 'sprinter' },
+    spitter: { key: 'walk-spitter', n: 12, w: 390, h: 340, cols: 4, rw: 310, feet: 0.92, step: 17, bw: 104, gait: 'stalker' },
+    thornback: { key: 'walk-thornback', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 33.3, bw: 240, gait: 'tank' },
+    cinderjaw: { key: 'walk-cinderjaw', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 32.6, bw: 235, gait: 'tank' },
+    whitetitan: { key: 'walk-whitetitan', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 34.7, bw: 250, gait: 'tank' },
+    mirequeen: { key: 'walk-mirequeen', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 34.7, bw: 250, gait: 'tank' },
+    colossus: { key: 'walk-colossus', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 37.5, bw: 270, gait: 'tank' }
   };
   function walkOf(k) { return WALK[k || 'starter']; }
   function walkReady(k) { var wk = WALK[k || 'starter']; return !!(wk && A.ready(wk.key)); }
@@ -1219,7 +1218,7 @@ window.DF = window.DF || {};
     var dx = e.x - (e.lx == null ? e.x : e.lx), dy = (e.y - (e.ly == null ? e.y : e.ly)) / 0.62, dm = Math.sqrt(dx * dx + dy * dy);
     e.lx = e.x; e.ly = e.y;
     var walking = boss ? e.state === 'approach' : (e.state === 'chase' || e.state === 'idle' || (e.state === 'recover' && e.type === 'skimmer'));
-    if (walking && dt > 0 && dm / dt * 1000 > 14) advanceGait(e, dm, step); else settleGait(e, dt);
+    if (walking && dt > 0 && dm < 90 && dm / dt * 1000 > 14) advanceGait(e, dm, step); else settleGait(e, dt);
     e.plant = Math.max(0, (e.plant || 0) - dt / 140);
   }
   /* a foot lands: dust, a footprint and a thud. Heavier for tanks; bosses shake the ground. Nothing off screen; reduced effects keep it to a puff. */
