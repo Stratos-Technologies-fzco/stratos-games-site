@@ -15,7 +15,7 @@ window.DF = window.DF || {};
   var cellSil = {};
   function draw(name, w, x, y, o) {
     o = o || {};
-    var c = sprite(name, w), h = c.height / c.width * w, feet = o.feet == null ? 0.9 : o.feet;
+    var c = o.cell ? null : sprite(name, w), h = c ? c.height / c.width * w : 0, feet = o.feet == null ? 0.9 : o.feet;
     cx.save();
     cx.translate(x, y);
     if (o.flip) cx.scale(-1, 1);
@@ -104,7 +104,7 @@ window.DF = window.DF || {};
       return;
     }
     if (o.bossId) {
-      S.bossDef = B.bosses[o.bossId]; A.want('anim-' + S.bossDef.id + '-charge'); A.want('anim-' + S.bossDef.id + '-stomp');
+      S.bossDef = B.bosses[o.bossId]; A.want('anim-' + S.bossDef.id + '-charge'); A.want('anim-' + S.bossDef.id + '-stomp'); A.want('walk-' + S.bossDef.id);
       addBush(260, 215, 3); addBush(o.id !== 'boss' ? 1240 : 1040, 330, 3);
       if (o.id === 'boss') { addRock(560, 215, 60, 22); addRock(760, 340, 56, 20); addBush(650, 285, 3); }
       if (o.hazards && o.hazards.vents) for (i = 0; i < o.hazards.vents; i++) addVent(560 + i * 115 + rng.range(-25, 25), rng.range(YMIN + 16, YMAX - 16));
@@ -211,8 +211,8 @@ window.DF = window.DF || {};
     if (held.attack && P.atkCd <= 0) doAttack();
     if (S.demo) { demoAI(dt); if (S.t > 75000 && S.ending <= 0) { S.ending = 400; S.endOutcome = 'success'; } }
     updatePlayer(dt);
-    for (i = 0; i < S.enemies.length; i++) updateEnemy(S.enemies[i], dt);
-    if (S.boss) updateBoss(S.boss, dt);
+    for (i = 0; i < S.enemies.length; i++) { updateEnemy(S.enemies[i], dt); trackGait(S.enemies[i], dt); }
+    if (S.boss) { updateBoss(S.boss, dt); trackGait(S.boss, dt); }
     separate();
     updateProjectiles(dt); updatePickups(dt); updateHazards(dt); updateEffects(dt);
     updateObjective(dt); updateCombatMusic(dt);
@@ -225,7 +225,7 @@ window.DF = window.DF || {};
   function updatePlayer(dt) {
     var P = S.P, st = S.stats, ix = mv.x + (keys.right ? 1 : 0) - (keys.left ? 1 : 0), iy = mv.y + (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
     var len = Math.sqrt(ix * ix + iy * iy); if (len > 1) { ix /= len; iy /= len; }
-    P.atkCd = Math.max(0, P.atkCd - dt); P.atkT = Math.max(0, P.atkT - dt); P.dashCd = Math.max(0, P.dashCd - dt); P.abCd = Math.max(0, P.abCd - dt);
+    P.lx = P.x; P.ly = P.y; P.atkCd = Math.max(0, P.atkCd - dt); P.atkT = Math.max(0, P.atkT - dt); P.dashCd = Math.max(0, P.dashCd - dt); P.abCd = Math.max(0, P.abCd - dt);
     P.inv = Math.max(0, P.inv - dt); P.shield = Math.max(0, P.shield - dt); P.hurt = Math.max(0, P.hurt - dt); P.stun = Math.max(0, P.stun - dt); P.surgeT = Math.max(0, P.surgeT - dt);
     P.anim += dt * (len > 0.1 ? 1 : 0.4);
     if (P.atkA) { P.atkA.t += dt; if (P.atkA.t >= P.atkA.dur || P.stun > 0 || P.dashT > 0) P.atkA = null; }
@@ -242,19 +242,16 @@ window.DF = window.DF || {};
       if (Math.random() < 0.7) spark(P.x - P.face * 20, P.y - 20, st.path === 'swiftclaw' ? '#9FE7DF' : '#F3EBD7', 1);
     } else if (P.stun <= 0 && !P.fxA) {
       if (S.onIce) { var kk = Math.min(1, dt / B.weather.iceAccelMs); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * kk; P.ivy += (iy * st.speed * 0.62 - P.ivy) * kk; P.x += P.ivx * dt / 1000; P.y += P.ivy * dt / 1000; } // slippery: you slide and steer slowly
-      else { var ak = Math.min(1, dt / (len > 0.05 ? 85 : 130)); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * ak; P.ivy += (iy * st.speed * 0.62 - P.ivy) * ak; var gf = 0.4 + 0.94 * Math.sin(Math.PI * (P.gait - Math.floor(P.gait))); if (len < 0.05 && Math.abs(P.ivx) + Math.abs(P.ivy) < 30) gf = 1; P.x += P.ivx * gf * dt / 1000; P.y += P.ivy * gf * dt / 1000; } // analog stick sets the pace; each step pushes off, then the foot plants (speed pulses within the step)
+      else { var ak = Math.min(1, dt / (len > 0.05 ? 85 : 130)); P.ivx += (ix * st.speed * S.speedMul - P.ivx) * ak; P.ivy += (iy * st.speed * 0.62 - P.ivy) * ak; var gf = walkReady(st.path) ? 1 : 0.4 + 0.94 * Math.sin(Math.PI * (P.gait - Math.floor(P.gait))); if (len < 0.05 && Math.abs(P.ivx) + Math.abs(P.ivy) < 30) gf = 1; P.x += P.ivx * gf * dt / 1000; P.y += P.ivy * gf * dt / 1000; } // analog stick sets the pace; each step pushes off, then the foot plants (speed pulses within the step)
       if (Math.abs(ix) > 0.12) P.face = sgn(ix);
     }
     P.fv += (P.face - P.fv) * Math.min(1, dt / 70); // turning around is a quick swing, not an instant flip
     if (P.face !== P.lastFace) { P.lastFace = P.face; P.tail = -P.face * 0.5; if (!reduced()) dust(P.x, P.y + 3, 2, 6, P.face); } // the tail whips the other way
     P.tail *= Math.pow(0.9, dt / 16.6);
-    var gv = Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy), g0 = Math.floor(P.gait);
-    if (P.dashT <= 0 && gv > 22 && P.stun <= 0) { P.gait += gv * dt / 1000 / 48; P.plant = Math.max(0, P.plant - dt / 140); }
-    else { P.plant = Math.max(0, P.plant - dt / 140); if (gv <= 22) P.gait = Math.floor(P.gait) + (P.gait - Math.floor(P.gait) > 0.5 ? 1 : 0); }
-    if (Math.floor(P.gait) !== g0) { P.gside = -P.gside; P.plant = 1; // foot plants: thud, dust and a footprint land exactly on the step
-      dust(P.x - P.face * 10, P.y + 3, 2, 6, -P.face); if (!reduced() && gv > 90) shake(0.7);
-      if (S.parts.length < 150) S.parts.push({ fx: 'print', x: P.x - P.face * 6, y: P.y + 4 + P.gside * 4, ang: Math.atan2(P.ivy * 0.5, P.ivx || P.face), t: 0, life: 2400, big: 1 }); }
-    P.x = Math.max(24, Math.min(S.worldW - 24, P.x)); P.y = Math.max(YMIN, Math.min(YMAX, P.y));
+    P.x = Math.max(24, Math.min(S.worldW - 24, P.x)); P.y = Math.max(YMIN, Math.min(YMAX, P.y)); // (clamped first, so pushing into a wall does not walk the legs)
+    var pwk = walkOf(st.path), pdx = P.x - P.lx, pdy = (P.y - P.ly) / 0.62, pdm = Math.sqrt(pdx * pdx + pdy * pdy); // lane distance: up and down count as far as sideways
+    if (P.dashT <= 0 && P.stun <= 0 && dt > 0 && pdm / dt * 1000 > 22) advanceGait(P, pdm, pwk ? pwk.step : 40); else settleGait(P, dt);
+    P.plant = Math.max(0, P.plant - dt / 140);
     rocks(P, 22);
     var knock = P.kx || 0; if (knock) { P.x += knock * dt / 1000; P.kx *= 0.86; if (Math.abs(P.kx) < 4) P.kx = 0; }
   }
@@ -621,7 +618,6 @@ window.DF = window.DF || {};
       case 'approach':
         b.face = sgn(dx); b.x += b.face * def.speed * b.speedMul * dt / 1000; b.y += Math.sign(dy) * Math.min(Math.abs(dy), 40 * dt / 1000);
         b.y = Math.max(YMIN + 10, Math.min(YMAX, b.y));
-        b.stepT = (b.stepT || 0) + dt; if (b.stepT > 520) { b.stepT = 0; shake(1.4); dust(b.x - b.face * 20, b.y + 2, 2, 10, 0); } // heavy footfalls
         if (b.t <= 0) {
           b.atk = (dd > 300 || S.rng.next() < 0.45) ? 'charge' : 'slam'; b.state = 'windup'; b.t = (b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul; b.dirx = sgn(dx); b.laneY = P.y; b.didHit = false; DF.Audio.sfx('windup_boss');
         }
@@ -889,7 +885,7 @@ window.DF = window.DF || {};
       var it = list[i]; if (it.o.x < S.camX - 260 || it.o.x > S.camX + VW + 260) continue;
       switch (it.k) { case 'rock': dRock(it.o); break; case 'bush': dBush(it.o); break; case 'nest': dNest(it.o); break; case 'crystal': dCrystal(it.o); break; case 'ferns': dFerns(it.o); break; case 'pick': dPick(it.o); break; case 'enemy': dEnemy(it.o); break; case 'boss': dBoss(it.o); break; case 'player': dPlayer(it.o); break; case 'vent': dVent(it.o); break; case 'fire': dFire(it.o); break; case 'glow': dGlow(it.o); break; }
     }
-    drawProjectiles(); drawFx(); drawMarker(); drawGuide();
+    drawProjectiles(); drawFx(); drawMarker(); drawGuide(); if (G.debugGait) drawGaitDebug();
     cx.restore();
     // overlays
     if (S.hurtFlash > 0) { cx.fillStyle = 'rgba(229,83,75,' + (0.28 * S.hurtFlash / 260) + ')'; cx.fillRect(0, 0, VW, VH); }
@@ -1125,11 +1121,11 @@ window.DF = window.DF || {};
     else if (S.biome === 'frost') { o.tint = '#8FD0FF'; o.tintA = 0.18; } // frost-touched
     else if (S.biome === 'mire') { o.tint = '#7BE0A8'; o.tintA = 0.16; } // mire-touched
     else if (S.biome === 'crater') { o.tint = '#9FC8FF'; o.tintA = 0.14; } // crater-touched
-    if (o.anim) drawAnim(o.anim.k, o.anim.idx, x, y, w, o.anim.right, o); else draw(name, w, x, y, o);
+    if (o.anim) drawAnim(o.anim.k, o.anim.idx, x, y, w, o.anim.right, o); else if (o.walk) drawWalk(o.walk.wk, o.walk.fr, x, y, w, o.walk.right, o); else draw(name, w, x, y, o);
   }
   function dEnemy(e) {
     var d = e.def, w = d.size * S.formScale, sc = sprite(d.sprite, w), hh = sc.height / sc.width * w, a = 1, dead = e.state === 'dead';
-    var run = (e.state === 'chase' || (e.state === 'recover' && e.type === 'skimmer')) ? 1 : 0, ph = S.t / 95 + e.id * 1.7, stp = Math.sin(ph);
+    var run = (e.state === 'chase' || (e.state === 'recover' && e.type === 'skimmer')) ? 1 : 0, ph = (e.gait || 0) * Math.PI, stp = Math.sin(ph); // one bounce per step, from the distance it has really moved
     var bob = e.state === 'idle' ? Math.sin(e.wob) * 1.5 : -Math.abs(stp) * 3 * run + Math.sin(S.t / 700 + e.id) * 0.8 * (1 - run);
     var rot = 0.06 * run + stp * 0.014 * run, sx = 1, sy = 1 + 0.015 * Math.sin(S.t / 640 + e.id), skew = 0.05 * run * Math.sin(ph - 0.9), lean = 0;
     if (e.state === 'windup') { var pr = 1 - e.t / d.windup; rot = -0.14 * pr; sy = 1 - 0.07 * pr; sx = 1 + 0.03 * pr; lean = -e.face * 7 * pr; } // rears back before it strikes
@@ -1148,6 +1144,7 @@ window.DF = window.DF || {};
     var epf = 0.93 + 0.14 * (e.y - YMIN) / (YMAX - YMIN); sx *= epf; sy *= epf;
     var eo = { flip: e.face < 0, alpha: a, feet: 0.97, rot: rot, sx: sx, sy: sy, skew: skew }, ean = ANIM[e.type];
     if (!dead && ean && sheetReady(e.type) && (e.state === 'windup' || e.state === 'attack' || (e.state === 'recover' && e.wTot))) { eo.anim = { k: e.type, idx: atkFrame(ean, e.state, e.t, e.wTot || d.windup, d.lungeTime, d.recover, e.type === 'spitter'), right: e.face > 0 }; eo.sx = epf; eo.sy = epf; lean = 0; bob = 0; } // the sheet carries the lunge itself
+    var ewk = walkOf(e.type); if (!eo.anim && !dead && ewk && A.ready(ewk.key) && (e.state === 'chase' || e.state === 'idle') && !(e.camo && !e.rev)) { eo.walk = { wk: ewk, fr: walkFrame(ewk, e.gait || 0), right: e.face > 0 }; eo.rot = rot * 0.4; eo.skew = 0; bob *= 0.4; eo.sy = 1 + (eo.sy - 1) * 0.4; } // the sheet carries the step
     drawFlash(d.sprite, w, e.x + lean, e.y + bob, eo, e);
     if (e.state === 'windup' && e.type === 'spitter') { var ox = e.x + e.face * 34, oy = e.y - 36, orr = 3 + 11 * pr3, og = cx.createRadialGradient(ox, oy, 1, ox, oy, orr * 2.4); og.addColorStop(0, 'rgba(210,255,150,.95)'); og.addColorStop(1, 'rgba(155,224,112,0)'); cx.fillStyle = og; cx.beginPath(); cx.arc(ox, oy, orr * 2.4, 0, 7); cx.fill(); cx.fillStyle = '#E4FFC0'; cx.beginPath(); cx.arc(ox, oy, orr * 0.55, 0, 7); cx.fill(); } // acid orb charging at the mouth
     if (!dead) {
@@ -1167,7 +1164,7 @@ window.DF = window.DF || {};
     o.flip = b.face < 0;
     if (b.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.6; } else if (b.state === 'windup') { o.tint = '#FFB199'; o.tintA = 0.3 + 0.25 * Math.sin(S.t / 50); } else if (b.phase === 2) { o.tint = '#E5534B'; o.tintA = 0.14; }
     var lift = b.state === 'windup' && b.atk === 'slam' ? -14 * (1 - b.t / (def.slamWindup * b.windMul)) : 0;
-    var walk = b.state === 'approach' ? 1 : 0, bph = S.t / 200, brot = 0.025 * walk * Math.sin(bph), bsx = 1, bsy = 1 + 0.012 * Math.sin(S.t / 900), bbob = -Math.abs(Math.sin(bph)) * 4 * walk;
+    var walk = b.state === 'approach' ? 1 : 0, bph = (b.gait || 0) * Math.PI, brot = 0.025 * walk * Math.sin(bph), bsx = 1, bsy = 1 + 0.012 * Math.sin(S.t / 900), bbob = -Math.abs(Math.sin(bph)) * 4 * walk;
     if (b.state === 'windup') { var wp = 1 - b.t / ((b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul); brot = -0.12 * wp; bsy = 1 - 0.05 * wp; bsx = 1 + 0.03 * wp; } // rears back
     else if (b.state === 'charge') { brot = 0.14; bsx = 1.08; bsy = 0.95; }
     else if (b.state === 'slam') { var sq = b.t / 420; brot = 0.12 * sq; bsy = 0.93 + 0.07 * (1 - sq); bsx = 1.06 * sq + 1 * (1 - sq); } // crashes down
@@ -1181,12 +1178,105 @@ window.DF = window.DF || {};
     if (ban && sheetReady(bk) && b.atk && (b.state === 'windup' || b.state === 'charge' || b.state === 'slam' || b.state === 'recover')) {
       o.tintA = (o.tintA || 0) * 0.4; o.sx = 1; o.sy = 1; var bchg = b.atk === 'charge', bst = b.state === 'windup' ? 'windup' : (b.state === 'recover' ? 'recover' : 'attack');
       drawAnim(bk, atkFrame(ban, bst, b.t, (bchg ? def.chargeWindup : def.slamWindup) * b.windMul, bchg ? def.chargeTime : 420, bchg ? def.recover : def.recover * 0.9), b.x + shakeX, b.y + bbob, bw, b.face > 0, o);
+    } else if (b.state === 'approach' && walkReady(def.id)) { var bwk = walkOf(def.id); o.rot = brot * 0.4; o.sy = 1 + (o.sy - 1) * 0.4; drawWalk(bwk, walkFrame(bwk, b.gait || 0), b.x + shakeX, b.y + bbob * 0.4, bw, b.face > 0, o);
     } else draw(def.sprite, bw, b.x + shakeX, b.y + lift + bbob, o);
     if (b.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 26px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', b.x, b.y - bhh - 8); }
     if (b.state === 'stun' || b.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.9)'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText(b.state === 'stun' ? '✦ STUNNED ✦' : 'OPEN', b.x, b.y - bhh - 8); }
   }
   var FORM_W = { swiftclaw: 134, ironhide: 156, wildspark: 150 }; // drawn width per evolution form (base form is 128)
-  var WALK = { starter: { key: 'walk-starter', n: 6, w: 480, h: 300 }, ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320 } }; // frames in each walking sheet and the cell size (the body is centred in the cell)
+  /* Walking sheets: key, frames, cell size, columns, standing body width in the cell (rw), feet line, step length in game px, game body width (bw) and gait type.
+     A step is the distance between two foot plants; one gait unit is one step and a full cycle is two. Frame = gait / 2 across the sheet.
+     Sheets that are not loaded are skipped, so those dinosaurs keep their still image. Steps are starting values to tune in play. */
+  var WALK = {
+    starter: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 128, gait: 'sprinter' },
+    ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320, cols: 9, rw: 480, feet: 0.96, step: 40, bw: 156, gait: 'tank' },
+    swiftclaw: { key: 'walk-swiftclaw', n: 12, w: 500, h: 420, cols: 4, rw: 400, feet: 0.92, step: 48, bw: 134, gait: 'sprinter' },
+    wildspark: { key: 'walk-wildspark', n: 12, w: 560, h: 420, cols: 4, rw: 450, feet: 0.92, step: 50, bw: 150, gait: 'stalker' },
+    raider: { key: 'walk-raider', n: 12, w: 450, h: 300, cols: 4, rw: 360, feet: 0.92, step: 40, bw: 120, gait: 'stalker' },
+    skimmer: { key: 'walk-skimmer', n: 12, w: 440, h: 300, cols: 4, rw: 350, feet: 0.92, step: 42, bw: 116, gait: 'sprinter' },
+    spitter: { key: 'walk-spitter', n: 12, w: 390, h: 340, cols: 4, rw: 310, feet: 0.92, step: 31, bw: 104, gait: 'stalker' },
+    thornback: { key: 'walk-thornback', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 53, bw: 240, gait: 'tank' },
+    cinderjaw: { key: 'walk-cinderjaw', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 52, bw: 235, gait: 'tank' },
+    whitetitan: { key: 'walk-whitetitan', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 55, bw: 250, gait: 'tank' },
+    mirequeen: { key: 'walk-mirequeen', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 55, bw: 250, gait: 'tank' },
+    colossus: { key: 'walk-colossus', n: 16, w: 760, h: 520, cols: 4, rw: 600, feet: 0.92, step: 59, bw: 270, gait: 'tank' }
+  };
+  function walkOf(k) { return WALK[k || 'starter']; }
+  function walkReady(k) { var wk = WALK[k || 'starter']; return !!(wk && A.ready(wk.key)); }
+  /* the legs follow the ground: dist px moved adds dist / step to the gait, and every whole number is a foot plant */
+  function advanceGait(e, dist, step) {
+    var before = Math.floor(e.gait || 0);
+    e.gait = (e.gait || 0) + dist / step;
+    if (Math.floor(e.gait) !== before) onPlant(e);
+  }
+  function walkFrame(wk, gait) { var c = gait / 2; c -= Math.floor(c); return Math.floor(c * wk.n) % wk.n; }
+  /* standing still: the legs finish to the nearest contact pose over about 120 ms instead of snapping */
+  function settleGait(e, dt) { var g = e.gait || 0, t = Math.round(g); e.gait = Math.abs(t - g) < 0.02 ? t : g + (t - g) * Math.min(1, dt / 120); }
+  /* enemies and bosses: gait from the distance they actually moved, only while they walk (not in a lunge, charge, knock-back or stun) */
+  function trackGait(e, dt) {
+    var boss = e.kind === 'boss', wk = walkOf(boss ? S.bossDef.id : e.type), step = (wk ? wk.step : boss ? 55 : 40) * S.formScale;
+    var dx = e.x - (e.lx == null ? e.x : e.lx), dy = (e.y - (e.ly == null ? e.y : e.ly)) / 0.62, dm = Math.sqrt(dx * dx + dy * dy);
+    e.lx = e.x; e.ly = e.y;
+    var walking = boss ? e.state === 'approach' : (e.state === 'chase' || e.state === 'idle' || (e.state === 'recover' && e.type === 'skimmer'));
+    if (walking && dt > 0 && dm / dt * 1000 > 14) advanceGait(e, dm, step); else settleGait(e, dt);
+    e.plant = Math.max(0, (e.plant || 0) - dt / 140);
+  }
+  /* a foot lands: dust, a footprint and a thud. Heavier for tanks; bosses shake the ground. Nothing off screen; reduced effects keep it to a puff. */
+  function onPlant(e) {
+    var P = S.P, isP = e === P, boss = e.kind === 'boss', wk = walkOf(isP ? S.stats.path : boss ? S.bossDef.id : e.type), tank = !!(wk && wk.gait === 'tank');
+    e.gside = -(e.gside || 1); e.plant = 1; e.pl = { x: e.x, y: e.y };
+    if (!isP && Math.abs(e.x - P.x) > 460) return;
+    var face = isP ? P.face : e.face || 1, spd = isP ? Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy) : 90;
+    dust(e.x - face * (boss ? 30 : 10), e.y + 3, boss ? 3 : tank ? 3 : isP ? 2 : 1, boss ? 10 : 6, -face);
+    if (isP ? spd > 90 : boss) shake(boss ? 1.4 : tank ? 1.1 : 0.7);
+    if (!reduced() && S.parts.length < 150) S.parts.push({ fx: 'print', x: e.x - face * 6, y: e.y + 4 + e.gside * 4, ang: isP ? Math.atan2(P.ivy * 0.5, P.ivx || P.face) : 0, t: 0, life: 2400, big: boss ? 2 : 1 });
+  }
+  /* one cell of a walking sheet: the standing body is scaled to width w and pinned to the feet line */
+  function drawWalk(wk, fr, x, y, w, right, o) {
+    o.cell = { x: (fr % wk.cols) * wk.w, y: Math.floor(fr / wk.cols) * wk.h, w: wk.w, h: wk.h }; o.feet = wk.feet; o.flip = !right;
+    draw(wk.key, wk.w * w / wk.rw, x, y, o);
+  }
+  /* dev only: ?gait=1 or DF.Game.debugGait = true. Marks the planted foot on the ground and shows step, frame and skate.
+     Skate is measured from the sheet itself: how far the lowest foot slides between neighbouring frames, minus how far the body moves, as a share of the step. */
+  function footTrack(wk) {
+    if (wk.fx !== undefined) return wk.fx;
+    var im = A.img(wk.key); if (!im.naturalWidth) return null;
+    try {
+      var c = document.createElement('canvas'), g, f, x, y, i, d, low, sum, cnt, fx = [];
+      c.width = im.naturalWidth; c.height = im.naturalHeight; g = c.getContext('2d'); g.drawImage(im, 0, 0);
+      for (f = 0; f < wk.n; f++) {
+        d = g.getImageData((f % wk.cols) * wk.w, Math.floor(f / wk.cols) * wk.h, wk.w, wk.h).data; low = -1;
+        for (y = wk.h - 1; y >= 0 && low < 0; y--) for (x = 0; x < wk.w; x++) if (d[(y * wk.w + x) * 4 + 3] > 128) { low = y; break; }
+        sum = 0; cnt = 0; for (y = low; y > low - 5 && y >= 0; y--) for (x = 0; x < wk.w; x++) if (d[(y * wk.w + x) * 4 + 3] > 128) { sum += x; cnt++; }
+        fx.push(cnt ? sum / cnt : wk.w / 2);
+      }
+      return (wk.fx = fx);
+    } catch (e) { return (wk.fx = null); }
+  }
+  function walkSkate(wk) {
+    var fx = footTrack(wk); if (!fx) return null; var sc = wk.bw / wk.rw, adv = 2 * wk.step / wk.n, back = [], f, i;
+    for (f = 0; f < wk.n; f++) { var dl = (fx[(f + 1) % wk.n] - fx[f]) * sc; if (dl < 0 && -dl < wk.bw * 0.25) back.push(-dl); } // stance pairs: the lowest foot slides back; a swing foot or a foot hand-over does not
+    if (back.length < 2) return { mean: null, max: null, pairs: back.length, fit: null };
+    var tot = 0, mx = 0; for (i = 0; i < back.length; i++) { var sk = Math.abs(back[i] - adv) / wk.step; tot += sk; mx = Math.max(mx, sk); }
+    back.sort(function (p, q) { return p - q; });
+    return { mean: Math.round(100 * tot / back.length), max: Math.round(100 * mx), pairs: back.length, fit: Math.round(back[back.length >> 1] * wk.n / 2) }; // fit = the step that would match the median slide
+  }
+  try { G.debugGait = /[?&]gait=1/.test(window.location.search); } catch (e) {} // dev: open the game with ?gait=1
+  G.walkTable = WALK; // dev: tune a step and re-read gaitReport()
+  G.gaitReport = function () { var out = {}; Object.keys(WALK).forEach(function (k) { if (A.ready(WALK[k].key)) out[k] = walkSkate(WALK[k]); }); return out; };
+  function drawGaitDebug() {
+    var list = [S.P].concat(S.enemies, S.boss ? [S.boss] : []);
+    cx.save(); cx.font = '700 10px system-ui, sans-serif'; cx.textAlign = 'center';
+    list.forEach(function (e) {
+      if (e.state === 'dead' || Math.abs(e.x - S.P.x) > 420) return;
+      var isP = e === S.P, k = isP ? S.stats.path : e.kind === 'boss' ? S.bossDef.id : e.type, wk = walkOf(k); if (!wk) return;
+      var fr = walkFrame(wk, e.gait || 0), sk = A.ready(wk.key) ? walkSkate(wk) : null;
+      if (e.pl) { cx.strokeStyle = '#FFE14A'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(e.pl.x - 7, e.pl.y + 3); cx.lineTo(e.pl.x + 7, e.pl.y + 3); cx.moveTo(e.pl.x, e.pl.y - 1); cx.lineTo(e.pl.x, e.pl.y + 7); cx.stroke(); }
+      var t = 'step ' + wk.step + ' · frame ' + fr + '/' + wk.n + ' · skate ' + (sk && sk.mean != null ? sk.mean + '% (max ' + sk.max + '%)' : 'no sheet');
+      cx.fillStyle = 'rgba(14,23,18,.82)'; cx.fillRect(e.x - 82, e.y + 10, 164, 13); cx.fillStyle = sk && sk.mean != null && sk.mean > 15 ? '#FF9A8A' : '#CFE8B0'; cx.fillText(t, e.x, e.y + 20);
+    });
+    cx.restore();
+  }
   function dPlayer(P) {
     var st = S.stats, w = FORM_W[st.path] || 128, o = { flip: P.face < 0, feet: 0.96 };
     var spd = P.dashT > 0 ? 0 : Math.min(1, Math.sqrt(P.ivx * P.ivx + (P.ivy / 0.62) * (P.ivy / 0.62)) / (st.speed || 150)), ph = P.anim / 80, stp = Math.sin(ph);
@@ -1212,9 +1302,8 @@ window.DF = window.DF || {};
     if (P.surgeT > 0 && !(P.fxA && sheetReady(P.fxA.k))) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
     if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
     else if (P.atkA && sheetReady(P.atkA.k)) { var aan = ANIM[P.atkA.k], afi = Math.min(aan.hit + BASIC_POST, aan.hit - BASIC_PRE + Math.floor(P.atkA.t * BASIC_FPS / 1000)); drawAnim(P.atkA.k, afi, P.x, P.y, w, P.face > 0, { alpha: o.alpha, tint: o.tint, tintA: o.tintA, sx: pf, sy: pf }); } // the owner's attack frames: lunge, bite or claw, recover
-    else if (WALK[st.path || 'starter'] && A.ready(WALK[st.path || 'starter'].key)) { // the owner's walking sheets: every foot plant is a real leg pose
-      var wk = WALK[st.path || 'starter'], gp = P.gait / 2, fr = Math.floor((gp - Math.floor(gp)) * wk.n + 0.0001) % wk.n; if (spd < 0.05) fr = fr < wk.n / 2 ? 0 : wk.n / 2;
-      o.cell = { x: fr * wk.w, w: wk.w, h: wk.h }; o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; draw(wk.key, w * wk.w / 480, P.x + lunge * P.face, P.y + bob * 0.4, o);
+    else if (walkReady(st.path)) { // the owner's walking sheets: the frame follows the gait, so every foot plant is a real leg pose; the art carries the bob, so ours is cut to 40%
+      var wk = walkOf(st.path); o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; drawWalk(wk, walkFrame(wk, P.gait), P.x + lunge * P.face, P.y + bob * 0.4, w, !o.flip, o);
     } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
   }
   /* one frame of a sheet at a world spot: the resting body is scaled to width w and pinned to the feet; right = the dinosaur faces right */

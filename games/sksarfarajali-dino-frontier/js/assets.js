@@ -13,17 +13,20 @@ window.DF = window.DF || {};
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
   PATHS['prop-berry-bush'] = 'assets/sprites/food.png'; PATHS['icon-food'] = 'assets/sprites/food-icon.png'; // food: the owner's glowing mushroom art (cut out)
   PATHS['walk-starter'] = 'assets/sprites/walk-starter.png'; // the owner's 6-frame walking sheet for the starter dinosaur
-  PATHS['walk-ironhide'] = 'assets/sprites/walk-ironhide.png'; // the owner's 10-frame walking sheet for Ironhide
+  PATHS['walk-ironhide'] = 'assets/sprites/walk-ironhide.png'; // the owner's 9-frame walking sheet for Ironhide
+  /* New walking sheets go here as they arrive (webp, 4 columns, feet at 92% of each cell; see WALK in game.js for sizes and frame counts), for example:
+     PATHS['walk-swiftclaw'] = 'assets/sprites/walk-swiftclaw.webp';  also wildspark, raider, skimmer, spitter, thornback, cinderjaw, whitetitan, mirequeen, colossus.
+     Boss sheets are listed in LAZY below so they only load when a boss fight is near. A dinosaur with no sheet keeps its still image. */
   PATHS['path-strip'] = 'assets/sprites/path-strip.png';
   PATHS['dna'] = 'assets/sprites/dna.png'; // DNA Fragment pickup (the owner's art, cut out)
   ['egg', 'egg-glade', 'egg-prism', 'egg-ember', 'egg-frost', 'egg-mire', 'egg-genesis'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; }); // the owner's egg art (cut out) and two recolours
   ['enemy-raider', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'boss-cinderjaw', 'boss-whitetitan', 'boss-mirequeen', 'boss-colossus'].forEach(function (n) { PATHS[n] = 'assets/sprites/' + n + '.png'; });
   /* the owner's attack sprite sheets (half-size frames): the player's forms, the three enemies and a charge + stomp sheet for every boss */
   var SHEETS = ['starter', 'swiftclaw', 'ironhide', 'wildspark', 'raider', 'skimmer', 'spitter'], LAZY = [];
-  ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) { SHEETS.push(b + '-charge', b + '-stomp'); LAZY.push('anim-' + b + '-charge', 'anim-' + b + '-stomp'); });
+  ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) { SHEETS.push(b + '-charge', b + '-stomp'); LAZY.push('anim-' + b + '-charge', 'anim-' + b + '-stomp', 'walk-' + b); });
   SHEETS.forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; });
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261106a';
+  var V = '20261106b';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['verdant_valley', 'path-strip', 'canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];
