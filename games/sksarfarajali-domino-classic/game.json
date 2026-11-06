@@ -1,9 +1,9 @@
 {
   "title": "DOMINO CLASSIC",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "Classic Draw and Block dominoes against smart computer opponents, with a new daily challenge every day.",
+  "one_line": "Classic Draw and Block dominoes: play a friend online with a room code, or take on smart computer opponents.",
   "category": "puzzle",
   "github": "sksarfarajali",
-  "how_to_play": "Tap a glowing tile, then tap (or drag it to) the gold end of the chain. Stuck? Draw (or pass in Block mode). Empty your hand first.",
-  "description": "A polished take on classic dominoes. Play Draw or Block dominoes for 2 players, or team up with a partner in 4-player games. Three computer levels (Easy, Medium, Hard), a hard daily challenge with the same deal for everyone, hints, statistics and a winning streak to beat. Works on phones, tablets and desktop, and runs fully offline once loaded."
+  "how_to_play": "Tap a glowing tile, then tap (or drag it to) the gold end of the chain. Stuck? Draw (or pass in Block mode). Empty your hand first. Tap PLAY A FRIEND ONLINE to play someone with a 5-letter room code.",
+  "description": "A polished take on classic dominoes. Play a friend online: create a room, send the invite link or 5-letter code, and play Draw or Block dominoes head to head, or 4-player teams with computer players filling empty seats. Offline you get three computer levels (Easy, Medium, Hard), a hard daily challenge with the same deal for everyone, hints, undo, statistics and a winning streak to beat. Works on phones, tablets and desktop."
 }
