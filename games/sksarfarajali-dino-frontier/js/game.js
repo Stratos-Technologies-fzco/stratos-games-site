@@ -225,9 +225,11 @@ window.DF = window.DF || {};
   function updatePlayer(dt) {
     var P = S.P, st = S.stats, ix = mv.x + (keys.right ? 1 : 0) - (keys.left ? 1 : 0), iy = mv.y + (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
     var len = Math.sqrt(ix * ix + iy * iy); if (len > 1) { ix /= len; iy /= len; }
+    if (S.ending > 0 && S.endOutcome === 'defeat') { ix = 0; iy = 0; len = 0; } // the dinosaur is going down: no input
     P.lx = P.x; P.ly = P.y; P.atkCd = Math.max(0, P.atkCd - dt); P.atkT = Math.max(0, P.atkT - dt); P.dashCd = Math.max(0, P.dashCd - dt); P.abCd = Math.max(0, P.abCd - dt);
     P.inv = Math.max(0, P.inv - dt); P.shield = Math.max(0, P.shield - dt); P.hurt = Math.max(0, P.hurt - dt); P.stun = Math.max(0, P.stun - dt); P.surgeT = Math.max(0, P.surgeT - dt);
     P.anim += dt * (len > 0.1 ? 1 : 0.4);
+    if (P.sweep) { var sw2 = P.sweep; sw2.t += dt; if (!sw2.arc) { sw2.arc = true; tailArc(P, -P.face, 0); } if (!sw2.hit && sw2.t >= 120) { sw2.hit = true; tailArc(P, P.face, 0); applyAbility(S.stats.ability); } if (sw2.t >= sw2.dur) P.sweep = null; }
     if (P.atkA) { P.atkA.t += dt; if (P.atkA.t >= P.atkA.dur || P.stun > 0 || P.dashT > 0) P.atkA = null; }
     if (P.fxA) { var fa = P.fxA; fa.t += dt; if (fa.deferred && !fa.hit && fa.t >= fa.hitAt) { fa.hit = true; applyAbility(S.stats.ability); } if (fa.t >= fa.dur) P.fxA = null; }
     if (P.pend > 0) { if (P.stun > 0 || P.dashT > 0) P.pend = 0; else { P.pend -= dt; if (P.pend <= 0) { P.pend = 0; strike(); } } }
@@ -246,6 +248,7 @@ window.DF = window.DF || {};
       if (Math.abs(ix) > 0.12) P.face = sgn(ix);
     }
     P.fv += (P.face - P.fv) * Math.min(1, dt / 70); // turning around is a quick swing, not an instant flip
+    if (P.sweep) P.fv = P.face * Math.cos(2 * Math.PI * Math.min(1, P.sweep.t / P.sweep.dur)); // Tail Sweep: turn right round and back, so the tail swings through the target area
     if (P.face !== P.lastFace) { P.lastFace = P.face; P.tail = -P.face * 0.5; if (!reduced()) dust(P.x, P.y + 3, 2, 6, P.face); } // the tail whips the other way
     P.tail *= Math.pow(0.9, dt / 16.6);
     P.x = Math.max(24, Math.min(S.worldW - 24, P.x)); P.y = Math.max(YMIN, Math.min(YMAX, P.y)); // (clamped first, so pushing into a wall does not walk the legs)
@@ -274,9 +277,9 @@ window.DF = window.DF || {};
 
   /* ---------- player actions ---------- */
   function doAttack() {
-    var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
+    var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA || (S.ending > 0 && S.endOutcome === 'defeat')) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
-    var ak = st.path || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
+    var ak = 'starter'; if (!st.path && sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
     DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
   function critRoll(base) {
@@ -298,7 +301,8 @@ window.DF = window.DF || {};
     var pw = r.crit ? 1.7 : (e.kind === 'boss' ? 1.2 : 1), hd = S.P.x < e.x ? 1 : -1;
     var arm = e.kind === 'boss' && !vuln; impact(e.x - hd * 8, e.y - 36, hd, pw, arm ? '#CFE4FF' : r.crit ? '#F5D27F' : '#FFD9A0'); if (arm && S.t - (S.armT || 0) > 900) { S.armT = S.t; float(e.x, e.y - 118, DF.S.hud.armoured, '#BFD8FF', false); } // armour throws metallic sparks and says so
     burst(e.x, e.y - 30, r.crit ? '#F5D27F' : '#F3EBD7', r.crit ? 6 : 3);
-    e.hitT = 160; e.hitDir = hd; hitStop(r.crit ? 95 : e.kind === 'boss' ? 70 : 55); shake(r.crit ? 5 : 3); kick(hd * (r.crit ? 6 : 3.5), 0); vibrate(r.crit ? 20 : 12);
+    var open = e.state === 'recover' || e.state === 'stun'; e.hitMax = open ? 220 : 160; e.hitGold = open ? 1 : 0; // an open hit recoils harder and flashes gold
+    e.hitT = e.hitMax; e.hitDir = hd; hitStop(r.crit ? 95 : e.kind === 'boss' ? 70 : 55); shake(r.crit ? 5 : 3); kick(hd * (r.crit ? 6 : 3.5), 0); vibrate(r.crit ? 20 : 12);
     if (e.hp <= 0) killEnemy(e);
   }
   function killEnemy(e) {
@@ -311,7 +315,7 @@ window.DF = window.DF || {};
     if (S.tut && e.type === 'raider') advanceTut(3);
   }
   function doDash() {
-    var P = S.P, st = S.stats; if (P.dashCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
+    var P = S.P, st = S.stats; if (P.dashCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA || (S.ending > 0 && S.endOutcome === 'defeat')) return;
     if (P.en < st.dashCost) { DF.Audio.sfx('deny'); if (G.onEvent) G.onEvent('noEnergy'); return; }
     P.en -= st.dashCost; P.dashCd = B.dash.cooldown; dust(P.x, P.y + 3, 5, 9, -P.face);
     var ix = mv.x + (keys.right ? 1 : 0) - (keys.left ? 1 : 0), iy = mv.y + (keys.down ? 1 : 0) - (keys.up ? 1 : 0), l = Math.sqrt(ix * ix + iy * iy);
@@ -347,10 +351,10 @@ window.DF = window.DF || {};
     return true;
   }
   function doAbility() {
-    var P = S.P, st = S.stats, ab = st.ability; if (P.abCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
+    var P = S.P, st = S.stats, ab = st.ability; if (P.abCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA || P.sweep || (S.ending > 0 && S.endOutcome === 'defeat')) return;
     if (P.en < ab.cost) { DF.Audio.sfx('deny'); if (G.onEvent) G.onEvent('noEnergy'); return; }
     P.en -= ab.cost; P.abCd = ab.cooldown; S.abilitiesUsed++;
-    if (!startAbAnim(ab)) applyAbility(ab);
+    if (!startAbAnim(ab)) { if (!S.stats.path && ab.id === 'tail-sweep') { P.sweep = { t: 0, dur: 260, hit: false, arc: false }; DF.Audio.sfx('windup_boss'); } else applyAbility(ab); }
     if (G.onEvent) G.onEvent('ability');
   }
   function applyAbility(ab) {
@@ -369,6 +373,8 @@ window.DF = window.DF || {};
       for (i = 0; i < list.length; i++) { e = list[i]; if (e.state !== 'dead' && dist(e, P) < ab.radius + 28) hurtEnemy(e, ab.damage, false, { knock: ab.knock }); }
     }
   }
+  /* the Tail Sweep arc: one behind the dinosaur as the tail comes round, one in front as it lands */
+  function tailArc(P, face, delay) { var R = S.stats.ability.radius; S.parts.push({ fx: 'slash', x: P.x - face * 10, y: P.y - 18, face: face, t: -delay, life: 260, len: R * 0.85, cfg: { c1: '#FFFFFF', c2: '#F3EBD7', th: 12, life: 260, kind: 'arc' } }); }
   function dashDamage() {
     var P = S.P, ab = S.stats.ability, list = S.enemies.concat(S.boss ? [S.boss] : []);
     for (var i = 0; i < list.length; i++) {
@@ -462,7 +468,7 @@ window.DF = window.DF || {};
   function beginWindup(e, ms) { e.state = 'windup'; e.t = ms; e.wTot = ms; DF.Audio.sfx('windup_' + e.type); markSeen(e.type); }
   function countDodge() { S.dodges++; DF.Audio.sfx('dodge'); if (S.tut && S.tut.step === 2) { /* dodging counts as progress, killing is the goal */ } if (G.onEvent) G.onEvent('dodge'); float(S.P.x, S.P.y - 80, 'Dodge!', '#9FE7DF', false); }
   function fireSpit(e) {
-    DF.Audio.sfx('spit'); burst(e.x + e.face * 30, e.y - 34, '#B8F07A', 8); var P = S.P, dx = P.x - e.x, dy = P.y - e.y, l = Math.sqrt(dx * dx + dy * dy) || 1;
+    e.rcT = S.t; DF.Audio.sfx('spit'); burst(e.x + e.face * 30, e.y - 34, '#B8F07A', 8); var P = S.P, dx = P.x - e.x, dy = P.y - e.y, l = Math.sqrt(dx * dx + dy * dy) || 1;
     S.projectiles.push({ x: e.x + e.face * 30, y: e.y - 34, gy: e.y, vx: dx / l * e.def.projSpeed, vy: dy / l * e.def.projSpeed * 0.5, life: 2600, dmg: e.def.dmg * (e.dmgMul || 1), near: false });
   }
   function updateProjectiles(dt) {
@@ -603,7 +609,7 @@ window.DF = window.DF || {};
   function bossLabel() { var n = S.bossDef.name; return n.charAt(0) + n.slice(1).toLowerCase(); }
   /* ---------- bosses: Thornback and Cinderjaw ---------- */
   function updateBoss(b, dt) {
-    var P = S.P, def = S.bossDef; if (b.state === 'dead') return;
+    var P = S.P, def = S.bossDef; if (b.state === 'dead') { b.dead = (b.dead || 0) + dt; if (!b.thud && b.dead >= 500) { b.thud = 1; DF.Audio.sfx('slam'); shake(6); dust(b.x - 40, b.y + 2, 6, 14, -1); dust(b.x + 40, b.y + 2, 6, 14, 1); ring(b.x, b.y, 120, '#E8B54A'); } return; }
     b.hitFlash = Math.max(0, b.hitFlash - dt); b.hitT = Math.max(0, (b.hitT || 0) - dt); b.t -= dt;
     var dx = P.x - b.x, dy = P.y - b.y, dd = Math.sqrt(dx * dx + dy * dy * 2.9);
     if (b.kx) { b.x += b.kx * dt / 1000; b.kx *= 0.8; }
@@ -627,11 +633,11 @@ window.DF = window.DF || {};
         if (b.atk === 'charge') { b.face = b.dirx; b.laneY += (P.y - b.laneY) * 0.02; b.y += (b.laneY - b.y) * 0.05; }
         if (b.t <= 0) {
           if (b.atk === 'charge') { b.state = 'charge'; b.t = def.chargeTime; DF.Audio.sfx('roar'); b.startClose = dd < 200; }
-          else { b.state = 'slam'; b.t = 420; DF.Audio.sfx('slam'); shake(7); ring(b.x, b.y, def.slamRadius, '#E8B54A'); dust(b.x - 60, b.y + 2, 6, 14, -1); dust(b.x + 60, b.y + 2, 6, 14, 1); cracks(b.x, b.y + 2, def.slamRadius); debris(b.x, b.y - 10, 14, '#8A7A60'); kick(0, 5); hitStop(70); b.waveHit = false; if (Math.abs(P.x - b.x) < def.slamRadius && Math.abs(P.y - b.y) < 50) { if (!hurtPlayer(def.slamDmg, b.x, true) && P.inv > 0) countDodge(); } else if (Math.abs(P.x - b.x) < def.slamRadius + 70) countDodge(); }
+          else { b.state = 'slam'; b.t = 420; DF.Audio.sfx('slam'); bossStomp(b); shake(7); ring(b.x, b.y, def.slamRadius, '#E8B54A'); dust(b.x - 60, b.y + 2, 6, 14, -1); dust(b.x + 60, b.y + 2, 6, 14, 1); cracks(b.x, b.y + 2, def.slamRadius); debris(b.x, b.y - 10, 14, '#8A7A60'); kick(0, 5); hitStop(70); b.waveHit = false; if (Math.abs(P.x - b.x) < def.slamRadius && Math.abs(P.y - b.y) < 50) { if (!hurtPlayer(def.slamDmg, b.x, true) && P.inv > 0) countDodge(); } else if (Math.abs(P.x - b.x) < def.slamRadius + 70) countDodge(); }
         }
         break;
       case 'charge':
-        b.x += b.dirx * def.chargeSpeed * b.speedMul * dt / 1000; if (Math.random() < 0.6) dust(b.x - b.dirx * 70, b.y + 2, 1, 12, -b.dirx);
+        b.x += b.dirx * def.chargeSpeed * b.speedMul * dt / 1000; if (Math.random() < 0.6) dust(b.x - b.dirx * 70, b.y + 2, 1, 12, -b.dirx); bossTrail(b);
         if (!b.didHit && Math.abs(P.x - b.x) < 96 && Math.abs(P.y - b.y) < 36) { b.didHit = hurtPlayer(def.chargeDmg, b.x, true); if (!b.didHit && P.inv > 0) { b.didHit = true; countDodge(); } }
         if (b.x < 90 || b.x > S.worldW - 90) { b.x = Math.max(90, Math.min(S.worldW - 90, b.x)); b.state = 'stun'; b.t = 1500; shake(8); DF.Audio.sfx('slam'); burst(b.x, b.y - 40, '#C9A56A', 14); debris(b.x, b.y - 30, 12, '#8A7A60'); cracks(b.x, b.y + 2, 120); toast(DF.t(DF.S.hud.bossStun, { name: bossLabel() }), 'info'); }
         else if (b.t <= 0) { if (!b.didHit && b.startClose) countDodge(); b.state = 'recover'; b.t = def.recover; }
@@ -645,7 +651,7 @@ window.DF = window.DF || {};
         break;
     }
     b.x = Math.max(60, Math.min(S.worldW - 60, b.x));
-    if (b.phase === 2 && !reduced() && S.parts.length < 150 && Math.random() < 0.25) S.parts.push({ x: b.x + (Math.random() - 0.5) * 90, y: b.y - 20 - Math.random() * 70, vx: (Math.random() - 0.5) * 30, vy: -40 - Math.random() * 40, ember: true, t: 0, life: 900, c: '#FF7A3C', r: 1.5 + Math.random() * 2 }); // enraged: embers rise off it
+    if (b.phase === 2) bossAura(b); // enraged: each boss shows its own aura (Cinderjaw's embers rise off it)
     if (b.phase === 1 && b.hp > 0 && b.hp <= b.maxHp * def.phase2At && b.state !== 'sleep') {
       b.phase = 2; b.state = 'roar'; b.t = 1400; b.speedMul = def.enrageSpeed; b.windMul = 0.8; DF.Audio.sfx('roar'); DF.Audio.phase2('04-boss-thornback', 32); shake(6);
       toast(DF.t(DF.S.hud.bossPhase, { name: bossLabel() }), 'info');
@@ -785,29 +791,67 @@ window.DF = window.DF || {};
   }
   /* each evolution swings differently: Swiftclaw rakes three claw lines, Ironhide a heavy crescent, Wildspark a crackling bolt */
   function slashFx(P) {
-    var path = S.stats.path, cfg = path === 'ironhide' ? { c1: '#FFF1CF', c2: '#E8B54A', th: 24, life: 290, kind: 'arc' } : path === 'wildspark' ? { c1: '#F6EDFF', c2: '#B58CFF', th: 14, life: 250, kind: 'bolt' } : path === 'swiftclaw' ? { c1: '#EFFFFC', c2: '#4FD1C5', th: 9, life: 210, kind: 'claw' } : { c1: '#FFFFFF', c2: '#F3EBD7', th: 15, life: 240, kind: 'arc' };
-    S.parts.push({ fx: 'slash', x: P.x + P.face * 6, y: P.y - 22, face: P.face, t: 0, life: cfg.life, len: B.player.attackRange + 6, cfg: cfg });
+    var path = S.stats.path, R = B.player.attackRange, cfg = path === 'ironhide' ? { c1: '#FFF1CF', c2: '#E8B54A', th: 24, life: 290, kind: 'arc' } : path === 'wildspark' ? { c1: '#F6EDFF', c2: '#B58CFF', th: 14, life: 250, kind: 'bolt' } : path === 'swiftclaw' ? { c1: '#EFFFFC', c2: '#4FD1C5', th: 9, life: 210, kind: 'claw' } : { c1: '#FFFFFF', c2: '#F3EBD7', th: 15, life: 240, kind: 'arc' };
+    if (path === 'ironhide') { S.parts.push({ fx: 'slash', x: P.x - P.face * 34, y: P.y - 12, face: P.face, t: 0, life: cfg.life, len: R + 36, cfg: cfg }); return; } // Club Swing: a low gold arc that starts at the tail
+    if (path === 'wildspark') { S.parts.push({ fx: 'slash', x: P.x + P.face * 6, y: P.y - 22, face: P.face, t: 0, life: cfg.life, len: R - 16, cfg: cfg }); return; } // Spark Snap: the bolt ends at the real 66 px reach
+    if (path === 'swiftclaw') { // Twin Rake: a second, fainter rake 80 ms later (one hit only)
+      S.parts.push({ fx: 'slash', x: P.x + P.face * 6, y: P.y - 22, face: P.face, t: 0, life: cfg.life, len: R - 8, cfg: cfg });
+      S.parts.push({ fx: 'slash', x: P.x + P.face * 6, y: P.y - 30, face: P.face, t: -80, life: cfg.life, len: R - 8, cfg: { c1: cfg.c1, c2: cfg.c2, th: cfg.th, life: cfg.life, kind: 'claw', fa: 0.45 } }); return;
+    }
+    S.parts.push({ fx: 'slash', x: P.x + P.face * 6, y: P.y - 22, face: P.face, t: 0, life: cfg.life, len: R + 6, cfg: cfg });
   }
   /* enemy attack effects, one look per enemy: Raider rakes with claws, Skimmer swoops, both follow the lunge */
   var EFX = { raider: { kind: 'claw', c1: '#FFE6D0', c2: '#FF6A3D', len: 66, th: 10 }, skimmer: { kind: 'arc', c1: '#FFF0E6', c2: '#FF9A7A', len: 76, th: 9 } };
   function enemySlash(e) { var c = EFX[e.type] || EFX.raider; S.parts.push({ fx: 'slash', x: e.x + e.face * 8, y: e.y - 24, off: e.face * 8, follow: e, face: e.face, t: 0, life: 300, len: c.len, cfg: { c1: c.c1, c2: c.c2, th: c.th, kind: c.kind, life: 300 } }); }
   function puddle(x, y, r) { if (S.parts.length < 170) S.parts.push({ fx: 'puddle', x: x, y: y, t: 0, life: 1500, r: r }); }
   function scratch(x, y) { if (S.parts.length < 170) S.parts.push({ fx: 'scratch', x: x, y: y, t: 0, life: 340 }); }
-  function cracks(x, y, r) {
+  function cracks(x, y, r, hot) {
     var lines = [], n = reduced() ? 5 : 9, i, st, a, len, d, jit;
     for (i = 0; i < n; i++) { a = i / n * 6.283 + Math.random() * 0.4; len = r * (0.6 + Math.random() * 0.5); var seg = []; for (st = 1; st <= 5; st++) { d = len * st / 5; jit = (Math.random() - 0.5) * 14; seg.push([Math.cos(a) * d + Math.sin(a) * jit, (Math.sin(a) * d - Math.cos(a) * jit) * 0.34]); } lines.push(seg); }
-    S.parts.push({ fx: 'cracks', x: x, y: y, t: 0, life: 1100, lines: lines });
+    S.parts.push({ fx: 'cracks', x: x, y: y, t: 0, life: 1100, lines: lines, hot: hot });
   }
   function debris(x, y, n, color) {
     n = reduced() ? Math.ceil(n / 2) : n;
     for (var i = 0; i < n && S.parts.length < 170; i++) { var a = -Math.PI / 2 + (Math.random() - 0.5) * 1.7, sp = 120 + Math.random() * 230; S.parts.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, life: 600 + Math.random() * 350, c: color || '#7A6A52', r: 2 + Math.random() * 3 }); }
+  }
+  /* one fight style per boss: charge trail, stomp effect and phase 2 aura. Visual only; all of it respects reduced() and the S.parts cap. */
+  var BOSSFX = {
+    thornback: { kind: 'earth', aura: '201,216,106', tint: '#C9D86A' },
+    cinderjaw: { kind: 'fire', aura: '255,122,60', tint: '#FF7A3C' },
+    whitetitan: { kind: 'ice', aura: '175,215,255', tint: '#BFE0FF' },
+    mirequeen: { kind: 'mire', aura: '181,140,255', tint: '#B58CFF' },
+    colossus: { kind: 'energy', aura: '79,209,197', tint: '#4FD1C5' }
+  };
+  function fxPart(o) { if (!reduced() && S.parts.length < 140) S.parts.push(o); }
+  function bossTrail(b) { // while it charges
+    var st = BOSSFX[S.bossDef.id]; if (!st || reduced() || S.parts.length > 130 || Math.random() > 0.5) return; var x = b.x - b.dirx * 60, y = b.y;
+    if (st.kind === 'earth') debris(x, y, 1, Math.random() < 0.5 ? '#8A6A44' : '#6FA24A');
+    else if (st.kind === 'fire') fxPart({ x: x, y: y - 6, vx: -b.dirx * 40 + (Math.random() - 0.5) * 30, vy: -30 - Math.random() * 40, ember: true, t: 0, life: 650, c: Math.random() < 0.5 ? '#FF7A3C' : '#FFC46A', r: 2 + Math.random() * 2 });
+    else if (st.kind === 'ice') { burst(x, y - 4, '#EAF5FF', 1); debris(x, y, 1, '#BFE0FF'); }
+    else if (st.kind === 'mire') { burst(x, y - 2, '#6B5A3A', 1); fxPart({ fx: 'dust', x: x, y: y - 10, vx: -b.dirx * 20, vy: -14, t: 0, life: 520, c: '#B58CFF', r: 5 }); }
+    else { b.fxT = (b.fxT || 0) + 1; if (b.fxT % 6 === 0) ring(x, y, 70, '#4FD1C5'); debris(x, y - 6, 1, '#7A8AA8'); }
+  }
+  function bossStomp(b) { // as it lands
+    var st = BOSSFX[S.bossDef.id]; if (!st) return; var r = S.bossDef.slamRadius;
+    if (st.kind === 'earth') { debris(b.x, b.y - 10, 8, '#8A6A44'); debris(b.x, b.y - 10, 6, '#6FA24A'); }
+    else if (st.kind === 'fire') { cracks(b.x, b.y + 2, r, '255,120,40'); burst(b.x, b.y - 20, '#FF7A3C', 8); }
+    else if (st.kind === 'ice') { debris(b.x, b.y - 10, 10, '#CFEBFF'); ring(b.x, b.y, r * 0.8, '#BFE0FF'); }
+    else if (st.kind === 'mire') { burst(b.x, b.y - 14, '#6B5A3A', 10); ring(b.x, b.y, r * 0.8, '#B58CFF'); }
+    else { ring(b.x, b.y, r * 0.6, '#4FD1C5'); ring(b.x, b.y, r, '#9FE7DF'); debris(b.x, b.y - 10, 6, '#7A8AA8'); }
+  }
+  function bossAura(b) { // phase 2: spawns the particles for each boss's aura
+    var st = BOSSFX[S.bossDef.id]; if (!st || reduced() || S.parts.length > 140 || Math.random() > 0.22) return; var x = b.x + (Math.random() - 0.5) * 100, y = b.y - 20 - Math.random() * 70;
+    if (st.kind === 'earth') fxPart({ x: x, y: y, vx: (Math.random() - 0.5) * 20, vy: -22 - Math.random() * 20, ember: true, t: 0, life: 1000, c: Math.random() < 0.5 ? '#E8D46A' : '#9BD060', r: 1.5 + Math.random() * 1.5 });
+    else if (st.kind === 'fire') fxPart({ x: x, y: y, vx: (Math.random() - 0.5) * 30, vy: -40 - Math.random() * 40, ember: true, t: 0, life: 900, c: '#FF7A3C', r: 1.5 + Math.random() * 2 });
+    else if (st.kind === 'ice') fxPart({ fx: 'dust', x: x, y: y + 30, vx: (Math.random() - 0.5) * 24, vy: -14, t: 0, life: 900, c: '#EAF5FF', r: 6 });
+    else if (st.kind === 'mire') fxPart({ x: x, y: y, vx: (Math.random() - 0.5) * 14, vy: -10 - Math.random() * 10, ember: true, t: 0, life: 1400, c: '#B58CFF', r: 2 + Math.random() * 1.5 }); // drifting spores: visual only
   }
   function strike() {
     var P = S.P, st = S.stats, range = B.player.attackRange, hit = false, list = S.enemies.concat(S.boss ? [S.boss] : []);
     for (var i = 0; i < list.length; i++) {
       var e = list[i]; if (e.state === 'dead') continue;
       var dx = (e.x - P.x) * P.face, dy = Math.abs(e.y - P.y), reach = range + (e.kind === 'boss' ? 70 : 28);
-      if (dx > -14 && dx < reach && dy < B.player.attackDepth + (e.kind === 'boss' ? 14 : 0)) { hurtEnemy(e, st.attackPower, true); hit = true; }
+      if (dx > -14 && dx < reach && dy < B.player.attackDepth + (e.kind === 'boss' ? 14 : 0)) { hurtEnemy(e, st.attackPower, true); hit = true; if (st.path === 'ironhide') dust(e.x - P.face * 10, e.y + 3, 3, 8, 0); else if (st.path === 'wildspark') { burst(e.x, e.y - 30, '#B58CFF', 5); burst(e.x, e.y - 34, '#F6EDFF', 2); } }
     }
     if (!P.atkA) slashFx(P); // the sheet carries its own bite / claw effect
     dust(P.x - P.face * 14, P.y + 3, hit ? 2 : 3, 6, -P.face);
@@ -1115,7 +1159,7 @@ window.DF = window.DF || {};
     cx.drawImage(ic, p.x - pw / 2, p.y - 6 - ph + bob, pw, ph);
   }
   function drawFlash(name, w, x, y, o, e) {
-    if (e.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.75; }
+    if (e.hitFlash > 0) { o.tint = e.hitGold ? '#F5D27F' : '#FFFFFF'; o.tintA = 0.75; }
     else if (e.state === 'windup') { var a = (0.35 + 0.35 * Math.sin(S.t / 40)) * (o.anim ? 0.4 : 1); o.tint = e.type === 'spitter' ? '#9BE070' : '#FFD166'; o.tintA = a; }
     else if (S.biome === 'ember') { o.tint = '#FF7A2E'; o.tintA = 0.16; } // ember-touched
     else if (S.biome === 'frost') { o.tint = '#8FD0FF'; o.tintA = 0.18; } // frost-touched
@@ -1131,9 +1175,15 @@ window.DF = window.DF || {};
     if (e.state === 'windup') { var pr = 1 - e.t / d.windup; rot = -0.14 * pr; sy = 1 - 0.07 * pr; sx = 1 + 0.03 * pr; lean = -e.face * 7 * pr; } // rears back before it strikes
     else if (e.state === 'attack') { rot = 0.22; sx = 1.14; sy = 0.92; lean = 6 * e.face; }
     else if (e.state === 'recover') { rot = 0.04; sy = 0.97; }
-    else if (e.state === 'stun') { skew = Math.sin(S.t / 45) * 0.09; rot = -0.05; }
-    if (e.hitT > 0) { var hq = e.hitT / 160; sx *= 1 + 0.12 * hq; sy *= 1 - 0.1 * hq; rot += (e.hitDir === e.face ? 0.12 : -0.14) * hq; } // squash and recoil on a hit
-    if (dead) { var pq = Math.min(1, e.dead / 130); sx = 1 + 0.28 * pq; sy = 1 + 0.2 * pq; rot = 0; skew = 0; lean = 0; bob = 0; a = 1 - pq; } // swells and pops into meat
+    else if (e.state === 'stun') { var sw = Math.sin(S.t / 340 + e.id); rot = 0.16 + 0.03 * sw; sy = 0.95; skew = 0.04 * sw; lean = 3 * sw; } // head low, slow sway
+    if (e.hitT > 0) { var hm = e.hitGold ? 1.7 : 1, hq = e.hitT / (e.hitMax || 160); sx *= 1 + 0.12 * hq * hm; sy *= 1 - 0.1 * hq * hm; rot += (e.hitDir === e.face ? 0.12 : -0.14) * hq * hm; } // squash and recoil on a hit
+    if (dead) { // 0-170 ms: falls (raider backward, skimmer spins half a turn, spitter folds its frill), 170-260 ms: the existing swell and pop into meat
+      var tp = Math.min(1, e.dead / 170), te = 1 - Math.pow(1 - tp, 3), pq = Math.max(0, Math.min(1, (e.dead - 170) / 90)); sx = 1; sy = 1; rot = 0;
+      if (e.type === 'skimmer') { var spn = Math.cos(Math.PI * te); sx = (spn < 0 ? -1 : 1) * Math.max(0.04, Math.abs(spn)); rot = 0.3 * Math.sin(Math.PI * te); }
+      else if (e.type === 'spitter') { sx = 1 - 0.55 * te; sy = 1 + 0.08 * te; rot = (e.hitDir === e.face ? 0.2 : -0.2) * te; }
+      else { rot = (e.hitDir === e.face ? 1 : -1) * 1.2 * te; sy = 1 - 0.1 * te; }
+      sx *= 1 + 0.28 * pq; sy *= 1 + 0.2 * pq; skew = 0; lean = 0; bob = 0; a = 1 - pq;
+    }
     else if (e.camo && !e.rev) a = 0.1 + 0.05 * Math.sin(S.t / 260 + e.id); // camouflaged: almost invisible, only a faint ripple gives it away
     shadow(e.x, e.y + 2, w * 0.8 * (1 + bob * 0.01), 0.35 * a);
     if (e.camo && !e.rev) { cx.strokeStyle = 'rgba(160,255,210,' + (0.25 + 0.2 * Math.sin(S.t / 300 + e.id)) + ')'; cx.lineWidth = 2; cx.beginPath(); cx.ellipse(e.x, e.y + 3, w * 0.55, 8, 0, 0, 7); cx.stroke(); }
@@ -1144,36 +1194,47 @@ window.DF = window.DF || {};
     var epf = 0.93 + 0.14 * (e.y - YMIN) / (YMAX - YMIN); sx *= epf; sy *= epf;
     var eo = { flip: e.face < 0, alpha: a, feet: 0.97, rot: rot, sx: sx, sy: sy, skew: skew }, ean = ANIM[e.type];
     if (!dead && ean && sheetReady(e.type) && (e.state === 'windup' || e.state === 'attack' || (e.state === 'recover' && e.wTot))) { eo.anim = { k: e.type, idx: atkFrame(ean, e.state, e.t, e.wTot || d.windup, d.lungeTime, d.recover, e.type === 'spitter'), right: e.face > 0 }; eo.sx = epf; eo.sy = epf; lean = 0; bob = 0; } // the sheet carries the lunge itself
-    var ewk = walkOf(e.type); if (!eo.anim && !dead && ewk && A.ready(ewk.key) && (e.state === 'chase' || e.state === 'idle') && !(e.camo && !e.rev)) { eo.walk = { wk: ewk, fr: walkFrame(ewk, e.gait || 0), right: e.face > 0 }; eo.rot = rot * 0.4; eo.skew = 0; bob *= 0.4; eo.sy = 1 + (eo.sy - 1) * 0.4; } // the sheet carries the step
-    drawFlash(d.sprite, w, e.x + lean, e.y + bob, eo, e);
+    var wpr = e.state === 'windup' ? 1 - e.t / (e.wTot || d.windup) : 0, rq = e.state === 'recover' ? 1 - e.t / d.recover : 0, eoff = 0;
+    if (eo.anim && e.type === 'raider') { if (wpr) { eo.sy = epf * (1 - 0.09 * wpr); eo.sx = epf * (1 + 0.04 * wpr); } if (rq) { eo.arot = 0.16 * Math.sin(Math.min(1, rq * 2.2) * Math.PI) * (1 - rq * 0.4); eoff = e.face * 5 * (1 - rq); } } // Raider: crouches harder in the telegraph, then stumbles on landing
+    else if (eo.anim && e.type === 'spitter' && wpr) { eo.sx = eo.sy = epf * (1 + 0.08 * wpr); } // Spitter: the frill flares
+    if (e.type === 'spitter' && e.rcT) eoff -= e.face * 4 * Math.max(0, 1 - (S.t - e.rcT) / 140); // and it recoils 4 px when it fires
+    var swk = walkOf('skimmer'); if (e.type === 'skimmer' && e.state === 'recover' && !dead && A.ready(swk.key)) { eo.anim = null; eo.walk = { wk: swk, fr: (swk.n - walkFrame(swk, e.gait || 0)) % swk.n, right: e.face > 0 }; eo.rot = 0; eo.skew = 0; eo.sx = epf; eo.sy = epf; lean = 0; bob = 0; } // Skimmer backs away with its walk played in reverse
+    var ewk = walkOf(e.type); if (!eo.anim && !eo.walk && !dead && ewk && A.ready(ewk.key) && (e.state === 'chase' || e.state === 'idle') && !(e.camo && !e.rev)) { eo.walk = { wk: ewk, fr: walkFrame(ewk, e.gait || 0), right: e.face > 0 }; eo.rot = rot * 0.4; eo.skew = 0; bob *= 0.4; eo.sy = 1 + (eo.sy - 1) * 0.4; } // the sheet carries the step
+    drawFlash(d.sprite, w, e.x + lean + eoff, e.y + bob, eo, e);
     if (e.state === 'windup' && e.type === 'spitter') { var ox = e.x + e.face * 34, oy = e.y - 36, orr = 3 + 11 * pr3, og = cx.createRadialGradient(ox, oy, 1, ox, oy, orr * 2.4); og.addColorStop(0, 'rgba(210,255,150,.95)'); og.addColorStop(1, 'rgba(155,224,112,0)'); cx.fillStyle = og; cx.beginPath(); cx.arc(ox, oy, orr * 2.4, 0, 7); cx.fill(); cx.fillStyle = '#E4FFC0'; cx.beginPath(); cx.arc(ox, oy, orr * 0.55, 0, 7); cx.fill(); } // acid orb charging at the mouth
     if (!dead) {
       if (e.state === 'windup') { cx.fillStyle = '#FFD166'; cx.font = '900 18px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('!', e.x, e.y - hh - 6); }
-      if (e.state === 'stun') { cx.fillStyle = '#9FE7DF'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('✦ ✦', e.x, e.y - hh - 6); }
+      if (e.state === 'stun') { cx.fillStyle = '#9FE7DF'; cx.font = '800 12px system-ui, sans-serif'; cx.textAlign = 'center'; for (var sk = 0; sk < 3; sk++) { var sa2 = S.t / 300 + sk * 2.1; cx.fillText('✦', e.x + Math.cos(sa2) * 15, e.y - hh - 6 + Math.sin(sa2) * 3); } } // stars circle its head
       if (e.state === 'recover') { cx.fillStyle = 'rgba(255,255,255,.85)'; cx.font = '800 10px system-ui, sans-serif'; cx.textAlign = 'center'; cx.fillText('OPEN', e.x, e.y - hh - 6); }
       if (e.hp < e.maxHp) { var bw = 62, bx = e.x - bw / 2, by = e.y - hh - 4; cx.fillStyle = 'rgba(14,23,18,.9)'; cx.fillRect(bx - 2, by - 2, bw + 4, 10); cx.fillStyle = '#E5534B'; cx.fillRect(bx, by, bw * Math.max(0, e.hp / e.maxHp), 6); }
     }
   }
   function dBoss(b) {
-    var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, 1 - (b.dead = (b.dead || 0) + 16) / 550) : 1;
+    var def = S.bossDef, bw = def.size * S.formScale, bsc = sprite(def.sprite, bw), bhh = bsc.height / bsc.width * bw, a = b.state === 'dead' ? Math.max(0, Math.min(1, 1 - ((b.dead || 0) - 500) / 400)) : 1;
     shadow(b.x, b.y + 4, bw * 0.9, 0.4 * a);
     // telegraph lane
     if (b.state === 'windup' && b.atk === 'charge') { cx.fillStyle = 'rgba(229,83,75,' + (0.28 + 0.12 * Math.sin(S.t / 60)) + ')'; var lx = b.dirx > 0 ? b.x : b.x - 900; cx.fillRect(lx, b.y - 26, 900, 52); cx.strokeStyle = 'rgba(255,140,120,.9)'; cx.lineWidth = 2; cx.setLineDash([10, 7]); cx.strokeRect(lx, b.y - 26, 900, 52); cx.setLineDash([]); }
     if (b.state === 'windup' && b.atk === 'slam') { cx.strokeStyle = 'rgba(229,83,75,.7)'; cx.lineWidth = 2; cx.setLineDash([6, 5]); cx.beginPath(); cx.ellipse(b.x, b.y, def.slamRadius, 40, 0, 0, 7); cx.stroke(); cx.setLineDash([]); }
     var o = { flip: b.face > 0, alpha: a, feet: 0.97 }, shakeX = (b.state === 'windup' ? Math.sin(S.t / 30) * 2 : 0);
     o.flip = b.face < 0;
-    if (b.hitFlash > 0) { o.tint = '#FFFFFF'; o.tintA = 0.6; } else if (b.state === 'windup') { o.tint = '#FFB199'; o.tintA = 0.3 + 0.25 * Math.sin(S.t / 50); } else if (b.phase === 2) { o.tint = '#E5534B'; o.tintA = 0.14; }
+    if (b.hitFlash > 0) { o.tint = b.hitGold ? '#F5D27F' : '#FFFFFF'; o.tintA = 0.6; } else if (b.state === 'windup') { o.tint = '#FFB199'; o.tintA = 0.3 + 0.25 * Math.sin(S.t / 50); } else if (b.phase === 2) { o.tint = (BOSSFX[def.id] || { tint: '#E5534B' }).tint; o.tintA = 0.12; }
     var lift = b.state === 'windup' && b.atk === 'slam' ? -14 * (1 - b.t / (def.slamWindup * b.windMul)) : 0;
     var walk = b.state === 'approach' ? 1 : 0, bph = (b.gait || 0) * Math.PI, brot = 0.025 * walk * Math.sin(bph), bsx = 1, bsy = 1 + 0.012 * Math.sin(S.t / 900), bbob = -Math.abs(Math.sin(bph)) * 4 * walk;
     if (b.state === 'windup') { var wp = 1 - b.t / ((b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul); brot = -0.12 * wp; bsy = 1 - 0.05 * wp; bsx = 1 + 0.03 * wp; } // rears back
     else if (b.state === 'charge') { brot = 0.14; bsx = 1.08; bsy = 0.95; }
     else if (b.state === 'slam') { var sq = b.t / 420; brot = 0.12 * sq; bsy = 0.93 + 0.07 * (1 - sq); bsx = 1.06 * sq + 1 * (1 - sq); } // crashes down
+    else if (b.state === 'stun') { brot = 0.05 + 0.025 * Math.sin(S.t / 380); bsy = 0.97; } // slow, heavy sway
     else if (b.state === 'roar') { brot = -0.1; bsx = 1 + 0.04 * Math.sin(S.t / 60); bsy = 1 + 0.03 * Math.sin(S.t / 60); }
-    if (b.hitT > 0) { var bq = b.hitT / 160; bsx *= 1 + 0.04 * bq; bsy *= 1 - 0.035 * bq; brot += (b.hitDir === b.face ? 0.03 : -0.04) * bq; }
-    if (b.state === 'dead') { var be = Math.min(1, (b.dead || 0) / 700); brot = -0.5 * be; bsy = 1 - 0.08 * be; }
+    if (b.hitT > 0) { var bm = b.hitGold ? 1.8 : 1, bq = b.hitT / (b.hitMax || 160); bsx *= 1 + 0.04 * bq * bm; bsy *= 1 - 0.035 * bq * bm; brot += (b.hitDir === b.face ? 0.03 : -0.04) * bq * bm; }
+    if (b.state === 'dead') { var be = Math.min(1, (b.dead || 0) / 500); be = be * be; brot = 0.04 * be; bsy = 1 - 0.16 * be; bsx = 1 + 0.06 * be; bbob = 10 * be; } // knees buckle and the body drops
     o.rot = brot; o.sx = bsx; o.sy = bsy;
     if (b.state === 'windup') { var bwp = 1 - b.t / ((b.atk === 'charge' ? def.chargeWindup : def.slamWindup) * b.windMul), bh0 = isFinite(bhh) && bhh > 0 ? bhh : bw * 0.7, bg = cx.createRadialGradient(b.x, b.y - bh0 * 0.5, 10, b.x, b.y - bh0 * 0.5, bw * 0.8); bg.addColorStop(0, 'rgba(255,100,70,' + (0.18 + 0.32 * bwp) + ')'); bg.addColorStop(1, 'rgba(255,100,70,0)'); cx.fillStyle = bg; cx.beginPath(); cx.arc(b.x, b.y - bh0 * 0.5, bw * 0.8, 0, 7); cx.fill(); var brr = def.slamRadius * (1 - bwp * 0.7); cx.strokeStyle = 'rgba(255,140,110,' + (0.3 + 0.5 * bwp) + ')'; cx.lineWidth = 3; cx.beginPath(); cx.ellipse(b.x, b.y + 2, brr, brr * 0.3, 0, 0, 7); cx.stroke(); } // wind-up aura and a ring closing in
     if (b.state === 'charge' && !sheetReady(def.id + '-charge')) { for (var gi = 1; gi <= 3; gi++) draw(def.sprite, bw, b.x - b.dirx * gi * 26, b.y + bbob, { flip: o.flip, alpha: 0.13 * (4 - gi) * a, feet: 0.97, rot: 0.14, sx: 1.08, sy: 0.95 }); }
+    if (b.phase === 2 && b.state !== 'dead' && BOSSFX[def.id] && !reduced()) { // phase 2 aura: a soft glow behind the body; Cinderjaw also shimmers with heat
+      var bfx = BOSSFX[def.id], bcy = b.y - (isFinite(bhh) && bhh > 0 ? bhh : bw * 0.7) * 0.5, bpl = 0.7 + 0.3 * Math.sin(S.t / 260), bgl = cx.createRadialGradient(b.x, bcy, 10, b.x, bcy, bw * 0.75);
+      bgl.addColorStop(0, 'rgba(' + bfx.aura + ',' + (0.3 * bpl) + ')'); bgl.addColorStop(1, 'rgba(' + bfx.aura + ',0)'); cx.fillStyle = bgl; cx.beginPath(); cx.arc(b.x, bcy, bw * 0.75, 0, 7); cx.fill();
+      if (bfx.kind === 'fire' && !reduced()) { cx.strokeStyle = 'rgba(255,170,90,.2)'; cx.lineWidth = 2; for (var hi = 0; hi < 3; hi++) { cx.beginPath(); for (var hx = -44; hx <= 44; hx += 8) { var hy = b.y - bcy * 0 - (isFinite(bhh) && bhh > 0 ? bhh : bw * 0.7) - 4 - hi * 9 + Math.sin(S.t / 170 + hx * 0.16 + hi) * 3; if (hx === -44) cx.moveTo(b.x + hx, hy); else cx.lineTo(b.x + hx, hy); } cx.stroke(); } }
+    }
     var bk = def.id + (b.atk === 'charge' ? '-charge' : '-stomp'), ban = ANIM[bk];
     if (ban && sheetReady(bk) && b.atk && (b.state === 'windup' || b.state === 'charge' || b.state === 'slam' || b.state === 'recover')) {
       o.tintA = (o.tintA || 0) * 0.4; o.sx = 1; o.sy = 1; var bchg = b.atk === 'charge', bst = b.state === 'windup' ? 'windup' : (b.state === 'recover' ? 'recover' : 'attack');
@@ -1227,6 +1288,7 @@ window.DF = window.DF || {};
     e.gside = -(e.gside || 1); e.plant = 1; e.pl = { x: e.x, y: e.y };
     if (!isP && Math.abs(e.x - P.x) > 460) return;
     var face = isP ? P.face : e.face || 1, spd = isP ? Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy) : 90;
+    if (boss && e.phase === 2 && S.bossDef.id === 'colossus' && !reduced() && S.parts.length < 140) ring(e.x, e.y, 90, '#4FD1C5');
     dust(e.x - face * (boss ? 30 : 10), e.y + 3, boss ? 3 : tank ? 3 : isP ? 2 : 1, boss ? 10 : 6, -face);
     if (isP ? spd > 90 : boss) shake(boss ? 1.4 : tank ? 1.1 : 0.7);
     if (!reduced() && S.parts.length < 150) S.parts.push({ fx: 'print', x: e.x - face * 6, y: e.y + 4 + e.gside * 4, ang: isP ? Math.atan2(P.ivy * 0.5, P.ivx || P.face) : 0, t: 0, life: 2400, big: boss ? 2 : 1 });
@@ -1289,6 +1351,13 @@ window.DF = window.DF || {};
       else if (el < 140) { q = (el - 60) / 80; var eo = 1 - Math.pow(1 - q, 2); rot = -0.10 + 0.32 * eo; sx = 1.03 + 0.08 * eo; sy = 0.95 + 0.01 * eo; lunge = -6 + 20 * eo; skew = 0; }
       else { q = (el - 140) / 120; rot = 0.22 * (1 - q); sx = 1.11 - 0.11 * q; sy = 0.96 + 0.04 * q; lunge = 14 * (1 - q); skew = 0; }
     }
+    if (P.atkT > 0 && st.path) { var fe = 260 - P.atkT; // evolved basics: Swiftclaw reaches, Ironhide leans back and returns slowly, Wildspark snaps
+      if (st.path === 'swiftclaw') { lunge *= 1.5; sx *= 0.97; }
+      else if (st.path === 'ironhide') { if (fe < 140) rot -= 0.1 * Math.min(1, fe / 60); else { var iq = (fe - 140) / 120; rot = 0.22 * (1 - iq * iq); lunge = 10 * (1 - iq * iq); sx = 1.11 - 0.11 * iq * iq; } }
+      else if (st.path === 'wildspark') { lunge *= 0.5; }
+    }
+    var dfl = S.ending > 0 && S.endOutcome === 'defeat';
+    if (dfl) { var dq = Math.min(1, Math.max(0, 900 - S.ending) / 700), stg = Math.min(1, dq / 0.35), col = Math.max(0, (dq - 0.35) / 0.65); col = col * col * (3 - 2 * col); rot = -0.16 * Math.sin(stg * Math.PI) - 1.35 * col; sy = 1 - 0.1 * col; sx = 1; skew = 0; lunge = -10 * stg * (1 - col); } // player defeat: staggers, then collapses backward
     if (P.dashT > 0) { rot = 0.2; sx = 1.14; sy = 0.9; skew = 0; }
     if (P.hurt > 0) { var hq = P.hurt / 260; rot = -0.16 * hq; sy *= 1 - 0.06 * hq; }
     skew += P.tail * 0.2; rot -= P.tail * 0.08; o.flip = P.fv < 0; sx *= (0.5 + 0.5 * Math.abs(P.fv)) * pf; sy *= pf; // swings round when turning, bigger when nearer the camera
@@ -1300,16 +1369,17 @@ window.DF = window.DF || {};
     if (P.hurt > 0) { o.tint = '#FF6A5E'; o.tintA = 0.5; }
     if (P.shield > 0) { var sa = 0.2 + 0.1 * Math.sin(S.t / 90); cx.fillStyle = 'rgba(207,232,176,' + sa + ')'; cx.beginPath(); cx.ellipse(P.x, P.y - 34, 54, 46, 0, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(207,232,176,.8)'; cx.lineWidth = 2; cx.stroke(); }
     if (P.surgeT > 0 && !(P.fxA && sheetReady(P.fxA.k))) { var g = cx.createRadialGradient(P.x, P.y - 30, 6, P.x, P.y - 30, 90); g.addColorStop(0, 'rgba(79,209,197,.5)'); g.addColorStop(1, 'rgba(79,209,197,0)'); cx.fillStyle = g; cx.fillRect(P.x - 100, P.y - 130, 200, 200); }
+    if (P.dashT > 0 && P.fxA && P.fxA.k === 'swiftclaw' && sheetReady('swiftclaw')) { var dan = ANIM.swiftclaw, dix = Math.min(dan.to, dan.from + Math.floor(P.fxA.t * 24 / 1000)); for (var dj = 3; dj >= 1; dj--) drawAnim('swiftclaw', dix, P.x - P.dashDx * dj * 26, P.y, w, P.face > 0, { alpha: 0.16 + 0.1 * (4 - dj), tint: '#4FD1C5', tintA: 0.7, sx: pf, sy: pf }); }
     if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
     else if (P.atkA && sheetReady(P.atkA.k)) { var aan = ANIM[P.atkA.k], afi = Math.min(aan.hit + BASIC_POST, aan.hit - BASIC_PRE + Math.floor(P.atkA.t * BASIC_FPS / 1000)); drawAnim(P.atkA.k, afi, P.x, P.y, w, P.face > 0, { alpha: o.alpha, tint: o.tint, tintA: o.tintA, sx: pf, sy: pf }); } // the owner's attack frames: lunge, bite or claw, recover
-    else if (walkReady(st.path)) { // the owner's walking sheets: the frame follows the gait, so every foot plant is a real leg pose; the art carries the bob, so ours is cut to 40%
-      var wk = walkOf(st.path); o.rot *= 0.4; o.skew = 0; o.sy = 1 + (o.sy - 1) * 0.4; drawWalk(wk, walkFrame(wk, P.gait), P.x + lunge * P.face, P.y + bob * 0.4, w, !o.flip, o);
+    else if (!dfl && walkReady(st.path)) { // the owner's walking sheets: the frame follows the gait, so every foot plant is a real leg pose; the art carries the bob, so ours is cut to 40%
+      var wk = walkOf(st.path), atkPose = P.atkT > 0 && st.path; if (!atkPose) { o.rot *= 0.4; o.sy = 1 + (o.sy - 1) * 0.4; } o.skew = 0; drawWalk(wk, atkPose ? 0 : walkFrame(wk, P.gait), P.x + lunge * P.face, P.y + bob * 0.4, w, !o.flip, o);
     } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
   }
   /* one frame of a sheet at a world spot: the resting body is scaled to width w and pinned to the feet; right = the dinosaur faces right */
-  function drawAnim(k, idx, x, y, w, right, o) {
+  function drawAnim(k, idx, x, y, w, right, o) { // o.arot / o.askew let a caller add a tilt on top of the sheet frame
     var an = ANIM[k], sc = w / an.rw, c = idx % an.cols, r = Math.floor(idx / an.cols), off = (an.fw / 2 - an.x0 - an.rw / 2) * sc;
-    o.cell = { x: c * an.fw, y: r * an.fh, w: an.fw, h: an.fh }; o.feet = an.ay; o.flip = !right; o.rot = 0; o.skew = 0;
+    o.cell = { x: c * an.fw, y: r * an.fh, w: an.fw, h: an.fh }; o.feet = an.ay; o.flip = !right; o.rot = o.arot || 0; o.skew = o.askew || 0;
     draw('anim-' + k, an.fw * sc, x + (right ? off : -off), y, o);
   }
   /* which frame an enemy or boss shows: the wind-up runs to the sheet's hit frame, the strike and the recovery share the frames after it */
@@ -1330,7 +1400,7 @@ window.DF = window.DF || {};
   /* the swing sweeps from high to low over the first half of its life, then fades. A dark outline and a coloured glow keep it readable on bright backdrops. */
   function drawSlash(p, k) {
     var cf = p.cfg, s = Math.min(1, k / 0.5), e = 1 - Math.pow(1 - s, 3), a0 = -1.25, a1 = a0 + 2.2 * e, R = p.len, N = 14, i, j, ang, th, pass;
-    cx.save(); cx.translate(p.x + p.face * 10, p.y); if (p.face < 0) cx.scale(-1, 1); cx.globalAlpha = Math.min(1, (1 - k) * 1.6); cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.shadowColor = cf.c2; cx.shadowBlur = reduced() ? 0 : 14;
+    cx.save(); cx.translate(p.x + p.face * 10, p.y); if (p.face < 0) cx.scale(-1, 1); cx.globalAlpha = Math.min(1, (1 - k) * 1.6) * (cf.fa || 1); cx.lineCap = 'round'; cx.lineJoin = 'round'; cx.shadowColor = cf.c2; cx.shadowBlur = reduced() ? 0 : 14;
     if (cf.kind === 'claw') {
       for (pass = 0; pass < 2; pass++) for (j = -1; j <= 1; j++) { cx.strokeStyle = pass ? (j === 0 ? cf.c1 : cf.c2) : 'rgba(10,18,14,.55)'; cx.lineWidth = ((j === 0 ? 6 : 4.2) + (pass ? 0 : 4)) * (1 - k * 0.5) + 1; cx.beginPath(); cx.arc(-6 + j * 4, j * 10, R - Math.abs(j) * 7, a0 + 0.1 * j, a1 + 0.05 * j); cx.stroke(); }
     } else if (cf.kind === 'bolt') {
@@ -1373,7 +1443,7 @@ window.DF = window.DF || {};
   function drawFx() {
     var i, p;
     for (i = 0; i < S.parts.length; i++) {
-      p = S.parts[i]; var k = p.t / p.life;
+      p = S.parts[i]; var k = p.t / p.life; if (p.t < 0) continue; // a delayed effect waits for its moment
       if (p.ring) { cx.strokeStyle = p.c; cx.globalAlpha = 1 - k; cx.lineWidth = 4 * (1 - k) + 1; cx.beginPath(); cx.ellipse(p.x, p.y - 4, p.r, p.r * 0.32, 0, 0, 7); cx.stroke(); cx.globalAlpha = 1; }
       else if (p.fx === 'slash') { drawSlash(p, k); }
       else if (p.fx === 'star') {
@@ -1386,7 +1456,7 @@ window.DF = window.DF || {};
       else if (p.fx === 'puddle') { var pk = Math.min(1, k * 5); cx.save(); cx.globalAlpha = Math.min(1, (1 - k) * 1.6) * 0.75; cx.fillStyle = 'rgba(88,150,40,.85)'; cx.beginPath(); cx.ellipse(p.x, p.y + 2, p.r * (0.5 + 0.5 * pk), p.r * 0.3 * (0.5 + 0.5 * pk), 0, 0, 7); cx.fill(); cx.strokeStyle = 'rgba(190,255,120,.7)'; cx.lineWidth = 1.5; cx.stroke(); cx.fillStyle = 'rgba(220,255,170,.8)'; for (var bi = 0; bi < 3; bi++) { var bph = (k * 3 + bi * 0.33) % 1; cx.globalAlpha = (1 - bph) * (1 - k) * 0.8; cx.beginPath(); cx.arc(p.x + (bi - 1) * p.r * 0.4, p.y - bph * 9, 1.6 + bph, 0, 7); cx.fill(); } cx.restore(); }
       else if (p.fx === 'cracks') {
         var gk = Math.min(1, k * 5); cx.save(); cx.translate(p.x, p.y); cx.lineCap = 'round'; cx.lineJoin = 'round';
-        for (var pass = 0; pass < 2; pass++) { cx.strokeStyle = pass ? 'rgba(255,200,110,' + (0.9 * (1 - k)) + ')' : 'rgba(25,16,10,' + (0.8 * (1 - k * 0.6)) + ')'; cx.lineWidth = pass ? 1.6 : 4; for (var li = 0; li < p.lines.length; li++) { var seg = p.lines[li]; cx.beginPath(); cx.moveTo(0, 0); for (var si = 0; si < seg.length; si++) if (si / seg.length <= gk) cx.lineTo(seg[si][0], seg[si][1]); cx.stroke(); } }
+        for (var pass = 0; pass < 2; pass++) { cx.strokeStyle = pass ? 'rgba(' + (p.hot || '255,200,110') + ',' + (0.9 * (1 - k)) + ')' : 'rgba(25,16,10,' + (0.8 * (1 - k * 0.6)) + ')'; cx.lineWidth = pass ? 1.6 : 4; for (var li = 0; li < p.lines.length; li++) { var seg = p.lines[li]; cx.beginPath(); cx.moveTo(0, 0); for (var si = 0; si < seg.length; si++) if (si / seg.length <= gk) cx.lineTo(seg[si][0], seg[si][1]); cx.stroke(); } }
         cx.restore();
       }
       else if (p.fx === 'scratch') { var sk = Math.min(1, k * 3); cx.save(); cx.translate(p.x, p.y - 34); cx.lineCap = 'round'; for (var ci = 0; ci < 3; ci++) { cx.strokeStyle = 'rgba(255,90,74,' + (1 - k) + ')'; cx.lineWidth = 4.5 * (1 - k) + 1; cx.beginPath(); var x0 = -26 + ci * 9, y0 = -26 + ci * 4; cx.moveTo(x0, y0); cx.lineTo(x0 + 40 * sk, y0 + 56 * sk); cx.stroke(); } cx.restore(); }
