@@ -260,18 +260,22 @@ window.addEventListener('resize', resize);
 
 /* ---- themes ---- */
 var THEMES = [
-  { name: 'Sunset Coast', top: [60, 40, 110], bot: [255, 150, 90], grass: [[112, 120, 76], [106, 114, 72]], road: [[78, 76, 82], [73, 71, 77]], rum: [[224, 222, 216], [184, 64, 52]], lane: [234, 230, 220], fog: [250, 160, 100], sun: [255, 228, 160], sil: [92, 62, 98], deco: 'palm', night: 0 },
-  { name: 'Neon Night', top: [5, 5, 28], bot: [96, 30, 124], grass: [[20, 23, 36], [18, 21, 33]], road: [[44, 44, 60], [40, 40, 56]], rum: [[236, 74, 170], [70, 200, 236]], lane: [255, 240, 120], fog: [70, 22, 100], sun: [205, 222, 255], sil: [22, 22, 54], deco: 'city', night: 1 },
-  { name: 'Desert Storm', top: [90, 160, 235], bot: [250, 222, 172], grass: [[204, 172, 122], [198, 167, 117]], road: [[92, 88, 88], [86, 82, 82]], rum: [[228, 226, 220], [200, 112, 56]], lane: [250, 250, 250], fog: [250, 222, 172], sun: [255, 250, 220], sil: [215, 160, 100], deco: 'cactus', night: 0 },
-  { name: 'Alpine Pass', top: [60, 120, 200], bot: [200, 225, 245], grass: [[224, 230, 236], [217, 223, 230]], road: [[74, 76, 86], [69, 71, 81]], rum: [[228, 230, 232], [74, 104, 160]], lane: [250, 250, 250], fog: [200, 225, 245], sun: [255, 255, 240], sil: [140, 165, 200], deco: 'pine', night: 0 }
+  { name: 'Sunset Coast', top: [60, 40, 110], bot: [250, 160, 100], grass: [[112, 120, 76], [106, 114, 72]], road: [[78, 76, 82], [73, 71, 77]], rum: [[224, 222, 216], [184, 64, 52]], lane: [234, 230, 220], fog: [250, 160, 100], sun: [255, 228, 160], sil: [92, 62, 98], deco: 'palm', night: 0,
+    ro: [176, 152, 112], b0: [255, 106, 42], b1: [240, 236, 228], light: { pos: [4, 13, -75], int: 1.0, col: [255, 190, 130], sh: [18, 8, 36, 0.5] }, lamp: { glow: 0.35, pool: 0.28, col: [255, 190, 120] } },
+  { name: 'Neon Night', top: [5, 5, 28], bot: [96, 30, 124], grass: [[20, 23, 36], [18, 21, 33]], road: [[44, 44, 60], [40, 40, 56]], rum: [[236, 74, 170], [70, 200, 236]], lane: [255, 240, 120], fog: [70, 22, 100], sun: [205, 222, 255], sil: [22, 22, 54], deco: 'city', night: 1,
+    ro: [38, 44, 60], b0: [236, 74, 170], b1: [70, 200, 236], light: null, lamp: { glow: 1, pool: 0.95, col: [130, 205, 255] } },
+  { name: 'Desert Highway', top: [90, 160, 235], bot: [250, 222, 172], grass: [[204, 172, 122], [198, 167, 117]], road: [[92, 88, 88], [86, 82, 82]], rum: [[228, 226, 220], [200, 112, 56]], lane: [250, 250, 250], fog: [250, 222, 172], sun: [255, 250, 220], sil: [200, 120, 80], deco: 'cactus', night: 0,
+    ro: [204, 168, 118], b0: [200, 52, 42], b1: [240, 236, 228], light: { pos: [-28, 42, -30], int: 1.25, col: [255, 250, 235], sh: [50, 35, 15, 0.6] }, lamp: { glow: 0, pool: 0, col: [255, 230, 180] } },
+  { name: 'Alpine Pass', top: [60, 120, 200], bot: [200, 225, 245], grass: [[224, 230, 236], [217, 223, 230]], road: [[74, 76, 86], [69, 71, 81]], rum: [[228, 230, 232], [74, 104, 160]], lane: [250, 250, 250], fog: [200, 225, 245], sun: [255, 255, 240], sil: [140, 165, 200], deco: 'pine', night: 0,
+    ro: [216, 224, 236], b0: [66, 104, 196], b1: [240, 244, 248], light: { pos: [-42, 12, -35], int: 0.9, col: [175, 196, 255], sh: [14, 30, 110, 0.5] }, lamp: { glow: 0.85, pool: 0.6, col: [255, 205, 130] } }
 ];
-function copyTheme(t) { return { top: t.top.slice(), bot: t.bot.slice(), g0: t.grass[0].slice(), g1: t.grass[1].slice(), r0: t.road[0].slice(), r1: t.road[1].slice(), u0: t.rum[0].slice(), u1: t.rum[1].slice(), lane: t.lane.slice(), fog: t.fog.slice(), sun: t.sun.slice(), sil: t.sil.slice() }; }
+function copyTheme(t) { return { top: t.top.slice(), bot: t.bot.slice(), g0: t.grass[0].slice(), g1: t.grass[1].slice(), r0: t.road[0].slice(), r1: t.road[1].slice(), u0: t.rum[0].slice(), u1: t.rum[1].slice(), lane: t.lane.slice(), fog: t.fog.slice(), sun: t.sun.slice(), sil: t.sil.slice(), ro: t.ro.slice(), b0: t.b0.slice(), b1: t.b1.slice(), lamp: t.lamp.col.slice() }; }
 function lerpArr(a, b, k) { for (var i = 0; i < 3; i++) a[i] += (b[i] - a[i]) * k; }
 var cur = copyTheme(THEMES[0]);
 function mixTheme(t, k) {
   lerpArr(cur.top, t.top, k); lerpArr(cur.bot, t.bot, k); lerpArr(cur.g0, t.grass[0], k); lerpArr(cur.g1, t.grass[1], k);
   lerpArr(cur.r0, t.road[0], k); lerpArr(cur.r1, t.road[1], k); lerpArr(cur.u0, t.rum[0], k); lerpArr(cur.u1, t.rum[1], k);
-  lerpArr(cur.lane, t.lane, k); lerpArr(cur.fog, t.fog, k); lerpArr(cur.sun, t.sun, k); lerpArr(cur.sil, t.sil, k);
+  lerpArr(cur.lane, t.lane, k); lerpArr(cur.fog, t.fog, k); lerpArr(cur.sun, t.sun, k); lerpArr(cur.sil, t.sil, k); lerpArr(cur.ro, t.ro, k); lerpArr(cur.b0, t.b0, k); lerpArr(cur.b1, t.b1, k); lerpArr(cur.lamp, t.lamp.col, k);
 }
 
 /* ---- bikes (colours) ---- */
@@ -790,8 +794,9 @@ document.getElementById('revive').addEventListener('click', function () {
 });
 
 /* ---- 3D world (Three.js, bundled in vendor/) ---- */
-var M = 0.01, SEGM = SEG * M, ROADM = 4.8, K_BEND = 0.012, NSEG_MAX = 144, Q = 8;
-var glOK = false, renderer, scene, camera, hemi, sun, horizon, skyGeo, skyMesh, groundMesh, roadGeo, roadMesh, sunMesh, hillsMesh, cityMesh, starsPts;
+var M = 0.01, SEGM = SEG * M, ROADM = 4.8, K_BEND = 0.012, NSEG_MAX = 144, Q = 19, EK = 0.9, RUN = 2.4, BT = ROADM + EK + RUN;
+var EDGEC = [238, 236, 230], BARCAP = [150, 152, 160], fencePos, fenceUv, fenceGeo, fenceMesh, lampK = { g: 0, p: 0 };
+var mesaMesh, capMesh, glOK = false, renderer, scene, camera, hemi, sun, horizon, skyGeo, skyMesh, groundMesh, roadGeo, roadMesh, sunMesh, hillsMesh, cityMesh, starsPts;
 var lookIdx = -1, models = [], neonMat, glowMesh, shadowPlane;
 var bikeRoot, wheelieG, frontG, rearWheel, frontWheel, flames = [], flameGlow, tailMat, riderG, shadowBlob;
 var leanA = 0, tuckA = 0.4, brakeA = 0, curModel = null, lastSel = -1;
@@ -866,7 +871,15 @@ function init3D() {
   var cg = new THREE.BoxGeometry(1, 1, 1); cg.translate(0, 0.5, 0);
   cityMesh = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: 0x161636, fog: false }), 64);
   var rg = rng(31), i2, a;
-  for (i2 = 0; i2 < 48; i2++) { a = i2 / 48 * 6.2832; var w = 60 + rg() * 90, h = 25 + rg() * 60; dummy.position.set(Math.sin(a) * 335, -4, -Math.cos(a) * 335); dummy.rotation.set(0, -a, 0); dummy.scale.set(w, h, w); dummy.updateMatrix(); hillsMesh.setMatrixAt(i2, dummy.matrix); }
+  capMesh = new THREE.InstancedMesh(hg, new THREE.MeshBasicMaterial({ color: 0xeef3fa, fog: false }), 48);
+  for (i2 = 0; i2 < 48; i2++) {
+    a = i2 / 48 * 6.2832; var w = 60 + rg() * 90, h = 25 + rg() * 60; dummy.position.set(Math.sin(a) * 335, -4, -Math.cos(a) * 335); dummy.rotation.set(0, -a, 0); dummy.scale.set(w, h, w); dummy.updateMatrix(); hillsMesh.setMatrixAt(i2, dummy.matrix);
+    dummy.position.y = -4 + h * 0.6; dummy.scale.set(w * 0.4, h * 0.4, w * 0.4); dummy.updateMatrix(); capMesh.setMatrixAt(i2, dummy.matrix);
+  }
+  var mg = new THREE.CylinderGeometry(0.72, 1, 1, 8); mg.translate(0, 0.5, 0);
+  mesaMesh = new THREE.InstancedMesh(mg, new THREE.MeshBasicMaterial({ color: 0xc8785a, fog: false }), 22);
+  for (i2 = 0; i2 < 22; i2++) { a = i2 / 22 * 6.2832 + rg() * 0.1; var mw = 50 + rg() * 70, mh = 36 + rg() * 50; dummy.position.set(Math.sin(a) * 330, -3, -Math.cos(a) * 330); dummy.rotation.set(0, -a, 0); dummy.scale.set(mw, mh, mw * 0.8); dummy.updateMatrix(); mesaMesh.setMatrixAt(i2, dummy.matrix); }
+  horizon.add(capMesh); horizon.add(mesaMesh);
   for (i2 = 0; i2 < 64; i2++) { a = i2 / 64 * 6.2832; var w2 = 14 + rg() * 22, h2 = 18 + Math.pow(rg(), 2) * 110; dummy.position.set(Math.sin(a) * 325, -2, -Math.cos(a) * 325); dummy.rotation.set(0, -a, 0); dummy.scale.set(w2, h2, w2); dummy.updateMatrix(); cityMesh.setMatrixAt(i2, dummy.matrix); }
   horizon.add(hillsMesh); horizon.add(cityMesh);
   var sp = [], rs = rng(5); for (i2 = 0; i2 < 90; i2++) { var aa = rs() * 6.2832, el = 0.1 + rs() * 1.1; sp.push(Math.sin(aa) * Math.cos(el) * 395, Math.sin(el) * 395, -Math.cos(aa) * Math.cos(el) * 395); }
@@ -883,6 +896,14 @@ function init3D() {
   roadGeo.setIndex(new THREE.BufferAttribute(idx, 1));
   roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
   roadMesh.frustumCulled = false; scene.add(roadMesh);
+  /* see-through catch fence above the barrier */
+  fencePos = new Float32Array(NSEG_MAX * 2 * 4 * 3); fenceUv = new Float32Array(NSEG_MAX * 2 * 4 * 2);
+  var fidx = new Uint16Array(NSEG_MAX * 2 * 6); for (var fq = 0; fq < NSEG_MAX * 2; fq++) { var fv = fq * 4; fidx.set([fv, fv + 1, fv + 3, fv, fv + 3, fv + 2], fq * 6); }
+  fenceGeo = new THREE.BufferGeometry(); fenceGeo.setAttribute('position', new THREE.BufferAttribute(fencePos, 3).setUsage(THREE.DynamicDrawUsage)); fenceGeo.setAttribute('uv', new THREE.BufferAttribute(fenceUv, 2).setUsage(THREE.DynamicDrawUsage)); fenceGeo.setIndex(new THREE.BufferAttribute(fidx, 1));
+  var fc2 = document.createElement('canvas'); fc2.width = 64; fc2.height = 64; var fx2 = fc2.getContext('2d'); fx2.strokeStyle = 'rgba(176,184,196,.95)'; fx2.lineWidth = 2;
+  fx2.beginPath(); for (var fi = -64; fi <= 128; fi += 16) { fx2.moveTo(fi, 0); fx2.lineTo(fi + 64, 64); fx2.moveTo(fi + 64, 0); fx2.lineTo(fi, 64); } fx2.stroke(); fx2.fillStyle = 'rgba(70,76,88,1)'; fx2.fillRect(0, 0, 5, 64); fx2.fillRect(0, 0, 64, 4);
+  var ftex = new THREE.CanvasTexture(fc2); ftex.wrapS = ftex.wrapT = THREE.RepeatWrapping;
+  fenceMesh = new THREE.Mesh(fenceGeo, new THREE.MeshBasicMaterial({ map: ftex, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, depthWrite: false })); fenceMesh.frustumCulled = false; scene.add(fenceMesh);
 
   buildDeco(); buildCars(); buildBike();
   bikeRoot.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
@@ -918,8 +939,8 @@ function buildDeco() {
       prev = pt;
     }
     var tx = prev[0], ty = prev[1], k, fr = [fa, fb, fc];
-    for (k = 0; k < 12; k++) {
-      var ang = k / 12 * Math.PI * 2 + (k % 3) * 0.13, tilt = (k % 2 ? 0.34 : 0.05) + (k % 3) * 0.06;
+    for (k = 0; k < 13; k++) {
+      var ang = k / 13 * Math.PI * 2 + (k % 3) * 0.13, tilt = (k % 2 ? 0.34 : 0.05) + (k % 3) * 0.06;
       parts.push({ g: fr[k % 3], m: T(tx, ty + 0.1, 0, 0, ang, tilt), c: k % 2 ? green : green2 });
     }
     for (k = 0; k < 3; k++) parts.push({ g: sph8, m: T(tx + Math.cos(k * 2.1) * 0.22, ty - 0.12, Math.sin(k * 2.1) * 0.22, 0, 0, 0, 0.14, 0.14, 0.14), c: [0.2, 0.14, 0.08] });
@@ -930,7 +951,7 @@ function buildDeco() {
     for (i = 0; i < 6; i++) {
       var h = 1.5 - i * 0.05;
       parts.push({ g: new THREE.ConeGeometry(rad[i], h, 10), m: T(0, y + h / 2, 0, 0, i * 0.5, 0), c: i % 2 ? pineG : pineG2 });
-      if (i >= 3) parts.push({ g: new THREE.ConeGeometry(rad[i] * 0.62, h * 0.55, 10), m: T(0, y + h * 0.62, 0, 0, i * 0.5, 0), c: snow });
+      parts.push({ g: new THREE.ConeGeometry(rad[i] * 0.66, h * 0.5, 10), m: T(0, y + h * 0.66, 0, 0, i * 0.5, 0), c: snow });
       y += h * 0.62;
     }
     return parts;
@@ -950,19 +971,57 @@ function buildDeco() {
   var ico = new THREE.IcosahedronGeometry(1, 1), dod = new THREE.DodecahedronGeometry(1, 0), bushParts = [], bcols = [[0.30, 0.36, 0.20], [0.26, 0.33, 0.18], [0.34, 0.40, 0.22], [0.28, 0.35, 0.19], [0.32, 0.38, 0.21]];
   [[0, 0.45, 0, 0.8], [0.6, 0.35, 0.2, 0.6], [-0.55, 0.3, 0.25, 0.62], [0.2, 0.3, -0.55, 0.55], [-0.2, 0.62, -0.1, 0.55]].forEach(function (o, i) { bushParts.push({ g: ico, m: T(o[0], o[1], o[2], 0, 0, 0, o[3], o[3] * 0.75, o[3]), c: bcols[i] }); });
   var rockParts = [{ g: dod, m: T(0, 0.35, 0, 0, 0.5, 0, 0.9, 0.6, 0.8), c: [0.40, 0.37, 0.34] }, { g: dod, m: T(0.8, 0.2, 0.3, 0, 1.2, 0, 0.5, 0.35, 0.45), c: [0.36, 0.34, 0.32] }, { g: dod, m: T(-0.7, 0.18, -0.2, 0, 2, 0, 0.4, 0.3, 0.4), c: [0.42, 0.39, 0.35] }];
-  var geos = { palm: mergeParts(palmParts()), cactus: mergeParts(cactusParts()), pine: mergeParts(pineParts()), bush: mergeParts(bushParts), rock: mergeParts(rockParts) };
+  function acaciaParts() {
+    var parts = [], pts = [[0, 0], [0.25, 1.4], [0.7, 2.6], [1.0, 3.6]], i;
+    for (i = 1; i < pts.length; i++) { var dx = pts[i][0] - pts[i - 1][0], dy = pts[i][1] - pts[i - 1][1], len = Math.hypot(dx, dy); parts.push({ g: new THREE.CylinderGeometry(0.13 - i * 0.02, 0.2 - i * 0.03, len, 6), m: T((pts[i][0] + pts[i - 1][0]) / 2, (pts[i][1] + pts[i - 1][1]) / 2, 0, 0, 0, -Math.atan2(dx, dy)), c: brown2 }); }
+    parts.push({ g: sph8, m: T(1.0, 3.9, 0, 0, 0, 0, 2.7, 0.5, 2.5), c: [0.42, 0.5, 0.21] });
+    parts.push({ g: sph8, m: T(0.2, 3.65, 0.4, 0, 0, 0, 1.7, 0.4, 1.6), c: [0.37, 0.45, 0.2] });
+    return parts;
+  }
+  function strtreeParts() {
+    var parts = [];
+    parts.push({ g: new THREE.BoxGeometry(1.3, 0.5, 1.3), m: T(0, 0.25, 0), c: [0.16, 0.18, 0.24] });
+    parts.push({ g: new THREE.BoxGeometry(1.42, 0.08, 1.42), m: T(0, 0.52, 0), c: [0.5, 0.9, 1.0] });
+    parts.push({ g: new THREE.CylinderGeometry(0.1, 0.14, 2.4, 6), m: T(0, 1.7, 0), c: [0.25, 0.2, 0.18] });
+    parts.push({ g: sph8, m: T(0, 3.4, 0, 0, 0, 0, 1.35, 1.15, 1.35), c: [0.1, 0.5, 0.5] });
+    parts.push({ g: sph8, m: T(0.45, 4.0, 0.2, 0, 0, 0, 0.95, 0.85, 0.95), c: [0.14, 0.62, 0.6] });
+    return parts;
+  }
+  function lampParts() {
+    var parts = [], dk2 = [0.16, 0.17, 0.2], arm = [[0, 7.6], [-1.0, 8.15], [-2.2, 8.3], [-3.3, 8.12]], i;
+    parts.push({ g: new THREE.CylinderGeometry(0.2, 0.26, 0.45, 8), m: T(0, 0.22, 0), c: dk2 });
+    parts.push({ g: new THREE.CylinderGeometry(0.09, 0.14, 7.7, 8), m: T(0, 3.85, 0), c: dk2 });
+    for (i = 1; i < arm.length; i++) { var dx = arm[i][0] - arm[i - 1][0], dy = arm[i][1] - arm[i - 1][1], len = Math.hypot(dx, dy); parts.push({ g: new THREE.CylinderGeometry(0.06, 0.07, len, 6), m: T((arm[i][0] + arm[i - 1][0]) / 2, (arm[i][1] + arm[i - 1][1]) / 2, 0, 0, 0, -Math.atan2(dx, dy)), c: dk2 }); }
+    parts.push({ g: new THREE.BoxGeometry(0.9, 0.16, 0.42), m: T(-3.45, 8.14, 0), c: [0.22, 0.23, 0.28] });
+    parts.push({ g: new THREE.BoxGeometry(0.72, 0.04, 0.3), m: T(-3.45, 8.04, 0), c: [1, 0.92, 0.75] });
+    return parts;
+  }
+  var geos = { acacia: mergeParts(acaciaParts()), strtree: mergeParts(strtreeParts()), lamp: mergeParts(lampParts()), palm: mergeParts(palmParts()), cactus: mergeParts(cactusParts()), pine: mergeParts(pineParts()), bush: mergeParts(bushParts), rock: mergeParts(rockParts) };
   /* darker at the base, lighter at the top, so trees have depth instead of one flat colour */
   Object.keys(geos).forEach(function (k) {
     var G = geos[k], pa = G.attributes.position, ca = G.attributes.color, ymax = 0, i;
     for (i = 0; i < pa.count; i++) ymax = Math.max(ymax, pa.getY(i));
     for (i = 0; i < pa.count; i++) { var f = 0.7 + 0.42 * Math.min(1, pa.getY(i) / ymax); ca.setXYZ(i, ca.getX(i) * f, ca.getY(i) * f, ca.getZ(i) * f); }
   });
-  ['palm', 'cactus', 'pine', 'bush', 'rock'].forEach(function (k) {
+  ['palm', 'cactus', 'pine', 'bush', 'rock', 'acacia', 'strtree'].forEach(function (k) {
     var im = new THREE.InstancedMesh(geos[k], new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), 90); im.count = 0; im.frustumCulled = false; scene.add(im); decoMeshes[k] = im;
     for (var ci = 0; ci < 90; ci++) im.setColorAt(ci, new THREE.Color(1, 1, 1));
   });
   var bg = new THREE.BoxGeometry(1, 1, 1); bg.translate(0, 0.5, 0);
   var cm = new THREE.InstancedMesh(bg, new THREE.MeshBasicMaterial({ map: wtex }), 70); cm.count = 0; cm.frustumCulled = false; scene.add(cm); decoMeshes.city = cm;
+  var sgm = new THREE.BoxGeometry(0.3, 1, 0.18); sgm.translate(0, 0.5, 0);
+  var sm = new THREE.InstancedMesh(sgm, new THREE.MeshBasicMaterial({ color: 0xffffff }), 70); sm.count = 0; sm.frustumCulled = false; for (var si = 0; si < 70; si++) sm.setColorAt(si, new THREE.Color(1, 1, 1)); scene.add(sm); decoMeshes.sign = sm;
+  /* grandstand (Sunset Coast): a crowd of coloured dots under a pale roof line */
+  var gc = document.createElement('canvas'); gc.width = 256; gc.height = 64; var gx = gc.getContext('2d'), gr = rng(21);
+  gx.fillStyle = '#171a24'; gx.fillRect(0, 0, 256, 64); gx.fillStyle = '#e8e4da'; gx.fillRect(0, 0, 256, 7);
+  for (var gy = 12; gy < 62; gy += 6) for (var gxx = 3; gxx < 253; gxx += 6) { gx.fillStyle = ['#ff7a3a', '#f4f1ea', '#4c8dff', '#ffc24a', '#d4261f', '#7a809a'][(gr() * 6) | 0]; gx.fillRect(gxx, gy, 3, 3); }
+  var gm2 = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc) }), 6); gm2.geometry.translate(0, 0.5, 0); gm2.count = 0; gm2.frustumCulled = false; scene.add(gm2); decoMeshes.grand = gm2;
+  /* street lights: post, glow and the light pool on the road */
+  var lp = new THREE.InstancedMesh(geos.lamp, new THREE.MeshBasicMaterial({ vertexColors: true }), 24); lp.count = 0; lp.frustumCulled = false; scene.add(lp); decoMeshes.lampPost = lp;
+  var lgt = radialTex('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
+  var lg = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: lgt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }), 24); lg.count = 0; lg.frustumCulled = false; scene.add(lg); decoMeshes.lampGlow = lg;
+  var pg = new THREE.PlaneGeometry(7.5, 7.5); pg.rotateX(-Math.PI / 2);
+  var lpool = new THREE.InstancedMesh(pg, new THREE.MeshBasicMaterial({ map: lgt, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }), 24); lpool.count = 0; lpool.frustumCulled = false; for (var pi2 = 0; pi2 < 24; pi2++) lpool.setColorAt(pi2, new THREE.Color(1, 1, 1)); scene.add(lpool); decoMeshes.lampPool = lpool;
 }
 
 /* ---- traffic ---- */
@@ -1030,6 +1089,16 @@ function poseRider(m, lean, tuck, brk) {
   }
 }
 
+function mergeStatic(grp) {
+  var by = {}, rm = [];
+  grp.children.forEach(function (o) {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.normal) return;
+    var mt = o.material; if (mt.map || mt.transparent || mt.blending !== THREE.NormalBlending || o.userData.keep) return;
+    o.updateMatrix(); (by[mt.uuid] = by[mt.uuid] || { mat: mt, parts: [] }).parts.push({ g: o.geometry, m: o.matrix.clone() }); rm.push(o);
+  });
+  rm.forEach(function (o) { grp.remove(o); });
+  Object.keys(by).forEach(function (k) { var e = by[k]; grp.add(new THREE.Mesh(mergeParts(e.parts), e.mat)); });
+}
 function buildBike() {
   var env = envTex; initTmp();
   function L(c) { return new THREE.MeshLambertMaterial({ color: c, emissive: c, emissiveIntensity: 0.28 }); }
@@ -1164,6 +1233,7 @@ function buildBike() {
     }
     flamesAt(m, [[0.21, ey + Math.sin(tilt) * el / 2 + 0.02, ez + Math.cos(tilt) * el / 2 + 0.02]], ex === 'big' ? 1.4 : 1.2, [0.15, ey + 0.1, 1.45]);
     underglow(m);
+    mergeStatic(inner); mergeStatic(fgr); mergeStatic(m.rear); mergeStatic(m.front);
     bikeRoot.add(m.w); models.push(m);
     poseRider(m, 0, 0.4, 0);
   }
@@ -1189,22 +1259,44 @@ function render(dt) {
       var cu = segs[(base + k - 4) % N].curve; ang += cu * K_BEND; Th[k + 1] = ang;
       var am = (Th[k] + ang) / 2; xx += Math.sin(am) * SEGM; zz += Math.cos(am) * SEGM; Px[k + 1] = xx; Pz[k + 1] = zz;
     }
-    var o = 0, R = ROADM, sg, band, kk;
+    var o = 0, R = ROADM, sg, band, co = 0, fo = 0, fu = 0;
     function edge(kx, t, y) { var c = Math.cos(Th[kx]), s = Math.sin(Th[kx]); roadPos[o++] = Px[kx] + t * c; roadPos[o++] = y; roadPos[o++] = -(Pz[kx] - t * s); }
+    function edgeF(kx, f, t, y) { var th_ = lerp(Th[kx], Th[kx + 1], f), c = Math.cos(th_), s = Math.sin(th_); roadPos[o++] = lerp(Px[kx], Px[kx + 1], f) + t * c; roadPos[o++] = y; roadPos[o++] = -(lerp(Pz[kx], Pz[kx + 1], f) - t * s); }
     function quadAt(k0, t0, t1, y) { edge(k0, t0, y); edge(k0, t1, y); edge(k0 + 1, t1, y); edge(k0 + 1, t0, y); }
-    var co = 0;
+    function quadF(k0, f0, f1, t0, t1, y) { edgeF(k0, f0, t0, y); edgeF(k0, f0, t1, y); edgeF(k0, f1, t1, y); edgeF(k0, f1, t0, y); }
+    function vquad(k0, t, y0, y1) { edge(k0, t, y0); edge(k0, t, y1); edge(k0 + 1, t, y1); edge(k0 + 1, t, y0); }
     function colQ(c, f) { for (var v = 0; v < 4; v++) { setC(roadCol, co, c, f); co += 3; } }
+    function fenceQ(k0, t, u0) {
+      var kx, i2;
+      for (i2 = 0; i2 < 2; i2++) { kx = k0 + i2; var c = Math.cos(Th[kx]), s = Math.sin(Th[kx]), x = Px[kx] + t * c, z = -(Pz[kx] - t * s); fencePos[fo++] = x; fencePos[fo++] = 0.8; fencePos[fo++] = z; fencePos[fo++] = x; fencePos[fo++] = 2.9; fencePos[fo++] = z; }
+      fenceUv[fu++] = u0; fenceUv[fu++] = 0; fenceUv[fu++] = u0; fenceUv[fu++] = 1; fenceUv[fu++] = u0 + 1; fenceUv[fu++] = 0; fenceUv[fu++] = u0 + 1; fenceUv[fu++] = 1;
+    }
     for (k = 0; k < nseg; k++) {
       sg = segs[(((base + k - 4) % N) + N) % N]; band = Math.floor(sg.i / 3) % 2;
-      quadAt(k, -70, -R * 1.14, -0.05); colQ(band ? cur.g1 : cur.g0);
-      quadAt(k, R * 1.14, 70, -0.05); colQ(band ? cur.g1 : cur.g0);
-      quadAt(k, -R * 1.14, -R, 0.012); colQ(band ? cur.u1 : cur.u0);
-      quadAt(k, R, R * 1.14, 0.012); colQ(band ? cur.u1 : cur.u0);
-      quadAt(k, -R, R, 0); colQ(band ? cur.r1 : cur.r0);
+      var kb = sg.i % 2, bb = Math.floor(sg.i / 2) % 2, cv = sg.curve, gc = band ? cur.g1 : cur.g0, rc = band ? cur.r1 : cur.r0;
+      quadAt(k, -90, -(BT + 0.15), -0.05); colQ(gc);
+      quadAt(k, BT + 0.15, 90, -0.05); colQ(gc);
+      quadAt(k, -BT, -(R + EK), 0.005); colQ(cur.ro);
+      quadAt(k, R + EK, BT, 0.005); colQ(cur.ro);
+      quadAt(k, -(R + EK), -R, 0.012); colQ(kb ? cur.u1 : cur.u0);
+      quadAt(k, R, R + EK, 0.012); colQ(kb ? cur.u1 : cur.u0);
+      quadAt(k, -R, R, 0); colQ(rc);
+      var rl = clamp(cv * 0.18, -0.5, 0.5) * R; quadAt(k, rl - 0.8, rl + 0.8, 0.004); colQ(rc, 0.78);      /* darker rubbered racing line */
+      quadAt(k, -R + 0.12, -R + 0.3, 0.02); colQ(EDGEC);                                                    /* solid white edge lines */
+      quadAt(k, R - 0.3, R - 0.12, 0.02); colQ(EDGEC);
       var on = sg.i % 6 < 3, lw = on ? 0.09 : 0;
-      for (q = -0.5; q <= 0.51; q += 0.5) { quadAt(k, q * R - lw, q * R + lw, 0.02); colQ(cur.lane); }
+      for (q = -0.5; q <= 0.51; q += 0.5) { quadAt(k, q * R - lw, q * R + lw, 0.02); colQ(cur.lane); }       /* dashed lane lines */
+      var seam = sg.i % 5 === 0; quadF(k, 0.47, 0.53, seam ? -R : 0, seam ? R : 0, 0.007); colQ(cur.r0, 0.55);   /* cross-seams */
+      var hp = hash(sg.i * 13 + 5), pat = hp < 0.07, pc = (hp * 997) % 1;                                    /* repair patches */
+      quadF(k, 0.1, 0.9, pat ? (pc * 1.2 - 0.6) * R - 0.9 : 0, pat ? (pc * 1.2 - 0.6) * R + 0.9 : 0, 0.006); colQ(cur.r0, pc > 0.5 ? 1.14 : 0.86);
+      vquad(k, -BT, 0, 0.8); colQ(bb ? cur.b1 : cur.b0, 0.92);                                              /* low barrier, alternating colours */
+      vquad(k, BT, 0, 0.8); colQ(bb ? cur.b1 : cur.b0, 0.92);
+      quadAt(k, -(BT + 0.35), -BT, 0.8); colQ(BARCAP);
+      quadAt(k, BT, BT + 0.35, 0.8); colQ(BARCAP);
+      fenceQ(k, -(BT + 0.12), sg.i); fenceQ(k, BT + 0.12, sg.i);                                            /* catch fence above it */
     }
     roadGeo.attributes.position.needsUpdate = true; roadGeo.attributes.color.needsUpdate = true; roadGeo.setDrawRange(0, nseg * Q * 6);
+    fenceGeo.attributes.position.needsUpdate = true; fenceGeo.attributes.uv.needsUpdate = true; fenceGeo.setDrawRange(0, nseg * 2 * 6); fenceMesh.visible = quality > 0;
 
     /* colours */
     var fc = cur.bot; scene.fog.color.setRGB(fc[0] / 255, fc[1] / 255, fc[2] / 255); renderer.setClearColor(scene.fog.color, 1);
@@ -1217,39 +1309,72 @@ function render(dt) {
     sc.needsUpdate = true;
     sunMesh.material.color.setRGB(cur.sun[0] / 255, cur.sun[1] / 255, cur.sun[2] / 255);
     hillsMesh.material.color.setRGB(cur.sil[0] / 255, cur.sil[1] / 255, cur.sil[2] / 255); cityMesh.material.color.setRGB(cur.sil[0] / 255, cur.sil[1] / 255, cur.sil[2] / 255);
-    hillsMesh.visible = th.deco !== 'city'; cityMesh.visible = th.deco === 'city'; starsPts.visible = !!th.night && quality > 0;
+    hillsMesh.visible = th.deco !== 'city' && th.deco !== 'cactus'; cityMesh.visible = th.deco === 'city'; mesaMesh.visible = th.deco === 'cactus'; capMesh.visible = th.deco === 'pine'; starsPts.visible = !!th.night && quality > 0;
+    mesaMesh.material.color.setRGB(cur.sil[0] / 255, cur.sil[1] / 255, cur.sil[2] / 255);
     horizon.rotation.y = bgAng;
-    var li = th.night ? 0.62 : 0.95; hemi.intensity += (li - hemi.intensity) * Math.min(1, dt * 2); sun.intensity = th.night ? 0.6 : 1.05;
+    var li = th.night ? 0.62 : 0.95; hemi.intensity += (li - hemi.intensity) * Math.min(1, dt * 2);
     hemi.color.setRGB(Math.min(1, cur.top[0] / 255 + 0.45), Math.min(1, cur.top[1] / 255 + 0.45), Math.min(1, cur.top[2] / 255 + 0.45));
-    sun.color.setRGB(Math.min(1, cur.sun[0] / 255), Math.min(1, cur.sun[1] / 255), Math.min(1, cur.sun[2] / 255));
+    /* each theme has its own sun: direction, strength, and the colour of its shadows (Neon Night has no sun) */
+    var Lt = th.light, fx = quality > 0;
+    if (Lt) {
+      sun.position.set(Lt.pos[0], Lt.pos[1], Lt.pos[2]); sun.intensity = Lt.int; sun.color.setRGB(Lt.col[0] / 255, Lt.col[1] / 255, Lt.col[2] / 255);
+      sun.castShadow = fx; shadowPlane.visible = fx; shadowPlane.material.color.setRGB(Lt.sh[0] / 255, Lt.sh[1] / 255, Lt.sh[2] / 255); shadowPlane.material.opacity = Lt.sh[3];
+    } else { sun.intensity = 0.35; sun.castShadow = false; shadowPlane.visible = false; }
 
-    /* scenery */
-    var kinds = ['palm', 'cactus', 'pine', 'city'], cnt = { palm: 0, cactus: 0, pine: 0, city: 0 }, dk = th.deco, im = decoMeshes[dk];
-    if (im) {
-      for (k = 0; k < nseg; k++) {
-        sg = segs[(((base + k - 4) % N) + N) % N]; if (!sg.deco || cnt[dk] >= 70 || (state === 'menu' && k < 14)) continue;
-        var dd = sg.deco, c2 = Math.cos(Th[k]), s2 = Math.sin(Th[k]), lat = dd.side * dd.off * ROADM;
-        dummy.position.set(Px[k] + lat * c2, 0, -(Pz[k] - lat * s2)); dummy.rotation.set(0, -Th[k], 0);
-        if (dk === 'city') dummy.scale.set(4 + dd.v * 5, 9 + dd.v * 26, 4 + dd.v * 5); else { var ss = 0.8 + dd.v * 0.6; dummy.scale.set(ss, ss, ss); }
-        dummy.updateMatrix(); if (dk !== 'city' && im.instanceColor) { var vv = dd.v; im.setColorAt(cnt[dk], decoCol.setRGB(0.82 + vv * 0.3, 0.84 + vv * 0.26, 0.8 + vv * 0.24)); }
-        im.setMatrixAt(cnt[dk]++, dummy.matrix);
+    /* scenery: trees, blocks, bushes and rocks stand beyond the catch fence */
+    var dk = th.deco, cnt = { palm: 0, cactus: 0, acacia: 0, pine: 0, city: 0, strtree: 0, sign: 0, grand: 0, bush: 0, rock: 0, lamp: 0 };
+    var SCOL = [[1, 0.25, 0.7], [0.3, 0.85, 1], [1, 0.85, 0.3]], sm2 = (dk === 'palm' || dk === 'cactus') ? 'bush' : dk === 'pine' ? 'rock' : null;
+    for (k = 0; k < nseg; k++) {
+      sg = segs[(((base + k - 4) % N) + N) % N]; if (state === 'menu' && k < 14) continue;
+      var c2 = Math.cos(Th[k]), s2 = Math.sin(Th[k]), dd = sg.deco, kind, im2, lat, sc0, vv, bw, bh;
+      if (dd) {
+        kind = dk === 'cactus' ? (dd.v < 0.5 ? 'cactus' : 'acacia') : dk === 'city' ? (dd.v < 0.55 ? 'city' : 'strtree') : dk;
+        im2 = decoMeshes[kind];
+        if (cnt[kind] < 70) {
+          lat = dd.side * (BT + (kind === 'city' ? 5 + dd.v * 8 : 1.8 + (dd.off - 1.35) * 5));
+          dummy.position.set(Px[k] + lat * c2, 0, -(Pz[k] - lat * s2)); dummy.rotation.set(0, -Th[k], 0);
+          if (kind === 'city') { bw = 5 + dd.v * 5; bh = 12 + dd.v * 30; dummy.scale.set(bw, bh, bw); } else { sc0 = 0.8 + dd.v * 0.6; dummy.scale.set(sc0, sc0, sc0); }
+          dummy.updateMatrix(); im2.setMatrixAt(cnt[kind], dummy.matrix);
+          if (kind !== 'city' && im2.instanceColor) { vv = dd.v; im2.setColorAt(cnt[kind], decoCol.setRGB(0.82 + vv * 0.3, 0.84 + vv * 0.26, 0.8 + vv * 0.24)); }
+          cnt[kind]++;
+          if (kind === 'city' && fx && cnt.sign < 70) {   /* coloured sign strip on the wall that faces the road */
+            var sl = lat - dd.side * (bw / 2 + 0.15), along = (dd.v - 0.5) * bw * 0.6, sh2 = bh * (0.35 + dd.v * 0.35), sc1 = SCOL[(sg.i >> 2) % 3];
+            dummy.position.set(Px[k] + sl * c2 + along * s2, bh * 0.15, -(Pz[k] - sl * s2) - along * c2); dummy.rotation.set(0, -Th[k], 0); dummy.scale.set(1, sh2, 1); dummy.updateMatrix();
+            decoMeshes.sign.setMatrixAt(cnt.sign, dummy.matrix); decoMeshes.sign.setColorAt(cnt.sign, decoCol.setRGB(sc1[0], sc1[1], sc1[2])); cnt.sign++;
+          }
+        }
+      }
+      if (dk === 'palm' && fx && sg.i % 120 === 7 && cnt.grand < 6) {   /* a grandstand, Sunset Coast only */
+        var gl = (sg.i % 240 === 7 ? 1 : -1) * (BT + 9);
+        dummy.position.set(Px[k] + gl * c2, 0, -(Pz[k] - gl * s2)); dummy.rotation.set(0, -Th[k], 0); dummy.scale.set(9, 7, 44); dummy.updateMatrix(); decoMeshes.grand.setMatrixAt(cnt.grand++, dummy.matrix);
+      }
+      if (sm2 && sg.i % 3 === 1 && cnt[sm2] < 90) {
+        var hv = hash(sg.i * 7 + 3);
+        if (hv >= 0.3) {
+          var sd2 = hv > 0.65 ? 1 : -1, lt2 = sd2 * (BT + 0.7 + ((hv * 97) % 1) * 2.4), sc3 = 0.7 + ((hv * 53) % 1) * 0.9, sMesh = decoMeshes[sm2];
+          dummy.position.set(Px[k] + lt2 * c2, 0, -(Pz[k] - lt2 * s2)); dummy.rotation.set(0, hv * 6.28, 0); dummy.scale.set(sc3, sc3, sc3); dummy.updateMatrix();
+          sMesh.setMatrixAt(cnt[sm2], dummy.matrix);
+          if (dk === 'cactus') decoCol.setRGB(1.15, 0.95, 0.7); else if (dk === 'pine') decoCol.setRGB(1.25, 1.25, 1.3); else decoCol.setRGB(0.9 + hv * 0.2, 0.92 + hv * 0.18, 0.85 + hv * 0.1);
+          sMesh.setColorAt(cnt[sm2], decoCol); cnt[sm2]++;
+        }
+      }
+      if (sg.i % 8 === 0 && cnt.lamp < 24) {   /* curved-arm street lights, staggered on the two verges */
+        var ls = (sg.i / 8 | 0) % 2 ? 1 : -1, ll = ls * (BT + 0.9), lh = ll - ls * 3.3, lpd = ls * R * 0.62, pc2 = SCOL[cnt.lamp % 2];
+        dummy.position.set(Px[k] + ll * c2, 0, -(Pz[k] - ll * s2)); dummy.rotation.set(0, -Th[k] + (ls < 0 ? Math.PI : 0), 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); decoMeshes.lampPost.setMatrixAt(cnt.lamp, dummy.matrix);
+        dummy.position.set(Px[k] + lh * c2, 8.0, -(Pz[k] - lh * s2)); dummy.rotation.set(0, 0, 0); dummy.scale.set(2.8, 2.8, 1); dummy.updateMatrix(); decoMeshes.lampGlow.setMatrixAt(cnt.lamp, dummy.matrix);
+        dummy.position.set(Px[k] + lpd * c2, 0.035, -(Pz[k] - lpd * s2)); dummy.rotation.set(0, -Th[k], 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); decoMeshes.lampPool.setMatrixAt(cnt.lamp, dummy.matrix);
+        if (dk === 'city') decoCol.setRGB(pc2[0], pc2[1], pc2[2]); else decoCol.setRGB(cur.lamp[0] / 255, cur.lamp[1] / 255, cur.lamp[2] / 255);
+        decoMeshes.lampPool.setColorAt(cnt.lamp, decoCol); cnt.lamp++;
       }
     }
-    kinds.forEach(function (kn) { var m = decoMeshes[kn]; m.count = kn === dk ? cnt[kn] : 0; if (kn === dk) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; } });
-    var sm2 = (dk === 'palm' || dk === 'cactus') ? decoMeshes.bush : dk === 'pine' ? decoMeshes.rock : null, cs = 0;
-    decoMeshes.bush.count = 0; decoMeshes.rock.count = 0;
-    if (sm2) {
-      for (k = 0; k < nseg && cs < 90; k++) {
-        sg = segs[(((base + k - 4) % N) + N) % N]; if (sg.i % 3 !== 1 || (state === 'menu' && k < 14)) continue;
-        var hv = hash(sg.i * 7 + 3); if (hv < 0.3) continue;
-        var sd2 = hv > 0.65 ? 1 : -1, lt2 = sd2 * (1.18 + ((hv * 97) % 1) * 0.75) * ROADM, c3 = Math.cos(Th[k]), s3 = Math.sin(Th[k]), sc3 = 0.7 + ((hv * 53) % 1) * 0.9;
-        dummy.position.set(Px[k] + lt2 * c3, 0, -(Pz[k] - lt2 * s3)); dummy.rotation.set(0, hv * 6.28, 0); dummy.scale.set(sc3, sc3, sc3); dummy.updateMatrix();
-        sm2.setMatrixAt(cs, dummy.matrix);
-        if (dk === 'cactus') decoCol.setRGB(1.15, 0.95, 0.7); else if (dk === 'pine') decoCol.setRGB(1.25, 1.25, 1.3); else decoCol.setRGB(0.9 + hv * 0.2, 0.92 + hv * 0.18, 0.85 + hv * 0.1);
-        sm2.setColorAt(cs, decoCol); cs++;
-      }
-      sm2.count = cs; sm2.instanceMatrix.needsUpdate = true; if (sm2.instanceColor) sm2.instanceColor.needsUpdate = true;
-    }
+    ['palm', 'cactus', 'acacia', 'pine', 'city', 'strtree', 'bush', 'rock', 'sign', 'grand', 'lampPost'].forEach(function (kn) {
+      var m = decoMeshes[kn], n = kn === 'lampPost' ? cnt.lamp : cnt[kn]; m.count = n; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    });
+    decoMeshes.lampGlow.count = cnt.lamp; decoMeshes.lampGlow.instanceMatrix.needsUpdate = true; decoMeshes.lampPool.count = cnt.lamp; decoMeshes.lampPool.instanceMatrix.needsUpdate = true; decoMeshes.lampPool.instanceColor.needsUpdate = true;
+    var lg0 = fx ? th.lamp.glow : 0, lp0 = fx ? th.lamp.pool : 0;
+    lampK.g += (lg0 - lampK.g) * Math.min(1, dt * 2); lampK.p += (lp0 - lampK.p) * Math.min(1, dt * 2);
+    decoMeshes.lampGlow.visible = lampK.g > 0.02; decoMeshes.lampGlow.material.opacity = lampK.g; decoMeshes.lampGlow.material.color.setRGB(cur.lamp[0] / 255, cur.lamp[1] / 255, cur.lamp[2] / 255);
+    decoMeshes.lampPool.visible = lampK.p > 0.02; decoMeshes.lampPool.material.opacity = lampK.p;
     decoMeshes.city.material.color.setRGB(1, 1, 1);
 
     /* traffic */
@@ -1292,7 +1417,7 @@ function render(dt) {
 
     /* camera */
     var sp2 = speed / MAXS, asp = W / H;
-    camera.aspect = asp; camera.fov = (asp > 1.1 ? 58 : 74) + sp2 * 4 + (nitroOn ? 8 : 0); camera.updateProjectionMatrix();
+    camera.aspect = asp; camera.fov = (asp > 1.1 ? 58 : 74) + sp2 * 7 + (nitroOn ? 8 : 0); camera.up.set(0, 1, 0); camera.updateProjectionMatrix();
     var hs = state === 'play' ? clamp((speed / MAXS - 0.7) / 0.7, 0, 1) * 0.55 + (nitroOn ? 0.4 : 0) : 0;
     var sx2 = (Math.random() - 0.5) * (shake * 0.5 + hs * 0.14), sy2 = (Math.random() - 0.5) * (shake * 0.35 + hs * 0.11);
     if (state === 'menu') {
@@ -1306,8 +1431,9 @@ function render(dt) {
         camera.lookAt(0, scr === 'missions' ? -0.5 : 0.1, -0.5);
       }
     } else {
-      camera.position.set(-steerV * 0.5 + sx2, 3.7 + sy2 - (nitroOn ? 0.3 : 0), 9.4 - (nitroOn ? 0.9 : 0));
-      camera.lookAt(-steerV * 0.2, 4.6, -14);
+      camera.up.set(Math.sin(leanA * 0.08), Math.cos(leanA * 0.08), 0);   /* a little roll into the bend */
+      camera.position.set(-steerV * 0.5 + sx2, 3.05 + sy2 - (nitroOn ? 0.3 : 0), 9.0 - (nitroOn ? 0.9 : 0));
+      camera.lookAt(-steerV * 0.2, 3.7, -14);
     }
     if (DEVCAM) { camera.position.set(DEVCAM[0], DEVCAM[1], DEVCAM[2]); camera.lookAt(DEVCAM[3], DEVCAM[4], DEVCAM[5]); camera.fov = DEVCAM[6]; camera.updateProjectionMatrix(); }
     renderer.render(scene, camera);
@@ -1409,7 +1535,7 @@ resetRun('free'); state = 'menu'; speed = 0; renderMenu();
     if (loc && new URLSearchParams(location.search).get('screen') === 'garage') setTimeout(function () { document.getElementById('bGarage').click(); }, 300);
   } catch (e) {}
 })();
-window.__moto = { gl: function () { return { renderer: renderer, scene: scene, camera: camera, bike: bikeRoot, THREE: THREE, models: models, apply: applyLook, state: function () { return { pos: pos, playerX: playerX }; }, horizon: horizon, segs: segs, cars: cars, carObjs: carObjs, sunMesh: sunMesh, skyMesh: skyMesh, P: { x: Px, z: Pz, t: Th }, wrapS: wrapS, M: M, SEG: SEG, ROADM: ROADM, LANES: LANES, set: function (o) { if (o.pos != null) pos = o.pos; if (o.playerX != null) playerX = o.playerX; if (o.theme != null) { themeIdx = o.theme; lastTheme = o.theme; } if (o.bgAng != null) bgAng = o.bgAng; if (o.startTheme != null) startTheme = o.startTheme; } }; }, ui: { save: save, chal: chal, calc: calcPerf, gen: genChal, ensure: ensureChal, garage: function () { document.getElementById('bGarage').click(); }, missions: function () { document.getElementById('bMissions').click(); } }, demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
+window.__moto = { gl: function () { return { renderer: renderer, scene: scene, camera: camera, bike: bikeRoot, THREE: THREE, models: models, apply: applyLook, state: function () { return { pos: pos, playerX: playerX }; }, horizon: horizon, segs: segs, cars: cars, carObjs: carObjs, sunMesh: sunMesh, skyMesh: skyMesh, P: { x: Px, z: Pz, t: Th }, wrapS: wrapS, M: M, SEG: SEG, ROADM: ROADM, LANES: LANES, set: function (o) { if (o.pos != null) pos = o.pos; if (o.playerX != null) playerX = o.playerX; if (o.theme != null) { themeIdx = o.theme; lastTheme = o.theme; } if (o.bgAng != null) bgAng = o.bgAng; if (o.startTheme != null) startTheme = o.startTheme; if (o.quality != null) { quality = o.quality; if (!quality) DRAW = 80; } } }; }, ui: { save: save, chal: chal, calc: calcPerf, gen: genChal, ensure: ensureChal, garage: function () { document.getElementById('bGarage').click(); }, missions: function () { document.getElementById('bMissions').click(); } }, demo: startDemo, start: startRun, get: function () { return { ahead: cars.filter(function (c) { return c.active; }).map(function (c) { return { d: wrapS(c.z - pos), off: c.off }; }).filter(function (c) { return c.d > 0 && c.d < 9000; }), recs: demoRecs, pops: pops.map(function (q) { return q.t; }), px: playerX, state: state, score: curScore(), dist: dist, speed: speed, nitro: nitro, cars: cars.filter(function (c) { return c.active; }).length }; }, crash: crash, keys: keys, sim: function (sec) { for (var t = 0; t < sec * 60 && state !== 'over'; t++) stepSim(1 / 60); mixTheme(THEMES[themeIdx], 1); render(); } };
 requestAnimationFrame(frame);
 })();
 </script>
