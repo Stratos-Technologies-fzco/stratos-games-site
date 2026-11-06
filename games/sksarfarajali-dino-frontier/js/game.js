@@ -276,7 +276,8 @@ window.DF = window.DF || {};
   function doAttack() {
     var P = S.P, st = S.stats; if (P.atkCd > 0 || P.stun > 0 || P.dashT > 0 || P.fxA) return;
     P.atkCd = B.player.attackCooldown; P.atkT = 260; P.pend = 60; P.hitIds = {}; // 0-60 ms wind-back, strike lands at 60 ms, then recovery
-    var ak = st.path || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
+    /* Mobility bites like the Starter */
+    var ak = (st.path === 'swiftclaw' ? '' : st.path) || 'starter'; if (sheetReady(ak)) { P.atkA = { k: ak, t: 0, dur: (BASIC_PRE + BASIC_POST + 1) * 1000 / BASIC_FPS }; P.pend = BASIC_PRE * 1000 / BASIC_FPS; } // the strike lands on the sheet's hit frame
     DF.Audio.sfx('swing_' + (S.stats.path || 'base'));
   }
   function critRoll(base) {
@@ -1190,7 +1191,7 @@ window.DF = window.DF || {};
   var WALK = {
     starter: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 128, gait: 'sprinter' },
     ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320, cols: 9, rw: 480, feet: 0.96, step: 40, bw: 156, gait: 'tank' },
-    swiftclaw: { key: 'walk-swiftclaw', n: 12, w: 500, h: 420, cols: 4, rw: 400, feet: 0.92, step: 48, bw: 134, gait: 'sprinter' },
+    swiftclaw: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 134, gait: 'sprinter' }, // Mobility looks like the Starter, so it walks with the Starter sheet
     wildspark: { key: 'walk-wildspark', n: 12, w: 560, h: 420, cols: 4, rw: 450, feet: 0.92, step: 50, bw: 150, gait: 'stalker' },
     raider: { key: 'walk-raider', n: 12, w: 450, h: 300, cols: 4, rw: 360, feet: 0.92, step: 40, bw: 120, gait: 'stalker' },
     skimmer: { key: 'walk-skimmer', n: 12, w: 440, h: 300, cols: 4, rw: 350, feet: 0.92, step: 42, bw: 116, gait: 'sprinter' },

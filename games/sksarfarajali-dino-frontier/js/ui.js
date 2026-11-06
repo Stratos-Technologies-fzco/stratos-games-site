@@ -256,7 +256,7 @@ window.DF = window.DF || {};
       '<div style="font-size:12.5px;color:var(--mut)">' + F(C.status, { hp: st.maxHealth, en: st.maxEnergy }) + ' <b style="color:var(--text)">' + pathName + '</b></div></div>' +
       '<div class="col" style="position:absolute;right:16px;top:64px;bottom:14px;width:320px;gap:8px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
       tile('evo', C.evo, evoMeta, choice, choice ? 'var(--gold2)' : '') + tile('upgrades', C.upgrades, affordable ? F(C.affordable, { n: affordable }) : C.none) +
-      tile('codex', C.codex, F(C.discovered, { a: disc, b: discTotal })) + tile('missions', C.missions, claimable || done ? F(C.missionsMeta, { d: done, t: ms.active.length, c: claimable }) : F(C.missionsMeta0, { d: 0, t: ms.active.length })) + '</div>' +
+      tile('codex', C.codex, F(C.discovered, { a: disc, b: discTotal })) + tile('missions', C.missions, claimable || done ? F(C.missionsMeta, { d: done, t: ms.active.length, c: claimable }) : F(C.missionsMeta0, { d: 0, t: ms.active.length }), claimable > 0) + '</div>' +
       '<div class="row" style="justify-content:space-between;margin-top:2px"><div class="row" role="group" aria-label="' + S.obj.choose + '" style="gap:5px;width:100%;justify-content:space-between">' + biomeTab('verdant', biome, true) + biomeTab('ember', biome, open.ember) + biomeTab('frost', biome, open.frost) + biomeTab('mire', biome, open.mire) + biomeTab('crater', biome, open.crater) + '</div></div>' + objs + '<button class="btn pri" data-act="start" data-focus style="margin-top:auto">' + S.obj.start + '</button></div></div>';
   };
 
@@ -282,13 +282,14 @@ window.DF = window.DF || {};
   };
 
   /* ---------- SCR-10 Upgrades ---------- */
+  var UPG_ICON = { hide: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', snout: '<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15M5 19l8-8"/>', stam: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>' }; // shield, leaf, bolt
   T.upgrades = function () {
     var U = S.upg, sv = DF.save, t = sv.inventory.frontierTokens;
     var rows = Object.keys(DF.balance.upgrades).map(function (id) {
       var def = DF.balance.upgrades[id], level = sv.upgrades[id] || 0, maxed = level >= def.max, cost = maxed ? 0 : DF.upgradeCost(id, level), short = !maxed && t < cost, txt = U.list[id];
       var btn = maxed ? '<button class="btn" disabled style="min-width:104px;height:44px;border:1px solid #5A6B5E;color:var(--food);font-size:14px">' + U.maxed + '</button>'
         : '<button data-act="buy" data-id="' + id + '" ' + (short ? 'disabled' : '') + ' aria-label="' + F(short ? U.short : U.buy, { n: txt.name, c: cost }) + '" class="btn" style="min-width:104px;height:44px;font-size:15px;' + (short ? 'background:transparent;border:2px dashed #5A6B5E;color:#9AA597' : 'background:var(--gold);color:#1A1408') + '">◉ ' + cost + '</button>';
-      return '<div class="row" style="gap:14px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)"><div class="serif" style="width:52px;height:52px;flex:none;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold)">L' + level + '</div>' +
+      return '<div class="row" style="gap:14px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)"><div class="serif" style="width:52px;height:52px;flex:none;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:800;font-size:11px;color:var(--gold)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + (UPG_ICON[id] || UPG_ICON.hide) + '</svg>L' + level + '</div>' +
         '<div class="col" style="flex:1;gap:3px"><div style="font-weight:800;font-size:15.5px">' + txt.name + ' <span style="font-size:12px;color:var(--mut2);font-weight:700">' + F(U.level, { l: level, m: def.max }) + '</span></div><div style="font-size:13px;color:var(--soft)">' + (maxed ? '' : F(U.next, { t: txt.next })) + '</div>' +
         (short ? '<div style="font-size:12.5px;color:#F2B8B0;font-weight:700">' + F(U.need, { n: cost - t }) + '</div>' : '') + '</div>' + btn + '</div>';
     }).join('');
