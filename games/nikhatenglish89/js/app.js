@@ -8,6 +8,7 @@ import { route, setGuard, setNotFound, startRouter, navigate } from './router.js
 import { unlockAudio } from './audio.js';
 import { track, installErrorTracking } from './analytics.js';
 import { h, btn, mount, modal } from './ui.js';
+import { initFit } from './fit.js';
 
 import * as splash from './screens/splash.js';
 import * as profiles from './screens/profiles.js';
@@ -59,6 +60,7 @@ async function boot() {
   // audio may only start after the first tap (browser autoplay rules)
   ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, unlockAudio, { once: true, capture: true }));
 
+  initFit();
   await initStorage();
 
   try {

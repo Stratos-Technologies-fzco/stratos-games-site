@@ -790,3 +790,21 @@ h2:focus {
     min-height: 40px;
   }
 }
+
+/* ---------- no scrolling anywhere: the page is exactly the window ---------- */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.app {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.screen {
+  min-height: calc(100dvh / var(--fit, 1));
+  padding-bottom: 12px;
+}
