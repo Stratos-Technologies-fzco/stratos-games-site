@@ -4,6 +4,49 @@ You are helping a maker build a web game for https://stratos.games. Most makers 
 
 Read `README.md` for how a box works. This file is the know-how: what a good Stratos game looks like, the lessons from Arrow Puzzle and Bloxplode (our live store games), and what is off limits.
 
+## Team update (Sahil, latest first, read before anything else)
+
+**What Claude does with this, every session:** on the maker's first message, before anything else, tell them in 3 short lines: (1) the staging link, (2) their own games from the list below and what to fix (find their GitHub name with `gh api user --jq .login`, match it to the @names and folder names, and check `gh issue list --assignee @me`), (3) the next step to get back live. If they have nothing on the list, say "nothing to fix, keep building" and give the link. Then help with what they asked. Don't repeat it later in the same session.
+
+**Update of 7 Nov 2026** (Sahil keeps this section current; newest update goes on top)
+
+🔗 New staging link (the old one showed a Chrome warning): https://stratos-family-staging.vercel.app
+Everyone publishes here, and we all review here. stratos.games is updated from it at the Saturday release.
+
+9 games moved from stratos.games to staging. Nothing is lost: they are all still on staging and come back once fixed.
+
+Every live game must now have:
+- ✅ Clear home screen and goal
+- ✅ Tutorial while you play
+- ✅ Fits the screen, no scrolling
+- ✅ Can restart, never stuck
+- ✅ Real cover, soft sounds, no sign-up forms
+
+Moved to staging (folder in brackets, issue number):
+- 🏎️ Mega Ramp, @Sadee (`Mdsadee527-mega-ramp-stunt-racer`, #34): car flips, no way to restart
+- 🚗 Racing Mania, @Sadee (`Mdsadee527`, #35): needs a real look, cover, analytics
+- 🏝️ Island Match Quest, @Sumaiyah (`sumaiyahsultana821-sys`, #36): too much text, scrolls, no cover
+- 🦜 Mystery Island, @Nikhat (`nikhatenglish89`, #37): fixes are in, @Mohua please test
+- ✈️ Fight for Right, @Saiqul (`saiqulmodi`, #38): needs a home screen, tutorial, clear goal
+- 🁫 Domino Game, @Saiqul (`saiqulmodi-domino-wonder-dash`, #39): needs a menu and a goal
+- 🌱 Ecos-Synthetica, @Saiqul (`saiqulmodi-ecos-synthetica`, #40): blank on phone, scrolls on computer
+- 🔦 Ashgrove, @Mohua (`im-mohua-liza-ashgrove-extraction`, #41): tutorial, knife for close combat, more human voice
+- ♠️ Poker Arena, @Saiqul (`saiqulmodi-stratos-poker`, #42): remove the email and phone sign-up
+
+Staying live, small fixes:
+- 🏰 Aetherhold, @Mohua (#43): tutorial and story at the start
+- 🚀 Skyfall Armada, @Shoaib (`shoaibul0926`, #44): retro music, some story
+- 🎨 Ink Velocity, @Mohua (#45): calmer background
+- 🎭 Plot Twist, @Mohua (#46): softer music, better start
+
+How to get back live:
+1. Open your issue on GitHub, everything to fix is listed there
+2. Fix it with Claude, say "publish"
+3. Check it on the staging link
+4. Wait for ✅ here: https://github.com/Stratos-Technologies-fzco/stratos-games-site/issues/33
+5. @Mohua tests it (she takes the game off `hidden_on_live` in `site.json` when it passes)
+6. Live at the Saturday release 🎉
+
 ## The setup in four lines
 
 - **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
@@ -116,7 +159,7 @@ This repo's `.claude/settings.json` runs these for every maker; nobody has to re
 - **Get the latest:** at session start and before every message, Claude pulls the newest `staging` (unsaved work is kept). A computer still on `main` is switched to `staging` automatically.
 - **Publish:** when Claude finishes a turn, any saved commit is pushed to `staging`, retried up to 3 times if GitHub refuses, and checked on GitHub. After the "Published to staging" message, say "it's on staging" and give the staging link, never "it's live". It goes live at the Saturday release if issue #33 shows ✅ for the game; if it shows ❌, help the maker fix what it says. If publish failed, tell the maker plainly it is NOT on staging.
 - **Quick fix to the live site (Sahil and Sahariar only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
-- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; Sahil and Sahariar can edit everything except `app-ads.txt`.
+- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; Sahil and Sahariar can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
 - Never change `.claude/` to switch these off.
 - If they ask how something works here (ads, analytics, store apps, the factory), answer from this file in plain words. If the answer is not here, say so and point them to Sahariar.
 
