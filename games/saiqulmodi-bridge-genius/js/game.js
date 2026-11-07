@@ -92,7 +92,9 @@
   const order = () => LV.map(l => l.l);
   const idxOf = level => order().indexOf(level);
   const lname = info => /^Class \d+$/.test(info.name) ? t("Class {n}", { n: info.name.slice(6) }) : t(info.name);
-  const sname = s => t(NAMES[s] || s);
+  // "physics_x" = this class's Physics questions that are outside its NCERT chapters
+  const sname = s => s.endsWith("_x") ? `${t(NAMES[s.slice(0, -2)] || s)} ➕` : t(NAMES[s] || s);
+  const bankName = info => (info.exam ? `${lname(info)} · ${info.exam}` : lname(info));
   // ---- how much of each class is open ----
   // Every question answered right at least once is marked in a bit set per class (saved as base64).
   // Coverage = share of a class's bank answered right. When the previous class reaches 50% coverage this
@@ -102,7 +104,8 @@
   const levelN = level => LV[idxOf(level)].n;
   function bits(level) {
     if (!DONE[level]) {
-      const b = new Uint8Array(Math.ceil(levelN(level) / 8)), saved = S.done[level];
+      // sized by row numbers, which stay fixed even where a question now lives only in a lower class
+      const b = new Uint8Array(Math.ceil(LV[idxOf(level)].rows / 8)), saved = S.done[level];
       if (saved) { try { const raw = atob(saved); for (let i = 0; i < Math.min(raw.length, b.length); i++) b[i] = raw.charCodeAt(i); } catch (e) {} }
       DONE[level] = b;
     }
@@ -412,7 +415,7 @@
   async function loadLevel(level) {
     if (!QCACHE[level]) {
       const d = await (await fetch(`data/q/${level}.json`)).json();
-      QCACHE[level] = d.q.map((row, i) => ({ i, s: d.s[row[0]], q: row[1], o: row[2], a: row[3], e: row[4], bn: row[5] || null }));
+      QCACHE[level] = d.q.map((row, i) => row && ({ i, s: d.s[row[0]], q: row[1], o: row[2], a: row[3], e: row[4], bn: row[5] || null, c: row[6] })).filter(Boolean);
     }
     return QCACHE[level];
   }
@@ -477,12 +480,21 @@
   function spread(items) {
     const rest = items.slice();
     for (let k = rest.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [rest[k], rest[j]] = [rest[j], rest[k]]; }
-    const sig = q => q.q.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean).slice(0, 5).join(" ");
-    const out = [], recent = [];
+    // look-alike = same first five words, or half of the words shared (numbers ignored), like engine/spread.py
+    const sig = q => { const w = q.q.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+                       return { head: w.slice(0, 5).join(" "), set: new Set(w) }; };
+    const alike = (a, b) => {
+      if (a.head && a.head === b.head) return true;
+      let both = 0; a.set.forEach(x => { if (b.set.has(x)) both++; });
+      const any = a.set.size + b.set.size - both;
+      return any > 0 && both / any >= 0.5;
+    };
+    const out = [], recent = [];                 // nothing may look like any of the last 10 shown
     while (rest.length) {
-      let k = rest.slice(0, 300).findIndex(q => !recent.includes(sig(q)));
+      let k = -1;
+      for (let j = 0; j < Math.min(300, rest.length) && k < 0; j++) { const s = sig(rest[j]); if (!recent.some(r => alike(s, r))) k = j; }
       if (k < 0) k = 0;
-      const q = rest.splice(k, 1)[0]; out.push(q); recent.push(sig(q)); if (recent.length > 6) recent.shift();
+      const q = rest.splice(k, 1)[0]; out.push(q); recent.push(sig(q)); if (recent.length > 10) recent.shift();
     }
     return out;
   }
@@ -520,7 +532,7 @@
     const opts = c.querySelector(".opts");
     v.o.forEach((o, k) => {
       const b = document.createElement("button");
-      b.innerHTML = `<b>${k + 1}.</b> ${esc(o)}`;
+      b.innerHTML = `<b>${"ABCD"[k]}.</b> ${esc(o)}`;
       b.onclick = () => answer(k);
       opts.appendChild(b);
     });
@@ -925,24 +937,63 @@
   $("m-close").onclick = closeModal;
   $("modal").addEventListener("pointerdown", e => { if (e.target === $("modal")) closeModal(); });
 
-  function openBank() {
-    if (!cur || cur.weekly || !cur.pool) return;
-    const per = 5; let page = 0;
-    const pages = () => Math.max(1, Math.ceil(cur.pool.length / per));
-    const draw = () => {
-      const items = cur.pool.slice(page * per, page * per + per);
-      $("m-body").innerHTML = items.map((q, k) => { const v = shown(q); return `<div class="bankitem"><div class="bq">${page * per + k + 1}. [${esc(sname(q.s))}] ${esc(v.q)}</div>
-        <ol type="A">${v.o.map((o, i) => `<li class="${i === q.a ? "right" : ""}">${esc(o)}</li>`).join("")}</ol>
-        <div class="be">${esc(t("Answer: {a}", { a: v.o[q.a] }))} · ${esc(v.e)}</div></div>`; }).join("");
-      $("pg").textContent = t("Page {a} of {b}", { a: (page + 1).toLocaleString("en-IN"), b: pages().toLocaleString("en-IN") });
+  // Q&A Bank: one bank per class, one list per subject and chapter. Practice only (no parts or score);
+  // the answer stays hidden until A, B, C or D is tapped.
+  async function openBank() {
+    const inClass = view === "class" && cur && !cur.weekly;
+    const B = { level: inClass ? cur.level : (S.lastBank || LV[Math.max(0, S.start)].l), subject: inClass ? cur.subject : null, chapter: -1, page: 0, list: [], picked: new Map() };
+    const per = 5, info = () => LV[idxOf(B.level)];
+    const pages = () => Math.max(1, Math.ceil(B.list.length / per));
+    const chip = (label, on, fn, cls = "") => { const b = document.createElement("button"); b.textContent = label; b.className = (on ? "on " : "") + cls; b.onclick = fn; return b; };
+    const scrollOn = el => { const on = el.querySelector(".on"); if (on) on.scrollIntoView({ block: "nearest", inline: "center" }); };
+    function drawBars() {
+      const levels = $("bk-levels"), subs = $("bk-subjects"), ch = $("bk-chapter"), lv = info();
+      levels.innerHTML = ""; subs.innerHTML = "";
+      LV.forEach(l => levels.appendChild(chip(bankName(l), l.l === B.level, () => setLevel(l.l))));
+      const names = Object.keys(lv.subjects), ncert = lv.ncert || [];
+      subs.appendChild(chip(`${t("All")} ${lv.n.toLocaleString("en-IN")}`, B.subject === null, () => setSub(null)));
+      ncert.forEach(s => subs.appendChild(chip(`${sname(s)} ${lv.subjects[s]}`, B.subject === s, () => setSub(s), "ncert")));
+      names.filter(s => !ncert.includes(s)).forEach(s => subs.appendChild(chip(`${s === "bridge" ? t("🌉 Bridge quiz") : sname(s)} ${lv.subjects[s]}`, B.subject === s, () => setSub(s), "plus")));
+      const chapters = (lv.chapters || {})[B.subject] || [];
+      ch.hidden = !chapters.length;
+      ch.innerHTML = `<option value="-1">📖 ${esc(t("All"))}</option>` + chapters.map((c, k) => `<option value="${k}"${k === B.chapter ? " selected" : ""}>${esc(c)}</option>`).join("");
+      scrollOn(levels); scrollOn(subs);
+    }
+    function drawPage() {
+      const items = B.list.slice(B.page * per, B.page * per + per);
+      $("bk-list").innerHTML = items.map((q, k) => {
+        const v = shown(q), got = B.picked.get(q.i), open = got !== undefined;
+        return `<div class="bankitem"><div class="bq">${B.page * per + k + 1}. ${B.subject === null ? `[${esc(sname(q.s))}] ` : ""}${esc(v.q)}</div>
+          <div class="bopts">${v.o.map((o, i) => `<button data-q="${q.i}" data-k="${i}" ${open ? "disabled" : ""} class="${open && i === q.a ? "right" : open && i === got ? "wrong" : ""}"><b>${"ABCD"[i]}.</b> ${esc(o)}</button>`).join("")}</div>
+          ${open ? `<div class="be">${esc(t("Answer: {a}", { a: v.o[q.a] }))} · ${esc(v.e)}</div>` : ""}</div>`;
+      }).join("");
+      $("pg").textContent = t("Page {a} of {b}", { a: (B.page + 1).toLocaleString("en-IN"), b: pages().toLocaleString("en-IN") });
+      $("m-title").textContent = `📋 ${bankName(info())} (${B.list.length.toLocaleString("en-IN")})`;
       $("m-body").scrollTop = 0;
-    };
-    const go = d => { page = Math.max(0, Math.min(pages() - 1, page + d)); draw(); };
-    const subj = cur.subject ? sname(cur.subject) : t("All subjects");
-    modal(esc(t("📋 Q&A Bank: {a} - {b} ({n})", { a: lname(cur.info), b: subj, n: cur.pool.length.toLocaleString("en-IN") })), "", [
+    }
+    async function fill() {
+      const asked = B.level;
+      $("bk-list").innerHTML = `<div class="q">…</div>`;
+      const all = await loadLevel(B.level);
+      if (asked !== B.level || !$("bk-list")) return;
+      B.list = spread(all.filter(q => (B.subject === null || q.s === B.subject) && (B.chapter < 0 || q.c === B.chapter)));
+      B.page = 0;
+      drawBars(); drawPage();
+    }
+    const setLevel = l => { B.level = l; S.lastBank = l; save(); if (!LV[idxOf(l)].subjects[B.subject]) B.subject = null; B.chapter = -1; fill(); };
+    const setSub = s => { B.subject = s; B.chapter = -1; fill(); };
+    const go = d => { B.page = Math.max(0, Math.min(pages() - 1, B.page + d)); drawPage(); };
+    modal("📋", `<div class="bkbar" id="bk-levels"></div><div class="bkbar" id="bk-subjects"></div><select id="bk-chapter" aria-label="📖"></select><div id="bk-list"></div>`, [
       ["⏮", () => go(-1e9), ""], [t("◀ Prev"), () => go(-1)], [`<span id="pg"></span>`, () => {}, ""], [t("Next ▶"), () => go(1)], ["⏭", () => go(1e9), ""]]);
-    draw();
+    $("bk-chapter").onchange = e => { B.chapter = +e.target.value; fill(); };
+    $("bk-list").onclick = e => {
+      const b = e.target.closest("button[data-q]"); if (!b) return;
+      const q = +b.dataset.q, k = +b.dataset.k, item = B.list.find(x => x.i === q);
+      B.picked.set(q, k); if (k === item.a) sfx.right(); else sfx.wrong();
+      const top = $("m-body").scrollTop; drawPage(); $("m-body").scrollTop = top;
+    };
     modalKeys = e => { if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1); else if (e.key === "PageDown") go(50); else if (e.key === "PageUp") go(-50); };
+    await fill();
   }
 
   function openGuide() {
@@ -1015,6 +1066,12 @@
   // ---------------- buttons, keys, loop ----------------
   $("btn-back").onclick = () => { save(); show("world"); if (!cur.weekly) world.focus(cur.level); };
   $("btn-bank").onclick = openBank;
+  // the other game (FAILSPAN 3D <-> BridgeWorks 2D) on the player's demand; each keeps its own progress
+  $("btn-other").onclick = () => {
+    const url = /stratos/.test(location.hostname) ? "/play/saiqulmodi-failspan/" : "https://saiqulmodi.github.io/FAILSPAN/";
+    try { window.top.location.href = url; } catch (e) { location.href = url; }
+  };
+  $("btn-bankall").onclick = openBank;
   $("btn-guide").onclick = openGuide;
   $("btn-handbook").onclick = openHandbook;
   $("btn-profile").onclick = openProfile;

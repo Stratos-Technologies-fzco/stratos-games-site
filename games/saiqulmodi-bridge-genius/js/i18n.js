@@ -119,6 +119,7 @@
     "Thrifty builder: pass within par parts": "মিতব্যয়ী নির্মাতা: লক্ষ্যের মধ্যে পাস", "Weekly champion: pass a weekly challenge": "সাপ্তাহিক চ্যাম্পিয়ন: সাপ্তাহিক চ্যালেঞ্জ পাস",
     // ---- level, subject, material, vehicle and project names ----
     "Class {n}": "শ্রেণি {n}", "BE": "বিই", "NIT": "এনআইটি", "IIT": "আইআইটি",
+    "Accountancy": "হিসাববিজ্ঞান", "Business Studies": "ব্যবসায় শিক্ষা",
     "Math": "গণিত", "Physics": "পদার্থবিজ্ঞান", "Chemistry": "রসায়ন", "Biology": "জীববিজ্ঞান", "EVS": "পরিবেশ পরিচিতি",
     "Commerce": "বাণিজ্য", "Economics": "অর্থনীতি", "Finance": "অর্থসংস্থান", "Geography": "ভূগোল", "Safety": "নিরাপত্তা",
     "Civil Engg": "পুর প্রকৌশল", "Engineering": "প্রকৌশল", "Computer": "কম্পিউটার",

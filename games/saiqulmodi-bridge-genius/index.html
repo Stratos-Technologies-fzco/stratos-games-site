@@ -103,7 +103,16 @@ table.report th { color: var(--accent2); }
 .bankitem .bq { font-weight: 700; white-space: pre-wrap; }
 .bankitem ol { margin: 4px 0; padding-left: 22px; columns: 2; font-size: 13.5px; color: #cbd5e1; }
 .bankitem li.right { color: #0f172a; background: var(--mint); border-radius: 4px; padding: 0 4px; }
-.bankitem .be { font-size: 13px; color: #6ee7b7; }
+.bankitem .be { font-size: 13px; color: #6ee7b7; margin-top: 4px; }
+.bankitem .bopts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.bankitem .bopts button { text-align: left; min-height: 40px; white-space: normal; }
+.bankitem .bopts button.right, .bankitem .bopts button.right:disabled { background: #166534; border-color: var(--good); color: #fff; opacity: 1; }
+.bankitem .bopts button.wrong, .bankitem .bopts button.wrong:disabled { background: #7f1d1d; border-color: var(--bad); color: #fff; opacity: 1; }
+.bkbar { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 8px; scrollbar-width: thin; flex: 0 0 auto; }
+.bkbar button { white-space: nowrap; min-height: 34px; padding: 3px 10px; font-size: 13px; border-radius: 16px; flex: 0 0 auto; }
+.bkbar button.on { background: var(--accent); border-color: var(--accent2); color: #fff; }
+.bkbar button.plus:not(.on) { border-style: dashed; opacity: .8; }
+#bk-chapter { width: 100%; min-height: 36px; margin-bottom: 8px; background: var(--panel); color: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; font-size: 14px; }
 .steps li { margin: 6px 0; } .steps li.done { color: var(--good); } .steps li.now { color: var(--gold); font-weight: 700; }
 .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
 .badge { border: 1px solid var(--line); border-radius: 10px; padding: 8px; text-align: center; font-size: 13px; }
@@ -126,6 +135,7 @@ input[type=search] { font: inherit; background: var(--panel); color: var(--text)
   #card .q { font-size: 15px; }
   .classgrid { grid-template-columns: repeat(3, 1fr); }
   .bankitem ol { columns: 1; }
+  .bankitem .bopts { grid-template-columns: 1fr; }
   #hud .stats { font-size: 12px; gap: 4px 10px; }
   #buildinfo { position: static; padding: 6px 8px 2px; background: #0f172a; order: -1; }
   #buildwrap { flex: 0 0 auto; }
@@ -140,8 +150,10 @@ input[type=search] { font: inherit; background: var(--panel); color: var(--text)
 <div id="app" hidden>
   <header id="hud">
     <div class="stats" id="stats"></div>
+    <button id="btn-other" title="FAILSPAN 3D"><img src="other-game.png" alt="FAILSPAN 3D" width="22" height="22" style="vertical-align:middle;border-radius:5px"></button>
     <button id="btn-lang" title="English / বাংলা">বাংলা</button>
     <button id="btn-profile" title="Badges, progress and report card">🏅</button>
+    <button id="btn-bankall" title="Q&amp;A Bank">📋</button>
     <button id="btn-handbook" title="Engineering Handbook (200 Q&amp;A)">📘</button>
     <button id="btn-mute" title="Sound on / off">🔊</button>
   </header>
