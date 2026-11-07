@@ -672,3 +672,121 @@ h2:focus {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- home screen: island trail + goal ---------- */
+.splash-home {
+  gap: 10px;
+  padding: 16px;
+}
+
+.splash-home .splash-logo {
+  font-size: clamp(3rem, 12vh, 5rem);
+}
+
+.splash-home .splash-kiki {
+  font-size: 2.2rem;
+}
+
+.splash-trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 560px;
+}
+
+.trail-island {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 76px;
+  padding: 8px 4px 6px;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  border-bottom: 5px solid var(--world);
+  box-shadow: var(--shadow-sm);
+}
+
+.trail-emoji {
+  font-family: var(--emoji);
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.trail-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.trail-piece {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  font-family: var(--emoji);
+  font-size: 1rem;
+}
+
+.trail-arrow {
+  font-size: 1.4rem;
+  color: #0c4a6e;
+}
+
+.trail-treasure {
+  width: 96px;
+  background: var(--sand);
+}
+
+.splash-goal {
+  margin: 0;
+  max-width: 460px;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+@media (max-height: 640px) {
+  .splash-home .splash-kiki,
+  .splash-home .splash-sub {
+    display: none;
+  }
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* settings: compact "about you" card */
+.about-you {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.about-row .text-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+}
+
+.settings-screen {
+  gap: 10px;
+}
+
+@media (max-height: 760px) {
+  .settings-screen .toggle-row {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    min-height: 40px;
+  }
+}

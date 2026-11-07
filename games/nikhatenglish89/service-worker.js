@@ -2,7 +2,7 @@
 // are cached so the game can be replayed without a connection. Bump VERSION
 // whenever game files change so players get the update.
 
-const VERSION = 'mystery-island-v1.0.0';
+const VERSION = 'mystery-island-v1.1.0';
 
 const FILES = [
   './',
