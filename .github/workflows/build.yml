@@ -27,6 +27,7 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          STRATOS_SITE: "${{ github.ref_name == 'staging' && 'staging' || 'live' }}"
           BR: ${{ github.ref_name }}
         run: |
           git config user.name "stratos-games-bot"

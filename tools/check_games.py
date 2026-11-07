@@ -57,6 +57,12 @@ def static_checks(slug):
         c["details"] = False; r["notes"].append(f"game.json is missing or broken ({e.__class__.__name__})")
         return r, {}
     r["title"] = g.get("title") or slug
+    try:
+        hidden = json.load(open(os.path.join(ROOT, "site.json"), encoding="utf-8")).get("hidden_on_live", {})
+    except Exception:
+        hidden = {}
+    if slug in hidden:
+        r["notes"].append(f"hidden on live until Mohua passes it ({hidden[slug]})")
     r["maker"] = g.get("github") or slug.split("-")[0]
     if g.get("status") == "coming_soon":
         r["soon"] = True

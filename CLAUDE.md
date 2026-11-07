@@ -29,7 +29,9 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Loads fast: small images, first screen in under 3 seconds on a normal phone. No folder size cap (Sahil 2026-11-07), but no single file over 100 MB (GitHub's limit).
 - Unity and Godot are welcome (Sahil 2026-11-07): export the Web build into your folder. Unity: compression "Gzip" with "Decompression Fallback" on, or compression off. Godot 4.3+: Web export with "Thread Support" off.
 - No errors in the browser console. Test it: open the page, play a full round, lose once, restart.
-- Sound off by default or a clear mute button. Never auto-play loud audio.
+- Sound off by default or a clear mute button. Never auto-play loud audio. **Soothing sounds only (Sahil 2026-11-07):** mellow music, soft effects, human-sounding voices; never loud or harsh.
+- **No sign-up forms (Sahil 2026-11-07):** no game asks for email, phone or a password. Player accounts will come from Stratos centrally, for every game at once.
+- **Teach while playing:** a short tutorial for the first level and for each new move or special case, plus a clear home screen with a goal. Nobody is dropped into the game without knowing what to do.
 - Works offline once loaded: everything it needs is inside the folder.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
