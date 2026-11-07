@@ -1,0 +1,10 @@
+{
+  "title": "Mega Ramp Stunt Racer",
+  "maker": "Mohammad Sadee",
+  "one_line": "Launch off mega ramps, flip and barrel-roll for points, and land clean to keep your combo alive.",
+  "category": "arcade",
+  "github": "Mdsadee527",
+  "added": "2026-11-07",
+  "how_to_play": "W/↑ gas, S/↓ brake-reverse, A/D steer. In the air, A/D rolls and W/S flips the car — land clean to bank stunt points. Space boosts. On phone, use the on-screen buttons.",
+  "description": "A physics-based mega-ramp stunt racer: real suspension and air control, not scripted jumps. Launch off ramps, flip and barrel-roll in the air for a scoring combo, then stick the landing to bank it. Three courses (Time Trial with checkpoints and stars, or a no-timer Free Ride), four unlockable cars with different speed/handling/jump stats, and a stunt-scoring system that rewards clean landings over wild crashes."
+}

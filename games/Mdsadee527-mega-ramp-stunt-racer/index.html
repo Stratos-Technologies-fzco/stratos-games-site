@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Mega Ramp Stunt Racer</title>
+<link rel="stylesheet" href="style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js",
+    "cannon-es": "./vendor/cannon-es.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<canvas id="game-canvas"></canvas>
+
+<!-- Boot / Loading -->
+<div id="boot-screen" class="overlay">
+  <div class="boot-inner">
+    <h1 class="logo">MEGA<span>RAMP</span><br/>STUNT RACER</h1>
+    <div class="boot-bar"><div id="boot-fill"></div></div>
+    <div id="boot-label">Loading assets…</div>
+  </div>
+</div>
+
+<!-- Main Menu -->
+<div id="main-menu" class="overlay hidden">
+  <div class="panel menu-panel">
+    <h1 class="logo small">MEGA<span>RAMP</span> STUNT RACER</h1>
+    <div class="stars-total"><span id="stars-total-val">0</span> ★ collected</div>
+    <div class="menu-buttons">
+      <button id="btn-play" class="btn btn-primary">PLAY</button>
+      <button id="btn-garage" class="btn">GARAGE</button>
+      <button id="btn-howto" class="btn">HOW TO PLAY</button>
+    </div>
+    <div class="menu-footer">An original stunt-ramp racer — not affiliated with any other game.</div>
+  </div>
+</div>
+
+<!-- Level Select -->
+<div id="level-select" class="overlay hidden">
+  <div class="panel wide-panel">
+    <h2>SELECT LEVEL</h2>
+    <div id="level-list" class="level-list"></div>
+    <div class="mode-toggle">
+      <label><input type="radio" name="mode" value="timetrial" checked/> Time Trial (checkpoints + stunts)</label>
+      <label><input type="radio" name="mode" value="freeride"/> Free Ride (sandbox, no timer)</label>
+    </div>
+    <button id="btn-back-menu" class="btn">BACK</button>
+  </div>
+</div>
+
+<!-- Garage -->
+<div id="garage-screen" class="overlay hidden">
+  <div class="panel wide-panel">
+    <h2>GARAGE</h2>
+    <div id="car-list" class="car-list"></div>
+    <div id="car-stats" class="car-stats"></div>
+    <button id="btn-back-menu-2" class="btn">BACK</button>
+  </div>
+</div>
+
+<!-- How To Play -->
+<div id="howto-screen" class="overlay hidden">
+  <div class="panel wide-panel">
+    <h2>HOW TO PLAY</h2>
+    <ul class="howto-list">
+      <li><b>Drive:</b> W/↑ accelerate, S/↓ brake-reverse, A/D or ←/→ steer</li>
+      <li><b>Boost:</b> SPACE — fill the boost meter by landing stunts clean and drifting</li>
+      <li><b>Air Control:</b> while airborne, A/D rolls and W/S pitches the car — line up your landing!</li>
+      <li><b>Stunts:</b> flip, roll and spin in the air for points. Land clean (wheels down, low tilt) to BANK the combo. Land badly and you lose it.</li>
+      <li><b>Reset:</b> R — respawn at the last checkpoint if you get stuck or crash hard</li>
+      <li><b>Camera:</b> C — cycle camera views</li>
+      <li><b>Pause:</b> ESC</li>
+      <li>Earn stars in Time Trial mode to unlock faster cars in the Garage.</li>
+    </ul>
+    <button id="btn-back-menu-3" class="btn">BACK</button>
+  </div>
+</div>
+
+<!-- In-game HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="hud-box" id="hud-timer">00:00.00</div>
+    <div class="hud-box" id="hud-checkpoint">CP 0/0</div>
+    <div class="hud-box" id="hud-stunt-score">0</div>
+  </div>
+  <div id="stunt-popup-layer"></div>
+  <div class="hud-bottom">
+    <div class="meter-wrap">
+      <div class="meter-label">SPEED</div>
+      <div class="meter speed-meter"><div id="speed-fill" class="meter-fill"></div></div>
+    </div>
+    <div class="meter-wrap">
+      <div class="meter-label">BOOST</div>
+      <div class="meter boost-meter"><div id="boost-fill" class="meter-fill"></div></div>
+    </div>
+  </div>
+  <div id="combo-banner" class="hidden"></div>
+</div>
+
+<!-- Touch controls -->
+<div id="touch-controls" class="hidden">
+  <div id="touch-steer-left" class="touch-btn steer">◀</div>
+  <div id="touch-steer-right" class="touch-btn steer">▶</div>
+  <div id="touch-brake" class="touch-btn">BRK</div>
+  <div id="touch-boost" class="touch-btn boost">BOOST</div>
+  <div id="touch-gas" class="touch-btn gas">GAS</div>
+</div>
+
+<!-- Pause -->
+<div id="pause-screen" class="overlay hidden">
+  <div class="panel menu-panel">
+    <h2>PAUSED</h2>
+    <div class="menu-buttons">
+      <button id="btn-resume" class="btn btn-primary">RESUME</button>
+      <button id="btn-restart" class="btn">RESTART LEVEL</button>
+      <button id="btn-quit" class="btn">QUIT TO MENU</button>
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results-screen" class="overlay hidden">
+  <div class="panel menu-panel">
+    <h2 id="results-title">FINISHED!</h2>
+    <div class="results-stars" id="results-stars">☆ ☆ ☆</div>
+    <div class="results-stats" id="results-stats"></div>
+    <div class="menu-buttons">
+      <button id="btn-retry" class="btn btn-primary">RETRY</button>
+      <button id="btn-results-menu" class="btn">LEVEL SELECT</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
