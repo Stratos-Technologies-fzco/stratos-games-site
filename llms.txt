@@ -3,6 +3,7 @@
 Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.
 
 ## Play (free browser games)
+- [Mega Ramp Stunt Racer](https://stratos.games/play/Mdsadee527-mega-ramp-stunt-racer/): Launch off mega ramps, flip and barrel-roll for points, and land clean to keep your combo alive. Made by Mohammad Sadee.
 - [Magic Shot](https://stratos.games/play/im-mohua-liza/): A magical liquid-sorting puzzle: pour glowing potions between enchanted bottles until every bottle holds one colour. Made by Mohua Liza.
 - [Aetherhold](https://stratos.games/play/im-mohua-liza-aetherhold/): Build a kingdom on a floating sky island, summon heroes, raise an army and battle through a 30-stage campaign. Made by Mohua Liza.
 - [Ashgrove Extraction](https://stratos.games/play/im-mohua-liza-ashgrove-extraction/): A third-person survival shooter: find Mara in a militia-held town, keep her alive, call for help and reach the evac helicopter. Made by Mohua Liza.

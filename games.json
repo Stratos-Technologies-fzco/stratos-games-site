@@ -1,7 +1,20 @@
 {
  "site": "https://stratos.games",
- "count": 32,
+ "count": 33,
  "games": [
+  {
+   "slug": "Mdsadee527-mega-ramp-stunt-racer",
+   "title": "Mega Ramp Stunt Racer",
+   "maker": "Mohammad Sadee",
+   "one_line": "Launch off mega ramps, flip and barrel-roll for points, and land clean to keep your combo alive.",
+   "category": "arcade",
+   "url": "play/Mdsadee527-mega-ramp-stunt-racer/",
+   "thumb": "games/Mdsadee527-mega-ramp-stunt-racer/thumbnail.png",
+   "added": "2026-11-07",
+   "github": "Mdsadee527",
+   "kind": "family",
+   "soon": false
+  },
   {
    "slug": "im-mohua-liza",
    "title": "Magic Shot",
