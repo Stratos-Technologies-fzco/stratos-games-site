@@ -51,6 +51,7 @@
       font-size: 14px;
       cursor: pointer;
     }
+    a.game-tab { text-decoration: none; text-align: center; }
     .game-tab.active {
       background: #0284c7;
       border-color: #0284c7;
@@ -230,6 +231,7 @@
     <button class="game-tab" data-game="extraedge" onclick="selectGame('extraedge')">Extra-Edge · Class 8–12, NEET &amp; MBBS</button>
   </div>
   <div id="xeChips" class="game-tabs" style="display:none"></div>
+  <div id="xeBooks" class="game-tabs" style="display:none"></div>
 
   <div id="qaContainer" class="qa-container">
     <p style="color: #94a3b8;">Loading knowledge bank...</p>
@@ -321,6 +323,17 @@
     //   extraedge    - Class 8-12 + NEET/MBBS, all subjects: content/questions/extraedge/* (tools/build_extraedge.py)
     const XE_CLASSES = [['all', 'All classes'], ['class-8', 'Class 8'], ['class-9', 'Class 9'], ['class-10', 'Class 10'], ['class-11', 'Class 11'], ['class-12', 'Class 12'], ['neet-mbbs', 'NEET / MBBS']];
     let xeClass = 'all';
+    // Official NCERT full books (ncert.nic.in, whole-book zip of PDFs; size in MB). They are linked,
+    // not copied: about 770 MB in all, far over the game's 20 MB, and NCERT holds the copyright.
+    const NCERT = 'https://ncert.nic.in/textbook/pdf/';
+    const XE_BOOKS = {
+      'class-8': [['Science (Curiosity)', 'hecu1', 48], ['Maths (Ganita Prakash)', 'hegp1', 24]],
+      'class-9': [['Science', 'iesc1', 124], ['Maths', 'iemh1', 19]],
+      'class-10': [['Science', 'jesc1', 71], ['Maths', 'jemh1', 33]],
+      'class-11': [['Physics I', 'keph1', 20], ['Physics II', 'keph2', 14], ['Chemistry I', 'kech1', 29], ['Chemistry II', 'kech2', 10], ['Biology', 'kebo1', 57], ['Maths', 'kemh1', 36]],
+      'class-12': [['Physics I', 'leph1', 23], ['Physics II', 'leph2', 16], ['Chemistry I', 'lech1', 23], ['Chemistry II', 'lech2', 20], ['Biology', 'lebo1', 161], ['Maths I', 'lemh1', 18], ['Maths II', 'lemh2', 24]]
+    };
+    XE_BOOKS['neet-mbbs'] = [...XE_BOOKS['class-11'], ...XE_BOOKS['class-12']].filter(b => !b[0].startsWith('Maths')).map(b => [(b[1][0] === 'k' ? '11 ' : '12 ') + b[0], b[1], b[2]]);
 
     let allQuestions = [];
     let currentBatch = 0;
@@ -531,9 +544,14 @@
     // Class buttons shown only on the Extra-Edge tab.
     function renderChips() {
       const box = document.getElementById('xeChips');
-      if (currentGame !== 'extraedge') { box.style.display = 'none'; return; }
+      if (currentGame !== 'extraedge') { box.style.display = 'none'; document.getElementById('xeBooks').style.display = 'none'; return; }
       box.style.display = '';
       box.innerHTML = XE_CLASSES.map(([k, label]) => `<button class="game-tab ${k === xeClass ? 'active' : ''}" onclick="selectXeClass('${k}')">${label}</button>`).join('');
+      const books = document.getElementById('xeBooks');
+      const list = XE_BOOKS[xeClass] || [];
+      books.style.display = list.length ? '' : 'none';
+      books.innerHTML = list.length ? '<span class="page-info">📘 NCERT books:</span> ' + list.map(([t, code, mb]) =>
+        `<a class="game-tab" href="${NCERT}${code}dd.zip" target="_blank" rel="noopener">${esc(t)} · ${mb} MB</a>`).join('') : '';
     }
     function selectXeClass(k) { xeClass = k; selectGame('extraedge'); }
 
