@@ -797,7 +797,7 @@ var DEMO_STEPS = [
 function demoEl(id) { return document.getElementById(id); }
 function startDemo() {
   resetRun('demo'); state = 'play'; touches = {}; demo = { t: 0, step: -1 }; perf = { spd: 1, acc: 1, hnd: 1, nit: 1, brk: 1 };
-  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.remove('on'); demoEl('demoUI').classList.add('on');
+  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.remove('on'); hideLayers(); demoEl('demoUI').classList.add('on');
   track('demo_start', {});
 }
 function endDemo(done) {
@@ -977,10 +977,11 @@ function finishRun() {
 /* ---- screens ---- */
 var menuEl = document.getElementById('menu'), overEl = document.getElementById('over'), ctlEl = document.getElementById('ctl');
 function menuTraffic() { for (var i = 0; i < 9; i++) placeCar(cars[i], 3000, 22000); }
+function hideLayers() { ['menu', 'garage', 'missions', 'riders', 'tracks', 'over'].forEach(function (x) { document.getElementById(x).classList.remove('on'); }); document.body.classList.remove('sub'); }
 function startRun(m) {
   demo = null; demoEl('demoUI').classList.remove('on'); perf = calcPerf(save.bike); runDone = []; ensureChal();
   resetRun(m, m === 'free' ? pickTrack : -1); state = 'play'; touches = {};
-  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.add('on');
+  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.add('on'); hideLayers();
   rs = { near: 0, wheelies: 0, nitro: 0, passed: 0, chain: 0, t0: time };
   sndStart(); track('level_start', { track_name: runTrack >= 0 ? TRACKS[runTrack].name : 'world tour', mode: m, bike: bikeName(), paint: PAINTS[save.sel].n, coins: save.coins, streak: save.streak });
 }
