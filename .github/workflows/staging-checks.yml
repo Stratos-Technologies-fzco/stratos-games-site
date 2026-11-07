@@ -1,0 +1,51 @@
+name: staging checks
+# After every publish to staging: check each game that differs from the live site,
+# and update issue #33 "Staging check: which games go live on Saturday".
+on:
+  push:
+    branches: [staging]
+    paths: ["games/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: staging-checks
+  cancel-in-progress: true
+env:
+  REPORT_ISSUE: "33"
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: staging, fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: get the test browser
+        run: pip install -q playwright && python -m playwright install --with-deps chromium >/dev/null
+      - name: check every game waiting on staging
+        env: { CHECKS_OUT: "${{ runner.temp }}/checks" }
+        run: |
+          git fetch -q origin main
+          python3 tools/check_games.py --changed origin/main origin/staging
+          cat "$CHECKS_OUT/checks.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: update the report issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKS_OUT: "${{ runner.temp }}/checks"
+        run: |
+          {
+            echo "A robot updates this after every publish to staging. Last check: $(date -u '+%a %d %b, %H:%M') UTC ([details]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID))."
+            echo
+            echo "**✅ goes live** at the Saturday release. **❌ waits** a week: fix it, publish again, and this list updates."
+            echo "Not sure how to fix? Tell Claude: *fix what the staging check says for my game*."
+            echo
+            echo "See staging: https://stratos-games-staging.vercel.app"
+            echo
+            cat "$CHECKS_OUT/checks.md"
+          } > body.md
+          gh issue edit "$REPORT_ISSUE" --body-file body.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: screenshots, path: "${{ runner.temp }}/checks/shots", if-no-files-found: ignore }

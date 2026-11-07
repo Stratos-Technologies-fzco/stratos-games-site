@@ -1,0 +1,81 @@
+name: release staging to live
+# The Saturday release. Actions → "release staging to live" → Run workflow.
+# Every game that changed on staging is checked; ✅ games go live on stratos.games, ❌ games wait on staging.
+# Type LIVE to really release; anything else is a practice run that only shows what would happen.
+on:
+  workflow_dispatch:
+    inputs:
+      go:
+        description: "Type LIVE to put the ✅ games live. Leave as 'practice' to only see what would go live."
+        default: practice
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: build-main
+  cancel-in-progress: false
+env:
+  RELEASERS: " sahilmodi1965 mody-sahariar1 im-mohua-liza "
+  REPORT_ISSUE: "33"
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: only Sahil, Sahariar or Mohua can release
+        run: |
+          case "$RELEASERS" in *" ${{ github.actor }} "*) echo "ok: ${{ github.actor }}";; *) echo "::error::Only Sahil, Sahariar or Mohua can put games live."; exit 1;; esac
+      - uses: actions/checkout@v4
+        with: { ref: staging, fetch-depth: 0, ssh-key: "${{ secrets.RELEASE_KEY }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: get the test browser
+        run: pip install -q playwright && python -m playwright install --with-deps chromium >/dev/null
+      - name: check every game waiting on staging
+        env: { CHECKS_OUT: "${{ runner.temp }}/checks" }
+        run: |
+          git fetch -q origin main staging
+          python3 tools/check_games.py --changed origin/main origin/staging
+      - name: build the release (staging, minus the games that wait)
+        env:
+          CHECKS_OUT: "${{ runner.temp }}/checks"
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+        run: |
+          git config user.name "stratos-games-bot"
+          git config user.email "bot@stratos.games"
+          read -r live held <<< "$(python3 -c "
+          import json; r=json.load(open('$CHECKS_OUT/checks.json'))
+          f=lambda v: ','.join(x['slug'] for x in r if x['verdict']==v) or '-'
+          print(f('ready'), f('fix'))")"
+          echo "LIVE_GAMES=$live" >> "$GITHUB_ENV"; echo "HELD_GAMES=$held" >> "$GITHUB_ENV"
+          # start from live, take the whole staging tree, then put back the live copy of each game that waits
+          git checkout -q -B release origin/main
+          git read-tree -u --reset origin/staging
+          for s in ${held//,/ }; do
+            [ "$s" = "-" ] && continue
+            git rm -rq --cached --ignore-unmatch "games/$s" >/dev/null; rm -rf "games/$s"
+            git cat-file -e "origin/main:games/$s" 2>/dev/null && git checkout origin/main -- "games/$s"
+          done
+          git checkout origin/main -- app-ads.txt
+          python3 tools/build.py
+          git add -A
+          git commit -q -m "release $(date -u +%Y-%m-%d): live: ${live//,/, }; waiting: ${held//,/, } (by ${{ github.actor }})" || echo "nothing new to release"
+          git diff --stat origin/main HEAD | tail -1
+      - name: put it live
+        if: ${{ inputs.go == 'LIVE' }}
+        run: git push origin HEAD:main
+      - name: report
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKS_OUT: "${{ runner.temp }}/checks"
+        run: |
+          mode=$([ "${{ inputs.go }}" = "LIVE" ] && echo "**Released to stratos.games**" || echo "**Practice run** (nothing changed)")
+          { echo "$mode by @${{ github.actor }}, $(date -u '+%a %d %b %H:%M') UTC"; echo; cat "$CHECKS_OUT/checks.md" 2>/dev/null; } > out.md
+          cat out.md >> "$GITHUB_STEP_SUMMARY"
+          [ "${{ inputs.go }}" = "LIVE" ] && gh issue comment "$REPORT_ISSUE" --body-file out.md || true

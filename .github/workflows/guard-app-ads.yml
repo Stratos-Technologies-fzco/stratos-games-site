@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { ssh-key: "${{ secrets.RELEASE_KEY }}" }
       - name: restore app-ads.txt if it changed
         run: |
           want='google.com, pub-8653076377863928, DIRECT, f08c47fec0942fa0'

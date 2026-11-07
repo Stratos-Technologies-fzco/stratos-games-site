@@ -1,23 +1,24 @@
 name: build the site
+# Runs on staging (where everyone publishes) and on main (the live site, changed only by the release button or a fix by Sahil/Sahariar).
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths: ["games/**", "tools/**", "templates/**", "site.json"]
   workflow_dispatch:
 permissions:
   contents: write
 concurrency:
-  group: build-main
+  group: build-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with: { fetch-depth: 0, ssh-key: "${{ secrets.RELEASE_KEY }}" }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: build from the latest main, push, retry if someone pushed meanwhile
+      - name: build from the latest branch, push, retry if someone pushed meanwhile
         env:
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
@@ -26,18 +27,19 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+          BR: ${{ github.ref_name }}
         run: |
           git config user.name "stratos-games-bot"
           git config user.email "bot@stratos.games"
           for i in 1 2 3 4 5 6; do
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin $BR
+            git reset --hard origin/$BR
             python3 tools/build.py
             git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers assets/stratos.js
             if git diff --cached --quiet; then echo "site already up to date"; exit 0; fi
             git commit -m "build: site pages [skip ci]"
-            if git push origin HEAD:main; then echo "pushed"; exit 0; fi
-            echo "push rejected (someone pushed meanwhile), rebuilding from the new main"
+            if git push origin HEAD:$BR; then echo "pushed"; exit 0; fi
+            echo "push rejected (someone pushed meanwhile), rebuilding from the new $BR"
             sleep $((i * 3))
           done
           echo "gave up after 6 tries"; exit 1

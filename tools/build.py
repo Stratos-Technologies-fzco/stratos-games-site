@@ -199,8 +199,10 @@ try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(
 var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),game=m?m[1]:"";
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
 if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
-var S=w.Stratos={config:C,game:game,
- track:function(n,x){if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
+var live=/(^|\.)stratos\.games$/.test(location.hostname);   /* staging and test copies: nothing is counted, track() shows in the console instead */
+if(!live)C={};
+var S=w.Stratos={config:C,game:game,live:live,
+ track:function(n,x){if(!live){try{console.info("Stratos track (not counted off the live site):",n,x||"")}catch(e){}}if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
  offerReward:function(done){S.track("reward_offered");S.track("reward_taken");if(typeof done=="function")done()}};
 if(C.measurementId){
  gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"granted"});

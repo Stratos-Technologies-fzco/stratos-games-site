@@ -1,0 +1,45 @@
+name: bring live fixes into staging
+# When the live site (main) changes, by a release or a quick fix, copy that into staging
+# so staging always has everything live has, plus the new work.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: build-staging
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: staging, fetch-depth: 0, ssh-key: "${{ secrets.RELEASE_KEY }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: merge live into staging, rebuild staging pages, push
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+        run: |
+          git config user.name "stratos-games-bot"
+          git config user.email "bot@stratos.games"
+          for i in 1 2 3 4 5; do
+            git fetch -q origin main staging
+            git reset -q --hard origin/staging
+            if git merge-base --is-ancestor origin/main HEAD; then echo "staging already has everything live has"; exit 0; fi
+            # if live and staging changed the same lines, staging (the newer work) wins
+            git merge -q --no-edit -X ours origin/main -m "sync: bring live into staging [skip ci]"
+            python3 tools/build.py
+            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers assets/stratos.js
+            git diff --cached --quiet || git commit -q -m "build: staging pages [skip ci]"
+            if git push -q origin HEAD:staging; then echo "staging synced"; exit 0; fi
+            sleep $((i * 3))
+          done
+          exit 1
