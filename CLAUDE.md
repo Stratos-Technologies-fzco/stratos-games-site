@@ -6,7 +6,7 @@ Read `README.md` for how a box works. This file is the know-how: what a good Str
 
 ## The setup in four lines
 
-- **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-games-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
+- **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
 - **Saturday release:** on the weekly call, Sahil, Sahariar or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
 - A maker's game lives in `games/<github-username>/` (`index.html`, `game.json`, `thumbnail.png`).
 - A GitHub Action runs `tools/build.py` and rebuilds the front page, play pages and sitemap. Nobody runs it by hand.
