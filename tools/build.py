@@ -16,6 +16,10 @@ import json, os, re, html, datetime, hashlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
 SITE = json.load(open(os.path.join(ROOT, "site.json"), encoding="utf-8"))
+# Live or staging. Games listed in site.json "hidden_on_live" are left off stratos.games but still show on staging,
+# so the maker can keep fixing them. Mohua (tester) takes a game off the list once it passes her check.
+SITE_MODE = os.environ.get("STRATOS_SITE", "live")
+HIDDEN_ON_LIVE = SITE.get("hidden_on_live", {})
 CATS = {c["id"]: c for c in SITE["categories"]}
 YEAR = str(datetime.date.today().year)
 TODAY = datetime.date.today().isoformat()
@@ -91,6 +95,8 @@ def load_games():
         except Exception as e: problems.append(f"{slug}: game.json is not valid JSON ({e})"); continue
         if not g.get("title") or not g.get("maker"): problems.append(f"{slug}: game.json needs \"title\" and \"maker\""); continue
         g["slug"] = slug
+        if SITE_MODE == "live" and slug in HIDDEN_ON_LIVE:
+            problems.append(f"{slug}: hidden on live, still on staging ({HIDDEN_ON_LIVE[slug]})"); continue
         g["category"] = g.get("category") if g.get("category") in CATS and g.get("category") not in ("new", "studio") else "arcade"
         g["soon"] = str(g.get("status", "")).lower().replace("-", "_") in ("coming_soon", "placeholder", "soon", "wip")
         if not g["soon"] and g["category"] != "kids" and slug not in LIVE_BEFORE_ANALYTICS_RULE and not has_analytics(d):

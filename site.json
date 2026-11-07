@@ -162,5 +162,16 @@
     }
   ],
   "analytics_id": "",
-  "home": "cards"
+  "home": "cards",
+  "hidden_on_live": {
+    "Mdsadee527": "Racing Mania: basic look, no cover, no analytics",
+    "Mdsadee527-mega-ramp-stunt-racer": "Mega Ramp: car flips and there is no way to restart",
+    "sumaiyahsultana821-sys": "Island Match Quest: wall of text, scrolls, no cover, no analytics",
+    "nikhatenglish89": "Mystery Island: no cover, plain home screen",
+    "saiqulmodi": "Fight for Right: no home screen, no tutorial, no clear goal",
+    "saiqulmodi-domino-wonder-dash": "Domino Game: no menu, no goal, nothing to tap",
+    "saiqulmodi-ecos-synthetica": "Ecos-Synthetica: blank on phone, scrolls on computer",
+    "im-mohua-liza-ashgrove-extraction": "Ashgrove: scrolls, wall of text, needs a tutorial",
+    "saiqulmodi-stratos-poker": "Poker Arena: asks for email and phone; sign-in must come from Stratos centrally"
+  }
 }
