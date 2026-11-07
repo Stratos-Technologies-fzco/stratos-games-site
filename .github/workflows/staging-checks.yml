@@ -41,7 +41,7 @@ jobs:
             echo "**✅ goes live** at the Saturday release. **❌ waits** a week: fix it, publish again, and this list updates."
             echo "Not sure how to fix? Tell Claude: *fix what the staging check says for my game*."
             echo
-            echo "See staging: https://stratos-games-staging.vercel.app"
+            echo "See staging: https://stratos-family-staging.vercel.app"
             echo
             cat "$CHECKS_OUT/checks.md"
           } > body.md
