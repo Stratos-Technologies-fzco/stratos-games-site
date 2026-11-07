@@ -1,5 +1,5 @@
 // Caches the app and any language file the player loads, so Free Sail and the Daily work offline.
-const CACHE = 'babel-harbour-v2';
+const CACHE = 'babel-harbour-v3';
 const SHELL = ['./', 'index.html', 'css/app.css', 'css/fonts.css', 'fonts/fredoka-500.ttf', 'fonts/fredoka-600.ttf', 'fonts/fredoka-700.ttf', 'fonts/nunito-400.ttf', 'fonts/nunito-600.ttf', 'fonts/nunito-700.ttf', 'fonts/nunito-800.ttf', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'js/main.js', 'js/store.js', 'js/engine.js', 'js/game.js', 'js/audio.js', 'js/art.js', 'data/de.json'];
 

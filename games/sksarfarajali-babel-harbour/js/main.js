@@ -10,6 +10,24 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 const num = (n) => Number(n).toLocaleString('en-GB');
 const wait = (ms) => new Promise((r) => setTimeout(r, S.profile.reducedMotion ? Math.min(ms, 60) : ms));
 
+// ------------------------------------------------------------------ fit to window
+// The game is laid out on a 390 x 844 canvas and scaled to fit, so every screen is fully visible with no page scroll.
+let scale = 1;
+function fit() {
+  const BW = 390, BH = 844, iw = window.innerWidth, ih = window.innerHeight;
+  scale = Math.min(iw / BW, ih / BH, 1.6);
+  const w = Math.min(iw / scale, 460), h = ih / scale;   // extra room on tall or wide windows is used, not wasted
+  const a = $('#app');
+  a.style.width = w + 'px'; a.style.height = h + 'px';
+  a.style.transform = `scale(${scale})`;
+  a.style.left = (iw - w * scale) / 2 + 'px';
+  a.style.setProperty('--lh', h + 'px');
+}
+fit();
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', () => setTimeout(fit, 120));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+
 const screenEl = $('#screen'), ov1 = $('#ov1'), ov2 = $('#ov2'), toastEl = $('#toasts');
 let view = { name: 'welcome' };
 let R = null;            // the round being played
@@ -444,7 +462,7 @@ async function trySort(dockId) {
       const a = crateEl.getBoundingClientRect(), b = dEl.getBoundingClientRect();
       crateEl.classList.remove('dragging');
       crateEl.classList.add('fly');
-      crateEl.style.transform = `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(.45)`;
+      crateEl.style.transform = `translate(${(b.left + b.width / 2 - (a.left + a.width / 2)) / scale}px, ${(b.top + b.height / 2 - (a.top + a.height / 2)) / scale}px) scale(.45)`;
       crateEl.style.opacity = '.2';
     }
     await wait(400);
@@ -514,8 +532,8 @@ function bindCrate() {
   });
   el.addEventListener('pointermove', (e) => {
     if (pid === null) return;
-    const dx = e.clientX - sx, dy = e.clientY - sy;
-    if (!drag && Math.hypot(dx, dy) > 8) { drag = true; el.classList.add('dragging'); Sound.play('pick'); }
+    const dx = (e.clientX - sx) / scale, dy = (e.clientY - sy) / scale;
+    if (!drag && Math.hypot(dx, dy) * scale > 8) { drag = true; el.classList.add('dragging'); Sound.play('pick'); }
     if (!drag) return;
     el.style.transform = `translate(${dx}px, ${dy}px) rotate(-4deg)`;
     const d = dockAt(e.clientX, e.clientY);
@@ -760,7 +778,7 @@ document.addEventListener('pointerdown', (e) => {
   const g = e.target.closest('[data-swipe]');
   if (!g) return;
   const sy = e.clientY, host = g.closest('.sheet').parentElement;
-  const up = (u) => { document.removeEventListener('pointerup', up); if (u.clientY - sy > 70) closeOv(host); };
+  const up = (u) => { document.removeEventListener('pointerup', up); if (u.clientY - sy > 70 * scale) closeOv(host); };
   document.addEventListener('pointerup', up);
 });
 window.addEventListener('online', () => view.name === 'home' && render());
