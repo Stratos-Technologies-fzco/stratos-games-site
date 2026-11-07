@@ -3,10 +3,8 @@
 Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.
 
 ## Play (free browser games)
-- [Mega Ramp Stunt Racer](https://stratos.games/play/Mdsadee527-mega-ramp-stunt-racer/): Launch off mega ramps, flip and barrel-roll for points, and land clean to keep your combo alive. Made by Mohammad Sadee.
 - [Magic Shot](https://stratos.games/play/im-mohua-liza/): A magical liquid-sorting puzzle: pour glowing potions between enchanted bottles until every bottle holds one colour. Made by Mohua Liza.
 - [Aetherhold](https://stratos.games/play/im-mohua-liza-aetherhold/): Build a kingdom on a floating sky island, summon heroes, raise an army and battle through a 30-stage campaign. Made by Mohua Liza.
-- [Ashgrove Extraction](https://stratos.games/play/im-mohua-liza-ashgrove-extraction/): A third-person survival shooter: find Mara in a militia-held town, keep her alive, call for help and reach the evac helicopter. Made by Mohua Liza.
 - [Cargo Climb](https://stratos.games/play/im-mohua-liza-cargo-climb/): A hill-climb driving game where you haul three loose crates over the hills and get paid for every crate that reaches a depot. Made by Mohua Liza.
 - [Chroma Clash](https://stratos.games/play/im-mohua-liza-chroma-clash/): A funky 3D color-matching card game: play bots, friends on one phone, or friends anywhere online. Made by Mohua Liza.
 - [Ink Velocity](https://stratos.games/play/im-mohua-liza-ink-velocity/): Draw the road and send a red supercar across the Darjeeling hills, under real Kanchenjunga peaks. Made by Mohua Liza.
@@ -14,14 +12,9 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 - [Plot Twist: Spot the Drama](https://stratos.games/play/im-mohua-liza-plot-twist/): Spot the differences in soap-opera scenes: weddings, first dates, office meltdowns and more. Made by Mohua Liza.
 - [Wordbloom: Word Journey](https://stratos.games/play/im-mohua-liza-wordbloom/): Swipe letters to fill crossword grids across 8 dreamy worlds, from cherry blossoms to a starfall nebula. Made by Mohua Liza.
 - [Arrow Rush](https://stratos.games/play/mody-sahariar1/): Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds. Made by Sahariar Mody.
-- [Mystery Island](https://stratos.games/play/nikhatenglish89/): Explore five islands, solve puzzles and mini-games, and collect the map pieces that unlock the treasure. Made by Nikhat.
-- [Fight for Right](https://stratos.games/play/saiqulmodi/): Fly a fighter squadron at 35,000 ft over a whole country while SAM bases and hidden launchers fire missiles at you. Made by Md. Saiqul Haque Modi.
 - [BridgeWorks Campus](https://stratos.games/play/saiqulmodi-bridge-genius/): Walk the campus road from Class 1 to Expert Engineer: answer your class's questions to earn parts, then build a real-physics bridge and test it with traffic. Made by Md. Saiqul Haque Modi.
-- [Domino Game](https://stratos.games/play/saiqulmodi-domino-wonder-dash/): Trace, topple magic dominoes and sing along: ABC, Hindi and Bangla letters, 65 rhymes, numbers, animals, India, road safety and more, Nursery to Class 7, with English, Hindi or Bangla voice. Made by Md. Saiqul Haque Modi.
-- [Ecos-Synthetica](https://stratos.games/play/saiqulmodi-ecos-synthetica/): One living world, three ways to learn it: Eco Explorer (Class 1-10), Eco Scientist (Class 11-12) and Eco Professional, in English, Hindi and Bengali. Made by Md. Saiqul Haque Modi.
 - [FAILSPAN: Structural Mayhem](https://stratos.games/play/saiqulmodi-failspan/): Build real-physics bridges in 2D or 3D, from Class 1 to Expert Engineer: answer your class's questions to earn parts, then test the bridge with traffic. Build. Stress. Snap. Made by Md. Saiqul Haque Modi.
 - [SkyForge](https://stratos.games/play/saiqulmodi-skyforge/): Fly a stealth fighter over real South India terrain and earn stars for every landing. Made by Md. Saiqul Haque Modi.
-- [Stratos Poker Arena](https://stratos.games/play/saiqulmodi-stratos-poker/): Live Texas Hold'em with friends and house bots at five tables, from Rookie Ring to VIP Suite, with play chips only. Made by Md. Saiqul Haque Modi.
 - [Skyfall Armada](https://stratos.games/play/shoaibul0926/): Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles. Made by Shoaibul Hoque.
 - [Echo Island](https://stratos.games/play/sksarfarajali/): Explore a living island, bond with creatures and rebuild its lost memory, where every choice changes the world. Made by Sarfaraj Ali.
 - [Babel Harbour](https://stratos.games/play/sksarfarajali-babel-harbour/): A calm daily word puzzle: sort the crates to the dock showing their true meaning and spot the false friends between German, French and English. Made by Sk Sarfaraj Ali.
@@ -30,8 +23,6 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 - [DOMINO CLASSIC](https://stratos.games/play/sksarfarajali-domino-classic/): Classic Draw and Block dominoes: play a friend online with a room code, or take on smart computer opponents. Made by Sk Sarfaraj Ali.
 - [MOTO RUSH](https://stratos.games/play/sksarfarajali-moto-rush/): Race a 3D superbike through traffic, upgrade five bikes and beat three new challenges every day. Made by Sk Sarfaraj Ali.
 - [Toot Raft](https://stratos.games/play/tamannamody/): Four pigs on a spinning raft, one spiky river, and nothing but toots to steer with. Made by Tamanna Tahseen.
-- [Island Match Quest](https://stratos.games/play/sumaiyahsultana821-sys/): Flip shells, fruits, and gems to match pairs, clear three islands, and chase a high score. Made by Sumaiyah Sultana.
-- [Racing Mania](https://stratos.games/play/Mdsadee527/): Dodge oncoming traffic across three lanes and rack up distance before you crash. Made by Mohammad Sadee.
 
 ## Coming soon (claimed by family makers)
 
