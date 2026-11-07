@@ -48,8 +48,9 @@ Categories: arcade, puzzle, word, party, sports, kids.
 
 1. Your folder is yours. Nobody edits another maker's folder, ever.
 2. Nobody types a git command. Claude Code pulls (with rebase), commits and pushes. If it says the push was rejected: "someone else pushed, pull with rebase and push mine again." Nobody runs tools/build.py; the site builds itself.
-3. Keep it inside the folder: no scripts loaded from outside, no personal data, no passwords, keep the folder under 20 MB.
-4. If the page breaks, that is fine, we fix it live.
+3. Keep it inside the folder: no scripts loaded from outside, no personal data, no passwords. No size cap, but no single file over 100 MB. Unity and Godot web builds are welcome.
+4. Every game fits the screen with no scrolling: full screen by itself on a phone, fits any window on a computer. And every game has a real cover (`thumbnail.png`).
+5. If the page breaks, that is fine, we fix it live.
 
 ## How the site builds itself
 

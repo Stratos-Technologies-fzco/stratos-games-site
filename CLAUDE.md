@@ -23,12 +23,14 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 
 **Quality bar, check before every publish:**
 - Opens and plays on a phone in portrait, thumb-reachable controls, no pinch or zoom needed.
+- **Fits the screen, no scrolling (Sahil 2026-11-07):** on a phone the game goes full screen by itself; on a computer it fits whatever window it gets. No scrollbars, ever. Use screens (screen 1, screen 2) instead of long scrolling pages.
 - First tap to fun in under 10 seconds. No long intro, no sign-up.
-- Loads fast: one `index.html`, small images, folder under 20 MB, under 3 seconds on a normal phone.
+- Loads fast: small images, first screen in under 3 seconds on a normal phone. No folder size cap (Sahil 2026-11-07), but no single file over 100 MB (GitHub's limit).
+- Unity and Godot are welcome (Sahil 2026-11-07): export the Web build into your folder. Unity: compression "Gzip" with "Decompression Fallback" on, or compression off. Godot 4.3+: Web export with "Thread Support" off.
 - No errors in the browser console. Test it: open the page, play a full round, lose once, restart.
 - Sound off by default or a clear mute button. Never auto-play loud audio.
 - Works offline once loaded: everything it needs is inside the folder.
-- Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself).
+- Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
 
 **What keeps players coming back (from our store games' numbers):**
