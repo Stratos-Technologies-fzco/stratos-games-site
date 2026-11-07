@@ -149,6 +149,162 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
   #garage #gvid{position:fixed;left:24px;top:76px;width:calc(100vw - min(400px,36vw) - 48px);height:calc(100vh - 170px);object-fit:contain;background:#cfd1d6}
   #garage .vtag{position:fixed;left:40px;top:90px;bottom:auto}
 }
+
+/* ---- Barlow fonts, bundled so the game works offline ---- */
+@font-face{font-family:'Barlow';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/barlow-500.woff2) format('woff2')}
+@font-face{font-family:'Barlow';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlow-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/barlowcond-600.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/barlowcond-700.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-display:swap;src:url(fonts/barlowcond-700i.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-display:swap;src:url(fonts/barlowcond-800i.woff2) format('woff2')}
+:root{--u:1}
+/* ---- race HUD (sizes follow the mockup and scale with --u) ---- */
+#hud{position:fixed;inset:0;display:none;pointer-events:none;z-index:3;font-family:Barlow,Arial,sans-serif;color:#F4F1EA}
+body.racing #hud{display:block}
+#hud .hl{position:absolute;left:calc(24px*var(--u));top:calc(20px*var(--u) + env(safe-area-inset-top));width:calc(236px*var(--u));display:flex;flex-direction:column;gap:calc(12px*var(--u))}
+#hud .hhead{display:flex;justify-content:space-between;align-items:center;padding:calc(6px*var(--u)) calc(14px*var(--u));background:#FF6A2A;color:#0B0D12;font:700 calc(18px*var(--u))/1.2 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(2px*var(--u))}
+#hud .hrow{display:flex;justify-content:space-between;align-items:baseline}
+#hud .hrow span{font-size:calc(14px*var(--u));letter-spacing:calc(1.5px*var(--u));color:#D8DAE2}
+#hud .hscore{padding:calc(10px*var(--u)) calc(14px*var(--u));background:rgba(11,13,18,.86)}
+#hud .hscore b{font:italic 800 calc(48px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hbest{padding:calc(6px*var(--u)) calc(14px*var(--u));background:rgba(27,31,43,.9)}
+#hud .hbest b{font:700 calc(24px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hnm{align-self:flex-start;display:none;gap:calc(12px*var(--u));align-items:baseline;padding:calc(8px*var(--u)) calc(30px*var(--u)) calc(8px*var(--u)) calc(18px*var(--u));background:rgba(255,194,74,.96);color:#0B0D12;font:italic 800 calc(28px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif;clip-path:polygon(0 0,100% 0,calc(100% - 14px*var(--u)) 100%,0 100%)}
+#hud #hToasts{display:flex;flex-direction:column;gap:calc(5px*var(--u));align-items:flex-start}
+#hud .ht{padding:calc(4px*var(--u)) calc(12px*var(--u));background:rgba(11,13,18,.8);border-left:calc(4px*var(--u)) solid #FFC24A;font:italic 800 calc(20px*var(--u))/1.15 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(.5px*var(--u));animation:htfade 1.3s ease-out forwards}
+@keyframes htfade{0%{opacity:0;transform:translateX(-10px)}12%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0}}
+#hud .hr{position:absolute;right:calc(24px*var(--u));top:calc(20px*var(--u) + env(safe-area-inset-top));width:calc(372px*var(--u));background:rgba(11,13,18,.86)}
+#hud .hgrid{display:grid;grid-template-columns:calc(74px*var(--u)) minmax(0,1fr) calc(84px*var(--u));align-items:end;gap:calc(8px*var(--u));padding:calc(12px*var(--u)) calc(16px*var(--u)) calc(8px*var(--u))}
+#hud .hc{display:flex;flex-direction:column}#hud .hc.r{align-items:flex-end}
+#hud .hc span{font-size:calc(13px*var(--u));letter-spacing:calc(1.5px*var(--u));color:#D8DAE2}
+#hud .hc b{font:italic 800 calc(40px*var(--u))/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hc b.or{font-size:calc(58px*var(--u));color:#FF6A2A}
+#hud .hspd{display:flex;align-items:baseline;justify-content:center;gap:calc(6px*var(--u))}
+#hud .hspd b{font:italic 800 calc(82px*var(--u))/.9 'Barlow Condensed','Arial Narrow',sans-serif}
+#hud .hspd i{font:700 calc(18px*var(--u)) 'Barlow Condensed','Arial Narrow',sans-serif;font-style:normal;color:#D8DAE2}
+#hud .hrev{display:flex;gap:calc(3px*var(--u));padding:0 calc(16px*var(--u)) calc(10px*var(--u))}
+#hud .hrev i{flex:1;height:calc(12px*var(--u));background:#2B3040}
+#hud .hrev i.on{background:#F4F1EA}#hud .hrev i.hot.on{background:#FF6A2A}
+#hud .hnit{display:flex;align-items:center;gap:calc(10px*var(--u));padding:calc(8px*var(--u)) calc(16px*var(--u));background:rgba(27,31,43,.9)}
+#hud .hnit span{font:700 calc(17px*var(--u)) 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:calc(2px*var(--u));color:#8FB6FF}
+#hud .hbar{flex:1;height:calc(10px*var(--u));background:#2B3040}#hud .hbar i{display:block;height:100%;width:0;background:#4C8DFF}
+/* sound button, touch buttons */
+#snd{border-radius:0;background:rgba(11,13,18,.72);font:600 14px Barlow,Arial,sans-serif;min-height:44px;padding:0 16px;color:#F4F1EA}
+body.racing #snd{top:calc(20px*var(--u) + 176px*var(--u) + env(safe-area-inset-top));right:calc(24px*var(--u))}
+#ctl .cbtn{font:italic 800 clamp(20px,5vmin,32px)/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.5px}
+#ctl #brake{left:calc(28px*var(--u));width:clamp(78px,17vmin,128px);height:clamp(78px,17vmin,128px);border:3px solid rgba(244,241,234,.85);background:rgba(11,13,18,.62);box-shadow:none;color:#F4F1EA}
+#ctl #nitro{right:calc(28px*var(--u));width:clamp(94px,20vmin,144px);height:clamp(94px,20vmin,144px);border:3px solid #8FB6FF;background:rgba(33,84,196,.82);box-shadow:none;color:#fff}
+.dcap{top:calc(max(232px,30vh) + env(safe-area-inset-top))}
+
+/* ---- phase 4: sharp, angled panels in the redesign colours and Barlow type ---- */
+.layer{font-family:Barlow,Arial,sans-serif;color:#F4F1EA;text-align:left}
+.gold{color:#FFC24A}
+.raised,.sq{border:0;border-radius:0;background:#1B1F2B;color:#F4F1EA;font:700 20px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:1.5px;cursor:pointer;min-height:44px;touch-action:manipulation;box-shadow:none}
+.raised.sm{padding:0 18px;height:44px}
+.sq{width:48px;height:48px;min-height:48px;background:#2B3040;font-size:30px;line-height:1;padding:0}
+.slab{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;border-radius:0;cursor:pointer;touch-action:manipulation;box-shadow:none;text-align:left;gap:12px}
+.slab span{font:italic 800 clamp(30px,calc(50px*var(--u)),50px)/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.5px}
+.slab small{font:600 clamp(12px,calc(16px*var(--u)),16px) Barlow,Arial,sans-serif;margin:0;opacity:1}
+.slab.o{min-height:max(56px,calc(84px*var(--u)));padding:0 30px 0 36px;background:#FF6A2A;color:#0B0D12;clip-path:polygon(20px 0,100% 0,calc(100% - 20px) 100%,0 100%)}
+.slab.w{min-height:max(48px,calc(60px*var(--u)));padding:0 30px 0 36px;background:#F4F1EA;color:#0B0D12;clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%)}
+.slab.w span{font-size:clamp(24px,calc(32px*var(--u)),32px)}
+.slab.b{min-height:max(48px,calc(60px*var(--u)));padding:0 30px 0 36px;background:#4C8DFF;color:#0B0D12;clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%)}
+.slab.b span{font-size:clamp(24px,calc(32px*var(--u)),32px)}
+.slab:active,.raised:active,.sq:active{filter:brightness(1.12)}
+.dim{filter:none;opacity:.55}
+/* main menu */
+#menu{padding:0;align-items:stretch;justify-content:flex-start;background:linear-gradient(90deg,rgba(11,13,18,.94) 0%,rgba(11,13,18,.82) 42%,rgba(11,13,18,0) 64%)}
+#menu .mcol{margin:calc(32px*var(--u)) 0 calc(32px*var(--u)) calc(56px*var(--u));width:calc(500px*var(--u));min-width:min(100%,300px);display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+#menu .mlogo{display:flex;align-items:flex-end;gap:calc(16px*var(--u));font:italic 800 clamp(56px,calc(118px*var(--u)),118px)/.84 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:-1px;background:none;filter:none;color:#F4F1EA}
+#menu .mlogo .o{color:#FF6A2A;display:inline;font-size:1em;letter-spacing:-1px;margin:0}
+#menu .mtag{margin-top:6px;font:600 clamp(13px,calc(21px*var(--u)),21px) 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:6px;color:#D8DAE2}
+#menu .mbot{display:flex;flex-direction:column;gap:10px}
+#menu .mline{display:flex;justify-content:space-between;align-items:center;font:700 clamp(14px,calc(18px*var(--u)),18px) 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2px;text-transform:uppercase}
+#menu .mstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:rgba(244,241,234,.14)}
+#menu .mstats>div{padding:10px 14px;background:#12151D;display:flex;flex-direction:column;gap:2px}
+#menu .mstats small{font-size:13px;letter-spacing:1.5px;color:#B4B8C4}
+#menu .mstats b{font:italic 800 clamp(26px,calc(34px*var(--u)),34px)/1 'Barlow Condensed','Arial Narrow',sans-serif}
+#menu .mrew{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#D8DAE2}
+.rbar{height:4px;border-radius:0;background:#2B3040;overflow:hidden}.rbar i{display:block;height:100%;width:0;border-radius:0;background:#FF6A2A;transition:width .6s}
+#menu .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#menu .trio .raised{height:48px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0}
+#menu .trio .raised b{font:inherit}
+@media (max-aspect-ratio: 11/10) {
+  #menu{background:linear-gradient(180deg,rgba(11,13,18,.88) 0%,rgba(11,13,18,0) 26%,rgba(11,13,18,0) 44%,rgba(11,13,18,.82) 62%,rgba(11,13,18,.94) 100%)}
+  #menu .mcol{margin:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));width:auto;min-width:0;flex:1}
+}
+/* garage */
+#garage{padding:0;background:none;align-items:stretch;justify-content:flex-end}
+#garage .gtop,#missions .gtop{position:absolute;left:calc(24px*var(--u) + 8px);top:calc(20px*var(--u) + 4px + env(safe-area-inset-top));display:flex;align-items:center;gap:16px;z-index:3}
+.gtitle{font:700 20px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:3px;color:#D8DAE2}
+.mco{font:700 20px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:1px}.mco b{font:inherit}
+#garage .mid{position:relative;flex:1;width:100%;max-width:none}
+#garage .gnav{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0;z-index:3}
+#garage .gnav span{font:700 20px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2px}
+.gpanel{width:100%;max-height:54vh;overflow-y:auto;background:#12151D;padding:16px 20px;border-radius:0;box-shadow:none;border:0}
+.gpanel #gbody,.gpanel #mbody{display:flex;flex-direction:column;gap:10px}
+#missions{padding:0;background:none;align-items:stretch;justify-content:flex-end}
+#missions .gpanel{max-height:60vh}
+.gh{display:flex;align-items:center;justify-content:space-between;font:700 18px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2px;color:#D8DAE2}
+.gh .gold{font-size:20px;letter-spacing:1px}
+.gname{font:italic 800 clamp(38px,calc(60px*var(--u)),60px)/.95 'Barlow Condensed','Arial Narrow',sans-serif}
+.gblurb{font-size:14px;color:#D8DAE2;margin-top:-4px}
+.gstate{display:flex;gap:8px}
+.tagok,.taglock{border-radius:0;font:700 13px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2px;padding:4px 10px}
+.tagok{background:#FF6A2A;color:#0B0D12}.taglock{background:#2B3040;color:#FFC24A}
+#garage .stat{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:12px;font:700 17px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:1.5px;color:#F4F1EA}
+#garage .bar{height:10px;border-radius:0;background:#2B3040}#garage .bar i{border-radius:0}
+#garage .bar i.up{background:#FFC24A}#garage .bar i.bs{background:#FF6A2A}
+.sec{font:700 18px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2.5px;color:#D8DAE2;margin-top:6px}
+.note{font-size:14px;color:#B4B8C4}
+.urow,.mrow{border-radius:0;background:#1B1F2B;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ut b,.mt b{font:600 17px Barlow,Arial,sans-serif;display:block}
+.ut small,.mt small{font-size:12px;color:#B4B8C4}
+.pips{display:flex;gap:5px;margin-top:6px}.pips i{width:34px;height:4px;border-radius:0;background:#3a3f55}.pips i.on{background:#FFC24A}
+.ubtn{border:0;border-radius:0;background:#FFC24A;color:#0B0D12;font:700 24px 'Barlow Condensed','Arial Narrow',sans-serif;min-width:76px;min-height:48px;cursor:pointer;touch-action:manipulation}
+.ubtn::before{content:none}
+.umax{font:700 18px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:2px;color:#FFC24A}
+.sw{display:flex;gap:10px;flex-wrap:wrap}
+.sw button{width:44px;height:44px;border-radius:0;border:2px solid #2B3040;position:relative;cursor:pointer;padding:0}
+.sw button.sel{border-color:#F4F1EA;box-shadow:none}
+.sw button .lock{border-radius:0;font:700 12px 'Barlow Condensed',sans-serif;color:#FFC24A}
+.mt .rbar{margin:6px 0 4px}
+.mr{font:italic 800 28px/1 'Barlow Condensed','Arial Narrow',sans-serif;color:#FFC24A;text-align:right}.mr small{display:block;font:600 11px Barlow,Arial,sans-serif;font-style:normal;color:#B4B8C4}
+.mrow.done{background:#1B1F2B;border-left:4px solid #FF6A2A}.mrow.done .rbar i{background:#FFC24A}
+.vtag{border-radius:0;background:#12151D;font:700 12px 'Barlow Condensed','Arial Narrow',sans-serif}
+#gvid{border-radius:0}
+@media (min-aspect-ratio: 11/10) {
+  #garage .gpanel,#missions .gpanel{position:absolute;right:0;top:0;bottom:0;width:min(400px,36vw);max-height:none;padding:24px 28px}
+  #garage .gnav{position:absolute;left:32px;bottom:28px;padding:0}
+  #garage .mid{position:absolute;inset:0;pointer-events:none;flex:none}
+  #garage #gvid{position:fixed;left:32px;top:84px;width:calc(100vw - min(400px,36vw) - 64px);height:calc(100vh - 170px);object-fit:contain;background:#cfd1d6}
+  #garage .vtag{position:fixed;left:48px;top:98px;bottom:auto}
+}
+/* results */
+#over{align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(11,13,18,.72),rgba(11,13,18,.94))}
+.opanel{width:min(440px,94vw);background:#12151D;display:flex;flex-direction:column}
+.ohead{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;background:#FF6A2A;color:#0B0D12;font:italic 800 clamp(26px,5vmin,34px)/1.1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:1px}
+.oscore{display:flex;justify-content:space-between;align-items:baseline;padding:14px 18px 8px}
+.oscore span{font-size:14px;letter-spacing:2px;color:#D8DAE2}
+.oscore b{font:italic 800 clamp(56px,11vmin,84px)/1 'Barlow Condensed','Arial Narrow',sans-serif}
+.otiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:rgba(244,241,234,.14)}
+.otiles>div{background:#1B1F2B;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.otiles small{font-size:12px;letter-spacing:1.5px;color:#B4B8C4}
+.otiles b{font:italic 800 30px/1 'Barlow Condensed','Arial Narrow',sans-serif}
+.ostats{padding:10px 18px 0;font-size:14px;color:#D8DAE2;line-height:1.5}.ostats b{color:#FFC24A}
+.obtns{padding:14px 18px 18px;display:flex;flex-direction:column;gap:10px}
+.obtns .raised{height:48px}
+.opanel .slab.b span{font-size:clamp(20px,4.2vmin,28px);white-space:nowrap}.opanel .slab.b small{font-size:13px;text-align:right}
+/* demo caption */
+.dcap{border-radius:0;background:#12151D;border:0;border-top:3px solid #FF6A2A;box-shadow:none}
+.dtag{border-radius:0;background:#FF6A2A;color:#0B0D12;font:700 12px 'Barlow Condensed','Arial Narrow',sans-serif}
+#dtitle{font:italic 800 28px/1.1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.5px}
+#dsub2{font:500 14px Barlow,Arial,sans-serif}
+.dk{border-radius:0;background:#1B1F2B;border:0;font-family:'Barlow Condensed','Arial Narrow',sans-serif}
+.dk.on{background:#FF6A2A;color:#0B0D12;box-shadow:none;border:0}.dk.on i{color:#0B0D12}
+.dz.dl{background:linear-gradient(90deg,rgba(255,106,42,.4),transparent)}.dz.dr{background:linear-gradient(270deg,rgba(255,106,42,.4),transparent)}
+.dbar i{background:#FF6A2A}
+#dskip{border-radius:0;background:#1B1F2B;font:700 16px 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:1.5px;min-height:44px;padding:0 18px}
 </style>
 </head>
 <body>
@@ -156,50 +312,43 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
 <canvas id="game"></canvas>
 
 <div id="menu" class="layer on">
-  <div class="top"><div class="chip" title="Coins"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc83a"/><circle cx="12" cy="12" r="7" fill="none" stroke="#c98a00" stroke-width="2"/><path d="M12 8v8M9.5 10.2c.4-.8 1.4-1.2 2.5-1.2s2.1.4 2.5 1.2" stroke="#c98a00" stroke-width="1.6" fill="none"/></svg><b id="mcoins">0</b></div></div>
-  <div class="brand"><div class="logo">MOTO<span>RUSH</span></div><div class="tag">RIDE BEYOND LIMITS</div></div>
-  <div class="spacer"></div>
-  <div class="panel">
-    <div class="bikeline" id="bname"></div>
-    <div class="chips">
-      <div class="chip2"><small>BEST</small><b id="mbest">0</b></div>
-      <div class="chip2"><small>STREAK</small><b id="mstreak">0</b></div>
-      <div class="chip2"><small>TODAY</small><b id="mtoday">-</b></div>
-    </div>
-    <div class="reward"><div class="rbar"><i id="rfill"></i></div><span id="rtxt"></span></div>
-    <div class="btnrow">
-      <button class="btn" id="ride">RIDE<small>endless traffic run</small></button>
-      <button class="btn alt" id="daily">DAILY RUN<small id="dsub">same road for everyone today</small></button>
-    </div>
-    <div class="trio">
-      <button class="btn ghost" id="bGarage">&#9881; GARAGE</button>
-      <button class="btn ghost" id="bMissions">&#9733; MISSIONS<span class="badge" id="mbadge">0/3</span></button>
-      <button class="btn ghost" id="demo">&#9654; DEMO</button>
+  <div class="mcol">
+    <div class="mbrand"><div class="mlogo"><span>MOTO</span><span class="o">RUSH</span></div><div class="mtag">RIDE BEYOND LIMITS</div></div>
+    <div class="mbot">
+      <div class="mline"><span id="bname"></span><span class="gold"><b id="mcoins">0</b> COINS</span></div>
+      <div class="mstats"><div><small>BEST</small><b id="mbest">0</b></div><div><small>STREAK</small><b id="mstreak">0</b></div><div><small>TODAY</small><b id="mtoday">-</b></div></div>
+      <div class="mrew"><span id="rtxt"></span><div class="rbar"><i id="rfill"></i></div></div>
+      <button class="slab o" id="ride"><span>RIDE</span><small>endless traffic run</small></button>
+      <button class="slab w" id="daily"><span>DAILY RUN</span><small id="dsub">same road for everyone today</small></button>
+      <div class="trio"><button class="raised" id="bGarage">GARAGE</button><button class="raised" id="bMissions">MISSIONS <b class="gold" id="mbadge">0/3</b></button><button class="raised" id="demo">DEMO</button></div>
     </div>
   </div>
 </div>
 
 <div id="garage" class="layer">
-  <div class="top"><button class="btn ghost sm" id="gBack">&#9664; BACK</button><div class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc83a"/><circle cx="12" cy="12" r="7" fill="none" stroke="#c98a00" stroke-width="2"/></svg><b id="gcoins">0</b></div></div>
-  <div class="mid"><video id="gvid" muted loop playsinline preload="none" poster="motorush-rr.jpg"></video><span class="vtag" id="vtag">REAL BIKE &middot; FACTORY VIDEO</span><button class="arrow" id="gPrev">&#9664;</button><button class="arrow" id="gNext">&#9654;</button></div>
-  <div class="panel scroll"><div id="gbody" style="display:flex;flex-direction:column;gap:9px"></div></div>
+  <div class="gtop"><button class="raised sm" id="gBack">BACK</button><span class="gtitle">GARAGE</span><span id="gcoins" style="display:none">0</span></div>
+  <div class="mid"><video id="gvid" muted loop playsinline preload="none" poster="motorush-rr.jpg"></video><span class="vtag" id="vtag">REAL BIKE &middot; FACTORY VIDEO</span></div>
+  <div class="gnav"><button class="sq" id="gPrev" aria-label="Previous bike">&#8249;</button><span id="gCount">BIKE 1 / 5</span><button class="sq" id="gNext" aria-label="Next bike">&#8250;</button></div>
+  <div class="gpanel scroll"><div id="gbody"></div></div>
 </div>
 
 <div id="missions" class="layer">
-  <div class="top"><button class="btn ghost sm" id="mBack">&#9664; BACK</button><div class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#ffc83a"/><circle cx="12" cy="12" r="7" fill="none" stroke="#c98a00" stroke-width="2"/></svg><b id="mcoins2">0</b></div></div>
+  <div class="gtop"><button class="raised sm" id="mBack">BACK</button><span class="gtitle">DAILY CHALLENGES</span><span class="gold mco"><b id="mcoins2">0</b> COINS</span></div>
   <div class="spacer"></div>
-  <div class="panel scroll"><div class="mtitle">DAILY CHALLENGES</div><div class="note" id="mtimer"></div><div id="mbody" style="display:flex;flex-direction:column;gap:9px"></div></div>
+  <div class="gpanel scroll"><div class="note" id="mtimer"></div><div id="mbody"></div></div>
 </div>
 
 <div id="over" class="layer">
-  <div class="panel">
-    <h2 id="otitle">CRASHED</h2>
-    <div class="big" id="oscore">0</div>
-    <div class="tiles"><div><small>DISTANCE</small><b id="odist">0</b></div><div><small>BEST</small><b id="obest">0</b></div><div><small>COINS</small><b id="ocoin">0</b></div></div>
-    <div class="stats" id="ostats"></div>
-    <button class="btn alt" id="revive">SECOND CHANCE<small>keep your run going (once)</small></button>
-    <button class="btn" id="again">RIDE AGAIN</button>
-    <button class="btn ghost" id="home">MENU</button>
+  <div class="opanel">
+    <div class="ohead"><span id="otitle">CRASHED</span><span id="onum">24</span></div>
+    <div class="oscore"><span>SCORE</span><b id="oscore">0</b></div>
+    <div class="otiles"><div><small>DISTANCE</small><b id="odist">0</b></div><div><small>BEST</small><b id="obest">0</b></div><div><small>COINS</small><b class="gold" id="ocoin">0</b></div></div>
+    <div class="ostats" id="ostats"></div>
+    <div class="obtns">
+      <button class="slab b" id="revive"><span>SECOND CHANCE</span><small>keep your run going (once)</small></button>
+      <button class="slab o" id="again"><span>RIDE AGAIN</span></button>
+      <button class="raised" id="home">MENU</button>
+    </div>
   </div>
 </div>
 
@@ -214,6 +363,26 @@ h2{margin:0;font-size:clamp(34px,10vw,60px);font-style:italic;font-weight:900;co
     <div class="dk" id="dkN"><b>&#9889;</b><small>NITRO</small><i>Space / Shift</i></div>
   </div>
   <button id="dskip">SKIP</button>
+</div>
+<div id="hud">
+  <div class="hl">
+    <div>
+      <div class="hhead"><span id="hMode">ENDLESS RUN</span><span id="hNo">24</span></div>
+      <div class="hrow hscore"><span>SCORE</span><b id="hS">0</b></div>
+      <div class="hrow hbest"><span>BEST</span><b id="hB">0</b></div>
+    </div>
+    <div class="hnm" id="hNM"><span>NEAR MISS</span><span id="hNMx">&times;2</span></div>
+    <div id="hToasts"></div>
+  </div>
+  <div class="hr">
+    <div class="hgrid">
+      <div class="hc"><span>GEAR</span><b class="or" id="hG">1</b></div>
+      <div class="hspd"><b id="hSpd">0</b><i>KM/H</i></div>
+      <div class="hc r"><span>LEAN</span><b id="hL">0&deg;</b></div>
+    </div>
+    <div class="hrev" id="hRev"></div>
+    <div class="hnit"><span>NITRO</span><div class="hbar"><i id="hNit"></i></div></div>
+  </div>
 </div>
 <div id="ctl"><button class="cbtn" id="brake">BRAKE</button><button class="cbtn" id="nitro">NITRO</button></div>
 <button id="snd">Sound: off</button>
@@ -258,7 +427,9 @@ function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x
 /* ---- canvas ---- */
 var cv = document.getElementById('game'), ctx = cv.getContext('2d');
 var W = 300, H = 500, S = 300, HY = 200, dpr = 1;
+function setU() { var u = innerWidth < innerHeight * 1.1 ? Math.max(0.5, Math.min(1, innerWidth / 700)) : Math.max(0.58, Math.min(1, Math.min(innerWidth / 1100, innerHeight / 640))); document.documentElement.style.setProperty('--u', u.toFixed(3)); }
 function resize() {
+  setU();
   dpr = Math.min(window.devicePixelRatio || 1, quality > 0 ? 1.5 : 1);
   W = cv.width = Math.max(100, Math.floor(innerWidth * dpr));
   H = cv.height = Math.max(100, Math.floor(innerHeight * dpr));
@@ -572,7 +743,7 @@ function stepSim(dt) {
     if (nitroOn) { wheelT += dt; wheelAmt = Math.min(1, wheelAmt + dt * 4); if (wheelT >= 1.5) { wheelT -= 1.5; addScore(100); chal('wheelie', 1); pop('WHEELIE +100', '#7fe4ff'); beep(660); } shake = Math.max(shake, 0.25); }
     else { wheelAmt = Math.max(0, wheelAmt - dt * 3); wheelT = 0; }
   } else if (menu) {
-    speed = 0; playerX = 0; tilt = 0; nitroOn = false; wheelAmt = 0;
+    speed += ((scr === 'menu' ? 6200 : 0) - speed) * Math.min(1, dt * 2); playerX = 0; tilt = scr === 'menu' ? clamp(seg.curve * 0.55, -1, 1) : 0; nitroOn = false; wheelAmt = 0;
   } else if (crashing) {
     speed = Math.max(0, speed - MAXS * 1.6 * dt); crashT += dt; bikeRot += dt * 11; bikeDX += dt * 0.5 * (bikeDX >= 0 ? 1 : -1);
     bikeLift = Math.sin(Math.min(1, crashT / 0.8) * Math.PI) * 0.8; nitroOn = false; wheelAmt = 0;
@@ -662,7 +833,7 @@ function finishRun() {
   save.coins += coins; persist();
   track('game_over', { score: sc, distance: Math.round(dist), mode: mode, bike: bikeName(), paint: PAINTS[save.sel].n, revived: revived, new_best: newBest, duration_s: Math.round(time - rs.t0), near_misses: rs.near, wheelies: rs.wheelies, nitro_s: Math.round(rs.nitro), cars_passed: rs.passed, max_chain: rs.chain, coins_earned: coins, challenges_done: chalDone() });
   var el = document.getElementById('over');
-  document.getElementById('otitle').textContent = newBest && sc > 0 ? 'NEW BEST!' : 'CRASHED';
+  document.getElementById('otitle').textContent = newBest && sc > 0 ? 'NEW BEST!' : 'CRASHED'; document.getElementById('onum').textContent = LIV[save.bike].no;
   document.getElementById('oscore').textContent = sc;
   document.getElementById('odist').textContent = Math.round(dist) + ' m';
   document.getElementById('obest').textContent = save.best;
@@ -674,6 +845,7 @@ function finishRun() {
 
 /* ---- screens ---- */
 var menuEl = document.getElementById('menu'), overEl = document.getElementById('over'), ctlEl = document.getElementById('ctl');
+function menuTraffic() { for (var i = 0; i < 9; i++) placeCar(cars[i], 3000, 22000); }
 function startRun(m) {
   demo = null; demoEl('demoUI').classList.remove('on'); perf = calcPerf(save.bike); runDone = []; ensureChal();
   resetRun(m); state = 'play'; touches = {};
@@ -682,7 +854,7 @@ function startRun(m) {
   sndStart(); track('level_start', { mode: m, bike: bikeName(), paint: PAINTS[save.sel].n, coins: save.coins, streak: save.streak });
 }
 function goMenu() {
-  resetRun('free'); state = 'menu'; speed = 0; ctlEl.classList.remove('on'); scr = 'menu'; viewBike = save.bike; show('menu'); renderMenu();
+  resetRun('free'); state = 'menu'; speed = 0; ctlEl.classList.remove('on'); scr = 'menu'; viewBike = save.bike; menuTraffic(); show('menu'); renderMenu();
 }
 var viewBike = 0, scr = 'menu';
 var lastScr = '';
@@ -715,12 +887,12 @@ function garageVideo(b) {
 }
 function renderGarage() {
   var b = BIKES[viewBike], owned = save.bikes.indexOf(viewBike) >= 0, u = getUpg(viewBike), p = calcPerf(viewBike);
-  document.getElementById('gcoins').textContent = save.coins; garageVideo(vidShow ? b : null);
-  var h = '<div class="bhead"><div><b class="bn">' + b.n + '</b><small>' + b.cls.toUpperCase() + ' &middot; ' + b.blurb + '</small></div>' + (owned ? (save.bike === viewBike ? '<span class="tagok">EQUIPPED</span>' : '') : '<span class="taglock">LOCKED</span>') + '</div>';
-  if (b.video) h += '<button class="btn ghost sm" id="gVid" style="width:100%">' + (vidShow ? '&#9664; BACK TO 3D VIEW' : '&#9654; WATCH THE REAL BIKE VIDEO') + '</button>';
+  document.getElementById('gcoins').textContent = save.coins; document.getElementById('gCount').textContent = 'BIKE ' + (viewBike + 1) + ' / ' + BIKES.length; garageVideo(vidShow ? b : null);
+  var h = '<div class="gh"><span>' + b.cls.toUpperCase() + '</span><span class="gold">' + save.coins + ' COINS</span></div><div class="gname">' + b.n + '</div><div class="gblurb">' + b.blurb + '</div>' + (owned ? (save.bike === viewBike ? '<div class="gstate"><span class="tagok">EQUIPPED</span></div>' : '') : '<div class="gstate"><span class="taglock">LOCKED</span></div>');
+  if (b.video) h += '<button class="raised" id="gVid">' + (vidShow ? '&#9664; BACK TO 3D VIEW' : '&#9654; WATCH THE REAL BIKE VIDEO') + '</button>';
   h += statBar('SPEED', b.base.spd, p.spd, 1.5) + statBar('PICKUP', b.base.acc, p.acc, 1.9) + statBar('HANDLING', b.base.hnd, p.hnd, 1.5) + statBar('NITRO', b.base.nit, p.nit, 2.5);
-  if (!owned) { var need = b.cost - save.coins; h += '<button class="btn' + (need > 0 ? ' dim' : '') + '" id="gAct">' + (need > 0 ? 'UNLOCK ' + b.cost + ' (need ' + need + ' more)' : 'UNLOCK FOR ' + b.cost) + '</button>'; }
-  else if (save.bike !== viewBike) h += '<button class="btn" id="gAct">RIDE THIS BIKE</button>';
+  if (!owned) { var need = b.cost - save.coins; h += '<button class="slab o' + (need > 0 ? ' dim' : '') + '" id="gAct"><span>' + (need > 0 ? 'UNLOCK ' + b.cost : 'UNLOCK') + '</span><small>' + (need > 0 ? 'need ' + need + ' more coins' : b.cost + ' coins') + '</small></button>'; }
+  else if (save.bike !== viewBike) h += '<button class="slab o" id="gAct"><span>RIDE THIS BIKE</span></button>';
   h += '<div class="sec">UPGRADES</div>';
   if (!owned) h += '<div class="note">Unlock this bike to upgrade it.</div>';
   else UPG.forEach(function (g, i) {
@@ -805,7 +977,7 @@ document.getElementById('revive').addEventListener('click', function () {
 /* ---- 3D world (Three.js, bundled in vendor/) ---- */
 var M = 0.01, SEGM = SEG * M, ROADM = 4.8, K_BEND = 0.012, NSEG_MAX = 144, Q = 19, EK = 0.9, RUN = 2.4, BT = ROADM + EK + RUN;
 var EDGEC = [238, 236, 230], BARCAP = [150, 152, 160], fencePos, fenceUv, fenceGeo, fenceMesh, lampK = { g: 0, p: 0 };
-var mesaMesh, capMesh, glOK = false, renderer, scene, camera, hemi, sun, horizon, skyGeo, skyMesh, groundMesh, roadGeo, roadMesh, sunMesh, hillsMesh, cityMesh, starsPts;
+var stageG, stageTex, stageNo = '', mesaMesh, capMesh, glOK = false, renderer, scene, camera, hemi, sun, horizon, skyGeo, skyMesh, groundMesh, roadGeo, roadMesh, sunMesh, hillsMesh, cityMesh, starsPts;
 var lookIdx = -1, models = [], neonMat, glowMesh, shadowPlane;
 var bikeRoot, wheelieG, frontG, rearWheel, frontWheel, flames = [], flameGlow, tailMat, riderG, shadowBlob;
 var leanA = 0, tuckA = 0.4, brakeA = 0, curModel = null, lastSel = -1;
@@ -915,6 +1087,10 @@ function init3D() {
   fenceMesh = new THREE.Mesh(fenceGeo, new THREE.MeshBasicMaterial({ map: ftex, transparent: true, alphaTest: 0.4, side: THREE.DoubleSide, depthWrite: false })); fenceMesh.frustumCulled = false; scene.add(fenceMesh);
 
   buildDeco(); buildCars(); buildBike();
+  stageG = new THREE.Group(); stageG.visible = false; scene.add(stageG);
+  var stl = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.03, 120), new THREE.MeshBasicMaterial({ color: 0xff6a2a, fog: false })); stl.position.set(-5.5, 0.02, 0); stageG.add(stl);
+  var stc = document.createElement('canvas'); stc.width = 1024; stc.height = 600; stageTex = new THREE.CanvasTexture(stc);
+  var stp = new THREE.Mesh(new THREE.PlaneGeometry(14, 8.2), new THREE.MeshBasicMaterial({ map: stageTex, transparent: true, depthWrite: false, fog: false })); stp.position.set(-6.5, 4.4, 2.5); stp.rotation.y = Math.PI / 2; stageG.add(stp);
   bikeRoot.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
   models.forEach(function (m) { m.flames.forEach(function (f) { f.castShadow = false; }); if (m.glow) m.glow.castShadow = false; });
   carObjs.forEach(function (c) { [c.body, c.det, c.tb, c.td].forEach(function (o) { o.castShadow = true; }); });
@@ -1256,6 +1432,10 @@ function buildBike() {
 /* ---- per-frame: build the road, place everything, draw ---- */
 function setC(a, o, c, k) { var f = k == null ? 1 : k; a[o] = c[0] * f / 255; a[o + 1] = c[1] * f / 255; a[o + 2] = c[2] * f / 255; }
 var tmpC = [0, 0, 0], decoCol = new THREE.Color();
+function drawStageNumber(no) {
+  var c = stageTex.image, x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height);
+  x.fillStyle = '#171A23'; x.font = 'italic 800 640px "Barlow Condensed","Arial Narrow",Arial,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(no, c.width / 2, c.height * 0.54); stageTex.needsUpdate = true;
+}
 function render(dt) {
   dt = dt || 1 / 60;
   var th = THEMES[themeIdx], nseg = DRAW + 4, k, q;
@@ -1330,11 +1510,18 @@ function render(dt) {
       sun.castShadow = fx; shadowPlane.visible = fx; shadowPlane.material.color.setRGB(Lt.sh[0] / 255, Lt.sh[1] / 255, Lt.sh[2] / 255); shadowPlane.material.opacity = Lt.sh[3];
     } else { sun.intensity = 0.35; sun.castShadow = false; shadowPlane.visible = false; }
 
+    var gstage = state === 'menu' && scr === 'garage';   /* the garage is a dark stage with a floor line and the race number behind the bike */
+    roadMesh.visible = !gstage; skyMesh.visible = !gstage; horizon.visible = !gstage; stageG.visible = gstage;
+    if (gstage) {
+      scene.fog.color.setRGB(0.055, 0.063, 0.086); renderer.setClearColor(scene.fog.color, 1); groundMesh.material.color.setRGB(0.098, 0.11, 0.145);
+      if (stageNo !== LIV[viewBike].no) { stageNo = LIV[viewBike].no; drawStageNumber(stageNo); }
+      hemi.intensity = 1.0; sun.intensity = 1.1; sun.color.setRGB(1, 0.97, 0.92); sun.position.set(-10, 18, -25); sun.castShadow = fx; shadowPlane.visible = fx; shadowPlane.material.color.setRGB(0, 0, 0); shadowPlane.material.opacity = 0.5;
+    }
     /* scenery: trees, blocks, bushes and rocks stand beyond the catch fence */
     var gx = state === 'menu' && scr === 'garage';   /* in the garage the camera stands on the right, so keep that side clear */
     var dk = th.deco, cnt = { palm: 0, cactus: 0, acacia: 0, pine: 0, city: 0, strtree: 0, sign: 0, grand: 0, bush: 0, rock: 0, lamp: 0 };
     var SCOL = [[1, 0.25, 0.7], [0.3, 0.85, 1], [1, 0.85, 0.3]], sm2 = (dk === 'palm' || dk === 'cactus') ? 'bush' : dk === 'pine' ? 'rock' : null;
-    for (k = 0; k < nseg; k++) {
+    for (k = 0; k < (gstage ? 0 : nseg); k++) {
       sg = segs[(((base + k - 4) % N) + N) % N]; if (state === 'menu' && k < 14) continue;
       var c2 = Math.cos(Th[k]), s2 = Math.sin(Th[k]), dd = sg.deco, kind, im2, lat, sc0, vv, bw, bh;
       if (dd) {
@@ -1401,13 +1588,13 @@ function render(dt) {
           }
         }
       }
-      co2.g.visible = vis && state !== 'menu';
+      co2.g.visible = vis && !(state === 'menu' && scr === 'garage');
     }
 
     /* bike: race lean from the (smoothed) steering, rider hangs off, tucks on nitro, nose dips under braking */
     var tl = tilt, crashing = state === 'crash', menuLike = state === 'menu';
     var bx0 = crashing ? bikeDX * 6 : 0, by0 = crashing ? bikeLift * 3 : 0;
-    leanA += (((state === 'play' || crashing) ? tl * 0.85 : 0) - leanA) * Math.min(1, dt * 7);
+    leanA += (((state === 'play' || crashing || (menuLike && scr === 'menu')) ? tl * 0.85 : 0) - leanA) * Math.min(1, dt * 7);
     tuckA += ((nitroOn ? 1 : (menuLike ? 0.5 : 0.35)) - tuckA) * Math.min(1, dt * 5);
     brakeA += (((state === 'play' && wantBrake()) ? 1 : 0) - brakeA) * Math.min(1, dt * 8);
     bikeRoot.position.set(bx0, by0, 0);
@@ -1415,7 +1602,7 @@ function render(dt) {
     wheelieG.rotation.x = wheelAmt * 0.28 + (state === 'play' ? Math.sin(time * 14) * 0.004 * (speed / MAXS) : 0);
     wheelSpin += Math.max(speed, state === 'menu' ? 600 : 0) * dt * M / 0.33; rearWheel.rotation.x = -wheelSpin; frontWheel.rotation.x = -wheelSpin;
     frontG.rotation.y = -tl * 0.22;
-    var lb = state === 'menu' ? viewBike : save.bike; if (lb !== lookIdx) applyLook(lb);
+    var lb = (state === 'menu' && scr === 'garage') ? viewBike : save.bike; if (lb !== lookIdx) applyLook(lb);
     if (lastSel !== save.sel) { lastSel = save.sel; applyPaint(); }
     curModel.rider.visible = !(state === 'menu' && scr === 'garage');   /* the garage shows the bare machine */
     poseRider(curModel, leanA, tuckA, brakeA);
@@ -1432,10 +1619,13 @@ function render(dt) {
     var sx2 = (Math.random() - 0.5) * (shake * 0.5 + hs * 0.14), sy2 = (Math.random() - 0.5) * (shake * 0.35 + hs * 0.11);
     if (state === 'menu') {
       if (scr === 'garage') {   /* side-on showroom view, gently swaying */
-        var ga = Math.sin(time * 0.4) * 0.3, wide = asp >= 1, dg = wide ? 8.6 : 11.5;
+        var ga = Math.sin(time * 0.4) * 0.3, wide = asp >= 1, dg = wide ? 6.6 : 10;
         camera.position.set(Math.cos(ga) * dg, wide ? 1.4 : 2.0, Math.sin(ga) * dg);
         var pf = wide ? Math.min(0.42, 400 / innerWidth) : 0, visW = 2 * dg * Math.tan(camera.fov * Math.PI / 360) * asp;
-        camera.lookAt(0, wide ? 1.0 : -0.9, wide ? -(pf * 0.5 * visW) : 0);   /* keep the bike clear of the panel */
+        camera.lookAt(0, wide ? 0.85 : -0.9, wide ? -(pf * 0.5 * visW) : 0);   /* keep the bike clear of the panel */
+      } else if (scr === 'menu') {   /* the chase view, with the bike to the right of the menu column */
+        var wd = asp >= 1.1, ox = wd ? -2.4 : 0;
+        camera.position.set(ox, wd ? 3.05 : 2.9, 9.0); camera.lookAt(ox, wd ? 3.7 : 0.4, -14);
       } else {
         var oa = Math.sin(time * 0.35) * 0.95, dd = 7.8;
         camera.position.set(Math.sin(oa) * dd, 2.7 + Math.sin(time * 0.5) * 0.2, Math.cos(oa) * dd);
@@ -1467,7 +1657,7 @@ function render(dt) {
     var pv = new THREE.Vector3(bikeRoot.position.x, 1.4, 0).project(camera), px = (pv.x * 0.5 + 0.5) * W, py = (-pv.y * 0.5 + 0.5) * H;
     ctx.fillStyle = '#ffb347'; for (var s3 = 0; s3 < sparks.length; s3++) { var spk = sparks[s3]; ctx.fillRect(px + spk.x * dpr, py + spk.y * dpr, 3 * dpr, 3 * dpr); }
   }
-  if (state === 'play' || state === 'crash') drawHUD();
+  updateHUD();
 }
 
 var edgeSprite = null;
@@ -1484,30 +1674,33 @@ function makeEdgeSprite() {
   }
   edgeSprite = c;
 }
-function drawHUD() {
-  var fs = Math.max(14 * dpr, S / 20), pad = 14 * dpr, top = pad + (window.visualViewport ? 0 : 0);
-  ctx.textBaseline = 'top';
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.textAlign = 'left';
-  ctx.fillText('SCORE', pad, top);
-  ctx.font = 'italic 900 ' + fs * 1.6 + 'px system-ui,sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(curScore(), pad, top + fs * 0.6);
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText('BEST ' + Math.max(save.best, curScore()), pad, top + fs * 2.3);
-  ctx.textAlign = 'right';
-  var kmh = Math.round(speed / MAXS * 260);
-  ctx.font = 'italic 900 ' + fs * 1.4 + 'px system-ui,sans-serif'; ctx.fillStyle = nitroOn ? '#7fe4ff' : '#fff'; ctx.fillText(kmh, W - pad, top + fs * 1.6);
-  ctx.font = 'italic 800 ' + fs * 0.6 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText('KM/H', W - pad, top + fs * 3.0);
-  /* nitro bar */
-  var bw = W * 0.5, bh = fs * 0.55, bx = (W - bw) / 2, byy = top + fs * 0.1;
-  ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(bx, byy, bw, bh, bh / 2); ctx.fill();
-  var fillw = bw * clamp(nitro / 100, 0, 1);
-  if (fillw > 2) { var gg = ctx.createLinearGradient(bx, 0, bx + bw, 0); gg.addColorStop(0, '#3a7bff'); gg.addColorStop(1, '#7fe4ff'); ctx.fillStyle = gg; rr(bx, byy, fillw, bh, bh / 2); ctx.fill(); }
-  ctx.textAlign = 'center'; ctx.font = 'italic 800 ' + fs * 0.5 + 'px system-ui,sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(nitro >= 30 ? 'NITRO' : 'NITRO LOW', W / 2, byy + bh + 3 * dpr);
-  /* popups */
-  for (var i = 0; i < pops.length; i++) {
-    var p = pops[i], a = clamp(p.life / 0.5, 0, 1), y = top + fs * 4.4 + (1.3 - p.life) * fs * 1.2 - i * fs * 0.2 + i * fs * 1.2;
-    ctx.globalAlpha = a; ctx.font = 'italic 900 ' + fs * 1.0 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillText(p.t, W / 2 + 2 * dpr, y + 2 * dpr); ctx.fillStyle = p.col; ctx.fillText(p.t, W / 2, y); ctx.globalAlpha = 1;
+/* ---- race HUD: HTML panels, updated only when a value changes. Gear, lean and the rev bar come from speed and steering. ---- */
+var hudE = null, hudC = {};
+function hudInit() {
+  var g = function (i) { return document.getElementById(i); };
+  hudE = { mode: g('hMode'), no: g('hNo'), s: g('hS'), b: g('hB'), g: g('hG'), spd: g('hSpd'), l: g('hL'), rev: g('hRev'), nit: g('hNit'), nm: g('hNM'), nmx: g('hNMx'), toasts: g('hToasts'), segs: [] };
+  for (var i = 0; i < 16; i++) { var e = document.createElement('i'); if (i >= 10) e.className = 'hot'; hudE.rev.appendChild(e); hudE.segs.push(e); }
+}
+function hudSet(el, key, v) { if (hudC[key] !== v) { hudC[key] = v; el.textContent = v; } }
+function updateHUD() {
+  var on = state === 'play' || state === 'crash';
+  if (hudC.on !== on) { hudC.on = on; document.body.classList.toggle('racing', on); }
+  if (!on) return;
+  if (!hudE) hudInit();
+  var E = hudE, sc = curScore();
+  hudSet(E.s, 's', sc); hudSet(E.b, 'b', Math.max(save.best, sc)); hudSet(E.mode, 'mode', demo ? 'DEMO' : mode === 'daily' ? 'DAILY RUN' : 'ENDLESS RUN'); hudSet(E.no, 'no', LIV[save.bike].no);
+  var sf = clamp(speed / (MAXS * 1.5), 0, 1), gr = Math.min(5, Math.floor(sf * 6)), rpm = 0.18 + 0.82 * Math.min(1, sf * 6 - gr), i;
+  hudSet(E.spd, 'spd', Math.round(speed / MAXS * 260)); hudSet(E.g, 'g', gr + 1); hudSet(E.l, 'l', Math.round(Math.abs(leanA) * 57.2958) + '°');
+  var seg = Math.round(rpm * 16); if (hudC.seg !== seg) { hudC.seg = seg; for (i = 0; i < 16; i++) E.segs[i].classList.toggle('on', i < seg); }
+  var np = Math.round(clamp(nitro, 0, 100)); if (hudC.nit !== np) { hudC.nit = np; E.nit.style.width = np + '%'; }
+  var nm = chain > 0 && chainT > 0; if (hudC.nm !== nm) { hudC.nm = nm; E.nm.style.display = nm ? 'flex' : 'none'; } if (nm) hudSet(E.nmx, 'nmx', '×' + chain);
+  /* short messages (wheelie, km, challenge done, slipstream) stack under the callout and fade by themselves */
+  var kids = E.toasts.children, q, el;
+  for (i = kids.length - 1; i >= 0; i--) if (pops.indexOf(kids[i]._q) < 0) E.toasts.removeChild(kids[i]);
+  for (i = 0; i < pops.length; i++) {
+    q = pops[i]; if (q._el && q._el.parentNode === E.toasts) continue;
+    el = document.createElement('div'); el.className = 'ht'; el.textContent = q.t.replace(/\s+x[\d.]+$/, ''); el.style.borderLeftColor = q.col; el._q = q; q._el = el; E.toasts.appendChild(el);
   }
-  if (draft > 0.5) { ctx.font = 'italic 800 ' + fs * 0.65 + 'px system-ui,sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText('SLIPSTREAM', W / 2, top + fs * 3.0); }
-  if (chain > 1 && chainT > 0) { ctx.font = 'italic 900 ' + fs * 0.8 + 'px system-ui,sans-serif'; ctx.fillStyle = '#ffd23a'; ctx.fillText('COMBO x' + chain, W / 2, top + fs * 3.7); }
 }
 
 /* ---- main loop ---- */
@@ -1537,7 +1730,7 @@ resize();
 glOK = init3D();
 if (!glOK) { document.getElementById('menu').insertAdjacentHTML('afterbegin', '<div class="hint" style="color:#ff8a70">This phone cannot show 3D graphics (WebGL is off).</div>'); }
 resize();
-resetRun('free'); state = 'menu'; speed = 0; renderMenu();
+resetRun('free'); state = 'menu'; speed = 0; menuTraffic(); renderMenu();
 /* test hook for the maker's checks */
 (function () {
   try {
