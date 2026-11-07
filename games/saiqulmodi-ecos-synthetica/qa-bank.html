@@ -224,10 +224,12 @@
   <div id="playerBar" class="player-bar"></div>
 
   <div class="game-tabs">
-    <button class="game-tab" data-game="explorer" onclick="selectGame('explorer')">Eco Explorer · Class 1–10</button>
+    <button class="game-tab" data-game="explorer" onclick="selectGame('explorer')">Eco Explorer · Class 8–10</button>
     <button class="game-tab" data-game="scientist" onclick="selectGame('scientist')">Eco Scientist · Class 11–12</button>
     <button class="game-tab" data-game="professional" onclick="selectGame('professional')">Eco Professional · NEET &amp; MBBS</button>
+    <button class="game-tab" data-game="extraedge" onclick="selectGame('extraedge')">Extra-Edge · Class 8–12, NEET &amp; MBBS</button>
   </div>
+  <div id="xeChips" class="game-tabs" style="display:none"></div>
 
   <div id="qaContainer" class="qa-container">
     <p style="color: #94a3b8;">Loading knowledge bank...</p>
@@ -316,6 +318,9 @@
     //                  + Class 11-12 items of the Scientist packs + data/neet_academic_bank.json + data/chapters/*
     const explorerFiles = Array.from({ length: 10 }, (_, i) => `content/questions/explorer/class-${i + 1}.json`);
     const scientistFiles = Array.from({ length: 4 }, (_, i) => `content/questions/scientist/form-${i}.json`);
+    //   extraedge    - Class 8-12 + NEET/MBBS, all subjects: content/questions/extraedge/* (tools/build_extraedge.py)
+    const XE_CLASSES = [['all', 'All classes'], ['class-8', 'Class 8'], ['class-9', 'Class 9'], ['class-10', 'Class 10'], ['class-11', 'Class 11'], ['class-12', 'Class 12'], ['neet-mbbs', 'NEET / MBBS']];
+    let xeClass = 'all';
 
     let allQuestions = [];
     let currentBatch = 0;
@@ -378,13 +383,19 @@
         const school = [...sci.filter(q => q.cls >= 11), ...neet]
           .sort((a, b) => a.subject.localeCompare(b.subject) || a.cls - b.cls || String(a.topic).localeCompare(String(b.topic)));
         return [...data.map(fromNeet), ...school.map(q => ({ ...fromSchool(q), stageTitle: 'NEET · Class ' + q.cls + ' ' + q.subject }))];
+      },
+      async extraedge() {
+        const files = await getJSON('content/questions/extraedge/index.json').catch(() => []);
+        const packs = await Promise.all(files.map(f => getJSON('content/questions/extraedge/' + f).catch(() => [])));
+        return packs.flatMap((list, k) => list.map(q => ({ ...fromSchool(q), xe: files[k].replace('.json', ''),
+          stageTitle: 'Extra-Edge · ' + (q.lvl || 'Class ' + q.cls) + ' ' + q.subject })));
       }
     };
 
     // ---------- players and score cards (this device only) ----------
     // Right answer +4, wrong answer -1, kept per level (game tab) on the player's card.
     const PLAYER_KEY = 'ecos-qa-players-v1';
-    const LEVELS = { explorer: 'Eco Explorer · Class 1–10', scientist: 'Eco Scientist · Class 11–12', professional: 'Eco Professional · NEET & MBBS' };
+    const LEVELS = { explorer: 'Eco Explorer · Class 8–10', scientist: 'Eco Scientist · Class 11–12', professional: 'Eco Professional · NEET & MBBS', extraedge: 'Extra-Edge · Class 8–12, NEET & MBBS' };
     const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f'];
     const readStore = () => { try { const v = JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null'); return v && Array.isArray(v.list) ? v : null; } catch (e) { return null; } };
     let players = readStore() || { active: null, list: [] };
@@ -500,6 +511,7 @@
 
     async function selectGame(game) {
       currentGame = game;
+      if (game !== 'extraedge') renderChips();
       currentBatch = 0;
       document.querySelectorAll('.game-tab').forEach(b => b.classList.toggle('active', b.dataset.game === game));
       renderPlayer();
@@ -507,13 +519,23 @@
       try {
         if (!gameCache[game]) gameCache[game] = dedupe(await gameLoaders[game]());
         if (currentGame !== game) return;
-        allQuestions = gameCache[game];
+        allQuestions = game === 'extraedge' && xeClass !== 'all' ? gameCache[game].filter(q => q.xe === xeClass) : gameCache[game];
+        renderChips();
         if (!allQuestions.length) throw new Error('No questions found. Open the game through serve.py or GitHub Pages, not as a file.');
         renderCurrentBatch();
       } catch (err) {
         document.getElementById('qaContainer').innerHTML = '<p style="color:#ef4444;">Error: ' + esc(err.message) + '</p>';
       }
     }
+
+    // Class buttons shown only on the Extra-Edge tab.
+    function renderChips() {
+      const box = document.getElementById('xeChips');
+      if (currentGame !== 'extraedge') { box.style.display = 'none'; return; }
+      box.style.display = '';
+      box.innerHTML = XE_CLASSES.map(([k, label]) => `<button class="game-tab ${k === xeClass ? 'active' : ''}" onclick="selectXeClass('${k}')">${label}</button>`).join('');
+    }
+    function selectXeClass(k) { xeClass = k; selectGame('extraedge'); }
 
     function loadQABank() {
       const game = new URLSearchParams(location.search).get('game');
