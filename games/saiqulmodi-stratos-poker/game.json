@@ -1,0 +1,9 @@
+{
+  "title": "Stratos Poker Arena",
+  "maker": "Md. Saiqul Haque Modi",
+  "one_line": "Live Texas Hold'em with friends and house bots at five tables, from Rookie Ring to VIP Suite, with play chips only.",
+  "category": "party",
+  "github": "saiqulmodi",
+  "how_to_play": "Register once, take a seat at any table, add bots if friends are not online, then tap Check, Call, Fold or slide to Raise. Best five cards from your two and the five on the table win the pot.",
+  "description": "Real-time multiplayer Texas Hold'em for 3 to 5 players per table: five tables with rising blinds, dealer button and blinds, a 60-second action clock, side pots for all-ins, house bots that step aside when a friend joins, table chat, hand history and an all-time leaderboard. A daily bonus grows with your streak. Play chips only, no real money."
+}
