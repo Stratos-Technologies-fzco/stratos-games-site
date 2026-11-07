@@ -1,5 +1,5 @@
 // Offline once loaded: the game files are cached on install; each class's questions are cached the first time it opens.
-const CACHE = "bridgeworks-campus-v7";
+const CACHE = "bridgeworks-campus-v8";
 const CORE = ["./", "index.html", "js/truss.js", "js/i18n.js", "js/intro.js", "js/game.js", "data/levels.json", "data/projects.json", "favicon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
