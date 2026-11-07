@@ -26,7 +26,7 @@
                       "Timber": "Timber beam", "Concrete": "Concrete beam" };
   const matName = m => t(MAT_SHORT[m] || m);
 
-  let LV = [], NAMES = {}, CAT = null, HANDBOOK = null;
+  let LV = [], NAMES = {}, CAT = null, HANDBOOK = null, BOOKS = null;
   const QCACHE = {};
   let S = null;                        // saved progress
   const designs = {};                  // level (or weekly key) -> Design
@@ -483,6 +483,12 @@
       if (s === "bridge") b.classList.add("bridge");
       if (s === cur.subject) b.classList.add("on");
       b.onclick = () => setSubject(s);
+      c.appendChild(b);
+    }
+    if (BOOKS && BOOKS.levels[cur.level]) {     // one more tab: the class's NCERT books
+      const b = document.createElement("button");
+      b.textContent = "📚"; b.title = "NCERT"; b.classList.add("books");
+      b.onclick = () => openBooks(cur.level);
       c.appendChild(b);
     }
   }
@@ -943,6 +949,18 @@
     f.style.display = buttons.length ? "flex" : "none";
     $("modal").classList.add("show");
   }
+  // 08-Nov-2026: the class's NCERT books (game subjects only, no Biology book). Each chapter opens NCERT's own
+  // free PDF on ncert.nic.in in a new tab; nothing is copied into the game.
+  function openBooks(level) {
+    const list = BOOKS && BOOKS.levels[level];
+    if (!list) return;
+    const html = list.map(b => `<div style="margin:0 0 10px"><b>${esc(b.t)}</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">` +
+      Array.from({ length: b.n }, (_, k) => `<a href="${BOOKS.base}${b.c}${String(k + 1).padStart(2, "0")}.pdf" target="_blank" rel="noopener" ` +
+        `style="min-width:34px;text-align:center;padding:6px 8px;border-radius:8px;background:#1e3a5f;color:#fff;text-decoration:none">${k + 1}</a>`).join("") +
+      `</div></div>`).join("");
+    modal("📚 NCERT", `<p style="opacity:.8;margin:0 0 10px">📖 ncert.nic.in</p>${html}`);
+    track("books_open", { level: level });
+  }
   function closeModal() { $("modal").classList.remove("show"); $("modal").classList.remove("report"); modalKeys = null; }
   $("m-close").onclick = closeModal;
   $("modal").addEventListener("pointerdown", e => { if (e.target === $("modal")) closeModal(); });
@@ -1124,6 +1142,7 @@
     S = load();
     const [lv, cat] = await Promise.all([fetch("data/levels.json").then(r => r.json()), fetch("data/projects.json").then(r => r.json())]);
     LV = lv.levels; NAMES = lv.subject_names; CAT = cat;
+    fetch("data/books.json").then(r => r.json()).then(j => { BOOKS = j; }).catch(() => {});
     world.layout();
     $("loading").remove(); $("app").hidden = false;
     applyLang();
