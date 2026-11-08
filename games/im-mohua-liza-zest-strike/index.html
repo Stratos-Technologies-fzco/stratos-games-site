@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zest Strike</title>
+<style>
+@font-face{font-family:Bungee;src:url(fonts/bungee.woff2) format('woff2')}
+@font-face{font-family:Outfit;src:url(fonts/outfit.woff2) format('woff2')}
+:root{--acc:#ff8a1f;--acc2:#ffd23a;--glass:rgba(16,20,30,.82);--line:rgba(255,255,255,.12);--txt:#f4f1ea;--dim:#a9b0bd}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0d1018;color:var(--txt);font-family:Outfit,system-ui,sans-serif;user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hide{display:none!important}
+button{font-family:inherit;cursor:pointer}
+/* ---------- overlays ---------- */
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,rgba(255,138,31,.18),rgba(8,10,16,.92) 70%);z-index:20;overflow:hidden}
+.panel{transform-origin:center;flex:0 0 auto;background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:22px;backdrop-filter:blur(8px);max-width:980px;width:100%}
+h1.logo{font-family:Bungee,sans-serif;font-size:clamp(38px,7vw,74px);margin:0;line-height:1;letter-spacing:1px;background:linear-gradient(180deg,#ffe36b,#ff8a1f 60%,#ff5a1f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
+.tag{color:var(--dim);margin:6px 0 18px}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin:14px 0 8px}
+input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--txt);font:inherit;font-size:16px}
+.fruits{display:flex;gap:10px;flex-wrap:wrap}
+.fruit{width:46px;height:46px;border-radius:50%;border:3px solid transparent;position:relative;box-shadow:inset -6px -8px 0 rgba(0,0,0,.18)}
+.fruit::after{content:"";position:absolute;width:12px;height:7px;background:#3fae3a;border-radius:50% 50% 50% 0;top:-5px;left:20px;transform:rotate(-20deg)}
+.fruit.on{border-color:#fff;transform:scale(1.08)}
+.weps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.wep{background:rgba(255,255,255,.05);border:2px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;color:var(--txt)}
+.wep.on{border-color:var(--acc);background:rgba(255,138,31,.12)}
+.wep b{display:block;font-size:16px}.wep small{color:var(--dim)}
+.bars{margin-top:6px;display:grid;gap:3px}
+.bar{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+.bar i{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.bar i u{display:block;height:100%;background:var(--acc2)}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.row span{flex:0 0 120px;font-size:14px}.row output{flex:0 0 44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--acc2)}
+input[type=range]{flex:1;accent-color:var(--acc)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}
+.seg button.on{background:var(--acc);color:#1a1006;border-color:var(--acc);font-weight:700}
+.big{display:block;width:100%;margin-top:18px;padding:15px;font-family:Bungee,sans-serif;font-size:22px;border:0;border-radius:14px;color:#1a1006;background:linear-gradient(180deg,#ffd23a,#ff8a1f);box-shadow:0 5px 0 #b65a0c}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #b65a0c}
+.ghost{padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--txt);font-size:15px}
+.keys{font-size:13px;color:var(--dim);line-height:1.9;columns:2;margin-top:8px}
+kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:5px;background:rgba(255,255,255,.12);border-bottom:2px solid rgba(0,0,0,.4);color:var(--txt);font-family:inherit;font-size:12px;text-align:center}
+.note{font-size:12px;color:var(--dim);margin-top:10px}
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+#cross{position:absolute;left:50%;top:50%}
+#cross i{position:absolute;background:#fff;box-shadow:0 0 2px #000}
+#cross .t,#cross .b{width:2px;height:9px;left:-1px}#cross .l,#cross .r{height:2px;width:9px;top:-1px}
+#cross .d{width:4px;height:4px;left:-2px;top:-2px;border-radius:50%;background:#fff}
+#hit{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px;opacity:0;transition:opacity .25s}
+#hit:before,#hit:after{content:"";position:absolute;left:14px;top:-2px;width:2px;height:34px;background:#fff;transform:rotate(45deg);box-shadow:0 0 3px #000}
+#hit:after{transform:rotate(-45deg)}
+#hit.head:before,#hit.head:after{background:#ffd23a}#hit.kill:before,#hit.kill:after{background:#ff4b3a;width:3px}
+#vign{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(220,30,20,.75));opacity:0;transition:opacity .4s}
+#dmgdirs div{position:absolute;left:50%;top:50%;width:0;height:0}
+#dmgdirs div i{position:absolute;left:-60px;top:-150px;width:120px;height:26px;border-radius:50% 50% 0 0/100% 100% 0 0;border-top:6px solid rgba(255,60,40,.9);filter:drop-shadow(0 0 4px rgba(255,0,0,.8))}
+.card{position:absolute;background:rgba(10,13,20,.62);border:1px solid var(--line);border-radius:12px;padding:10px 14px;backdrop-filter:blur(4px)}
+#hpbox{left:18px;bottom:18px;width:260px}
+#hpbox .n{font-family:Bungee;font-size:30px;line-height:1}
+#hpbar{height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px}
+#hpbar u{display:block;height:100%;width:100%;background:linear-gradient(90deg,#7ed957,#ffd23a);transition:width .15s}
+#nades{font-size:13px;color:var(--dim);margin-top:6px}
+#ammobox{right:18px;bottom:18px;text-align:right;min-width:200px}
+#ammo{font-family:Bungee;font-size:38px;line-height:1}#ammo small{font-size:18px;color:var(--dim)}
+#wname{font-size:14px;color:var(--acc2)}#slots{font-size:12px;color:var(--dim);margin-top:4px}
+#reloadbar{height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin-top:6px;overflow:hidden}#reloadbar u{display:block;height:100%;width:0;background:var(--acc)}
+#top{left:50%;top:14px;transform:translateX(-50%);display:flex;gap:16px;align-items:center;font-size:15px;white-space:nowrap}
+#timer{font-family:Bungee;font-size:20px}
+#feed{position:absolute;right:16px;top:14px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+#feed div{background:rgba(10,13,20,.7);padding:5px 10px;border-radius:8px;font-size:14px;animation:fin .2s}
+#feed .me{border:1px solid var(--acc)}#feed em{font-style:normal;color:var(--dim);font-size:12px;margin:0 6px}
+@keyframes fin{from{transform:translateX(30px);opacity:0}}
+#mini{position:absolute;left:16px;top:14px;width:170px;height:170px;border-radius:50%;border:2px solid var(--line);background:rgba(10,13,20,.55)}
+#msg{position:absolute;left:50%;top:28%;transform:translateX(-50%);font-family:Bungee;font-size:34px;color:var(--acc2);text-shadow:0 3px 0 #000;opacity:0;transition:opacity .3s;white-space:nowrap}
+#tinfo{position:absolute;left:50%;top:calc(50% + 34px);transform:translateX(-50%);font-size:14px;text-shadow:0 1px 2px #000;text-align:center;opacity:0}
+#tinfo i{display:block;width:90px;height:4px;background:rgba(0,0,0,.5);margin:3px auto 0;border-radius:2px;overflow:hidden}#tinfo i u{display:block;height:100%;background:#ff5a3a}
+#hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:13px;color:var(--dim);text-shadow:0 1px 2px #000}
+/* ---------- scope ---------- */
+#scope{position:absolute;inset:0;opacity:0;transition:opacity .08s}
+#scope .mask{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 0,transparent 38vmin,rgba(0,0,0,.55) 38.6vmin,#000 40.5vmin)}
+#scope .lens{position:absolute;left:50%;top:50%;width:80vmin;height:80vmin;margin:-40vmin;border-radius:50%;box-shadow:inset 0 0 60px 12px rgba(0,0,0,.55),inset 0 0 0 2px rgba(0,0,0,.8);background:radial-gradient(circle at 35% 30%,rgba(140,200,255,.10),transparent 45%)}
+#scope svg{position:absolute;left:50%;top:50%;width:80vmin;height:80vmin;margin:-40vmin}
+#scope .info{position:absolute;left:50%;top:calc(50% + 30vmin);transform:translateX(-50%);display:flex;gap:18px;align-items:center;font-variant-numeric:tabular-nums}
+#zlbl{font-family:Bungee;font-size:26px;color:#ffd23a;text-shadow:0 2px 0 #000;transition:transform .15s}
+#zlbl.pop{transform:scale(1.35)}
+#zsteps{display:flex;gap:6px}#zsteps b{font-size:12px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.1);color:var(--dim)}#zsteps b.on{background:#ffd23a;color:#111}
+#range{font-size:15px;color:#9fe6ff;text-shadow:0 1px 2px #000}
+#scope .side{position:absolute;right:calc(50% - 46vmin);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+#breath{width:8px;height:120px;border-radius:4px;background:rgba(255,255,255,.12);display:flex;align-items:flex-end;overflow:hidden}#breath u{display:block;width:100%;height:100%;background:#9fe6ff}
+#scope .tip{position:absolute;left:50%;top:calc(50% - 34vmin);transform:translateX(-50%);font-size:12px;color:var(--dim);text-shadow:0 1px 2px #000;white-space:nowrap}
+/* ---------- death / board ---------- */
+#death{position:fixed;inset:0;z-index:8;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:9vh;background:linear-gradient(transparent 50%,rgba(120,20,10,.45))}
+#death h2{font-family:Bungee;font-size:36px;margin:0;color:#ffb37a;text-shadow:0 3px 0 #000}
+#death p{margin:6px 0 14px;font-size:16px}
+#picks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}#picks div{background:rgba(10,13,20,.75);border:2px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px}#picks div.on{border-color:var(--acc)}
+#board{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;min-width:min(440px,92vw)}
+table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:7px 10px;text-align:left}th{color:var(--dim);font-weight:400;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+tr.me td{color:var(--acc2);font-weight:700}tbody tr:nth-child(odd){background:rgba(255,255,255,.04)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+#touchnote{z-index:30}#touchnote .panel{max-width:360px;text-align:center}#touchnote p{color:var(--dim);line-height:1.5;margin:14px 0 0}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hide">
+  <div id="vign"></div>
+  <div id="dmgdirs"></div>
+  <canvas id="mini" width="170" height="170"></canvas>
+  <div class="card" id="top"><span id="timer">6:00</span><span id="scoreline"></span></div>
+  <div id="feed"></div>
+  <div id="cross"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="d"></i></div>
+  <div id="hit"></div>
+  <div id="tinfo"><span></span><i><u></u></i></div>
+  <div id="msg"></div>
+  <div id="scope">
+    <div class="lens"></div>
+    <svg viewBox="-100 -100 200 200">
+      <g stroke="#111" stroke-width=".55" fill="none">
+        <line x1="-100" y1="0" x2="-6" y2="0"/><line x1="6" y1="0" x2="100" y2="0"/>
+        <line x1="0" y1="-100" x2="0" y2="-6"/><line x1="0" y1="6" x2="0" y2="100"/>
+        <line x1="-100" y1="0" x2="-48" y2="0" stroke-width="2.2"/><line x1="48" y1="0" x2="100" y2="0" stroke-width="2.2"/>
+        <line x1="0" y1="48" x2="0" y2="100" stroke-width="2.2"/>
+      </g>
+      <g fill="#111" id="mils"></g>
+      <circle r=".9" fill="#ff3b2a"/>
+      <circle r="3.2" fill="none" stroke="#ff3b2a" stroke-width=".35" opacity=".8"/>
+    </svg>
+    <div class="mask"></div>
+    <div class="tip">Scroll or Z / X to zoom &middot; hold Shift to steady</div>
+    <div class="side"><div id="breath"><u></u></div>breath</div>
+    <div class="info"><span id="zlbl">4&times;</span><span id="zsteps"></span><span id="range">-- m</span></div>
+  </div>
+  <div class="card" id="hpbox"><div style="display:flex;justify-content:space-between;align-items:end"><span class="n" id="hpn">100</span><span id="pname" style="color:var(--dim)"></span></div><div id="hpbar"><u></u></div><div id="nades"></div></div>
+  <div class="card" id="ammobox"><div id="ammo">30<small> / &infin;</small></div><div id="wname"></div><div id="reloadbar"><u></u></div><div id="slots"></div></div>
+  <div id="hint"></div>
+</div>
+
+<div id="death" class="hide"><h2 id="dtitle">Squeezed!</h2><p id="dsub"></p><div id="picks"></div></div>
+<div id="board" class="panel hide"><table><thead><tr><th>Fruit</th><th class="n">Kills</th><th class="n">Deaths</th></tr></thead><tbody id="boardb"></tbody></table></div>
+
+<!-- MENU -->
+<div id="menu" class="screen">
+  <div class="panel">
+    <h1 class="logo">ZEST STRIKE</h1>
+    <div class="tag">A juicy free-for-all arena shooter. Pick your fruit, pick your gun, be the last one unsqueezed.</div>
+    <div class="grid">
+      <div>
+        <div class="lbl">Your name</div>
+        <input type="text" id="name" maxlength="14">
+        <div class="lbl">Your fruit</div>
+        <div class="fruits" id="fruits"></div>
+        <div class="lbl">Your gun (you always carry the Peeler pistol too)</div>
+        <div class="weps" id="weps"></div>
+      </div>
+      <div>
+        <div class="lbl">Match</div>
+        <div class="row"><span>Bots</span><input type="range" id="bots" min="2" max="9" step="1"><output id="botsv"></output></div>
+        <div class="row"><span>Bot skill</span><div class="seg" id="diff" style="flex:1"><button data-v="0">Easy</button><button data-v="1">Normal</button><button data-v="2">Hard</button></div></div>
+        <div class="lbl">Settings</div>
+        <div class="row"><span>Mouse speed</span><input type="range" id="sens" min="0.2" max="3" step="0.05"><output id="sensv"></output></div>
+        <div class="row"><span>Scope speed</span><input type="range" id="ssens" min="0.3" max="2" step="0.05"><output id="ssensv"></output></div>
+        <div class="row"><span>Field of view</span><input type="range" id="fov" min="70" max="110" step="1"><output id="fovv"></output></div>
+        <div class="row"><span>Volume</span><input type="range" id="vol" min="0" max="1" step="0.05"><output id="volv"></output></div>
+        <div class="lbl">Controls</div>
+        <div class="keys">
+          <div><kbd>W A S D</kbd> move</div><div><kbd>Mouse</kbd> look</div>
+          <div><kbd>Left click</kbd> shoot</div><div><kbd>Right click</kbd> aim / scope</div>
+          <div><kbd>Scroll</kbd> zoom in scope</div><div><kbd>Z</kbd> <kbd>X</kbd> zoom in / out</div>
+          <div><kbd>Space</kbd> jump</div><div><kbd>Shift</kbd> sprint / steady aim</div>
+          <div><kbd>C</kbd> crouch</div><div><kbd>R</kbd> reload</div>
+          <div><kbd>Q</kbd> <kbd>1</kbd> <kbd>2</kbd> swap gun</div><div><kbd>G</kbd> juice bomb</div>
+          <div><kbd>Tab</kbd> scores</div><div><kbd>Esc</kbd> pause</div>
+        </div>
+      </div>
+    </div>
+    <button class="big" id="play">PLAY</button>
+    <div class="note">First to 25 squeezes, or the most when the 6 minute timer runs out, wins.</div>
+  </div>
+</div>
+
+<div id="pause" class="screen hide"><div class="panel" style="max-width:380px;text-align:center">
+  <h1 class="logo" style="font-size:44px">PAUSED</h1>
+  <button class="big" id="resume">RESUME</button>
+  <div style="display:flex;gap:10px;margin-top:12px;justify-content:center"><button class="ghost" id="quit">Quit to menu</button></div>
+  <div class="note">Settings are on the menu screen.</div>
+</div></div>
+
+<div id="end" class="screen hide"><div class="panel" style="max-width:520px;text-align:center">
+  <h1 class="logo" id="etitle" style="font-size:46px">MATCH OVER</h1>
+  <div class="tag" id="esub"></div>
+  <table><thead><tr><th>#</th><th>Fruit</th><th class="n">Kills</th><th class="n">Deaths</th></tr></thead><tbody id="endb"></tbody></table>
+  <button class="big" id="again">PLAY AGAIN</button>
+  <div style="margin-top:10px"><button class="ghost" id="tomenu">Change fruit or gun</button></div>
+</div></div>
+
+<div id="touchnote" class="screen hide"><div class="panel"><h1 class="logo" style="font-size:46px">ZEST<br>STRIKE</h1><p>This fruit shooter needs a keyboard and a mouse. Open it on a laptop or computer to play.</p><p>Pick a fruit, grab the Rind Ranger and zoom its scope from 2&times; to 12&times;.</p></div></div>
+
+<script type="module" src="game.js"></script>
+</body>
+</html>
