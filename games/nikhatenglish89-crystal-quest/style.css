@@ -279,3 +279,15 @@ img.big{width:64px;height:64px;margin:0 auto}
   .stat{padding:1px 8px}.stat b{font-size:17px}.objs{margin-top:2px}.obj{padding:1px 8px 1px 4px;font-size:13px}.obj img{width:20px;height:20px}
   #boardWrap{margin:4px 0}.arm-note{min-height:0;font-size:12px}
 }
+
+/* buttons in a card stay in view even when the window is very short */
+.card>.btns{position:sticky;bottom:-2px;padding-top:6px;background:linear-gradient(rgba(47,31,120,0),#2F1F78 35%);z-index:2}
+@media (max-height:470px){.card .starters{display:none}.card{gap:5px;padding:8px}.card h2{font-size:19px}.who img{width:40px;height:40px}.small-text{font-size:12px}.goals{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+.hud .row{gap:6px}
+
+/* languages: Devanagari fonts that exist on phones and computers (no web fonts are loaded) */
+:root{--font:'Trebuchet MS','Segoe UI','Noto Sans Devanagari','Nirmala UI','Mangal','Kohinoor Devanagari','Devanagari Sangam MN','Arial Rounded MT Bold',system-ui,sans-serif}
+html[lang="hi"] body{line-height:1.25}
+.langs{display:flex;gap:6px}
+.lbtn{padding:4px 12px;border-radius:99px;border:3px solid var(--ink);background:rgba(27,16,51,.6);font-size:14px;min-height:34px}
+.lbtn.on{background:var(--g-primary)}

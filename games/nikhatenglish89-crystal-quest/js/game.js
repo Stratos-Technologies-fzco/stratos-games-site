@@ -1,7 +1,7 @@
 /* CRYSTAL QUEST – THE LOST KINGDOM: screens, board, saving, rewards. The rules live in engine.js, the content in levels.js. */
 (function () {
   'use strict';
-  var E = window.CQEngine, LV = window.CQLevels, A = window.CQAudio;
+  var E = window.CQEngine, LV = window.CQLevels, A = window.CQAudio, I18N = window.CQI18n;
   var SAVE_KEY = 'cq_save_v1';
 
   /* ---------- Stratos analytics and rewarded moments ---------- */
@@ -55,7 +55,7 @@
   function zeroBoosters() { var o = {}; BOOST.forEach(function (b) { o[b[0]] = 0; }); return o; }
   function defaults() {
     var b = zeroBoosters();                                   // a new player starts with none and earns them
-    return { v: 1, coins: 100, noTips: false, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
+    return { v: 1, coins: 100, noTips: false, lang: '', stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
       boosters: b, daily: { last: '', streak: 0 }, dc: { date: '', best: 0, paid: false },
       stats: { wins: 0, bestCascade: 0, specials: 0, bosses: {}, threeStars: 0 } };
   }
@@ -115,10 +115,14 @@
   }
   function settings() {
     var c = openModal('<h2>Settings</h2>' + soundHtml() +
+      '<div class="tog"><span>Language</span><span class="langs">' + I18N.LANGS.map(function (l) { return '<button class="lbtn' + (I18N.lang === l[0] ? ' on' : '') + '" data-l="' + l[0] + '" data-keep="1">' + l[1] + '</button>'; }).join('') + '</span></div>' +
       '<div class="tog"><span>Skip the tips and hints</span><button class="tick' + (save.noTips ? ' on' : '') + '" id="tTips" aria-label="Skip tips"></button></div>' +
       '<div class="tog"><span>Calmer effects (for slow phones)</span><button class="tick' + (save.lowfx ? ' on' : '') + '" id="tFx" aria-label="Calmer effects"></button></div>' +
       '<div class="btns"><button class="btn ghost small" id="mX">Close</button></div>');
     bindSound(c);
+    Array.prototype.forEach.call(c.querySelectorAll('.lbtn'), function (b) {
+      click(b, function () { save.lang = I18N.setLang(b.dataset.l); persist(); home(); settings(); });
+    });
     click($('#tTips', c), function (e) { save.noTips = !save.noTips; persist(); e.target.classList.toggle('on', save.noTips); });
     click($('#tFx', c), function (e) { save.lowfx = !save.lowfx; document.body.classList.toggle('lowfx', save.lowfx); persist(); e.target.classList.toggle('on', save.lowfx); });
     click($('#mX', c), closeModal);
@@ -152,6 +156,7 @@
   /* ---------- home ---------- */
   function canClaimDaily() { return save.daily.last !== today(); }
   function allMuted() { return !save.music && !save.sfx; }
+  function toggleMuteAll() { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); toast(m ? 'Sound off' : 'Sound on'); return m; }
   function home() {
     leaveGame(); closeModal();
     var nid = nextLevelId(), w = worldOf(nid);
@@ -174,7 +179,7 @@
     click($('#bMap'), function () { map(w); });
     click($('#bDaily'), dailyReward); click($('#bChallenge'), dailyChallengeIntro); click($('#bProfile'), profile);
     click($('#bShop'), function () { shop('game'); }); click($('#bSet'), settings);
-    click($('#bMute'), function () { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); toast(m ? 'Sound off' : 'Sound on'); home(); });
+    click($('#bMute'), function () { toggleMuteAll(); home(); });
     if (canClaimDaily() && !first && !save.seen['dailyShown_' + today()]) { save.seen['dailyShown_' + today()] = 1; persist(); setTimeout(function () { if (cur.name === 'home' && modalEl.hidden) dailyReward(); }, 500); }
   }
 
@@ -362,7 +367,7 @@
     A.music(L.boss ? 'music_07_boss_battle' : W.music);
     track('level_start', { level: String(L.id), world: L.world, type: L.type, boss: !!L.boss, daily: !!daily, starters: (starters || []).length });
     setScreen('play', '',
-      '<div class="hud"><button class="iconbtn" id="bPause" aria-label="Pause">' + ic('pause') + '</button>' +
+      '<div class="hud"><div class="row"><button class="iconbtn" id="bPause" aria-label="Pause">' + ic('pause') + '</button><button class="iconbtn" id="bSnd" aria-label="Sound on or off">' + ic(allMuted() ? 'sound_off' : 'sound') + '</button></div>' +
       '<div class="lv">' + (isDailyRun ? 'Daily Puzzle' : W.name) + '<b>' + (isDailyRun ? 'Score big!' : (L.boss ? 'BOSS' : 'Level ' + L.num)) + '</b></div>' +
       '<div class="row"><div class="stat" id="stMoves"><small>MOVES</small><b>0</b></div><div class="stat"><small>SCORE</small><b id="stScore">0</b></div></div></div>' +
       '<div class="objs" id="objs"></div>' +
@@ -374,6 +379,7 @@
     coachOn = !save.noTips && !save.seen.firstMove && L.id === 1;
     sync(); setHud(eng.hud()); drawBoosters();
     click($('#bPause'), pauseMenu);
+    click($('#bSnd'), function () { toggleMuteAll(); $('#bSnd').innerHTML = ic(allMuted() ? 'sound_off' : 'sound'); });
     armHint();
     if (L.time) tickT = setInterval(onTick, 1000);
   }
@@ -393,7 +399,7 @@
       m.querySelector('b').textContent = h.timed ? fmtTime(h.time) : h.moves;
       m.classList.toggle('low', h.timed ? h.time <= 10 : h.moves <= 5);
     }
-    var s = $('#stScore'); if (s) s.textContent = h.score;
+    var s = $('#stScore'); if (s) s.textContent = I18N.num(h.score);
     var o = $('#objs'); if (o) o.innerHTML = h.obj.map(function (g, i) {
       var info = objInfo(L.objectives[i]);
       var txt = g.type === 'score' ? Math.min(h.score, g.need) + '/' + g.need : g.type === 'boss' ? (g.done ? 'Defeated!' : 'Boss HP ' + h.bossHp) : g.cur + '/' + g.need;
@@ -492,7 +498,7 @@
   async function runBooster(res) { busy = true; clearHintMark(); await run(res.steps); afterRun(); }
   function getBooster(k) {
     var x = boost(k), price = x[4];
-    var c = openModal('<h2>' + x[2] + '</h2><div class="center">' + im(x[1], 'big') + '</div><div class="small-text center">' + esc(x[5]) + ' You have none left. Get one:</div>' +
+    var c = openModal('<h2>' + x[2] + '</h2><div class="center">' + im(x[1], 'big') + '</div><div class="small-text center">' + esc(x[5]) + '</div><div class="small-text center">You have none left. Get one:</div>' +
       '<div class="btns"><button class="btn gold" id="mWatch">' + ic('play') + 'Free: watch a short video</button><button class="btn blue" id="mBuy" ' + (save.coins < price ? 'disabled' : '') + '>' + ic('coin') + 'Buy for ' + price + ' coins</button><button class="btn ghost small" id="mX">Not now</button></div>');
     click($('#mWatch', c), function () { offerReward(function () { save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); toast('Got 1 ' + x[2] + '!'); A.sfx('reward'); }, 'booster_' + k); });
     click($('#mBuy', c), function () { if (save.coins >= price) { save.coins -= price; save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); A.sfx('reward'); track('shop_buy', { booster: k, where: 'level' }); } });
@@ -654,7 +660,7 @@
     var nextId = id < 100 ? id + 1 : null, say = LV.VICTORY[id % LV.VICTORY.length];
     var c = openModal('<h2>' + (L.boss ? 'BOSS DEFEATED!' : 'Level Complete!') + '</h2>' + stars3(stars) +
       charCard(hero, say, { cheer: true, noNew: true }) +
-      '<div class="center"><b style="font-size:26px">' + eng.score + '</b><div class="small-text">Best ' + save.best[id] + ' · +' + coinsGain + ' coins · +' + gained + ' crystal energy</div></div>' +
+      '<div class="center"><b style="font-size:26px">' + I18N.num(eng.score) + '</b><div class="small-text">Best ' + save.best[id] + ' · +' + coinsGain + ' coins · +' + gained + ' crystal energy</div></div>' +
       (lines.length ? '<div class="small-text center">' + lines.map(esc).join('<br>') + '</div>' : '') + (newWorld ? '<div class="small-text center"><b>New world unlocked: ' + LV.WORLDS[world + 1].name + '!</b></div>' : '') +
       '<div class="btns"><button class="btn gold" id="mNext" ' + (nextId ? '' : 'disabled') + '>' + ic('play') + (nextId ? 'NEXT LEVEL' : 'THE END… FOR NOW') + '</button>' +
       (restored ? '<button class="btn blue small" id="mKing">' + ic('crown') + 'See the kingdom come back!</button>' : '') +
@@ -728,7 +734,7 @@
   /* ---------- cover picture for stratos.games (?cover=1) ---------- */
   function coverView() {
     var W = LV.WORLDS[0]; setBg(W.bg, 1);
-    var level = JSON.parse(JSON.stringify(LV.LEVELS[10])); level.rows = 7; level.cols = 7; level.holes = []; level.items = 0; level.blockers = [{ r: 2, c: 5, kind: 'wood' }, { r: 4, c: 1, kind: 'cage' }, { r: 5, c: 2, kind: 'path' }, { r: 5, c: 3, kind: 'path' }];
+    var level = JSON.parse(JSON.stringify(LV.LEVELS[10])); level.rows = 8; level.cols = 8; level.holes = []; level.items = 0; level.blockers = [{ r: 2, c: 5, kind: 'wood' }, { r: 4, c: 1, kind: 'cage' }, { r: 5, c: 2, kind: 'path' }, { r: 5, c: 3, kind: 'path' }, { r: 6, c: 6, kind: 'path' }];
     level.objectives = [{ type: 'score', n: 3000 }]; level.time = 0; level.moves = 30;
     eng = new E(level, 77);
     var spec = [[1, 1, 'lightning'], [3, 3, 'rainbow'], [5, 4, 'bomb'], [1, 4, 'star']];
@@ -744,12 +750,13 @@
     go: function (id, starters) { startLevel(LV.LEVELS[id - 1], false, starters); },
     save: function () { return save; }, screen: function () { return cur.name; },
     intro: function (id) { showIntro(LV.LEVELS[id - 1]); }, kingdom: function (w, f) { kingdom(w, f); }, shop: function (t) { shop(t); }, settings: settings, map: function (w) { map(w); },
-    engine: function () { return eng; }, audio: function () { return A.debug(); },
+    engine: function () { return eng; }, profile: profile, daily: dailyReward, dailyIntro: dailyChallengeIntro, pause: pauseMenu, home: home, lose: function () { showLose(); }, i18n: I18N, audio: function () { return A.debug(); },
     unlockAll: function () { for (var i = 1; i <= 100; i++) save.stars[i] = 2; persist(); }
   };
 
   /* ---------- go ---------- */
   function boot() {
+    save.lang = I18N.setLang(I18N.pick(save.lang)); I18N.start(document.getElementById('app'));
     A.init({ music: save.music, sfx: save.sfx, musicVol: save.musicVol, sfxVol: save.sfxVol });
     try { if (save.lowfx || (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 4) <= 1) document.body.classList.add('lowfx'); } catch (e) {}
     document.addEventListener('pointerdown', function () { A.unlock(); }, { once: false, capture: true });

@@ -83,6 +83,9 @@
   var VICTORY = ['Well done, Guardian!', 'Wonderful! The kingdom is healing.', 'Crystal clear! Nicely played.', 'The Shadow Lord trembles!', 'You make magic look easy!', 'Another step closer to the Heart!'];
   var BOSS_TAUNT = ['"You will never mend the Heart, Guardian!"', '"My frost will freeze your hopes!"', '"The forest is mine now!"', '"The sand will bury you!"', '"Burn, little Guardian!"'];
 
+  /* Star targets [2 stars, 3 stars] for each of the 100 levels, measured from real play by tests/stars.js --write. */
+  var STAR_TABLE = [[3100,5300],[2500,4400],[3700,5700],[2200,3800],[2100,3600],[2300,4000],[2600,4500],[4000,6100],[3900,6000],[2100,3600],[2200,3800],[3800,6600],[2100,3600],[1900,3300],[1800,3100],[4100,6100],[1800,3100],[4600,7000],[2500,4400],[4300,7400],[1900,3400],[3500,6100],[4100,6300],[2100,3600],[3000,5200],[2700,4700],[2800,4800],[2900,5100],[4200,6500],[3200,5600],[2100,3600],[2300,4100],[2400,4200],[4400,6100],[3400,5800],[1900,3200],[4800,7300],[1700,3000],[1800,3100],[5400,9400],[2400,4100],[1900,3300],[2000,3500],[2900,5000],[1700,3000],[1800,3200],[2300,4000],[4500,6800],[3800,6700],[5200,7400],[1500,2600],[2000,3400],[1900,3400],[2100,3700],[1800,3100],[2000,3400],[5100,7700],[1700,3000],[2300,3900],[5400,9300],[2100,3600],[3200,5600],[2000,3500],[2600,4500],[3400,5900],[4900,6900],[2500,4400],[4500,6800],[1900,3200],[2200,3800],[1700,2900],[2200,3700],[4100,7100],[1600,2700],[5400,7100],[5400,8000],[2600,4400],[3100,5300],[2100,3600],[5800,10000],[2300,4100],[2100,3600],[1900,3200],[3000,5300],[2000,3500],[1600,2700],[1900,3300],[4800,7400],[1500,2600],[5100,6800],[1100,1800],[4400,7600],[2000,3500],[1400,2500],[5600,8300],[1100,2000],[2300,3900],[1700,3000],[1300,2300],[6100,10600]];
+
   /* small helper: pick items deterministically from a level number */
   function hash(n) { n = (n * 2654435761) >>> 0; n ^= n >>> 15; n = Math.imul(n, 2246822519) >>> 0; return (n ^ (n >>> 13)) >>> 0; }
 
@@ -182,6 +185,7 @@
 
     var scoreLike = type === 'score' || type === 'time' || type === 'boss';
     var stars = [0, Math.round((scoreLike ? base * 1.25 : base + 1200) / 100) * 100, Math.round((scoreLike ? base * 1.7 : base + 2600) / 100) * 100];
+    if (STAR_TABLE && STAR_TABLE[idx - 1]) stars = [0, STAR_TABLE[idx - 1][0], STAR_TABLE[idx - 1][1]];
     var L = { id: idx, world: world, num: lv, type: type, rows: rows, cols: cols, colors: colors, moves: moves, holes: holes, blockers: blockers,
               objectives: objectives, stars: stars };
     if (time) L.time = time;
