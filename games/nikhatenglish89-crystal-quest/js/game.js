@@ -21,11 +21,39 @@
   var GLOW = ['#E5324B', '#2F7BFF', '#1FBF6A', '#F5A31A', '#7B5CFF', '#E8F6FF'];
   var SPART = { bomb: 'special_01_ruby_bomb', lightning: 'special_02_lightning_crystal', thunder: 'special_03_vertical_thunder', rainbow: 'special_04_rainbow_crystal', nova: 'special_05_crystal_nova', star: 'special_06_magic_star', fish: 'special_07_crystal_fish', super: 'special_08_super_crystal' };
   var SPNAME = { bomb: 'Ruby Bomb', lightning: 'Lightning Crystal', thunder: 'Vertical Thunder', rainbow: 'Rainbow Crystal', nova: 'Crystal Nova', star: 'Magic Star', fish: 'Crystal Fish', super: 'Super Crystal' };
-  function crystalSrc(n) { return 'assets/crystals/' + LV.COLOR_ART[n] + '.svg'; }
+  var Sets = window.CQSets, curSet = Sets.CLASSIC, setLoad = {};
+  function crystalSrc(n, setId) { return Sets.gemSrc(n, setId || curSet); }
+  function rimOf(id) { var st = Sets.byId(id); return st ? st.rim : '#FFFFFF'; }
+  /* A gem set is loaded the first time a level (or its intro) needs it; the classic set is always there. Nine sets are never loaded together. */
+  function ensureSet(id) {
+    if (!Sets.isSet(id) || id === Sets.CLASSIC) return Promise.resolve(true);
+    if (setLoad[id]) return setLoad[id].p;
+    var rec = setLoad[id] = { state: 'loading' };
+    rec.p = new Promise(function (res) {
+      var n = 0, bad = false;
+      function one() { if (++n === Sets.GEMS.length) { rec.state = bad ? 'failed' : 'ok'; res(!bad); } }
+      Sets.GEMS.forEach(function (gem) {
+        var m = new Image(); m.onload = one;
+        m.onerror = function () { bad = true; try { console.warn('Gem set failed to load, using classic gems:', id, gem); } catch (e) {} one(); };
+        m.src = Sets.gemSrc(gem, id);
+      });
+    });
+    return rec.p;
+  }
+  function setReady(id) { return id === Sets.CLASSIC || !!(setLoad[id] && setLoad[id].state === 'ok'); }
+  /* the set to really draw with: Classic when the player chose it, or when the themed set could not be loaded */
+  function usableSet(id) {
+    if (save.gemStyle === 'classic' || !Sets.isSet(id)) return Sets.CLASSIC;
+    if (setLoad[id] && setLoad[id].state === 'failed') return Sets.CLASSIC;
+    return id;
+  }
   function spSrc(sp) { return 'assets/special/' + SPART[sp] + '.svg'; }
   function blkSrc(kind) { var d = E.BLOCKERS[kind]; return d && d.art ? 'assets/blockers/' + d.art + '.svg' : icon('level_node'); }
   function icon(n) { return 'assets/ui/icons/icon_' + n + '.svg'; }
-  function im(src, cls) { return '<img alt="" ' + (cls ? 'class="' + cls + '" ' : '') + 'src="' + src + '">'; }
+  function im(src, cls) {
+    var fb = /crystal_sets\//.test(src) ? ' onerror="this.onerror=null;console.warn(\'gem set missing, using classic\');this.src=\'' + src.replace(/assets\/crystal_sets\/[^\/]+\//, 'assets/crystals/') + '\'"' : '';
+    return '<img alt="" ' + (cls ? 'class="' + cls + '" ' : '') + 'src="' + src + '"' + fb + '>';
+  }
   function ic(n, cls) { return im(icon(n), cls); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
@@ -55,14 +83,17 @@
   function zeroBoosters() { var o = {}; BOOST.forEach(function (b) { o[b[0]] = 0; }); return o; }
   function defaults() {
     var b = zeroBoosters();                                   // a new player starts with none and earns them
-    return { v: 1, coins: 100, noTips: false, lang: '', stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
+    return { v: 1, coins: 100, noTips: false, lang: '', gemStyle: 'themed', sets: { set_01_classic: 1 }, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
       boosters: b, daily: { last: '', streak: 0 }, dc: { date: '', best: 0, paid: false },
       stats: { wins: 0, bestCascade: 0, specials: 0, bosses: {}, threeStars: 0 } };
   }
   var save = (function () {
     var d = defaults();
-    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.v === 1) { for (var k in s) d[k] = s[k]; d.boosters = Object.assign(zeroBoosters(), s.boosters); d.stats = Object.assign(defaults().stats, s.stats); } } catch (e) {}
+    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.v === 1) { for (var k in s) d[k] = s[k]; d.boosters = Object.assign(zeroBoosters(), s.boosters); d.stats = Object.assign(defaults().stats, s.stats); d.sets = Object.assign({ set_01_classic: 1 }, s.sets); } } catch (e) {}
     return d;
+  })();
+  (function unlockFromProgress() {                 // players who already reached a world keep its gem set
+    for (var k in save.stars) { var st = Sets.SETS[worldOf(+k)]; if (st) save.sets[st.id] = 1; }
   })();
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 
@@ -120,12 +151,16 @@
   function settings() {
     var c = openModal('<h2>Settings</h2>' + soundHtml() +
       '<div class="tog"><span>Language</span><span class="langs">' + I18N.LANGS.map(function (l) { return '<button class="lbtn' + (I18N.lang === l[0] ? ' on' : '') + '" data-l="' + l[0] + '" data-keep="1">' + l[1] + '</button>'; }).join('') + '</span></div>' +
+      '<div class="tog"><span>Gem style</span><span class="langs">' + [['themed', 'Themed'], ['classic', 'Classic']].map(function (o) { return '<button class="lbtn' + (save.gemStyle === o[0] ? ' on' : '') + '" data-g="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</span></div>' +
       '<div class="tog"><span>Skip the tips and hints</span><button class="tick' + (save.noTips ? ' on' : '') + '" id="tTips" aria-label="Skip tips"></button></div>' +
       '<div class="tog"><span>Calmer effects (for slow phones)</span><button class="tick' + (save.lowfx ? ' on' : '') + '" id="tFx" aria-label="Calmer effects"></button></div>' +
       '<div class="btns"><button class="btn ghost small" id="mX">Close</button></div>');
     bindSound(c);
     Array.prototype.forEach.call(c.querySelectorAll('.lbtn'), function (b) {
       click(b, function () { save.lang = I18N.setLang(b.dataset.l); persist(); home(); settings(); });
+    });
+    Array.prototype.forEach.call(c.querySelectorAll('.lbtn[data-g]'), function (b) {
+      click(b, function () { save.gemStyle = b.dataset.g; persist(); settings(); });
     });
     click($('#tTips', c), function (e) { save.noTips = !save.noTips; persist(); e.target.classList.toggle('on', save.noTips); });
     click($('#tFx', c), function (e) { save.lowfx = !save.lowfx; document.body.classList.toggle('lowfx', save.lowfx); persist(); e.target.classList.toggle('on', save.lowfx); });
@@ -246,7 +281,7 @@
   function objInfo(o, L_) {
     var lvl = L_ || L, k;
     switch (o.type) {
-      case 'collect': return { img: crystalSrc(o.color), txt: 'Collect ' + o.n + ' ' + LV.COLOR_NAMES[o.color] };
+      case 'collect': return { img: crystalSrc(o.color, usableSet(lvl.crystalSet)), txt: 'Collect ' + o.n + ' ' + LV.COLOR_NAMES[o.color] };
       case 'blockers': return { img: blkSrc(o.kind || 'stone'), txt: 'Break ' + o.n + ' ' + (o.kind ? E.BLOCKERS[o.kind].name : 'blockers') };
       case 'score': return { img: icon('star'), txt: 'Score ' + o.n };
       case 'boss': return { img: 'assets/bosses/' + lvl.boss.art + '.svg', txt: 'Defeat ' + lvl.boss.name };
@@ -274,11 +309,14 @@
     var ownsStarter = STARTERS.some(function (b) { return (save.boosters[b[0]] || 0) > 0; });
     var showStarters = level.id >= 7 || isDaily || ownsStarter;
     var cameFromPlay = cur.name === 'play';
+    var introSet = usableSet(level.crystalSet); ensureSet(introSet);
+    if (!isDaily && LV.LEVELS[level.id]) ensureSet(usableSet(LV.LEVELS[level.id].crystalSet));     // get the next level's gems ready while this window is open
+    var guestHtml = level.guest && save.gemStyle !== 'classic' ? '<div class="guestbanner">' + [0, 2, 5].map(function (gi) { return im(crystalSrc(gi, introSet), 'inl2'); }).join('') + ' Guest gems! <span>' + esc(Sets.byId(introSet).name) + '</span></div>' : '';
     var picks = {};
     var startersHtml = showStarters ? '<div class="starters"><div class="small-text center">Starter boosters (optional)</div><div class="row" style="justify-content:center">' +
-      STARTERS.map(function (b) { return '<button class="stbtn" data-k="' + b[0] + '" aria-label="' + b[2] + '">' + im(b[1]) + '<small>' + b[3] + '</small><b>×' + (save.boosters[b[0]] || 0) + '</b></button>'; }).join('') + '</div></div>' : '';
+      STARTERS.map(function (b) { return '<button class="stbtn" data-k="' + b[0] + '" aria-label="' + b[2] + '">' + im(b[1]) + (b[0] === 's_bomb' ? im(crystalSrc(0, introSet), 'badge') : '') + '<small>' + b[3] + '</small><b>×' + (save.boosters[b[0]] || 0) + '</b></button>'; }).join('') + '</div></div>' : '';
     var sub = (isDaily ? 'One puzzle a day, the same for everyone' : TYPE_NAME[level.type] + ' · ' + W.name) + ' · ' + (level.time ? level.time + ' seconds' : level.moves + ' moves');
-    var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + level.num) + '</h2><div class="small-text center">' + esc(sub) + '</div>' + who +
+    var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + level.num) + '</h2><div class="small-text center">' + esc(sub) + '</div>' + guestHtml + who +
       '<div class="goals">' + goals + '</div>' + starsLine +
       (tip ? '<div class="who">' + ic('book') + '<div><b>' + esc(tip.title) + '</b><div class="small-text">' + esc(tip.text) + '</div></div></div>' : '') + startersHtml +
       '<div class="btns"><button class="btn gold" id="mGo">' + ic('play') + 'START</button><button class="btn ghost small" id="mX">Back</button></div>', cameFromPlay ? { onBack: function () { if (isDaily) home(); else map(level.world - 1); } } : null);
@@ -308,8 +346,8 @@
   function el(cls, html) { var d = document.createElement('div'); d.className = cls; if (html) d.innerHTML = html; return d; }
   function setPos(d, r, c) { var tf = 'translate(' + (c * cell) + 'px,' + (r * cell) + 'px)'; d.style.transform = tf; d.style.setProperty('--tf', tf); d._r = r; d._c = c; }
   function look(d, t) {
-    var sp = t.sp; d.innerHTML = '<img alt="" src="' + (t.item ? icon('chest') : sp ? spSrc(sp) : crystalSrc(t.color)) + '">';
-    d.classList.toggle('sp', !!sp); d.classList.toggle('item', !!t.item); d.style.setProperty('--glow', sp ? (t.color >= 0 ? GLOW[t.color] : '#ffffff') : 'transparent');
+    var sp = t.sp; d.innerHTML = (t.item || sp) ? '<img alt="" src="' + (t.item ? icon('chest') : spSrc(sp)) + '">' : im(crystalSrc(t.color, curSet));
+    d.style.setProperty('--rim', rimOf(curSet)); d.classList.toggle('sp', !!sp); d.classList.toggle('item', !!t.item); d.style.setProperty('--glow', sp ? (t.color >= 0 ? GLOW[t.color] : '#ffffff') : 'transparent');
   }
   function mkTile(t, r, c) { var d = el('t'); d.dataset.id = t.id; look(d, t); setPos(d, r, c); layerT.appendChild(d); tiles[t.id] = d; return d; }
   function mkBlk(b, r, c) {
@@ -362,10 +400,24 @@
   function centre(r, c) { return { x: c * cell + cell / 2, y: r * cell + cell / 2 }; }
 
   /* ---------- starting a level ---------- */
+  /* the set is fixed for the whole level; if it is not loaded yet, wait a moment (never more than 2.5 s) */
   function startLevel(level, daily, starters) {
+    var want = usableSet(level.crystalSet), started = false;
+    function go() { if (started) return; started = true; startLevelNow(level, daily, starters); }
+    if (setReady(want)) return go();
+    ensureSet(want).then(go); setTimeout(go, 2500);
+  }
+  function unlockWorldSet(level) {
+    if (level.daily) return;
+    var st = Sets.SETS[level.world - 1]; if (!st || save.sets[st.id]) return;
+    save.sets[st.id] = 1; persist();
+    if (st.id !== Sets.CLASSIC) setTimeout(function () { toast('New gem set: ' + st.name + '!'); }, 900);
+  }
+  function startLevelNow(level, daily, starters) {
     L = JSON.parse(JSON.stringify(level)); isDailyRun = !!daily; revived = false; lostSent = false; armed = null; sel = null; busy = false; attemptStart = Date.now();
     clearInterval(tickT); tickT = null;
     var W = LV.WORLDS[L.world - 1];
+    curSet = usableSet(L.crystalSet); unlockWorldSet(L);
     eng = new E(L, daily ? L.seed : (Math.floor(Math.random() * 1e9) + 1));
     if (starters && starters.length) eng.applyStarters(starters);
     setBg(W.bg, worldFrac(L.world - 1));
@@ -381,6 +433,7 @@
       '<div class="grow" id="boardWrap"></div><div class="arm-note" id="armNote"></div>' +
       '<div class="boosters" id="boosters"></div>');
     buildBoard($('#boardWrap'), eng);
+    if (L.boss) { boardEl.classList.add('bossglow'); boardEl.style.setProperty('--bossglow', Sets.BOSS_GLOW[L.world - 1]); }
     coachOn = !save.noTips && !save.seen.firstMove && L.id === 1;
     sync(); setHud(eng.hud()); drawBoosters();
     click($('#bPause'), pauseMenu);
@@ -664,7 +717,7 @@
     if (lines.length) A.sfx('reward');
     var nextId = id < 100 ? id + 1 : null, say = LV.VICTORY[id % LV.VICTORY.length];
     var c = openModal('<h2>' + (L.boss ? 'BOSS DEFEATED!' : 'Level Complete!') + '</h2>' + stars3(stars) +
-      charCard(hero, say, { cheer: true, noNew: true }) +
+      charCard(hero, say, { cheer: true, noNew: true }) + '<div class="goals recap">' + L.objectives.map(function (o) { return goalHtml(o, L); }).join('') + '</div>' +
       '<div class="center"><b style="font-size:26px">' + I18N.num(eng.score) + '</b><div class="small-text">Best ' + save.best[id] + ' · +' + coinsGain + ' coins · +' + gained + ' crystal energy</div></div>' +
       (lines.length ? '<div class="small-text center">' + lines.map(esc).join('<br>') + '</div>' : '') + (newWorld ? '<div class="small-text center"><b>New world unlocked: ' + LV.WORLDS[world + 1].name + '!</b></div>' : '') +
       '<div class="btns"><button class="btn gold" id="mNext" ' + (nextId ? '' : 'disabled') + '>' + ic('play') + (nextId ? 'NEXT LEVEL' : 'THE END… FOR NOW') + '</button>' +
@@ -732,8 +785,24 @@
     var c = openModal('<h2>Crystal Guardian</h2><div class="row" style="justify-content:space-around"><span class="chip">' + ic('star') + totalStars() + '</span><span class="chip">' + ic('map') + done_ + '/100</span><span class="chip">' + ic('heart') + save.daily.streak + ' day streak</span></div>' +
       '<div class="small-text center">Best combo chain: ' + st.bestCascade + ' · Special crystals made: ' + st.specials + '</div>' +
       ACH.map(function (a) { return '<div class="ach' + (a[1] ? ' on' : '') + '">' + ic(a[1] ? 'trophy' : 'lock') + a[0] + '</div>'; }).join('') +
-      '<div class="btns"><button class="btn ghost small" id="mX">Close</button></div>');
+      '<div class="btns"><button class="btn blue small" id="mGems">' + ic('shard') + 'Gem Collection</button><button class="btn ghost small" id="mX">Close</button></div>');
+    click($('#mGems', c), collection);
     click($('#mX', c), closeModal);
+  }
+
+  /* ---------- the gem collection: every set, locked until the player reaches its world ---------- */
+  function collection() {
+    leaveGame(); closeModal(); setBg(LV.WORLDS[worldOf(nextLevelId())].bg, 1);
+    var open = 0;
+    var cards = Sets.SETS.map(function (st) {
+      var on = !!save.sets[st.id]; if (on) open++;
+      var playable = st.worldNum <= Sets.PLAYABLE_WORLDS;
+      var gems = on ? Sets.GEMS.map(function (g, i) { return im(Sets.gemSrc(i, st.id)); }).join('') : '<div class="lockbox">' + ic('lock') + '</div>';
+      return '<div class="scard' + (on ? '' : ' locked') + '" data-set="' + st.id + '"><b>' + esc(st.name) + '</b><div class="sgems">' + gems + '</div><small>' + (on ? esc(st.world) : playable ? 'Reach ' + esc(st.world) + ' to unlock' : 'Coming soon') + '</small></div>';
+    }).join('');
+    setScreen('collection', '', '<div class="map-head"><button class="iconbtn" id="bBack" aria-label="Home">' + ic('home') + '</button><h2>Gem Collection</h2><span class="chip">' + ic('shard') + '<b>' + open + ' / ' + Sets.SETS.length + '</b></span></div>' +
+      '<div class="small-text center" style="margin:4px 0">Every world has its own gems. The colours always stay the same.</div><div class="sets">' + cards + '</div><button class="btn gold" id="bOk">Back</button>');
+    click($('#bBack'), home); click($('#bOk'), home);
   }
 
   /* ---------- cover picture for stratos.games (?cover=1) ---------- */
@@ -755,7 +824,7 @@
     go: function (id, starters) { startLevel(LV.LEVELS[id - 1], false, starters); },
     save: function () { return save; }, screen: function () { return cur.name; },
     intro: function (id) { showIntro(LV.LEVELS[id - 1]); }, kingdom: function (w, f) { kingdom(w, f); }, shop: function (t) { shop(t); }, settings: settings, map: function (w) { map(w); },
-    engine: function () { return eng; }, profile: profile, daily: dailyReward, dailyIntro: dailyChallengeIntro, pause: pauseMenu, home: home, lose: function () { showLose(); }, i18n: I18N, audio: function () { return A.debug(); },
+    engine: function () { return eng; }, resync: function () { sync(); }, goWithSet: function (id, setId) { var Lx = JSON.parse(JSON.stringify(LV.LEVELS[id - 1])); Lx.crystalSet = setId; startLevel(Lx); }, collection: collection, curSet: function () { return curSet; }, setStates: function () { var o = {}; for (var k in setLoad) o[k] = setLoad[k].state; return o; }, profile: profile, daily: dailyReward, dailyIntro: dailyChallengeIntro, pause: pauseMenu, home: home, lose: function () { showLose(); }, i18n: I18N, audio: function () { return A.debug(); },
     unlockAll: function () { for (var i = 1; i <= 100; i++) save.stars[i] = 2; persist(); }
   };
 

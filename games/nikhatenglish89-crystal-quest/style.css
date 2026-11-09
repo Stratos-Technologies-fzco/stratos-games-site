@@ -292,3 +292,20 @@ html[lang="hi"] body{line-height:1.25}
 .langs{display:flex;gap:6px}
 .lbtn{padding:4px 12px;border-radius:99px;border:3px solid var(--ink);background:rgba(27,16,51,.6);font-size:14px;min-height:34px}
 .lbtn.on{background:var(--g-primary)}
+
+
+/* ---- gem sets ---- */
+.t.sp::before{border:2px solid var(--rim,#fff)}
+#board.bossglow{box-shadow:0 0 24px 6px var(--bossglow,#fff),0 0 2px 2px var(--bossglow,#fff) inset}
+.guestbanner{display:flex;align-items:center;justify-content:center;gap:4px;margin:2px auto;padding:2px 14px;border-radius:99px;background:linear-gradient(90deg,rgba(123,92,255,.55),rgba(31,191,106,.55));border:2px solid var(--gold-l);font-size:14px;animation:pulse2 1.8s ease-in-out 2}
+.guestbanner span{color:var(--gold-l);margin-left:4px}.guestbanner img{width:26px;height:26px}
+.stbtn img.badge{position:absolute;left:-7px;top:-7px;width:22px;height:22px;filter:drop-shadow(0 1px 0 var(--ink))}
+.goals.recap{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px}.goals.recap .obj{font-size:13px;opacity:.95}
+.sets{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:6px;margin:4px 0}
+.scard{background:rgba(27,16,51,.62);border:2px solid rgba(255,255,255,.2);border-radius:14px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;min-height:0;overflow:hidden}
+.scard b{font-size:clamp(10px,3vw,14px);line-height:1.1}.scard small{font-size:clamp(8px,2.4vw,11px);color:var(--soft);line-height:1.1}
+.sgems{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;width:100%;flex:1;min-height:0;align-content:center}
+.sgems img{width:100%;height:auto;max-height:calc((100vh - 280px) / 6);object-fit:contain}
+.scard.locked{opacity:.6}.lockbox{grid-column:span 3;display:grid;place-items:center}.lockbox img{width:34px;height:34px;max-height:none}
+img.inl2{display:inline-block}
+@media (max-height:470px){.sets{grid-template-columns:repeat(5,1fr)}.sgems img{max-height:calc((100vh - 150px) / 4)}}
