@@ -6,6 +6,10 @@
 (function (root) {
   'use strict';
 
+  var Sets = root.CQSets || (typeof require !== 'undefined' ? require('./sets.js') : null);
+  /* Give one level its own gem set: { levelNumber: 'set_id' }. Anything not listed follows the rules in sets.js. */
+  var LEVEL_SET_OVERRIDES = {};
+
   var COLOR_NAMES = ['Ruby', 'Sapphire', 'Emerald', 'Topaz', 'Amethyst', 'Diamond'];
   var COLOR_ART = ['crystal_01_ruby', 'crystal_02_sapphire', 'crystal_03_emerald', 'crystal_04_topaz', 'crystal_05_amethyst', 'crystal_06_diamond'];
 
@@ -190,6 +194,8 @@
               objectives: objectives, stars: stars };
     if (time) L.time = time;
     if (items) L.items = items;
+    L.crystalSet = LEVEL_SET_OVERRIDES[idx] || Sets.defaultSetFor(world, lv);
+    if (Sets.isGuest(world, lv) && !LEVEL_SET_OVERRIDES[idx]) L.guest = true;
     if (isBoss) L.boss = { name: W.boss.name, art: W.boss.art, hp: W.boss.hp, every: W.boss.every, count: W.boss.count };
     L.tip = tipFor(world, lv, type, blockers);
     return L;
@@ -242,6 +248,7 @@
     var world = 1 + (seed % 5), lv = 8 + ((seed >>> 4) % 11);     // medium-hard, never a boss
     var L = JSON.parse(JSON.stringify(build(world, lv)));
     L.id = 'daily-' + dateStr; L.daily = true; L.seed = seed; L.tip = null; L.type = 'score';
+    L.crystalSet = Sets.dailySet(dateStr); delete L.guest;
     delete L.time; delete L.items;
     L.blockers = L.blockers.filter(function (b) { return b.kind !== 'path' && b.kind !== 'moss' && b.kind !== 'portal'; });
     L.objectives = [{ type: 'score', n: 3000 + (seed % 7) * 300 }];
@@ -250,6 +257,6 @@
     return L;
   }
 
-  root.CQLevels = { WORLDS: WORLDS, LOCKED_WORLDS: LOCKED_WORLDS, LEVELS: LEVELS, COLOR_NAMES: COLOR_NAMES, COLOR_ART: COLOR_ART, DIALOGUE: DIALOGUE, CHAR: CHAR, VICTORY: VICTORY, BOSS_TAUNT: BOSS_TAUNT, TIPS: TIPS, PATTERN: PATTERN, daily: daily };
+  root.CQLevels = { WORLDS: WORLDS, LOCKED_WORLDS: LOCKED_WORLDS, LEVELS: LEVELS, COLOR_NAMES: COLOR_NAMES, COLOR_ART: COLOR_ART, DIALOGUE: DIALOGUE, CHAR: CHAR, VICTORY: VICTORY, BOSS_TAUNT: BOSS_TAUNT, TIPS: TIPS, PATTERN: PATTERN, LEVEL_SET_OVERRIDES: LEVEL_SET_OVERRIDES, daily: daily };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CQLevels;
 })(typeof window !== 'undefined' ? window : globalThis);
