@@ -287,6 +287,9 @@
   var audioCtx = null, master = null, waves = null, soundStarted = false;
   var reduceMotion = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
+  // iPhone: let game sound play even when the ring/silent switch is on silent.
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+
   function getAudio(){
     if (!audioCtx){
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -296,9 +299,42 @@
       master.gain.value = muted ? 0 : 1;
       master.connect(audioCtx.destination);
     }
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (audioCtx.state !== "running") { try { audioCtx.resume(); } catch (e) {} }
     return audioCtx;
   }
+
+  // A tiny silent sound file, played on the first touch. On older iPhones this
+  // switches audio to "media" mode so the silent switch does not mute the game.
+  var silentEl = null;
+  function silentWavUrl(){
+    var n = 2205, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    function str(o, s){ for (var i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }
+    str(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); str(8, "WAVE"); str(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 22050, true); v.setUint32(28, 44100, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); str(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+
+  // Wake up audio on the very first touch or click anywhere (phones need a tap first).
+  function unlockAudio(){
+    var ctx = getAudio();
+    if (ctx){
+      try { var s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050); s.connect(ctx.destination); s.start(0); } catch (e) {}
+    }
+    if (!silentEl){
+      try {
+        silentEl = new Audio(silentWavUrl());
+        silentEl.loop = true;
+        silentEl.setAttribute("playsinline", "");
+        var p = silentEl.play();
+        if (p && p.catch) p.catch(function(){});
+      } catch (e) {}
+    }
+  }
+  ["pointerdown", "touchend", "click", "keydown"].forEach(function(ev){
+    document.addEventListener(ev, unlockAudio, true);
+  });
 
   // One gentle note: quick fade in, slow fade out, low volume.
   function tone(freq, delay, dur, vol, type, endFreq){
@@ -330,21 +366,22 @@
     var drift = d[len - 1] - d[0];                         // make the loop seamless
     for (i = 0; i < len; i++) d[i] -= drift * i / (len - 1);
     var src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
-    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
-    var g = ctx.createGain(); g.gain.value = 0.03;
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900; // phone speakers can't play very low sounds
+    var g = ctx.createGain(); g.gain.value = 0.1;
     var lfo = ctx.createOscillator(); lfo.frequency.value = 0.12;
-    var lfoAmt = ctx.createGain(); lfoAmt.gain.value = 0.02;
+    var lfoAmt = ctx.createGain(); lfoAmt.gain.value = 0.06;
     lfo.connect(lfoAmt); lfoAmt.connect(g.gain);
     src.connect(lp); lp.connect(g); g.connect(master);
     src.start(); lfo.start();
     waves = { src: src, lfo: lfo };
   }
 
-  function soundFlip(){ tone(520, 0, 0.12, 0.045, "triangle", 380); }
-  function soundMatch(){ [523, 659, 784].forEach(function(f, i){ tone(f, i * 0.07, 0.4, 0.05); }); }
-  function soundCelebrate(){ [523, 659, 784, 1047].forEach(function(f, i){ tone(f, i * 0.12, 0.7, 0.05); }); }
-  function soundStart(){ [392, 523, 659].forEach(function(f, i){ tone(f, i * 0.09, 0.5, 0.05); }); }
-  function soundTap(){ tone(440, 0, 0.1, 0.035, "triangle"); }
+  // Volumes are set so they are clearly heard on a phone speaker, but stay soft.
+  function soundFlip(){ tone(660, 0, 0.14, 0.16, "triangle", 480); }
+  function soundMatch(){ [523, 659, 784].forEach(function(f, i){ tone(f, i * 0.07, 0.45, 0.18); }); }
+  function soundCelebrate(){ [523, 659, 784, 1047].forEach(function(f, i){ tone(f, i * 0.12, 0.8, 0.18); }); }
+  function soundStart(){ [392, 523, 659].forEach(function(f, i){ tone(f, i * 0.09, 0.55, 0.18); }); }
+  function soundTap(){ tone(560, 0, 0.12, 0.13, "triangle"); }
 
   function renderMute(){
     muteBtn.textContent = muted ? "🔇" : "🔊";
@@ -710,8 +747,8 @@
   [].forEach.call(document.querySelectorAll(".art-btn"), function(btn){
     btn.addEventListener("click", function(){
       soundStarted = true;
-      tone(parseFloat(btn.dataset.note), 0, 0.6, 0.05);
-      tone(parseFloat(btn.dataset.note) * 2, 0.05, 0.4, 0.015);
+      tone(parseFloat(btn.dataset.note), 0, 0.6, 0.18);
+      tone(parseFloat(btn.dataset.note) * 2, 0.05, 0.4, 0.05);
       btn.classList.remove("ping"); void btn.offsetWidth; btn.classList.add("ping");
       setTimeout(function(){ btn.classList.remove("ping"); }, 520);
       startWaves();
