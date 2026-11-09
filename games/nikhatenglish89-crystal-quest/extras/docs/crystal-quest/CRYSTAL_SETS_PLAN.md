@@ -45,3 +45,15 @@ Deployed staging page: https://stratos-family-staging.vercel.app/games/nikhateng
 3. Settings (Gem style) and the Gem Collection screen, Hindi text.
 4. Tests: silhouettes, one board per set in screenshots, per-world checks, setting persistence, network requests.
 5. Docs: inventory, how to add a set, level schema.
+
+## 5. Status (end of the work)
+
+| Step | State |
+|---|---|
+| 1. Schema and data (`sets.js`, `crystalSet` on levels, validator, tests) | Done |
+| 2. Loading and rendering (lazy load, preload, fallback, tiles, goal chips, rim, boss glow, guest banner) | Done |
+| 3. Settings (Gem style), Gem Collection, Hindi text | Done |
+| 4. Tests (set rules, engine unchanged, silhouettes, one board per set, per-world checks, Classic style and reload, network requests, fallback, layout on 12 window sizes) | Done. Playwright is not installed; the same checks run in headless Chrome (`tests/browser/`) |
+| 5. Docs (`CRYSTAL_SETS.md`, `LEVEL_SCHEMA.md`, inventory) | Done |
+
+Not done or different from the brief: no WebP atlas (no build step for a game folder), no server replay checks (no server), no texture destruction (image elements, the browser frees them). Four gem pairs are too similar in outline and need new art (see `CRYSTAL_SETS.md`).

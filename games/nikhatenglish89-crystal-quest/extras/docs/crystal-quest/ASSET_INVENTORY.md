@@ -183,3 +183,10 @@ Loading priority: P0 = preload at boot, P1 = load per world or per level, P2 = l
 - Placeholder (original vector, static pose): 12
 - Placeholder (reference only): 6
 - Production (vector v1): 57
+
+## Gem sets in the game (added when the sets were wired in)
+
+- The six classic gems (`CQ-CRY-*`) are now set `set_01_classic`. The 48 themed gems (`CQ-CST-001` to `CQ-CST-048`) are used by worlds 2 to 5 and the Daily Puzzle. Sets 6 to 9 are in the game files but only show in the Gem Collection as "Coming soon" (their worlds do not exist yet).
+- Status is unchanged: **all `CQ-CST` rows stay Placeholder (original vector v1).** Nothing here is marked Production.
+- Loading: each set is six separate SVG files, loaded on demand (no WebP atlas, see `CRYSTAL_SETS.md`).
+- Known weak pairs (outline too close for a colour-blind player): Classic ruby/topaz, Frozen Shards sapphire/topaz, Ocean Pearls ruby/topaz, Dark Obsidian ruby/sapphire. They need new art.
