@@ -263,3 +263,10 @@ img.big{width:64px;height:64px;margin:0 auto}
 .krow img{width:24px;height:24px}.krow.ok{opacity:1;background:rgba(15,138,70,.55)}
 .restore{width:100%;text-align:left;font:inherit;color:inherit}
 @media (max-height:520px){.kview{flex:1}.klist{display:none}}
+
+/* cover picture: the name sits in the centre at the top, the board centred under it */
+#screen.cover{flex-direction:column;justify-content:center;align-items:center;gap:2.6vh;padding:1.5vh 4vw}
+.cover .ctitle{display:flex;align-items:center;justify-content:center;gap:2.4vh;text-align:center}
+.cover .ctitle img{height:12vh;width:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.cover .ctitle h1{font-size:min(10.5vh,76px);letter-spacing:3px;line-height:1;white-space:nowrap;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink)}
+.cover .ctitle .sub{font-size:min(3.8vh,24px);letter-spacing:7px;color:var(--gold-l);margin-top:.8vh;text-shadow:0 2px 0 var(--ink)}

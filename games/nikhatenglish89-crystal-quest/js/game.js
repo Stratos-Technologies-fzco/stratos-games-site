@@ -725,7 +725,7 @@
     eng = new E(level, 77);
     var spec = [[1, 1, 'lightning'], [3, 3, 'rainbow'], [5, 4, 'bomb'], [1, 4, 'star']];
     spec.forEach(function (s) { var t = eng.grid[s[0]][s[1]]; if (t) { t.sp = s[2]; if (s[2] === 'rainbow') t.color = -2; } });
-    setScreen('cover', 'cover', '<div class="left"><img alt="" src="assets/ui/logo_emblem.svg"><h1>CRYSTAL<br>QUEST</h1><div class="sub">THE LOST KINGDOM</div></div><div class="right" id="cvWrap" style="width:min(88vh,52vw);height:min(88vh,52vw)"></div>');
+    setScreen('cover', 'cover', '<div class="ctitle"><img alt="" src="assets/ui/logo_emblem.svg"><div><h1>CRYSTAL QUEST</h1><div class="sub">THE LOST KINGDOM</div></div><img alt="" src="assets/ui/logo_emblem.svg"></div><div class="right" id="cvWrap" style="width:min(64vh,92vw);height:min(64vh,92vw)"></div>');
     L = level; buildBoard($('#cvWrap'), eng); sync();
   }
 
