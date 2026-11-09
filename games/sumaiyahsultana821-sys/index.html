@@ -49,7 +49,7 @@
   }
   .cover-art{display:flex; gap:clamp(10px, 4vw, 22px)}
   .art-btn{
-    font-size:clamp(34px, 9vh, 64px); line-height:1;
+    font-size:clamp(28px, 6vh, 52px); line-height:1;
     background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
     border-radius:20px; padding:10px; cursor:pointer;
     animation:bob 3s ease-in-out infinite; -webkit-tap-highlight-color:transparent;
@@ -95,13 +95,28 @@
   .hud-label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:.06em; opacity:.75}
   .hud-value{display:block; font-size:clamp(14px, 4vw, 18px); font-weight:800; margin-top:1px; white-space:nowrap}
 
-  .islands-progress{display:flex; justify-content:center; gap:6px; margin-bottom:8px}
-  .ip-chip{
-    padding:5px 10px; border-radius:999px; font-size:clamp(10px, 3vw, 12px); font-weight:700; white-space:nowrap;
-    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); opacity:.6;
+  .island-label{
+    align-self:center; margin-bottom:8px; padding:5px 14px; border-radius:999px;
+    font-size:clamp(12px, 3.4vw, 14px); font-weight:800; white-space:nowrap;
+    background:var(--accent); color:#1a0f00;
   }
-  .ip-chip.active{opacity:1; background:var(--accent); border-color:var(--accent); color:#1a0f00}
-  .ip-chip.done{opacity:1; background:var(--good); border-color:var(--good)}
+
+  /* Island map on the cover: unlocked islands can be replayed, locked ones show a lock */
+  .map{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; width:100%; max-width:440px}
+  .map-tile{
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:14px;
+    padding:6px 4px; min-width:0; color:var(--white); font-family:inherit; cursor:pointer; min-height:clamp(50px, 8vh, 64px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .map-tile:focus-visible{outline:3px solid #ffe9b3; outline-offset:2px}
+  .mt-icon{font-size:clamp(18px, 3.2vh, 24px); line-height:1.1}
+  .mt-name{font-size:10px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
+  .mt-stars{font-size:11px; letter-spacing:1px; color:#ffe9b3}
+  .map-tile.locked{opacity:.45}
+  .map-tile.next{border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent)}
+  .map-tile.shake{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}}
 
   .board-wrap{flex:1; min-height:0; display:flex; align-items:center; justify-content:center}
   .board{display:grid; gap:8px; justify-content:center}
@@ -170,9 +185,17 @@
   .modal .btn[hidden]{display:none}
 
   /* Very short windows (phone held sideways): hide the extras so it still fits */
+  /* Shorter windows: drop the extras so the cover still fits with no scrolling */
+  @media (max-height:740px){ .cover .tag{display:none} }
+  @media (max-height:620px){ .cover-art, .credit{display:none} }
+  @media (max-height:600px){
+    .howto ol li:nth-child(4){display:none}
+    .cover-inner{gap:8px}
+  }
   @media (max-height:520px){
-    .cover .tag, .credit, .art-btn:nth-child(n+2){display:none}
-    .howto ol li:nth-child(n+4){display:none}
+    .howto ol li:nth-child(n+3), .cover-best{display:none}
+    .map{grid-template-columns:repeat(7, minmax(0, 1fr)); max-width:640px}
+    .mt-name{display:none}
   }
   @media (prefers-reduced-motion:reduce){
     .card.pop .card-inner, .art-btn, .art-btn.ping{animation:none}
@@ -192,17 +215,17 @@
       <button class="art-btn" type="button" data-note="784" aria-label="Play a gem note">💎</button>
     </div>
     <h1>🏝️ Island Match Quest</h1>
-    <p class="tag">Flip, match, and unlock three islands of shells, fruits, and gems.</p>
+    <p class="tag">Flip, match, and unlock seven islands of shells, fruits, gems and more.</p>
     <button id="playBtn" class="btn btn-primary btn-big" type="button">▶ Play</button>
-    <p class="cover-best">Best score: <b id="coverBest">0</b></p>
+    <p class="cover-best">Best score: <b id="coverBest">0</b> · Stars: <b id="coverStars">0</b></p>
+    <div id="map" class="map" aria-label="Island map"></div>
     <div class="howto">
       <h2>How to play</h2>
       <ol>
-        <li>Tap a card to flip it, then tap another to find its match.</li>
-        <li>A match stays face up and scores points. A miss flips back.</li>
+        <li>Tap two cards to find a matching pair.</li>
         <li>Clear every pair to unlock the next island.</li>
-        <li>Each island has a move limit. Run out and you get one <b>second chance</b>.</li>
-        <li>Fewer moves and a faster time earn a bigger bonus.</li>
+        <li>Each island has a move limit, plus one <b>second chance</b>.</li>
+        <li>Fewer moves earn more <b>⭐ stars</b> and a bigger bonus.</li>
       </ol>
     </div>
   </div>
@@ -222,7 +245,7 @@
     <div class="hud-item"><span class="hud-label">Time</span><span id="time" class="hud-value">0:00</span></div>
     <div class="hud-item"><span class="hud-label">Best</span><span id="best" class="hud-value">0</span></div>
   </div>
-  <div id="islandsProgress" class="islands-progress"></div>
+  <div id="islandLabel" class="island-label"></div>
   <div id="boardWrap" class="board-wrap">
     <main id="board" class="board" aria-label="Memory match board"></main>
   </div>
@@ -243,12 +266,18 @@
 (function(){
   "use strict";
 
+  // Each island is a level. Boards grow as you go: 6, 8, 10, 10, 12, 12, 14 pairs.
   var ISLANDS = [
-    { name: "Shell Shore",  icons: ["🐚","🦀","🐟","🐙","🦐","🐢"],                      cols: 4 },
-    { name: "Fruit Grove",  icons: ["🍍","🥥","🍌","🍉","🍇","🍓","🥭","🍒"],             cols: 4 },
-    { name: "Gem Cavern",   icons: ["💎","🔶","🔷","⭐","👑","🏆","🔺","🔮","🟢","🟣"],   cols: 5 }
+    { name: "Shell Shore",   icons: ["🐚","🦀","🐟","🐙","🦐","🐢"] },
+    { name: "Fruit Grove",   icons: ["🍍","🥥","🍌","🍉","🍇","🍓","🥭","🍒"] },
+    { name: "Gem Cavern",    icons: ["💎","🔶","🔷","⭐","👑","🏆","🔺","🔮","🟢","🟣"] },
+    { name: "Coral Reef",    icons: ["🐠","🐡","🦈","🐳","🐬","🦑","🦞","🐋","⚓","🌊"] },
+    { name: "Jungle Trail",  icons: ["🐒","🦜","🐍","🦋","🐸","🌺","🍄","🦎","🐆","🌿","🐘","🐯"] },
+    { name: "Volcano Peak",  icons: ["🌋","🔥","💥","☄️","🐉","🦖","🦕","🧨","⚡","🌑","🏮","🦂"] },
+    { name: "Starry Lagoon", icons: ["🌙","🌟","🪐","🚀","🛸","🌈","☀️","🌠","🌛","🌌","🔭","👽","🌍","💫"] }
   ];
   var BEST_KEY = "islandMatchQuest.bestScore";
+  var PROGRESS_KEY = "islandMatchQuest.progress"; // { unlocked: how many islands are open, stars: [per island] }
   var MOVES_PER_PAIR = 3;      // move limit = pairs x 3 (18, 24, 30)
   var SECOND_CHANCE_MOVES = 6; // extra moves from a second chance (one per island)
   var CARD_GAP = 8;
@@ -265,13 +294,15 @@
   var playBtn = document.getElementById("playBtn");
   var homeBtn = document.getElementById("homeBtn");
   var coverBestEl = document.getElementById("coverBest");
+  var coverStarsEl = document.getElementById("coverStars");
+  var mapEl = document.getElementById("map");
+  var islandLabelEl = document.getElementById("islandLabel");
   var boardWrap = document.getElementById("boardWrap");
   var boardEl = document.getElementById("board");
   var scoreEl = document.getElementById("score");
   var movesEl = document.getElementById("moves");
   var timeEl = document.getElementById("time");
   var bestEl = document.getElementById("best");
-  var progressEl = document.getElementById("islandsProgress");
   var overlay = document.getElementById("overlay");
   var overlayTitle = document.getElementById("overlayTitle");
   var overlayBody = document.getElementById("overlayBody");
@@ -428,6 +459,7 @@
   var state = {
     islandIndex: 0,
     totalScore: 0,
+    scoreAtStart: 0,
     moves: 0,
     seconds: 0,
     matchedPairs: 0,
@@ -468,14 +500,63 @@
     return best;
   }
 
-  function renderProgress(){
-    progressEl.innerHTML = "";
-    ISLANDS.forEach(function(isl, i){
-      var chip = document.createElement("span");
-      chip.className = "ip-chip" + (i === state.islandIndex ? " active" : "") + (i < state.islandIndex ? " done" : "");
-      chip.textContent = (i + 1) + ". " + isl.name + (i < state.islandIndex ? " ✓" : "");
-      progressEl.appendChild(chip);
+  /* ---------- Saved progress: unlocked islands and stars ---------- */
+  function loadProgress(){
+    var p = null;
+    try { p = JSON.parse(localStorage.getItem(PROGRESS_KEY)); } catch (e) {}
+    if (!p || typeof p !== "object") p = {};
+    var unlocked = parseInt(p.unlocked, 10);
+    if (isNaN(unlocked) || unlocked < 1) unlocked = 1;
+    unlocked = Math.min(unlocked, ISLANDS.length);
+    var stars = ISLANDS.map(function(_, i){
+      var s = p.stars && parseInt(p.stars[i], 10);
+      return (s >= 1 && s <= 3) ? s : 0;
     });
+    return { unlocked: unlocked, stars: stars };
+  }
+  var progress = loadProgress();
+  function saveProgress(){
+    try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
+  }
+  function totalStars(){ return progress.stars.reduce(function(a, b){ return a + b; }, 0); }
+  function starText(n){ return "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n); }
+
+  // 3 stars: near-perfect memory. 2 stars: good. 1 star: cleared.
+  function starsFor(pairs, moves){
+    if (moves <= Math.ceil(pairs * 1.6)) return 3;
+    if (moves <= Math.ceil(pairs * 2.2)) return 2;
+    return 1;
+  }
+
+  function renderIslandLabel(){
+    islandLabelEl.textContent = "Island " + (state.islandIndex + 1) + "/" + ISLANDS.length + " · " + ISLANDS[state.islandIndex].name;
+  }
+
+  function renderMap(){
+    mapEl.innerHTML = "";
+    ISLANDS.forEach(function(isl, i){
+      var open = i < progress.unlocked;
+      var tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = "map-tile" + (open ? "" : " locked") + (open && i === progress.unlocked - 1 && !progress.stars[i] ? " next" : "");
+      tile.setAttribute("aria-label", (i + 1) + ". " + isl.name + (open ? (progress.stars[i] ? ", " + progress.stars[i] + " stars" : ", ready to play") : ", locked"));
+      tile.innerHTML =
+        '<span class="mt-icon">' + (open ? isl.icons[0] : "🔒") + '</span>' +
+        '<span class="mt-name">' + (i + 1) + '. ' + isl.name + '</span>' +
+        '<span class="mt-stars">' + (open ? starText(progress.stars[i]) : "&nbsp;") + '</span>';
+      tile.addEventListener("click", function(){
+        if (!open){
+          tone(220, 0, 0.18, 0.1, "triangle");
+          tile.classList.remove("shake"); void tile.offsetWidth; tile.classList.add("shake");
+          return;
+        }
+        beginPlay(i);
+      });
+      mapEl.appendChild(tile);
+    });
+    var next = Math.min(progress.unlocked, ISLANDS.length) - 1;
+    playBtn.textContent = next === 0 && !progress.stars[0] ? "▶ Play" : "▶ Play · Island " + (next + 1);
+    coverStarsEl.textContent = totalStars() + "/" + (ISLANDS.length * 3);
   }
 
   function renderMoves(){
@@ -502,18 +583,20 @@
   }
 
   // Size the cards so the whole board fits the space left on screen (no scrolling).
+  // Picks the number of columns that gives the biggest cards for this window
+  // (tall phone: fewer columns, wide laptop: more columns).
   function fitBoard(){
-    var island = ISLANDS[state.islandIndex];
-    var cols = island.cols;
-    var rows = Math.ceil(island.icons.length * 2 / cols);
+    var n = ISLANDS[state.islandIndex].icons.length * 2;
     var w = boardWrap.clientWidth, h = boardWrap.clientHeight;
     if (!w || !h) return;
-    var size = Math.floor(Math.min(
-      (w - CARD_GAP * (cols - 1)) / cols,
-      (h - CARD_GAP * (rows - 1)) / rows,
-      100
-    ));
-    size = Math.max(size, 32);
+    var cols = 4, size = 0, bestScore = -1;
+    for (var c = 3; c <= 8; c++){
+      var r = Math.ceil(n / c);
+      var s = Math.min((w - CARD_GAP * (c - 1)) / c, (h - CARD_GAP * (r - 1)) / r, 100);
+      var score = s - (r * c - n) * 2; // small preference for boards with no empty gaps
+      if (score > bestScore){ bestScore = score; cols = c; size = s; }
+    }
+    size = Math.max(Math.floor(size), 28);
     boardEl.style.setProperty("--card", size + "px");
     boardEl.style.gridTemplateColumns = "repeat(" + cols + ", " + size + "px)";
   }
@@ -525,6 +608,7 @@
 
   function startIsland(index){
     state.islandIndex = index;
+    state.scoreAtStart = state.totalScore;
     state.moves = 0;
     state.seconds = 0;
     state.matchedPairs = 0;
@@ -555,7 +639,7 @@
       boardEl.appendChild(card);
     });
 
-    renderProgress();
+    renderIslandLabel();
     updateHud();
     fitBoard();
     startTimer();
@@ -650,16 +734,17 @@
       "You reached " + ISLANDS[state.islandIndex].name + ".\n" +
       "Final score: " + state.totalScore + "\n" +
       "Best score: " + best,
-      "Play again",
-      function(){ hideOverlay(); restartQuest(); },
-      "Back to cover",
+      "Try again",
+      function(){ hideOverlay(); startQuestAt(state.islandIndex); },
+      "Island map",
       function(){ hideOverlay(); showCover(); }
     );
   }
 
+  // Bigger islands are worth a bigger bonus.
   function islandBonus(pairs, moves, seconds){
     var extraMoves = Math.max(0, moves - pairs);
-    var raw = 300 - extraMoves * 8 - seconds;
+    var raw = Math.max(300, pairs * 40) - extraMoves * 8 - seconds;
     return Math.max(0, Math.round(raw));
   }
 
@@ -668,33 +753,45 @@
     var bonus = islandBonus(state.totalPairs, state.moves, state.seconds);
     state.totalScore += bonus;
     updateHud();
-    renderProgress();
 
-    var isLast = state.islandIndex === ISLANDS.length - 1;
-    var island = ISLANDS[state.islandIndex];
-    track("level_complete", { level: state.islandIndex + 1, moves: state.moves, seconds: state.seconds, bonus: bonus, score: state.totalScore });
+    var idx = state.islandIndex;
+    var isLast = idx === ISLANDS.length - 1;
+    var island = ISLANDS[idx];
+    var stars = starsFor(state.totalPairs, state.moves);
+    var newBestStars = stars > progress.stars[idx];
+    if (newBestStars) progress.stars[idx] = stars;
+    var unlockedNew = !isLast && progress.unlocked < idx + 2;
+    if (unlockedNew) progress.unlocked = idx + 2;
+    saveProgress();
+    var best = saveBestIfHigher(state.totalScore);
+    bestEl.textContent = best;
+
+    track("level_complete", { level: idx + 1, moves: state.moves, seconds: state.seconds, bonus: bonus, score: state.totalScore, stars: stars });
+    if (unlockedNew) track("island_unlocked", { level: idx + 2 });
+
+    var lines =
+      starText(stars) + (newBestStars && stars > 1 ? "  new best!" : "") + "\n" +
+      "Moves: " + state.moves + "  ·  Time: " + formatTime(state.seconds) + "\n" +
+      "Speed bonus: +" + bonus + "\n" +
+      "Score: " + state.totalScore;
 
     if (isLast){
-      var best = saveBestIfHigher(state.totalScore);
-      bestEl.textContent = best;
       showModal(
-        "Quest complete! 🎉",
-        "You cleared all three islands!\n" +
-        "Moves: " + state.moves + "  ·  Time: " + formatTime(state.seconds) + "\n" +
-        "Speed bonus: +" + bonus + "\n" +
-        "Final score: " + state.totalScore + "\n" +
-        "Best score: " + best,
-        "Play again",
-        function(){ hideOverlay(); restartQuest(); }
+        "All 7 islands cleared! 🎉",
+        lines + "\nBest score: " + best + "\n" +
+        "Stars collected: " + totalStars() + "/" + (ISLANDS.length * 3),
+        "Island map",
+        function(){ hideOverlay(); showCover(); }
       );
     } else {
+      var next = ISLANDS[idx + 1];
       showModal(
         island.name + " cleared!",
-        "Moves: " + state.moves + "  ·  Time: " + formatTime(state.seconds) + "\n" +
-        "Speed bonus: +" + bonus + "\n" +
-        "Total score: " + state.totalScore,
-        "Next island: " + ISLANDS[state.islandIndex + 1].name,
-        function(){ hideOverlay(); startIsland(state.islandIndex + 1); }
+        lines + (unlockedNew ? "\n🔓 New island unlocked: " + next.name + "!" : ""),
+        "Next island: " + next.name,
+        function(){ hideOverlay(); startIsland(idx + 1); },
+        "Island map",
+        function(){ hideOverlay(); showCover(); }
       );
     }
     soundCelebrate();
@@ -714,10 +811,18 @@
   function showOverlay(){ overlay.hidden = false; overlayBtn.focus(); }
   function hideOverlay(){ overlay.hidden = true; }
 
-  function restartQuest(){
+  // A fresh run starting at any unlocked island; score counts from 0.
+  function startQuestAt(index){
     stopTimer();
     state.totalScore = 0;
-    startIsland(0);
+    startIsland(index);
+  }
+
+  // Restart button: replay this island, giving back the score you had when it began.
+  function restartIsland(){
+    stopTimer();
+    state.totalScore = state.scoreAtStart;
+    startIsland(state.islandIndex);
   }
 
   /* ---------- Screens ---------- */
@@ -727,20 +832,21 @@
     gameEl.hidden = true;
     coverEl.hidden = false;
     coverBestEl.textContent = loadBest();
+    renderMap();
     playBtn.focus();
   }
 
-  function showGame(){
-    coverEl.hidden = true;
-    gameEl.hidden = false;
-    restartQuest();
-  }
-
-  playBtn.addEventListener("click", function(){
+  function beginPlay(index){
     soundStarted = true;
     soundStart();
     startWaves();
-    showGame();
+    coverEl.hidden = true;
+    gameEl.hidden = false;
+    startQuestAt(index);
+  }
+
+  playBtn.addEventListener("click", function(){
+    beginPlay(Math.min(progress.unlocked, ISLANDS.length) - 1);
   });
 
   // Cover emojis: tap for a soft note and a little bounce.
@@ -756,7 +862,7 @@
   });
 
   homeBtn.addEventListener("click", function(){ soundTap(); showCover(); });
-  restartBtn.addEventListener("click", function(){ soundTap(); hideOverlay(); restartQuest(); });
+  restartBtn.addEventListener("click", function(){ soundTap(); hideOverlay(); restartIsland(); });
 
   showCover();
 })();

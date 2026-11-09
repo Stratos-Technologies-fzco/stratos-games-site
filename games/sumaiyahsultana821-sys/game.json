@@ -1,10 +1,10 @@
 {
   "title": "Island Match Quest",
   "maker": "Sumaiyah Sultana",
-  "one_line": "Flip shells, fruits, and gems to match pairs, clear three islands, and chase a high score.",
+  "one_line": "Flip shells, fruits, gems and more to match pairs, unlock seven islands, and collect every star.",
   "category": "puzzle",
   "github": "sumaiyahsultana821-sys",
   "added": "2026-10-02",
-  "how_to_play": "Tap Play, then tap a card to flip it and tap another to find its match. A match stays face up and scores points; a miss flips both back. Clear every pair to unlock the next island. Each island has a move limit; run out and you get one second chance with extra moves. Fewer moves and a faster time earn a bigger bonus. Restart starts you over from Island 1 anytime.",
-  "description": "A beginner-friendly memory matching game across three islands: Shell Shore, Fruit Grove, and Gem Cavern. One self-contained HTML file with no dependencies, built-in instructions, a live score, move counter, timer, and a restart button."
+  "how_to_play": "Tap Play, then tap two cards to find a matching pair. Clear every pair to unlock the next island. Each island has a move limit, plus one second chance. Fewer moves earn up to 3 stars and a bigger bonus. Tap any unlocked island on the map to replay it.",
+  "description": "A calm memory matching quest across seven islands: Shell Shore, Fruit Grove, Gem Cavern, Coral Reef, Jungle Trail, Volcano Peak and Starry Lagoon. Boards grow as you go, progress and stars are saved, and soft sounds and ocean waves play along (with a mute button). One self-contained HTML file with no dependencies."
 }
