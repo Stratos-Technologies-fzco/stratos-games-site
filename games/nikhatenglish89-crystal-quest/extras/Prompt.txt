@@ -1,0 +1,1528 @@
+# MASTER DEVELOPMENT PROMPT
+# CRYSTAL QUEST – THE LOST KINGDOM
+## STRATOS.GAMES – Professional Match-3 Fantasy Adventure Game
+
+---
+
+# 1. YOUR ROLE
+
+Act as a world-class professional game development studio consisting of the following specialists:
+
+1. Senior Game Director.
+2. Senior Game Designer.
+3. Senior Phaser 3 Game Developer.
+4. Senior React and TypeScript Developer.
+5. Senior Python FastAPI Developer.
+6. Senior PostgreSQL Database Architect.
+7. Game UI/UX Designer.
+8. 2D/2.5D Game Artist.
+9. Game Animation Specialist.
+10. Game Sound Designer.
+11. Game QA Engineer.
+12. Performance Optimization Engineer.
+13. Security Engineer.
+14. DevOps Engineer.
+
+Your responsibility is to design, develop, test, optimize and deliver a complete, professional browser-based Match-3 puzzle adventure game.
+
+Do not produce a basic demonstration, tutorial project or unfinished prototype.
+
+Build a polished, production-oriented game that can be published on:
+
+https://stratos.games
+
+The game must have its own identity, original graphics, original game mechanics, professional animations, responsive interface and scalable architecture.
+
+Do not copy copyrighted Candy Crush assets, artwork, characters, branding, sounds, level layouts or proprietary content.
+
+Use Candy Crush only as a reference for the general Match-3 gameplay genre.
+
+---
+
+# 2. PROJECT IDENTITY
+
+Game Name:
+
+CRYSTAL QUEST
+
+Subtitle:
+
+THE LOST KINGDOM
+
+Developer:
+
+STRATOS.GAMES
+
+Game Genre:
+
+Match-3 Puzzle + Fantasy Adventure
+
+Platform:
+
+HTML5 Browser Game
+
+Target Devices:
+
+- Desktop computers.
+- Windows laptops.
+- Android mobile browsers.
+- iPhone Safari.
+- Tablets.
+- Chrome.
+- Edge.
+- Firefox.
+
+Target Audience:
+
+Casual puzzle players worldwide.
+
+Target Markets:
+
+India, Europe, USA and international markets.
+
+Game Orientation:
+
+Portrait-first responsive experience.
+
+Visual Style:
+
+Premium colourful fantasy artwork with polished 2.5D crystal graphics.
+
+Core Game Concept:
+
+Players enter a mysterious magical kingdom where an ancient Crystal Heart has been destroyed.
+
+Six magical crystals have been scattered across different worlds.
+
+Players must complete Match-3 puzzles, collect magical energy, defeat enemies, restore damaged kingdoms and recover the legendary Crystal Heart.
+
+Core Gameplay Loop:
+
+Play Level
+→ Match Crystals
+→ Complete Objectives
+→ Earn Stars and Coins
+→ Collect Crystal Energy
+→ Restore Kingdom
+→ Unlock New Worlds
+→ Discover New Challenges.
+
+---
+
+# 3. TECHNICAL STACK
+
+Use the following architecture.
+
+Frontend:
+- React.
+- TypeScript.
+- Vite.
+- Tailwind CSS.
+
+Game Engine:
+- Phaser 3.
+- TypeScript.
+- Phaser Scene Management.
+- Phaser Tweens.
+- Phaser Input System.
+- Phaser Audio.
+
+Backend:
+- Python.
+- FastAPI.
+- Pydantic.
+- SQLAlchemy.
+
+Database:
+- PostgreSQL.
+- Alembic migrations.
+
+Testing:
+- Vitest.
+- Playwright.
+- Pytest.
+
+Deployment:
+- Docker.
+- Docker Compose.
+- Nginx.
+
+API:
+- REST API.
+- OpenAPI documentation.
+
+Important architectural rule:
+
+The Phaser game engine must be independent of React.
+
+React should manage:
+- Main website integration.
+- Game launcher.
+- Game menus.
+- Player profile.
+- World map interface.
+- Settings.
+- Shop interface.
+- Leaderboards.
+
+Phaser should manage:
+- Puzzle board.
+- Crystal movement.
+- Matching.
+- Cascades.
+- Special crystals.
+- Blockers.
+- Gameplay animations.
+- Game scoring.
+- Level objectives.
+- Boss battle mechanics.
+
+FastAPI should manage:
+- Player accounts.
+- Game progress.
+- Level information.
+- Inventory.
+- Rewards.
+- Achievements.
+- Leaderboards.
+- Daily challenges.
+- Analytics.
+
+---
+
+# 4. EXISTING PROJECT INSPECTION
+
+Before writing code, inspect the existing STRATOS.GAMES repository.
+
+Understand:
+
+1. Existing frontend architecture.
+2. Existing backend architecture.
+3. Existing authentication.
+4. Existing database.
+5. Existing API conventions.
+6. Existing routing.
+7. Existing game integration system.
+8. Existing CSS and design system.
+9. Existing deployment process.
+10. Existing naming conventions.
+
+Do not blindly overwrite existing files.
+
+Do not create another React application if one already exists.
+
+Do not create another FastAPI application if one already exists.
+
+Reuse existing authentication and database infrastructure wherever appropriate.
+
+Create Crystal Quest as an independent game module.
+
+If the existing architecture differs from the proposed stack, document the difference and adapt without breaking the existing platform.
+
+Before implementation, create:
+
+docs/crystal-quest/PROJECT_ASSESSMENT.md
+
+This document must describe the existing architecture, integration points, technical risks and proposed implementation strategy.
+
+---
+
+# 5. GAME WORLD AND STORYLINE
+
+Create an original fantasy universe.
+
+Story:
+
+Thousands of years ago, six legendary magical crystals protected the Lost Kingdom.
+
+An evil entity called the Shadow Lord destroyed the Crystal Heart and scattered the magical crystals across different kingdoms.
+
+The kingdom lost its magical power.
+
+Players become the chosen Crystal Guardian.
+
+Their mission is to recover the magical crystals and restore the Lost Kingdom.
+
+Main Characters:
+
+1. Eldrin – Ancient Wizard.
+2. Luma – Magical Fairy.
+3. Arkon – Crystal Guardian.
+4. Nyra – Forest Guardian.
+5. Shadow Lord – Main Villain.
+
+Character requirements:
+
+- Original character designs.
+- Unique visual identity.
+- Character introduction screens.
+- Dialogue system.
+- Victory expressions.
+- Idle animations.
+- Story progression.
+- Character-based celebrations.
+
+Do not use copyrighted characters or imitate recognisable commercial character designs.
+
+---
+
+# 6. GAME WORLDS
+
+Create the following ten worlds.
+
+WORLD 1: CRYSTAL VALLEY
+- Green magical valley.
+- Waterfalls.
+- Crystal caves.
+- Ancient bridges.
+- Ruby crystals.
+
+WORLD 2: FROZEN MOUNTAINS
+- Snow mountains.
+- Frozen lakes.
+- Ice castles.
+- Ice blockers.
+- Sapphire crystals.
+
+WORLD 3: ENCHANTED FOREST
+- Magical trees.
+- Ancient forests.
+- Hidden creatures.
+- Forest obstacles.
+- Emerald crystals.
+
+WORLD 4: LOST DESERT
+- Ancient temples.
+- Sand dunes.
+- Hidden treasure.
+- Sand obstacles.
+- Topaz crystals.
+
+WORLD 5: DRAGON KINGDOM
+- Volcanic mountains.
+- Lava rivers.
+- Dragon caves.
+- Fire obstacles.
+- Fire crystals.
+
+WORLD 6: OCEAN KINGDOM
+- Underwater environments.
+- Coral reefs.
+- Sea creatures.
+- Water obstacles.
+- Aqua crystals.
+
+WORLD 7: SKY KINGDOM
+- Floating islands.
+- Cloud bridges.
+- Wind temples.
+- Air obstacles.
+- Wind crystals.
+
+WORLD 8: DARK KINGDOM
+- Corrupted environments.
+- Dark castles.
+- Shadow creatures.
+- Shadow obstacles.
+
+WORLD 9: CELESTIAL KINGDOM
+- Galaxy environments.
+- Stars.
+- Cosmic portals.
+- Cosmic obstacles.
+
+WORLD 10: CRYSTAL PALACE
+- Legendary palace.
+- Final boss arena.
+- Crystal Heart restoration.
+- Final Shadow Lord encounter.
+
+Initial release:
+
+- Five fully playable worlds.
+- Twenty levels per world.
+- 100 playable levels.
+
+Design the architecture to support all ten worlds and 1,000+ levels.
+
+Additional worlds can initially have locked or coming-soon status.
+
+---
+
+# 7. MATCH-3 GAME ENGINE
+
+This is the most important development component.
+
+Build a robust, independent Match-3 engine using TypeScript.
+
+Board Configuration:
+
+- Default board: 8 rows × 8 columns.
+- Support configurable board dimensions.
+- Support different board shapes.
+- Support blocked cells.
+- Support special cells.
+- Support different crystal distributions.
+
+Basic Crystals:
+
+1. Ruby – Red.
+2. Sapphire – Blue.
+3. Emerald – Green.
+4. Topaz – Yellow.
+5. Amethyst – Purple.
+6. Diamond – White.
+
+Every crystal must have:
+
+- Unique shape.
+- Unique colour.
+- Unique visual appearance.
+- Selection state.
+- Movement animation.
+- Matching animation.
+- Destruction animation.
+- Special effects.
+
+Gameplay Rules:
+
+1. Players select a crystal.
+2. Players swap adjacent crystals.
+3. Only valid swaps are accepted.
+4. Invalid swaps are automatically reversed.
+5. Valid swaps consume one move.
+6. Match three or more identical crystals.
+7. Remove matched crystals.
+8. Apply gravity.
+9. Generate new crystals.
+10. Detect cascading matches.
+11. Process all cascades.
+12. Update objectives and scores.
+13. Check victory and failure.
+
+Critical requirement:
+
+Never allow a player to interact with the board while a previous move is being processed.
+
+Use a proper game-state machine.
+
+Suggested states:
+
+- INITIALIZING.
+- READY.
+- SELECTING.
+- SWAPPING.
+- MATCHING.
+- CLEARING.
+- FALLING.
+- REFILLING.
+- CASCADING.
+- CHECKING_OBJECTIVES.
+- VICTORY.
+- FAILURE.
+- PAUSED.
+
+---
+
+# 8. MATCH DETECTION ALGORITHM
+
+Implement robust horizontal and vertical matching.
+
+Support:
+
+- Three-match.
+- Four-match.
+- Five-match.
+- L-shaped matches.
+- T-shaped matches.
+- Cross-shaped matches.
+- Multiple simultaneous matches.
+- Cascading matches.
+- Special crystal interactions.
+
+The matching algorithm must be deterministic and independently testable.
+
+Create unit tests for:
+
+1. Horizontal matching.
+2. Vertical matching.
+3. Four-crystal matching.
+4. Five-crystal matching.
+5. L-shaped matching.
+6. T-shaped matching.
+7. Cross-shaped matching.
+8. Multiple simultaneous matches.
+9. No-match conditions.
+10. Cascading matches.
+11. Special combinations.
+12. Blocker interactions.
+
+Do not hardcode visual logic into the matching algorithm.
+
+Use separate data models for board state and rendering objects.
+
+---
+
+# 9. SPECIAL CRYSTALS
+
+Implement the following eight special crystals.
+
+1. RUBY BOMB:
+   - Created through a four-crystal pattern.
+   - Explodes nearby tiles.
+
+2. LIGHTNING CRYSTAL:
+   - Clears an entire row.
+
+3. VERTICAL THUNDER:
+   - Clears an entire column.
+
+4. RAINBOW CRYSTAL:
+   - Created through a five-crystal line.
+   - Removes all crystals of a selected colour.
+
+5. CRYSTAL NOVA:
+   - Created through an L or T pattern.
+   - Produces a large area explosion.
+
+6. MAGIC STAR:
+   - Powerful special crystal.
+   - Activates a multi-tile effect.
+
+7. CRYSTAL FISH:
+   - Targets blockers and objectives.
+
+8. SUPER CRYSTAL:
+   - Created through advanced combinations.
+   - Produces a massive board effect.
+
+Implement special combinations:
+
+- Lightning + Lightning.
+- Rainbow + Ruby.
+- Rainbow + Rainbow.
+- Bomb + Lightning.
+- Nova + Rainbow.
+- Magic Star + Special Crystal.
+
+Every combination must have:
+- Correct gameplay behaviour.
+- Animation.
+- Sound.
+- Score calculation.
+- Objective updates.
+
+Ensure that special crystal generation does not create impossible or unfair board conditions.
+
+---
+
+# 10. BLOCKERS AND OBSTACLES
+
+Implement:
+
+1. Ice Block.
+2. Stone Block.
+3. Crystal Cage.
+4. Magic Chain.
+5. Dark Crystal.
+6. Wooden Box.
+7. Lava Tile.
+8. Crystal Wall.
+9. Shadow Portal.
+10. Ancient Seal.
+
+Each blocker must define:
+
+- Health.
+- Destruction rules.
+- Movement rules.
+- Visual representation.
+- Animation.
+- Sound effect.
+- Interaction with special crystals.
+
+Blocker health and behaviour must be configurable through level data.
+
+---
+
+# 11. LEVEL OBJECTIVES
+
+Implement the following level types:
+
+1. Crystal Collection.
+2. Ice Breaker.
+3. Ancient Treasure.
+4. Forest Restoration.
+5. Magic Rescue.
+6. Crystal Path.
+7. Time Challenge.
+8. Boss Battle.
+9. Stone Breaker.
+10. Energy Collection.
+11. Portal Challenge.
+12. Mixed Challenge.
+
+Each level must support multiple simultaneous objectives.
+
+Example:
+
+Level 25:
+
+- Collect 30 Emerald Crystals.
+- Destroy 10 Stone Blocks.
+- Complete within 35 moves.
+
+Create a flexible objective management system.
+
+Objectives must be configured through JSON level definitions.
+
+---
+
+# 12. BOOSTER SYSTEM
+
+Pre-game boosters:
+
+- Ruby Starter.
+- Lightning Starter.
+- Rainbow Starter.
+- Magic Shield.
+
+In-game boosters:
+
+- Crystal Hammer.
+- Magic Wand.
+- Lightning Strike.
+- Crystal Shuffle.
+- Extra Moves.
+- Rainbow Blast.
+
+Booster requirements:
+
+- Inventory management.
+- Activation logic.
+- Usage limits.
+- UI icons.
+- Animation.
+- Sound effects.
+- Reward integration.
+- Server-side inventory validation.
+
+Players should be able to earn boosters through gameplay.
+
+Do not make essential gameplay progression dependent on purchasing boosters.
+
+---
+
+# 13. BOSS BATTLE SYSTEM
+
+Create an independent boss battle system.
+
+Initial bosses:
+
+1. Stone Golem.
+2. Ice Dragon.
+3. Forest Witch.
+
+Future bosses:
+
+4. Sand Titan.
+5. Fire Dragon.
+6. Sea Serpent.
+7. Shadow Lord.
+
+Boss mechanics:
+
+- Health points.
+- Attack patterns.
+- Player damage calculation.
+- Boss attack animations.
+- Special obstacles.
+- Victory and defeat states.
+- Reward distribution.
+
+Example:
+
+Ice Dragon:
+
+- Initial health: 100 HP.
+- Attacks after configured move intervals.
+- Freezes selected tiles.
+- Creates ice barriers.
+- Player attacks using crystal matches.
+
+Boss configuration must be data-driven.
+
+---
+
+# 14. KINGDOM RESTORATION
+
+Build a separate kingdom restoration system.
+
+Each world contains restoration projects.
+
+Example Crystal Valley:
+
+1. Ancient Bridge.
+2. Wizard Tower.
+3. Magical Waterfall.
+4. Crystal Fountain.
+5. Crystal Palace.
+
+Players collect Crystal Energy through level completion.
+
+Restoration projects must have:
+
+- Project name.
+- Required energy.
+- Current progress.
+- Before-restoration asset.
+- After-restoration asset.
+- Restoration animation.
+- Reward.
+
+The world should visually change as the player progresses.
+
+Use original assets and smooth transitions.
+
+---
+
+# 15. PLAYER PROGRESSION
+
+Implement:
+
+- Player profile.
+- Player level.
+- Experience points.
+- Completed levels.
+- Star collection.
+- Gold coins.
+- Crystal shards.
+- Booster inventory.
+- Achievements.
+- Kingdom restoration progress.
+- Unlocked worlds.
+
+Star system:
+
+- One star: Complete the level.
+- Two stars: Reach a higher score.
+- Three stars: Reach the highest score threshold.
+
+Score thresholds must be configurable per level.
+
+Progress should persist across sessions.
+
+Support guest play initially.
+
+Allow optional account linking through STRATOS.GAMES authentication.
+
+Never force registration before the first playable level.
+
+---
+
+# 16. REWARD SYSTEM
+
+Implement:
+
+Daily rewards:
+
+Day 1: 100 Coins.
+Day 2: 150 Coins.
+Day 3: Crystal Hammer.
+Day 4: 200 Coins.
+Day 5: Lightning Booster.
+Day 6: 300 Coins.
+Day 7: Legendary Treasure Chest.
+
+Achievement examples:
+
+- First Crystal.
+- Crystal Master.
+- Combo King.
+- Treasure Hunter.
+- Kingdom Builder.
+- Dragon Slayer.
+- Perfect Guardian.
+
+Implement reward claiming with duplicate-claim protection.
+
+Use server-side validation.
+
+---
+
+# 17. DAILY CHALLENGES AND LEADERBOARDS
+
+Daily Crystal Challenge:
+
+- One special puzzle per day.
+- Unique level configuration.
+- Score tracking.
+- Reward system.
+
+Weekly Tournament:
+
+- Identical challenge for all participants.
+- Highest score ranking.
+- Tournament start and end times.
+- Reward distribution.
+- Anti-cheat checks.
+
+Leaderboard categories:
+
+- Global.
+- Weekly.
+- Monthly.
+- Friends, when social functionality is available.
+
+For guest players, use a persistent anonymous player identifier.
+
+---
+
+# 18. UI/UX DESIGN
+
+Create a premium-quality visual experience.
+
+Design direction:
+
+- Bright fantasy colours.
+- Magical glowing crystals.
+- Beautiful landscapes.
+- Smooth animations.
+- Rounded buttons.
+- High-quality panels.
+- Clear typography.
+- Consistent spacing.
+- Excellent mobile usability.
+
+Avoid dark, dull and overly complicated interfaces.
+
+Do not use generic dashboard-style UI for the gameplay.
+
+Required screens:
+
+1. Splash Screen.
+2. Loading Screen.
+3. Main Menu.
+4. World Map.
+5. Level Map.
+6. Level Introduction.
+7. Gameplay Screen.
+8. Pause Screen.
+9. Victory Screen.
+10. Failure Screen.
+11. Booster Shop.
+12. Daily Rewards.
+13. Achievements.
+14. Leaderboard.
+15. Player Profile.
+16. Settings.
+17. Kingdom Restoration.
+18. Boss Introduction.
+
+Gameplay screen layout:
+
+TOP:
+- Level number.
+- Objectives.
+- Moves remaining.
+- Score.
+
+MIDDLE:
+- Crystal board.
+
+BOTTOM:
+- Booster buttons.
+- Power-up inventory.
+
+Background:
+- Current world environment.
+
+The puzzle board must remain the most important visual element.
+
+Make the game responsive.
+
+For mobile:
+- Portrait-first.
+- Touch-friendly controls.
+- No horizontal scrolling.
+- Correct safe-area handling.
+- Scalable puzzle board.
+
+For desktop:
+- Beautiful centred gameplay area.
+- Landscape presentation.
+- Keyboard accessibility where appropriate.
+
+---
+
+# 19. GRAPHICS AND ASSET PRODUCTION
+
+Create an original visual asset system.
+
+Required categories:
+
+CRYSTALS:
+- Six basic crystal designs.
+- Eight special crystal designs.
+
+BLOCKERS:
+- Ten blocker designs.
+
+CHARACTERS:
+- Five main characters.
+
+BOSSES:
+- Seven boss designs.
+
+ENVIRONMENTS:
+- Ten world backgrounds.
+
+UI:
+- Buttons.
+- Panels.
+- Icons.
+- Progress bars.
+- Reward graphics.
+- Level markers.
+- Menus.
+
+VISUAL EFFECTS:
+- Crystal explosion.
+- Magical glow.
+- Lightning.
+- Rainbow blast.
+- Fire effects.
+- Ice effects.
+- Restoration effects.
+- Boss attacks.
+
+ANIMATIONS:
+- Crystal idle.
+- Crystal selection.
+- Crystal swapping.
+- Crystal matching.
+- Crystal destruction.
+- Gravity.
+- Special activation.
+- Character celebrations.
+- Boss attacks.
+- Kingdom restoration.
+
+Use SVG, WebP, PNG, spritesheets and texture atlases appropriately.
+
+Use vector graphics for scalable interface elements.
+
+Use compressed textures for mobile performance.
+
+Create placeholder assets only when original production-quality assets are not available.
+
+Do not silently present placeholders as finished artwork.
+
+Create:
+
+docs/crystal-quest/ASSET_INVENTORY.md
+
+Every asset must have:
+- Unique identifier.
+- Filename.
+- Category.
+- Dimensions.
+- Format.
+- Intended usage.
+- Loading priority.
+- Status: Production / Placeholder / Missing.
+
+If image generation tools or services are available, use them for original artwork.
+
+If external asset generation is unavailable, build attractive original SVG and Canvas assets as temporary production placeholders.
+
+---
+
+# 20. SOUND DESIGN
+
+Implement a dedicated audio manager.
+
+Required sound effects:
+
+- Crystal selection.
+- Crystal movement.
+- Match 3.
+- Match 4.
+- Match 5.
+- Crystal explosion.
+- Lightning activation.
+- Rainbow activation.
+- Booster activation.
+- Level completion.
+- Level failure.
+- Boss attack.
+- Boss defeat.
+- Reward collection.
+- Button interaction.
+
+Music:
+
+- Main menu theme.
+- Crystal Valley theme.
+- Frozen Mountains theme.
+- Enchanted Forest theme.
+- Desert theme.
+- Dragon Kingdom theme.
+- Boss battle theme.
+- Victory theme.
+
+Audio requirements:
+
+- Music volume control.
+- Sound effects volume control.
+- Mute option.
+- Respect browser audio restrictions.
+- No automatic audio playback before user interaction.
+
+---
+
+# 21. DATABASE DESIGN
+
+Create SQLAlchemy models and Alembic migrations.
+
+Required tables:
+
+1. users.
+2. player_profiles.
+3. game_worlds.
+4. game_levels.
+5. player_progress.
+6. player_inventory.
+7. player_achievements.
+8. player_rewards.
+9. daily_challenges.
+10. tournament_entries.
+11. leaderboard_scores.
+12. game_sessions.
+13. game_events.
+14. restoration_projects.
+15. player_restoration_progress.
+
+Use appropriate:
+
+- Primary keys.
+- Foreign keys.
+- Unique constraints.
+- Indexes.
+- Timestamps.
+- JSONB fields where appropriate.
+- Transactions.
+- Data validation.
+
+Use UTC timestamps in the backend.
+
+Store level configurations separately from game logic.
+
+Create seed data for the initial five worlds and 100 levels.
+
+---
+
+# 22. BACKEND API
+
+Implement REST endpoints.
+
+GAME:
+
+GET /api/game/worlds
+
+GET /api/game/worlds/{world_id}
+
+GET /api/game/levels/{level_id}
+
+POST /api/game/start
+
+POST /api/game/complete
+
+PLAYER:
+
+GET /api/player/profile
+
+GET /api/player/progress
+
+GET /api/player/inventory
+
+GET /api/player/achievements
+
+REWARDS:
+
+GET /api/rewards/daily
+
+POST /api/rewards/daily/claim
+
+POST /api/rewards/claim
+
+BOOSTERS:
+
+GET /api/boosters
+
+POST /api/boosters/use
+
+KINGDOM:
+
+GET /api/kingdom/progress
+
+POST /api/kingdom/restore
+
+CHALLENGES:
+
+GET /api/challenges/daily
+
+GET /api/leaderboard
+
+POST /api/leaderboard/submit
+
+Implement:
+
+- Input validation.
+- Authentication.
+- Authorization.
+- Rate limiting.
+- Error handling.
+- Logging.
+- API documentation.
+- Database transaction management.
+
+Do not trust client-submitted scores, inventory changes or rewards.
+
+Validate level completion and reward eligibility on the backend.
+
+---
+
+# 23. SECURITY
+
+Implement:
+
+- Secure authentication.
+- JWT validation.
+- Password hashing where local passwords are used.
+- Environment-based secrets.
+- SQL injection prevention.
+- Input validation.
+- CORS restrictions.
+- Rate limiting.
+- Server-side reward validation.
+- Duplicate request protection.
+- Session validation.
+- Anti-cheat checks.
+- Secure database access.
+
+Never commit credentials or API keys.
+
+Provide .env.example files.
+
+---
+
+# 24. GAME ANALYTICS
+
+Track:
+
+- Game started.
+- Tutorial completed.
+- Level started.
+- Level completed.
+- Level failed.
+- Level retried.
+- Booster used.
+- Special combination activated.
+- Boss defeated.
+- World unlocked.
+- Reward claimed.
+- Session duration.
+
+Important KPIs:
+
+- DAU.
+- MAU.
+- D1 retention.
+- D7 retention.
+- D30 retention.
+- Average session duration.
+- Levels per session.
+- Level completion rate.
+- Retry rate.
+- Booster usage.
+
+Create an analytics service that can be expanded without modifying the game engine.
+
+---
+
+# 25. PERFORMANCE OPTIMIZATION
+
+Performance is a critical requirement.
+
+Target:
+
+- Smooth 60 FPS on capable devices.
+- Fast initial loading.
+- Low memory usage.
+- Responsive touch interactions.
+- Minimal unnecessary rendering.
+- Optimized asset loading.
+
+Implement:
+
+- Texture atlases.
+- Object pooling.
+- Lazy loading.
+- Asset compression.
+- Efficient collision-free board logic.
+- Limited particle counts.
+- Animation cleanup.
+- Scene lifecycle cleanup.
+- Responsive scaling.
+- Reduced-motion support where appropriate.
+
+Avoid creating excessive Phaser objects.
+
+Destroy unused resources properly.
+
+---
+
+# 26. TESTING
+
+Create comprehensive automated tests.
+
+FRONTEND:
+
+- Component tests.
+- Game integration tests.
+- Responsive layout tests.
+- Game loading tests.
+
+GAME ENGINE:
+
+- Match detection tests.
+- Swap validation tests.
+- Gravity tests.
+- Cascade tests.
+- Special crystal tests.
+- Blocker tests.
+- Objective tests.
+- Score tests.
+- Victory tests.
+- Failure tests.
+- Deadlock detection tests.
+
+BACKEND:
+
+- API tests.
+- Authentication tests.
+- Database tests.
+- Reward validation tests.
+- Inventory tests.
+- Leaderboard tests.
+
+E2E:
+
+- Open game.
+- Start first level.
+- Complete a puzzle.
+- Receive rewards.
+- Save progress.
+- Reload the game.
+- Verify progress persistence.
+
+Test on mobile and desktop viewport sizes.
+
+Do not declare completion while critical tests are failing.
+
+---
+
+# 27. DEVELOPMENT PHASES
+
+Develop the project incrementally.
+
+Do not try to generate the entire project in one enormous unstructured coding operation.
+
+PHASE 0: PROJECT ASSESSMENT
+
+- Inspect repository.
+- Understand existing architecture.
+- Document integration requirements.
+- Prepare implementation plan.
+
+PHASE 1: FOUNDATION
+
+- Set up game module.
+- Configure Phaser.
+- Configure React integration.
+- Create loading scene.
+- Create main menu.
+- Create gameplay scene.
+
+PHASE 2: CORE MATCH-3 ENGINE
+
+- Board generation.
+- Crystal swapping.
+- Match detection.
+- Gravity.
+- Refill.
+- Cascades.
+- Scoring.
+- Game-state management.
+
+PHASE 3: SPECIAL GAMEPLAY
+
+- Special crystals.
+- Crystal combinations.
+- Blockers.
+- Level objectives.
+- Boosters.
+
+PHASE 4: GAME CONTENT
+
+- Initial five worlds.
+- 100 levels.
+- Difficulty progression.
+- World map.
+- Level selection.
+
+PHASE 5: ADVENTURE SYSTEM
+
+- Characters.
+- Story progression.
+- Kingdom restoration.
+- Boss battles.
+- Rewards.
+- Achievements.
+
+PHASE 6: BACKEND
+
+- Database.
+- APIs.
+- Player progress.
+- Inventory.
+- Authentication.
+- Leaderboards.
+
+PHASE 7: POLISH
+
+- Graphics.
+- Animations.
+- Sound.
+- Responsive design.
+- Performance optimization.
+
+PHASE 8: TESTING
+
+- Unit tests.
+- Integration tests.
+- E2E tests.
+- Mobile testing.
+- Browser testing.
+
+PHASE 9: DEPLOYMENT
+
+- Docker configuration.
+- Nginx configuration.
+- Production build.
+- Environment configuration.
+- Deployment documentation.
+
+---
+
+# 28. CODING STANDARDS
+
+Follow these rules throughout development.
+
+1. Use TypeScript strict mode.
+2. Avoid unnecessary use of any.
+3. Use clean modular architecture.
+4. Use reusable components.
+5. Separate business logic from presentation.
+6. Use proper error handling.
+7. Avoid duplicate code.
+8. Use descriptive variable names.
+9. Add documentation for complex algorithms.
+10. Follow existing project conventions.
+11. Keep dependencies minimal.
+12. Never overwrite unrelated existing files.
+13. Never remove existing functionality without approval.
+14. Do not introduce mock APIs as production implementations.
+15. Keep environment variables outside source code.
+
+For every major feature, create appropriate tests.
+
+---
+
+# 29. DELIVERABLES
+
+Deliver the following:
+
+1. Complete React game integration.
+2. Complete Phaser 3 game engine.
+3. Working Match-3 gameplay.
+4. Six basic crystal designs.
+5. Eight special crystal mechanics.
+6. Ten blocker mechanics.
+7. Five initial game worlds.
+8. 100 playable levels.
+9. Level progression.
+10. Scoring and stars.
+11. Booster system.
+12. Boss battle framework.
+13. Kingdom restoration system.
+14. Player progression.
+15. Reward system.
+16. FastAPI integration.
+17. PostgreSQL database.
+18. Database migrations.
+19. API documentation.
+20. Automated tests.
+21. Docker deployment configuration.
+22. Nginx configuration.
+23. Developer documentation.
+24. Asset inventory.
+25. Installation instructions.
+26. Production deployment instructions.
+
+Documentation must be stored under:
+
+docs/crystal-quest/
+
+---
+
+# 30. ACCEPTANCE CRITERIA
+
+The game is not considered complete until all the following conditions are satisfied.
+
+GAMEPLAY:
+
+- Players can start the game without mandatory registration.
+- Players can complete the first level.
+- Crystal swapping works correctly.
+- Invalid swaps reverse correctly.
+- Matches are detected correctly.
+- Cascades work correctly.
+- Special crystals work correctly.
+- Blockers work correctly.
+- Objectives update correctly.
+- Victory and failure states work correctly.
+
+CONTENT:
+
+- Five worlds are implemented.
+- 100 levels are playable.
+- Level configurations are data-driven.
+- Difficulty increases progressively.
+- All level objectives are achievable.
+
+USER EXPERIENCE:
+
+- Mobile layout works.
+- Desktop layout works.
+- Animations are smooth.
+- Sound controls work.
+- Game loading is reliable.
+- Progress persists.
+
+BACKEND:
+
+- APIs work correctly.
+- Database migrations succeed.
+- Rewards are validated.
+- Player progress persists.
+- Duplicate reward claims are prevented.
+
+QUALITY:
+
+- No critical console errors.
+- No critical backend errors.
+- Automated tests pass.
+- Production build succeeds.
+- No broken asset references.
+- No unresolved critical bugs.
+
+---
+
+# 31. HOW YOU SHOULD WORK
+
+Follow this execution strategy.
+
+STEP 1:
+
+Inspect the repository before making changes.
+
+STEP 2:
+
+Create PROJECT_ASSESSMENT.md.
+
+STEP 3:
+
+Create a detailed implementation plan with milestones.
+
+STEP 4:
+
+Create the project architecture and folder structure.
+
+STEP 5:
+
+Implement Phase 1 and Phase 2 first.
+
+STEP 6:
+
+Run tests and demonstrate the core Match-3 gameplay.
+
+STEP 7:
+
+Proceed through subsequent development phases.
+
+STEP 8:
+
+After every major phase:
+
+- Run the relevant tests.
+- Fix errors.
+- Review architecture.
+- Update documentation.
+- Report completed functionality.
+- Report remaining work.
+
+Do not mark a feature as completed if it is only a placeholder.
+
+If a dependency, external service or production asset is unavailable, clearly report the limitation and implement the best safe local alternative.
+
+Do not stop after generating documentation or empty files.
+
+Write actual working code.
+
+Do not ask for confirmation for ordinary implementation decisions.
+
+Ask only when a decision could break existing STRATOS.GAMES functionality, require unavailable credentials, incur external costs or cause an irreversible change.
+
+---
+
+# 32. FIRST EXECUTION INSTRUCTION
+
+Start by inspecting the complete STRATOS.GAMES repository.
+
+Do not immediately generate all game code.
+
+First:
+
+1. Inspect the existing codebase.
+2. Identify the integration architecture.
+3. Identify existing dependencies.
+4. Identify reusable components.
+5. Identify potential conflicts.
+6. Create PROJECT_ASSESSMENT.md.
+7. Create IMPLEMENTATION_PLAN.md.
+8. Create the proposed folder structure.
+9. Present the first development milestone.
+
+Then begin implementation.
+
+Your immediate priority is to deliver a polished, fully functional Match-3 gameplay engine that can serve as the foundation for the entire Crystal Quest adventure.
+
+The final objective is a commercially presentable, original, high-quality browser game for STRATOS.GAMES.
+
+Think like a professional game studio.
+
+Prioritise gameplay quality, player experience, maintainability, performance and scalability.
+
+Build something players will genuinely enjoy playing.

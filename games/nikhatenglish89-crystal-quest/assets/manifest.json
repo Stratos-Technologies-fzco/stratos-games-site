@@ -1,0 +1,210 @@
+{
+  "images": {
+    "crystal_01_ruby": "assets/crystals/crystal_01_ruby.svg",
+    "crystal_02_sapphire": "assets/crystals/crystal_02_sapphire.svg",
+    "crystal_03_emerald": "assets/crystals/crystal_03_emerald.svg",
+    "crystal_04_topaz": "assets/crystals/crystal_04_topaz.svg",
+    "crystal_05_amethyst": "assets/crystals/crystal_05_amethyst.svg",
+    "crystal_06_diamond": "assets/crystals/crystal_06_diamond.svg",
+    "special_01_ruby_bomb": "assets/special/special_01_ruby_bomb.svg",
+    "special_02_lightning_crystal": "assets/special/special_02_lightning_crystal.svg",
+    "special_03_vertical_thunder": "assets/special/special_03_vertical_thunder.svg",
+    "special_04_rainbow_crystal": "assets/special/special_04_rainbow_crystal.svg",
+    "special_05_crystal_nova": "assets/special/special_05_crystal_nova.svg",
+    "special_06_magic_star": "assets/special/special_06_magic_star.svg",
+    "special_07_crystal_fish": "assets/special/special_07_crystal_fish.svg",
+    "special_08_super_crystal": "assets/special/special_08_super_crystal.svg",
+    "blocker_01_ice_block": "assets/blockers/blocker_01_ice_block.svg",
+    "blocker_02_stone_block": "assets/blockers/blocker_02_stone_block.svg",
+    "blocker_03_crystal_cage": "assets/blockers/blocker_03_crystal_cage.svg",
+    "blocker_04_magic_chain": "assets/blockers/blocker_04_magic_chain.svg",
+    "blocker_05_dark_crystal": "assets/blockers/blocker_05_dark_crystal.svg",
+    "blocker_06_wooden_box": "assets/blockers/blocker_06_wooden_box.svg",
+    "blocker_07_lava_tile": "assets/blockers/blocker_07_lava_tile.svg",
+    "blocker_08_crystal_wall": "assets/blockers/blocker_08_crystal_wall.svg",
+    "blocker_09_shadow_portal": "assets/blockers/blocker_09_shadow_portal.svg",
+    "blocker_10_ancient_seal": "assets/blockers/blocker_10_ancient_seal.svg",
+    "character_01_eldrin": "assets/characters/character_01_eldrin.svg",
+    "character_02_luma": "assets/characters/character_02_luma.svg",
+    "character_03_arkon": "assets/characters/character_03_arkon.svg",
+    "character_04_nyra": "assets/characters/character_04_nyra.svg",
+    "character_05_shadow_lord": "assets/characters/character_05_shadow_lord.svg",
+    "boss_01_stone_golem": "assets/bosses/boss_01_stone_golem.svg",
+    "boss_02_ice_dragon": "assets/bosses/boss_02_ice_dragon.svg",
+    "boss_03_forest_witch": "assets/bosses/boss_03_forest_witch.svg",
+    "boss_04_sand_titan": "assets/bosses/boss_04_sand_titan.svg",
+    "boss_05_fire_dragon": "assets/bosses/boss_05_fire_dragon.svg",
+    "boss_06_sea_serpent": "assets/bosses/boss_06_sea_serpent.svg",
+    "boss_07_shadow_lord": "assets/bosses/boss_07_shadow_lord.svg",
+    "bg_01_crystal_valley": "assets/backgrounds/bg_01_crystal_valley.svg",
+    "bg_02_frozen_mountains": "assets/backgrounds/bg_02_frozen_mountains.svg",
+    "bg_03_enchanted_forest": "assets/backgrounds/bg_03_enchanted_forest.svg",
+    "bg_04_lost_desert": "assets/backgrounds/bg_04_lost_desert.svg",
+    "bg_05_dragon_kingdom": "assets/backgrounds/bg_05_dragon_kingdom.svg",
+    "bg_06_ocean_kingdom": "assets/backgrounds/bg_06_ocean_kingdom.svg",
+    "bg_07_sky_kingdom": "assets/backgrounds/bg_07_sky_kingdom.svg",
+    "bg_08_dark_kingdom": "assets/backgrounds/bg_08_dark_kingdom.svg",
+    "bg_09_celestial_kingdom": "assets/backgrounds/bg_09_celestial_kingdom.svg",
+    "bg_10_crystal_palace": "assets/backgrounds/bg_10_crystal_palace.svg",
+    "icon_book": "assets/ui/icons/icon_book.svg",
+    "icon_chest": "assets/ui/icons/icon_chest.svg",
+    "icon_close": "assets/ui/icons/icon_close.svg",
+    "icon_coin": "assets/ui/icons/icon_coin.svg",
+    "icon_crown": "assets/ui/icons/icon_crown.svg",
+    "icon_extra_moves": "assets/ui/icons/icon_extra_moves.svg",
+    "icon_gear": "assets/ui/icons/icon_gear.svg",
+    "icon_gift": "assets/ui/icons/icon_gift.svg",
+    "icon_hammer": "assets/ui/icons/icon_hammer.svg",
+    "icon_heart": "assets/ui/icons/icon_heart.svg",
+    "icon_home": "assets/ui/icons/icon_home.svg",
+    "icon_level_node": "assets/ui/icons/icon_level_node.svg",
+    "icon_level_node_done": "assets/ui/icons/icon_level_node_done.svg",
+    "icon_lightning": "assets/ui/icons/icon_lightning.svg",
+    "icon_lock": "assets/ui/icons/icon_lock.svg",
+    "icon_map": "assets/ui/icons/icon_map.svg",
+    "icon_moves": "assets/ui/icons/icon_moves.svg",
+    "icon_music": "assets/ui/icons/icon_music.svg",
+    "icon_pause": "assets/ui/icons/icon_pause.svg",
+    "icon_person": "assets/ui/icons/icon_person.svg",
+    "icon_play": "assets/ui/icons/icon_play.svg",
+    "icon_rainbow_blast": "assets/ui/icons/icon_rainbow_blast.svg",
+    "icon_shard": "assets/ui/icons/icon_shard.svg",
+    "icon_shield": "assets/ui/icons/icon_shield.svg",
+    "icon_shop": "assets/ui/icons/icon_shop.svg",
+    "icon_shuffle": "assets/ui/icons/icon_shuffle.svg",
+    "icon_sound": "assets/ui/icons/icon_sound.svg",
+    "icon_sound_off": "assets/ui/icons/icon_sound_off.svg",
+    "icon_star": "assets/ui/icons/icon_star.svg",
+    "icon_star_empty": "assets/ui/icons/icon_star_empty.svg",
+    "icon_trophy": "assets/ui/icons/icon_trophy.svg",
+    "icon_wand": "assets/ui/icons/icon_wand.svg",
+    "button_danger": "assets/ui/button_danger.svg",
+    "button_gold": "assets/ui/button_gold.svg",
+    "button_primary": "assets/ui/button_primary.svg",
+    "button_secondary": "assets/ui/button_secondary.svg",
+    "logo_emblem": "assets/ui/logo_emblem.svg",
+    "panel_main": "assets/ui/panel_main.svg",
+    "progress_bar": "assets/ui/progress_bar.svg"
+  },
+  "audio": {
+    "music": {
+      "music_01_main_menu": {
+        "ogg": "audio/music/music_01_main_menu.ogg",
+        "mp3": "audio/music/music_01_main_menu.mp3",
+        "loop": true
+      },
+      "music_02_crystal_valley": {
+        "ogg": "audio/music/music_02_crystal_valley.ogg",
+        "mp3": "audio/music/music_02_crystal_valley.mp3",
+        "loop": true
+      },
+      "music_03_frozen_mountains": {
+        "ogg": "audio/music/music_03_frozen_mountains.ogg",
+        "mp3": "audio/music/music_03_frozen_mountains.mp3",
+        "loop": true
+      },
+      "music_04_enchanted_forest": {
+        "ogg": "audio/music/music_04_enchanted_forest.ogg",
+        "mp3": "audio/music/music_04_enchanted_forest.mp3",
+        "loop": true
+      },
+      "music_05_lost_desert": {
+        "ogg": "audio/music/music_05_lost_desert.ogg",
+        "mp3": "audio/music/music_05_lost_desert.mp3",
+        "loop": true
+      },
+      "music_06_dragon_kingdom": {
+        "ogg": "audio/music/music_06_dragon_kingdom.ogg",
+        "mp3": "audio/music/music_06_dragon_kingdom.mp3",
+        "loop": true
+      },
+      "music_07_boss_battle": {
+        "ogg": "audio/music/music_07_boss_battle.ogg",
+        "mp3": "audio/music/music_07_boss_battle.mp3",
+        "loop": true
+      },
+      "music_08_victory": {
+        "ogg": "audio/music/music_08_victory.ogg",
+        "mp3": "audio/music/music_08_victory.mp3",
+        "loop": false
+      }
+    },
+    "sfx": {
+      "sfx_01_select": {
+        "ogg": "audio/sfx/sfx_01_select.ogg",
+        "mp3": "audio/sfx/sfx_01_select.mp3",
+        "loop": false
+      },
+      "sfx_02_move": {
+        "ogg": "audio/sfx/sfx_02_move.ogg",
+        "mp3": "audio/sfx/sfx_02_move.mp3",
+        "loop": false
+      },
+      "sfx_03_match3": {
+        "ogg": "audio/sfx/sfx_03_match3.ogg",
+        "mp3": "audio/sfx/sfx_03_match3.mp3",
+        "loop": false
+      },
+      "sfx_04_match4": {
+        "ogg": "audio/sfx/sfx_04_match4.ogg",
+        "mp3": "audio/sfx/sfx_04_match4.mp3",
+        "loop": false
+      },
+      "sfx_05_match5": {
+        "ogg": "audio/sfx/sfx_05_match5.ogg",
+        "mp3": "audio/sfx/sfx_05_match5.mp3",
+        "loop": false
+      },
+      "sfx_06_crystal_explosion": {
+        "ogg": "audio/sfx/sfx_06_crystal_explosion.ogg",
+        "mp3": "audio/sfx/sfx_06_crystal_explosion.mp3",
+        "loop": false
+      },
+      "sfx_07_lightning": {
+        "ogg": "audio/sfx/sfx_07_lightning.ogg",
+        "mp3": "audio/sfx/sfx_07_lightning.mp3",
+        "loop": false
+      },
+      "sfx_08_rainbow": {
+        "ogg": "audio/sfx/sfx_08_rainbow.ogg",
+        "mp3": "audio/sfx/sfx_08_rainbow.mp3",
+        "loop": false
+      },
+      "sfx_09_booster": {
+        "ogg": "audio/sfx/sfx_09_booster.ogg",
+        "mp3": "audio/sfx/sfx_09_booster.mp3",
+        "loop": false
+      },
+      "sfx_10_level_complete": {
+        "ogg": "audio/sfx/sfx_10_level_complete.ogg",
+        "mp3": "audio/sfx/sfx_10_level_complete.mp3",
+        "loop": false
+      },
+      "sfx_11_level_fail": {
+        "ogg": "audio/sfx/sfx_11_level_fail.ogg",
+        "mp3": "audio/sfx/sfx_11_level_fail.mp3",
+        "loop": false
+      },
+      "sfx_12_boss_attack": {
+        "ogg": "audio/sfx/sfx_12_boss_attack.ogg",
+        "mp3": "audio/sfx/sfx_12_boss_attack.mp3",
+        "loop": false
+      },
+      "sfx_13_boss_defeat": {
+        "ogg": "audio/sfx/sfx_13_boss_defeat.ogg",
+        "mp3": "audio/sfx/sfx_13_boss_defeat.mp3",
+        "loop": false
+      },
+      "sfx_14_reward": {
+        "ogg": "audio/sfx/sfx_14_reward.ogg",
+        "mp3": "audio/sfx/sfx_14_reward.mp3",
+        "loop": false
+      },
+      "sfx_15_button": {
+        "ogg": "audio/sfx/sfx_15_button.ogg",
+        "mp3": "audio/sfx/sfx_15_button.mp3",
+        "loop": false
+      }
+    }
+  }
+}
