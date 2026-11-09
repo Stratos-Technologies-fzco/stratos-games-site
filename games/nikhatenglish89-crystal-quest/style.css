@@ -146,7 +146,7 @@ h1,h2,h3{margin:0;font-weight:900;text-shadow:0 3px 0 rgba(27,16,51,.7)}
 .boost .n{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;border-radius:99px;background:var(--gold);color:#3a2000;border:3px solid var(--ink);display:grid;place-items:center;font-size:13px}
 .boost.armed{outline:4px solid var(--gold-l);animation:pulse 1s infinite}
 .boost.zero .n{background:var(--mint);color:#fff}
-.arm-note{text-align:center;font-size:15px;color:var(--gold-l);min-height:20px}
+.arm-note{text-align:center;font-size:15px;color:var(--gold-l);min-height:20px;text-shadow:0 2px 0 var(--ink)}
 
 /* modal */
 #modal{position:absolute;inset:0;background:rgba(14,7,30,.72);display:grid;place-items:center;z-index:50;padding:14px;animation:fade .2s}
@@ -191,3 +191,9 @@ h1,h2,h3{margin:0;font-weight:900;text-shadow:0 3px 0 rgba(27,16,51,.7)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.t{transition-duration:.01ms}}
 .lowfx .t.sp::before,.lowfx .home .logo,.lowfx .node.next{animation:none}
 .lowfx .fx.ring,.lowfx .fx.flash{display:none}
+
+.starbar{position:relative;height:12px;margin:12px 14px 0;border-radius:99px;background:rgba(27,16,51,.7);border:2px solid var(--ink)}
+.starbar .fill{height:100%;width:0;background:var(--g-gold);border-radius:99px;transition:width .5s ease}
+.starbar .m{position:absolute;top:-10px;width:24px;height:24px;margin-left:-12px;background:url(assets/ui/icons/icon_star_empty.svg) center/contain no-repeat;filter:drop-shadow(0 2px 0 var(--ink))}
+.starbar .m.on{background-image:url(assets/ui/icons/icon_star.svg);animation:pulse2 .6s 2}
+img.inl{display:inline-block;width:15px;height:15px;vertical-align:-3px}

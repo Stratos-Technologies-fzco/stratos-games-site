@@ -136,7 +136,8 @@
     var who = boss ? '<div class="who"><img alt="" src="assets/bosses/' + boss.art + '.svg"><div><b>' + esc(boss.name) + '</b><div class="small-text">"You will never mend the Heart, Guardian!"</div></div></div>'
       : dlg ? '<div class="who"><img alt="" src="assets/characters/' + dlg.who + '.svg"><div><b>' + dlg.name + '</b><div class="small-text">' + esc(dlg.text) + '</div></div></div>' : '';
     var goals = L.objectives.map(function (o) { return goalHtml(o.type === 'boss' ? { type: 'boss', art: boss.art, name: boss.name } : o); }).join('');
-    var best = save.stars[L.id] ? '<div class="small-text center">Best: ' + (save.best[L.id] || 0) + ' points</div>' : '';
+    var best = '<div class="small-text center">Stars: ' + ic('star', 'inl') + ' finish the goals · ' + ic('star', 'inl') + ic('star', 'inl') + ' ' + L.stars[1] + ' points · ' + ic('star', 'inl') + ic('star', 'inl') + ic('star', 'inl') + ' ' + L.stars[2] + ' points</div>' +
+      (save.stars[L.id] ? '<div class="small-text center">Your best: ' + (save.best[L.id] || 0) + ' points</div>' : '');
     var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + L.num) + '</h2>' +
       '<div class="small-text center">' + (isDaily ? 'One puzzle a day, same for everyone' : W.name) + ' · ' + L.moves + ' moves</div>' + who +
       '<div class="goals">' + goals + '</div>' + best +
@@ -221,14 +222,14 @@
       '<div class="lv">' + (isDailyRun ? 'Daily Puzzle' : W.name) + '<b>' + (isDailyRun ? 'Score big!' : (L.boss ? 'BOSS' : 'Level ' + L.num)) + '</b></div>' +
       '<div class="row"><div class="stat" id="stMoves"><small>MOVES</small><b>0</b></div><div class="stat"><small>SCORE</small><b id="stScore">0</b></div></div></div>' +
       '<div class="objs" id="objs"></div>' +
+      '<div class="starbar" id="starbar" aria-label="Star goals"><div class="fill" id="sbFill"></div><span class="m" id="sb2"></span><span class="m" id="sb3"></span></div>' +
       (L.boss ? '<div class="bossbar"><img alt="" src="assets/bosses/' + L.boss.art + '.svg"><div class="bar red"><i id="bossFill" style="width:100%"></i></div></div>' : '') +
       '<div class="grow" id="boardWrap"></div><div class="arm-note" id="armNote"></div>' +
       '<div class="boosters" id="boosters"></div>');
     buildBoard($('#boardWrap'), eng);
+    coachOn = !save.seen.firstMove && L.id === 1;
     sync(); setHud(eng.hud()); drawBoosters();
     click($('#bPause'), pauseMenu);
-    coachOn = !save.seen.firstMove && L.id === 1;
-    if (coachOn) { var cd = el('coach', '<span>Swap the two glowing crystals!</span>'); $('#boardWrap').appendChild(cd); }
     armHint();
   }
 
@@ -242,6 +243,12 @@
       var txt = g.type === 'score' ? Math.min(h.score, g.need) + '/' + g.need : g.type === 'boss' ? (g.done ? 'Defeated!' : 'Boss HP ' + h.bossHp) : g.cur + '/' + g.need;
       return '<div class="obj' + (g.done ? ' done' : '') + '"><img alt="" src="' + img + '">' + txt + (g.done ? ' ✓' : '') + '</div>';
     }).join('');
+    var sf = $('#sbFill'); if (sf && L.stars) {
+      var top = L.stars[2] || 1; sf.style.width = Math.min(100, Math.round(h.score / top * 100)) + '%';
+      var m2 = $('#sb2'), m3 = $('#sb3');
+      m2.style.left = Math.round(L.stars[1] / top * 100) + '%'; m3.style.left = '100%';
+      m2.classList.toggle('on', h.score >= L.stars[1]); m3.classList.toggle('on', h.score >= L.stars[2]);
+    }
     var bf = $('#bossFill'); if (bf && L.boss) bf.style.width = Math.max(0, Math.round(h.bossHp / L.boss.hp * 100)) + '%';
   }
   var BOOST = [['hammer', 'hammer', 'Hammer', 60], ['shuffle', 'shuffle', 'Shuffle', 50], ['moves', 'extra_moves', '+5 Moves', 80], ['rainbow', 'rainbow_blast', 'Rainbow', 90]];
@@ -249,7 +256,7 @@
     var b = $('#boosters'); if (!b) return;
     b.innerHTML = BOOST.map(function (x) { var n = save.boosters[x[0]] || 0; return '<button class="boost' + (n ? '' : ' zero') + (armed === x[0] ? ' armed' : '') + '" data-k="' + x[0] + '" aria-label="' + x[2] + '">' + ic(x[1]) + '<span class="n">' + (n || '+') + '</span><small>' + x[2] + '</small></button>'; }).join('');
     Array.prototype.forEach.call(b.querySelectorAll('.boost'), function (btn) { click(btn, function () { onBooster(btn.dataset.k); }); });
-    var note = $('#armNote'); if (note) note.textContent = armed === 'hammer' ? 'Tap a crystal or block to smash it' : armed === 'rainbow' ? 'Tap a crystal: every crystal of that colour goes' : '';
+    var note = $('#armNote'); if (note) note.textContent = armed === 'hammer' ? 'Tap a crystal or block to smash it' : armed === 'rainbow' ? 'Tap a crystal: every crystal of that colour goes' : coachOn ? 'Swap the two glowing crystals!' : '';
   }
 
   /* ---------- touching the board ---------- */
@@ -294,7 +301,7 @@
     var res = eng.trySwap(a, b);
     if (!res.steps.length) return;
     busy = true; clearHintMark();
-    if (res.ok && coachOn) { coachOn = false; save.seen.firstMove = 1; persist(); var cd = $('.coach'); if (cd) cd.remove(); }
+    if (res.ok && coachOn) { coachOn = false; save.seen.firstMove = 1; persist(); drawBoosters(); }
     await run(res.steps);
     afterRun();
   }
