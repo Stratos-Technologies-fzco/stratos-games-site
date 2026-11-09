@@ -21,6 +21,11 @@ test('worlds, projects, bosses and crystal names', function () {
   Object.keys(E.BLOCKERS).forEach(function (k) { if (k !== 'frost' && k !== 'path' && k !== 'moss') need(E.BLOCKERS[k].name); });
   assert.deepStrictEqual(missing, []);
 });
+test('gem sets: names, screens and settings', function () {
+  require('../js/sets.js').SETS.forEach(function (st) { need(st.name); });
+  ['Gem style', 'Themed', 'Classic', 'Guest gems!', 'Gem Collection', 'Reach Frozen Mountains to unlock', 'Coming soon', 'New gem set: Frozen Shards!', 'Every world has its own gems. The colours always stay the same.'].forEach(need);
+  assert.deepStrictEqual(missing, []);
+});
 test('goal lines with numbers are translated', function () {
   ['Collect 12 Ruby', 'Break 5 Cage', 'Score 2700', 'Defeat Stone Golem', 'Bring down 3 treasures', 'Free 7 caged crystals', 'Light 12 path tiles', 'Heal 10 forest patches', 'Collect 85 crystal energy', 'Close 3 shadow portals', 'Level 12', '38 moves', '79 seconds', 'Best 4250 · +60 coins · +20 crystal energy', 'Restored: Ancient Bridge! +50 coins', 'Time Challenge · Crystal Valley · 79 seconds'].forEach(need);
   assert.deepStrictEqual(missing, []);
