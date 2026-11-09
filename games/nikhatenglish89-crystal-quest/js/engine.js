@@ -18,8 +18,13 @@
     wall:   { mode: 'solid', hp: 3, by: ['adj'],         art: 'blocker_08_crystal_wall', name: 'Crystal wall' },
     portal: { mode: 'solid', hp: 1, by: ['adj'],         art: 'blocker_09_shadow_portal', name: 'Shadow portal' },
     seal:   { mode: 'lock',  hp: 3, by: ['tile'],        art: 'blocker_10_ancient_seal', name: 'Ancient seal' },
-    frost:  { mode: 'lock',  hp: 1, by: ['tile'],        art: 'blocker_01_ice_block',   name: 'Frost' }
+    frost:  { mode: 'lock',  hp: 1, by: ['tile'],        art: 'blocker_01_ice_block',   name: 'Frost' },
+    path:   { mode: 'under', hp: 1, by: ['tile'],        css: 'path',                     name: 'Path tile' },
+    moss:   { mode: 'under', hp: 1, by: ['tile'],        css: 'moss',                     name: 'Forest patch' }
   };
+
+  /* objective types that count a kind of broken tile */
+  var BROKEN_BY = { rescue: 'cage', path: 'path', restore: 'moss', portal: 'portal' };
 
   function rng(seed) {
     var a = (seed >>> 0) || 1;
@@ -37,7 +42,9 @@
     this.ncol = level.colors || 5;
     this.rand = rng(seed || 1);
     this.nextId = 1;
-    this.moves = level.moves; this.moveCount = 0; this.score = 0;
+    this.timed = !!level.time; this.timeLeft = level.time || 0;
+    this.moves = this.timed ? 999 : level.moves; this.moveCount = 0; this.score = 0;
+    this.energy = 0; this.itemsOut = 0; this.shield = false;
     this.collected = [0, 0, 0, 0, 0, 0];
     this.broken = {};               // blocker kind -> number destroyed
     this.bossHp = level.boss ? level.boss.hp : 0;
@@ -72,8 +79,19 @@
         while (k < 30 && this._wouldMatch(r, c, col));
         this.grid[r][c] = this._mk(col);
       }
+      this._placeItems();
       tries++;
     } while (tries < 60 && !this.findHint());
+  };
+  /* treasure levels: crystals-that-are-not-crystals start at the top and must be brought down to the bottom */
+  P._placeItems = function () {
+    var n = this.L.items || 0, cand = [], c, i;
+    if (!n) return;
+    for (c = 0; c < this.cols; c++) { var r = 0; while (r < this.rows && !this.playable(r, c)) r++; if (r < 2 && this.grid[r] && this.grid[r][c] && !this.lockedAt(r, c)) cand.push([r, c]); }
+    for (i = 0; i < n && cand.length; i++) {
+      var p = cand.splice(Math.floor(this.rand() * cand.length), 1)[0];
+      this.grid[p[0]][p[1]] = { id: this.nextId++, color: -3, sp: null, item: true };
+    }
   };
   P._wouldMatch = function (r, c, col) {
     var g = this.grid;
@@ -197,7 +215,7 @@
       t = this.grid[r][c]; b = this.blk[r][c];
       if (b) blockers.push([r, c]);
       else if (t && t.color === want) objective.push([r, c]);
-      else if (t) others.push([r, c]);
+      else if (t && !t.item) others.push([r, c]);
     }
     var pool = blockers.concat(objective, others), out = [];
     while (out.length < n && pool.length) {
@@ -304,6 +322,7 @@
     function hit(r, c) { if (self.inb(r, c) && self.blk[r][c]) damage[r * C + c] = [r, c]; }
     Object.keys(set).forEach(function (k) {
       var p = set[k], r = p[0], c = p[1], t = self.grid[r][c], b = self.blk[r][c];
+      if (t && t.item) return;                // treasures are never smashed, they have to be brought down
       if (t) {
         cleared.push({ r: r, c: c, id: t.id, color: t.color, sp: t.sp });
         if (t.color >= 0) self.collected[t.color]++;
@@ -335,6 +354,7 @@
     });
     var n = cleared.length, pts = n * 10 * Math.min(cascade, 5) + (extraFx ? extraFx.length * 40 : 0);
     this.score += pts;
+    this.energy += (extraFx ? extraFx.length * 5 : 0) + (cascade >= 2 ? 3 * (cascade - 1) : 0) + (n >= 4 ? n - 3 : 0);
     if (this.bossHp > 0) this.bossHp = Math.max(0, this.bossHp - n);
     this.stats.bestCascade = Math.max(this.stats.bestCascade, cascade);
     steps.push({ k: 'clear', cells: cleared, fx: extraFx || [], makes: madeEvents, blk: blkEvents, pts: pts, cascade: cascade, hud: this.hud() });
@@ -370,6 +390,19 @@
     // tiles that did not really move because the tile at that spot is the same: filtered above
     steps.push({ k: 'fall', moves: moves, spawn: spawns });
   };
+  P._fall = function (steps) { var g = 0; do { this._gravity(steps); } while (this._collect(steps) && g++ < 12); };
+  /* a treasure that reaches the bottom is collected */
+  P._collect = function (steps) {
+    var any = false, r, c;
+    for (r = 0; r < this.rows; r++) for (c = 0; c < this.cols; c++) {
+      var t = this.grid[r][c];
+      if (t && t.item && (r === this.rows - 1 || (this.inb(r + 1, c) && this.hole[r + 1][c]))) {
+        this.grid[r][c] = null; this.itemsOut++; any = true;
+        steps.push({ k: 'item', id: t.id, r: r, c: c, hud: this.hud() });
+      }
+    }
+    return any;
+  };
   P._free = function (r, c) {   // a cell where crystals may fall through
     if (this.hole[r][c] || this.solidAt(r, c)) return false;
     if (this.lockedAt(r, c) && this.grid[r][c]) return false;
@@ -393,7 +426,7 @@
       var all = this._expand(cells, keep, fxList);
       // a special crystal that is being created must stay; everything else matched is cleared
       this._clear(all, makes, steps, cascade, fxList);
-      this._gravity(steps);
+      this._fall(steps);
     }
   };
 
@@ -432,7 +465,7 @@
         }
       }
       this._clear(cells, null, steps, 1, fxList);
-      this._gravity(steps);
+      this._fall(steps);
     }
     this._settle(steps, [a, b]);
     this._afterMove(steps, true);
@@ -442,8 +475,9 @@
   P._bossAttack = function (steps) {
     var B = this.L.boss; if (!B || this.bossHp <= 0) return;
     if (this.moveCount % B.every !== 0) return;
+    if (this.shield) { this.shield = false; steps.push({ k: 'shield' }); return; }
     var cand = [], r, c;
-    for (r = 0; r < this.rows; r++) for (c = 0; c < this.cols; c++) if (this.playable(r, c) && this.grid[r][c] && !this.blk[r][c] && !this.grid[r][c].sp) cand.push([r, c]);
+    for (r = 0; r < this.rows; r++) for (c = 0; c < this.cols; c++) if (this.playable(r, c) && this.grid[r][c] && !this.blk[r][c] && !this.grid[r][c].sp && !this.grid[r][c].item) cand.push([r, c]);
     var hits = [];
     for (var i = 0; i < B.count && cand.length; i++) { var p = cand.splice(Math.floor(this.rand() * cand.length), 1)[0]; this.blk[p[0]][p[1]] = { kind: 'frost', hp: 1, max: 1 }; hits.push(p); }
     if (hits.length) steps.push({ k: 'boss', cells: hits });
@@ -452,12 +486,12 @@
   P._afterMove = function (steps, countMove) {
     if (countMove && this.state !== 'win') this._bossAttack(steps);
     if (this._done()) {
-      var bonus = this.moves > 0 ? this.moves * 50 : 0;
+      var bonus = this.timed ? Math.floor(this.timeLeft) * 20 : (this.moves > 0 ? this.moves * 50 : 0);
       this.score += bonus; this.state = 'win';
       steps.push({ k: 'end', result: 'win', bonus: bonus, hud: this.hud(), stars: this.stars() });
       return;
     }
-    if (this.moves <= 0) { this.state = 'lose'; steps.push({ k: 'end', result: 'lose', hud: this.hud() }); return; }
+    if (this.moves <= 0 && !this.timed) { this.state = 'lose'; steps.push({ k: 'end', result: 'lose', hud: this.hud() }); return; }
     if (!this.findHint()) this._shuffle(steps);
     this.state = 'ready';
     steps.push({ k: 'ready', hud: this.hud() });
@@ -474,6 +508,7 @@
     cells.forEach(function (p, idx) { moves.push({ id: tiles[idx].id, r: p[0], c: p[1] }); });
     this.stats.shuffles++;
     steps.push({ k: 'shuffle', moves: moves });
+    if (this._collect(steps)) this._fall(steps);
   };
 
   /* A move that would work, or null. */
@@ -504,6 +539,9 @@
       else if (o.type === 'blockers') { if (o.kind) cur = self.broken[o.kind] || 0; else Object.keys(self.broken).forEach(function (k) { if (k !== 'frost') cur += self.broken[k]; }); }
       else if (o.type === 'score') cur = self.score;
       else if (o.type === 'boss') cur = (self.L.boss.hp - self.bossHp);
+      else if (o.type === 'treasure') cur = self.itemsOut;
+      else if (o.type === 'energy') cur = self.energy;
+      else if (BROKEN_BY[o.type]) cur = self.broken[BROKEN_BY[o.type]] || 0;
       var need = o.type === 'boss' ? self.L.boss.hp : o.n;
       return { type: o.type, color: o.color, kind: o.kind, cur: Math.min(cur, need), need: need, done: cur >= need };
     });
@@ -514,7 +552,7 @@
     return this.score >= s[2] ? 3 : this.score >= s[1] ? 2 : 1;
   };
   P.hud = function () {
-    return { moves: this.moves, score: this.score, obj: this.objectiveProgress(), bossHp: this.bossHp };
+    return { moves: this.moves, score: this.score, obj: this.objectiveProgress(), bossHp: this.bossHp, time: Math.ceil(this.timeLeft), timed: this.timed, energy: this.energy };
   };
 
   /* ---------- boosters ---------- */
@@ -522,35 +560,73 @@
     var steps = [];
     if (this.state !== 'ready') return { ok: false, steps: steps };
     var self = this;
-    if (kind === 'moves') { this.moves += 5; steps.push({ k: 'hud', hud: this.hud() }); return { ok: true, steps: steps }; }
+    if (kind === 'moves') { if (this.timed) this.timeLeft += 15; else this.moves += 5; steps.push({ k: 'hud', hud: this.hud() }); return { ok: true, steps: steps }; }
     if (kind === 'shuffle') { this.state = 'busy'; this._shuffle(steps); this._settleAfterBooster(steps); return { ok: true, steps: steps }; }
     if (!pos || !this.playable(pos[0], pos[1]) && !this.solidAt(pos[0], pos[1])) return { ok: false, steps: steps };
     var t = this.grid[pos[0]][pos[1]], cells = [];
-    if (kind === 'hammer') { if (!t && !this.solidAt(pos[0], pos[1])) return { ok: false, steps: steps }; cells = [pos]; }
+    if (kind === 'hammer') { if ((!t && !this.solidAt(pos[0], pos[1])) || (t && t.item)) return { ok: false, steps: steps }; cells = [pos]; }
+    else if (kind === 'strike') { cells = this._area('lightning', pos[0], pos[1]); }
+    else if (kind === 'wand') {
+      if (!t || t.sp || t.item || t.color < 0) return { ok: false, steps: steps };
+      var opts = ['bomb', 'lightning', 'thunder']; t.sp = opts[Math.floor(this.rand() * opts.length)]; this.stats.specials++;
+      this.state = 'busy'; steps.push({ k: 'wand', id: t.id, sp: t.sp, color: t.color, r: pos[0], c: pos[1] });
+      this._settle(steps, null); this._settleAfterBooster(steps); return { ok: true, steps: steps };
+    }
     else if (kind === 'rainbow') {
       if (!t || t.color < 0) return { ok: false, steps: steps };
       for (var r = 0; r < this.rows; r++) for (var c = 0; c < this.cols; c++) { var q = this.grid[r][c]; if (q && q.color === t.color) cells.push([r, c]); }
     } else return { ok: false, steps: steps };
     this.state = 'busy';
-    var fxList = [{ type: kind === 'rainbow' ? 'rainbow' : 'hammer', r: pos[0], c: pos[1], color: t ? t.color : 0 }];
+    var fxList = [{ type: kind === 'rainbow' ? 'rainbow' : kind === 'strike' ? 'lightning' : 'hammer', r: pos[0], c: pos[1], color: t ? t.color : 0 }];
     var all = this._expand(cells, null, fxList);
     this._clear(all, null, steps, 1, fxList);
-    this._gravity(steps);
+    this._fall(steps);
     this._settle(steps, null);
     this._settleAfterBooster(steps);
     return { ok: true, steps: steps };
   };
   P._settleAfterBooster = function (steps) { this._afterMove(steps, false); };
 
+  /* Pre-game boosters picked in the level intro: 'bomb' | 'lightning' | 'rainbow' start on the board, 'shield' guards the level. */
+  P.applyStarters = function (list) {
+    var self = this, cand = [], r, c;
+    for (r = 0; r < this.rows; r++) for (c = 0; c < this.cols; c++) { var t = this.grid[r][c]; if (t && !t.item && !t.sp && this.playable(r, c) && !this.lockedAt(r, c)) cand.push([r, c]); }
+    (list || []).forEach(function (k) {
+      if (k === 'shield') { if (self.L.boss) self.shield = true; else if (self.timed) self.timeLeft += 10; else self.moves += 3; return; }
+      if (!cand.length) return;
+      var p = cand.splice(Math.floor(self.rand() * cand.length), 1)[0], tt = self.grid[p[0]][p[1]];
+      tt.sp = k === 'bomb' ? 'bomb' : k === 'lightning' ? 'lightning' : 'rainbow'; if (tt.sp === 'rainbow') tt.color = -2;
+    });
+  };
+
+  /* A copy of the whole game, used by test bots that look one move ahead. */
+  P.clone = function () {
+    var c = Object.create(Engine.prototype), k;
+    for (k in this) if (Object.prototype.hasOwnProperty.call(this, k)) c[k] = this[k];
+    c.grid = this.grid.map(function (row) { return row.map(function (t) { return t ? { id: t.id, color: t.color, sp: t.sp, item: t.item } : null; }); });
+    c.blk = this.blk.map(function (row) { return row.map(function (b) { return b ? { kind: b.kind, hp: b.hp, max: b.max } : null; }); });
+    c.collected = this.collected.slice(); c.broken = Object.assign({}, this.broken); c.stats = Object.assign({}, this.stats);
+    c.rand = rng(Math.floor(this.rand() * 4294967295) + 1);
+    return c;
+  };
+
   /* Extra moves after a loss ("second chance"). */
+  /* the clock of a Time Challenge: the screen calls this once a second while the player can move */
+  P.tick = function (dt) {
+    if (!this.timed || this.state !== 'ready') return null;
+    this.timeLeft = Math.max(0, this.timeLeft - dt);
+    if (this.timeLeft <= 0) { this.state = 'lose'; return [{ k: 'end', result: 'lose', hud: this.hud() }]; }
+    return [];
+  };
   P.reviveWithMoves = function (n) {
     if (this.state !== 'lose') return false;
-    this.moves += n; this.state = 'ready';
+    if (this.timed) this.timeLeft += 20; else this.moves += n;
+    this.state = 'ready';
     var steps = []; if (!this.findHint()) this._shuffle(steps);
     return steps;
   };
 
-  Engine.BLOCKERS = BLOCKERS; Engine.SPECIALS = SPECIALS; Engine.rng = rng;
+  Engine.BROKEN_BY = BROKEN_BY; Engine.BLOCKERS = BLOCKERS; Engine.SPECIALS = SPECIALS; Engine.rng = rng;
   root.CQEngine = Engine;
   if (typeof module !== 'undefined' && module.exports) module.exports = Engine;
 })(typeof window !== 'undefined' ? window : globalThis);

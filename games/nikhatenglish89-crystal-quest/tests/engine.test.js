@@ -95,7 +95,7 @@ test('solid blocks stop crystals falling through', function () {
   assert.strictEqual(e.grid[2][2], null); e._clear([[4, 2]], null, [], 1, []); e._gravity([]);
   for (var r = 0; r < 5; r++) if (r !== 2) assert.ok(e.grid[r][2], 'empty at ' + r);
 });
-test('all eleven blocker kinds exist in the rules', function () { assert.strictEqual(Object.keys(Engine.BLOCKERS).length, 11); });
+test('all blocker kinds exist in the rules', function () { assert.strictEqual(Object.keys(Engine.BLOCKERS).length, 13); });
 
 console.log('Objectives, boss, ending');
 test('collect objective counts cleared crystals', function () {
@@ -126,7 +126,7 @@ test('every level starts with no match, a possible move, and valid objectives', 
     var e = new Engine(L, L.id * 7);
     assert.strictEqual(e.findMatches().length, 0, 'level ' + L.id + ' starts with a match');
     assert.ok(e.findHint(), 'level ' + L.id + ' has no move');
-    assert.ok(L.objectives.length >= 1 && L.moves >= 18 && L.stars[2] > L.stars[1]);
+    assert.ok(L.objectives.length >= 1 && (L.time || L.moves >= 18) && L.stars[2] > L.stars[1]);
     L.objectives.forEach(function (o) { if (o.type === 'blockers') assert.ok(L.blockers.filter(function (b) { return b.kind === o.kind; }).length >= o.n, 'level ' + L.id + ' has fewer ' + o.kind + ' than the goal'); if (o.type === 'collect') assert.ok(o.color < L.colors, 'level ' + L.id + ' collects an unused colour'); });
   });
 });
@@ -138,13 +138,13 @@ test('bot plays all 100 levels', function () {
   var wins = 0, byWorld = [0, 0, 0, 0, 0];
   Lv.LEVELS.forEach(function (L) {
     var e = new Engine(JSON.parse(JSON.stringify(L)), L.id), guard = 0;
-    while (e.state === 'ready' && guard++ < 80) {
+    while (e.state === 'ready' && guard++ < (L.time ? 30 : 80)) {
       var h = e.findHint(); assert.ok(h, 'stuck on level ' + L.id);
       var r = e.trySwap(h[0], h[1]); assert.ok(r.ok);
       for (var rr = 0; rr < e.rows; rr++) for (var cc = 0; cc < e.cols; cc++) if (e._free(rr, cc)) assert.ok(e.grid[rr][cc], 'hole after move on level ' + L.id);
     }
     if (e.state === 'win') { wins++; byWorld[L.world - 1]++; }
-    assert.ok(e.state === 'win' || e.state === 'lose', 'level ' + L.id + ' ended in ' + e.state);
+    assert.ok(e.state === 'win' || e.state === 'lose' || L.time, 'level ' + L.id + ' ended in ' + e.state);
   });
   console.log('       a dumb bot (first move it finds) won ' + wins + '/100; per world ' + byWorld.join(', '));
 });

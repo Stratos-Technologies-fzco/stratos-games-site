@@ -1,5 +1,8 @@
 /* Crystal Quest content: 5 worlds x 20 levels, built from data rules so every level is the same kind of JSON object.
-   Add a world or more levels by adding rows to WORLDS; the game reads everything from here. */
+   Add a world or more levels by adding rows to WORLDS and PATTERN; the game reads everything from here.
+   Level types (12): Crystal Collection (collect), Ice Breaker + Stone Breaker (blockers), Ancient Treasure (treasure),
+   Forest Restoration (restore), Magic Rescue (rescue), Crystal Path (path), Time Challenge (time), Boss Battle (boss),
+   Energy Collection (energy), Portal Challenge (portal), Mixed Challenge (mixed) and Score (score). */
 (function (root) {
   'use strict';
 
@@ -20,25 +23,73 @@
   ];
   var LOCKED_WORLDS = ['Ocean Kingdom', 'Sky Kingdom', 'Dark Kingdom', 'Celestial Kingdom', 'Crystal Palace'];
 
-  var DIALOGUE = {
-    1: { who: 'character_01_eldrin', name: 'Eldrin', text: 'The Crystal Heart is broken, Guardian. Swap two neighbouring crystals to line up three of a colour.' },
-    2: { who: 'character_02_luma', name: 'Luma', text: 'Make four in a row and a bolt crystal is born. Swap it to light up a whole line!' },
-    3: { who: 'character_01_eldrin', name: 'Eldrin', text: 'Wooden boxes block the way. Clear crystals right next to a box to break it.' },
-    4: { who: 'character_02_luma', name: 'Luma', text: 'Cages hold crystals still. Match the crystal inside to free it.' },
-    5: { who: 'character_03_arkon', name: 'Arkon', text: 'Five in a row makes a Rainbow crystal. Swap it with any colour to clear that colour!' }
+  /* What each of levels 1-19 of a world is (level 20 is always the boss). */
+  var PATTERN = [
+    ['collect', 'collect', 'score', 'collect', 'blockers', 'path', 'collect', 'score', 'time', 'mixed', 'blockers', 'treasure', 'collect', 'energy', 'rescue', 'score', 'mixed', 'time', 'path'],
+    ['collect', 'blockers', 'score', 'collect', 'blockers', 'path', 'treasure', 'mixed', 'time', 'blockers', 'energy', 'rescue', 'collect', 'score', 'treasure', 'mixed', 'time', 'blockers', 'path'],
+    ['collect', 'blockers', 'restore', 'collect', 'restore', 'rescue', 'mixed', 'time', 'treasure', 'score', 'blockers', 'restore', 'energy', 'collect', 'rescue', 'mixed', 'time', 'restore', 'blockers'],
+    ['collect', 'treasure', 'blockers', 'collect', 'treasure', 'score', 'mixed', 'time', 'rescue', 'blockers', 'path', 'energy', 'treasure', 'mixed', 'score', 'time', 'blockers', 'treasure', 'collect'],
+    ['collect', 'blockers', 'portal', 'collect', 'mixed', 'portal', 'energy', 'time', 'blockers', 'score', 'portal', 'treasure', 'mixed', 'rescue', 'time', 'portal', 'energy', 'mixed', 'blockers']
+  ];
+
+  /* The five characters */
+  var CHAR = {
+    character_01_eldrin: { name: 'Eldrin', role: 'Ancient Wizard' },
+    character_02_luma: { name: 'Luma', role: 'Magical Fairy' },
+    character_03_arkon: { name: 'Arkon', role: 'Crystal Guardian' },
+    character_04_nyra: { name: 'Nyra', role: 'Forest Guardian' },
+    character_05_shadow_lord: { name: 'Shadow Lord', role: 'The villain' }
   };
+  var E_ = 'character_01_eldrin', L_ = 'character_02_luma', A_ = 'character_03_arkon', N_ = 'character_04_nyra', S_ = 'character_05_shadow_lord';
+  /* Story cards shown in the level intro. Key = level number (1-100). */
+  var DIALOGUE = {
+    1: [E_, 'The Crystal Heart is broken, Guardian. Swap two neighbouring crystals to line up three of a colour.'],
+    2: [L_, 'Make four in a row and a bolt crystal is born. Swap it to light up a whole line!'],
+    3: [E_, 'Before a level you can pick a starter booster. Use one when a level feels hard.'],
+    4: [A_, 'Five in a row makes a Rainbow crystal. Swap it with any colour to clear that colour!'],
+    5: [L_, 'Cages hold crystals still. Match the crystal inside to free it.'],
+    6: [E_, 'Light up the glowing path by clearing the crystals that sit on it.'],
+    9: [A_, 'A Time Challenge! No move limit, but the clock is ticking. Think fast.'],
+    10: [E_, 'Halfway to the Valley Palace. The Shadow Lord grows nervous.'],
+    12: [L_, 'Ancient treasure is hidden at the top. Clear crystals below it so it falls to the bottom.'],
+    15: [L_, 'Little crystals are trapped in cages. Set them free, Guardian!'],
+    18: [S_, 'Do not hope, Guardian. The Heart will never be whole again.'],
+    20: [E_, 'The Stone Golem guards the first crystal. Strike hard, and watch its freezing attacks!'],
+    21: [L_, 'Brrr! The Frozen Mountains. Ice hides crystals under their shine. Match the crystal on top to crack it.'],
+    25: [A_, 'Stone is tough. Special crystals break it faster. Save them for the big blocks.'],
+    28: [N_, 'Treasure sinks in the snow. Bring the chests down to the ground.'],
+    30: [E_, 'Halfway up the mountain. Keep your streak, Guardian.'],
+    35: [S_, 'The cold is my friend. Soon the whole kingdom will freeze!'],
+    40: [L_, 'The Ice Dragon! Be brave. Break its frost to save your crystals.'],
+    41: [N_, 'Welcome to the Enchanted Forest. The trees are sick. Clear the grey patches to bring the forest back.'],
+    45: [N_, 'Magic chains bind the old trees. Break them and the forest will sing again.'],
+    50: [E_, 'You are a true Guardian. The forest feels your magic.'],
+    55: [L_, 'Fairy friends are caged here. Please set them free!'],
+    58: [S_, 'Every crystal you find, I will take. Every one!'],
+    60: [N_, 'The Forest Witch has poisoned the Elder Tree. Beat her to heal it.'],
+    61: [A_, 'The Lost Desert hides ancient treasure. Bring it down, then find the way through.'],
+    65: [A_, 'Ancient seals need three matches. Patience, Guardian.'],
+    70: [E_, 'The sun is high and the clock is ticking. Fast fingers win here.'],
+    75: [N_, 'Even the desert has life. Look, the oasis is coming back.'],
+    78: [S_, 'The sand will bury you, little Guardian!'],
+    80: [A_, 'The Sand Titan rises! Special crystals will crack its shell.'],
+    81: [E_, 'Dragon Kingdom. Lava burns under the crystals. Match them to cool it down.'],
+    85: [A_, 'Shadow portals leak darkness. Clear next to them to close them.'],
+    90: [N_, 'Only the Fire Dragon is left before the Shadow Lord. You can do it.'],
+    95: [L_, 'I believe in you, Guardian! Keep going!'],
+    98: [S_, 'You are strong. But not strong enough!'],
+    100: [E_, 'The Fire Dragon guards the last crystal. Win, and the Crystal Heart glows again!']
+  };
+  var VICTORY = ['Well done, Guardian!', 'Wonderful! The kingdom is healing.', 'Crystal clear! Nicely played.', 'The Shadow Lord trembles!', 'You make magic look easy!', 'Another step closer to the Heart!'];
+  var BOSS_TAUNT = ['"You will never mend the Heart, Guardian!"', '"My frost will freeze your hopes!"', '"The forest is mine now!"', '"The sand will bury you!"', '"Burn, little Guardian!"'];
 
   /* small helper: pick items deterministically from a level number */
   function hash(n) { n = (n * 2654435761) >>> 0; n ^= n >>> 15; n = Math.imul(n, 2246822519) >>> 0; return (n ^ (n >>> 13)) >>> 0; }
 
   /* Board shapes: rows, cols, holes */
   function shape(name, rows, cols) {
-    var holes = [], r, c;
+    var holes = [], c;
     if (name === 'corners') { holes = [[0, 0], [0, cols - 1], [rows - 1, 0], [rows - 1, cols - 1]]; }
-    else if (name === 'diamond') {
-      var mid = (cols - 1) / 2;
-      for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) { var d = Math.abs(r - (rows - 1) / 2) + Math.abs(c - mid); if (d > Math.max(rows, cols) / 2 + 1.2) holes.push([r, c]); }
-    }
     else if (name === 'notch') { holes = [[0, 3], [0, 4], [rows - 1, 3], [rows - 1, 4]]; if (cols < 8) holes = [[0, 2], [rows - 1, 2]]; }
     else if (name === 'arch') { for (c = 2; c < cols - 2; c++) holes.push([rows - 1, c]); holes.push([rows - 2, 3], [rows - 2, cols - 4]); if (cols < 8) holes = [[rows - 1, 2], [rows - 1, 3]]; }
     return holes;
@@ -47,9 +98,10 @@
   function build(world, lv) {            // lv = 1..20
     var W = WORLDS[world - 1], idx = (world - 1) * 20 + lv;       // 1..100
     var h = hash(idx), isBoss = lv === 20;
+    var type = isBoss ? 'boss' : PATTERN[world - 1][lv - 1];
     var ramp = (lv - 1) / 19;                                       // 0..1 inside the world
     var wr = (world - 1) / 4;                                       // 0..1 across worlds
-    var colors = Math.min(6, 4 + (lv > 4 ? 1 : 0) + (lv > 12 ? 1 : 0) + (world > 3 ? 0 : 0));
+    var colors = 4 + (lv > 4 ? 1 : 0) + (lv > 12 ? 1 : 0);
     if (world >= 4 && lv > 6) colors = 6;
     colors = Math.max(4, Math.min(6, colors));
     var rows = 8, cols = 8, holes = [];
@@ -57,80 +109,112 @@
     if (lv >= 11 && lv % 5 === 1) holes = shape('notch', rows, cols);
     if (lv >= 15 && lv % 5 === 4) holes = shape('arch', rows, cols);
     if (lv === 1 || lv === 2) { rows = 7; cols = 7; holes = []; }
-    var moves = Math.round(30 - ramp * 6 - wr * 4 + (lv <= 3 ? 8 : 0));
-    var objectives = [], blockers = [], note = null;
+    var moves = Math.round(30 - ramp * 4 - wr * 2 + (lv <= 3 ? 8 : 0));
+    var objectives = [], blockers = [], time = 0, items = 0;
 
-    // pick blockers allowed so far in this world
     var kinds = W.blockers.slice(0, lv >= 12 ? W.blockers.length : lv >= 5 ? Math.max(1, W.blockers.length - 1) : 1);
     function place(kind, count, seed) {
       var placed = 0, tries = 0, used = {};
       blockers.forEach(function (b) { used[b.r + ',' + b.c] = 1; });
       var holeSet = {}; holes.forEach(function (p) { holeSet[p[0] + ',' + p[1]] = 1; });
-      var mode = root.CQEngine ? root.CQEngine.BLOCKERS[kind].mode : 'under';
-      while (placed < count && tries < 300) {
+      while (placed < count && tries < 400) {
         tries++;
         var s = hash(seed + tries * 7919);
         var r = 1 + (s % (rows - 2)), c = 1 + ((s >>> 8) % (cols - 2));
-        if (mode === 'solid' && (r === 0)) continue;
         var key = r + ',' + c;
         if (used[key] || holeSet[key]) continue;
         used[key] = 1; blockers.push({ r: r, c: c, kind: kind }); placed++;
       }
       return placed;
     }
+    /* a winding path of lit tiles from the left edge to the right edge */
+    function trail(seed) {
+      var r = 2 + (hash(seed) % (rows - 4)), n = 0, holeSet = {}, used = {}; holes.forEach(function (p) { holeSet[p[0] + ',' + p[1]] = 1; });
+      function add(rr, cc) { var k = rr + ',' + cc; if (holeSet[k] || used[k]) return; used[k] = 1; blockers.push({ r: rr, c: cc, kind: 'path' }); n++; }
+      for (var c = 0; c < cols; c++) {
+        add(r, c);
+        var step = (hash(seed + c * 13) % 3) - 1; r = Math.max(1, Math.min(rows - 2, r + step));
+        if (c < cols - 1 && step !== 0) add(r, c);
+      }
+      return n;
+    }
+    var six = colors === 6 ? 0.8 : 1;
+    var collectN = Math.round((16 + ramp * 18 + wr * 8) * six);
+    var gemA = (W.gem + lv) % colors, gemB = (W.gem + lv * 2 + 1) % colors;
+    var scoreN = Math.round((2000 + ramp * 3200 + wr * 2000) * six / 100) * 100;
+    var base = 1800 + ramp * 3500 + wr * 2200;
 
-    if (isBoss) {
-      objectives.push({ type: 'boss' });
-      moves = 30 + world * 3;
-      colors = 5;
-      holes = [];
+    if (type === 'boss') {
+      objectives.push({ type: 'boss' }); moves = 30 + world * 3; colors = 5; holes = [];
       place(W.blockers[0], 3 + world, idx * 31);
-    } else {
-      var type = lv % 4;                  // 1 collect, 2 blockers (if any), 3 score, 0 mixed
-      var gemA = (W.gem + lv) % colors, gemB = (W.gem + lv * 2 + 1) % colors;
-      var collectN = Math.round(18 + ramp * 22 + wr * 10);
-      if (lv <= 2) { objectives.push({ type: 'collect', color: W.gem % colors, n: lv === 1 ? 12 : 16 }); }
-      else if (lv < 5 || type === 1) { objectives.push({ type: 'collect', color: gemA, n: collectN }); if (lv > 10) objectives.push({ type: 'collect', color: gemB, n: Math.round(collectN * 0.7) }); }
-      else if (type === 2) {
-        var k = kinds[h % kinds.length], want = 5 + Math.round(ramp * 6);
-        place(k, want, idx * 17);
-        objectives.push({ type: 'blockers', kind: k, n: want });
-      }
-      else if (type === 3) { objectives.push({ type: 'score', n: Math.round((2500 + ramp * 5500 + wr * 3000) / 100) * 100 }); if (lv > 8) { var k3 = kinds[(h >>> 3) % kinds.length]; place(k3, 4, idx * 13); } }
-      else {
-        var k4 = kinds[(h >>> 5) % kinds.length], w4 = 4 + Math.round(ramp * 4);
-        place(k4, w4, idx * 23);
-        objectives.push({ type: 'blockers', kind: k4, n: w4 });
-        objectives.push({ type: 'collect', color: gemA, n: Math.round(collectN * 0.8) });
-      }
-      // scatter extra blockers for flavour on later levels
-      if (lv > 6 && type !== 2 && type !== 0) { place(kinds[0], 2 + Math.round(ramp * 4), idx * 5); }
+      base = 4000 + world * 1200;
+    } else if (type === 'collect') {
+      if (lv <= 2) objectives.push({ type: 'collect', color: W.gem % colors, n: lv === 1 ? 12 : 16 });
+      else { objectives.push({ type: 'collect', color: gemA, n: collectN }); if (lv > 10) objectives.push({ type: 'collect', color: gemB, n: Math.round(collectN * 0.6) }); }
+    } else if (type === 'blockers') {
+      var k = kinds[h % kinds.length], want = (k === 'seal' || k === 'wall') ? 3 + Math.round(ramp * 2) : (k === 'stone' || k === 'dark') ? 4 + Math.round(ramp * 4) : 5 + Math.round(ramp * 6);
+      want = place(k, want, idx * 17); objectives.push({ type: 'blockers', kind: k, n: want });
+    } else if (type === 'score') {
+      objectives.push({ type: 'score', n: scoreN }); base = scoreN; moves += 3;
+      if (lv > 8) place(kinds[(h >>> 3) % kinds.length], 4, idx * 13);
+    } else if (type === 'mixed') {
+      var k4 = kinds[(h >>> 5) % kinds.length], w4 = (k4 === 'seal' || k4 === 'wall') ? 3 : 4 + Math.round(ramp * 3);
+      w4 = place(k4, w4, idx * 23);
+      objectives.push({ type: 'blockers', kind: k4, n: w4 }); objectives.push({ type: 'collect', color: gemA, n: Math.round(collectN * 0.6) });
+    } else if (type === 'time') {
+      time = Math.round(85 - ramp * 15 - wr * 5);
+      var tn = Math.round((1800 + ramp * 2200 + wr * 1500) / 100) * 100;
+      objectives.push({ type: 'score', n: tn }); base = tn; moves = 0;
+    } else if (type === 'treasure') {
+      items = Math.min(cols - 2, 2 + Math.round(ramp) + (world > 3 ? 1 : 0)); colors = Math.min(colors, 5);
+      objectives.push({ type: 'treasure', n: items }); moves = 33;
+    } else if (type === 'rescue') {
+      var cn = place('cage', 4 + Math.round(ramp * 4), idx * 29); objectives.push({ type: 'rescue', n: cn });
+    } else if (type === 'path') {
+      var pn = trail(idx * 41); objectives.push({ type: 'path', n: pn }); moves = 32;
+    } else if (type === 'restore') {
+      var cnt = place('moss', 12 + Math.round(ramp * 6), idx * 43); objectives.push({ type: 'restore', n: Math.max(8, cnt - 3) }); moves = 32;
+    } else if (type === 'energy') {
+      objectives.push({ type: 'energy', n: Math.round((45 + ramp * 55 + wr * 20) / 5) * 5 }); moves = 28;
+    } else if (type === 'portal') {
+      var pc = place('portal', 3 + Math.round(ramp * 3), idx * 47); objectives.push({ type: 'portal', n: pc });
     }
 
-    var target = objectives.filter(function (o) { return o.type === 'score'; })[0];
-    var base = isBoss ? 4000 + world * 1200 : target ? target.n : (1800 + ramp * 3500 + wr * 2200);
-    var stars = [0, Math.round(base * 1.25 / 100) * 100, Math.round(base * 1.7 / 100) * 100];
-    if (!isBoss && !target) { stars[1] = Math.round((base + 1200) / 100) * 100; stars[2] = Math.round((base + 2600) / 100) * 100; }
-
-    return { id: idx, world: world, num: lv, rows: rows, cols: cols, colors: colors, moves: moves, holes: holes, blockers: blockers,
-             objectives: objectives, stars: stars, boss: isBoss ? { name: W.boss.name, art: W.boss.art, hp: W.boss.hp, every: W.boss.every, count: W.boss.count } : null,
-             tip: tipFor(world, lv, objectives, blockers) };
+    var scoreLike = type === 'score' || type === 'time' || type === 'boss';
+    var stars = [0, Math.round((scoreLike ? base * 1.25 : base + 1200) / 100) * 100, Math.round((scoreLike ? base * 1.7 : base + 2600) / 100) * 100];
+    var L = { id: idx, world: world, num: lv, type: type, rows: rows, cols: cols, colors: colors, moves: moves, holes: holes, blockers: blockers,
+              objectives: objectives, stars: stars };
+    if (time) L.time = time;
+    if (items) L.items = items;
+    if (isBoss) L.boss = { name: W.boss.name, art: W.boss.art, hp: W.boss.hp, every: W.boss.every, count: W.boss.count };
+    L.tip = tipFor(world, lv, type, blockers);
+    return L;
   }
 
-  /* Short teaching card shown the first time a new idea appears. Key = tip id (saved once seen). */
-  function tipFor(world, lv, objectives, blockers) {
+  /* One short lesson the first time a new idea appears (saved once seen). */
+  function tipFor(world, lv, type, blockers) {
     if (world === 1 && lv === 1) return 'swap';
-    if (objectives.some(function (o) { return o.type === 'boss'; })) return 'boss';
+    if (type === 'boss') return 'boss';
+    if (world === 1 && lv === 3) return 'starters';
+    if (world === 1 && lv === 4) return 'special4';
+    if (type === 'time' || type === 'treasure' || type === 'rescue' || type === 'path' || type === 'restore' || type === 'energy' || type === 'portal') return 'type_' + type;
     var kinds = {}; blockers.forEach(function (b) { kinds[b.kind] = 1; });
     var order = ['wood', 'cage', 'ice', 'stone', 'chain', 'seal', 'lava', 'dark', 'wall', 'portal'];
     for (var i = 0; i < order.length; i++) if (kinds[order[i]]) return 'blk_' + order[i];
-    if (lv === 4) return 'special4';
     return null;
   }
   var TIPS = {
     swap:      { title: 'How to play', text: 'Swap two neighbouring crystals to line up 3 of the same colour. Reach the goal before you run out of moves.' },
+    starters:  { title: 'Starter boosters', text: 'Below the goals you can pick a starter. A Ruby Bomb, Lightning or Rainbow crystal starts on the board, or a Magic Shield protects you.' },
     special4:  { title: 'Bolt crystals', text: 'Line up 4 and a bolt crystal appears. Swap it to clear a whole row or column. 5 in a row makes a Rainbow!' },
     boss:      { title: 'Boss battle', text: 'Every crystal you clear hurts the boss. Beat its health to zero. Watch out: it freezes crystals every few moves. Clear them to break the frost.' },
+    type_time:     { title: 'Time challenge', text: 'No move limit here, but the clock runs while you play. Reach the score before time is up. The timer stops while crystals are moving.' },
+    type_treasure: { title: 'Ancient treasure', text: 'Chests cannot be matched. Clear the crystals under a chest so it falls. Reach the bottom row to collect it.' },
+    type_rescue:   { title: 'Magic rescue', text: 'Free all the caged crystals. Match the crystal inside a cage to set it free.' },
+    type_path:     { title: 'Crystal path', text: 'Light up every tile on the glowing path by clearing the crystal that sits on it.' },
+    type_restore:  { title: 'Forest restoration', text: 'Green patches are grey and sick. Clear the crystal on a patch to heal it.' },
+    type_energy:   { title: 'Energy collection', text: 'Fill the energy bar. Special crystals, big matches and chain reactions give the most energy.' },
+    type_portal:   { title: 'Portal challenge', text: 'Close the shadow portals by clearing crystals right next to them.' },
     blk_wood:  { title: 'Wooden box', text: 'Clear crystals right next to a box to break it.' },
     blk_cage:  { title: 'Crystal cage', text: 'A caged crystal cannot move. Match it to break the cage.' },
     blk_ice:   { title: 'Ice', text: 'Ice sits under a crystal. Match the crystal on top to crack the ice.' },
@@ -151,13 +235,15 @@
     var seed = 0; for (var i = 0; i < dateStr.length; i++) seed = (seed * 31 + dateStr.charCodeAt(i)) >>> 0;
     var world = 1 + (seed % 5), lv = 8 + ((seed >>> 4) % 11);     // medium-hard, never a boss
     var L = JSON.parse(JSON.stringify(build(world, lv)));
-    L.id = 'daily-' + dateStr; L.daily = true; L.seed = seed; L.tip = null;
+    L.id = 'daily-' + dateStr; L.daily = true; L.seed = seed; L.tip = null; L.type = 'score';
+    delete L.time; delete L.items;
+    L.blockers = L.blockers.filter(function (b) { return b.kind !== 'path' && b.kind !== 'moss' && b.kind !== 'portal'; });
     L.objectives = [{ type: 'score', n: 3000 + (seed % 7) * 300 }];
     L.stars = [0, L.objectives[0].n + 1500, L.objectives[0].n + 3500];
     L.moves = 24;
     return L;
   }
 
-  root.CQLevels = { WORLDS: WORLDS, LOCKED_WORLDS: LOCKED_WORLDS, LEVELS: LEVELS, COLOR_NAMES: COLOR_NAMES, COLOR_ART: COLOR_ART, DIALOGUE: DIALOGUE, TIPS: TIPS, daily: daily };
+  root.CQLevels = { WORLDS: WORLDS, LOCKED_WORLDS: LOCKED_WORLDS, LEVELS: LEVELS, COLOR_NAMES: COLOR_NAMES, COLOR_ART: COLOR_ART, DIALOGUE: DIALOGUE, CHAR: CHAR, VICTORY: VICTORY, BOSS_TAUNT: BOSS_TAUNT, TIPS: TIPS, PATTERN: PATTERN, daily: daily };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.CQLevels;
 })(typeof window !== 'undefined' ? window : globalThis);

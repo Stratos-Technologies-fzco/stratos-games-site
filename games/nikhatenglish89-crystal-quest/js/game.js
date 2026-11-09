@@ -23,23 +23,45 @@
   var SPNAME = { bomb: 'Ruby Bomb', lightning: 'Lightning Crystal', thunder: 'Vertical Thunder', rainbow: 'Rainbow Crystal', nova: 'Crystal Nova', star: 'Magic Star', fish: 'Crystal Fish', super: 'Super Crystal' };
   function crystalSrc(n) { return 'assets/crystals/' + LV.COLOR_ART[n] + '.svg'; }
   function spSrc(sp) { return 'assets/special/' + SPART[sp] + '.svg'; }
-  function blkSrc(kind) { return 'assets/blockers/' + E.BLOCKERS[kind].art + '.svg'; }
+  function blkSrc(kind) { var d = E.BLOCKERS[kind]; return d && d.art ? 'assets/blockers/' + d.art + '.svg' : icon('level_node'); }
   function icon(n) { return 'assets/ui/icons/icon_' + n + '.svg'; }
-  function ic(n, cls) { return '<img alt="" ' + (cls ? 'class="' + cls + '" ' : '') + 'src="' + icon(n) + '">'; }
+  function im(src, cls) { return '<img alt="" ' + (cls ? 'class="' + cls + '" ' : '') + 'src="' + src + '">'; }
+  function ic(n, cls) { return im(icon(n), cls); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
+  function fmtTime(s) { s = Math.max(0, s | 0); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   var toastT; function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600); }
 
+  /* ---------- boosters: what exists, what it costs ---------- */
+  /* key, picture, name, short name, price in coins, what it does, which tab of the shop */
+  var BOOST = [
+    ['hammer', icon('hammer'), 'Hammer', 'Hammer', 60, 'Smash one crystal or block.', 'game'],
+    ['strike', icon('lightning'), 'Lightning Strike', 'Strike', 70, 'Clear a whole row.', 'game'],
+    ['wand', icon('wand'), 'Magic Wand', 'Wand', 80, 'Turn a crystal into a special crystal.', 'game'],
+    ['shuffle', icon('shuffle'), 'Shuffle', 'Shuffle', 50, 'Mix up all the crystals.', 'game'],
+    ['moves', icon('extra_moves'), '+5 Moves', '+5', 80, '5 more moves (15 seconds in a Time Challenge).', 'game'],
+    ['rainbow', icon('rainbow_blast'), 'Rainbow Blast', 'Rainbow', 90, 'Clear every crystal of one colour.', 'game'],
+    ['s_bomb', 'assets/special/special_01_ruby_bomb.svg', 'Ruby Starter', 'Ruby', 70, 'Start a level with a Ruby Bomb on the board.', 'start'],
+    ['s_lightning', 'assets/special/special_02_lightning_crystal.svg', 'Lightning Starter', 'Lightning', 80, 'Start with a Lightning Crystal on the board.', 'start'],
+    ['s_rainbow', 'assets/special/special_04_rainbow_crystal.svg', 'Rainbow Starter', 'Rainbow', 110, 'Start with a Rainbow Crystal on the board.', 'start'],
+    ['s_shield', icon('shield'), 'Magic Shield', 'Shield', 90, 'Blocks the first boss attack, or gives 3 extra moves.', 'start']
+  ];
+  var STARTER_KIND = { s_bomb: 'bomb', s_lightning: 'lightning', s_rainbow: 'rainbow', s_shield: 'shield' };
+  function boost(k) { return BOOST.filter(function (b) { return b[0] === k; })[0]; }
+  var GAME_BOOSTS = BOOST.filter(function (b) { return b[6] === 'game'; }), STARTERS = BOOST.filter(function (b) { return b[6] === 'start'; });
+
   /* ---------- saving (this phone only; no sign-up, no account) ---------- */
+  function zeroBoosters() { var o = {}; BOOST.forEach(function (b) { o[b[0]] = 0; }); return o; }
   function defaults() {
-    return { v: 1, coins: 120, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true,
-      boosters: { hammer: 2, shuffle: 1, rainbow: 1, moves: 1 }, daily: { last: '', streak: 0 }, dc: { date: '', best: 0, paid: false },
+    var b = zeroBoosters(); b.hammer = 2; b.strike = 1; b.wand = 1; b.shuffle = 1; b.moves = 1; b.rainbow = 1; b.s_bomb = 1; b.s_shield = 1;
+    return { v: 1, coins: 150, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
+      boosters: b, daily: { last: '', streak: 0 }, dc: { date: '', best: 0, paid: false },
       stats: { wins: 0, bestCascade: 0, specials: 0, bosses: {}, threeStars: 0 } };
   }
   var save = (function () {
     var d = defaults();
-    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.v === 1) { for (var k in s) d[k] = s[k]; d.boosters = Object.assign({ hammer: 0, shuffle: 0, rainbow: 0, moves: 0 }, s.boosters); d.stats = Object.assign(defaults().stats, s.stats); } } catch (e) {}
+    try { var s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && s.v === 1) { for (var k in s) d[k] = s[k]; d.boosters = Object.assign(zeroBoosters(), s.boosters); d.stats = Object.assign(defaults().stats, s.stats); } } catch (e) {}
     return d;
   })();
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
@@ -67,8 +89,67 @@
   function click(el, fn) { if (el) el.addEventListener('click', function (e) { e.stopPropagation(); A.sfx('button'); fn(e); }); }
   function setScreen(name, cls, html) { cur.name = name; screen.className = cls || ''; screen.innerHTML = html; }
 
+  /* ---------- who is who: characters with a little idle animation ---------- */
+  function charCard(who, text, opts) {
+    opts = opts || {}; var c = LV.CHAR[who] || { name: '', role: '' }, isNew = !save.seen['char_' + who];
+    return '<div class="who' + (opts.cheer ? ' cheer' : '') + '"><img alt="" src="assets/characters/' + who + '.svg"><div><b>' + esc(c.name) + '</b> <span class="role">' + esc(c.role) + '</span>' +
+      (isNew && !opts.noNew ? ' <span class="new">NEW</span>' : '') + '<div class="small-text">' + esc(text) + '</div></div></div>';
+  }
+  function markSeen(who) { if (who && !save.seen['char_' + who]) { save.seen['char_' + who] = 1; persist(); } }
+
+  /* ---------- sound controls shared by Settings and Pause ---------- */
+  function soundHtml() {
+    return '<div class="tog"><span>Music</span><button class="tick' + (save.music ? ' on' : '') + '" id="tMusic" aria-label="Music on or off"></button></div>' +
+      '<label class="slide"><span>Music volume</span><input type="range" min="0" max="100" value="' + Math.round(save.musicVol * 100) + '" id="vMusic" aria-label="Music volume"></label>' +
+      '<div class="tog"><span>Sound effects</span><button class="tick' + (save.sfx ? ' on' : '') + '" id="tSfx" aria-label="Sound effects on or off"></button></div>' +
+      '<label class="slide"><span>Effects volume</span><input type="range" min="0" max="100" value="' + Math.round(save.sfxVol * 100) + '" id="vSfx" aria-label="Effects volume"></label>';
+  }
+  function bindSound(c) {
+    click($('#tMusic', c), function (e) { save.music = !save.music; A.set('music', save.music); persist(); e.target.classList.toggle('on', save.music); });
+    click($('#tSfx', c), function (e) { save.sfx = !save.sfx; A.set('sfx', save.sfx); persist(); e.target.classList.toggle('on', save.sfx); });
+    var vm = $('#vMusic', c), vs = $('#vSfx', c);
+    vm.addEventListener('input', function () { save.musicVol = vm.value / 100; A.setVolume('music', save.musicVol); });
+    vm.addEventListener('change', function () { persist(); });
+    vs.addEventListener('input', function () { save.sfxVol = vs.value / 100; A.setVolume('sfx', save.sfxVol); });
+    vs.addEventListener('change', function () { persist(); A.sfx('match3'); });
+  }
+  function settings() {
+    var c = openModal('<h2>Settings</h2>' + soundHtml() +
+      '<div class="tog"><span>Calmer effects (for slow phones)</span><button class="tick' + (save.lowfx ? ' on' : '') + '" id="tFx" aria-label="Calmer effects"></button></div>' +
+      '<div class="btns"><button class="btn ghost small" id="mX">Close</button></div>');
+    bindSound(c);
+    click($('#tFx', c), function (e) { save.lowfx = !save.lowfx; document.body.classList.toggle('lowfx', save.lowfx); persist(); e.target.classList.toggle('on', save.lowfx); });
+    click($('#mX', c), closeModal);
+  }
+
+  /* ---------- splash and loading ---------- */
+  function splash() {
+    setBg('bg_01_crystal_valley', 1);
+    var list = [], i;
+    for (i = 0; i < 6; i++) list.push(crystalSrc(i));
+    Object.keys(SPART).forEach(function (k) { list.push(spSrc(k)); });
+    Object.keys(E.BLOCKERS).forEach(function (k) { if (E.BLOCKERS[k].art) list.push(blkSrc(k)); });
+    ['hammer', 'lightning', 'wand', 'shuffle', 'extra_moves', 'rainbow_blast', 'shield', 'coin', 'star', 'star_empty', 'play', 'pause', 'home', 'map', 'gift', 'trophy', 'person', 'music', 'sound', 'sound_off', 'gear', 'shop', 'lock', 'chest', 'heart', 'crown', 'shard', 'book', 'level_node'].forEach(function (n) { list.push(icon(n)); });
+    Object.keys(LV.CHAR).forEach(function (k) { list.push('assets/characters/' + k + '.svg'); });
+    LV.WORLDS.forEach(function (w) { list.push('assets/bosses/' + w.boss.art + '.svg'); });
+    list.push('assets/ui/logo_emblem.svg'); list.push('assets/backgrounds/' + LV.WORLDS[0].bg + '.svg');
+    setScreen('splash', 'splash',
+      '<div class="spl"><img class="logo" alt="" src="assets/ui/logo_emblem.svg"><div class="brand">STRATOS.GAMES PRESENTS</div><h1>CRYSTAL QUEST</h1><div class="sub">THE LOST KINGDOM</div>' +
+      '<div class="loadbar" aria-label="Loading"><i id="ldFill"></i></div><div class="small-text" id="ldText">Gathering crystals…</div></div>');
+    var loaded = 0, started = Date.now(), gone = false;
+    function finish() { if (gone) return; gone = true; home(); }
+    function step() {
+      loaded++; var f = $('#ldFill'); if (f) f.style.width = Math.round(loaded / list.length * 100) + '%';
+      if (loaded >= list.length) { var t = $('#ldText'); if (t) t.textContent = 'Ready!'; setTimeout(finish, Math.max(150, 1300 - (Date.now() - started))); }
+    }
+    list.forEach(function (src) { var m = new Image(); m.onload = m.onerror = step; m.src = src; });
+    setTimeout(finish, 4500);                      // never keep a player waiting
+    screen.addEventListener('pointerdown', function skip() { screen.removeEventListener('pointerdown', skip); if (loaded >= list.length * 0.6) finish(); });
+  }
+
   /* ---------- home ---------- */
   function canClaimDaily() { return save.daily.last !== today(); }
+  function allMuted() { return !save.music && !save.sfx; }
   function home() {
     leaveGame(); closeModal();
     var nid = nextLevelId(), w = worldOf(nid);
@@ -76,9 +157,10 @@
     var first = totalStars() === 0;
     setScreen('home', 'home',
       '<div class="row"><span class="chip">' + ic('coin') + '<b id="coins">' + save.coins + '</b></span><span class="grow"></span>' +
+      '<button class="iconbtn" id="bShop" aria-label="Booster shop">' + ic('shop') + '</button>' +
       '<button class="iconbtn" id="bProfile" aria-label="Profile">' + ic('person') + '</button>' +
-      '<button class="iconbtn" id="bMusic" aria-label="Music">' + ic(save.music ? 'music' : 'sound_off') + '</button>' +
-      '<button class="iconbtn" id="bSfx" aria-label="Sound effects">' + ic(save.sfx ? 'sound' : 'sound_off') + '</button></div>' +
+      '<button class="iconbtn" id="bMute" aria-label="Mute or unmute">' + ic(allMuted() ? 'sound_off' : 'sound') + '</button>' +
+      '<button class="iconbtn" id="bSet" aria-label="Settings">' + ic('gear') + '</button></div>' +
       '<div class="center"><img class="logo" alt="" src="assets/ui/logo_emblem.svg"><h1>CRYSTAL QUEST</h1><div class="sub">THE LOST KINGDOM</div>' +
       '<div class="goal small-text">Match 3 crystals, beat the bosses and rebuild the broken Crystal Heart.</div></div>' +
       '<div class="menu"><button class="btn gold" id="bPlay">' + ic('play') + (first ? 'PLAY' : 'CONTINUE · LEVEL ' + nid) + '</button>' +
@@ -89,8 +171,8 @@
     click($('#bPlay'), function () { showIntro(LV.LEVELS[nid - 1]); });
     click($('#bMap'), function () { map(w); });
     click($('#bDaily'), dailyReward); click($('#bChallenge'), dailyChallengeIntro); click($('#bProfile'), profile);
-    click($('#bMusic'), function () { save.music = !save.music; A.set('music', save.music); persist(); home(); });
-    click($('#bSfx'), function () { save.sfx = !save.sfx; A.set('sfx', save.sfx); persist(); home(); });
+    click($('#bShop'), function () { shop('game'); }); click($('#bSet'), settings);
+    click($('#bMute'), function () { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); home(); });
     if (canClaimDaily() && !first && !save.seen['dailyShown_' + today()]) { save.seen['dailyShown_' + today()] = 1; persist(); setTimeout(function () { if (cur.name === 'home' && modalEl.hidden) dailyReward(); }, 500); }
   }
 
@@ -108,60 +190,117 @@
     var proj = W.projects.map(function (p, k) { return '<div class="project' + (save.energy[w] >= PROJ_T[k] ? ' on' : '') + '"><div class="pi">' + ic(['map', 'crown', 'gift', 'shard', 'chest'][k]) + '</div>' + esc(p) + '</div>'; }).join('');
     var dots = LV.WORLDS.map(function (_, k) { return '<span class="wd' + (k === w ? ' on' : '') + '"></span>'; }).join('');
     setScreen('map', '',
-      '<div class="map-head"><button class="iconbtn" id="bBack" aria-label="Home">' + ic('home') + '</button><h2>' + W.name + '</h2><span class="chip">' + ic('coin') + '<b>' + save.coins + '</b></span></div>' +
+      '<div class="map-head"><button class="iconbtn" id="bBack" aria-label="Home">' + ic('home') + '</button><h2>' + W.name + '</h2><button class="iconbtn" id="bShop" aria-label="Booster shop">' + ic('shop') + '</button><span class="chip">' + ic('coin') + '<b>' + save.coins + '</b></span></div>' +
       '<div class="row" style="justify-content:space-between;margin:6px 0"><button class="btn small ghost" id="bPrev" ' + (w === 0 ? 'disabled' : '') + '>‹</button><div class="worldtabs">' + dots + '</div><button class="btn small ghost" id="bNext" ' + (w === 4 || !unlocked((w + 1) * 20 + 1) ? 'disabled' : '') + '>›</button></div>' +
       '<div class="grow mapfit"><div class="levels">' + nodes + '</div></div>' +
-      '<div class="panel restore"><div class="row" style="justify-content:space-between"><span>Restore the kingdom</span><span class="small-text">' + restoredCount(w) + ' / 5 · ' + save.energy[w] + ' crystal energy</span></div>' +
-      '<div class="bar"><i style="width:' + Math.round(worldFrac(w) * 100) + '%"></i></div><div class="projects">' + proj + '</div></div>' +
+      '<button class="panel restore" id="bKingdom" aria-label="See the kingdom"><div class="row" style="justify-content:space-between"><span>Restore the kingdom</span><span class="small-text">' + restoredCount(w) + ' / 5 · tap to see</span></div>' +
+      '<div class="bar"><i style="width:' + Math.round(worldFrac(w) * 100) + '%"></i></div><div class="projects">' + proj + '</div></button>' +
       '<div class="soon">Coming soon: ' + LV.LOCKED_WORLDS.slice(0, 4).join(' · ') + '</div>');
-    click($('#bBack'), home);
+    click($('#bBack'), home); click($('#bShop'), function () { shop('game'); }); click($('#bKingdom'), function () { kingdom(w); });
     click($('#bPrev'), function () { map(w - 1); }); click($('#bNext'), function () { map(w + 1); });
     Array.prototype.forEach.call(screen.querySelectorAll('.node'), function (n) {
       click(n, function () { var id = +n.dataset.id; if (!unlocked(id)) { toast('Finish the level before to unlock this one.'); return; } showIntro(LV.LEVELS[id - 1]); });
     });
   }
 
-  /* ---------- level intro (goal, story, one short lesson) ---------- */
-  function goalHtml(o, prog) {
-    var icn, txt;
-    if (o.type === 'collect') { icn = crystalSrc(o.color); txt = 'Collect ' + o.n + ' ' + LV.COLOR_NAMES[o.color]; }
-    else if (o.type === 'blockers') { icn = blkSrc(o.kind || 'stone'); txt = 'Break ' + o.n + ' ' + (o.kind ? E.BLOCKERS[o.kind].name : 'blockers'); }
-    else if (o.type === 'score') { icn = icon('star'); txt = 'Score ' + o.n; }
-    else { icn = 'assets/bosses/' + o.art + '.svg'; txt = 'Defeat ' + o.name; }
-    return '<div class="obj"><img alt="" src="' + (o.type === 'collect' || o.type === 'blockers' ? icn : icn) + '">' + esc(txt) + '</div>';
+  /* ---------- the kingdom: before and after pictures, restored a little more with every level ---------- */
+  function kingdom(w, fromE) {
+    leaveGame(); closeModal(); cur.world = w;
+    var W = LV.WORLDS[w], e = save.energy[w], to = Math.min(1, e / PROJ_T[4]), from = fromE === undefined ? to : Math.min(1, fromE / PROJ_T[4]);
+    setBg(W.bg, 1); A.music(W.music);
+    var bgurl = 'url(assets/backgrounds/' + W.bg + '.svg)';
+    var icons = ['map', 'crown', 'gift', 'shard', 'chest'];
+    var marks = PROJ_T.map(function (t, k) { return '<div class="kmark' + (e >= t ? ' on' : '') + '" style="left:' + (t / PROJ_T[4] * 100) + '%"><div class="pi">' + ic(icons[k]) + '</div></div>'; }).join('');
+    var rows = W.projects.map(function (p, k) {
+      var ok = e >= PROJ_T[k];
+      return '<div class="krow' + (ok ? ' ok' : '') + '">' + ic(icons[k]) + '<span class="grow">' + esc(p) + '</span><span class="small-text">' + (ok ? 'Restored ✓' : 'needs ' + (PROJ_T[k] - e) + ' more energy') + '</span></div>';
+    }).join('');
+    setScreen('kingdom', '',
+      '<div class="map-head"><button class="iconbtn" id="bBack" aria-label="Back">' + ic('map') + '</button><h2>' + W.name + '</h2><span class="chip">' + ic('shard') + '<b>' + e + '</b></span></div>' +
+      '<div class="kview" id="kview"><div class="klayer before" style="background-image:' + bgurl + '"></div>' +
+      '<div class="klayer after" id="kafter" style="background-image:' + bgurl + ';clip-path:inset(0 ' + (100 - from * 100) + '% 0 0)"></div>' +
+      '<div class="kedge" id="kedge" style="left:' + from * 100 + '%"></div>' + marks +
+      '<span class="klabel l">Before</span><span class="klabel r">After</span></div>' +
+      '<div class="small-text center">Win levels to earn crystal energy. Every project you finish makes the kingdom shine.</div>' +
+      '<div class="klist">' + rows + '</div><button class="btn gold" id="bOk">Back to the map</button>');
+    click($('#bBack'), function () { map(w); }); click($('#bOk'), function () { map(w); });
+    setTimeout(function () {
+      var a = $('#kafter'), g = $('#kedge'); if (!a) return;
+      a.style.clipPath = 'inset(0 ' + (100 - to * 100) + '% 0 0)'; g.style.left = to * 100 + '%';
+      if (fromE !== undefined && to > from) A.sfx('reward');
+    }, 250);
   }
-  function showIntro(L, isDaily) {
-    var w = L.world - 1, W = LV.WORLDS[w], tip = L.tip && !save.seen['tip_' + L.tip] ? LV.TIPS[L.tip] : null;
-    var dlg = LV.DIALOGUE[L.id], boss = L.boss;
-    var who = boss ? '<div class="who"><img alt="" src="assets/bosses/' + boss.art + '.svg"><div><b>' + esc(boss.name) + '</b><div class="small-text">"You will never mend the Heart, Guardian!"</div></div></div>'
-      : dlg ? '<div class="who"><img alt="" src="assets/characters/' + dlg.who + '.svg"><div><b>' + dlg.name + '</b><div class="small-text">' + esc(dlg.text) + '</div></div></div>' : '';
-    var goals = L.objectives.map(function (o) { return goalHtml(o.type === 'boss' ? { type: 'boss', art: boss.art, name: boss.name } : o); }).join('');
-    var best = '<div class="small-text center">Stars: ' + ic('star', 'inl') + ' finish the goals · ' + ic('star', 'inl') + ic('star', 'inl') + ' ' + L.stars[1] + ' points · ' + ic('star', 'inl') + ic('star', 'inl') + ic('star', 'inl') + ' ' + L.stars[2] + ' points</div>' +
-      (save.stars[L.id] ? '<div class="small-text center">Your best: ' + (save.best[L.id] || 0) + ' points</div>' : '');
-    var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + L.num) + '</h2>' +
-      '<div class="small-text center">' + (isDaily ? 'One puzzle a day, same for everyone' : W.name) + ' · ' + L.moves + ' moves</div>' + who +
-      '<div class="goals">' + goals + '</div>' + best +
-      (tip ? '<div class="who"><img alt="" src="assets/ui/icons/icon_book.svg"><div><b>' + tip.title + '</b><div class="small-text">' + esc(tip.text) + '</div></div></div>' : '') +
+
+  /* ---------- level intro (goal, story, one short lesson, starters) ---------- */
+  function objInfo(o, L_) {
+    var lvl = L_ || L, k;
+    switch (o.type) {
+      case 'collect': return { img: crystalSrc(o.color), txt: 'Collect ' + o.n + ' ' + LV.COLOR_NAMES[o.color] };
+      case 'blockers': return { img: blkSrc(o.kind || 'stone'), txt: 'Break ' + o.n + ' ' + (o.kind ? E.BLOCKERS[o.kind].name : 'blockers') };
+      case 'score': return { img: icon('star'), txt: 'Score ' + o.n };
+      case 'boss': return { img: 'assets/bosses/' + lvl.boss.art + '.svg', txt: 'Defeat ' + lvl.boss.name };
+      case 'treasure': return { img: icon('chest'), txt: 'Bring down ' + o.n + ' treasure' + (o.n > 1 ? 's' : '') };
+      case 'rescue': return { img: blkSrc('cage'), txt: 'Free ' + o.n + ' caged crystals' };
+      case 'path': return { img: icon('level_node'), txt: 'Light ' + o.n + ' path tiles' };
+      case 'restore': return { img: icon('heart'), txt: 'Heal ' + o.n + ' forest patches' };
+      case 'energy': return { img: icon('lightning'), txt: 'Collect ' + o.n + ' crystal energy' };
+      case 'portal': return { img: blkSrc('portal'), txt: 'Close ' + o.n + ' shadow portals' };
+    }
+    return { img: icon('star'), txt: '' };
+  }
+  function goalHtml(o, L_) { var i = objInfo(o, L_); return '<div class="obj">' + im(i.img) + esc(i.txt) + '</div>'; }
+  var TYPE_NAME = { collect: 'Crystal Collection', blockers: 'Block Breaker', score: 'Score Challenge', mixed: 'Mixed Challenge', time: 'Time Challenge', treasure: 'Ancient Treasure', rescue: 'Magic Rescue', path: 'Crystal Path', restore: 'Forest Restoration', energy: 'Energy Collection', portal: 'Portal Challenge', boss: 'Boss Battle' };
+
+  function showIntro(level, isDaily) {
+    var w = level.world - 1, W = LV.WORLDS[w], tip = level.tip && !save.seen['tip_' + level.tip] ? LV.TIPS[level.tip] : null;
+    var dlg = LV.DIALOGUE[level.id], boss = level.boss, who = '';
+    if (boss) { who = charCard('character_05_shadow_lord', LV.BOSS_TAUNT[w] || '', { noNew: true }).replace('assets/characters/character_05_shadow_lord.svg', 'assets/bosses/' + boss.art + '.svg').replace('<b>Shadow Lord</b> <span class="role">The villain</span>', '<b>' + esc(boss.name) + '</b> <span class="role">Boss</span>'); }
+    else if (dlg) who = charCard(dlg[0], dlg[1]);
+    var goals = level.objectives.map(function (o) { return goalHtml(o, level); }).join('');
+    var dstat = isDaily ? (save.dc.date === today() ? save.dc : { best: 0 }) : null;
+    var starsLine = '<div class="small-text center">' + ic('star', 'inl') + ' goals · ' + ic('star', 'inl') + ic('star', 'inl') + ' ' + level.stars[1] + ' · ' + ic('star', 'inl') + ic('star', 'inl') + ic('star', 'inl') + ' ' + level.stars[2] + ' points' +
+      (dstat ? ' · best today ' + (dstat.best || 0) : save.stars[level.id] ? ' · your best ' + (save.best[level.id] || 0) : '') + '</div>';
+    var showStarters = level.id >= 3 || isDaily;
+    var picks = {};
+    var startersHtml = showStarters ? '<div class="starters"><div class="small-text center">Starter boosters (optional)</div><div class="row" style="justify-content:center">' +
+      STARTERS.map(function (b) { return '<button class="stbtn" data-k="' + b[0] + '" aria-label="' + b[2] + '">' + im(b[1]) + '<small>' + b[3] + '</small><b>×' + (save.boosters[b[0]] || 0) + '</b></button>'; }).join('') + '</div></div>' : '';
+    var sub = (isDaily ? 'One puzzle a day, the same for everyone' : TYPE_NAME[level.type] + ' · ' + W.name) + ' · ' + (level.time ? level.time + ' seconds' : level.moves + ' moves');
+    var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + level.num) + '</h2><div class="small-text center">' + esc(sub) + '</div>' + who +
+      '<div class="goals">' + goals + '</div>' + starsLine +
+      (tip ? '<div class="who">' + ic('book') + '<div><b>' + esc(tip.title) + '</b><div class="small-text">' + esc(tip.text) + '</div></div></div>' : '') + startersHtml +
       '<div class="btns"><button class="btn gold" id="mGo">' + ic('play') + 'START</button><button class="btn ghost small" id="mX">Back</button></div>');
-    click($('#mGo', c), function () { if (tip) { save.seen['tip_' + L.tip] = 1; persist(); } closeModal(); startLevel(L, isDaily); });
+    Array.prototype.forEach.call(c.querySelectorAll('.stbtn'), function (b) {
+      click(b, function () {
+        var k = b.dataset.k;
+        if (!(save.boosters[k] || 0)) { toast('None left. Get some in the shop.'); return; }
+        picks[k] = !picks[k]; b.classList.toggle('on', !!picks[k]);
+      });
+    });
+    click($('#mGo', c), function () {
+      if (dlg) markSeen(dlg[0]); if (boss) markSeen('character_05_shadow_lord');
+      if (tip) { save.seen['tip_' + level.tip] = 1; }
+      var chosen = Object.keys(picks).filter(function (k) { return picks[k] && (save.boosters[k] || 0) > 0; });
+      chosen.forEach(function (k) { save.boosters[k]--; track('starter_used', { booster: k, level: String(level.id) }); });
+      persist(); closeModal(); startLevel(level, isDaily, chosen.map(function (k) { return STARTER_KIND[k]; }));
+    });
     click($('#mX', c), closeModal);
   }
 
   /* ---------- the board ---------- */
-  var eng, L, cell = 44, rows = 8, cols = 8, tiles = {}, blks = {}, boardEl, wrapEl, layerU, layerT, layerL, layerF, busy = false, sel = null, armed = null, hintT = null, revived = false, attemptStart = 0, isDailyRun = false, coachOn = false, lostSent = false;
+  var eng, L, cell = 44, rows = 8, cols = 8, tiles = {}, blks = {}, boardEl, wrapEl, layerU, layerT, layerL, layerF, busy = false, sel = null, armed = null, hintT = null, tickT = null, revived = false, attemptStart = 0, isDailyRun = false, coachOn = false, lostSent = false, lastRestore = null;
   var drag = null, ro = null;
 
-  function leaveGame() { clearTimeout(hintT); eng = null; busy = false; armed = null; try { if (ro) ro.disconnect(); } catch (e) {} ro = null; window.removeEventListener('resize', layout); }
+  function leaveGame() { clearTimeout(hintT); clearInterval(tickT); tickT = null; eng = null; busy = false; armed = null; try { if (ro) ro.disconnect(); } catch (e) {} ro = null; window.removeEventListener('resize', layout); }
 
   function el(cls, html) { var d = document.createElement('div'); d.className = cls; if (html) d.innerHTML = html; return d; }
   function setPos(d, r, c) { var tf = 'translate(' + (c * cell) + 'px,' + (r * cell) + 'px)'; d.style.transform = tf; d.style.setProperty('--tf', tf); d._r = r; d._c = c; }
   function look(d, t) {
-    var sp = t.sp; d.innerHTML = '<img alt="" src="' + (sp ? spSrc(sp) : crystalSrc(t.color)) + '">';
-    d.classList.toggle('sp', !!sp); d.style.setProperty('--glow', sp ? (t.color >= 0 ? GLOW[t.color] : '#ffffff') : 'transparent');
+    var sp = t.sp; d.innerHTML = '<img alt="" src="' + (t.item ? icon('chest') : sp ? spSrc(sp) : crystalSrc(t.color)) + '">';
+    d.classList.toggle('sp', !!sp); d.classList.toggle('item', !!t.item); d.style.setProperty('--glow', sp ? (t.color >= 0 ? GLOW[t.color] : '#ffffff') : 'transparent');
   }
   function mkTile(t, r, c) { var d = el('t'); d.dataset.id = t.id; look(d, t); setPos(d, r, c); layerT.appendChild(d); tiles[t.id] = d; return d; }
   function mkBlk(b, r, c) {
-    var def = E.BLOCKERS[b.kind], d = el('b ' + def.mode, '<img alt="" src="' + blkSrc(b.kind) + '">' + (b.hp > 1 ? '<span class="hp">' + b.hp + '</span>' : ''));
+    var def = E.BLOCKERS[b.kind], d = el('b ' + def.mode + (def.css ? ' css ' + def.css : ''), (def.css ? '' : '<img alt="" src="' + blkSrc(b.kind) + '">') + (b.hp > 1 ? '<span class="hp">' + b.hp + '</span>' : ''));
     setPos(d, r, c); (def.mode === 'lock' ? layerL : layerU).appendChild(d); blks[r + ',' + c] = d; d._kind = b.kind; return d;
   }
   function updBlk(d, hp) { var h = d.querySelector('.hp'); if (hp > 1) { if (!h) { h = document.createElement('span'); h.className = 'hp'; d.appendChild(h); } h.textContent = hp; } else if (h) h.remove(); }
@@ -210,13 +349,15 @@
   function centre(r, c) { return { x: c * cell + cell / 2, y: r * cell + cell / 2 }; }
 
   /* ---------- starting a level ---------- */
-  function startLevel(level, daily) {
+  function startLevel(level, daily, starters) {
     L = JSON.parse(JSON.stringify(level)); isDailyRun = !!daily; revived = false; lostSent = false; armed = null; sel = null; busy = false; attemptStart = Date.now();
+    clearInterval(tickT); tickT = null;
     var W = LV.WORLDS[L.world - 1];
     eng = new E(L, daily ? L.seed : (Math.floor(Math.random() * 1e9) + 1));
+    if (starters && starters.length) eng.applyStarters(starters);
     setBg(W.bg, worldFrac(L.world - 1));
     A.music(L.boss ? 'music_07_boss_battle' : W.music);
-    track('level_start', { level: String(L.id), world: L.world, boss: !!L.boss, daily: !!daily });
+    track('level_start', { level: String(L.id), world: L.world, type: L.type, boss: !!L.boss, daily: !!daily, starters: (starters || []).length });
     setScreen('play', '',
       '<div class="hud"><button class="iconbtn" id="bPause" aria-label="Pause">' + ic('pause') + '</button>' +
       '<div class="lv">' + (isDailyRun ? 'Daily Puzzle' : W.name) + '<b>' + (isDailyRun ? 'Score big!' : (L.boss ? 'BOSS' : 'Level ' + L.num)) + '</b></div>' +
@@ -231,17 +372,29 @@
     sync(); setHud(eng.hud()); drawBoosters();
     click($('#bPause'), pauseMenu);
     armHint();
+    if (L.time) tickT = setInterval(onTick, 1000);
+  }
+  /* the clock of a Time Challenge only runs while the player can actually move */
+  function onTick() {
+    if (!eng || !eng.timed || eng.state !== 'ready' || busy || !modalEl.hidden || cur.name !== 'play' || document.hidden) return;
+    var st = eng.tick(1); setHud(eng.hud());
+    if (st && st.length) { busy = true; clearHintMark(); run(st).then(afterRun); }
   }
 
   /* ---------- HUD ---------- */
   function setHud(h) {
     if (!eng) return;
-    var m = $('#stMoves'); if (m) { m.querySelector('b').textContent = h.moves; m.classList.toggle('low', h.moves <= 5); }
+    var m = $('#stMoves');
+    if (m) {
+      m.querySelector('small').textContent = h.timed ? 'TIME' : 'MOVES';
+      m.querySelector('b').textContent = h.timed ? fmtTime(h.time) : h.moves;
+      m.classList.toggle('low', h.timed ? h.time <= 10 : h.moves <= 5);
+    }
     var s = $('#stScore'); if (s) s.textContent = h.score;
     var o = $('#objs'); if (o) o.innerHTML = h.obj.map(function (g, i) {
-      var spec = L.objectives[i], img = g.type === 'collect' ? crystalSrc(g.color) : g.type === 'blockers' ? blkSrc(g.kind || 'stone') : g.type === 'score' ? icon('star') : 'assets/bosses/' + L.boss.art + '.svg';
+      var info = objInfo(L.objectives[i]);
       var txt = g.type === 'score' ? Math.min(h.score, g.need) + '/' + g.need : g.type === 'boss' ? (g.done ? 'Defeated!' : 'Boss HP ' + h.bossHp) : g.cur + '/' + g.need;
-      return '<div class="obj' + (g.done ? ' done' : '') + '"><img alt="" src="' + img + '">' + txt + (g.done ? ' ✓' : '') + '</div>';
+      return '<div class="obj' + (g.done ? ' done' : '') + '">' + im(info.img) + txt + (g.done ? ' ✓' : '') + '</div>';
     }).join('');
     var sf = $('#sbFill'); if (sf && L.stars) {
       var top = L.stars[2] || 1; sf.style.width = Math.min(100, Math.round(h.score / top * 100)) + '%';
@@ -251,12 +404,15 @@
     }
     var bf = $('#bossFill'); if (bf && L.boss) bf.style.width = Math.max(0, Math.round(h.bossHp / L.boss.hp * 100)) + '%';
   }
-  var BOOST = [['hammer', 'hammer', 'Hammer', 60], ['shuffle', 'shuffle', 'Shuffle', 50], ['moves', 'extra_moves', '+5 Moves', 80], ['rainbow', 'rainbow_blast', 'Rainbow', 90]];
+  var TAP_BOOST = { hammer: 'Tap a crystal or block to smash it', strike: 'Tap a crystal: its whole row goes', wand: 'Tap a crystal to turn it into a special crystal', rainbow: 'Tap a crystal: every crystal of that colour goes' };
   function drawBoosters() {
     var b = $('#boosters'); if (!b) return;
-    b.innerHTML = BOOST.map(function (x) { var n = save.boosters[x[0]] || 0; return '<button class="boost' + (n ? '' : ' zero') + (armed === x[0] ? ' armed' : '') + '" data-k="' + x[0] + '" aria-label="' + x[2] + '">' + ic(x[1]) + '<span class="n">' + (n || '+') + '</span><small>' + x[2] + '</small></button>'; }).join('');
+    b.innerHTML = GAME_BOOSTS.map(function (x) {
+      var n = save.boosters[x[0]] || 0, label = x[0] === 'moves' && L && L.time ? '+15s' : x[3];
+      return '<button class="boost' + (n ? '' : ' zero') + (armed === x[0] ? ' armed' : '') + '" data-k="' + x[0] + '" aria-label="' + x[2] + '">' + im(x[1]) + '<span class="n">' + (n || '+') + '</span><small>' + label + '</small></button>';
+    }).join('');
     Array.prototype.forEach.call(b.querySelectorAll('.boost'), function (btn) { click(btn, function () { onBooster(btn.dataset.k); }); });
-    var note = $('#armNote'); if (note) note.textContent = armed === 'hammer' ? 'Tap a crystal or block to smash it' : armed === 'rainbow' ? 'Tap a crystal: every crystal of that colour goes' : coachOn ? 'Swap the two glowing crystals!' : '';
+    var note = $('#armNote'); if (note) note.textContent = armed ? TAP_BOOST[armed] : coachOn ? 'Swap the two glowing crystals!' : '';
   }
 
   /* ---------- touching the board ---------- */
@@ -312,29 +468,54 @@
     if (eng.state === 'ready') armHint();
   }
 
-  /* ---------- boosters ---------- */
+  /* ---------- boosters in a level ---------- */
   function onBooster(k) {
     A.unlock(); if (!eng || busy || eng.state !== 'ready') return;
     var n = save.boosters[k] || 0;
     if (n <= 0) { getBooster(k); return; }
-    if (k === 'hammer' || k === 'rainbow') { armed = armed === k ? null : k; drawBoosters(); return; }
+    if (TAP_BOOST[k]) { armed = armed === k ? null : k; drawBoosters(); return; }
     var res = eng.useBooster(k); if (!res.ok) { toast('Not now.'); return; }
     spendBooster(k); A.sfx('booster'); runBooster(res);
   }
   function useBoosterAt(p) {
     var k = armed; armed = null;
-    var res = eng.useBooster(k, p); if (!res.ok) { toast(k === 'rainbow' ? 'Tap a normal crystal.' : 'Tap a crystal or block.'); drawBoosters(); return; }
+    var res = eng.useBooster(k, p);
+    if (!res.ok) { toast(k === 'rainbow' || k === 'wand' ? 'Tap a normal crystal.' : 'Tap a crystal or block.'); drawBoosters(); return; }
     spendBooster(k); runBooster(res);
   }
   function spendBooster(k) { save.boosters[k]--; persist(); drawBoosters(); track('booster_used', { booster: k, level: String(L.id) }); }
   async function runBooster(res) { busy = true; clearHintMark(); await run(res.steps); afterRun(); }
   function getBooster(k) {
-    var x = BOOST.filter(function (b) { return b[0] === k; })[0], price = x[3];
-    var c = openModal('<h2>' + x[2] + '</h2><div class="center">' + ic(x[1]) + '</div><div class="small-text center">You have none left. Get one:</div>' +
+    var x = boost(k), price = x[4];
+    var c = openModal('<h2>' + x[2] + '</h2><div class="center">' + im(x[1], 'big') + '</div><div class="small-text center">' + esc(x[5]) + ' You have none left. Get one:</div>' +
       '<div class="btns"><button class="btn gold" id="mWatch">' + ic('play') + 'Free: watch a short video</button><button class="btn blue" id="mBuy" ' + (save.coins < price ? 'disabled' : '') + '>' + ic('coin') + 'Buy for ' + price + ' coins</button><button class="btn ghost small" id="mX">Not now</button></div>');
     click($('#mWatch', c), function () { offerReward(function () { save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); toast('Got 1 ' + x[2] + '!'); A.sfx('reward'); }, 'booster_' + k); });
-    click($('#mBuy', c), function () { if (save.coins >= price) { save.coins -= price; save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); A.sfx('reward'); } });
+    click($('#mBuy', c), function () { if (save.coins >= price) { save.coins -= price; save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); A.sfx('reward'); track('shop_buy', { booster: k, where: 'level' }); } });
     click($('#mX', c), closeModal);
+  }
+
+  /* ---------- the booster shop ---------- */
+  function shop(tab) {
+    tab = tab || 'game';
+    var items = BOOST.filter(function (b) { return b[6] === tab; });
+    var rows_ = items.map(function (b) {
+      return '<div class="srow">' + im(b[1]) + '<div class="grow"><b>' + esc(b[2]) + '</b><div class="small-text">' + esc(b[5]) + '</div></div><span class="own">×' + (save.boosters[b[0]] || 0) + '</span>' +
+        '<button class="btn small gold buy" data-k="' + b[0] + '" ' + (save.coins < b[4] ? 'disabled' : '') + '>' + ic('coin') + b[4] + '</button></div>';
+    }).join('');
+    var c = openModal('<h2>Booster Shop</h2><div class="row" style="justify-content:space-between"><span class="chip">' + ic('coin') + '<b>' + save.coins + '</b></span>' +
+      '<div class="row"><button class="btn small ' + (tab === 'game' ? 'blue' : 'ghost') + '" id="tabG">In a level</button><button class="btn small ' + (tab === 'start' ? 'blue' : 'ghost') + '" id="tabS">Starters</button></div></div>' +
+      '<div class="small-text center">' + (tab === 'game' ? 'Use these while you play.' : 'Pick these before a level starts.') + '</div><div class="slist">' + rows_ + '</div>' +
+      '<div class="btns"><button class="btn gold small" id="mGift">' + ic('gift') + 'Free: 100 coins (watch a video)</button><button class="btn ghost small" id="mX">Close</button></div>');
+    click($('#tabG', c), function () { shop('game'); }); click($('#tabS', c), function () { shop('start'); });
+    Array.prototype.forEach.call(c.querySelectorAll('.buy'), function (b) {
+      click(b, function () {
+        var k = b.dataset.k, x = boost(k); if (save.coins < x[4]) return;
+        save.coins -= x[4]; save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); A.sfx('reward'); track('shop_buy', { booster: k, where: 'shop' });
+        shop(tab); var ch = $('#coins'); if (ch) ch.textContent = save.coins;
+      });
+    });
+    click($('#mGift', c), function () { offerReward(function () { save.coins += 100; persist(); A.sfx('reward'); shop(tab); var ch = $('#coins'); if (ch) ch.textContent = save.coins; }, 'shop_coins'); });
+    click($('#mX', c), function () { closeModal(); if (cur.name === 'home') home(); else if (cur.name === 'map') map(cur.world); });
   }
 
   /* ---------- playing the steps the engine gives us ---------- */
@@ -350,6 +531,13 @@
       } else if (s.k === 'clear') await doClear(s);
       else if (s.k === 'fall') await doFall(s);
       else if (s.k === 'boss') await doBoss(s);
+      else if (s.k === 'item') {
+        var di = tiles[s.id]; if (di) { di.classList.add('pop'); setTimeout(function () { di.remove(); }, 270 * T); delete tiles[s.id]; }
+        A.sfx('reward'); setHud(s.hud); toast('Treasure found!'); await sleep(320);
+      } else if (s.k === 'wand') {
+        var dw = tiles[s.id]; if (dw) { look(dw, { sp: s.sp, color: s.color }); dw.classList.add('born'); setTimeout(function () { dw.classList.remove('born'); }, 450); }
+        A.sfx('booster'); toast('Magic Wand! ' + SPNAME[s.sp]); await sleep(380);
+      } else if (s.k === 'shield') { toast('Your Magic Shield blocked the attack!'); A.sfx('booster'); await sleep(450); }
       else if (s.k === 'shuffle') {
         toast('No moves left, shuffling!'); A.sfx('booster');
         s.moves.forEach(function (m) { if (tiles[m.id]) setPos(tiles[m.id], m.r, m.c); }); await sleep(450);
@@ -385,7 +573,7 @@
     s.cells.forEach(function (c) { var d = tiles[c.id]; sx += c.c; sy += c.r; if (d) { d.classList.add('pop'); setTimeout(function () { d.remove(); }, 270 * T); delete tiles[c.id]; } });
     s.blk.forEach(function (b) {
       var d = blks[b.r + ',' + b.c]; if (!d) return;
-      if (b.gone) { d.classList.add('gone'); delete blks[b.r + ',' + b.c]; setTimeout(function () { d.remove(); }, 320 * T); A.sfx('explosion'); }
+      if (b.gone) { d.classList.add('gone'); delete blks[b.r + ',' + b.c]; setTimeout(function () { d.remove(); }, 320 * T); A.sfx(E.BLOCKERS[b.kind].css ? 'select' : 'explosion'); }
       else { updBlk(d, b.hp); d.classList.remove('hit'); void d.offsetWidth; d.classList.add('hit'); }
     });
     if (n) { var p = centre(sy / n, sx / n); fxEl('pts', p.x, p.y, 0, 0, '+' + s.pts); }
@@ -413,14 +601,16 @@
   }
   async function doEnd(s) {
     setHud(s.hud);
-    if (s.result === 'win') { A.sfx('win'); await sleep(700); showWin(s); }
+    if (s.result === 'win') { A.sfx(L.boss ? 'bossDefeat' : 'win'); await sleep(700); showWin(s); }
     else { A.sfx('fail'); await sleep(600); showLose(); }
   }
 
   /* ---------- win, lose, pause ---------- */
   function addBooster(k, n) { save.boosters[k] = (save.boosters[k] || 0) + n; }
+  var PRIZES = ['hammer', 'strike', 'wand', 'shuffle', 'rainbow', 's_bomb', 's_lightning', 's_rainbow', 's_shield'];
+  function stars3(stars) { return '<div class="stars">' + [1, 2, 3].map(function (n) { return '<img alt="" class="' + (n <= stars ? '' : 'off') + '" src="' + icon(n <= stars ? 'star' : 'star_empty') + '">'; }).join('') + '</div>'; }
   function showWin(s) {
-    var stars = s.stars, id = L.id, lines = [], coinsGain = 20 + stars * 10, firstTime = false, oldStars = save.stars[id] || 0;
+    var stars = s.stars, id = L.id, lines = [], coinsGain = 20 + stars * 10, firstTime = false, oldStars = save.stars[id] || 0, hero = LV.WORLDS[L.world - 1].hero;
     if (isDailyRun) {
       var dc = save.dc; if (dc.date !== today()) save.dc = dc = { date: today(), best: 0, paid: false };
       dc.best = Math.max(dc.best, eng.score);
@@ -428,7 +618,7 @@
       save.coins += coinsGain; persist();
       track('level_complete', { level: String(id), world: L.world, daily: true, score: eng.score, stars: stars });
       A.sfx('reward');
-      var c0 = openModal('<h2>Daily Puzzle done!</h2><div class="stars">' + [1, 2, 3].map(function (n) { return '<img alt="" class="' + (n <= stars ? '' : 'off') + '" src="' + icon(n <= stars ? 'star' : 'star_empty') + '">'; }).join('') + '</div>' +
+      var c0 = openModal('<h2>Daily Puzzle done!</h2>' + stars3(stars) +
         '<div class="center"><b style="font-size:26px">' + eng.score + '</b><div class="small-text">Best today: ' + dc.best + '</div></div><div class="small-text center">' + (lines.join(' ') || 'Come back tomorrow for a new puzzle!') + '</div>' +
         '<div class="btns"><button class="btn gold" id="mHome">Home</button></div>', { sticky: true });
       click($('#mHome', c0), home); return;
@@ -441,35 +631,41 @@
     save.stats.wins++; save.stats.bestCascade = Math.max(save.stats.bestCascade, eng.stats.bestCascade); save.stats.specials += eng.stats.specials;
     if (stars === 3 && oldStars < 3) save.stats.threeStars++;
     if (L.boss) save.stats.bosses[world + 1] = true;
-    if (stars === 3) { addBooster(['hammer', 'shuffle', 'rainbow', 'moves'][id % 4], 1); lines.push('3 stars: you found a booster!'); }
+    if (stars === 3) { var prize = PRIZES[id % PRIZES.length]; addBooster(prize, 1); lines.push('3 stars: you found a ' + boost(prize)[2] + '!'); }
     else if (L.num % 5 === 0) { addBooster('hammer', 1); lines.push('Bonus Hammer!'); }
-    PROJ_T.forEach(function (t, k) { if (before < t && save.energy[world] >= t) { save.coins += 50 * (k + 1); lines.push('Restored: ' + LV.WORLDS[world].projects[k] + '! +' + 50 * (k + 1) + ' coins'); } });
+    var restored = false;
+    PROJ_T.forEach(function (t, k) { if (before < t && save.energy[world] >= t) { restored = true; save.coins += 50 * (k + 1); lines.push('Restored: ' + LV.WORLDS[world].projects[k] + '! +' + 50 * (k + 1) + ' coins'); } });
+    lastRestore = restored ? { w: world, before: before } : null;
     if (L.boss && firstTime) lines.push(L.boss.name + ' is beaten!');
     var newWorld = L.num === 20 && firstTime && world < 4;
-    persist();
-    track('level_complete', { level: String(id), world: L.world, stars: stars, score: eng.score, moves_left: eng.moves, best_cascade: eng.stats.bestCascade, seconds: Math.round((Date.now() - attemptStart) / 1000) });
+    markSeen(hero); persist();
+    track('level_complete', { level: String(id), world: L.world, type: L.type, stars: stars, score: eng.score, moves_left: eng.moves, best_cascade: eng.stats.bestCascade, seconds: Math.round((Date.now() - attemptStart) / 1000) });
     if (L.boss) track('boss_beaten', { boss: L.boss.name, world: L.world });
     if (newWorld) track('world_unlocked', { world: L.world + 1 });
     if (lines.length) A.sfx('reward');
-    var nextId = id < 100 ? id + 1 : null;
-    var c = openModal('<h2>' + (L.boss ? 'BOSS DEFEATED!' : 'Level Complete!') + '</h2><div class="stars">' + [1, 2, 3].map(function (n) { return '<img alt="" class="' + (n <= stars ? '' : 'off') + '" src="' + icon(n <= stars ? 'star' : 'star_empty') + '">'; }).join('') + '</div>' +
-      '<div class="center"><b style="font-size:28px">' + eng.score + '</b><div class="small-text">Best ' + save.best[id] + ' · +' + coinsGain + ' coins · +' + gained + ' crystal energy</div></div>' +
+    var nextId = id < 100 ? id + 1 : null, say = LV.VICTORY[id % LV.VICTORY.length];
+    var c = openModal('<h2>' + (L.boss ? 'BOSS DEFEATED!' : 'Level Complete!') + '</h2>' + stars3(stars) +
+      charCard(hero, say, { cheer: true, noNew: true }) +
+      '<div class="center"><b style="font-size:26px">' + eng.score + '</b><div class="small-text">Best ' + save.best[id] + ' · +' + coinsGain + ' coins · +' + gained + ' crystal energy</div></div>' +
       (lines.length ? '<div class="small-text center">' + lines.map(esc).join('<br>') + '</div>' : '') + (newWorld ? '<div class="small-text center"><b>New world unlocked: ' + LV.WORLDS[world + 1].name + '!</b></div>' : '') +
-      '<div class="btns"><button class="btn gold" id="mNext" ' + (nextId ? '' : 'disabled') + '>' + ic('play') + (nextId ? 'NEXT LEVEL' : 'THE END… FOR NOW') + '</button><div class="btns two"><button class="btn blue small" id="mAgain">Replay</button><button class="btn ghost small" id="mMap">Map</button></div></div>', { sticky: true });
+      '<div class="btns"><button class="btn gold" id="mNext" ' + (nextId ? '' : 'disabled') + '>' + ic('play') + (nextId ? 'NEXT LEVEL' : 'THE END… FOR NOW') + '</button>' +
+      (restored ? '<button class="btn blue small" id="mKing">' + ic('crown') + 'See the kingdom come back!</button>' : '') +
+      '<div class="btns two"><button class="btn blue small" id="mAgain">Replay</button><button class="btn ghost small" id="mMap">Map</button></div></div>', { sticky: true });
     click($('#mNext', c), function () { closeModal(); showIntro(LV.LEVELS[nextId - 1]); });
+    click($('#mKing', c), function () { kingdom(lastRestore.w, lastRestore.before); });
     click($('#mAgain', c), function () { closeModal(); track('level_retry', { level: String(id) }); startLevel(LV.LEVELS[id - 1]); });
     click($('#mMap', c), function () { map(world); });
   }
   function showLose() {
-    if (!lostSent) { lostSent = true; track('game_over', { level: String(L.id), world: L.world, score: eng.score, seconds: Math.round((Date.now() - attemptStart) / 1000) }); }
-    var stuck = eng.objectiveProgress().map(function (o) { return o.done ? '' : o; }).filter(Boolean).length;
-    var c = openModal('<h2>Out of moves</h2><div class="small-text center">' + stuck + ' goal' + (stuck === 1 ? '' : 's') + ' left. You were close!</div>' +
-      '<div class="btns">' + (!revived ? '<button class="btn gold" id="mSecond">' + ic('extra_moves') + 'Second chance: +5 moves</button>' : '') +
+    if (!lostSent) { lostSent = true; track('game_over', { level: String(L.id), world: L.world, type: L.type, score: eng.score, seconds: Math.round((Date.now() - attemptStart) / 1000) }); }
+    var stuck = eng.objectiveProgress().filter(function (o) { return !o.done; }).length, hero = LV.WORLDS[L.world - 1].hero;
+    var c = openModal('<h2>' + (L.time ? 'Time is up!' : 'Out of moves') + '</h2>' + charCard(hero, 'Do not give up, Guardian! ' + stuck + ' goal' + (stuck === 1 ? '' : 's') + ' left. You were close.', { noNew: true }) +
+      '<div class="btns">' + (!revived ? '<button class="btn gold" id="mSecond">' + ic('extra_moves') + (L.time ? 'Second chance: +20 seconds' : 'Second chance: +5 moves') + '</button>' : '') +
       '<div class="btns two"><button class="btn blue small" id="mAgain">Try again</button><button class="btn ghost small" id="mMap">Map</button></div></div>', { sticky: true });
     click($('#mSecond', c), function () {
       offerReward(function () {
         var st = eng.reviveWithMoves(5); if (!st) return; revived = true; closeModal(); busy = true;
-        run(st).then(function () { afterRun(); toast('+5 moves. Go!'); });
+        run(st).then(function () { afterRun(); toast(L.time ? '+20 seconds. Go!' : '+5 moves. Go!'); });
       }, 'second_chance');
     });
     click($('#mAgain', c), function () { closeModal(); track('level_retry', { level: String(L.id) }); if (isDailyRun) startLevel(L, true); else startLevel(LV.LEVELS[L.id - 1]); });
@@ -477,10 +673,9 @@
   }
   function pauseMenu() {
     if (!eng) return; A.unlock();
-    var c = openModal('<h2>Paused</h2><div class="tog"><span>Music</span><button class="tick' + (save.music ? ' on' : '') + '" id="tMusic" aria-label="Music"></button></div><div class="tog"><span>Sound effects</span><button class="tick' + (save.sfx ? ' on' : '') + '" id="tSfx" aria-label="Sound effects"></button></div>' +
+    var c = openModal('<h2>Paused</h2>' + soundHtml() +
       '<div class="btns"><button class="btn gold" id="mGo">Resume</button><div class="btns two"><button class="btn blue small" id="mRe">Restart</button><button class="btn ghost small" id="mQ">' + (isDailyRun ? 'Home' : 'Map') + '</button></div></div>');
-    click($('#tMusic', c), function (e) { save.music = !save.music; A.set('music', save.music); persist(); e.target.classList.toggle('on', save.music); });
-    click($('#tSfx', c), function (e) { save.sfx = !save.sfx; A.set('sfx', save.sfx); persist(); e.target.classList.toggle('on', save.sfx); });
+    bindSound(c);
     click($('#mGo', c), closeModal);
     click($('#mRe', c), function () { closeModal(); track('level_retry', { level: String(L.id) }); if (isDailyRun) startLevel(L, true); else startLevel(LV.LEVELS[L.id - 1]); });
     click($('#mQ', c), function () { if (isDailyRun) home(); else map(L.world - 1); });
@@ -488,7 +683,7 @@
 
   /* ---------- daily reward (7-day streak, one missed day forgiven) and daily puzzle ---------- */
   var DAYS = [{ t: '100 coins', coins: 100, i: 'coin' }, { t: '150 coins', coins: 150, i: 'coin' }, { t: 'Hammer', b: 'hammer', i: 'hammer' }, { t: '200 coins', coins: 200, i: 'coin' },
-    { t: 'Rainbow Blast', b: 'rainbow', i: 'rainbow_blast' }, { t: '300 coins', coins: 300, i: 'coin' }, { t: 'Treasure chest', chest: true, i: 'chest' }];
+    { t: 'Lightning Starter', b: 's_lightning', i: 'lightning' }, { t: '300 coins', coins: 300, i: 'coin' }, { t: 'Treasure chest', chest: true, i: 'chest' }];
   function prospectiveStreak() {
     var d = save.daily; if (!d.last) return 1; var gap = dayDiff(d.last, today());
     if (gap <= 0) return d.streak; if (gap <= 2) return d.streak + 1; return 1;      // gap of 2 = one forgiven missed day
@@ -502,22 +697,13 @@
       if (!canClaimDaily()) return;
       var s2 = prospectiveStreak(), d = DAYS[(s2 - 1) % 7];
       save.daily = { last: today(), streak: s2 };
-      if (d.coins) save.coins += d.coins; if (d.b) addBooster(d.b, 1); if (d.chest) { save.coins += 500; ['hammer', 'shuffle', 'rainbow', 'moves'].forEach(function (k) { addBooster(k, 1); }); }
+      if (d.coins) save.coins += d.coins; if (d.b) addBooster(d.b, 1); if (d.chest) { save.coins += 500; ['hammer', 'strike', 'wand', 'shuffle', 'rainbow', 's_bomb'].forEach(function (k) { addBooster(k, 1); }); }
       persist(); A.sfx('reward'); track('reward_claimed', { kind: 'daily', day: ((s2 - 1) % 7) + 1, streak: s2 });
       toast('Claimed: ' + (d.chest ? '500 coins and a booster pack!' : d.t)); if (cur.name === 'home') home(); else closeModal();
     });
     click($('#mX', c), closeModal);
   }
-  function dailyChallengeIntro() {
-    var dstr = today(), D = LV.daily(dstr), dc = save.dc.date === dstr ? save.dc : { best: 0, paid: false };
-    var W = LV.WORLDS[D.world - 1];
-    D.world = D.world;
-    var c = openModal('<h2>Daily Puzzle</h2><div class="small-text center">A new puzzle every day, the same for everyone. Beat the target for a bonus!</div>' +
-      '<div class="goals">' + goalHtml(D.objectives[0]) + '</div><div class="small-text center">' + D.moves + ' moves · Your best today: ' + (dc.best || 0) + '</div>' +
-      '<div class="btns"><button class="btn gold" id="mGo">' + ic('play') + 'PLAY</button><button class="btn ghost small" id="mX">Back</button></div>');
-    click($('#mGo', c), function () { closeModal(); startLevel(D, true); });
-    click($('#mX', c), closeModal);
-  }
+  function dailyChallengeIntro() { showIntro(LV.daily(today()), true); }
 
   /* ---------- profile and achievements ---------- */
   function profile() {
@@ -534,7 +720,8 @@
   /* ---------- cover picture for stratos.games (?cover=1) ---------- */
   function coverView() {
     var W = LV.WORLDS[0]; setBg(W.bg, 1);
-    var level = JSON.parse(JSON.stringify(LV.LEVELS[11])); level.rows = 7; level.cols = 7; level.holes = []; level.blockers = [{ r: 2, c: 5, kind: 'wood' }, { r: 4, c: 1, kind: 'cage' }];
+    var level = JSON.parse(JSON.stringify(LV.LEVELS[10])); level.rows = 7; level.cols = 7; level.holes = []; level.items = 0; level.blockers = [{ r: 2, c: 5, kind: 'wood' }, { r: 4, c: 1, kind: 'cage' }, { r: 5, c: 2, kind: 'path' }, { r: 5, c: 3, kind: 'path' }];
+    level.objectives = [{ type: 'score', n: 3000 }]; level.time = 0; level.moves = 30;
     eng = new E(level, 77);
     var spec = [[1, 1, 'lightning'], [3, 3, 'rainbow'], [5, 4, 'bomb'], [1, 4, 'star']];
     spec.forEach(function (s) { var t = eng.grid[s[0]][s[1]]; if (t) { t.sp = s[2]; if (s[2] === 'rainbow') t.color = -2; } });
@@ -544,20 +731,23 @@
 
   /* ---------- test hook (used by the automatic check, harmless for players) ---------- */
   window.__cq = {
-    info: function () { return eng ? { state: eng.state, moves: eng.moves, score: eng.score, busy: busy, level: L && L.id } : null; },
+    info: function () { return eng ? { state: eng.state, moves: eng.moves, score: eng.score, busy: busy, level: L && L.id, time: eng.timeLeft, items: eng.itemsOut } : null; },
     botMove: function () { if (!eng || busy || eng.state !== 'ready') return false; var h = eng.findHint(); if (!h) return false; trySwap(h[0], h[1]); return true; },
-    go: function (id) { startLevel(LV.LEVELS[id - 1]); },
-    save: function () { return save; }
+    go: function (id, starters) { startLevel(LV.LEVELS[id - 1], false, starters); },
+    save: function () { return save; }, screen: function () { return cur.name; },
+    intro: function (id) { showIntro(LV.LEVELS[id - 1]); }, kingdom: function (w, f) { kingdom(w, f); }, shop: function (t) { shop(t); }, settings: settings, map: function (w) { map(w); },
+    engine: function () { return eng; },
+    unlockAll: function () { for (var i = 1; i <= 100; i++) save.stars[i] = 2; persist(); }
   };
 
   /* ---------- go ---------- */
   function boot() {
-    A.init({ music: save.music, sfx: save.sfx });
-    try { if ((navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 4) <= 1) document.body.classList.add('lowfx'); } catch (e) {}
+    A.init({ music: save.music, sfx: save.sfx, musicVol: save.musicVol, sfxVol: save.sfxVol });
+    try { if (save.lowfx || (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 4) <= 1) document.body.classList.add('lowfx'); } catch (e) {}
     document.addEventListener('pointerdown', function () { A.unlock(); }, { once: false, capture: true });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (!modalEl.hidden && !modalEl.querySelector('#mHome,#mNext,#mAgain')) closeModal(); else if (cur.name === 'play' && modalEl.hidden) pauseMenu(); } });
     track('game_start', { returning: totalStars() > 0 });
-    if (/[?&]cover=1/.test(location.search)) coverView(); else home();
+    if (/[?&]cover=1/.test(location.search)) coverView(); else if (/[?&]nosplash=1/.test(location.search)) home(); else splash();
   }
   boot();
 })();
