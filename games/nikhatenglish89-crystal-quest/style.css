@@ -270,3 +270,12 @@ img.big{width:64px;height:64px;margin:0 auto}
 .cover .ctitle img{height:12vh;width:auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 .cover .ctitle h1{font-size:min(10.5vh,76px);letter-spacing:3px;line-height:1;white-space:nowrap;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink)}
 .cover .ctitle .sub{font-size:min(3.8vh,24px);letter-spacing:7px;color:var(--gold-l);margin-top:.8vh;text-shadow:0 2px 0 var(--ink)}
+
+/* short landscape screens (phones turned sideways, small windows): keep the board clear of the buttons */
+.tog em{font-style:normal;color:var(--gold-l);font-size:13px;margin-left:4px}
+@media (max-height:470px){
+  .boost{width:36px;height:36px;border-radius:12px}.boost small{display:none}.boost .n{min-width:16px;height:16px;font-size:9px;top:-5px;right:-5px}
+  .boosters{gap:8px;padding-bottom:0}.starbar{display:none}.hud .lv{font-size:12px}.hud .lv b{font-size:16px}.iconbtn{width:38px;height:38px}
+  .stat{padding:1px 8px}.stat b{font-size:17px}.objs{margin-top:2px}.obj{padding:1px 8px 1px 4px;font-size:13px}.obj img{width:20px;height:20px}
+  #boardWrap{margin:4px 0}.arm-note{min-height:0;font-size:12px}
+}

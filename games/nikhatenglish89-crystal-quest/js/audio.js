@@ -42,5 +42,6 @@
   // pause music when the tab is hidden
   try { document.addEventListener('visibilitychange', function () { if (document.hidden) { if (cur) cur.pause(); } else if (cur && on.music) { var p = cur.play(); if (p && p.catch) p.catch(function () {}); } }); } catch (e) {}
 
-  root.CQAudio = { init: init, unlock: unlock, sfx: sfx, music: music, stopMusic: stopMusic, set: set, setVolume: setVolume, state: on, level: level };
+  function debug() { return { unlocked: unlocked, music: on.music, sfx: on.sfx, track: curName, playing: !!(cur && !cur.paused), volume: cur ? cur.volume : null, musicLevel: level.music, sfxLevel: level.sfx }; }
+  root.CQAudio = { debug: debug, init: init, unlock: unlock, sfx: sfx, music: music, stopMusic: stopMusic, set: set, setVolume: setVolume, state: on, level: level };
 })(window);

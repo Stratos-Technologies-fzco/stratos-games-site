@@ -11,7 +11,7 @@
 
   var WORLDS = [
     { id: 1, name: 'Crystal Valley', bg: 'bg_01_crystal_valley', music: 'music_02_crystal_valley', gem: 0, boss: { name: 'Stone Golem', art: 'boss_01_stone_golem', hp: 230, every: 5, count: 2 }, hero: 'character_01_eldrin', blockers: ['cage', 'wood'],
-      projects: ['Ancient Bridge', 'Wizard Tower', 'Magical Waterfall', 'Crystal Fountain', 'Valley Palace'] },
+      projects: ['Ancient Bridge', 'Wizard Tower', 'Magical Waterfall', 'Crystal Fountain', 'Crystal Fountain Court'] },
     { id: 2, name: 'Frozen Mountains', bg: 'bg_02_frozen_mountains', music: 'music_03_frozen_mountains', gem: 1, boss: { name: 'Ice Dragon', art: 'boss_02_ice_dragon', hp: 280, every: 4, count: 2 }, hero: 'character_02_luma', blockers: ['ice', 'stone'],
       projects: ['Frozen Gate', 'Snow Watchtower', 'Ice Bridge', 'Aurora Fountain', 'Ice Castle'] },
     { id: 3, name: 'Enchanted Forest', bg: 'bg_03_enchanted_forest', music: 'music_04_enchanted_forest', gem: 2, boss: { name: 'Forest Witch', art: 'boss_03_forest_witch', hp: 320, every: 4, count: 3 }, hero: 'character_04_nyra', blockers: ['chain', 'wood', 'ice'],
@@ -45,7 +45,7 @@
   var DIALOGUE = {
     1: [E_, 'The Crystal Heart is broken, Guardian. Swap two neighbouring crystals to line up three of a colour.'],
     2: [L_, 'Make four in a row and a bolt crystal is born. Swap it to light up a whole line!'],
-    3: [E_, 'Before a level you can pick a starter booster. Use one when a level feels hard.'],
+    3: [E_, 'You earned a Hammer for finishing level 2! Tap it under the board, then tap a crystal to smash it.'],
     4: [A_, 'Five in a row makes a Rainbow crystal. Swap it with any colour to clear that colour!'],
     5: [L_, 'Cages hold crystals still. Match the crystal inside to free it.'],
     6: [E_, 'Light up the glowing path by clearing the crystals that sit on it.'],
@@ -101,14 +101,14 @@
     var type = isBoss ? 'boss' : PATTERN[world - 1][lv - 1];
     var ramp = (lv - 1) / 19;                                       // 0..1 inside the world
     var wr = (world - 1) / 4;                                       // 0..1 across worlds
-    var colors = 4 + (lv > 4 ? 1 : 0) + (lv > 12 ? 1 : 0);
+    var colors = (world === 1 && lv === 1) ? 4 : (lv > 12 ? 6 : 5);
     if (world >= 4 && lv > 6) colors = 6;
     colors = Math.max(4, Math.min(6, colors));
     var rows = 8, cols = 8, holes = [];
     if (lv >= 7 && lv % 4 === 3) holes = shape('corners', rows, cols);
     if (lv >= 11 && lv % 5 === 1) holes = shape('notch', rows, cols);
     if (lv >= 15 && lv % 5 === 4) holes = shape('arch', rows, cols);
-    if (lv === 1 || lv === 2) { rows = 7; cols = 7; holes = []; }
+    if (lv === 1 || lv === 2) holes = [];
     var moves = Math.round(30 - ramp * 4 - wr * 2 + (lv <= 3 ? 8 : 0));
     var objectives = [], blockers = [], time = 0, items = 0;
 
@@ -195,7 +195,8 @@
   function tipFor(world, lv, type, blockers) {
     if (world === 1 && lv === 1) return 'swap';
     if (type === 'boss') return 'boss';
-    if (world === 1 && lv === 3) return 'starters';
+    if (world === 1 && lv === 3) return 'boosters';
+    if (world === 1 && lv === 7) return 'starters';
     if (world === 1 && lv === 4) return 'special4';
     if (type === 'time' || type === 'treasure' || type === 'rescue' || type === 'path' || type === 'restore' || type === 'energy' || type === 'portal') return 'type_' + type;
     var kinds = {}; blockers.forEach(function (b) { kinds[b.kind] = 1; });
@@ -205,6 +206,7 @@
   }
   var TIPS = {
     swap:      { title: 'How to play', text: 'Swap two neighbouring crystals to line up 3 of the same colour. Reach the goal before you run out of moves.' },
+    boosters:  { title: 'Boosters', text: 'Boosters are under the board. Tap one, then tap a crystal if it asks you to. You earn more by winning levels, finishing a daily reward, or getting 3 stars.' },
     starters:  { title: 'Starter boosters', text: 'Below the goals you can pick a starter. A Ruby Bomb, Lightning or Rainbow crystal starts on the board, or a Magic Shield protects you.' },
     special4:  { title: 'Bolt crystals', text: 'Line up 4 and a bolt crystal appears. Swap it to clear a whole row or column. 5 in a row makes a Rainbow!' },
     boss:      { title: 'Boss battle', text: 'Every crystal you clear hurts the boss. Beat its health to zero. Watch out: it freezes crystals every few moves. Clear them to break the frost.' },

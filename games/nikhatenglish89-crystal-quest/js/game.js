@@ -54,8 +54,8 @@
   /* ---------- saving (this phone only; no sign-up, no account) ---------- */
   function zeroBoosters() { var o = {}; BOOST.forEach(function (b) { o[b[0]] = 0; }); return o; }
   function defaults() {
-    var b = zeroBoosters(); b.hammer = 2; b.strike = 1; b.wand = 1; b.shuffle = 1; b.moves = 1; b.rainbow = 1; b.s_bomb = 1; b.s_shield = 1;
-    return { v: 1, coins: 150, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
+    var b = zeroBoosters();                                   // a new player starts with none and earns them
+    return { v: 1, coins: 100, noTips: false, stars: {}, best: {}, energy: [0, 0, 0, 0, 0], seen: {}, music: true, sfx: true, musicVol: 0.5, sfxVol: 0.5, lowfx: false,
       boosters: b, daily: { last: '', streak: 0 }, dc: { date: '', best: 0, paid: false },
       stats: { wins: 0, bestCascade: 0, specials: 0, bosses: {}, threeStars: 0 } };
   }
@@ -99,14 +99,14 @@
 
   /* ---------- sound controls shared by Settings and Pause ---------- */
   function soundHtml() {
-    return '<div class="tog"><span>Music</span><button class="tick' + (save.music ? ' on' : '') + '" id="tMusic" aria-label="Music on or off"></button></div>' +
+    return '<div class="tog"><span>Music <em id="sMusic">' + (save.music ? 'on' : 'off') + '</em></span><button class="tick' + (save.music ? ' on' : '') + '" id="tMusic" aria-label="Music on or off"></button></div>' +
       '<label class="slide"><span>Music volume</span><input type="range" min="0" max="100" value="' + Math.round(save.musicVol * 100) + '" id="vMusic" aria-label="Music volume"></label>' +
-      '<div class="tog"><span>Sound effects</span><button class="tick' + (save.sfx ? ' on' : '') + '" id="tSfx" aria-label="Sound effects on or off"></button></div>' +
+      '<div class="tog"><span>Sound effects <em id="sSfx">' + (save.sfx ? 'on' : 'off') + '</em></span><button class="tick' + (save.sfx ? ' on' : '') + '" id="tSfx" aria-label="Sound effects on or off"></button></div>' +
       '<label class="slide"><span>Effects volume</span><input type="range" min="0" max="100" value="' + Math.round(save.sfxVol * 100) + '" id="vSfx" aria-label="Effects volume"></label>';
   }
   function bindSound(c) {
-    click($('#tMusic', c), function (e) { save.music = !save.music; A.set('music', save.music); persist(); e.target.classList.toggle('on', save.music); });
-    click($('#tSfx', c), function (e) { save.sfx = !save.sfx; A.set('sfx', save.sfx); persist(); e.target.classList.toggle('on', save.sfx); });
+    click($('#tMusic', c), function (e) { save.music = !save.music; A.set('music', save.music); persist(); e.target.classList.toggle('on', save.music); $('#sMusic', c).textContent = save.music ? 'on' : 'off'; });
+    click($('#tSfx', c), function (e) { save.sfx = !save.sfx; A.set('sfx', save.sfx); persist(); e.target.classList.toggle('on', save.sfx); $('#sSfx', c).textContent = save.sfx ? 'on' : 'off'; });
     var vm = $('#vMusic', c), vs = $('#vSfx', c);
     vm.addEventListener('input', function () { save.musicVol = vm.value / 100; A.setVolume('music', save.musicVol); });
     vm.addEventListener('change', function () { persist(); });
@@ -115,9 +115,11 @@
   }
   function settings() {
     var c = openModal('<h2>Settings</h2>' + soundHtml() +
+      '<div class="tog"><span>Skip the tips and hints</span><button class="tick' + (save.noTips ? ' on' : '') + '" id="tTips" aria-label="Skip tips"></button></div>' +
       '<div class="tog"><span>Calmer effects (for slow phones)</span><button class="tick' + (save.lowfx ? ' on' : '') + '" id="tFx" aria-label="Calmer effects"></button></div>' +
       '<div class="btns"><button class="btn ghost small" id="mX">Close</button></div>');
     bindSound(c);
+    click($('#tTips', c), function (e) { save.noTips = !save.noTips; persist(); e.target.classList.toggle('on', save.noTips); });
     click($('#tFx', c), function (e) { save.lowfx = !save.lowfx; document.body.classList.toggle('lowfx', save.lowfx); persist(); e.target.classList.toggle('on', save.lowfx); });
     click($('#mX', c), closeModal);
   }
@@ -172,7 +174,7 @@
     click($('#bMap'), function () { map(w); });
     click($('#bDaily'), dailyReward); click($('#bChallenge'), dailyChallengeIntro); click($('#bProfile'), profile);
     click($('#bShop'), function () { shop('game'); }); click($('#bSet'), settings);
-    click($('#bMute'), function () { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); home(); });
+    click($('#bMute'), function () { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); toast(m ? 'Sound off' : 'Sound on'); home(); });
     if (canClaimDaily() && !first && !save.seen['dailyShown_' + today()]) { save.seen['dailyShown_' + today()] = 1; persist(); setTimeout(function () { if (cur.name === 'home' && modalEl.hidden) dailyReward(); }, 500); }
   }
 
@@ -252,7 +254,7 @@
   var TYPE_NAME = { collect: 'Crystal Collection', blockers: 'Block Breaker', score: 'Score Challenge', mixed: 'Mixed Challenge', time: 'Time Challenge', treasure: 'Ancient Treasure', rescue: 'Magic Rescue', path: 'Crystal Path', restore: 'Forest Restoration', energy: 'Energy Collection', portal: 'Portal Challenge', boss: 'Boss Battle' };
 
   function showIntro(level, isDaily) {
-    var w = level.world - 1, W = LV.WORLDS[w], tip = level.tip && !save.seen['tip_' + level.tip] ? LV.TIPS[level.tip] : null;
+    var w = level.world - 1, W = LV.WORLDS[w], tip = level.tip && !save.noTips && !save.seen['tip_' + level.tip] ? LV.TIPS[level.tip] : null;
     var dlg = LV.DIALOGUE[level.id], boss = level.boss, who = '';
     if (boss) { who = charCard('character_05_shadow_lord', LV.BOSS_TAUNT[w] || '', { noNew: true }).replace('assets/characters/character_05_shadow_lord.svg', 'assets/bosses/' + boss.art + '.svg').replace('<b>Shadow Lord</b> <span class="role">The villain</span>', '<b>' + esc(boss.name) + '</b> <span class="role">Boss</span>'); }
     else if (dlg) who = charCard(dlg[0], dlg[1]);
@@ -260,7 +262,8 @@
     var dstat = isDaily ? (save.dc.date === today() ? save.dc : { best: 0 }) : null;
     var starsLine = '<div class="small-text center">' + ic('star', 'inl') + ' goals · ' + ic('star', 'inl') + ic('star', 'inl') + ' ' + level.stars[1] + ' · ' + ic('star', 'inl') + ic('star', 'inl') + ic('star', 'inl') + ' ' + level.stars[2] + ' points' +
       (dstat ? ' · best today ' + (dstat.best || 0) : save.stars[level.id] ? ' · your best ' + (save.best[level.id] || 0) : '') + '</div>';
-    var showStarters = level.id >= 3 || isDaily;
+    var ownsStarter = STARTERS.some(function (b) { return (save.boosters[b[0]] || 0) > 0; });
+    var showStarters = level.id >= 7 || isDaily || ownsStarter;
     var picks = {};
     var startersHtml = showStarters ? '<div class="starters"><div class="small-text center">Starter boosters (optional)</div><div class="row" style="justify-content:center">' +
       STARTERS.map(function (b) { return '<button class="stbtn" data-k="' + b[0] + '" aria-label="' + b[2] + '">' + im(b[1]) + '<small>' + b[3] + '</small><b>×' + (save.boosters[b[0]] || 0) + '</b></button>'; }).join('') + '</div></div>' : '';
@@ -322,7 +325,7 @@
   function layout(force) {
     if (!wrapEl || !eng) return;
     var w = wrapEl.clientWidth, h = wrapEl.clientHeight; if (!w || !h) return;
-    var c = Math.max(26, Math.floor(Math.min((w - 6) / cols, (h - 6) / rows)));
+    var c = Math.max(14, Math.floor(Math.min((w - 10) / cols, (h - 10) / rows)));
     if (c === lastCell && force !== true) return; lastCell = c; cell = c;
     app.style.setProperty('--cell', c + 'px'); boardEl.style.width = c * cols + 'px'; boardEl.style.height = c * rows + 'px';
     var bgl = boardEl._bgl; bgl.innerHTML = '';
@@ -368,7 +371,7 @@
       '<div class="grow" id="boardWrap"></div><div class="arm-note" id="armNote"></div>' +
       '<div class="boosters" id="boosters"></div>');
     buildBoard($('#boardWrap'), eng);
-    coachOn = !save.seen.firstMove && L.id === 1;
+    coachOn = !save.noTips && !save.seen.firstMove && L.id === 1;
     sync(); setHud(eng.hud()); drawBoosters();
     click($('#bPause'), pauseMenu);
     armHint();
@@ -407,6 +410,8 @@
   var TAP_BOOST = { hammer: 'Tap a crystal or block to smash it', strike: 'Tap a crystal: its whole row goes', wand: 'Tap a crystal to turn it into a special crystal', rainbow: 'Tap a crystal: every crystal of that colour goes' };
   function drawBoosters() {
     var b = $('#boosters'); if (!b) return;
+    if (L && !isDailyRun && L.id <= 2) { b.innerHTML = ''; b.style.display = 'none'; var nt = $('#armNote'); if (nt) nt.textContent = coachOn ? 'Swap the two glowing crystals!' : ''; return; }
+    b.style.display = '';
     b.innerHTML = GAME_BOOSTS.map(function (x) {
       var n = save.boosters[x[0]] || 0, label = x[0] === 'moves' && L && L.time ? '+15s' : x[3];
       return '<button class="boost' + (n ? '' : ' zero') + (armed === x[0] ? ' armed' : '') + '" data-k="' + x[0] + '" aria-label="' + x[2] + '">' + im(x[1]) + '<span class="n">' + (n || '+') + '</span><small>' + label + '</small></button>';
@@ -607,6 +612,7 @@
 
   /* ---------- win, lose, pause ---------- */
   function addBooster(k, n) { save.boosters[k] = (save.boosters[k] || 0) + n; }
+  var TEACH_GIFTS = { 2: 'hammer', 4: 'shuffle', 6: 'strike', 8: 'wand', 10: 'moves', 12: 'rainbow', 14: 's_bomb', 16: 's_shield' };   // the first boosters are earned, one at a time
   var PRIZES = ['hammer', 'strike', 'wand', 'shuffle', 'rainbow', 's_bomb', 's_lightning', 's_rainbow', 's_shield'];
   function stars3(stars) { return '<div class="stars">' + [1, 2, 3].map(function (n) { return '<img alt="" class="' + (n <= stars ? '' : 'off') + '" src="' + icon(n <= stars ? 'star' : 'star_empty') + '">'; }).join('') + '</div>'; }
   function showWin(s) {
@@ -633,6 +639,8 @@
     if (L.boss) save.stats.bosses[world + 1] = true;
     if (stars === 3) { var prize = PRIZES[id % PRIZES.length]; addBooster(prize, 1); lines.push('3 stars: you found a ' + boost(prize)[2] + '!'); }
     else if (L.num % 5 === 0) { addBooster('hammer', 1); lines.push('Bonus Hammer!'); }
+    if (firstTime && TEACH_GIFTS[L.num] && L.world === 1) { addBooster(TEACH_GIFTS[L.num], 1); lines.push('New booster: ' + boost(TEACH_GIFTS[L.num])[2] + '! ' + boost(TEACH_GIFTS[L.num])[5]); }
+    if (id === 3 && firstTime) track('tutorial_completed', { level: '3' });
     var restored = false;
     PROJ_T.forEach(function (t, k) { if (before < t && save.energy[world] >= t) { restored = true; save.coins += 50 * (k + 1); lines.push('Restored: ' + LV.WORLDS[world].projects[k] + '! +' + 50 * (k + 1) + ' coins'); } });
     lastRestore = restored ? { w: world, before: before } : null;
@@ -736,7 +744,7 @@
     go: function (id, starters) { startLevel(LV.LEVELS[id - 1], false, starters); },
     save: function () { return save; }, screen: function () { return cur.name; },
     intro: function (id) { showIntro(LV.LEVELS[id - 1]); }, kingdom: function (w, f) { kingdom(w, f); }, shop: function (t) { shop(t); }, settings: settings, map: function (w) { map(w); },
-    engine: function () { return eng; },
+    engine: function () { return eng; }, audio: function () { return A.debug(); },
     unlockAll: function () { for (var i = 1; i <= 100; i++) save.stars[i] = 2; persist(); }
   };
 
