@@ -81,11 +81,15 @@
     bgEl.style.backgroundImage = bg ? 'url(assets/backgrounds/' + bg + '.svg)' : '';
     bgEl.style.filter = frac === undefined ? '' : 'saturate(' + (0.55 + 0.45 * frac).toFixed(2) + ') brightness(' + (0.82 + 0.18 * frac).toFixed(2) + ')';
   }
+  var modalBack = null;
   function openModal(html, opts) {
-    modalEl.innerHTML = '<div class="card panel">' + html + '</div>'; modalEl.hidden = false; modalEl.onclick = function (e) { if (e.target === modalEl && !(opts && opts.sticky)) closeModal(); };
+    modalBack = opts && opts.onBack || null;
+    modalEl.innerHTML = '<div class="card panel">' + html + '</div>'; modalEl.hidden = false; modalEl.onclick = function (e) { if (e.target === modalEl && !(opts && opts.sticky)) dismissModal(); };
     return modalEl.firstChild;
   }
-  function closeModal() { modalEl.hidden = true; modalEl.innerHTML = ''; modalEl.onclick = null; }
+  function closeModal() { modalEl.hidden = true; modalEl.innerHTML = ''; modalEl.onclick = null; modalBack = null; }
+  /* close with the Back button, a tap outside or Esc: some windows know where to go back to */
+  function dismissModal() { var b = modalBack; closeModal(); if (b) b(); }
   function click(el, fn) { if (el) el.addEventListener('click', function (e) { e.stopPropagation(); A.sfx('button'); fn(e); }); }
   function setScreen(name, cls, html) { cur.name = name; screen.className = cls || ''; screen.innerHTML = html; }
 
@@ -269,6 +273,7 @@
       (dstat ? ' · best today ' + (dstat.best || 0) : save.stars[level.id] ? ' · your best ' + (save.best[level.id] || 0) : '') + '</div>';
     var ownsStarter = STARTERS.some(function (b) { return (save.boosters[b[0]] || 0) > 0; });
     var showStarters = level.id >= 7 || isDaily || ownsStarter;
+    var cameFromPlay = cur.name === 'play';
     var picks = {};
     var startersHtml = showStarters ? '<div class="starters"><div class="small-text center">Starter boosters (optional)</div><div class="row" style="justify-content:center">' +
       STARTERS.map(function (b) { return '<button class="stbtn" data-k="' + b[0] + '" aria-label="' + b[2] + '">' + im(b[1]) + '<small>' + b[3] + '</small><b>×' + (save.boosters[b[0]] || 0) + '</b></button>'; }).join('') + '</div></div>' : '';
@@ -276,7 +281,7 @@
     var c = openModal('<h2>' + (isDaily ? 'Daily Puzzle' : (boss ? 'BOSS · ' : '') + 'Level ' + level.num) + '</h2><div class="small-text center">' + esc(sub) + '</div>' + who +
       '<div class="goals">' + goals + '</div>' + starsLine +
       (tip ? '<div class="who">' + ic('book') + '<div><b>' + esc(tip.title) + '</b><div class="small-text">' + esc(tip.text) + '</div></div></div>' : '') + startersHtml +
-      '<div class="btns"><button class="btn gold" id="mGo">' + ic('play') + 'START</button><button class="btn ghost small" id="mX">Back</button></div>');
+      '<div class="btns"><button class="btn gold" id="mGo">' + ic('play') + 'START</button><button class="btn ghost small" id="mX">Back</button></div>', cameFromPlay ? { onBack: function () { if (isDaily) home(); else map(level.world - 1); } } : null);
     Array.prototype.forEach.call(c.querySelectorAll('.stbtn'), function (b) {
       click(b, function () {
         var k = b.dataset.k;
@@ -291,7 +296,7 @@
       chosen.forEach(function (k) { save.boosters[k]--; track('starter_used', { booster: k, level: String(level.id) }); });
       persist(); closeModal(); startLevel(level, isDaily, chosen.map(function (k) { return STARTER_KIND[k]; }));
     });
-    click($('#mX', c), closeModal);
+    click($('#mX', c), dismissModal);
   }
 
   /* ---------- the board ---------- */
@@ -760,7 +765,7 @@
     A.init({ music: save.music, sfx: save.sfx, musicVol: save.musicVol, sfxVol: save.sfxVol });
     try { if (save.lowfx || (navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 4) <= 1) document.body.classList.add('lowfx'); } catch (e) {}
     document.addEventListener('pointerdown', function () { A.unlock(); }, { once: false, capture: true });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (!modalEl.hidden && !modalEl.querySelector('#mHome,#mNext,#mAgain')) closeModal(); else if (cur.name === 'play' && modalEl.hidden) pauseMenu(); } });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (!modalEl.hidden && !modalEl.querySelector('#mHome,#mNext,#mAgain')) dismissModal(); else if (cur.name === 'play' && modalEl.hidden) pauseMenu(); } });
     track('game_start', { returning: totalStars() > 0 });
     if (/[?&]cover=1/.test(location.search)) coverView(); else if (/[?&]nosplash=1/.test(location.search)) home(); else splash();
   }

@@ -84,6 +84,18 @@ test('magic shield gives +3 moves, or blocks the first boss attack', function ()
   var steps = []; b.moveCount = L.boss.every; b._bossAttack(steps); assert.ok(steps.some(function (s) { return s.k === 'shield'; })); assert.strictEqual(b.shield, false);
 });
 
+console.log('Fish and goal colours');
+test('crystal fish clears a real area (four fish, each with the crystals around it)', function () {
+  var e = make(['abcdefab', 'bcdefabc', 'cdefabcd', 'defabcde', 'efabcdef', 'fabcdefa', 'abcdefab', 'bcdefabc']); var cells = e._area('fish', 3, 3, {}); assert.ok(cells.length >= 16, 'only ' + cells.length);
+});
+test('the colour a level needs is generated more often than the others', function () {
+  var L = { rows: 8, cols: 8, colors: 5, moves: 20, objectives: [{ type: 'collect', color: 4, n: 19 }], stars: [0, 1, 2], blockers: [], holes: [] }, total = 0, hits = 0;
+  for (var s = 1; s <= 200; s++) { var e = new Engine(JSON.parse(JSON.stringify(L)), s); for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) { total++; if (e.grid[r][c].color === 4) hits++; } }
+  assert.ok(hits / total > 0.24, 'goal colour share ' + hits / total);
+  var worst = 99; for (var s2 = 1; s2 <= 300; s2++) { var e2 = new Engine(JSON.parse(JSON.stringify(L)), s2), n = 0; for (var r2 = 0; r2 < 8; r2++) for (var c2 = 0; c2 < 8; c2++) if (e2.grid[r2][c2].color === 4) n++; worst = Math.min(worst, n); }
+  assert.ok(worst >= 8, 'a board started with only ' + worst);
+});
+
 console.log('Story');
 test('story cards use the five characters and only known art', function () {
   var who = {}; Object.keys(Lv.DIALOGUE).forEach(function (k) { assert.ok(Lv.CHAR[Lv.DIALOGUE[k][0]], 'unknown character at ' + k); who[Lv.DIALOGUE[k][0]] = 1; assert.ok(+k >= 1 && +k <= 100); });

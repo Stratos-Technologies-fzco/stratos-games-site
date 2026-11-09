@@ -54,6 +54,16 @@
   }
   var P = Engine.prototype;
 
+  /* A new crystal's colour. The colours a level still needs get a little extra chance, so a goal never depends on luck alone. */
+  P._pickColor = function () {
+    var w = [], i, tot = 0, self = this;
+    for (i = 0; i < this.ncol; i++) w.push(1);
+    (this.L.objectives || []).forEach(function (o) { if (o.type === 'collect' && o.color < self.ncol && self.collected[o.color] < o.n) w[o.color] = 1.6; });
+    w.forEach(function (x) { tot += x; });
+    var r = this.rand() * tot;
+    for (i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return i; }
+    return w.length - 1;
+  };
   P._mk = function (color, sp) { return { id: this.nextId++, color: color, sp: sp || null }; };
   P.inb = function (r, c) { return r >= 0 && c >= 0 && r < this.rows && c < this.cols; };
   P.solidAt = function (r, c) { var b = this.inb(r, c) && this.blk[r][c]; return !!b && BLOCKERS[b.kind].mode === 'solid'; };
@@ -75,7 +85,7 @@
         this.grid[r][c] = null;
         if (!this.playable(r, c)) continue;
         var col, k = 0;
-        do { col = Math.floor(this.rand() * this.ncol); k++; }
+        do { col = this._pickColor(); k++; }
         while (k < 30 && this._wouldMatch(r, c, col));
         this.grid[r][c] = this._mk(col);
       }
@@ -229,7 +239,7 @@
   };
   /* The cells one special hits when it goes off at (r,c). */
   P._area = function (sp, r, c, fx) {
-    var out = [], i;
+    var out = [], i, self = this;
     switch (sp) {
       case 'bomb': this._rect(r - 1, c - 1, r + 1, c + 1, out); break;
       case 'lightning': this._rect(r, 0, r, this.cols - 1, out); break;
@@ -249,7 +259,10 @@
         if (fx) fx.color = col; break;
       }
       case 'fish': {
-        var tg = this._fishTargets(3); out = tg.slice(); if (fx) fx.targets = tg; break;
+        // four fish, each one clears the crystal it lands on and the four crystals around it
+        var tg = this._fishTargets(4); if (fx) fx.targets = tg;
+        tg.forEach(function (p) { out.push(p); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var rr = p[0] + d[0], cc = p[1] + d[1]; if (self.inb(rr, cc) && !self.hole[rr][cc]) out.push([rr, cc]); }); });
+        break;
       }
     }
     return out;
@@ -380,7 +393,7 @@
         var k = 0;
         for (r = write; r >= top; r--) {
           this.grid[r][c] = null;
-          var nt = this._mk(Math.floor(this.rand() * this.ncol));
+          var nt = this._mk(this._pickColor());
           this.grid[r][c] = nt; k++;
           spawns.push({ id: nt.id, color: nt.color, sp: null, r: r, c: c, fromR: top - k });
         }
