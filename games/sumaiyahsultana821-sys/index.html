@@ -65,13 +65,22 @@
   .btn-big:active{box-shadow:0 2px 0 #b4530a; transform:translateY(4px)}
   .cover-best{margin:0; font-size:14px; opacity:.85}
   .cover-best b{color:#ffe9b3}
-  .howto{
-    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
-    border-radius:14px; padding:clamp(8px, 1.6vh, 14px) 16px; max-width:440px; text-align:left;
+  .goal{
+    margin:0; padding:8px 16px; border-radius:999px; max-width:440px;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+    font-size:clamp(13px, 2vh, 15px); font-weight:700;
   }
-  .howto h2{margin:0 0 4px; font-size:clamp(14px, 2vh, 16px)}
-  .howto ol{margin:0; padding-left:20px; font-size:clamp(12px, 1.8vh, 14px); line-height:1.45; opacity:.95}
-  .howto b{color:#ffe9b3}
+
+  /* First-island tutorial: one short hint at a time, above the board */
+  .hint{
+    align-self:center; margin:0 0 8px; padding:7px 16px; border-radius:14px; max-width:420px;
+    background:#fff3cf; color:var(--ink); text-align:center;
+    font-size:clamp(13px, 3.6vw, 15px); font-weight:700; line-height:1.35;
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+  }
+  .hint[hidden]{display:none}
+  .hint.show{animation:hintIn .45s ease}
+  @keyframes hintIn{from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:none}}
   .credit{text-align:center; font-size:11px; opacity:.6; margin-top:6px}
 
   /* ---------- Game ---------- */
@@ -137,11 +146,22 @@
     backface-visibility:hidden; -webkit-backface-visibility:hidden;
     font-size:calc(var(--card) * .45);
   }
+  /* Card back: a tiny island scene (sky, sun, sea, sandy island, palm tree) */
   .card-back{
-    background:linear-gradient(145deg,var(--card-back),var(--card-back-2));
-    border:2px solid rgba(255,255,255,.25);
+    overflow:hidden;
+    background:
+      radial-gradient(ellipse 62% 22% at 50% 86%, #f6e3b4 0 62%, #e8c788 66%, transparent 70%),
+      linear-gradient(180deg, #7dd3fc 0%, #38bdf8 46%, #0e7490 47%, #075166 100%);
+    border:2px solid rgba(255,255,255,.55);
   }
-  .card-back::after{content:"🌴"; opacity:.55}
+  .card-back::before{
+    content:""; position:absolute; top:12%; right:14%; width:18%; height:18%;
+    border-radius:50%; background:#fde68a; box-shadow:0 0 8px 2px rgba(253,230,138,.7);
+  }
+  .card-back::after{
+    content:"🌴"; font-size:calc(var(--card) * .42);
+    transform:translate(4%, 2%); filter:drop-shadow(0 2px 1px rgba(0,0,0,.25));
+  }
   .card-front{
     background:var(--sand); color:var(--ink);
     border:2px solid var(--sand-deep);
@@ -189,11 +209,10 @@
   @media (max-height:740px){ .cover .tag{display:none} }
   @media (max-height:620px){ .cover-art, .credit{display:none} }
   @media (max-height:600px){
-    .howto ol li:nth-child(4){display:none}
     .cover-inner{gap:8px}
   }
   @media (max-height:520px){
-    .howto ol li:nth-child(n+3), .cover-best{display:none}
+    .cover-best{display:none}
     .map{grid-template-columns:repeat(7, minmax(0, 1fr)); max-width:640px}
     .mt-name{display:none}
   }
@@ -219,15 +238,7 @@
     <button id="playBtn" class="btn btn-primary btn-big" type="button">▶ Play</button>
     <p class="cover-best">Best score: <b id="coverBest">0</b> · Stars: <b id="coverStars">0</b></p>
     <div id="map" class="map" aria-label="Island map"></div>
-    <div class="howto">
-      <h2>How to play</h2>
-      <ol>
-        <li>Tap two cards to find a matching pair.</li>
-        <li>Clear every pair to unlock the next island.</li>
-        <li>Each island has a move limit, plus one <b>second chance</b>.</li>
-        <li>Fewer moves earn more <b>⭐ stars</b> and a bigger bonus.</li>
-      </ol>
-    </div>
+    <p class="goal">🎯 Match every pair to unlock the next island</p>
   </div>
   <footer class="credit">Island Match Quest · by Sumaiyah Sultana</footer>
 </section>
@@ -246,6 +257,7 @@
     <div class="hud-item"><span class="hud-label">Best</span><span id="best" class="hud-value">0</span></div>
   </div>
   <div id="islandLabel" class="island-label"></div>
+  <div id="hint" class="hint" role="status" aria-live="polite" hidden></div>
   <div id="boardWrap" class="board-wrap">
     <main id="board" class="board" aria-label="Memory match board"></main>
   </div>
@@ -310,6 +322,53 @@
   var overlayBtn2 = document.getElementById("overlayBtn2");
   var restartBtn = document.getElementById("restartBtn");
   var muteBtn = document.getElementById("muteBtn");
+  var hintEl = document.getElementById("hint");
+
+  /* ---------- First-island tutorial: teach by playing, one short hint at a time ---------- */
+  var TUT_KEY = "islandMatchQuest.tutorialDone";
+  var tutDone = false;
+  try { tutDone = localStorage.getItem(TUT_KEY) === "1"; } catch (e) {}
+  var tut = { active: false, step: 0 };
+
+  function showHint(text){
+    hintEl.textContent = text;
+    hintEl.hidden = false;
+    hintEl.classList.remove("show"); void hintEl.offsetWidth; hintEl.classList.add("show");
+    fitBoard();
+  }
+  function hideHint(){
+    if (hintEl.hidden) return;
+    hintEl.hidden = true;
+    fitBoard();
+  }
+  function startTutorial(){
+    tut.active = true; tut.step = 0;
+    showHint("👆 Tap any card to flip it");
+  }
+  function finishTutorial(){
+    tut.active = false;
+    tutDone = true;
+    try { localStorage.setItem(TUT_KEY, "1"); } catch (e) {}
+    track("tutorial_complete", {});
+    hideHint();
+  }
+  // Called after the first card of a pair is flipped.
+  function tutOnFirstFlip(){
+    if (tut.active && tut.step === 0){ tut.step = 1; showHint("Now tap a second card to find its twin"); }
+  }
+  // Called after a pair is checked (matched or not).
+  function tutOnPair(matched){
+    if (!tut.active) return;
+    if (tut.step <= 1){
+      tut.step = 2;
+      showHint(matched ? "✨ A match! Matched cards stay face up. Clear them all to win." : "No match, so they flip back. Remember where they were!");
+    } else if (tut.step === 2){
+      tut.step = 3;
+      showHint("⭐ Fewer moves earn more stars. You have " + state.moveLimit + " moves here.");
+    } else {
+      finishTutorial();
+    }
+  }
 
   /* ---------- Sound: soft, code-made tones and gentle waves, with a mute button ---------- */
   var MUTE_KEY = "islandMatchQuest.muted";
@@ -641,6 +700,9 @@
 
     renderIslandLabel();
     updateHud();
+    tut.active = false;
+    hintEl.hidden = true;
+    if (index === 0 && !tutDone && !progress.stars[0]) startTutorial();
     fitBoard();
     startTimer();
     track("level_start", { level: index + 1, island: island.name });
@@ -653,6 +715,7 @@
     card.classList.add("flipped");
     state.flipped.push(card);
     soundFlip();
+    if (state.flipped.length === 1) tutOnFirstFlip();
 
     if (state.flipped.length === 2){
       state.moves++;
@@ -678,6 +741,7 @@
           updateHud();
           state.flipped = [];
           state.busy = false;
+          tutOnPair(true);
           if (state.matchedPairs === state.totalPairs) onIslandComplete();
           else checkOutOfMoves();
         }, 350);
@@ -688,6 +752,7 @@
           b.classList.remove("flipped");
           state.flipped = [];
           state.busy = false;
+          tutOnPair(false);
           checkOutOfMoves();
         }, 800);
       }
