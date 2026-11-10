@@ -5,5 +5,18 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Pick your fruit and your gun. WASD to move, mouse to look, left click to shoot, right click to aim. With the Rind Ranger sniper, right click opens the scope: scroll or press Z and X to zoom from 2x up to 12x, and hold Shift to steady your breath. G throws a juice bomb, C crouches, R reloads, Q swaps to your pistol. First to 25 squeezes wins.",
-  "description": "Oranges, lemons, limes and grapefruits fight it out on a juice factory yard with a central tower, sniper perches, shipping containers and crates. Four guns plus a pistol, a sniper scope with four zoom levels, sway and a hold-breath meter, a rangefinder, scope glint that gives away enemy snipers, juice bombs, kill streaks and a minimap that shows anyone who fires."
+  "description": "Zest Strike is a juicy free-for-all shooter where fruit fight fruit. Pick your fruit, choose your gun and jump into a juice factory yard full of crates, shipping containers, a central tower and sniper perches.\n\nMove with WASD, look with the mouse, left click to shoot and right click to aim. Choose the Squeezer, the Pulper, the Seed Scatter or the Rind Ranger sniper, and you always carry the Peeler pistol too. With the Rind Ranger, right click opens a real scope: scroll or press Z and X to zoom from 2x to 12x, and hold Shift to steady your breath. Throw juice bombs with G, crouch with C and reload with R. First to 25 squeezes wins, or whoever has the most when the 6 minute timer runs out.\n\nThe fun is in the sniping: scope glint gives away enemy snipers, firing puts you on the minimap, and kill streaks keep the pressure on. It needs a keyboard and mouse, so play it on a laptop or computer. It is for teens and grown-ups who love shooters but want something bright and silly.",
+  "controls": [
+    "WASD to move, mouse to look, Shift to sprint",
+    "Left click to shoot, right click to aim or open the scope",
+    "Scroll or Z / X to zoom the scope, hold Shift to steady",
+    "1 to 4 to change gun, Q for the pistol, R to reload",
+    "G throws a juice bomb, C crouches"
+  ],
+  "tips": [
+    "Watch for scope glint. It means a sniper is looking your way.",
+    "Every shot shows you on the minimap, so move after you fire.",
+    "Hold Shift before a long shot to calm the sway."
+  ],
+  "story": "I wanted a fun shooter that is bright and silly, not dark, so the players are fruit. I made it with Claude and gave it a real sniper scope that zooms from 2x to 12x, because that was the part I wanted most."
 }

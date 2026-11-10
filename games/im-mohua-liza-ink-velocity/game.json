@@ -5,5 +5,18 @@
   "category": "puzzle",
   "github": "im-mohua-liza",
   "how_to_play": "Draw a road with your mouse or finger from the cliff to the finish flag, then press GO (Space). Ink is limited. The Turbo pen draws blue boost strips. You can keep drawing while the car drives. Hold NITRO (Shift) to boost and BRAKE (S) to slow down; lean in the air with the arrow buttons (A / D) and land flips for stunts. R puts the car back and keeps your roads.",
-  "description": "A draw-the-road driving puzzle set in the Darjeeling hills. Sketch bridges, ramps and turbo strips across canyons, then watch your supercar take them on: climbs, drops, crates to push, a spinning windmill, stepping-stone pillars and a long night jump. Behind you rise the real snow peaks of Kanchenjunga, tea garden terraces, prayer flags, a hillside town and the blue toy train puffing past. 8 levels in morning, golden hour and moonlight. Earn 3 stars per level for finishing, saving ink and collecting every coin, and paint your car in the garage."
+  "description": "Ink Velocity is a draw-the-road puzzle. You draw a road with your finger or mouse, press GO, and a red supercar drives whatever you drew, across canyons in the Darjeeling hills with the real snow peaks of Kanchenjunga behind.\n\nDraw from the cliff to the finish flag. Your ink is limited, so a short, smart road beats a long one. The Turbo pen draws blue boost strips that cost double ink. You can keep drawing while the car drives, hold NITRO to speed up, BRAKE to slow down, and lean in the air to land flips. If it goes wrong, press R: the car goes back and your roads stay. There are 8 levels with climbs, drops, crates to push, a spinning windmill and a long night jump.\n\nEach level gives up to 3 stars: one for finishing, one for staying under the ink target and one for collecting every coin. I love the scenery: tea garden terraces, prayer flags, a hillside town and the blue toy train puffing past. You can paint your car in the garage too. It is for puzzle lovers and car lovers alike.",
+  "controls": [
+    "Draw roads with your mouse or finger",
+    "GO or Space starts the car",
+    "2 picks the Turbo pen for boost strips",
+    "Hold NITRO (Shift) to boost, BRAKE (S) to slow down",
+    "Lean in the air with A / D or the arrow keys, R resets the car"
+  ],
+  "tips": [
+    "Draw ramps a little longer than you think. The car needs room to land.",
+    "Save ink at the start: you can add more road while the car drives.",
+    "Put a turbo strip just before a big jump."
+  ],
+  "story": "I loved draw-the-road games and wanted a bigger, more beautiful one. I set it in the Darjeeling hills with the real Kanchenjunga peaks, tea gardens and the toy train. When the first scenery looked too cartoonish, I asked Claude to make it look real."
 }
