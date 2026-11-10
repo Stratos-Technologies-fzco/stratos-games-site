@@ -3,6 +3,11 @@
   "url": "https://stratos.games",
   "tagline": "Free browser games, made by humans with AI.",
   "description": "Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.",
+  "about_home": [
+    "Stratos Games is an indie game studio and a game portal. Every game here is free to play in your browser, on a phone or a computer, with nothing to install and no sign-up.",
+    "The games come from two places. Studio titles such as Bloxplode, Arrow Puzzle, Word Quest and House Mafia are made by the Stratos studio. Family games are made by people from the Stratos family, each building their own game with an AI partner.",
+    "Our rule is: humans test, AI builds, games ship. AI writes the code, and people play every game before it goes live. New family games go to a test site first and join stratos.games at the weekly release once they pass the checks."
+  ],
   "contact": "admin@stratos.games",
   "twitter": "",
   "categories": [
@@ -12,7 +17,8 @@
       "icon": "sparkle",
       "mood": "Fresh this week",
       "emoji": "✨",
-      "hue": 190
+      "hue": 190,
+      "intro": "The newest games on Stratos Games, freshest first. Family makers send their games to a test site during the week; the ones that pass the checks (a real cover, a game that fits the screen, no crashes) go live at the weekly release and show up here first."
     },
     {
       "id": "arcade",
@@ -20,7 +26,8 @@
       "icon": "joystick",
       "mood": "Adrenaline rush",
       "emoji": "🕹️",
-      "hue": 335
+      "hue": 335,
+      "intro": "Quick action games: dodge, jump, fly and race. Rounds are short, so you can play one in a minute or chase a high score for longer. Every game runs in your browser and fits a phone screen."
     },
     {
       "id": "puzzle",
@@ -28,7 +35,8 @@
       "icon": "puzzle",
       "mood": "Train your brain",
       "emoji": "🧩",
-      "hue": 180
+      "hue": 180,
+      "intro": "Games that make you think: clear the board, find the right order, plan a few moves ahead. Many start easy and get harder level by level, so there is always one more puzzle to solve."
     },
     {
       "id": "word",
@@ -36,7 +44,8 @@
       "icon": "word",
       "mood": "Word nerds",
       "emoji": "🔤",
-      "hue": 45
+      "hue": 45,
+      "intro": "Games for word lovers: find words in a letter grid, build words from letters, and test your vocabulary. Good for a short break."
     },
     {
       "id": "party",
@@ -44,7 +53,8 @@
       "icon": "party",
       "mood": "With friends",
       "emoji": "🎉",
-      "hue": 140
+      "hue": 140,
+      "intro": "Games to play with friends. House Mafia, our multiplayer party game, takes 4 to 8 players and runs on any phone from a link, with no install."
     },
     {
       "id": "sports",
@@ -52,7 +62,8 @@
       "icon": "ball",
       "mood": "Get moving",
       "emoji": "⚽",
-      "hue": 25
+      "hue": 25,
+      "intro": "Sports and racing games you can play in a few minutes: matches, stunts and races, right in your browser."
     },
     {
       "id": "kids",
@@ -60,7 +71,8 @@
       "icon": "star",
       "mood": "For the kids",
       "emoji": "🧸",
-      "hue": 95
+      "hue": 95,
+      "intro": "Simple, friendly games for younger players. Games in the kids section run with no ads and no analytics."
     },
     {
       "id": "studio",
@@ -68,7 +80,8 @@
       "icon": "studio",
       "mood": "Stratos originals",
       "emoji": "🚀",
-      "hue": 265
+      "hue": 265,
+      "intro": "Games made by the Stratos studio: Bloxplode, Arrow Puzzle, Word Quest and House Mafia. AI writes the code, and a person plays every build on a real phone before it ships."
     }
   ],
   "studio_games": [
