@@ -1624,5 +1624,41 @@ window.__dominoDebug={G:G,Engine:E,Net:Net,show:show,modal:modal,fitAll:fitAll,s
 boot();
 })();
 </script>
+<!-- about-panel:start -->
+<style>#sx-about-btn{position:fixed;top:8px;right:8px;z-index:2147483000;min-width:44px;height:30px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:15px;background:rgba(15,20,30,.72);color:#fff;font:600 13px/28px system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;cursor:pointer;opacity:.85;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#sx-about-btn:hover,#sx-about-btn:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}
+#sx-about{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.7)}
+#sx-about[hidden]{display:none}
+#sx-about .sx-card{box-sizing:border-box;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:#fff;color:#14202e;border-radius:14px;padding:18px 20px 20px;font:15px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;text-align:left;user-select:text;-webkit-user-select:text}
+#sx-about h2{margin:0 36px 8px 0;font-size:20px;line-height:1.25;color:#0b2238}
+#sx-about h3{margin:14px 0 4px;font-size:15px;color:#0b2238}
+#sx-about p{margin:0 0 8px}
+#sx-about ul{margin:0;padding-left:20px}
+#sx-about li{margin:2px 0}
+#sx-about .sx-x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:36px;height:36px;border:0;border-radius:50%;background:#e8edf3;color:#0b2238;font:700 20px/36px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}</style>
+<button id="sx-about-btn" type="button" aria-haspopup="dialog" aria-label="About DOMINO CLASSIC">About</button>
+<div id="sx-about" role="dialog" aria-modal="true" aria-labelledby="sx-about-t" hidden><div class="sx-card"><button class="sx-x" type="button" aria-label="Close">&times;</button></div></div>
+<script type="application/json" id="sx-about-data">{"title":"DOMINO CLASSIC","maker":"Sk Sarfaraj Ali","description":"Domino Classic is a clean, simple version of the dominoes game many of us grew up with. You can play Draw or Block dominoes, with two players or four. In four-player games you play in teams, and the computer fills any empty seat.\n\nYou each get seven tiles. On your turn, match one end of the chain with a tile from your hand. If you cannot play, draw a tile in Draw mode, or pass in Block mode. The first player to empty their hand wins the round and scores the pips left in the other hands. Play to 100, 150 or 200 points.\n\nYou can play offline against a computer at three levels. Easy plays any tile, Medium is smarter, and Hard counts tiles and tries to block you. You can also play a friend online: create a room, then send the invite link or the 5-letter code. There is a hard daily challenge that is the same for everyone, plus hints, undo, stats and a winning streak to beat. It works on phones, tablets and computers, and it is for anyone who enjoys a thoughtful game with friends and family.","controls":["Tap a tile in your hand. The tiles you can play glow gold.","Tap a gold end of the chain, or drag the tile there. If only one end fits, tap the tile twice.","No move? Tap DRAW, or PASS in Block mode.","Use HINT and UNDO when you are stuck.","To play a friend, tap PLAY A FRIEND ONLINE and share the room code."],"tips":["Start on Easy to learn the rules, then move up to Hard.","In Block mode, play your big tiles early. If the game gets blocked, the lowest total wins.","In a four-player game, you and the player opposite are a team, so help your partner."],"story":""}</script>
+<script>(function(){
+var btn=document.getElementById('sx-about-btn'),ov=document.getElementById('sx-about'),card=ov.querySelector('.sx-card'),x=ov.querySelector('.sx-x');
+var d=JSON.parse(document.getElementById('sx-about-data').textContent);
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e;}
+function list(h,a){if(!a||!a.length)return;card.appendChild(el('h3',h));var u=el('ul');a.forEach(function(s){u.appendChild(el('li',s));});card.appendChild(u);}
+var h=el('h2','About '+d.title);h.id='sx-about-t';card.appendChild(h);
+String(d.description||'').split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});
+list('Controls',d.controls);list('Tips',d.tips);
+if(d.story){card.appendChild(el('h3','From the maker'));String(d.story).split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});}
+card.appendChild(el('p','Made by '+d.maker+'.')).style.marginTop='12px';
+var last=null;
+function open(){last=document.activeElement;ov.hidden=false;card.scrollTop=0;x.focus();}
+function close(){ov.hidden=true;if(btn)btn.blur();try{if(last&&last.focus&&last!==btn)last.focus();}catch(e){}}
+btn.addEventListener('click',function(e){e.stopPropagation();open();});
+['pointerdown','mousedown','touchstart','keydown','keyup'].forEach(function(n){btn.addEventListener(n,function(e){e.stopPropagation();});});
+x.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+['keydown','keyup','keypress'].forEach(function(n){window.addEventListener(n,function(e){if(ov.hidden)return;if(n==='keydown'&&e.key==='Escape')close();if(e.key==='Tab'){return;}e.stopPropagation();},true);});
+['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
+})();</script>
+<!-- about-panel:end -->
 </body>
 </html>

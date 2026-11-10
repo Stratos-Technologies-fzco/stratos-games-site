@@ -1,5 +1,5 @@
 /* Echo Island service worker: makes the game playable offline after the first visit (PRD 19). */
-const CACHE = 'echo-island-v1';
+const CACHE = 'echo-island-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {

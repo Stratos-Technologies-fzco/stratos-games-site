@@ -31,5 +31,41 @@
     <div id="game"></div>
     <div id="ui"></div>
     <noscript>Echo Island needs JavaScript to run.</noscript>
-  </body>
+  <!-- about-panel:start -->
+<style>#sx-about-btn{position:fixed;top:8px;right:8px;z-index:2147483000;min-width:44px;height:30px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:15px;background:rgba(15,20,30,.72);color:#fff;font:600 13px/28px system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;cursor:pointer;opacity:.85;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#sx-about-btn:hover,#sx-about-btn:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}
+#sx-about{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.7)}
+#sx-about[hidden]{display:none}
+#sx-about .sx-card{box-sizing:border-box;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:#fff;color:#14202e;border-radius:14px;padding:18px 20px 20px;font:15px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;text-align:left;user-select:text;-webkit-user-select:text}
+#sx-about h2{margin:0 36px 8px 0;font-size:20px;line-height:1.25;color:#0b2238}
+#sx-about h3{margin:14px 0 4px;font-size:15px;color:#0b2238}
+#sx-about p{margin:0 0 8px}
+#sx-about ul{margin:0;padding-left:20px}
+#sx-about li{margin:2px 0}
+#sx-about .sx-x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:36px;height:36px;border:0;border-radius:50%;background:#e8edf3;color:#0b2238;font:700 20px/36px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}</style>
+<button id="sx-about-btn" type="button" aria-haspopup="dialog" aria-label="About Echo Island">About</button>
+<div id="sx-about" role="dialog" aria-modal="true" aria-labelledby="sx-about-t" hidden><div class="sx-card"><button class="sx-x" type="button" aria-label="Close">&times;</button></div></div>
+<script type="application/json" id="sx-about-data">{"title":"Echo Island","maker":"Sarfaraj Ali","description":"Echo Island is a cosy adventure you can play on your phone or computer. A shadow called the Forgetting has made the island lose its memory. You wake up, meet a little spirit called Pip, and help the island remember again.\n\nYou start small by chopping wood. Then you take quests from the villagers, build homes in Whisper Village, clean up Moonlit Lake, plant trees, cook, and decorate. Later you explore the Crystal Caves and the Ancient Temple, and take a boat to Coral Isle. Shy creatures like the Glowfox will trust you if you feed them, and they become your friends. When gloomlings block the way, you can dodge and fight back.\n\nWhat I love most is that the island never forgets what you choose. Every kind thing you do brings a little more of its memory back. It is a calm game for kids, and for anyone who likes to explore, collect things and watch a place slowly come back to life.","controls":["Move: W A S D or the arrow keys. On a phone, drag the joystick or tap where to walk.","Interact or attack: E or Space. On a phone, tap the thing or the round button.","Menus: J Journal, I Inventory, B Build, M Map, P Pip, Esc for the main menu.","Quick use: 1 eat food, 2 drink tonic, 3 use purifier."],"tips":["Open the Journal (J) when you are not sure what to do next. It shows your quest.","Feed a creature Glow Berries from the forest bushes again and again until it trusts you.","Check what a building costs before you start. A house needs 8 Wood and 4 Stone."],"story":""}</script>
+<script>(function(){
+var btn=document.getElementById('sx-about-btn'),ov=document.getElementById('sx-about'),card=ov.querySelector('.sx-card'),x=ov.querySelector('.sx-x');
+var d=JSON.parse(document.getElementById('sx-about-data').textContent);
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e;}
+function list(h,a){if(!a||!a.length)return;card.appendChild(el('h3',h));var u=el('ul');a.forEach(function(s){u.appendChild(el('li',s));});card.appendChild(u);}
+var h=el('h2','About '+d.title);h.id='sx-about-t';card.appendChild(h);
+String(d.description||'').split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});
+list('Controls',d.controls);list('Tips',d.tips);
+if(d.story){card.appendChild(el('h3','From the maker'));String(d.story).split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});}
+card.appendChild(el('p','Made by '+d.maker+'.')).style.marginTop='12px';
+var last=null;
+function open(){last=document.activeElement;ov.hidden=false;card.scrollTop=0;x.focus();}
+function close(){ov.hidden=true;if(btn)btn.blur();try{if(last&&last.focus&&last!==btn)last.focus();}catch(e){}}
+btn.addEventListener('click',function(e){e.stopPropagation();open();});
+['pointerdown','mousedown','touchstart','keydown','keyup'].forEach(function(n){btn.addEventListener(n,function(e){e.stopPropagation();});});
+x.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+['keydown','keyup','keypress'].forEach(function(n){window.addEventListener(n,function(e){if(ov.hidden)return;if(n==='keydown'&&e.key==='Escape')close();if(e.key==='Tab'){return;}e.stopPropagation();},true);});
+['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
+})();</script>
+<!-- about-panel:end -->
+</body>
 </html>

@@ -14,5 +14,41 @@
 </head>
 <body>
 <div id="root"></div>
+<!-- about-panel:start -->
+<style>#sx-about-btn{position:fixed;top:8px;right:8px;z-index:2147483000;min-width:44px;height:30px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:15px;background:rgba(15,20,30,.72);color:#fff;font:600 13px/28px system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;cursor:pointer;opacity:.85;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#sx-about-btn:hover,#sx-about-btn:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}
+#sx-about{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.7)}
+#sx-about[hidden]{display:none}
+#sx-about .sx-card{box-sizing:border-box;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:#fff;color:#14202e;border-radius:14px;padding:18px 20px 20px;font:15px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;text-align:left;user-select:text;-webkit-user-select:text}
+#sx-about h2{margin:0 36px 8px 0;font-size:20px;line-height:1.25;color:#0b2238}
+#sx-about h3{margin:14px 0 4px;font-size:15px;color:#0b2238}
+#sx-about p{margin:0 0 8px}
+#sx-about ul{margin:0;padding-left:20px}
+#sx-about li{margin:2px 0}
+#sx-about .sx-x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:36px;height:36px;border:0;border-radius:50%;background:#e8edf3;color:#0b2238;font:700 20px/36px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}</style>
+<button id="sx-about-btn" type="button" aria-haspopup="dialog" aria-label="About BrainRush Daily">About</button>
+<div id="sx-about" role="dialog" aria-modal="true" aria-labelledby="sx-about-t" hidden><div class="sx-card"><button class="sx-x" type="button" aria-label="Close">&times;</button></div></div>
+<script type="application/json" id="sx-about-data">{"title":"BrainRush Daily","maker":"Sk Sarfaraj Ali","description":"BrainRush Daily gives you three short brain puzzles every day: a Pattern, a Sudoku and a Logic puzzle. Everyone gets the same ones on the same day, so you can compare with friends. There is no sign-up, and the game remembers where you stopped.\n\nWhen you want more, open the Play tab. There you will find endless quick rounds: count the shapes, tap numbers from smallest to biggest or biggest to smallest, and find the one that does not belong. You will also find Gem Match, a 30-level puzzle where you swap neighbouring gems to line up three or more before your moves run out. Match four to make a blaster, and match five to make a bomb.\n\nEach puzzle takes only a minute or two, so it fits into a break, a bus ride or a quiet evening. It is made for anyone who likes to keep their mind sharp, from school kids to grown-ups. If you fail a level, nothing is lost, and the next board is a little different.","controls":["Tap to answer the daily Pattern, Sudoku and Logic puzzles.","Gem Match: swap two neighbouring gems to match three or more.","Number rounds: tap the numbers in order, as the question asks.","Count and odd-one-out rounds: tap your answer."],"tips":["Do the three daily puzzles first. They change every day.","In Gem Match, watch your moves left and plan ahead. A match of four makes a blaster, and five makes a bomb.","Lost a level? Just try again. Every board is a little different."],"story":""}</script>
+<script>(function(){
+var btn=document.getElementById('sx-about-btn'),ov=document.getElementById('sx-about'),card=ov.querySelector('.sx-card'),x=ov.querySelector('.sx-x');
+var d=JSON.parse(document.getElementById('sx-about-data').textContent);
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e;}
+function list(h,a){if(!a||!a.length)return;card.appendChild(el('h3',h));var u=el('ul');a.forEach(function(s){u.appendChild(el('li',s));});card.appendChild(u);}
+var h=el('h2','About '+d.title);h.id='sx-about-t';card.appendChild(h);
+String(d.description||'').split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});
+list('Controls',d.controls);list('Tips',d.tips);
+if(d.story){card.appendChild(el('h3','From the maker'));String(d.story).split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});}
+card.appendChild(el('p','Made by '+d.maker+'.')).style.marginTop='12px';
+var last=null;
+function open(){last=document.activeElement;ov.hidden=false;card.scrollTop=0;x.focus();}
+function close(){ov.hidden=true;if(btn)btn.blur();try{if(last&&last.focus&&last!==btn)last.focus();}catch(e){}}
+btn.addEventListener('click',function(e){e.stopPropagation();open();});
+['pointerdown','mousedown','touchstart','keydown','keyup'].forEach(function(n){btn.addEventListener(n,function(e){e.stopPropagation();});});
+x.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+['keydown','keyup','keypress'].forEach(function(n){window.addEventListener(n,function(e){if(ov.hidden)return;if(n==='keydown'&&e.key==='Escape')close();if(e.key==='Tab'){return;}e.stopPropagation();},true);});
+['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
+})();</script>
+<!-- about-panel:end -->
 </body>
 </html>
