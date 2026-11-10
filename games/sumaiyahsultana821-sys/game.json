@@ -1,10 +1,8 @@
 {
-  "title": "Island Match Quest",
+  "title": "The Missing Minute",
   "maker": "Sumaiyah Sultana",
-  "one_line": "Flip shells, fruits, gems and more to match pairs, unlock seven islands, and collect every star.",
+  "one_line": "Find hidden clues, solve three puzzles, and work out what happened during a missing minute.",
   "category": "puzzle",
   "github": "sumaiyahsultana821-sys",
-  "added": "2026-10-02",
-  "how_to_play": "Tap Play, then tap two cards to find a matching pair. Clear every pair to unlock the next island. Each island has a move limit, plus one second chance. Fewer moves earn up to 3 stars and a bigger bonus. Tap any unlocked island on the map to replay it.",
-  "description": "A calm memory matching quest across seven islands: Shell Shore, Fruit Grove, Gem Cavern, Coral Reef, Jungle Trail, Volcano Peak and Starry Lagoon. Boards grow as you go, progress and stars are saved, and soft sounds and ocean waves play along (with a mute button). One self-contained HTML file with no dependencies."
+  "status": "coming_soon"
 }
