@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 34,
+ "count": 35,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -376,6 +376,19 @@
    "thumb": "games/Mdsadee527-mega-ramp-stunt-racer/thumbnail.png",
    "added": "2026-11-07",
    "github": "Mdsadee527",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sumaiyahsultana821-sys",
+   "title": "Island Match Quest",
+   "maker": "Sumaiyah Sultana",
+   "one_line": "Flip shells, fruits, gems and more to match pairs, unlock seven islands, and collect every star.",
+   "category": "puzzle",
+   "url": "play/sumaiyahsultana821-sys/",
+   "thumb": "games/sumaiyahsultana821-sys/thumbnail.png",
+   "added": "2026-10-02",
+   "github": "sumaiyahsultana821-sys",
    "kind": "family",
    "soon": false
   },
