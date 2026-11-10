@@ -225,6 +225,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
  .btn{padding:11px 14px}.btn.pri{padding:13px;font-size:17px}
  .stack{gap:8px}
 }
+#sx-about-btn{display:none!important}
 #game{overflow:hidden}
 @media (max-height:430px){#rack{padding:4px 12px 8px;min-height:0}.hud{min-height:32px;padding:2px 10px 0}.rowtop{min-height:44px;padding-top:4px}.mebar .av{width:28px;height:28px;font-size:16px}}
 </style>
@@ -263,7 +264,10 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
      <button class="btn" data-act="stats">STATISTICS</button>
      <button class="btn" data-act="how">HOW TO PLAY</button>
     </div>
-    <button class="btn line" data-act="settings">SETTINGS</button>
+    <div class="row2">
+     <button class="btn line" data-act="settings">SETTINGS</button>
+     <button class="btn line" data-act="about">ABOUT</button>
+    </div>
    </div>
   </div></div>
  </section>
@@ -416,6 +420,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
    <button class="btn" id="pRestart">RESTART GAME</button>
    <button class="btn" id="pSettings">SETTINGS</button>
    <button class="btn" id="pHow">HOW TO PLAY</button>
+   <button class="btn" id="pAbout">ABOUT</button>
    <button class="btn line" id="pQuit">QUIT TO MENU</button>
   </div>
  </div></div>
@@ -743,6 +748,8 @@ function closeOverlay(id){modal(id,false);if(fromPause){fromPause=false;modal('m
 function openFromPause(id){modal('mPause',false);fromPause=true;modal(id,true);}
 function openTips(cb){tipsCb=cb||null;modal('mTips',true);}
 $('tipsOk').onclick=function(){sfx('click');closeOverlay('mTips');var f=tipsCb;tipsCb=null;if(f)f();};
+function openAbout(){var b=document.getElementById('sx-about-btn');if(b)b.click();}
+$('pAbout').onclick=function(){sfx('click');openAbout();};
 $('setClose').onclick=function(){sfx('click');closeOverlay('mSettings');};
 function toggleSfx(){setSetting('sfx',!settings.sfx);if(settings.sfx)sfx('click');}
 $('mSound').onclick=toggleSfx;$('gSound').onclick=toggleSfx;
@@ -1551,6 +1558,7 @@ document.addEventListener('click',function(e){
  var a=b.getAttribute('data-act');
  if(a==='quick'){cfg=Object.assign({},lastCfg);startMatch(cfg,false);}
  else if(a==='daily'){startMatch({mode:'draw',players:2,ai:'hard',target:100},true);track('daily_started',{});}
+ else if(a==='about')openAbout();
  else if(a==='online')openOnline();
  else if(a==='modes')show('modes');
  else if(a==='menu')show('menu');
