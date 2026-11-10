@@ -2102,5 +2102,13 @@ ov.addEventListener('click',function(e){if(e.target===ov)close();});
 ['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
 })();</script>
 <!-- about-panel:end -->
+<!-- about-beside-sound:start -->
+<style>
+/* the About button sits right beside Sound (to its left) on every screen; same height, same look */
+#sx-about-btn{top:calc(12px + env(safe-area-inset-top));right:122px;left:auto;bottom:auto;margin:0;transform:none;height:44px;min-height:44px;border:0;border-radius:0;background:rgba(11,13,18,.72);font:600 14px Barlow,Arial,sans-serif;padding:0 16px;color:#F4F1EA;line-height:1;opacity:1;width:max-content;white-space:nowrap}
+body.racing #sx-about-btn{top:calc(20px*var(--u) + 176px*var(--u) + env(safe-area-inset-top));right:calc(24px*var(--u) + 110px)}
+body.sub #sx-about-btn{right:12px}
+</style>
+<!-- about-beside-sound:end -->
 </body>
 </html>
