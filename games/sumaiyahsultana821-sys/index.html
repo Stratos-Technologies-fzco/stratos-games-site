@@ -61,8 +61,15 @@
   @keyframes ping{0%{transform:scale(1)} 40%{transform:scale(1.18)} 100%{transform:scale(1)}}
   .cover h1{margin:0; font-size:clamp(28px, 5.5vh, 44px); text-shadow:0 2px 0 rgba(0,0,0,.25)}
   .cover .tag{margin:0; opacity:.9; font-size:clamp(13px, 2vh, 16px); max-width:420px}
-  .btn-big{font-size:clamp(18px, 3vh, 22px); padding:clamp(12px, 2vh, 16px) 48px; box-shadow:0 6px 0 #b4530a}
-  .btn-big:active{box-shadow:0 2px 0 #b4530a; transform:translateY(4px)}
+  .btn-big{
+    font-size:clamp(20px, 3.6vh, 26px); padding:clamp(14px, 2.4vh, 18px) 56px; min-width:240px;
+    box-shadow:0 6px 0 #b4530a; animation:startGlow 2.2s ease-in-out infinite;
+  }
+  .btn-big:active{box-shadow:0 2px 0 #b4530a; transform:translateY(4px); animation:none}
+  @keyframes startGlow{
+    0%,100%{box-shadow:0 6px 0 #b4530a, 0 0 0 0 rgba(255,233,179,.0)}
+    50%{box-shadow:0 6px 0 #b4530a, 0 0 0 10px rgba(255,233,179,.35)}
+  }
   .cover-best{margin:0; font-size:14px; opacity:.85}
   .cover-best b{color:#ffe9b3}
   .goal{
@@ -217,7 +224,7 @@
     .mt-name{display:none}
   }
   @media (prefers-reduced-motion:reduce){
-    .card.pop .card-inner, .art-btn, .art-btn.ping{animation:none}
+    .card.pop .card-inner, .art-btn, .art-btn.ping, .btn-big{animation:none}
   }
 </style>
 </head>
@@ -235,7 +242,7 @@
     </div>
     <h1>🏝️ Island Match Quest</h1>
     <p class="tag">Flip, match, and unlock seven islands of shells, fruits, gems and more.</p>
-    <button id="playBtn" class="btn btn-primary btn-big" type="button">▶ Play</button>
+    <button id="playBtn" class="btn btn-primary btn-big" type="button">▶ Start Game</button>
     <p class="cover-best">Best score: <b id="coverBest">0</b> · Stars: <b id="coverStars">0</b></p>
     <div id="map" class="map" aria-label="Island map"></div>
     <p class="goal">🎯 Match every pair to unlock the next island</p>
@@ -614,7 +621,7 @@
       mapEl.appendChild(tile);
     });
     var next = Math.min(progress.unlocked, ISLANDS.length) - 1;
-    playBtn.textContent = next === 0 && !progress.stars[0] ? "▶ Play" : "▶ Play · Island " + (next + 1);
+    playBtn.textContent = next === 0 && !progress.stars[0] ? "▶ Start Game" : "▶ Continue · Island " + (next + 1);
     coverStarsEl.textContent = totalStars() + "/" + (ISLANDS.length * 3);
   }
 
