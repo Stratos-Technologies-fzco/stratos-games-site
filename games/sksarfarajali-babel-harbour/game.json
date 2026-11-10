@@ -4,5 +4,17 @@
   "one_line": "A calm daily word puzzle: sort the crates to the dock showing their true meaning and spot the false friends between German, French and English.",
   "category": "word",
   "github": "sksarfarajali",
-  "how_to_play": "Drag each crate to the dock that shows what the word really means, or tap the crate then a dock. Play the Daily Harbour, build your harbour with coins, and keep your streak."
+  "how_to_play": "Drag each crate to the dock that shows what the word really means, or tap the crate then a dock. Play the Daily Harbour, build your harbour with coins, and keep your streak.",
+  "description": "Babel Harbour is a calm word puzzle with a new challenge every day. Ships arrive with crates, and each crate holds a word from German, French or Spanish. Your job is to carry every crate to the dock that shows what the word really means.\n\nSome words are easy because they look like English and mean the same. Others are false friends: they look like a word you know but mean something else. Spotting those is the heart of the game. Choose the wrong dock and you lose a heart, so think before you drop.\n\nIf you finish the Daily Harbour, you get coins and a streak bonus. Spend the coins to build your harbour, and each new building brings ships from a new country. You can also play Free Sail as much as you like, and pick Easy, Mixed or Tricky. Passport stamps reward you for learning a language. It is made for anyone who is learning a language, or who simply enjoys words and a few quiet minutes.",
+  "controls": [
+    "Drag a crate onto a dock.",
+    "Or tap the crate, then tap the dock.",
+    "Tap Hint to rule out one wrong dock.",
+    "Use the bottom tabs: Play, Harbour and Passport."
+  ],
+  "tips": [
+    "If a word looks like English, stop and check twice. It might be a false friend.",
+    "You get 3 hints a day, so save them for the crates that really stump you.",
+    "Play the Daily Harbour every day. The streak bonus grows with each day and gives you more coins."
+  ]
 }

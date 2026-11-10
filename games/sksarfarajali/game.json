@@ -4,5 +4,17 @@
   "one_line": "Explore a living island, bond with creatures and rebuild its lost memory, where every choice changes the world.",
   "category": "kids",
   "github": "sksarfarajali",
-  "how_to_play": "Move around the island, talk to villagers, complete quests, and feed creatures to bond with them."
+  "how_to_play": "Move around the island, talk to villagers, complete quests, and feed creatures to bond with them.",
+  "description": "Echo Island is a cosy adventure you can play on your phone or computer. A shadow called the Forgetting has made the island lose its memory. You wake up, meet a little spirit called Pip, and help the island remember again.\n\nYou start small by chopping wood. Then you take quests from the villagers, build homes in Whisper Village, clean up Moonlit Lake, plant trees, cook, and decorate. Later you explore the Crystal Caves and the Ancient Temple, and take a boat to Coral Isle. Shy creatures like the Glowfox will trust you if you feed them, and they become your friends. When gloomlings block the way, you can dodge and fight back.\n\nWhat I love most is that the island never forgets what you choose. Every kind thing you do brings a little more of its memory back. It is a calm game for kids, and for anyone who likes to explore, collect things and watch a place slowly come back to life.",
+  "controls": [
+    "Move: W A S D or the arrow keys. On a phone, drag the joystick or tap where to walk.",
+    "Interact or attack: E or Space. On a phone, tap the thing or the round button.",
+    "Menus: J Journal, I Inventory, B Build, M Map, P Pip, Esc for the main menu.",
+    "Quick use: 1 eat food, 2 drink tonic, 3 use purifier."
+  ],
+  "tips": [
+    "Open the Journal (J) when you are not sure what to do next. It shows your quest.",
+    "Feed a creature Glow Berries from the forest bushes again and again until it trusts you.",
+    "Check what a building costs before you start. A house needs 8 Wood and 4 Stone."
+  ]
 }

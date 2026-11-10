@@ -4,5 +4,18 @@
   "one_line": "Survive the Frontier, discover eggs and evolve your dinosaur along one of three paths.",
   "category": "arcade",
   "github": "sksarfarajali",
-  "how_to_play": "Drag on the left side of the screen (or use WASD) to move, tap Attack (or Space), tap Dash (or Shift) and Ability (or E)."
+  "how_to_play": "Drag on the left side of the screen (or use WASD) to move, tap Attack (or Space), tap Dash (or Shift) and Ability (or E).",
+  "description": "Dino Frontier is a survival game where you raise a dinosaur and help it grow strong. You start in Verdant Valley with a small dino, a few berries to gather and a hidden egg to find. From there you travel through hotter, colder and stranger lands, from the lava of the Emberlands to the energy fields of Genesis Crater.\n\nYou fight raiders by attacking, dodging and dashing. Enemies flash before they strike, so you have a moment to get out of the way. Each land has a boss, and each boss has its own tricks to learn. As you level up, you pick how your dinosaur evolves. Swiftclaw is fast, Ironhide is tough, and Wildspark uses special powers. You can switch later for a few tokens.\n\nBetween trips you upgrade your Sanctuary, fill the Dinosaur Codex and finish daily missions. Missing a day costs nothing. It is for players who enjoy action with a little planning, and who like to watch their creature grow.",
+  "controls": [
+    "Move: drag on the left side of the screen, or use W A S D.",
+    "Attack: tap ATTACK or press Space.",
+    "Dash: tap DASH or press Shift.",
+    "Ability: tap ABILITY or press E.",
+    "Pause: press Esc. On a phone, hold it sideways."
+  ],
+  "tips": [
+    "Enemies flash before they strike. Dodge on the flash, then hit back.",
+    "Berries restore a little health, so gather them between fights.",
+    "Dash costs energy, but your normal attack is free."
+  ]
 }
