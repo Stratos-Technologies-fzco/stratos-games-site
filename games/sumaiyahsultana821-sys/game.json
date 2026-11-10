@@ -6,5 +6,18 @@
   "github": "sumaiyahsultana821-sys",
   "added": "2026-10-02",
   "how_to_play": "Tap Play, then tap two cards to find a matching pair. Clear every pair to unlock the next island. Each island has a move limit, plus one second chance. Fewer moves earn up to 3 stars and a bigger bonus. Tap any unlocked island on the map to replay it.",
-  "description": "A calm memory matching quest across seven islands: Shell Shore, Fruit Grove, Gem Cavern, Coral Reef, Jungle Trail, Volcano Peak and Starry Lagoon. Boards grow as you go, progress and stars are saved, and soft sounds and ocean waves play along (with a mute button). One self-contained HTML file with no dependencies."
+  "description": "Island Match Quest is a calm memory game I made for anyone who loves a gentle puzzle. You travel across seven islands, from Shell Shore and Fruit Grove all the way to Volcano Peak and Starry Lagoon. On each island you flip cards to find matching pairs of shells, fruits, gems, sea creatures and stars, and every new island brings a fresh set of pictures to discover.\n\nTap two cards. If they match, they stay face up and you score points. If not, they flip back, so try to remember where everything was. Clear every pair to unlock the next island. Each island has a move limit, and if you run out you get one second chance with six extra moves. The fewer moves you use, the more stars you earn, up to three per island, plus a speed bonus for finishing quickly.\n\nWhat I love is how it grows with you. The first island has 6 pairs and the last has 14, so your memory gets a real workout. Soft sounds and ocean waves play along, with a mute button whenever you need quiet. Your stars and progress are saved, so you can come back any day and chase all 21 stars. It's for students, young people and casual players of any age who enjoy a simple puzzle and a few relaxing minutes.",
+  "controls": [
+    "Tap a card to flip it",
+    "Tap a second card to find its match",
+    "🏠 goes back to the island map",
+    "Restart replays the island you're on",
+    "🔊 turns the sound on or off"
+  ],
+  "tips": [
+    "Open one corner of the board first and remember those cards before you move on.",
+    "For three stars, use about 1.5 moves per pair, for example 10 moves or fewer on Shell Shore.",
+    "Tap any unlocked island on the map to replay it and win more stars."
+  ],
+  "story": "I made Island Match Quest because I wanted a fun, easy puzzle game that mixes island adventures with matching challenges, so playing is also a little brain training. I built it with HTML, CSS and JavaScript, and along the way I learned how to design the screens, make the game rules, add matching and keep score. It was a great learning experience that grew my creativity, logical thinking and coding skills."
 }
