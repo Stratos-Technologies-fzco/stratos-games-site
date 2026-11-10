@@ -39,7 +39,9 @@ Say "publish" when you are happy. About a minute later it is on staging (https:/
     games/<your-username>/
         index.html      the game (or the placeholder), one file if you can, everything it needs inside the folder
         game.json       {"title": "...", "maker": "Your Name", "one_line": "what it is", "category": "arcade", "github": "your-username", "how_to_play": "Tap to jump"}
-                        "status": "coming_soon" while it is a placeholder; optional "description" (a paragraph for the play page)
+                        "status": "coming_soon" while it is a placeholder; optional "description" (150 to 250 words for the
+                        play page, a blank line between paragraphs), "controls" and "tips" (a line or a list), "story" (why and
+                        how you made it, in your own words). Google needs this writing before it will show ads on the site.
         thumbnail.png   a picture of it, 16:10, about 800 by 500 (if you skip it, the site makes a cover from the title)
 
 Categories: arcade, puzzle, word, party, sports, kids.

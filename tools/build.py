@@ -364,9 +364,22 @@ q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,see
   if(hit&&v){if(seen[t.href])hit=false;seen[t.href]=1}t.hidden=!hit;if(hit)n++});
  body.classList.toggle('pk-searching',!!v);if(none)none.hidden=!(v&&!n)})})();</script>"""
 
-def pk_body(base, inner, attrs="", active="", nav=None, cls="", top=""):
+def pk_body(base, inner, attrs="", active="", nav=None, cls="", top="", after=""):
     return (f'<body class="pk{cls}" data-base="{esc(base)}"{attrs}>{top}{pk_side(base, active)}<main class="pk-grid">{pk_nav(base) if nav is None else nav}{inner}</main>'
-            f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{pk_foot(base)}{PK_JS}</body></html>')
+            f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{after}{pk_foot(base)}{PK_JS}</body></html>')
+
+# Written text under the tiles (AdSense, Nov 2026: pages need words of their own, not only game tiles).
+# It sits outside the tile grid (the grid's rows are a fixed height) and hides while someone searches.
+def pk_paras(text):
+    return [p.strip() for p in re.split(r"\n\s*\n|\n", str(text or "")) if p.strip()]
+
+def pk_list(items):
+    items = [items] if isinstance(items, str) else list(items or [])
+    return "<ul>" + "".join(f"<li>{esc(x)}</li>" for x in items if str(x).strip()) + "</ul>" if items else ""
+
+def pk_text(title, paras=(), extra=""):
+    if not paras and not extra: return ""
+    return f'<section class="pk-text"><h2>{esc(title)}</h2>' + "".join(f"<p>{esc(p)}</p>" for p in paras) + extra + "</section>"
 
 # --- home page: Poki look (turquoise page, square logo box, mixed tile sizes) ---
 ICONS["thumbup"] = '<path d="M7 11v9H4v-9zM7 11l4-8c1.5 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>'
@@ -420,7 +433,14 @@ def build_home_cards(fam):
     jsonld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Organization", "@id": SITE["url"] + "/#org", "name": "Stratos Games", "url": SITE["url"] + "/", "email": SITE["contact"], "logo": SITE["url"] + "/assets/favicon.svg"},
         {"@type": "WebSite", "@id": SITE["url"] + "/#site", "url": SITE["url"] + "/", "name": "Stratos Games", "publisher": {"@id": SITE["url"] + "/#org"}}]}
-    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))))
+    counts = {}
+    for g in fam:
+        if not g.get("soon"): counts[g["category"]] = counts.get(g["category"], 0) + 1
+    counts["studio"] = len(SITE.get("studio_games", []))
+    cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
+                   for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
+    about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
+    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
@@ -452,7 +472,11 @@ def build_category(cid, items, fam, studio):
     if CLEAN:
         n = len(pool)
         headcard = f'<div class="pk-head"><h1>{c.get("emoji", "")} {esc(c["label"])}</h1><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>'
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid)
+        names = [f'{g["title"]} by {g["maker"]}' for g in pool if not g.get("soon")]
+        listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
+        about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
+                        pk_paras(c.get("intro")), listing)
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid, after=about)
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
@@ -469,7 +493,13 @@ def build_play(g, fam, studio):
               "author": {"@type": "Person", "name": g["maker"]}, "publisher": {"@id": SITE["url"] + "/#org"}, "isAccessibleForFree": True, "datePublished": g["added"]}
     gh = f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else ""
     howto = f'<h2>How to play</h2><p>{esc(g["how_to_play"])}</p>' if g.get("how_to_play") else ""
-    about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") else "")
+    about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") and not CLEAN else "")
+    # game.json, all optional: "description" (paragraphs, blank line between), "controls" and "tips" (a line or a list),
+    # "story" (why and how the maker made it, in their own words)
+    more = (pk_list(g.get("controls")) and f'<h3>Controls</h3>{pk_list(g.get("controls"))}') + \
+           (pk_list(g.get("tips")) and f'<h3>Tips</h3>{pk_list(g.get("tips"))}') + \
+           (f'<h3>From the maker</h3>' + "".join(f"<p>{esc(p)}</p>" for p in pk_paras(g.get("story"))) if pk_paras(g.get("story")) else "")
+    words = pk_text(f'About {g["title"]}', pk_paras(g.get("description")), more)
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
     if CLEAN:
         stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
@@ -490,7 +520,7 @@ def build_play(g, fam, studio):
         others.sort(key=lambda x: x["category"] != g["category"])   # similar games (same category) first
         gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
         body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False) + info + pk_cta() + pk_cats(base),
-                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"])
+                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words)
         write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'

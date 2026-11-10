@@ -315,3 +315,8 @@ body.poki.side-open .pk-side .lb{opacity:1}
   .pk-meta i{font-style:normal;font-size:12px;font-weight:800;line-height:1;padding:4px 9px;border-radius:999px;background:rgba(25,12,70,.6);color:#fff}
   body.poki .s1 .pk-meta i{font-size:9px;padding:3px 6px}
 }
+/* written text under the tiles (home, category and play pages): AdSense, Nov 2026 */
+.pk-text{max-width:900px;margin:32px auto 0;background:var(--card);border-radius:16px;box-shadow:var(--sh);padding:18px 24px;font-weight:600}
+.pk-text h2{margin:0 0 8px;font-size:20px;font-weight:900}.pk-text h3{margin:14px 0 4px;font-size:15px;font-weight:900}
+.pk-text p,.pk-text li{margin:0 0 8px;font-size:14.5px;line-height:1.6;color:#21405f}.pk-text ul{margin:0 0 8px 20px;padding:0}
+.pk-text a{color:var(--blue)}.pk-searching .pk-text{display:none!important}
