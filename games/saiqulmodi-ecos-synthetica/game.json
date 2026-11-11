@@ -5,15 +5,15 @@
   "category": "kids",
   "github": "saiqulmodi",
   "how_to_play": "Tap Play on a path. Explorer: tap where to go and follow the voice. Scientist: move with the joystick or WASD, tap an organism to scan it, L opens the Lab. Professional: read the case, choose your plan, run the model. A new nature question every day.",
-  "description": "Ecos-Synthetica is a foundation for a career in biology and medicine, learned by living inside one ecosystem. Start as an Eco Explorer: plant trees, rescue animals, clean the river, sort waste and light the village, with picture questions read aloud so the youngest players can join in.\n\nGrow into an Eco Scientist: live as a cell, a plant, a bee and a human, meet 42 organisms from their own side first, then run experiments on population growth, predators and prey, and the carbon and nitrogen cycles in the Synthesis Lab, with a journal and an AI Teacher.\n\nAs an Eco Professional you work on real cases: a dengue outbreak, city air quality, village water, a net-zero ward, monsoon drains, a tiger reserve and mangroves before a cyclone, then Research mode with Census, tiger and CO2 data. The Extra-Edge tab adds 919 harder questions for Class 8 to 12 and a NEET and MBBS set covering physiology, anatomy and biochemistry basics, with links to the NCERT books.\n\nEnglish, Hindi and Bengali. Every science claim is sourced. A daily question builds a streak, and teachers can collect report cards. Works offline once loaded; nothing is tracked.",
+  "description": "Ecos-Synthetica is a foundation for a career in biology and medicine, learned by living inside one ecosystem. Start as an Eco Explorer: plant trees, rescue animals, clean the river, sort waste and light the village, with picture questions read aloud so the youngest players can join in.\n\nGrow into an Eco Scientist: live as a cell, a plant, a bee and a human, meet 42 living things and see the world as they do, then run experiments on population growth, predators and prey, and how carbon and nitrogen move through nature in the Lab, with a journal and an AI Teacher.\n\nAs an Eco Professional you work on real cases: a dengue outbreak, city air quality, village water, a city ward cutting its pollution to zero, monsoon drains, a tiger reserve and mangroves before a cyclone, then Research mode with real population, tiger and CO2 data. The Extra-Edge tab adds 919 harder questions for Class 8 to 12 and a NEET and MBBS set covering physiology, anatomy and biochemistry basics, with links to the NCERT books.\n\nEnglish, Hindi and Bengali. Every science claim is sourced. A daily question builds a streak, and teachers can collect report cards. Works offline once loaded; nothing is tracked.",
   "controls": [
     "Explorer: tap where to go and follow the voice",
-    "Scientist: joystick or WASD to move, tap an organism to scan it, L opens the Lab",
+    "Scientist: joystick or WASD to move, tap a living thing to scan it, L opens the Lab",
     "Professional: read the case, choose your plan, run the model"
   ],
   "tips": [
     "Answer the daily nature question to keep your streak.",
-    "Scan every organism before the Lab: the Lab asks about them.",
+    "Scan every living thing before the Lab: the Lab asks about them.",
     "In Professional cases, read the data before you choose a plan.",
     "Use the Extra-Edge tab for NEET revision."
   ],

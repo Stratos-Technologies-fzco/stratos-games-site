@@ -5,18 +5,18 @@
   "category": "kids",
   "github": "saiqulmodi",
   "how_to_play": "Pick your class, tap its building, answer questions to earn parts, tap two joints to place a member, then press Test bridge. Guide, Hint and Show me lead you step by step; Forces shows the pushes and pulls at any joint.",
-  "description": "BridgeWorks Campus is a foundation for an engineering career, built as a game. One campus road runs from Class 8 to 12, then BE, NIT, IIT and Expert Engineer. Each building holds only its own question bank: 14,500+ questions across physics, chemistry, maths, geography, economics, commerce, accountancy, computer and engineering, a bridge quiz for every project, and an Edge tab of hard questions from the class's whole syllabus.\n\nRight answers earn bridge parts. Then you build: one bridge project per class, from a cable bridge in Class 8 to a two-pylon convoy bridge in Class 12 and beyond. A real stiffness-method truss solver checks every member for snapping, crushing and buckling as traffic drives across, and force arrows show the pushes and pulls at any joint. The school physics you just answered becomes something you can see and test.\n\nIt plays in English and Bengali, with guided steps, hints, stars, unlocks, badges, a daily streak, a weekly bridge challenge and a printable report card for teachers. Works offline once loaded; nothing is tracked.",
+  "description": "BridgeWorks Campus is a foundation for an engineering career, built as a game. One campus road runs from Class 8 to 12, then BE, NIT, IIT and Expert Engineer. Each building has its own questions: 14,500+ questions across physics, chemistry, maths, geography, economics, commerce, accountancy, computer and engineering, a bridge quiz for every project, and an Edge tab of hard questions from the class's whole syllabus.\n\nRight answers earn bridge parts. Then you build: one bridge project per class, from a cable bridge in Class 8 to a two-tower bridge for a line of trucks in Class 12 and beyond. Real engineering maths checks every beam as traffic drives across: does it snap, get crushed or bend, and arrows show the pushes and pulls at every joint. The school physics you just answered becomes something you can see and test.\n\nIt plays in English and Bengali, with guided steps, hints, stars, unlocks, badges, a daily streak, a weekly bridge challenge and a printable report card for teachers. Works offline once loaded; nothing is tracked.",
   "controls": [
     "Tap a building to open its questions",
-    "Tap two joints to place a member",
+    "Tap two joints to place a beam",
     "Test bridge sends the traffic across",
     "Guide, Hint and Show me lead you step by step; Forces shows any joint"
   ],
   "tips": [
     "Triangles keep a bridge stiff; squares fold.",
-    "Members that turn red are close to failing: add support there.",
+    "Beams that turn red are close to breaking: add support there.",
     "Play the bridge quiz first, it explains the project.",
     "Use the Edge tab to revise before exams."
   ],
-  "story": "I want students to see why their physics and maths matter. Every right answer becomes a bridge part, and the bridge either stands or snaps, so learning has a real result. It starts at Class 8 and keeps going to engineering entrance level as one path, learned through play."
+  "story": "I want students to see why their physics and maths matter. Every right answer becomes a bridge part, and the bridge either stands or snaps, so learning has a real result. It starts at Class 8 and keeps going to engineering college level as one path, learned through play."
 }

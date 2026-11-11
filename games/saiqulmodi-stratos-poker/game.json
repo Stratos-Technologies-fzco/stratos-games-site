@@ -5,15 +5,15 @@
   "category": "party",
   "github": "saiqulmodi",
   "how_to_play": "Pick a nickname, take a seat at any table, add bots if friends are not online, then tap Check, Call, Fold or slide to Raise. Best five cards from your two and the five on the table win the pot.",
-  "description": "Stratos Poker Arena is real-time Texas Hold'em for 3 to 5 players at a table. Pick a nickname, sit at one of five tables from Rookie Ring to VIP Suite, and play with friends who are online at the same time. If your friends are not there yet, house bots fill the empty seats and step aside as soon as a real player joins.\n\nThe game follows the real rules: a dealer button, small and big blinds that rise from table to table, a 60-second clock on every action, and side pots when a player goes all-in. Table chat keeps it social, the hand history lets you look back at what happened, and an all-time leaderboard shows who plays best over time. A daily bonus grows with your streak, so coming back each day pays.\n\nEverything is played with play chips only. There is no real money and nothing to win outside the game, which makes it a relaxed way to learn poker with friends and family.",
+  "description": "Stratos Poker Arena is real-time Texas Hold'em for 3 to 5 players at a table. Pick a nickname, sit at one of five tables from Rookie Ring to VIP Suite, and play with friends who are online at the same time. If your friends are not there yet, house bots fill the empty seats and step aside as soon as a real player joins.\n\nThe game follows the real rules: a dealer button, small and big blinds that rise from table to table, a 60-second clock on every action, and fair side pots when a player bets all their chips. Table chat keeps it social, the hand history lets you look back at what happened, and an all-time leaderboard shows who plays best over time. A daily bonus grows with your streak, so coming back each day pays.\n\nEverything is played with play chips only. There is no real money and nothing to win outside the game, which makes it a relaxed way to learn poker with friends and family.",
   "controls": [
     "Check, Call or Fold: tap the button",
     "Raise: slide to the amount, then tap Raise",
     "Add bots: fill empty seats when friends are offline"
   ],
   "tips": [
-    "Fold weak starting hands; pairs, high cards and suited cards that run together are worth playing.",
-    "Acting last tells you the most, so play more hands near the dealer button.",
+    "Fold weak starting cards. A pair, high cards, or two cards of the same suit in a row (like 9 and 10 of hearts) are worth playing.",
+    "Seats near the dealer button act last and see what others do first, so you can play more hands from there.",
     "Watch the 60-second clock: running out folds your hand.",
     "Collect the daily bonus to grow your streak."
   ],

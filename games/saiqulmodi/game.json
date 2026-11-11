@@ -4,7 +4,7 @@
   "one_line": "Fly a fighter squadron at 35,000 ft over a whole country while SAM bases and hidden launchers fire missiles at you.",
   "category": "arcade",
   "github": "saiqulmodi",
-  "description": "A whole country seen from 35,000 ft: coast, mountains, desert, rivers, 12 cities and the border war zone. You fly one of ten fighters (VIPER-1 to OMEGA-10) while the other nine patrol in four flights. 50 SAM bases and 150 mobile launchers, most of them camouflaged, fire guided and unguided missiles at you. A guided missile follows you, an unguided one flies to where you were heading, so drop flares, jam with ECM or turn hard out of its path.\n\nBomb and strike the launchers, shoot down the drones, and fly lower to spot hidden launchers among the trees, traffic and boats. Lose a jet and the pilot ejects under a seven-colour parachute while you take over the next one.\n\nThere are day and night views, 100 levels of speed, a practice mode where one battery fires at you so you can learn to dodge, and a two-player mode where a friend commands the launchers. It plays with a keyboard, a PS5 or Xbox controller, or touch buttons on a phone.",
+  "description": "A whole country seen from 35,000 ft: coast, mountains, desert, rivers, 12 cities and the border war zone. You fly one of ten fighters (VIPER-1 to OMEGA-10) while the other nine patrol in four flights. 50 SAM (surface-to-air missile) bases and 150 mobile launchers, most of them camouflaged, fire guided and unguided missiles at you. A guided missile follows you, an unguided one flies to where you were heading, so drop flares, switch on the ECM jammer or turn hard out of its path.\n\nBomb and strike the launchers, shoot down the drones, and fly lower to spot hidden launchers among the trees, traffic and boats. Lose a jet and the pilot ejects under a seven-colour parachute while you take over the next one.\n\nThere are day and night views, 100 speed levels, a practice mode where one battery fires at you so you can learn to dodge, and a two-player mode where a friend commands the launchers. It plays with a keyboard, a PS5 or Xbox controller, or touch buttons on a phone.",
   "how_to_play": "Press Enter or tap to start. Fly with W/S and A/D or the touch stick, set power with R/F, and when a missile comes drop flares (C), jam it (X) or turn hard. Bomb launchers with B and fire missiles with G and Z.",
   "controls": [
     "Climb / dive: S / W or Down / Up, left stick, or the touch stick",
@@ -16,9 +16,9 @@
   ],
   "tips": [
     "A guided missile follows you: drop flares and turn hard. An unguided one flies to where you were heading, so change direction.",
-    "Fly lower to find camouflaged launchers, then climb away before the SAMs lock on.",
+    "Fly lower to find camouflaged launchers, then climb away before the missile sites aim at you.",
     "Press M to practise against a single battery before the war zone.",
-    "Save ECM for when several missiles come at once."
+    "Save the ECM jammer for when several missiles come at once."
   ],
-  "story": "I wanted a game that shows how a fighter pilot really survives a missile: not by luck, but with flares, jamming and a hard turn at the right moment. I built the whole country as one map so every sortie feels like a real flight, and added a two-player mode so a friend can take the launchers and try to stop me."
+  "story": "I wanted a game that shows how a fighter pilot really survives a missile: not by luck, but with flares, jamming and a hard turn at the right moment. I built the whole country as one map so every mission feels like a real flight, and added a two-player mode so a friend can take the launchers and try to stop me."
 }
