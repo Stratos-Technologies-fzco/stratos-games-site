@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 35,
+ "count": 36,
  "games": [
   {
    "slug": "im-mohua-liza",
@@ -348,6 +348,19 @@
    "category": "arcade",
    "url": "play/sksarfarajali-moto-rush/",
    "thumb": "games/sksarfarajali-moto-rush/thumbnail.png",
+   "added": "2026-11-12",
+   "github": "sksarfarajali",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sksarfarajali-stratos-29-card-game",
+   "title": "Stratos 29 Card Game",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "The classic 29 trick-taking card game: bid, pick a trump and win points with your partner against three AI opponents.",
+   "category": "party",
+   "url": "play/sksarfarajali-stratos-29-card-game/",
+   "thumb": "games/sksarfarajali-stratos-29-card-game/thumbnail.png",
    "added": "2026-11-12",
    "github": "sksarfarajali",
    "kind": "family",
