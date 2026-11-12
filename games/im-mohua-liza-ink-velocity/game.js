@@ -215,7 +215,7 @@ M.tin = pbr('corrugated_iron', 1, { color: 0xffffff, metalness: 0.35, roughness:
 
 // real sky lighting (Poly Haven HDRIs, CC0) - used for reflections and soft fill light
 const envMaps = {};
-new RGBELoader().load('assets/hdr/kloofendal_43d_clear_1k.hdr', (t) => { t.mapping = THREE.EquirectangularReflectionMapping; envMaps.day = pmrem.fromEquirectangular(t).texture; if (theme.key === 'day') scene.environment = envMaps.day; });
+new RGBELoader().load('assets/hdr/kloofendal_43d_clear_1k.hdr', (t) => { t.mapping = THREE.EquirectangularReflectionMapping; envMaps.day = pmrem.fromEquirectangular(t).texture; if ((theme.photo || theme.key) === 'day') scene.environment = envMaps.day; });
 new RGBELoader().load('assets/hdr/kiara_8_sunset_1k.hdr', (t) => { t.mapping = THREE.EquirectangularReflectionMapping; envMaps.sunset = pmrem.fromEquirectangular(t).texture; if (theme.key === 'sunset') scene.environment = envMaps.sunset; });
 new RGBELoader().load('assets/hdr/moonlit_golf_1k.hdr', (t) => { t.mapping = THREE.EquirectangularReflectionMapping; envMaps.night = pmrem.fromEquirectangular(t).texture; if (theme.key === 'night') scene.environment = envMaps.night; });
 const roomEnv = scene.environment;
@@ -324,10 +324,10 @@ function buildBackdrop(key, done) {
 }
 function showBackdrop(key) {
   buildBackdrop(key, (b) => {
-    if (theme.key !== key) return;
+    if ((theme.photo || theme.key) !== key) return;
     backdrop.material.map = b.tex; backdrop.material.needsUpdate = true;
     backdrop.scale.set(b.w, b.h, 1); backdropY = b.yc; backdrop.visible = true;
-    if (!theme.night) {
+    if (!theme.night && !theme.ownSky) {
       skyUniforms.top.value.copy(b.skyTop).multiplyScalar(0.92); skyUniforms.mid.value.copy(b.skyNear); skyUniforms.bottom.value.copy(b.skyNear);
       scene.fog.color.copy(b.skyNear).lerp(new THREE.Color(theme.fog), 0.35);
       ridgeTint();
@@ -463,6 +463,8 @@ function makeHedges(rows, width, height) {
 }
 
 // --- Darjeeling town: plaster houses with window facades, tin or flat roofs with black water tanks
+// Hidden since #45 (12 Nov): the houses made the background busy. Kept in a group so they can come back.
+const town = new THREE.Group(); town.visible = false; scene.add(town);
 const facade = (() => {
   const N = 4, S = 128;
   const make = (lit) => {
@@ -526,10 +528,10 @@ const winMat = new THREE.MeshStandardMaterial({ map: facade.map, emissiveMap: fa
       }
     }
   }
-  scene.add(new THREE.Mesh(mergeGeometries(bodies), winMat));
+  town.add(new THREE.Mesh(mergeGeometries(bodies), winMat));
   M.tin.vertexColors = true;
-  scene.add(new THREE.Mesh(mergeGeometries(roofs), M.tin));
-  scene.add(new THREE.Mesh(mergeGeometries(tanks), new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.5 })));
+  town.add(new THREE.Mesh(mergeGeometries(roofs), M.tin));
+  town.add(new THREE.Mesh(mergeGeometries(tanks), new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.5 })));
 }
 
 // --- monastery with golden roofs (Ghoom style)
@@ -544,7 +546,7 @@ function buildMonastery(x, z, sc) {
   const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.45, 3, 8), M.gold); sp.position.y = 18; g.add(sp);
   const ball = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 8), M.gold); ball.position.y = 19.6; g.add(ball);
   g.position.set(x, y - 1, z); g.scale.setScalar(sc); g.rotation.y = 0.15;
-  scene.add(g);
+  town.add(g);
 }
 buildMonastery(40, -192, 1); buildMonastery(-150, -178, 0.8);
 
@@ -597,6 +599,9 @@ for (let i = 0; i < 16; i++) {
 const THEMES = {
   day: { key: 'day', label: 'Morning', top: 0x3f7fb0, mid: 0x9cc3d6, bottom: 0x9cc3d6, fog: 0xaecbd8, sun: 0xfff0d6, sunI: 3.0, dir: [0.45, 0.75, 0.5], hs: 0xc4e0ff, hg: 0x5b5a45, hI: 0.55, ridge: [0x2c4256, 0x3e5a70, 0x557489], env: 0.8, exp: 1.0, glow: 0.6, night: false, tree: [1, 1, 1], cloud: 0xf2f6fa },
   sunset: { key: 'sunset', label: 'Golden hour', top: 0x3a4660, mid: 0x7c7f8c, bottom: 0x6a6a78, fog: 0x8a7f86, sun: 0xffb36b, sunI: 2.6, dir: [-0.75, 0.2, 0.6], hs: 0xffc9a0, hg: 0x3a3040, hI: 0.55, ridge: [0x262d42, 0x343c55, 0x454d66], env: 0.7, exp: 1.05, glow: 0.4, night: false, tree: [1.0, 0.86, 0.72], cloud: 0xe8c8b4 },
+  // calm extra sceneries (#45): soft colours, no clutter; they reuse the day photo and light
+  dawn: { key: 'dawn', photo: 'day', ownSky: true, label: 'Pink dawn', top: 0x6d7fb8, mid: 0xe7b9c4, bottom: 0xf0c9c0, fog: 0xe2c7cc, sun: 0xffd1b0, sunI: 2.4, dir: [0.6, 0.3, 0.6], hs: 0xffd8e0, hg: 0x4a4550, hI: 0.6, ridge: [0x4a4f72, 0x5d6386, 0x767b9b], env: 0.7, exp: 1.02, glow: 0.7, night: false, tree: [1, 0.93, 0.9], cloud: 0xffe6ea },
+  mist: { key: 'mist', photo: 'day', ownSky: true, label: 'Misty valley', backdropOpacity: 0.45, fogNear: 70, fogFar: 1100, top: 0x9fb3c0, mid: 0xc9d5db, bottom: 0xd3dde2, fog: 0xd0dade, sun: 0xffffff, sunI: 1.8, dir: [0.3, 0.8, 0.4], hs: 0xe0ecf2, hg: 0x6a6e66, hI: 0.8, ridge: [0x7d909c, 0x93a5b0, 0xa9b8c1], env: 0.6, exp: 1.0, glow: 0.25, night: false, tree: [0.9, 0.95, 0.95], cloud: 0xffffff },
   night: { key: 'night', label: 'Moonlit', top: 0x01030a, mid: 0x0c1a3d, bottom: 0x05080f, fog: 0x0d1730, sun: 0xa8bcff, sunI: 0.42, dir: [-0.35, 0.55, 0.75], hs: 0x2c3c6e, hg: 0x07070d, hI: 0.32, ridge: [0x080e1d, 0x0c1427, 0x111a31], env: 0.35, exp: 1.0, glow: 0.3, night: true, tree: [0.14, 0.17, 0.26], cloud: 0x26324d },
 };
 let theme = THEMES.day;
@@ -615,8 +620,8 @@ function applyTheme(t) {
   skyUniforms.top.value.setHex(t.top); skyUniforms.mid.value.setHex(t.mid); skyUniforms.bottom.value.setHex(t.bottom);
   skyUniforms.sunColor.value.setHex(t.sun); skyUniforms.glow.value = t.glow;
   sunDir.set(...t.dir).normalize(); skyUniforms.sunDir.value.copy(sunDir);
-  scene.fog = new THREE.Fog(t.fog, 220, 2300);
-  scene.environment = envMaps[t.key] || roomEnv;
+  scene.fog = new THREE.Fog(t.fog, t.fogNear || 220, t.fogFar || 2300);
+  scene.environment = envMaps[t.photo || t.key] || roomEnv;
   sun.color.setHex(t.sun); sun.intensity = t.sunI;
   hemi.color.setHex(t.hs); hemi.groundColor.setHex(t.hg); hemi.intensity = t.hI;
   ridgeTint();
@@ -627,8 +632,8 @@ function applyTheme(t) {
   clouds.forEach((c) => c.material.color.setHex(t.cloud));
   winMat.emissiveIntensity = t.night ? 1.6 : 0;
   trainWin.emissiveIntensity = t.night ? 2.2 : 0;
-  backdrop.visible = false;
-  showBackdrop(t.key);
+  backdrop.visible = false; backdrop.material.opacity = t.backdropOpacity || 1;
+  showBackdrop(t.photo || t.key);
   if (car) car.setNight(t.night);
 }
 
@@ -872,10 +877,10 @@ const Sound = {
 // grounds: top surface of each cliff (left to right). Units are metres.
 const LEVELS = [
   { name: 'First Sketch', theme: 'day', ink: 32, par: 19, finish: 34, grounds: [[[-16, 0], [6, 0]], [[22, 0], [46, 0]]], coins: [[14, 2.6]] },
-  { name: 'Up the Ridge', theme: 'day', ink: 40, par: 26, finish: 36, grounds: [[[-16, 0], [4, 0]], [[24, 7], [48, 7]]], coins: [[11, 2.5], [18, 5.5]] },
-  { name: 'Drop & Rise', theme: 'day', ink: 48, par: 30, finish: 42, grounds: [[[-16, 6], [2, 6]], [[14, -2], [18.5, -2]], [[32, 4], [54, 4]]], coins: [[9, 2], [16.2, 0.4], [25, 3]] },
+  { name: 'Up the Ridge', theme: 'dawn', ink: 40, par: 26, finish: 36, grounds: [[[-16, 0], [4, 0]], [[24, 7], [48, 7]]], coins: [[11, 2.5], [18, 5.5]] },
+  { name: 'Drop & Rise', theme: 'mist', ink: 48, par: 30, finish: 42, grounds: [[[-16, 6], [2, 6]], [[14, -2], [18.5, -2]], [[32, 4], [54, 4]]], coins: [[9, 2], [16.2, 0.4], [25, 3]] },
   { name: 'Crate Canyon', theme: 'day', ink: 42, par: 26, finish: 47, grounds: [[[-16, 0], [6, 0]], [[30, 0], [58, 0]]], coins: [[18, 6.5], [38, 4]], crates: [[35, 0.6], [36.2, 0.6], [35.6, 1.8], [40, 0.6]] },
-  { name: 'Windmill Gap', theme: 'day', ink: 50, par: 32, finish: 45, grounds: [[[-16, 0], [6, 0]], [[34, 2], [56, 2]]], coins: [[13, 4.5], [27, 5]], spinners: [{ x: 20, y: 0.5, len: 9, w: 1.1 }] },
+  { name: 'Windmill Gap', theme: 'dawn', ink: 50, par: 32, finish: 45, grounds: [[[-16, 0], [6, 0]], [[34, 2], [56, 2]]], coins: [[13, 4.5], [27, 5]], spinners: [{ x: 20, y: 0.5, len: 9, w: 1.1 }] },
   { name: 'Sunset Steps', theme: 'sunset', ink: 46, par: 29, finish: 46, grounds: [[[-16, 0], [4, 0]], [[12, 3], [15.5, 3]], [[23, 6], [26.5, 6]], [[36, 9], [58, 9]]], coins: [[13.8, 4.6], [24.8, 7.6], [31, 9.5]] },
   { name: 'Night Leap', theme: 'night', ink: 40, par: 22, finish: 52, grounds: [[[-16, 4], [6, 4]], [[44, 0], [66, 0]]], coins: [[22, 10], [30, 9]] },
   { name: 'The Summit', theme: 'sunset', ink: 66, par: 49, finish: 56, grounds: [[[-16, 0], [4, 0]], [[24, -4], [27.5, -4]], [[46, 10], [70, 10]]], coins: [[9, 0], [25.8, -2.4], [37, 4.5]], spinners: [{ x: 14, y: 2, len: 7, w: -1.3 }], crates: [[52, 10.6]] },
