@@ -295,6 +295,10 @@ function render() {
     region('hdr', headerHTML(), 3); region('board', boardHTML(), 2); region('handr', handHTML(), 4);
     region('foot', footHTML(), 5); region('ovl', overlayHTML(), 6);
     region('coach', coachHTML(), 7);
+    /* deal-in and just-played animations run once, then are cleared so later redraws do not replay them */
+    var u = A.ui;
+    if (u.dealt && u.dealtFor !== u.dealt) { var d = u.dealt; u.dealtFor = d; setTimeout(function () { if (A.ui === u && u.dealt === d) { u.dealt = null; render(); } }, 1500); }
+    if (u.freshAt != null && u.freshFor !== u.freshAt) { var f = u.freshAt; u.freshFor = f; setTimeout(function () { if (A.ui === u && u.freshAt === f) { u.freshAt = null; render(); } }, 700); }
   }
   region('modal', modalHTML(), 40);
   region('toast', A.ui.toast ? '<div class="toast" style="top:' + (A.layout === 'd' ? 92 : 78) + 'px">' + esc(A.ui.toast) + '</div>' : '', 41);
@@ -907,7 +911,8 @@ var H = {
   dbl: function (d) { A.ui.coach = null; applyDouble(0, d.v === '1'); },
   card: function (d) {
     var G = A.G; if (!(G.phase === 'play' && hu(G.turn)) || A.ui.trickShow) return;
-    var c = d.c; if (E.legalCards(G, 0).indexOf(c) < 0) { toast(G.trick.length ? 'You must follow ' + E.SUIT_NAME[E.suit(G.trick[0].card)] : 'Not playable', 1200); return; }
+    var c = d.c;
+    A.ui.dealt = null; if (E.legalCards(G, 0).indexOf(c) < 0) { toast(G.trick.length ? 'You must follow ' + E.SUIT_NAME[E.suit(G.trick[0].card)] : 'Not playable', 1200); return; }
     if (A.ui.sel === c) { doPlay(0, c); return; }
     A.ui.sel = c; render();
   },
