@@ -1,8 +1,9 @@
 {
   "title": "Stratos 29 Card Game",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "The classic 29 trick-taking card game: bid, pick a trump and win points with your partner.",
+  "one_line": "The classic 29 trick-taking card game: bid, pick a trump and win points with your partner against three AI opponents.",
   "category": "party",
   "github": "sksarfarajali",
-  "status": "coming_soon"
+  "how_to_play": "Tap a card to select it, tap again or press Play card. Bid how many of the 29 points your team will win, pick the trump suit, and follow the led suit.",
+  "description": "Think Smart. Bid Bold. Win 29. Partner up with Meera, bid for the right to call trump and outplay three AI opponents across eight tricks. Hidden trump, pair, double and re-double, four AI levels from Easy to Expert, a Daily Deal with a streak, six table designs and Stratos card backs."
 }
