@@ -68,6 +68,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 .bidbtn{height:52px;border-radius:12px;border:1px solid #2E4A3E;background:#13231E;font:700 19px var(--hf)}
 .bidbtn:disabled{background:#0E1714;color:#4F625A;border-color:#18241F;cursor:not-allowed}
 .bidbtn[aria-pressed=true]{background:var(--gold);color:#1B1608;border:2px solid var(--gold)}
+#stage button,#stage a,#stage input,#stage label,#stage select{pointer-events:auto}
 .toast{position:absolute;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(8,18,14,.94);border:1px solid var(--rail);font:600 14px var(--bf);z-index:30;white-space:nowrap;animation:pop .25s}
 .coach{position:absolute;left:50%;transform:translateX(-50%);max-width:620px;padding:12px 16px;border-radius:14px;background:#1B3A2E;border:1px solid var(--gold);z-index:25;font-size:14px;line-height:1.4;display:flex;gap:12px;align-items:flex-start}
 .m .coach{max-width:350px;font-size:12.5px;padding:10px 12px}
@@ -281,6 +282,8 @@ function clearRegions(keep) {
 }
 function P(html) { return html.replace(/<(button|a|input|label|section|div)([^>]*?)data-act=/g, function (m, t, rest) { return '<' + t + rest + 'data-act='; }); }
 function ptr(html) { return '<div style="pointer-events:auto;position:absolute;inset:0">' + html + '</div>'; }
+/* table layers must not block taps on cards below them: only their real buttons catch clicks */
+function ptrn(html) { return '<div style="pointer-events:none;position:absolute;inset:0">' + html + '</div>'; }
 
 /* ---------- render ---------- */
 function render() {
@@ -387,12 +390,12 @@ function headerHTML() {
   var bidTxt = G.declarer === null ? (G.bid ? G.bid.amount + ' · ' + seatName(G.bid.by) : '—') : G.target + ' · ' + teamName(needTeam) + (G.mult > 1 ? ' ×' + G.mult : '');
   var snd = '<button class="ibtn" data-act="snd" aria-label="' + (S.sound ? 'Sound on' : 'Sound off') + '">' + icon(S.sound ? 'sound' : 'mute') + '</button>';
   if (m) {
-    return ptr('<div class="abs row" style="left:12px;right:12px;top:14px;justify-content:space-between;gap:6px"><button class="ibtn" data-act="leave" aria-label="Back to lobby">' + icon('back') + '</button>' +
+    return ptrn('<div class="abs row" style="left:12px;right:12px;top:14px;justify-content:space-between;gap:6px"><button class="ibtn" data-act="leave" aria-label="Back to lobby">' + icon('back') + '</button>' +
       '<div class="row" style="height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line);overflow:hidden;font-size:13px"><span class="row" style="gap:6px;padding:0 9px;border-right:1px solid var(--line)"><i style="width:8px;height:8px;border-radius:50%;background:var(--a)"></i><b>' + G.teamPts[0] + '</b></span><span class="row" style="gap:6px;padding:0 9px;border-right:1px solid var(--line)"><i style="width:8px;height:8px;border-radius:50%;background:var(--b)"></i><b>' + G.teamPts[1] + '</b></span>' +
       (G.declarer !== null ? '<span class="row" style="gap:4px;padding:0 9px;border-right:1px solid var(--line)"><span class="mute">Need</span><b>' + G.target + '</b></span>' : '') + '<span style="padding:0 9px;color:#CFDAD4">T <b style="color:var(--ink)">' + tn + '/8</b></span></div>' +
       '<div class="row" style="gap:6px">' + snd + '<div role="img" aria-label="' + (tr ? 'Trump: ' + E.SUIT_NAME[tr] : 'Trump not set') + '" style="width:44px;height:44px;border-radius:12px;background:#FBF8F1;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;color:' + (tr === 'h' || tr === 'd' ? '#C0392B' : '#16161A') + '">' + (tr ? sym(tr) : '<span style="color:#5a5a5a;font:700 18px var(--hf)">?</span>') + '</div></div></div>');
   }
-  return ptr('<div class="abs row" style="left:24px;right:24px;top:18px;height:64px;justify-content:space-between"><div class="row" style="gap:12px"><button class="ibtn" data-act="leave" aria-label="Back to lobby">' + icon('back') + '</button><div class="brand hf">STRATOS <b>29</b></div></div>' +
+  return ptrn('<div class="abs row" style="left:24px;right:24px;top:18px;height:64px;justify-content:space-between"><div class="row" style="gap:12px"><button class="ibtn" data-act="leave" aria-label="Back to lobby">' + icon('back') + '</button><div class="brand hf">STRATOS <b>29</b></div></div>' +
     '<div class="row" style="align-items:stretch;border-radius:14px;background:var(--panel);border:1px solid var(--line);overflow:hidden">' +
     '<div class="row" style="gap:10px;padding:0 18px;border-right:1px solid var(--line)"><i style="width:10px;height:10px;border-radius:50%;background:var(--a)"></i><span class="mute" style="font-size:13px">Team A</span><b class="hf" style="font-size:22px">' + G.teamPts[0] + '</b></div>' +
     '<div class="row" style="gap:10px;padding:0 18px;border-right:1px solid var(--line)"><i style="width:10px;height:10px;border-radius:50%;background:var(--b)"></i><span class="mute" style="font-size:13px">Team B</span><b class="hf" style="font-size:22px">' + G.teamPts[1] + '</b></div>' +
@@ -525,8 +528,8 @@ function footHTML() {
   if (canAsk) btns += '<button class="btn" data-act="ask" style="border-color:var(--gold);color:var(--gold)">Ask trump</button>';
   btns += '<button class="btn" data-act="pair" ' + (canPair ? '' : 'disabled') + '>' + (m ? 'Pair' : 'Declare pair') + '</button>';
   btns += '<button class="btn pri" data-act="playcard" ' + (sel ? '' : 'disabled') + ' style="' + (m ? 'flex:3;' : 'padding:0 28px;') + '">Play card</button>';
-  if (m) return ptr('<div class="abs col" style="left:16px;right:16px;bottom:24px;gap:10px">' + ava + (showPlay ? '<div class="row" style="gap:6px">' + btns.replace(/class="btn"/g, 'class="btn" style="flex:1;padding:0 4px;font-size:13px"') + '</div>' : '') + '</div>');
-  return ptr('<div class="abs row" style="left:24px;right:24px;bottom:18px;height:60px;justify-content:space-between">' + ava + (A.mode === 'demo' ? '<span class="mute" style="font-size:13px">Demo: Expert AI plays all four seats</span>' : showPlay ? '<div class="row" style="gap:10px">' + btns + '</div>' : '<span class="mute" style="font-size:13px">' + (G.phase === 'bidding' || G.phase === 'trump' ? 'Remaining 4 cards are dealt after bidding' : '') + '</span>') + '</div>');
+  if (m) return ptrn('<div class="abs col" style="left:16px;right:16px;bottom:24px;gap:10px">' + ava + (showPlay ? '<div class="row" style="gap:6px">' + btns.replace(/class="btn"/g, 'class="btn" style="flex:1;padding:0 4px;font-size:13px"') + '</div>' : '') + '</div>');
+  return ptrn('<div class="abs row" style="left:24px;right:24px;bottom:18px;height:60px;justify-content:space-between">' + ava + (A.mode === 'demo' ? '<span class="mute" style="font-size:13px">Demo: Expert AI plays all four seats</span>' : showPlay ? '<div class="row" style="gap:10px">' + btns + '</div>' : '<span class="mute" style="font-size:13px">' + (G.phase === 'bidding' || G.phase === 'trump' ? 'Remaining 4 cards are dealt after bidding' : '') + '</span>') + '</div>');
 }
 
 /* ----- overlays: bid / trump / double ----- */
