@@ -273,7 +273,7 @@
       seen: G.seen.slice(), tricks: G.tricks.map(function (t) { return { plays: t.plays, winner: t.winner, pts: t.pts }; }),
       teamPts: G.teamPts.slice(), playerWon: G.playerWon.slice(), forceTrump: G.forceTrump,
       pairDeclared: !!G.pair, legal: G.phase === 'play' && G.turn === p ? legalCards(G, p) : [],
-      canReveal: canReveal(G, p), canPair: canDeclarePair(G, p)
+      canReveal: canReveal(G, p), canPair: G.netCanPair !== undefined ? G.netCanPair : canDeclarePair(G, p)
     };
   }
 

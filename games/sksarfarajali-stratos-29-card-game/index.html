@@ -301,6 +301,7 @@ function render() {
     if (u.freshAt != null && u.freshFor !== u.freshAt) { var f = u.freshAt; u.freshFor = f; setTimeout(function () { if (A.ui === u && u.freshAt === f) { u.freshAt = null; render(); } }, 700); }
   }
   region('modal', modalHTML(), 40);
+  if (A.mode === 'online' && Net.role === 'host') netPush();
   region('toast', A.ui.toast ? '<div class="toast" style="top:' + (A.layout === 'd' ? 92 : 78) + 'px">' + esc(A.ui.toast) + '</div>' : '', 41);
 }
 
@@ -334,8 +335,8 @@ function lobbyHTML() {
     '<div class="row" style="gap:8px"><button class="btn pri" data-act="play" style="flex:2;height:58px;font-size:18px;border-radius:14px">Play Now</button><button class="btn" data-act="practice" style="flex:1;height:58px;border-radius:14px">Practice</button></div>' + daily + '</div></section>' +
     '<div class="abs" style="left:12px;right:12px;top:520px">' + statsBlock() + '</div>' +
     '<div class="abs row" style="left:12px;right:12px;top:640px;gap:8px">' +
-    '<button class="tile col" data-act="friends" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Friends</b><span class="mute" style="font-size:11px">Soon</span></button>' +
-    '<button class="tile col" data-act="online" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Online</b><span class="mute" style="font-size:11px">Soon</span></button>' +
+    '<button class="tile col" data-act="friends" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Friends</b><span class="mute" style="font-size:11px">Create room</span></button>' +
+    '<button class="tile col" data-act="online" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Join room</b><span class="mute" style="font-size:11px">Use a code</span></button>' +
     '<button class="tile col" data-act="learn" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Learn to play</b><span class="mute" style="font-size:11px">Tutorial</span></button></div>' +
     '<div class="abs row" style="left:12px;right:12px;top:730px;gap:8px"><button class="btn" data-act="demo" style="flex:1;padding:0 4px;font-size:13px">Watch demo</button><button class="btn" data-act="stats" style="flex:1;padding:0 4px;font-size:13px">Stats</button><button class="btn" data-act="settings" style="flex:1;padding:0 4px;font-size:13px">Settings</button><button class="btn" data-act="about" style="flex:1;padding:0 4px;font-size:13px">About</button></div>' +
     '<div class="abs mute" style="left:0;right:0;bottom:16px;text-align:center;font-size:11px">Free to play \u00B7 No real money \u00B7 <a href="how-to-play.html" target="_blank" rel="noopener" style="color:var(--gold)">How-to-play guide</a></div>');
@@ -352,7 +353,7 @@ function lobbyHTML() {
     '<div class="row" style="gap:14px;flex-wrap:wrap"><button data-act="play" class="btn pri row" style="gap:12px;height:64px;padding:0 36px;border-radius:14px;font-size:20px;box-shadow:0 8px 22px rgba(233,196,106,.28)"><span style="width:20px;height:20px;display:block">' + icon('play') + '</span>Play Now</button>' +
     '<button data-act="practice" class="btn" style="height:64px;padding:0 28px;border-radius:14px;font-size:17px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)">Practice</button>' + daily + '</div></div></section>' +
     '<aside class="col" style="gap:20px;min-height:0">' + statsBlock() +
-    '<div class="col" style="gap:10px">' + side('users', 'Play with Friends', 'Create a private room and share the code', 'friends', true) + side('globe', 'Online Multiplayer', 'Get matched with players at your level', 'online', true) + side('book', 'Learn to Play 29', 'Interactive tutorial \u00B7 or watch a full demo round', 'learn') + '</div></aside></main>' +
+    '<div class="col" style="gap:10px">' + side('users', 'Play with Friends', 'Create a room and share the code · up to 4 players', 'friends') + side('globe', 'Join a Room', 'Enter the room code a friend sent you', 'online') + side('book', 'Learn to Play 29', 'Interactive tutorial \u00B7 or watch a full demo round', 'learn') + '</div></aside></main>' +
     '<div class="abs mute" style="left:0;right:0;bottom:14px;text-align:center;font-size:12px">Free to play \u00B7 No real money \u00B7 <a href="how-to-play.html" target="_blank" rel="noopener" style="color:var(--gold)">Full how-to-play guide</a> \u00B7 A Stratos Technologies game</div>');
 }
 
@@ -439,7 +440,7 @@ function seatHTML(p) {
     if (pos === 'top') return '<div class="abs col" style="' + cs + ';align-items:center;gap:6px;z-index:2"><div class="pill' + turn + ' ' + T + '" style="padding:4px 12px 4px 4px"><div class="av ' + T + '" style="width:32px;height:32px;font-size:13px">' + SEAT[p].ini + '</div><span style="font:600 13px var(--bf)">' + SEAT[p].name + ' · ' + n + '</span></div>' + (st ? '<span class="chip ' + st.c + '" style="padding:4px 10px;font-size:12px">' + st.t + '</span>' : '') + '</div>';
     return '<div class="abs col" style="' + cs + ';align-items:center;gap:4px;z-index:2;width:80px"><div class="av ' + T + (turn ? ' ' : '') + '" style="' + (turn ? 'box-shadow:0 0 0 3px rgba(233,196,106,.6)' : '') + '">' + SEAT[p].ini + '</div><span style="font:600 12px var(--bf);padding:2px 8px;border-radius:999px;background:rgba(8,18,14,.85)">' + SEAT[p].name + ' · ' + n + '</span>' + (st ? '<span class="chip ' + st.c + '" style="padding:3px 8px;font-size:11px">' + st.t + '</span>' : '') + '</div>';
   }
-  var pill = '<div class="pill' + turn + ' ' + T + '"><div class="av ' + T + '">' + SEAT[p].ini + '</div><div class="col"><span class="nm">' + SEAT[p].name + ' · AI</span><span class="sub" style="color:' + (T ? '#9CCBF0' : '#F6B97C') + '">' + roleText(p) + '</span></div></div>';
+  var pill = '<div class="pill' + turn + ' ' + T + '"><div class="av ' + T + '">' + SEAT[p].ini + '</div><div class="col"><span class="nm">' + esc(SEAT[p].name) + ' · ' + (SEAT[p].tag || 'AI') + '</span><span class="sub" style="color:' + (T ? '#9CCBF0' : '#F6B97C') + '">' + roleText(p) + '</span></div></div>';
   var tag = st ? '<span class="chip ' + st.c + '">' + st.t + '</span>' : '';
   if (pos === 'top') return '<div class="abs row" style="left:50%;top:104px;transform:translateX(-50%);gap:10px;z-index:2">' + pill + tag + '</div>';
   if (pos === 'left') return '<div class="abs col" style="left:40px;top:330px;gap:10px;align-items:flex-start;z-index:2">' + pill + tag + '</div>';
@@ -526,7 +527,7 @@ function footHTML() {
   var showPlay = G.phase === 'play' && A.mode !== 'demo';
   var last = G.tricks.length > 0, canPair = obs && obs.canPair && my, canAsk = obs && obs.canReveal && my;
   var btns = '';
-  var hintOK = my && A.ui.hintsLeft !== 0;
+  var hintOK = my && A.ui.hintsLeft !== 0 && A.mode !== 'online';
   btns += '<button class="btn" data-act="hint" ' + (hintOK ? '' : 'disabled') + ' title="Suggest a card">' + (m ? '' : 'Hint' + (A.mode === 'practice' ? '' : ' (' + (A.ui.hintsLeft || 0) + ')')) + (m ? '<span style="width:20px;height:20px;display:inline-block;vertical-align:middle">' + icon('bulb') + '</span>' : '') + '</button>';
   btns += '<button class="btn" data-act="lasttrick" ' + (last ? '' : 'disabled') + '>' + (m ? 'Last' : 'Last trick') + '</button>';
   if (canAsk) btns += '<button class="btn" data-act="ask" style="border-color:var(--gold);color:var(--gold)">Ask trump</button>';
@@ -647,6 +648,7 @@ function modalHTML() {
   if (!md) return '';
   var W = m ? 350 : 640;
   var wrap = function (inner, w, pad) { return '<div class="modal" style="pointer-events:auto" data-act="modalbg"><section class="panel col" role="dialog" aria-modal="true" style="width:' + (w || W) + 'px;max-height:' + (m ? 800 : 860) + 'px;padding:' + (pad || (m ? 20 : 30)) + 'px;gap:14px;position:relative">' + inner + '</section></div>'; };
+  if (md === 'online') return onlineHTML(wrap, m);
   if (md === 'learn') return learnHTML(wrap, m);
   if (md === 'about') return aboutHTML(wrap, m);
   if (md === 'rules') {
@@ -675,7 +677,7 @@ function modalHTML() {
 function resultHTML() {
   var G = A.G, M = A.M, r = G.result, m = A.layout === 'm', mine = r.success === (r.bidTeam === 0);
   var tm = function (t) {
-    var names = t === 0 ? esc(myName()) + ' + Meera' : 'Kabir + Arjun';
+    var names = t === 0 ? esc(myName()) + ' + ' + esc(SEAT[2].name) : esc(SEAT[1].name) + ' + ' + esc(SEAT[3].name);
     var cp = G.teamPts[t] - (G.tricks[7] && teamOf(G.tricks[7].winner) === t ? 1 : 0), lb = G.tricks[7] && teamOf(G.tricks[7].winner) === t ? 1 : 0;
     return '<div class="col" style="flex:1;gap:8px;padding:14px;border-radius:16px;background:#0D1915;border:1px solid ' + (t === 0 ? '#1F3A4E' : '#5C4127') + '"><div class="row" style="gap:8px"><i style="width:10px;height:10px;border-radius:50%;background:' + (t === 0 ? 'var(--a)' : 'var(--b)') + '"></i><b class="hf" style="font-size:18px">' + teamName(t) + '</b></div><span class="mute" style="font-size:12px">' + names + (r.bidTeam === t ? ' · Bidder' : '') + '</span>' +
       '<div class="row" style="justify-content:space-between;font-size:13px"><span class="mute">Card points</span><b>' + cp + '</b></div><div class="row" style="justify-content:space-between;font-size:13px"><span class="mute">Last trick</span><b>+' + lb + '</b></div><div class="row" style="justify-content:space-between;font-size:13px"><span class="mute">Tricks won</span><b>' + r.tricksWon[t] + ' of 8</b></div><div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:6px"><span class="mute" style="font-size:13px">Round total</span><b class="hf" style="font-size:22px">' + G.teamPts[t] + '</b></div></div>';
@@ -691,7 +693,356 @@ function resultHTML() {
     '<div class="row" style="gap:12px;' + (m ? 'flex-direction:column' : '') + '">' + tm(0) + tm(1) + '</div>' +
     '<div class="col" style="gap:6px"><span class="lbl">Trick by trick</span><div class="row" style="gap:5px;flex-wrap:wrap">' + tricks + '</div></div>' +
     (A.mode === 'demo' ? '' : A.mode === 'daily' ? daily : '<div class="row" style="justify-content:space-between;padding:12px 16px;border-radius:14px;background:#12201B;border:1px solid var(--line)"><span class="lbl">Game score · first to ' + M.rules.targetScore + '</span><b class="hf" style="font-size:' + (m ? 18 : 22) + 'px"><span style="color:#9CCBF0">Team A ' + M.scores[0] + '</span> — <span style="color:#F6B97C">' + M.scores[1] + ' Team B</span></b><span class="gold" style="font-size:13px;font-weight:600">' + (r.delta > 0 ? '+' : '') + r.delta + ' to ' + teamName(r.bidTeam) + '</span></div>') +
-    (A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
+    (isGuest() ? '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Leave</button><button class="btn" disabled style="flex:2;height:54px">Waiting for the host…</button></div>' : A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
+}
+
+/* ===================== ONLINE: up to 4 real players, no game server =====================
+   Players talk through a free public MQTT relay (same approach as Domino Classic). The player who creates the
+   room is the HOST: their browser runs the rules and every AI seat, checks each move, and sends each guest only
+   that guest's own view (their cards, played cards, counts). Private messages are encrypted per guest
+   (ECDH P-256 + AES-GCM) so people watching the relay cannot read hands or fake moves.
+   Limits: the host's device is the referee and must stay open; a page refresh drops a player. */
+var BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+var NROOT = 'stratos29/v1/', ALPHA = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+var CPUN = ['You', 'Kabir', 'Meera', 'Arjun'], SEATORDER = [0, 2, 1, 3], SEAT_DEFAULT = SEAT.map(function (s) { return { name: s.name, ini: s.ini }; });
+function rid() { return Math.random().toString(36).slice(2, 10); }
+function rint(n) { return Math.floor(Math.random() * n); }
+function genCode(b) { var f; do { f = rint(ALPHA.length); } while (f % BROKERS.length !== b); var c = ALPHA[f]; for (var i = 0; i < 4; i++) c += ALPHA[rint(ALPHA.length)]; return c; }
+function brokerOf(code) { var i = ALPHA.indexOf(code[0]); return i < 0 ? -1 : i % BROKERS.length; }
+function cleanName(n) { return String(n || '').replace(/[<>&"'`]/g, '').trim().slice(0, 12) || 'Player'; }
+function b64(u) { var s = ''; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); }
+function unb64(t) { var b = atob(t), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+var CR = {
+  gen: function () { return crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']); },
+  pub: function (kp) { return crypto.subtle.exportKey('jwk', kp.publicKey); },
+  derive: function (priv, jwk) {
+    if (!jwk || jwk.kty !== 'EC' || jwk.crv !== 'P-256') return Promise.reject(new Error('key'));
+    return crypto.subtle.importKey('jwk', { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, { name: 'ECDH', namedCurve: 'P-256' }, false, []).then(function (pub) {
+      return crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, priv, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    });
+  },
+  enc: function (key, obj) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(JSON.stringify(obj))).then(function (ct) { return { iv: b64(iv), ct: b64(new Uint8Array(ct)) }; });
+  },
+  dec: function (key, m) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(m.iv) }, key, unb64(m.ct)).then(function (pt) { return JSON.parse(new TextDecoder().decode(pt)); }); }
+};
+function isNetMode() { return A.mode === 'online' && Net.started; }
+function isGuest() { return A.mode === 'online' && Net.role === 'guest'; }
+function isRemote(p) { var s = Net.seats && Net.seats[p]; return A.mode === 'online' && Net.role === 'host' && p > 0 && !!(s && s.pid && !s.away); }
+function seatOfPid(pid) { var r = -1; (Net.seats || []).forEach(function (s, i) { if (s && s.pid === pid) r = i; }); return r; }
+function applySeatNames() {
+  if (!Net.seats || !Net.seats.length) return;
+  for (var l = 1; l < 4; l++) {
+    var g = (l + Net.my) % 4, st = Net.seats[g] || { cpu: true }, ai = st.cpu || st.away;
+    var nm = st.cpu ? CPUN[g] : cleanName(st.name) + (st.away ? ' (away)' : '');
+    SEAT[l].name = nm; SEAT[l].ini = (nm[0] || 'P').toUpperCase(); SEAT[l].tag = ai ? 'AI' : 'Player';
+  }
+}
+function resetSeatNames() { SEAT.forEach(function (s, i) { s.name = SEAT_DEFAULT[i].name; s.ini = SEAT_DEFAULT[i].ini; delete s.tag; }); }
+
+var Net = {
+  client: null, role: null, code: null, me: rid(), token: {}, timers: [], roster: [], keys: {}, seen: {}, kp: null, myPub: null, hpub: null, hkey: null, hostPid: null,
+  joined: false, deriving: false, started: false, ver: 0, seats: [], my: 0, status: '', codeText: '', lastSig: null, lastSync: {}, hostSeen: 0, queued: null, lastM: null, copied: false,
+  setStatus: function (t) { this.status = t; if (A.ui.modal === 'online') render(); },
+  every: function (fn, ms) { this.timers.push(setInterval(fn, ms)); },
+  loadLib: function () {
+    if (window.mqtt) return Promise.resolve(); if (this._lp) return this._lp;
+    this._lp = new Promise(function (res, rej) { var sc = document.createElement('script'); sc.src = 'vendor/mqtt.min.js'; sc.onload = res; sc.onerror = function () { Net._lp = null; rej(new Error('lib')); }; document.head.appendChild(sc); });
+    return this._lp;
+  },
+  connect: function (url, topic, onMsg) {
+    return new Promise(function (res, rej) {
+      var c = mqtt.connect(url, { clientId: 's29_' + rid() + rid(), connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 20, clean: true }), done = false;
+      c.on('connect', function () { c.subscribe(topic, { qos: 1 }); if (!done) { done = true; res(c); } });
+      c.on('message', function (t, p) { var d; try { d = JSON.parse(p.toString()); } catch (e) { return; } if (d && typeof d === 'object') onMsg(d); });
+      c.on('error', function () {});
+      setTimeout(function () { if (!done) { done = true; try { c.end(true); } catch (e) {} rej(new Error('timeout')); } }, 9000);
+    });
+  },
+  send: function (obj, qos) { if (!this.client) return; obj.from = this.me; try { this.client.publish(NROOT + this.code + '/all', JSON.stringify(obj), { qos: qos === undefined ? 1 : qos }); } catch (e) {} },
+  secure: function () { if (!window.crypto || !crypto.subtle) { this.setStatus('Online play needs a secure page (https). Open the game from stratos.games.'); return false; } return true; },
+
+  /* ----- host ----- */
+  create: async function () {
+    if (!this.secure()) return; this.close(); var token = this.token; this.setStatus('Opening a room…');
+    try { await this.loadLib(); } catch (e) { this.setStatus('Online play could not load. Check your internet and try again.'); return; }
+    this.kp = await CR.gen(); this.hpub = await CR.pub(this.kp);
+    for (var b = 0; b < BROKERS.length && !this.client; b++) {
+      var code = genCode(b);
+      try { var c = await this.connect(BROKERS[b], NROOT + code + '/all', function (d) { Net.onData(d); }); if (token !== this.token) { c.end(true); return; } this.client = c; this.code = code; }
+      catch (e) { if (token !== this.token) return; }
+    }
+    if (!this.client) { this.setStatus('Could not open a room. Check your internet and try again.'); return; }
+    this.role = 'host'; this.joined = true; this.started = false;
+    this.roster = [{ pid: this.me, name: cleanName(S.name) }];
+    this.status = ''; this.pushLobby(); track('online_room_created', {});
+    this.every(function () { Net.tick(); }, 2500); render();
+  },
+  pushLobby: function () { if (this.role !== 'host' || this.started) return; this.send({ t: 'lobby', players: this.roster.map(function (p) { return { pid: p.pid, name: p.name }; }), hpub: this.hpub }); if (A.ui.modal === 'online') render(); },
+  tick: function () {
+    var now = Date.now(), self = this;
+    if (this.role !== 'host') return;
+    if (!this.started) {
+      var before = this.roster.length;
+      this.roster = this.roster.filter(function (p) { if (p.pid === self.me || now - (self.seen[p.pid] || 0) < 20000) return true; delete self.keys[p.pid]; return false; });
+      this.pushLobby(); return;
+    }
+    this.send({ t: 'hb' }, 0);
+    this.seats.forEach(function (st, i) {
+      if (!st || !st.pid || i === 0 || st.away) return;
+      if (now - (self.seen[st.pid] || 0) > 25000) { st.away = true; applySeatNames(); toast(st.name + ' left. A computer takes over.', 2200); if (A.G && A.G.turn === i) step(); else render(); }
+    });
+  },
+  startGame: function () {
+    if (this.role !== 'host' || this.started || this.roster.length < 2) return;
+    var seats = [null, null, null, null];
+    for (var i = 0; i < 4; i++) { var g = SEATORDER[i], p = this.roster[i]; seats[g] = p ? { pid: p.pid, name: p.name, cpu: false, away: false } : { pid: null, name: CPUN[g], cpu: true, away: false }; }
+    this.seats = seats; this.my = 0; this.started = true; this.ver = 0; this.lastSig = null; this.lastSync = {};
+    track('online_started', { humans: this.roster.length });
+    applySeatNames(); startOnlineMatch();
+  },
+  pushTo: function (pid) { var s = seatOfPid(pid); if (s > 0 && A.G) this.sendView(pid, s); },
+  sendView: function (pid, seat) {
+    var k = this.keys[pid]; if (!k) return; var m = viewFor(seat);
+    CR.enc(k, m).then(function (e) { Net.send({ t: 'enc', to: pid, iv: e.iv, ct: e.ct }, 1); }).catch(function () {});
+  },
+
+  /* ----- guest ----- */
+  join: async function (code) {
+    if (!this.secure()) return; this.close(); var token = this.token;
+    code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var b = code.length === 5 ? brokerOf(code) : -1;
+    if (b < 0) { this.setStatus('That code does not look right. Ask your friend to check it.'); return; }
+    this.setStatus('Connecting…');
+    try { await this.loadLib(); } catch (e) { this.setStatus('Online play could not load. Check your internet and try again.'); return; }
+    this.kp = await CR.gen(); this.myPub = await CR.pub(this.kp);
+    var c;
+    try { c = await this.connect(BROKERS[b], NROOT + code + '/all', function (d) { if (token === Net.token) Net.onData(d); }); }
+    catch (e) { if (token === this.token) this.setStatus('Could not reach the game relay. Check your internet and try again.'); return; }
+    if (token !== this.token) { c.end(true); return; }
+    this.client = c; this.code = code; this.role = 'guest'; this.setStatus('Looking for the room…');
+    var t0 = Date.now(); this.hostSeen = Date.now(); var nm = cleanName(S.name);
+    var beat = function () {
+      if (!Net.joined) { if (Date.now() - t0 > 25000) { Net.close(); Net.setStatus('Room not found. Check the code, and ask your friend to keep the room open.'); return; } Net.send({ t: 'hello', name: nm, pub: Net.myPub }, 0); }
+      else { if (Date.now() - Net.hostSeen > 30000) { leaveNet('Lost connection to the host.'); return; } Net.send({ t: 'ping', ver: Net.ver }, 0); }
+    };
+    beat(); this.every(beat, 2000);
+  },
+  act: function (o) {
+    if (!this.hkey) return; o.v = this.ver;
+    CR.enc(this.hkey, o).then(function (e) { Net.send({ t: 'act', iv: e.iv, ct: e.ct }, 1); }).catch(function () {});
+  },
+
+  onData: function (d) {
+    if (!d || typeof d.from !== 'string' || d.from.length > 20 || d.from === this.me) return;
+    var self = this; this.seen[d.from] = Date.now();
+    if (this.role === 'guest' && this.hostPid && d.from === this.hostPid) this.hostSeen = Date.now();
+    if (this.role === 'host' && this.started) { var si = seatOfPid(d.from); if (si > 0 && this.seats[si].away) { this.seats[si].away = false; applySeatNames(); toast(this.seats[si].name + ' is back', 1800); this.pushTo(d.from); } }
+    switch (d.t) {
+      case 'hello': {
+        if (this.role !== 'host') return;
+        var known = this.roster.some(function (p) { return p.pid === d.from; });
+        if (known) { if (this.started) this.pushTo(d.from); return; }
+        if (this.started || this.roster.length >= 4) { this.send({ t: 'reject', to: d.from, why: this.started ? 'That game already started. Ask the host to make a new room.' : 'The room is full (4 players max).' }); return; }
+        var nm = cleanName(d.name);
+        CR.derive(this.kp.privateKey, d.pub).then(function (k) {
+          if (self.started || self.roster.length >= 4 || self.roster.some(function (p) { return p.pid === d.from; })) return;
+          self.keys[d.from] = k; self.roster.push({ pid: d.from, name: nm }); sfx('bid'); self.pushLobby();
+        }).catch(function () {});
+        break;
+      }
+      case 'lobby': {
+        if (this.role !== 'guest' || !Array.isArray(d.players) || !d.players.length || d.players[0].pid !== d.from) return;
+        this.hostPid = d.from; this.hostSeen = Date.now();
+        this.roster = d.players.slice(0, 4).map(function (p) { return { pid: String(p.pid).slice(0, 20), name: cleanName(p.name) }; });
+        if (this.roster.some(function (p) { return p.pid === self.me; })) {
+          if (!this.joined && !this.deriving) {
+            this.deriving = true;
+            CR.derive(this.kp.privateKey, d.hpub).then(function (k) { self.hkey = k; self.joined = true; self.deriving = false; self.status = ''; self.stage = 'lobby'; track('online_joined', {}); A.ui.modal = 'online'; if (A.screen !== 'lobby') { A.screen = 'lobby'; } render(); }).catch(function () { self.deriving = false; });
+          } else if (this.joined && !this.started && A.ui.modal === 'online') render();
+        }
+        break;
+      }
+      case 'reject': if (d.to === this.me && !this.joined) { var why = String(d.why || 'Could not join.'); this.close(); this.setStatus(why); } break;
+      case 'enc':
+        if (this.role !== 'guest' || d.to !== this.me || d.from !== this.hostPid || !this.hkey) return;
+        this.pq = (this.pq || Promise.resolve()).then(function () { return CR.dec(self.hkey, d).then(function (m) { onGuestView(m); }).catch(function () {}); });
+        break;
+      case 'act':
+        if (this.role !== 'host' || !this.started) return;
+        var k = this.keys[d.from]; if (!k || !d.iv || !d.ct) return;
+        CR.dec(k, d).then(function (o) { hostAct(d.from, o); }).catch(function () {});
+        break;
+      case 'ping':
+        if (this.role !== 'host' || !this.started || typeof d.ver !== 'number') return;
+        if (d.ver !== this.ver && Date.now() - (this.lastSync[d.from] || 0) > 1500) { this.lastSync[d.from] = Date.now(); this.pushTo(d.from); }
+        break;
+      case 'bye':
+        if (this.role !== 'host') return;
+        if (!this.started) { this.roster = this.roster.filter(function (p) { return p.pid !== d.from; }); delete this.keys[d.from]; this.pushLobby(); }
+        else { var bi = seatOfPid(d.from); if (bi > 0 && !this.seats[bi].away) { this.seats[bi].away = true; applySeatNames(); toast(this.seats[bi].name + ' left. A computer takes over.', 2200); if (A.G && A.G.turn === bi) step(); else render(); } }
+        break;
+      case 'closed': if (this.role === 'guest' && d.from === this.hostPid) leaveNet('The host closed the room.'); break;
+    }
+  },
+  close: function () {
+    this.token = {}; this.timers.forEach(clearInterval); this.timers = [];
+    var c = this.client; this.client = null;
+    if (c) { try { c.publish(NROOT + this.code + '/all', JSON.stringify({ t: this.role === 'host' ? 'closed' : 'bye', from: this.me }), { qos: 0 }); } catch (e) {} setTimeout(function () { try { c.end(true); } catch (e) {} }, 300); }
+    this.roster = []; this.keys = {}; this.seen = {}; this.joined = false; this.deriving = false; this.role = null; this.started = false; this.hostPid = null; this.hkey = null; this.code = null;
+    this.ver = 0; this.lastSync = {}; this.seats = []; this.my = 0; this.queued = null; this.lastM = null; this.lastSig = null; this.pq = null; this.copied = false;
+  }
+};
+window.addEventListener('pagehide', function () { if (Net.client) Net.close(); });
+
+function leaveNet(msg) {
+  clearTimers(); Net.close(); resetSeatNames();
+  A.mode = 'play'; A.screen = 'lobby'; A.G = null; A.cache = {}; A.ui = {}; if (msg) A.ui.toast = msg; render();
+  if (msg) setTimeout(function () { A.ui.toast = null; render(); }, 4000);
+}
+
+/* ----- host: start a match, push what each seat may see ----- */
+function startOnlineMatch() {
+  clearTimers(); ac();
+  A.mode = 'online'; A.screen = 'table'; A.ui = {};
+  A.M = E.newMatch(ruleSet()); A.M.dealer = Math.floor(Math.random() * 4);
+  A.aiLevel = A.level; A.rng = E.secureRng();
+  Net.lastSig = null;
+  newRound();
+}
+function netSig() {
+  var G = A.G, M = A.M;
+  return [G.gid, G.phase, G.turn, G.bidLog.length, G.trick.length, G.tricks.length, G.revealed ? 1 : 0, G.pair ? 1 : 0, G.mult, G.dblStage, G.hands[0].length, M.round, M.scores.join(), A.ui.modal === 'result' ? 1 : 0, Net.seats.map(function (s) { return s.away ? 1 : 0; }).join('')].join('|');
+}
+function netPush() {
+  if (Net.role !== 'host' || !Net.started || !A.G || A.mode !== 'online') return;
+  var sig = netSig(); if (sig === Net.lastSig) return;
+  Net.lastSig = sig; Net.ver++;
+  Net.seats.forEach(function (st, i) { if (i > 0 && st.pid && !st.away) Net.sendView(st.pid, i); });
+}
+/* a copy of the game, turned so that `my` sits at the bottom, with everyone else's cards hidden */
+function viewFor(my) {
+  var G = A.G, M = A.M, sw = my % 2 === 1;
+  var r = function (p) { return (p === null || p === undefined || p < 0) ? p : (p - my + 4) % 4; };
+  var rot = function (a) { return [0, 1, 2, 3].map(function (l) { return a[(l + my) % 4]; }); };
+  var tm = function (a) { return sw ? [a[1], a[0]] : a.slice(); };
+  var plays = function (a) { return a.map(function (pl) { return { p: r(pl.p), card: pl.card }; }); };
+  var trickOf = function (t) { return t ? { plays: plays(t.plays), winner: r(t.winner), pts: t.pts, last: !!t.last } : null; };
+  var res = G.result ? { bidTeam: sw ? 1 - G.result.bidTeam : G.result.bidTeam, bid: G.result.bid, target: G.result.target, points: tm(G.result.points), success: G.result.success, mult: G.result.mult, delta: G.result.delta, trump: G.result.trump, tricksWon: tm(G.result.tricksWon) } : null;
+  var v = {
+    rules: G.rules, dealer: r(G.dealer), phase: G.phase, turn: r(G.turn), gid: G.gid,
+    hands: [0, 1, 2, 3].map(function (l) { var g = (l + my) % 4; return l === 0 ? G.hands[g].slice() : G.hands[g].map(function () { return '??'; }); }),
+    rest: [[], [], [], []], bid: G.bid ? { amount: G.bid.amount, by: r(G.bid.by) } : null, passed: rot(G.passed),
+    bidLog: G.bidLog.map(function (b) { return { p: r(b.p), bid: b.bid }; }), declarer: r(G.declarer),
+    trump: (G.revealed || G.declarer === my) ? G.trump : null, hidden: G.hidden, revealed: G.revealed, target: G.target, mult: G.mult, dblStage: G.dblStage, doubledBy: r(G.doubledBy),
+    trick: plays(G.trick), tricks: G.tricks.map(trickOf), lastTrick: trickOf(G.lastTrick), seen: G.seen.slice(), teamPts: tm(G.teamPts), playerWon: rot(G.playerWon),
+    pair: G.pair ? { by: r(G.pair.by), mine: G.pair.mine } : null, forceTrump: G.forceTrump < 0 ? -1 : r(G.forceTrump), result: res, deck: [],
+    netCanPair: E.canDeclarePair(G, my)
+  };
+  return { ver: Net.ver, my: my, seats: Net.seats.map(function (s) { return { n: s.name, c: !!s.cpu, a: !!s.away }; }), fin: A.ui.modal === 'result',
+    G: v, M: { rules: M.rules, scores: tm(M.scores), round: M.round, over: M.over, winner: M.winner === null ? null : (sw ? 1 - M.winner : M.winner), dealer: r(M.dealer) } };
+}
+/* ----- host: a guest asked to do something ----- */
+function hostAct(pid, o) {
+  var G = A.G, seat = seatOfPid(pid);
+  if (!G || !(seat > 0) || !o || typeof o !== 'object' || A.screen !== 'table' || A.ui.modal === 'result') return;
+  if (o.v !== Net.ver) { Net.pushTo(pid); return; }
+  if (A.ui.trickShow) { o.__r = (o.__r || 0) + 1; if (o.__r < 10) later(function () { hostAct(pid, o); }, 300); return; }
+  var ok = false;
+  if (o.a === 'bid') { ok = E.placeBid(G, seat, +o.amount).ok; if (ok) { sfx('bid'); cap(esc(seatName(seat)) + ' bids ' + (+o.amount) + '.'); render(); step(); } }
+  else if (o.a === 'pass') { ok = E.passBid(G, seat).ok; if (ok) { render(); step(); } }
+  else if (o.a === 'trump') { ok = E.chooseTrump(G, seat, String(o.suit), !!o.hidden).ok; if (ok) afterTrump(); }
+  else if (o.a === 'dbl') { if (G.phase === 'double' && G.turn === seat) { ok = true; applyDouble(seat, !!o.yes); } }
+  else if (o.a === 'play') { var before = G.seen.length; doPlay(seat, String(o.c)); ok = G.seen.length > before; }
+  else if (o.a === 'ask') { ok = E.revealTrump(G, seat).ok; if (ok) { sfx('trump'); announce(esc(seatName(seat)) + ' asks for trump<br><span style="font-size:22px">' + sym(G.trump) + ' ' + E.SUIT_NAME[G.trump] + '</span>'); render(); } }
+  else if (o.a === 'pair') { ok = E.declarePair(G, seat).ok; if (ok) { sfx('trump'); announce('Pair declared by ' + esc(seatName(seat)) + '!<br><small style="font-size:16px;color:var(--mute)">Target is now ' + G.target + '</small>'); render(); } }
+  if (!ok) Net.pushTo(pid);
+}
+/* ----- guest: every update from the host ----- */
+function onGuestView(m) {
+  if (!m || typeof m.ver !== 'number' || !m.G || !Array.isArray(m.G.hands) || !Array.isArray(m.seats)) return;
+  if (m.ver < Net.ver) return;
+  Net.ver = m.ver;
+  if (!Net.started) {
+    Net.started = true; Net.my = m.my; clearTimers(); ac();
+    A.mode = 'online'; A.screen = 'table'; A.G = null; A.ui = {}; A.cache = {};
+  }
+  Net.my = m.my;
+  Net.seats = m.seats.map(function (s) { return { name: cleanName(s.n), cpu: !!s.c, away: !!s.a }; });
+  applySeatNames();
+  guestApply(m);
+}
+function guestApply(m) {
+  if (A.ui.trickShow) { Net.queued = m; return; }
+  var prev = A.G, G = m.G, fresh = !prev || prev.gid !== G.gid;
+  Net.lastM = m; A.G = G; A.M = m.M;
+  if (fresh) { A.ui = { dealt: dealMap(G.hands[0], []), tags: {} }; sfx('deal'); }
+  else {
+    if (G.seen.length > prev.seen.length) { sfx('play'); A.ui.sel = null; A.ui.freshAt = G.seen.length; }
+    if (G.bidLog.length > prev.bidLog.length) sfx('bid');
+    if (prev.phase === 'trump' && G.phase !== 'trump') afterTrump();
+    if (G.mult > prev.mult) { sfx('trump'); announce(G.mult === 4 ? 'Re-doubled! ×4' : esc(seatName(G.doubledBy)) + ' doubled! ×2', 1400); A.ui.tags = A.ui.tags || {}; A.ui.tags[G.mult === 4 ? G.declarer : G.doubledBy] = G.mult === 4 ? 'Re-double' : 'Double'; }
+    if (G.pair && !prev.pair) { sfx('trump'); announce('Pair declared by ' + esc(seatName(G.pair.by)) + '!<br><small style="font-size:16px;color:var(--mute)">Target is now ' + G.target + '</small>', 1500); }
+    else if (!prev.revealed && G.revealed && G.phase === 'play') { sfx('trump'); announce('Trump is<br><span style="font-size:42px">' + sym(G.trump) + '</span> ' + E.SUIT_NAME[G.trump], 1500); }
+    if (G.phase === 'redeal' && prev.phase !== 'redeal') toast('Everyone passed — redeal', 1700);
+    if (G.tricks.length > prev.tricks.length && G.lastTrick) { guestTrick(G.lastTrick); return; }
+  }
+  guestResultMaybe(); render();
+}
+function guestTrick(lt) {
+  A.ui.trickShow = { plays: lt.plays, winner: lt.winner, pts: lt.pts }; render();
+  later(function () {
+    sfx('trick');
+    document.querySelectorAll('.tcard').forEach(function (el) {
+      var d = { 0: ['0px', '300px'], 1: ['-420px', '0px'], 2: ['0px', '-300px'], 3: ['420px', '0px'] }[lt.winner];
+      el.style.setProperty('--dx', d[0]); el.style.setProperty('--dy', d[1]); el.classList.add('sweep');
+    });
+  }, 900);
+  later(function () {
+    A.ui.trickShow = null;
+    var q = Net.queued; Net.queued = null;
+    if (q) { guestApply(q); return; }
+    guestResultMaybe(); render();
+  }, 1400);
+}
+function guestResultMaybe() {
+  var m = Net.lastM, G = A.G;
+  if (m && m.fin && G && G.phase === 'done' && A.ui.modal !== 'result') {
+    var M = A.M, r = G.result;
+    sfx(M.over ? (M.winner === 0 ? 'win' : 'lose') : ((r.success === (r.bidTeam === 0)) ? 'trick' : 'lose'));
+    A.ui.modal = 'result';
+  }
+}
+function netAct(o) { Net.act(o); }
+
+/* ----- the online dialog (create or join a room, wait for friends) ----- */
+function onlineHTML(wrap, m) {
+  var close = '<button class="ibtn" data-act="closemodal" aria-label="Close" style="width:36px;height:36px">✕</button>';
+  var inLobby = Net.role && Net.joined;
+  if (!inLobby) {
+    return wrap('<div class="row" style="justify-content:space-between"><h2 class="hf" style="margin:0;font-size:' + (m ? 24 : 28) + 'px">Play online</h2>' + close + '</div>' +
+      '<p style="margin:0;color:#D3E3DA;font-size:' + (m ? 13 : 15) + 'px;line-height:1.5">Play with up to <b>4 real players</b>. Partners sit opposite each other. Any empty seat is played by the computer and is marked AI.</p>' +
+      '<label class="col" style="gap:6px"><span style="font:600 14px var(--bf)">Your name</span><input id="nm" maxlength="12" value="' + esc(S.name) + '" data-act="name" style="height:44px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--ink);padding:0 12px;font:600 16px var(--bf);user-select:text;-webkit-user-select:text"></label>' +
+      '<button class="btn pri" data-act="netcreate" style="height:54px;font-size:17px">Create a room</button>' +
+      '<div class="mute" style="text-align:center;font-size:13px">or join a friend’s room</div>' +
+      '<div class="row" style="gap:8px"><input id="jc" maxlength="5" placeholder="ROOM CODE" value="' + esc(Net.codeText) + '" autocomplete="off" style="flex:1;min-width:0;height:48px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--gold);padding:0 12px;font:700 20px var(--hf);letter-spacing:.2em;text-transform:uppercase;user-select:text;-webkit-user-select:text"><button class="btn" data-act="netjoin" style="height:48px;padding:0 22px">Join</button></div>' +
+      '<div class="gold" style="min-height:20px;font-size:13px">' + esc(Net.status) + '</div>' +
+      '<div class="mute" style="font-size:11px;line-height:1.5">Online play uses a free public relay. Your cards are encrypted so only you can read them. Never type personal details here. The player who creates the room runs the game, so they need to keep the page open.</div>', m ? 350 : 520);
+  }
+  var host = Net.role === 'host', seats = [0, 1, 2, 3].map(function (i) {
+    var p = Net.roster[i];
+    return '<div class="row" style="justify-content:space-between;padding:10px 14px;border-radius:12px;background:#0D1915;border:1px solid ' + (p ? 'var(--gold)' : 'var(--line)') + '"><span style="font-weight:600">' + (p ? esc(p.name) + (p.pid === Net.me ? ' (you)' : '') + (i === 0 ? ' · host' : '') : '<span class="mute">Computer plays this seat</span>') + '</span><span class="mute" style="font-size:12px">' + (i === 0 ? 'Team A' : i === 1 ? 'Partner of host' : 'Team B') + '</span></div>';
+  }).join('');
+  var url = location.origin + location.pathname + '?room=' + Net.code;
+  return wrap('<div class="row" style="justify-content:space-between"><h2 class="hf" style="margin:0;font-size:' + (m ? 24 : 28) + 'px">Room</h2>' + close + '</div>' +
+    '<div class="col" style="align-items:center;gap:4px;padding:12px;border-radius:14px;background:#0D1915;border:1px dashed var(--gold)"><span class="lbl">Room code</span><b class="hf gold" style="font-size:' + (m ? 40 : 52) + 'px;letter-spacing:.22em">' + esc(Net.code) + '</b></div>' +
+    '<div class="row" style="gap:8px"><button class="btn" data-act="netcopy" style="flex:1;height:46px">' + (Net.copied ? 'Copied ✓' : 'Share invite') + '</button></div>' +
+    '<div class="mute" style="font-size:12px;word-break:break-all;text-align:center">' + esc(url) + '</div>' +
+    '<div class="col" style="gap:8px">' + seats + '</div>' +
+    (host ? '<button class="btn pri" data-act="netstart" ' + (Net.roster.length >= 2 ? '' : 'disabled') + ' style="height:54px;font-size:17px">' + (Net.roster.length >= 2 ? 'Start game' : 'Waiting for a friend to join…') + '</button><div class="mute" style="font-size:12px;text-align:center">Empty seats are played by the computer (' + esc(A.level) + ' level). You can start as soon as one friend has joined.</div>'
+      : '<div class="gold" style="text-align:center;font-weight:600">Waiting for the host to start…</div>') +
+    '<button class="btn" data-act="netleave" style="height:46px">Leave room</button>', m ? 350 : 520);
 }
 
 /* ===================== GAME FLOW ===================== */
@@ -715,7 +1066,7 @@ function newRound(replayDaily) {
   var M = A.M, seeded = (A.mode === 'daily') ? E.seededRng(hashStr('stratos29-' + dayKey())) : null;
   var opts = { dealer: M.dealer, rules: M.rules, rng: seeded || A.rng };
   if (seeded) { opts.dealer = Math.floor(seeded() * 4); }
-  A.G = E.newRound(opts);
+  A.G = E.newRound(opts); A.G.gid = (A.gidc = (A.gidc || 0) + 1);
   A.ui = { hintsLeft: A.mode === 'practice' ? -1 : 1, dealt: dealMap(A.G.hands[0], []), tags: {} };
   track('level_start', { mode: A.mode, round: M.round + 1, ai: A.aiLevel });
   sfx('deal'); coachMaybe('bid');
@@ -723,7 +1074,7 @@ function newRound(replayDaily) {
 }
 function dealMap(newCards, old) { var o = {}, k = 0; E.sortHand(newCards).forEach(function (c) { if (old.indexOf(c) < 0) o[c] = ++k; }); return o; }
 function coachMaybe(k) {
-  if (A.mode === 'demo') return;
+  if (A.mode === 'demo' || A.mode === 'online') return;
   if (SEEN[k] && A.mode !== 'practice') return;
   if (A.mode === 'practice' && A.ui.coachSeenRound && A.ui.coachSeenRound[k]) return;
   if (SEEN[k]) return;
@@ -737,11 +1088,13 @@ function sched(fn, ms) { A.pend = later(fn, ms); }
 function step() {
   clearTimeout(A.pend);
   var G = A.G; if (!G || A.screen !== 'table' || A.ui.trickShow || A.ui.modal === 'result') return;
+  if (isGuest()) return;
   var p = G.turn;
   if (G.phase === 'redeal') {
     toast('Everyone passed — redeal', 1700);
     sched(function () { A.M.dealer = (A.M.dealer + 1) % 4; newRound(); }, 1800); return;
   }
+  if (isRemote(p)) { render(); return; }
   if (G.phase === 'bidding') {
     if (hu(p)) { render(); return; }
     sched(function () {
@@ -810,6 +1163,7 @@ function applyDouble(p, yes) {
 }
 function doPlay(p, card) {
   var G = A.G, before = G.tricks.length;
+  if (isGuest()) { if (p === 0 && !A.ui.trickShow) { netAct({ a: 'play', c: card }); A.ui.sel = null; render(); } return; }
   if (A.ui.trickShow) return;
   var r = E.playCard(G, p, card);
   if (!r.ok) { render(); return; }
@@ -835,6 +1189,11 @@ function doPlay(p, card) {
 }
 function finishRound() {
   var G = A.G, M = A.M, r = G.result;
+  if (A.mode === 'online') {
+    E.applyRound(M, r); track('level_complete', { mode: 'online', round: M.round, bid: r.bid, made: r.success });
+    if (M.over) { sfx(M.winner === 0 ? 'win' : 'lose'); track('game_over', { mode: 'online', won: M.winner === 0 }); } else sfx((r.success === (r.bidTeam === 0)) ? 'trick' : 'lose');
+    A.ui.modal = 'result'; render(); return;
+  }
   if (A.mode === 'demo') { track('demo_complete', { made: r.success }); sfx('trick'); A.ui.modal = 'result'; render(); return; }
   A.ui.sel = null;
   E.applyRound(M, r);
@@ -879,36 +1238,48 @@ var H = {
   about: function () { A.ui.modal = 'about'; render(); },
   practice: function () { A.ui.modal = null; startGame('practice'); },
   daily: function () { startGame('daily'); },
-  friends: function () { A.ui.toast = 'Private rooms are coming soon.'; render(); setTimeout(function () { A.ui.toast = null; render(); }, 1800); },
-  online: function () { A.ui.toast = 'Online matches are coming soon.'; render(); setTimeout(function () { A.ui.toast = null; render(); }, 1800); },
+  friends: function () { A.ui.modal = 'online'; render(); },
+  online: function () { A.ui.modal = 'online'; render(); },
+  netcreate: function () { var nm = document.getElementById('nm'); if (nm) { S.name = nm.value.slice(0, 12).trim() || 'Player'; saveS(); } ac(); Net.create(); },
+  netjoin: function () { var jc = document.getElementById('jc'); if (jc) Net.codeText = jc.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); var nm = document.getElementById('nm'); if (nm) { S.name = nm.value.slice(0, 12).trim() || 'Player'; saveS(); } ac(); Net.join(Net.codeText); },
+  netstart: function () { Net.startGame(); },
+  netleave: function () { Net.close(); A.ui.modal = null; render(); },
+  netcopy: function () {
+    var url = location.origin + location.pathname + '?room=' + Net.code, txt = 'Play STRATOS 29 with me! Room code: ' + Net.code + ' ' + url;
+    var done = function () { Net.copied = true; render(); setTimeout(function () { Net.copied = false; render(); }, 2000); };
+    try { if (navigator.share) { navigator.share({ title: 'STRATOS 29', text: 'Play STRATOS 29 with me! Room code: ' + Net.code, url: url }).catch(function () {}); return; } } catch (e) {}
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, function () {}); return; } } catch (e) {}
+    try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {}
+  },
   rules: function () { A.rulePage = 0; A.ui.modal = 'rules'; render(); },
   rulepage: function (d) { var n = A.rulePage + (+d.v); if (n >= rulesPages().length) { A.ui.modal = null; A.rulePage = 0; } else A.rulePage = Math.max(0, n); render(); },
   stats: function () { A.ui.modal = 'stats'; render(); },
-  settings: function () { if (A.mode === 'demo') { clearTimers(); A.mode = 'play'; } A.prevScreen = A.screen === 'settings' ? A.prevScreen : A.screen; A.screen = 'settings'; A.ui.modal = null; render(); },
+  settings: function () { if (A.mode === 'online') { toast('Settings are available from the lobby', 1500); return; } if (A.mode === 'demo') { clearTimers(); A.mode = 'play'; } A.prevScreen = A.screen === 'settings' ? A.prevScreen : A.screen; A.screen = 'settings'; A.ui.modal = null; render(); },
   stab: function (d) { A.sTab = d.v; render(); },
   tog: function (d) { S[d.v] = !S[d.v]; saveS(); if (d.v === 'music') musicOn(S.music); if (d.v === 'sound' && S.sound) sfx('bid'); render(); },
   set: function (d) { S[d.k] = d.v; if (d.k === 'level') A.level = d.v; saveS(); render(); },
   name: function () {},
   snd: function () { S.sound = !S.sound; saveS(); render(); },
-  lobby: function () { clearTimers(); A.mode = 'play'; A.screen = 'lobby'; A.ui = {}; A.G = null; A.cache = {}; render(); },
+  lobby: function () { clearTimers(); if (Net.client || Net.role) Net.close(); resetSeatNames(); A.mode = 'play'; A.screen = 'lobby'; A.ui = {}; A.G = null; A.cache = {}; render(); },
   leave: function () { A.ui.modal = 'leave'; render(); },
   leaveyes: function () { H.lobby(); },
   closemodal: function () { A.ui.modal = null; render(); if (A.screen === 'table') step(); },
   modalbg: function (d, e) { if (e.target === e.currentTarget && A.ui.modal !== 'result') H.closemodal(); },
   next: function () { A.ui.modal = null; A.M.dealer = (A.M.dealer + 1) % 4; newRound(); },
-  again: function () { var md = A.mode === 'daily' ? 'practice' : A.mode; A.ui.modal = null; startGame(md); },
+  again: function () { if (A.mode === 'online') { A.ui.modal = null; if (Net.role === 'host') startOnlineMatch(); return; } var md = A.mode === 'daily' ? 'practice' : A.mode; A.ui.modal = null; startGame(md); },
   coachx: function () { A.ui.coach = null; render(); },
   bidpick: function (d) { A.ui.bidPick = +d.v; render(); },
-  placebid: function () { var G = A.G; if (E.placeBid(G, 0, A.ui.bidPick).ok) { sfx('bid'); A.ui.coach = null; track('bid_made', { amount: A.ui.bidPick }); render(); step(); } },
-  pass: function () { var G = A.G; if (E.passBid(G, 0).ok) { A.ui.coach = null; render(); step(); } },
+  placebid: function () { var G = A.G; if (isGuest()) { netAct({ a: 'bid', amount: A.ui.bidPick }); A.ui.coach = null; return; } if (E.placeBid(G, 0, A.ui.bidPick).ok) { sfx('bid'); A.ui.coach = null; track('bid_made', { amount: A.ui.bidPick }); render(); step(); } },
+  pass: function () { var G = A.G; if (isGuest()) { netAct({ a: 'pass' }); return; } if (E.passBid(G, 0).ok) { A.ui.coach = null; render(); step(); } },
   trumppick: function (d) { A.ui.trumpPick = d.v; render(); },
   hidepick: function () { A.ui.hidePick = !(A.ui.hidePick === undefined ? S.hidden : A.ui.hidePick); render(); },
   confirmtrump: function () {
     var G = A.G, s = A.ui.trumpPick || E.bestSuit(G.hands[0]).suit, hid = A.ui.hidePick === undefined ? S.hidden : A.ui.hidePick;
     A.ui.coach = null;
+    if (isGuest()) { netAct({ a: 'trump', suit: s, hidden: !!hid }); return; }
     if (E.chooseTrump(G, 0, s, hid).ok) afterTrump();
   },
-  dbl: function (d) { A.ui.coach = null; applyDouble(0, d.v === '1'); },
+  dbl: function (d) { A.ui.coach = null; if (isGuest()) { netAct({ a: 'dbl', yes: d.v === '1' }); return; } applyDouble(0, d.v === '1'); },
   card: function (d) {
     var G = A.G; if (!(G.phase === 'play' && hu(G.turn)) || A.ui.trickShow) return;
     var c = d.c;
@@ -918,13 +1289,13 @@ var H = {
   },
   playcard: function () { if (A.ui.sel) doPlay(0, A.ui.sel); },
   hint: function () {
-    var G = A.G; if (!(G.phase === 'play' && hu(G.turn))) return;
+    var G = A.G; if (A.mode === 'online') return; if (!(G.phase === 'play' && hu(G.turn))) return;
     var run = function () { var o = E.observe(G, 0); A.ui.hint = E.ai.play(o, 'Expert', Math.random); A.ui.sel = A.ui.hint; if (A.ui.hintsLeft > 0) A.ui.hintsLeft--; render(); };
     if (A.mode === 'practice') run(); else offerReward(run);
   },
   lasttrick: function () { A.ui.modal = 'last'; render(); },
-  ask: function () { var G = A.G; if (E.revealTrump(G, 0).ok) { sfx('trump'); announce('Trump is<br><span style="font-size:42px">' + sym(G.trump) + '</span> ' + E.SUIT_NAME[G.trump], 1500); render(); } },
-  pair: function () { var G = A.G; if (E.declarePair(G, 0).ok) { sfx('trump'); announce('Pair declared!<br><small style="font-size:16px;color:var(--mute)">Target is now ' + G.target + '</small>', 1500); render(); } }
+  ask: function () { var G = A.G; if (isGuest()) { netAct({ a: 'ask' }); return; } if (E.revealTrump(G, 0).ok) { sfx('trump'); announce('Trump is<br><span style="font-size:42px">' + sym(G.trump) + '</span> ' + E.SUIT_NAME[G.trump], 1500); render(); } },
+  pair: function () { var G = A.G; if (isGuest()) { netAct({ a: 'pair' }); return; } if (E.declarePair(G, 0).ok) { sfx('trump'); announce('Pair declared!<br><small style="font-size:16px;color:var(--mute)">Target is now ' + G.target + '</small>', 1500); render(); } }
 };
 $stage.addEventListener('click', function (e) {
   var el = e.target.closest('[data-act]');
@@ -933,7 +1304,7 @@ $stage.addEventListener('click', function (e) {
   ac();
   H[el.dataset.act](el.dataset, e);
 });
-$stage.addEventListener('input', function (e) { if (e.target.id === 'nm') { S.name = e.target.value.slice(0, 12).trim() || 'Player'; saveS(); } });
+$stage.addEventListener('input', function (e) { if (e.target.id === 'jc') Net.codeText = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); if (e.target.id === 'nm') { S.name = e.target.value.slice(0, 12).trim() || 'Player'; saveS(); } });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && A.ui.modal && A.ui.modal !== 'result') H.closemodal();
   if (e.key === 'Enter' && A.screen === 'table' && A.ui.sel && !A.ui.modal && document.activeElement === document.body) H.playcard();
@@ -944,7 +1315,8 @@ window.addEventListener('orientationchange', fit);
 /* ---------- boot ---------- */
 $stage.className = 'd'; fit(); render();
 if (S.music) document.addEventListener('pointerdown', function once() { musicOn(true); document.removeEventListener('pointerdown', once); });
-window.__S29 = { A: A, E: E }; // for automated checks
+try { var rq = new URLSearchParams(location.search).get('room'); if (rq) { Net.codeText = String(rq).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); A.ui.modal = 'online'; render(); } } catch (e) {}
+window.__S29 = { A: A, E: E, Net: Net }; // for automated checks
 })();
 </script>
 </body>

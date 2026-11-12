@@ -146,6 +146,13 @@ t('observe() never leaks other hands or hidden trump', () => {
   assert.strictEqual(E.observe(G, 1).trump, 'h');
 });
 
+t('observe() lets the host override pair eligibility for a hidden-trump copy', () => {
+  const G = E.newRound({ dealer: 0 });
+  assert.strictEqual(E.observe(G, 0).canPair, false);
+  G.netCanPair = true;
+  assert.strictEqual(E.observe(G, 0).canPair, true);
+});
+
 /* ---------- simulation ---------- */
 const N = parseInt(process.argv[2] || '10000', 10);
 console.log('\nSimulation: ' + N + ' complete rounds (random AI levels, hidden + open trump, doubling)');
