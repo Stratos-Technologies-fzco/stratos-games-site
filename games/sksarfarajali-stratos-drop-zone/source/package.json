@@ -1,1 +1,27 @@
-{"name":"stratos-drop-zone","private":true,"version":"0.1.0","type":"module","scripts":{"dev":"vite","build":"tsc --noEmit && vite build","test":"vitest run","typecheck":"tsc --noEmit"},"dependencies":{"preact":"^11.2.0","three":"^0.187.0"},"devDependencies":{"@preact/preset-vite":"^2.10.6","@types/three":"^0.187.0","typescript":"^7.0.2","vite":"^8.3.8","vitest":"^5.1.0"}}
+{
+  "name": "stratos-drop-zone",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "copy-ui-art": "node tools/copy-ui-art.ts",
+    "make-og": "node tools/make-og.ts",
+    "dev": "npm run copy-ui-art && vite",
+    "build": "npm run copy-ui-art && npm run make-og && tsc --noEmit && vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "preact": "^11.2.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^26.6.6",
+    "@types/three": "^0.187.0",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}

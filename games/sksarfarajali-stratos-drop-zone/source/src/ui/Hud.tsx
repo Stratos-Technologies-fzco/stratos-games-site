@@ -6,6 +6,8 @@ import { OUTLINE, RIVER, POIS, MAP, HALF } from '../core/world';
 import { input, isTouch, press, settings, touch } from '../input';
 import { iconFor } from '../render/icons';
 import { audio } from '../audio';
+import { Results } from './Results';
+import { Pic } from './art';
 import { itemLabel } from '../game/loot';
 
 const RC = B.rarity.colors;
@@ -33,7 +35,7 @@ function drawMap(c: HTMLCanvasElement, hud: Hud, big: boolean) {
   if (hud.phase === 'flight') { ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(tx(hud.planeX - hud.planeDir[0] * 500), tz(hud.planeZ - hud.planeDir[1] * 500)); ctx.lineTo(tx(hud.planeX + hud.planeDir[0] * 500), tz(hud.planeZ + hud.planeDir[1] * 500)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(tx(hud.planeX), tz(hud.planeZ), 5, 0, 7); ctx.fill(); }
   ctx.save(); ctx.translate(tx(hud.px), tz(hud.pz)); ctx.rotate(-hud.yaw + Math.PI); ctx.fillStyle = '#FFB020'; ctx.strokeStyle = '#000'; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(5, 6); ctx.lineTo(0, 3); ctx.lineTo(-5, 6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
 }
-function MapCanvas({ hud, big, size, onClick }: { hud: Hud; big?: boolean; size: number; onClick?: () => void }) {
+function MapCanvas({ hud, big, size, onClick }: { hud: Hud; big?: boolean; size: number; onClick?: (e: MouseEvent) => void }) {
   const ref = useRef<HTMLCanvasElement>(null); useEffect(() => { if (ref.current) drawMap(ref.current, hud, !!big); });
   return <canvas ref={ref} class={big ? '' : 'mini'} width={size} height={size} onClick={onClick} style={big ? undefined : { width: '100%', height: 'auto' }} />;
 }
@@ -65,7 +67,7 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
       {hud.phase === 'flight' ? (
         <div class="flight">
           <div class="info panel"><span>ALT {hud.alt || '—'} m</span><span>{hud.alive} aboard</span>{hud.canJump && <span class="pill">AUTO-JUMP {Math.ceil(hud.autoJumpIn)}s</span>}</div>
-          <div class="tl" style="left:10px;top:10px;pointer-events:auto"><MapCanvas hud={hud} size={140} /></div>
+          <div class="tl" style="left:10px;top:10px;pointer-events:auto"><MapCanvas hud={hud} size={280} onClick={() => press('map')} /></div>
           {hud.canJump && <button class="jumpbtn" style="pointer-events:auto" onClick={() => { press('jump'); }}>JUMP</button>}
         </div>
       ) : (
@@ -121,19 +123,11 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
       {hud.demo && <div class="banner panel" style="top:10px;left:auto;right:10px;transform:none;font-size:15px;max-width:300px;color:var(--text);border-color:var(--amber);text-align:left"><div class="t" style="color:var(--amber)">DEMO · step {Math.min(hud.demo.step + 1, hud.demo.total)} of {hud.demo.total}</div>{hud.demo.text}{hud.demo.step >= hud.demo.total && <div><button class="btn primary" style="margin-top:8px;font-size:16px" onClick={onLobby}>Back to lobby</button></div>}</div>}
       <button class="tb" style="left:12px;bottom:6px;width:40px;height:40px;pointer-events:auto" aria-label="Music" onClick={() => { settings.musicOn = !settings.musicOn; audio.setMusicOn(settings.musicOn); force((n) => n + 1); }}>{settings.musicOn ? '♪' : '♪̸'}</button>
       {settings.fps && <div class="fps">{hud.fps} FPS · {hud.quality}</div>}
-      {hud.mapOpen && <div class="bigmap" onClick={() => press('map')}><MapCanvas hud={hud} big size={720} /></div>}
+      {hud.mapOpen && <div class="bigmap" onClick={() => press('map')}><div style="position:relative" onClick={(e) => e.stopPropagation()}><MapCanvas hud={hud} big size={720} onClick={(e) => { const r = (e.currentTarget as HTMLCanvasElement).getBoundingClientRect(); g.setMarker(((e.clientX - r.left) / r.width) * MAP - HALF, ((e.clientY - r.top) / r.height) * MAP - HALF); }} /><div class="note" style="text-align:center;margin-top:6px">Tap the map to place a marker</div></div><button class="btn close" onClick={(e) => { e.stopPropagation(); press('map'); }}>Close</button></div>}
+      {hud.dropCard && <div class="dropcard" key={hud.dropCard.id}><Pic name={`cards/locations/${hud.dropCard.key}_640x360`} alt={hud.dropCard.name} lazy={false} /><div class="dc-l"><small>DROP MARKER</small>{hud.dropCard.name}</div></div>}
       {hud.inventoryOpen && <InventoryPanel g={g} hud={hud} />}
       {hud.kioskOpen && <KioskPanel g={g} hud={hud} />}
-      {res && (
-        <div class="full center results">
-          <h1 class={res.win ? 'win' : 'lose'}>{res.win ? 'STORM CLEARED' : 'ELIMINATED'}</h1>
-          <div class="t" style="font-size:28px">#{res.placement}<span style="color:var(--muted);font-size:18px"> / {res.total}</span></div>
-          <div class="tiles"><div class="tile"><b>{res.kills}</b><span>Eliminations</span></div><div class="tile"><b>{res.damage}</b><span>Damage</span></div><div class="tile"><b>{fmt(res.time)}</b><span>Survived</span></div><div class="tile"><b>{res.headshots}</b><span>Headshots</span></div><div class="tile"><b>{res.tokens}</b><span>Tokens earned</span></div><div class="tile"><b style="color:var(--violet)">+{res.xp}</b><span>XP</span></div></div>
-          {!res.win && res.killer && <div class="note">Eliminated by {res.killer}</div>}
-          {res.outcome && <div class="card" style="width:min(540px,90vw);padding:10px"><div class="row"><span>Run score (local leaderboard)</span><b>{res.outcome.score}</b></div>{res.outcome.bonusXp > 0 && <div class="row"><span>Mission bonus</span><b style="color:var(--violet)">+{res.outcome.bonusXp} XP</b></div>}{res.outcome.missionsDone.map((m) => <div class="row" key={m.id}><span>Mission complete: {m.text}</span><b style="color:var(--green)">✓</b></div>)}{res.outcome.achievements.map((a) => <div class="row" key={a.id}><span>Achievement: <b>{a.name}</b> · {a.text}</span><b style="color:var(--amber)">★</b></div>)}</div>}
-          <div style="display:flex;gap:10px"><button class="btn primary" onClick={onAgain}>Play again</button><button class="btn" onClick={onLobby}>Lobby</button><button class="btn" onClick={() => { const t = `I placed #${res.placement} in Stratos Drop Zone with ${res.kills} eliminations! https://stratos.games`; (navigator.share ? navigator.share({ text: t }) : navigator.clipboard?.writeText(t))?.catch?.(() => {}); }}>Share</button></div>
-        </div>
-      )}
+      {res && <Results res={res} onAgain={onAgain} onLobby={onLobby} />}
     </div>
   );
 }

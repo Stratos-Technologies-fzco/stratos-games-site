@@ -37,7 +37,7 @@ export class Game {
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number; id?: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
   private canopies: { x: number; y: number; z: number; r: number }[] = []; private canopyCells = new Map<number, number[]>(); private camDist = 3.2;
-  onChange = () => {}; ready = false; private elimText = ''; private elimT = 0; private autoPickT = 0; demo = false; demoStep = 0; demoFlags = { reloaded: false, healed: false }; private demoStart = { x: 0, z: 0 };
+  onChange = () => {}; ready = false; private dropT = 0; private dropSeq = 0; private dropCard: { id: number; key: string; name: string } | null = null; private elimText = ''; private elimT = 0; private autoPickT = 0; demo = false; demoStep = 0; demoFlags = { reloaded: false, healed: false }; private demoStart = { x: 0, z: 0 };
 
   constructor(public canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -210,8 +210,9 @@ export class Game {
   private loop = (now: number) => {
     this.raf = requestAnimationFrame(this.loop); const dt = Math.min(0.05, (now - this.last) / 1000 || 0.016); this.last = now;
     this.fpsAcc += dt; this.fpsN++; if (this.fpsAcc > 1) { this.fps = this.fpsN / this.fpsAcc; this.fpsAcc = 0; this.fpsN = 0; this.adaptResolution(); }
-    pollInput(); if (!this.paused && this.phase !== 'menu') this.update(dt); else if (this.phase === 'menu') this.menuCamera(dt);
-    this.updateEffects(dt); this.render(dt); clearLook();
+    pollInput(); if (!this.paused && this.phase !== 'menu') this.update(dt);
+    // in the lobby the picture is drawn by HTML on top, so the 3D view is not rendered at all (saves battery)
+    if (this.phase !== 'menu') { this.updateEffects(dt); this.render(dt); } clearLook();
     this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.onChange(); }
   };
   setPaused(p: boolean) { this.paused = p; if (p) exitPointerLock(); }
@@ -259,7 +260,7 @@ export class Game {
       if (!p.alive && this.endT === 0) { this.endT = 0.001; setTimeout(() => this.finish(null), 2200); }
     }
     for (const f of this.feed) f.t -= dt; this.feed = this.feed.filter((f) => f.t > 0);
-    this.hitT = Math.max(0, this.hitT - dt); this.elimT = Math.max(0, this.elimT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
+    this.dropT = Math.max(0, this.dropT - dt); this.hitT = Math.max(0, this.hitT - dt); this.elimT = Math.max(0, this.elimT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
     this.numbers = this.numbers.filter((n) => (n.y -= dt * 40) > -120); this.dmgArcs = this.dmgArcs.filter((d) => (d.t -= dt) > 0); { const keep = this.shotsHeard.filter((s) => (s.t -= dt) > 0); this.shotsHeard.length = 0; this.shotsHeard.push(...keep); }
     audio.setTension(!!this.zone && this.zone.stage !== 'done' && this.zone.timeLeft < 20);
     if (this.zone && this.zone.phase >= 5 && this.mode === 'solo') audio.startMusic('final');
@@ -293,7 +294,7 @@ export class Game {
     const f = V(Math.sin(a.yaw), 0, Math.cos(a.yaw)), r = V(-Math.cos(a.yaw), 0, Math.sin(a.yaw));
     cmd.dx = f.x * input.moveY + r.x * input.moveX; cmd.dz = f.z * input.moveY + r.z * input.moveX;
     if (input.map) { this.mapOpen = !this.mapOpen; } if (input.inventory) this.inventoryOpen = !this.inventoryOpen;
-    if (input.marker && this.mapOpen === false) { const hit = this.aimPoint(a, 500); this.marker = { x: hit.x, z: hit.z }; }
+    if (input.marker && this.mapOpen === false) { const hit = this.aimPoint(a, 500); this.setMarker(hit.x, hit.z); }
     if (input.interact) { const g = this.nearestItem(a); const k = this.nearestKiosk(a); if (k && (!g || Math.hypot(k.x - a.body.x, k.z - a.body.z) < Math.hypot(g.x - a.body.x, g.z - a.body.z))) { this.kioskOpen = !this.kioskOpen; } else if (g) cmd.interact = g; }
     // optional auto-pickup of ammo, healing, gadgets and tokens (never weapons or armour)
     this.autoPickT -= dt;
@@ -401,6 +402,13 @@ export class Game {
   private aimPoint(a: Actor, max: number): THREE.Vector3 {
     const o = a.isPlayer ? this.camera.position.clone() : this.eye(a); const d = a.isPlayer ? this.camDir() : this.aimDir(a);
     const t = this.trace(o, d, max, a, true).t; return o.addScaledVector(d, t);
+  }
+  /** Places the map marker. Near a location that has art, a 640x360 card shows at the top centre for 3 s. */
+  setMarker(x: number, z: number) {
+    this.marker = { x, z }; audio.play('tap', { bus: 'ui', gain: 0.6 });
+    const ART: Record<string, string> = { 'Salt Docks': 'salt_docks', 'Radar Ridge': 'radar_ridge_outpost', 'Rail Yard': 'harbour_road' };
+    const near = POIS.map((p) => ({ p, d: Math.hypot(p.x - x, p.z - z) })).filter((q) => q.d < 70 && ART[q.p.name]).sort((a, b) => a.d - b.d)[0];
+    if (near) { this.dropCard = { id: ++this.dropSeq, key: ART[near.p.name], name: near.p.name }; this.dropT = 3; }
   }
   /** Distance along a ray to the first tree canopy (sphere), ignoring a canopy the origin is already inside. */
   private canopyHit(o: THREE.Vector3, d: THREE.Vector3, maxT: number): number {
@@ -684,7 +692,7 @@ export class Game {
   showChat(t: string) { this.chat = t; this.chatT = 2; }
   addFeed(text: string, mine: boolean) { this.feed.push({ id: nextId++, text, t: 4, mine }); if (this.feed.length > 4) this.feed.shift(); }
   private blankHud(): Hud {
-    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, weaponClass: '', zoneWarn: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
+    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, dropCard: null, weaponClass: '', zoneWarn: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
   }
   private snapshot() {
     const h = this.hud, p = this.player; if (!p) return; h.phase = this.phase; h.mode = this.mode; h.hp = Math.max(0, Math.round(p.hp)); h.vest = Math.round(p.armour.vestDur); h.vestMax = p.armour.vestLv ? B.armour.vest.durability[p.armour.vestLv - 1] : 1; h.helmet = p.armour.helmetLv;
@@ -701,6 +709,7 @@ export class Game {
     h.reloading = p.reloadT > 0 ? 1 - p.reloadT / p.reloadMax : 0; h.healing = p.healT > 0 ? 1 - p.healT / (((B.healing as Record<string, { time: number }>)[p.healItem]?.time) || 1) : 0; h.aim = input.aim; h.scope = this.scoped() ? (W[g!.id].scope) : 0; h.spread = (g ? W[g.id].spread : 0.02) * (p.speedNow > 1 ? 1.8 : 1) * (input.aim ? 0.55 : 1);
     h.fps = Math.round(this.fps); h.numbers = [...this.numbers]; h.shots = this.shotsHeard.map((s) => ({ ...s })); h.marker = this.marker;
     h.planeX = this.plane?.position.x ?? 0; h.planeZ = this.plane?.position.z ?? 0; h.planeDir = [this.planeDir.x, this.planeDir.z]; h.canJump = this.phase === 'flight' && p.mode === 'plane'; h.autoJumpIn = Math.max(0, B.match.flightSeconds - this.flightT);
+    h.dropCard = this.dropT > 0 ? this.dropCard : null;
     h.elim = this.elimT > 0 ? { text: this.elimText, t: this.elimT } : null; h.weaponClass = g ? W[g.id].class : ''; h.zoneWarn = this.zone && p.alive && this.phase === 'playing' ? { dist: Math.hypot(p.body.x - this.zone.cx, p.body.z - this.zone.cz) - this.zone.radius, dps: this.zone.dps } : null;
     h.kioskNear = !!kiosk; h.kioskOpen = this.kioskOpen; h.inventoryOpen = this.inventoryOpen; h.mapOpen = this.mapOpen; h.stack = [...p.inv.stacks].map(([id, qty]) => ({ id, qty })); h.capacity = p.inv.capacity; h.chat = this.chatT > 0 ? this.chat : '';
     h.shake = this.shake; h.inBush = p.hidden; h.inZoneDanger = !!this.zone && zoneDamage(this.zone, p.body.x, p.body.z) > 0; h.spectating = !p.alive ? this.spectateTarget?.name ?? null : null; h.quality = this.effQuality;

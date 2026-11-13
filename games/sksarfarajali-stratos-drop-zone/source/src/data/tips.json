@@ -1,0 +1,36 @@
+{
+  "images": {
+    "loading_01_salt_docks": { "name": "Salt Docks", "tier": "High loot" },
+    "loading_02_harbour_dusk": { "name": "Harbour Road", "tier": "High loot" },
+    "loading_03_radar_outpost": { "name": "Radar Ridge", "tier": "Mid loot" },
+    "loading_04_monsoon_rain": { "name": "Monsoon Dam", "tier": "Mid loot" },
+    "loading_05_perimeter_watch": { "name": "Radar Ridge", "tier": "Mid loot" },
+    "loading_06_firefight": { "random": true }
+  },
+  "randomLocations": [
+    { "name": "Old Sea Fort", "tier": "Top loot" },
+    { "name": "Spice Market", "tier": "Top loot" },
+    { "name": "Salt Docks", "tier": "High loot" },
+    { "name": "Rail Yard", "tier": "High loot" },
+    { "name": "Lighthouse Point", "tier": "Mid loot" },
+    { "name": "Tea Terraces", "tier": "Mid loot" },
+    { "name": "Radar Ridge", "tier": "Mid loot" },
+    { "name": "Monsoon Dam", "tier": "Mid loot" },
+    { "name": "Fisher's Cove", "tier": "Low loot" },
+    { "name": "Mangrove Delta", "tier": "Low loot" }
+  ],
+  "tips": [
+    "Heal behind a wall or inside smoke. Taking damage cancels healing.",
+    "The storm does more damage every phase. Start moving to the next circle early.",
+    "Crouch inside a bush and anyone more than 15 m away cannot see you.",
+    "Supply kiosks sell med kits and ammo. Every elimination earns 50 tokens.",
+    "Shotguns and SMGs win inside 12 m. Rifles and snipers win at range.",
+    "A supply crate drops inside the next circle at phases 2 and 4. It holds Legendary gear.",
+    "Bandages heal in 2 seconds, med kits in 5. Press H to heal.",
+    "A Monsoon Barrier stops bullets for 30 seconds. Place one before you heal.",
+    "Armour does not reduce storm damage. Stay inside the circle.",
+    "Hold aim or crouch to tighten your spread before you fire.",
+    "Falls over 8 m hurt. Glide toward lower ground before you land.",
+    "The dashed violet circle on the map is the next safe zone."
+  ]
+}

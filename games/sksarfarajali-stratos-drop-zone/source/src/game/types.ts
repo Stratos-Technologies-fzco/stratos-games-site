@@ -30,6 +30,6 @@ export interface Hud {
   px: number; pz: number; yaw: number; alt: number; hitT: number; hitHead: boolean; dmgArc: { a: number; t: number }[]; reloading: number; healing: number; scope: number; aim: boolean; spread: number; fps: number;
   numbers: { id: number; x: number; y: number; v: number; head: boolean }[]; shots: { x: number; z: number; t: number }[]; marker: { x: number; z: number } | null;
   planeX: number; planeZ: number; planeDir: [number, number]; canJump: boolean; autoJumpIn: number; kioskNear: boolean; kioskOpen: boolean; inventoryOpen: boolean; mapOpen: boolean; stack: { id: string; qty: number }[]; capacity: number; chat: string;
-  demo: { step: number; total: number; text: string } | null; elim: { text: string; t: number } | null; weaponClass: string; zoneWarn: { dist: number; dps: number } | null; result: Result | null; quality: string; shake: number; inBush: boolean; inZoneDanger: boolean; spectating: string | null;
+  demo: { step: number; total: number; text: string } | null; elim: { text: string; t: number } | null; dropCard: { id: number; key: string; name: string } | null; weaponClass: string; zoneWarn: { dist: number; dps: number } | null; result: Result | null; quality: string; shake: number; inBush: boolean; inZoneDanger: boolean; spectating: string | null;
 }
 export interface Result { win: boolean; placement: number; total: number; kills: number; damage: number; time: number; headshots: number; tokens: number; xp: number; killer: string; outcome?: import('../progress').MatchOutcome }

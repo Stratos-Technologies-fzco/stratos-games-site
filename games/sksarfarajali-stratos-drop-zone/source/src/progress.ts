@@ -67,3 +67,9 @@ export function recordMatch(r: Result): MatchOutcome {
   const score = runScore(r), runs = board(); runs.push({ score, placement: r.placement, kills: r.kills, date: new Date().toISOString(), win: r.win }); write(BK, runs.sort((a, b) => b.score - a.score).slice(0, 50));
   return { missionsDone, achievements: newly, bonusXp: bonus, score };
 }
+
+// ---------- profile: the equipped outfit (cosmetic only) ----------
+const PK = 'sdz-profile';
+export interface Profile { outfit: string }
+export const getProfile = (): Profile => read<Profile>(PK, { outfit: '' });
+export const setOutfit = (outfit: string) => write(PK, { ...getProfile(), outfit });

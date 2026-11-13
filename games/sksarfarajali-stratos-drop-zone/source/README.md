@@ -30,3 +30,15 @@ Lobby, Solo (24 players) and Training, plane flight and jump, skydive and glide,
 Online multiplayer (needs a server), accounts, leaderboards, the coast buggy and survivor perks. See `DECISIONS.md`.
 
 Controls: WASD move, mouse look, click fire, right-click aim, R reload, Space jump, C crouch, Shift sprint, F pick up, 1-4 weapons, G grenade, B barrier, H heal, Tab pack, M map, Esc pause. On a phone: left thumb moves, right thumb looks, buttons on the right.
+
+## UI art
+
+The screens use the pictures in `public/ui/` (lobby, loading, results and Locker). They are copied from the `Artifacts_GameReady` folder by `tools/copy-ui-art.ts`, which runs before `npm run dev` and `npm run build`. To use another folder, set `UI_ART_DIR`. `tools/make-og.ts` then builds `og-image.png` (1200 x 630) for link sharing.
+
+- **Lobby:** island background, image cards for Solo, Training and Squad (locked), and the Season 2 "Ember Isle" teaser.
+- **Loading:** a random picture (never the same twice in a row), the drop spot, a rotating tip from `src/data/tips.json`, and a progress bar.
+- **Results:** the hero picture. A loss uses the same picture, desaturated and darker.
+- **Locker:** outfits. Four survivors by default, plus Chrome Vanguard (Legendary, level 10) and Ember Vanguard (Epic, level 5). Cosmetic only.
+- **Drop marker:** during the flight, tap the map (or press V) near Salt Docks, Radar Ridge or Rail Yard to see that place's card for 3 seconds.
+
+All text is live HTML on top of the pictures. UI artwork was generated with AI tools and edited for Stratos Drop Zone (see Settings and About).
