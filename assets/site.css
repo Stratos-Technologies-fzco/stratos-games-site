@@ -353,6 +353,18 @@ body.poki.side-open .pk-side .lb{opacity:1}
   .pk-detail{margin-top:20px;padding:16px 16px 10px}
   .pd-head{flex-direction:column;gap:14px}.pd-cover{width:100%;max-width:none}
   .pk-detail h1{font-size:26px}.pk-detail h2{font-size:20px}
-  .pd-fi{width:38px;height:38px}.pd-fact b{font-size:15px}
+  .pd-fi{width:38px;height:38px}.pd-fact b{font-size:15px;white-space:normal;line-height:1.25}
   .pd-row{grid-template-columns:1fr;gap:6px;padding:14px 0}
+}
+/* ===== phones, game pages: the game comes first and fills the screen, nothing above it (like Poki, Nov 2026) =====
+   Row 1 of the grid is exactly one screen tall (svh = the screen with the browser bars showing), so the game and
+   the bar under it fit with no scrolling; logo, search and the other games start right below. */
+@media (max-width:620px){
+  body[data-game] .pk-grid{grid-template-rows:calc(100vh - 12px);grid-template-rows:calc(100svh - 12px)}
+  body[data-game] .pk-stage{grid-row:1;grid-column:1/-1;margin:-12px -12px 0;border-radius:0;box-shadow:none}
+  body[data-game] .pk-nav{grid-column:1/-1}
+  /* bar under the game: cover, name and maker, plus favourite and share (the rest stays on bigger screens) */
+  body[data-game] .pk-bar{gap:8px;padding:8px 12px}
+  body[data-game] .pk-bar .pk-vote,body[data-game] .pk-bar .pk-flag,body[data-game] .pk-bar .pk-full{display:none}
+  body[data-game] .pk-bt b{font-size:17px}body[data-game] .pk-bt small{font-size:13px}
 }
