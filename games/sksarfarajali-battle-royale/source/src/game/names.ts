@@ -1,0 +1,1 @@
+export const BOT_NAMES = ['Aarav', 'Diya', 'Rohan', 'Isha', 'Vikram', 'Naina', 'Dev', 'Tara', 'Yash', 'Anika', 'Kabir', 'Riya', 'Samir', 'Leela', 'Neel', 'Maya', 'Ravi', 'Sana', 'Omar', 'Zara', 'Imran', 'Noor', 'Farah', 'Hamza', 'Aisha', 'Tariq', 'Layla', 'Bilal'];
