@@ -22,12 +22,14 @@ export class AudioManager {
       this.ac = new AC(); this.comp = this.ac.createDynamicsCompressor(); this.master = this.ac.createGain(); this.master.gain.value = this.volumes.master;
       this.master.connect(this.comp); this.comp.connect(this.ac.destination);
       this.duck = this.ac.createGain(); this.duck.connect(this.master);
-      for (const b of ['sfx', 'ui', 'music'] as Bus[]) { const g = this.ac.createGain(); g.gain.value = this.volumes[b]; g.connect(b === 'music' ? this.duck : this.master); this.buses[b] = g; }
+      for (const b of ['sfx', 'ui', 'music'] as Bus[]) { const g = this.ac.createGain(); g.gain.value = b === 'music' && !this.musicOn ? 0 : this.volumes[b]; g.connect(b === 'music' ? this.duck : this.master); this.buses[b] = g; }
     }
     if (this.ac.state === 'suspended') void this.ac.resume();
     return this.ac;
   }
-  setVolume(k: 'master' | 'music' | 'sfx' | 'ui', v: number) { this.volumes[k] = v; if (!this.ac) return; if (k === 'master') this.master.gain.value = v; else this.buses[k].gain.value = v; }
+  musicOn = true;
+  setMusicOn(on: boolean) { this.musicOn = on; if (this.ac) this.buses.music.gain.value = on ? this.volumes.music : 0; }
+  setVolume(k: 'master' | 'music' | 'sfx' | 'ui', v: number) { this.volumes[k] = v; if (!this.ac) return; if (k === 'master') this.master.gain.value = v; else if (k === 'music') this.buses.music.gain.value = this.musicOn ? v : 0; else this.buses[k].gain.value = v; }
   private noiseBuf() {
     if (!this.nb) { const ac = this.ctx(); const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.nb = b; }
     return this.nb;

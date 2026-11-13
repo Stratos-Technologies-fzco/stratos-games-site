@@ -13,6 +13,7 @@ import { BotBrain, NavGrid, type BotEnv, type Cmd } from './bots';
 import { crateContents, itemLabel, itemModel, rollItem } from './loot';
 import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, SmokeCloud } from './types';
 import { track } from '../analytics';
+const isTouchDevice = () => matchMedia('(pointer: coarse)').matches;
 
 const W = B.weapons as Record<string, { label: string; class: string; damage: number; pellets: number; headshot: number; rpm?: number; swing?: number; mag: number; range: number; ammo: string | null; reload: number; reloadPerShell?: boolean; spread: number; recoil: number; auto: boolean; scope: number; projectileSpeed?: number; drop?: number }>;
 const RC = B.rarity.colors;
@@ -30,7 +31,7 @@ export class Game {
   survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
-  onChange = () => {}; ready = false;
+  onChange = () => {}; ready = false; demo = false; demoStep = 0; demoFlags = { reloaded: false, healed: false }; private demoStart = { x: 0, z: 0 };
 
   constructor(public canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -76,7 +77,8 @@ export class Game {
   effQuality: 'low' | 'medium' | 'high' | 'auto' = 'medium';
 
   // ------------------------------------------------------------------ match lifecycle
-  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard' } = {}) {
+  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean } = {}) {
+    this.demo = !!opts.demo; this.demoStep = 0; this.demoFlags = { reloaded: false, healed: false }; if (this.demo) track('demo_start');
     this.cleanup(); this.mode = mode; this.survivor = survivor; this.rand = mulberry32((Math.random() * 1e9) | 0); this.difficulty = opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots;
     this.time = 0; this.matchT = 0; this.flightT = 0; this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
     this.zonePlan = planZone(this.rand); this.zone = null; this.env.zone = null;
@@ -147,7 +149,28 @@ export class Game {
     const kit: Item[] = [{ kind: 'ammo', id: 'light', rarity: 0, qty: 90 }, { kind: 'ammo', id: 'heavy', rarity: 0, qty: 90 }, { kind: 'ammo', id: 'shells', rarity: 0, qty: 36 }, { kind: 'heal', id: 'medkit', rarity: 0, qty: 3 }, { kind: 'heal', id: 'bandage', rarity: 0, qty: 5 }, { kind: 'vest', id: 'vest_lv3', rarity: 2, qty: 1 }, { kind: 'helmet', id: 'helmet_lv3', rarity: 2, qty: 1 }, { kind: 'backpack', id: 'backpack_lv3', rarity: 2, qty: 1 }, { kind: 'throwable', id: 'frag_grenade', rarity: 0, qty: 3 }, { kind: 'throwable', id: 'smoke_can', rarity: 0, qty: 3 }, { kind: 'throwable', id: 'monsoon_barrier', rarity: 0, qty: 2 }, { kind: 'tokens', id: 'tokens', rarity: 0, qty: 200 }];
     kit.forEach((it, k) => { const x = fort.x + 6 + (k % 4) * 2, z = fort.z + 24 + Math.floor(k / 4) * 2; this.addGroundItem(x, this.world.terrain.height(x, z), z, [it], it.rarity, false); });
     for (const a of this.actors.filter((q) => q.isBot)) { const ang = this.rand() * 6.28; this.placeActor(a, fort.x + Math.cos(ang) * 60, fort.z + Math.sin(ang) * 60); a.mode = 'ground'; for (const it of [{ kind: 'weapon', id: 'monsoon_ar', rarity: 0, qty: 1 }, { kind: 'ammo', id: 'heavy', rarity: 0, qty: 90 }] as Item[]) this.give(a, it); }
-    this.showBanner('TRAINING: no zone, no flight. Try every weapon.'); this.phase = 'playing';
+    if (this.demo) this.setupDemo(); else this.showBanner('TRAINING: no zone, no flight. Try every weapon.');
+    this.phase = 'playing';
+  }
+  private setupDemo() {
+    const p = this.player, f = POIS[4]; this.demoStart = { x: p.body.x, z: p.body.z }; p.hp = 60;
+    const near: Item[] = [{ kind: 'weapon', id: 'monsoon_ar', rarity: 0, qty: 1 }, { kind: 'ammo', id: 'heavy', rarity: 0, qty: 90 }, { kind: 'heal', id: 'bandage', rarity: 0, qty: 3 }];
+    near.forEach((it, i) => { const x = f.x - 3 + i * 3, z = f.z + 33; this.addGroundItem(x, this.world.terrain.height(x, z), z, [it], it.rarity, false); });
+    this.items = this.items.filter((g) => !(g.items[0].kind === 'weapon' && g.items[0].id !== 'monsoon_ar') || g.mesh.userData.model === 'monsoon_ar'); this.env.items = this.items;
+  }
+  private updateDemo() {
+    const p = this.player, t = isTouchDevice();
+    const steps = [
+      t ? 'Drag the left side of the screen to walk.' : 'Walk with W A S D.',
+      t ? 'Walk to the glowing items ahead and tap the pick-up prompt for the rifle, ammo and bandages.' : 'Walk to the glowing items ahead and press F to pick up the rifle, ammo and bandages.',
+      t ? 'Aim at a target dummy and hold FIRE.' : 'Aim at a target dummy and click to fire.',
+      t ? 'Tap RELOAD.' : 'Press R to reload.',
+      t ? 'You are hurt. Tap the Heal button to use a bandage.' : 'You are hurt. Press H to use a bandage.',
+    ];
+    const done = [Math.hypot(p.body.x - this.demoStart.x, p.body.z - this.demoStart.z) > 6, !!p.inv.main[0] && p.inv.count('bandage') > 0, this.dummies.some((d) => d.hp < 100), this.demoFlags.reloaded, this.demoFlags.healed];
+    while (this.demoStep < steps.length && done[this.demoStep]) { this.demoStep++; audio.play('pickup', { gain: 0.5 }); }
+    if (this.demoStep >= steps.length && !(this as { demoDone?: boolean }).demoDone) { (this as { demoDone?: boolean }).demoDone = true; track('demo_complete'); }
+    this.hud.demo = { step: this.demoStep, total: steps.length, text: this.demoStep >= steps.length ? 'Nice! You know the basics. Go back to the lobby and press PLAY for a real match.' : steps[this.demoStep] };
   }
   private placeActor(a: Actor, x: number, z: number) { a.body.x = x; a.body.z = z; a.body.y = this.world.terrain.height(x, z); a.body.vy = 0; a.body.onGround = true; }
 
@@ -168,7 +191,7 @@ export class Game {
     this.fpsAcc += dt; this.fpsN++; if (this.fpsAcc > 1) { this.fps = this.fpsN / this.fpsAcc; this.fpsAcc = 0; this.fpsN = 0; this.adaptResolution(); }
     pollInput(); if (!this.paused && this.phase !== 'menu') this.update(dt); else if (this.phase === 'menu') this.menuCamera(dt);
     this.updateEffects(dt); this.render(dt); clearLook();
-    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; this.snapshot(); this.onChange(); }
+    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.onChange(); }
   };
   setPaused(p: boolean) { this.paused = p; if (p) exitPointerLock(); }
   private adaptResolution() {
@@ -336,6 +359,7 @@ export class Game {
   }
   private finishReload(a: Actor) {
     const g = this.gun(a); if (!g) return; const wd = W[g.id]; const have = a.inv.count(wd.ammo as string);
+    if (a.isPlayer) this.demoFlags.reloaded = true;
     if (wd.reloadPerShell) { if (have > 0 && g.mag < wd.mag) { a.inv.take(wd.ammo as string, 1); g.mag++; if (g.mag < wd.mag && a.inv.count(wd.ammo as string) > 0) { a.reloadT = wd.reload; } } return; }
     const need = Math.min(wd.mag - g.mag, have); if (need > 0) { a.inv.take(wd.ammo as string, need); g.mag += need; }
   }
@@ -513,6 +537,7 @@ export class Game {
     a.healItem = id; a.healT = H[id].time * (this.perks() && a.survivor === 'survivor_meera' ? 0.75 : 1);
   }
   private finishHeal(a: Actor) {
+    if (a.isPlayer) this.demoFlags.healed = true;
     const H = B.healing as Record<string, { heal?: number; repair?: number }>; if (!a.inv.take(a.healItem, 1)) return;
     if (H[a.healItem].heal) a.hp = Math.min(B.player.hp, a.hp + H[a.healItem].heal!); if (H[a.healItem].repair) a.armour.vestDur = Math.min(B.armour.vest.durability[a.armour.vestLv - 1], a.armour.vestDur + H[a.healItem].repair!);
     if (a.isPlayer) audio.play('pickup', { gain: 0.6 });
@@ -607,7 +632,7 @@ export class Game {
   showChat(t: string) { this.chat = t; this.chatT = 2; }
   addFeed(text: string, mine: boolean) { this.feed.push({ id: nextId++, text, t: 4, mine }); if (this.feed.length > 4) this.feed.shift(); }
   private blankHud(): Hud {
-    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
+    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
   }
   private snapshot() {
     const h = this.hud, p = this.player; if (!p) return; h.phase = this.phase; h.mode = this.mode; h.hp = Math.max(0, Math.round(p.hp)); h.vest = Math.round(p.armour.vestDur); h.vestMax = p.armour.vestLv ? B.armour.vest.durability[p.armour.vestLv - 1] : 1; h.helmet = p.armour.helmetLv;

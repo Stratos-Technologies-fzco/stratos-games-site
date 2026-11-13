@@ -16,6 +16,7 @@ export function App() {
   const [progress, setProgress] = useState(0); const [screen, setScreen] = useState<Screen>('loading'); const [, tick] = useState(0);
   const [tab, setTab] = useState<'play' | 'survivors' | 'locker' | 'ranks' | 'missions'>('play'); const [mode, setMode] = useState<'solo' | 'training'>('solo');
   const [sv, setSv] = useState<Survivor>((localStorage.getItem('sdz-sv') as Survivor) || 'survivor_kiran'); const [settingsOpen, setSettingsOpen] = useState(false); const [pause, setPause] = useState(false);
+  const [info, setInfo] = useState<'' | 'how' | 'about'>(''); const [musicOn, setMusicOn] = useState(settings.musicOn); const [demo, setDemo] = useState(false);
   const [bots, setBots] = useState(false); const [err, setErr] = useState('');
 
   useEffect(() => {
@@ -33,11 +34,12 @@ export function App() {
   const play = async () => {
     if (!g) return; audio.unlock(); audio.play('tap'); localStorage.setItem('sdz-sv', sv); setScreen('match'); setPause(false);
     try { if (isTouch()) { document.documentElement.requestFullscreen?.().catch(() => {}); (navigator as unknown as { wakeLock?: { request: (t: string) => Promise<unknown> } }).wakeLock?.request('screen').catch(() => {}); } } catch { /* optional */ }
-    await g.start(mode, sv, { bots }); tick((n) => n + 1);
+    await g.start(mode, sv, { bots, demo }); tick((n) => n + 1);
   };
+  const toggleMusic = () => { settings.musicOn = !settings.musicOn; setMusicOn(settings.musicOn); audio.unlock(); audio.setMusicOn(settings.musicOn); saveSettings(); };
   const backToLobby = () => { g?.toLobby(); setScreen('lobby'); setPause(false); };
   const st = stats(); const lv = level(st.xp ?? 0); const svDef = SURVIVORS.find((s) => s.id === sv)!;
-  const upd = (fn: () => void) => { fn(); saveSettings(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); tick((n) => n + 1); };
+  const upd = (fn: () => void) => { fn(); saveSettings(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); audio.setMusicOn(settings.musicOn); tick((n) => n + 1); };
 
   return (
     <>
@@ -50,19 +52,20 @@ export function App() {
           <div class="top">
             <div class="chip panel"><div class="av"><img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt="" /></div><div><div class="t" style="font-size:15px">You · Lv {lv.l}</div><div class="xpbar"><i style={{ width: `${lv.pct * 100}%` }} /></div></div></div>
             <div class="title">STRATOS DROP ZONE<small>VAYU ISLAND · SOLO</small></div>
-            <div style="display:flex;gap:8px;align-items:center"><div class="panel t" style="padding:8px 12px">◆ {Math.max(0, lv.l - 1) * 10}</div><button class="btn" aria-label="Settings" onClick={() => setSettingsOpen(true)}>⚙</button></div>
+            <div style="display:flex;gap:8px;align-items:center"><div class="panel t" style="padding:8px 12px">◆ {Math.max(0, lv.l - 1) * 10}</div><button class="btn" aria-label={musicOn ? 'Music on' : 'Music off'} title="Music" onClick={toggleMusic}>{musicOn ? '♪' : '♪̸'}</button><button class="btn" aria-label="How to play" title="How to play" onClick={() => setInfo('how')}>?</button><button class="btn" aria-label="About" title="About" onClick={() => setInfo('about')}>i</button><button class="btn" aria-label="Settings" onClick={() => setSettingsOpen(true)}>⚙</button></div>
           </div>
           <div class="mid">
             <div class="col">
-              <button class={`btn ${mode === 'solo' ? 'sel' : ''}`} onClick={() => setMode('solo')}>Solo · 24 players</button>
-              <button class={`btn ${mode === 'training' ? 'sel' : ''}`} onClick={() => setMode('training')}>Training</button>
+              <button class={`btn ${mode === 'solo' && !demo ? 'sel' : ''}`} onClick={() => { setMode('solo'); setDemo(false); }}>Solo · 24 players</button>
+              <button class={`btn ${mode === 'training' && !demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(false); }}>Training</button>
+              <button class={`btn ${demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(true); }}>Demo · learn in 1 min</button>
               <button class="btn" disabled style="opacity:.5">Squad · Coming soon</button>
               <div class="map-card panel"><b>Vayu Island</b>640 × 640 m · 10 locations · 6 storm phases · about 5½ minutes</div>
             </div>
             <div class="stage">{tab === 'play' && <img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt={svDef.name} />}</div>
             <div class="col">
               <div class="panel" style="padding:10px"><div class="t" style="font-size:14px">Offline match</div><div class="note">Plays on your device. No sign-up. Bots fill every empty slot.</div></div>
-              {mode === 'training' && <label class="panel" style="padding:8px;font-size:13px;display:flex;gap:8px;align-items:center"><input type="checkbox" checked={bots} onChange={(e) => setBots((e.target as HTMLInputElement).checked)} /> Add 3 easy bots</label>}
+              {mode === 'training' && !demo && <label class="panel" style="padding:8px;font-size:13px;display:flex;gap:8px;align-items:center"><input type="checkbox" checked={bots} onChange={(e) => setBots((e.target as HTMLInputElement).checked)} /> Add 3 easy bots</label>}
               <button class="btn primary" style="min-height:64px" onClick={play}>PLAY</button>
               <div class="note" style="text-align:center">{svDef.name} · {svDef.role}</div>
             </div>
@@ -81,6 +84,14 @@ export function App() {
             <p class="note">Weekly leaderboards arrive when online play does. This is stored on your device.</p><button class="btn" onClick={() => setTab('play')}>Back</button></div></div>}
         </div>
       )}
+      {info === 'how' && <div class="modal" onClick={() => setInfo('')}><div class="card" onClick={(e) => e.stopPropagation()}><h2>How to play</h2>
+        <div class="row"><span>Goal</span><b>Be the last one alive</b></div><div class="row"><span>1. Jump</span><span>Fly over the island, then press JUMP (or Space). You auto-jump at the end.</span></div><div class="row"><span>2. Loot</span><span>Find weapons, ammo, armour and healing in buildings.</span></div><div class="row"><span>3. Survive</span><span>The violet Monsoon Wall shrinks the safe circle. Stay inside it.</span></div>
+        <h2 style="margin-top:12px">Computer</h2><p class="note">WASD move · mouse look · click fire · right-click aim · R reload · Space jump · C crouch · Shift sprint · F pick up · 1-4 weapons · G grenade · B barrier · H heal · Tab pack · M map · Esc pause</p>
+        <h2>Phone</h2><p class="note">Left thumb moves (push to the edge to sprint). Right thumb looks. FIRE shoots (hold to keep firing). AIM, JUMP, CROUCH and RELOAD sit on the right. Tap the minimap for the full map.</p>
+        <button class="btn primary" onClick={() => setInfo('')}>Got it</button></div></div>}
+      {info === 'about' && <div class="modal" onClick={() => setInfo('')}><div class="card" onClick={(e) => e.stopPropagation()}><h2>About</h2>
+        <p>Stratos Drop Zone is a quick battle royale on Vayu Island, a made-up monsoon coast. It runs in your browser with no download and no sign-up.</p><p>Made by Sk Sarfaraj Ali for stratos.games. All models, sounds and art are original to this game.</p><p class="note">This version plays offline against bots. Online matches may come later.</p>
+        <button class="btn primary" onClick={() => setInfo('')}>Close</button></div></div>}
       {screen === 'match' && g && hud && <HudView g={g} hud={hud} onPause={() => { g.setPaused(true); setPause(true); }} onLobby={backToLobby} onAgain={() => play()} />}
       {pause && screen === 'match' && (
         <div class="modal"><div class="card center"><h2>Paused</h2><button class="btn primary" onClick={() => { g?.setPaused(false); setPause(false); }}>Resume</button><button class="btn" onClick={() => setSettingsOpen(true)}>Settings</button><button class="btn" onClick={backToLobby}>Leave match</button></div></div>
