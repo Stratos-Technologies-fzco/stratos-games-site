@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0A1411">
 <title>STRATOS 29</title>
 <style>
-:root{--bg:#0A1411;--panel:#12201B;--line:#22372E;--gold:#E9C46A;--ink:#EEF2EE;--mute:#A9BBB2;--a:#5AA9E6;--b:#F29E4C;--hf:"Space Grotesk","Trebuchet MS","Segoe UI",system-ui,sans-serif;--bf:Inter,"Segoe UI",system-ui,Roboto,sans-serif;
+:root{--bg:#0A1411;--panel:#12201B;--line:#22372E;--gold:#E9C46A;--ink:#EEF2EE;--mute:#A9BBB2;--a:#5AA9E6;--b:#F29E4C;--hf:"Space Grotesk","Trebuchet MS","Segoe UI","Nirmala UI","Noto Sans Devanagari","Noto Sans Bengali",system-ui,sans-serif;--bf:Inter,"Segoe UI","Nirmala UI","Noto Sans Devanagari","Noto Sans Bengali",system-ui,Roboto,sans-serif;
  --felt:radial-gradient(ellipse at 50% 45%,#1D6E4C 0%,#134F35 55%,#0D3A27 100%);--rim:#0F2C20;--rail:#8C6B2E;
  --back:repeating-linear-gradient(45deg,#0E3B28 0 6px,#134A33 6px 12px);--backedge:#C9A24E;
  --red:#C0392B;--blk:#16161A;--dia:#C0392B;--clb:#16161A}
@@ -116,6 +116,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 </div>
 <noscript>STRATOS 29 needs JavaScript.</noscript>
 <script src="engine.js"></script>
+<script src="i18n.js"></script>
 <script>
 (function () {
 'use strict';
@@ -130,9 +131,40 @@ function offerReward(onDone) { track('reward_offered', { kind: 'hint' }); onDone
 function load(k, d) { try { var v = JSON.parse(localStorage.getItem('s29_' + k)); return v == null ? d : v; } catch (e) { return d; } }
 function save(k, v) { try { localStorage.setItem('s29_' + k, JSON.stringify(v)); } catch (e) {} }
 var DEF = { name: 'Player', sound: true, music: false, anim: 'Normal', speed: 'Normal', level: 'Medium', table: 'emerald', back: 'emerald', face: 'classic',
-  autolast: true, hints: true, hidden: true, dbl: true, pair: true };
+  autolast: true, hints: true, hidden: true, dbl: true, pair: true, lang: null };
 var S = Object.assign({}, DEF, load('settings', {}));
 var ST = Object.assign({ played: 0, wins: 0, losses: 0, bidN: 0, bidSum: 0, bestMade: 0, points: 0, byMode: { play: { w: 0, l: 0 }, daily: { w: 0, l: 0 } }, history: [] }, load('stats', {}));
+if (!S.lang) { var nl = String(navigator.language || 'en').slice(0, 2).toLowerCase(); S.lang = ((nl === 'hi' || nl === 'bn') && window.S29_I18N) ? nl : 'en'; }
+var LANGS = [['en', 'English'], ['hi', '\u0939\u093F\u0928\u094D\u0926\u0940'], ['bn', '\u09AC\u09BE\u0982\u09B2\u09BE']];
+function LX() { return (window.S29_I18N && S.lang !== 'en') ? window.S29_I18N[S.lang] : null; }
+function langLbl() { return S.lang === 'hi' ? '\u0939\u093F\u0902' : S.lang === 'bn' ? '\u09AC\u09BE\u0982' : 'EN'; }
+/* on-screen text is translated after it is drawn: whole phrase first, then each part between the middle dots */
+function tr1(t, d) {
+  var o = d.exact[t];
+  if (o !== undefined) return o;
+  for (var k = 0; k < d.pats.length; k++) { var m = t.match(d.pats[k][0]); if (m) return typeof d.pats[k][1] === 'function' ? d.pats[k][1](m) : t.replace(d.pats[k][0], d.pats[k][1]); }
+}
+function trText(v, d) {
+  var t = v.trim(), w = tr1(t, d);
+  if (w !== undefined) return v.replace(t, function () { return w; });
+  var parts = v.split(/(\s*\u00B7\s*)/), changed = false;
+  for (var i = 0; i < parts.length; i += 2) {
+    var p = parts[i], q = p.trim(); if (!q) continue;
+    var o = tr1(q, d);
+    if (o !== undefined) { parts[i] = p.replace(q, function () { return o; }); changed = true; }
+  }
+  return changed ? parts.join('') : v;
+}
+function xlate(root) {
+  var d = LX(), c = window.__frags; if (!d && !c) return;
+  var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, list = [];
+  while ((n = w.nextNode())) list.push(n);
+  list.forEach(function (n) {
+    var v = n.nodeValue; if (!v.trim()) return;
+    if (!d) { c[v.trim()] = 1; return; }
+    var o = trText(v, d); if (o !== v) n.nodeValue = o; else if (c) c[v.trim()] = 1;
+  });
+}
 var SEEN = load('seen', {});
 var DAILY = Object.assign({ last: '', streak: 0, best: 0, done: {} }, load('daily', {}));
 function saveS() { save('settings', S); }
@@ -279,7 +311,7 @@ function applyTheme() {
 function region(id, html, z) {
   var el = document.getElementById(id);
   if (!el) { el = document.createElement('div'); el.id = id; el.style.cssText = 'position:absolute;inset:0;pointer-events:none;' + (z ? 'z-index:' + z : ''); $main.appendChild(el); }
-  if (A.cache[id] !== html) { el.innerHTML = html; A.cache[id] = html; }
+  if (A.cache[id] !== html) { el.innerHTML = html; A.cache[id] = html; xlate(el); }
 }
 function clearRegions(keep) {
   Array.prototype.slice.call($main.children).forEach(function (el) { if (keep.indexOf(el.id) < 0) { el.remove(); delete A.cache[el.id]; } });
@@ -292,6 +324,7 @@ function ptrn(html) { return '<div style="pointer-events:none;position:absolute;
 /* ---------- render ---------- */
 function render() {
   dlEnsure();
+  if (document.documentElement.lang !== S.lang) document.documentElement.lang = S.lang;
   applyTheme();
   if (A.screen === 'lobby') { clearRegions(['lobby', 'modal', 'toast']); region('lobby', lobbyHTML()); }
   else if (A.screen === 'settings') { clearRegions(['settings', 'modal', 'toast']); region('settings', settingsHTML()); }
@@ -332,10 +365,10 @@ function lobbyHTML() {
   };
   var fsOK = !!document.fullscreenEnabled, fsOn = !!document.fullscreenElement;
   var fsBtn = fsOK ? '<button class="tab" data-act="fs" style="color:var(--gold)">' + (fsOn ? 'Exit full screen' : '\u26F6 Full screen') + '</button>' : '';
-  var nav = '<nav class="row" style="gap:8px"><button class="tab" data-act="learn">Learn to Play</button><button class="tab" data-act="demo">Watch Demo</button><button class="tab" data-act="rules">Rules</button><button class="tab" data-act="stats">Statistics</button><button class="tab" data-act="settings">Settings</button><button class="tab" data-act="about">About</button>' + fsBtn + '</nav>';
+  var nav = '<nav class="row" style="gap:8px"><button class="tab" data-act="learn">Learn to Play</button><button class="tab" data-act="demo">Watch Demo</button><button class="tab" data-act="rules">Rules</button><button class="tab" data-act="stats">Statistics</button><button class="tab" data-act="settings">Settings</button><button class="tab" data-act="about">About</button>' + fsBtn + '<button class="tab" data-act="lang" aria-label="Language" style="font-weight:700">' + langLbl() + '</button></nav>';
   var daily = '<button type="button" data-act="daily" class="btn" style="height:' + (m ? 52 : 64) + 'px;padding:0 24px;display:inline-flex;align-items:center;gap:10px;border-color:var(--gold);color:var(--gold)"><span style="width:20px;height:20px;display:block">' + icon('cal') + '</span><span class="col" style="text-align:left;line-height:1.15"><span style="font:700 ' + (m ? 15 : 16) + 'px var(--hf)">Daily Deal</span><span style="font-size:11px;color:var(--mute)">' + (dk ? (dk.won ? 'Done ✓' : 'Played') : 'Same cards for everyone') + ' · 🔥 ' + DAILY.streak + '</span></span></button>';
   if (m) return ptr(
-    '<div class="abs row" style="left:16px;right:16px;top:14px;justify-content:space-between"><div class="col"><div class="brand hf" style="font-size:24px">STRATOS <b>29</b></div><div class="mute" style="font-size:11px">Think Smart. Bid Bold. Win 29.</div></div><button class="ibtn" data-act="settings" aria-label="Settings">' + icon('gear') + '</button></div>' +
+    '<div class="abs row" style="left:16px;right:16px;top:14px;justify-content:space-between"><div class="col"><div class="brand hf" style="font-size:24px">STRATOS <b>29</b></div><div class="mute" style="font-size:11px">Think Smart. Bid Bold. Win 29.</div></div><div class="row" style="gap:6px"><button class="ibtn" data-act="lang" aria-label="Language" style="font:700 13px var(--bf)">' + langLbl() + '</button><button class="ibtn" data-act="settings" aria-label="Settings">' + icon('gear') + '</button></div></div>' +
     '<section class="abs col" style="left:12px;right:12px;top:78px;height:430px;border-radius:22px;background:radial-gradient(ellipse at 50% 40%,#1C6B4A 0%,#11492F 60%,#0C3524 100%);border:1px solid #2A5A43;box-shadow:inset 0 0 0 8px #0E2E21,inset 0 0 0 10px #8C6B2E;padding:30px 24px;justify-content:space-between;overflow:hidden">' +
     '<div class="col" style="gap:8px"><div class="gold" style="font-size:11px;font-weight:600;letter-spacing:.14em">INDIA’S CLASSIC TRICK-TAKING GAME</div><h1 class="hf" style="margin:0;font-size:32px;line-height:1.08">Bid high. Read the table. Take 29.</h1><p style="margin:0;font-size:14px;color:#D3E3DA;line-height:1.45">Partner up, call trumps and outplay three opponents across eight tricks.</p></div>' +
     '<div class="col" style="gap:12px"><div class="row" style="gap:8px;flex-wrap:wrap"><span style="font-size:13px;color:#C6D8CE">AI</span><div class="seg">' + lv + '</div></div>' +
@@ -382,6 +415,7 @@ function settingsHTML() {
     '<div><div class="lbl" style="margin-bottom:8px">Card back · Stratos logo</div><div class="row" style="gap:10px">' + Object.keys(BACKS).map(function (id) { var b = BACKS[id]; return '<button type="button" class="sel3 col" data-act="set" data-k="back" data-v="' + id + '" aria-pressed="' + (S.back === id) + '" aria-label="Stratos ' + b[0] + ' card back" style="gap:6px;align-items:center;padding:6px;border-radius:12px;background:#12201B;border:1px solid #22372E">' + backFace(id, 'bk', 58, 84, 58) + '<span style="font-size:12px;font-weight:600">' + b[0] + '</span></button>'; }).join('') + '</div></div>' +
     '<div><div class="lbl" style="margin-bottom:8px">Card face</div><div class="row" style="gap:10px;flex-wrap:wrap">' + Object.keys(FACES).map(function (id) { return '<button type="button" class="sel3 col" data-act="set" data-k="face" data-v="' + id + '" aria-pressed="' + (S.face === id) + '" style="gap:2px;align-items:flex-start;padding:10px 14px;border-radius:12px;background:#0D1915;border:1px solid #22372E;text-align:left"><b style="font-size:14px">' + FACES[id][0] + '</b><span class="mute" style="font-size:12px">' + FACES[id][1] + '</span></button>'; }).join('') + '</div></div></div>';
   if (tab === 'play') body = '<div class="col" style="gap:14px"><label class="col" style="gap:6px"><span style="font:600 15px var(--bf)">Your name</span><input id="nm" maxlength="12" value="' + esc(S.name) + '" data-act="name" style="height:44px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--ink);padding:0 12px;font:600 16px var(--bf);user-select:text;-webkit-user-select:text"></label>' +
+    '<div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap"><span style="font:600 15px var(--bf)">Language / भाषा / ভাষা</span><div class="seg">' + LANGS.map(function (l) { return '<button type="button" data-act="set" data-k="lang" data-v="' + l[0] + '" aria-pressed="' + (S.lang === l[0]) + '">' + l[1] + '</button>'; }).join('') + '</div></div>' +
     segRow('level', 'AI difficulty', E.LEVELS) + segRow('speed', 'Game speed', ['Relaxed', 'Normal', 'Quick']) + swRow('autolast', 'Auto-play last card', 'When only one legal card remains') + swRow('hints', 'Show legal-move hints', 'Dim cards you can’t play') + '</div>';
   if (tab === 'rules') body = '<div class="col" style="gap:12px"><div class="mute" style="font-size:13px">STRATOS standard ruleset · regional variants are optional. Applies from the next game.</div>' + swRow('hidden', 'Hidden trump', 'Trump stays secret until revealed') + swRow('dbl', 'Double & re-double', 'Opponents can double the stakes') + swRow('pair', 'Pair (marriage)', 'K + Q of trump moves the bid by 4') +
     '<div class="mute" style="font-size:13px">If everyone passes: the next dealer redeals. Single hand is not part of this version.</div></div>';
@@ -632,21 +666,25 @@ var TUT = [
     return '<p>The best way to learn is to play. <b>Practice</b> mode shows hints and a bidding guide, and does not count in your statistics.</p><div class="col" style="gap:10px;margin-top:12px"><button class="btn pri" data-act="practice" style="height:54px;font-size:18px">Start a practice game</button><button class="btn" data-act="demo" style="height:50px">Watch a demo round first</button><a href="how-to-play.html" target="_blank" rel="noopener" class="btn" style="height:50px;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--ink)">Read the full guide</a></div>';
   }]
 ];
+function tutList() { var LD = LX(); return (LD && LD.long && LD.long.tut) ? LD.long.tut({ mini: mini, trickRow: trickRow, A: A, cardEl: cardEl }) : TUT; }
 function learnHTML(wrap, m) {
-  var i = A.tut.i, st = TUT[i], last = i === TUT.length - 1;
-  return wrap('<div class="row" style="justify-content:space-between"><span class="gold lbl">Learn to play · ' + (i + 1) + ' / ' + TUT.length + '</span><button class="ibtn" data-act="closemodal" aria-label="Close" style="width:36px;height:36px">✕</button></div><div style="height:4px;border-radius:2px;background:var(--line)"><div style="height:100%;width:' + (100 * (i + 1) / TUT.length) + '%;background:var(--gold);border-radius:2px"></div></div><h2 class="hf" style="margin:0;font-size:' + (m ? 24 : 30) + 'px">' + st[0] + '</h2><div style="font-size:' + (m ? 14 : 16) + 'px;line-height:1.55;color:#D3E3DA;min-height:' + (m ? 300 : 280) + 'px">' + st[1]() + '</div>' + (last ? '<div class="row" style="gap:10px"><button class="btn" data-act="tutnext" data-v="-1" style="flex:1">Back</button><button class="btn" data-act="closemodal" style="flex:1">Close</button></div>' : '<div class="row" style="gap:10px"><button class="btn" data-act="tutnext" data-v="-1" ' + (i ? '' : 'disabled') + ' style="flex:1">Back</button><button class="btn pri" data-act="tutnext" data-v="1" style="flex:2">Next</button></div>'), m ? 350 : 700);
+  var TL = tutList(), i = A.tut.i, st = TL[i], last = i === TL.length - 1;
+  return wrap('<div class="row" style="justify-content:space-between"><span class="gold lbl">Learn to play · ' + (i + 1) + ' / ' + TL.length + '</span><button class="ibtn" data-act="closemodal" aria-label="Close" style="width:36px;height:36px">✕</button></div><div style="height:4px;border-radius:2px;background:var(--line)"><div style="height:100%;width:' + (100 * (i + 1) / TL.length) + '%;background:var(--gold);border-radius:2px"></div></div><h2 class="hf" style="margin:0;font-size:' + (m ? 24 : 30) + 'px">' + st[0] + '</h2><div style="font-size:' + (m ? 14 : 16) + 'px;line-height:1.55;color:#D3E3DA;min-height:' + (m ? 300 : 280) + 'px">' + st[1]() + '</div>' + (last ? '<div class="row" style="gap:10px"><button class="btn" data-act="tutnext" data-v="-1" style="flex:1">Back</button><button class="btn" data-act="closemodal" style="flex:1">Close</button></div>' : '<div class="row" style="gap:10px"><button class="btn" data-act="tutnext" data-v="-1" ' + (i ? '' : 'disabled') + ' style="flex:1">Back</button><button class="btn pri" data-act="tutnext" data-v="1" style="flex:2">Next</button></div>'), m ? 350 : 700);
 }
 function aboutHTML(wrap, m) {
   var lk = 'class="btn" target="_blank" rel="noopener" style="display:flex;align-items:center;text-decoration:none;color:var(--ink);font-size:14px"';
   return wrap('<div class="row" style="justify-content:space-between"><h2 class="hf" style="margin:0;font-size:26px">About STRATOS 29</h2><button class="ibtn" data-act="closemodal" aria-label="Close" style="width:36px;height:36px">✕</button></div>' +
+    (function () { var LD = LX(); return (LD && LD.long && LD.long.about) ? '<div style="font-size:' + (m ? 13 : 15) + 'px;line-height:1.6;color:#D3E3DA">' + LD.long.about + '</div>' : (
     '<div style="font-size:' + (m ? 13 : 15) + 'px;line-height:1.6;color:#D3E3DA"><p style="margin:0 0 10px"><b class="gold">Think Smart. Bid Bold. Win 29.</b></p><p style="margin:0 0 10px">STRATOS 29 is a free browser version of 29, the classic trick-taking card game of India and South Asia. You partner with an AI teammate against two AI opponents, bid for trump, and race to +6 game points. Four AI levels from Easy to Expert, a Daily Deal and a built-in tutorial and demo make it easy to learn and hard to master.</p>' +
     '<p style="margin:0 0 10px">It was created by <b>Sk Sarfaraj Ali</b> for the Stratos Games family of free games by Stratos Technologies. There is no gambling, no real-money play and no sign-up. Your settings and statistics stay on your own device.</p>' +
-    '<p style="margin:0">Fair play: the AI sees only its own cards and the cards already played, just like you. The deal is shuffled with your browser’s secure random generator.</p></div>' +
+    '<p style="margin:0">Fair play: the AI sees only its own cards and the cards already played, just like you. The deal is shuffled with your browser’s secure random generator.</p></div>'
+    ); })() +
     '<div class="row" style="gap:8px;flex-wrap:wrap"><a ' + lk + ' href="how-to-play.html">Full guide</a><a ' + lk + ' href="/privacy-policy/">Privacy policy</a><a ' + lk + ' href="/terms-of-use/">Terms</a></div>', m ? 350 : 640);
 }
 
 /* ===================== MODALS ===================== */
 function rulesPages() {
+  var LD0 = LX(); if (LD0 && LD0.long && LD0.long.rules) return LD0.long.rules;
   var rk = [['J', 3], ['9', 2], ['A', 1], ['10', 1], ['K', 0], ['Q', 0], ['8', 0], ['7', 0]];
   return [
     ['The goal', '<p>Four players, two teams. You and <b>Meera</b> (opposite) are <b class="gold">Team A</b>; Kabir and Arjun are Team B.</p><p>There are 32 cards (7 to Ace) and 8 tricks. The cards are worth <b>28 points</b> and the last trick gives <b>+1</b> — <b class="gold">29 in total</b>.</p><p>One team bids how many points it will collect. If it makes the bid it scores a game point, if not it loses one. First to <b>+6</b> wins the game.</p>'],
@@ -1334,7 +1372,7 @@ var H = {
   play: function () { A.ui.modal = null; startGame('play'); },
   demo: function () { A.ui.modal = null; startGame('demo'); },
   learn: function () { A.tut = { i: 0, ans: null }; A.ui.modal = 'learn'; render(); },
-  tutnext: function (d) { var n = A.tut.i + (+d.v); if (n >= TUT.length) { A.ui.modal = null; } else { A.tut.i = Math.max(0, n); A.tut.ans = null; } render(); },
+  tutnext: function (d) { var n = A.tut.i + (+d.v); if (n >= tutList().length) { A.ui.modal = null; } else { A.tut.i = Math.max(0, n); A.tut.ans = null; } render(); },
   tutans: function (d) { A.tut.ans = d.v; render(); },
   about: function () { A.ui.modal = 'about'; render(); },
   fs: function () { try { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {} },
@@ -1361,7 +1399,8 @@ var H = {
   settings: function () { if (A.mode === 'online') { toast('Settings are available from the lobby', 1500); return; } if (A.mode === 'demo') { clearTimers(); A.mode = 'play'; } A.prevScreen = A.screen === 'settings' ? A.prevScreen : A.screen; A.screen = 'settings'; A.ui.modal = null; render(); },
   stab: function (d) { A.sTab = d.v; render(); },
   tog: function (d) { S[d.v] = !S[d.v]; saveS(); if (d.v === 'music') musicOn(S.music); if (d.v === 'sound' && S.sound) sfx('bid'); render(); if ((d.v === 'hidden' || d.v === 'dbl' || d.v === 'pair') && A.G) toast('House rules apply from the next game', 2400); },
-  set: function (d) { S[d.k] = d.v; if (d.k === 'level') A.level = d.v; saveS(); render(); },
+  set: function (d) { S[d.k] = d.v; if (d.k === 'level') A.level = d.v; if (d.k === 'lang') A.cache = {}; saveS(); render(); },
+  lang: function () { var o = ['en', 'hi', 'bn']; S.lang = o[(o.indexOf(S.lang) + 1) % 3]; A.cache = {}; saveS(); render(); },
   name: function () {},
   snd: function () { S.sound = !S.sound; saveS(); render(); },
   lobby: function () { clearTimers(); if (Net.client || Net.role) Net.close(); resetSeatNames(); A.mode = 'play'; A.screen = 'lobby'; A.ui = {}; A.G = null; A.cache = {}; render(); },
