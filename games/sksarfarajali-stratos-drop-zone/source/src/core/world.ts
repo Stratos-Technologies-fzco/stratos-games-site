@@ -278,8 +278,10 @@ export function generateLoot(w: WorldData, surfaceBelow: (x: number, z: number, 
       const s = modelSize(p.model), swap = Math.abs(Math.sin(p.yaw)) > 0.7, ex = (swap ? s[2] : s[0]) / 2, ez = (swap ? s[0] : s[2]) / 2;
       if (BUILDING_MODELS.has(p.model) && !['dam_section','radar_dish','dock_crane','fort_wall_segment','fort_corner_tower','market_stall_amber','market_stall_violet'].includes(p.model)) {
         for (let k = 0; k < 6; k++) {
-          const x = p.x + (rng() * 2 - 1) * (ex - 1), z = p.z + (rng() * 2 - 1) * (ez - 1);
-          const roof = k === 5 && p.model === 'house_twostorey';
+          // the building models are solid boxes, so loot goes on the ground around them (and on the two-storey roofs), where it can be reached
+          const roof = k === 5 && p.model === 'house_twostorey'; let x: number, z: number;
+          if (roof) { x = p.x + (rng() * 2 - 1) * (ex - 1); z = p.z + (rng() * 2 - 1) * (ez - 1); }
+          else { const a = rng() * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a), rr = 1 / Math.max(Math.abs(c) / ex, Math.abs(sn) / ez) + 1.7; x = p.x + c * rr; z = p.z + sn * rr; }
           const y = surfaceBelow(x, z, p.y + (roof ? s[1] + 0.2 : 1.5));
           if (y !== null && !blocked(x, z, y) && (roof ? y > p.y + 3 : true)) { spots.push({ x, z, y }); break; }
         }
