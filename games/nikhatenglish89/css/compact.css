@@ -1,0 +1,174 @@
+/* Compact layouts so busy screens stay readable without scrolling. */
+
+/* ---------- awards: small tiles + one detail box ---------- */
+.award-detail {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 14px;
+  min-height: 84px;
+}
+
+.award-detail .award-emoji {
+  font-size: 2.6rem;
+  flex: none;
+}
+
+.award-detail-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.award-grid {
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+
+.award-grid li {
+  display: block;
+}
+
+.award-grid .award {
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 3px solid transparent;
+  font-family: var(--emoji);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  justify-content: center;
+}
+
+.award-grid .award[aria-pressed='true'] {
+  border-color: var(--primary);
+}
+
+/* ---------- world: five levels across ---------- */
+.world-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+}
+
+.world-head .world-emoji {
+  font-size: 2.6rem;
+}
+
+.world-head .world-focus {
+  margin: 0;
+  font-size: 0.9rem;
+  flex: 1 1 60%;
+  text-align: left;
+}
+
+.world-head .progress {
+  flex: 1 1 60%;
+}
+
+.world-head .world-count {
+  margin: 0;
+  flex: none;
+}
+
+.level-path {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px 6px;
+  max-width: 560px;
+}
+
+.level-node,
+.level-node.left,
+.level-node.right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.level-node .level-btn {
+  width: 58px;
+  height: 58px;
+  border-width: 4px;
+  font-size: 1.3rem;
+}
+
+.level-node .level-title {
+  font-size: 0.72rem;
+  line-height: 1.15;
+  font-weight: 700;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- camp: smaller preview, denser items ---------- */
+.camp-scene {
+  height: 140px;
+}
+
+.item-grid {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.item-card {
+  padding: 6px 2px;
+  gap: 2px;
+  border-width: 2px;
+  min-width: 0;
+}
+
+.item-emoji {
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.item-name {
+  font-size: 0.66rem;
+  line-height: 1.1;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-card .btn {
+  min-height: 34px;
+  padding: 4px 6px;
+  font-size: 0.72rem;
+  max-width: 100%;
+}
+
+.camp-screen {
+  gap: 8px;
+}
+
+.camp-deco {
+  font-size: 1.7rem;
+}
+
+.camp-screen .tabs {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.camp-screen .tab {
+  min-height: 40px;
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
