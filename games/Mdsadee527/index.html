@@ -50,6 +50,34 @@ canvas{
     pointer-events:none;
 }
 
+#levelUpBanner{
+    position:absolute;
+    top:38%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0.6);
+    font-size:1.5rem;
+    font-weight:800;
+    color:#ffd740;
+    text-shadow:0 0 18px rgba(255,212,59,.6), 0 2px 4px rgba(0,0,0,.7);
+    pointer-events:none;
+    z-index:22;
+    opacity:0;
+    text-align:center;
+    width:90%;
+}
+
+#levelUpBanner.show{
+    animation: levelPop 1.3s ease forwards;
+}
+
+@keyframes levelPop{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    15%{ opacity:1; transform:translate(-50%,-50%) scale(1.1); }
+    30%{ transform:translate(-50%,-50%) scale(1); }
+    80%{ opacity:1; }
+    100%{ opacity:0; transform:translate(-50%,-60%) scale(1); }
+}
+
 /* HUD */
 
 .hud{
@@ -238,9 +266,15 @@ button:active{
 
     <div id="crashFlash"></div>
 
+    <div id="levelUpBanner"></div>
+
     <div class="hud">
         <div class="hud-box">
             🏆 Score: <span id="score">0</span>
+        </div>
+
+        <div class="hud-box">
+            🏁 Level: <span id="level">1</span>
         </div>
 
         <div class="hud-box">
@@ -336,6 +370,7 @@ button:active{
 const canvas = document.getElementById("gameCanvas");
 const container = document.querySelector(".game-container");
 const crashFlashEl = document.getElementById("crashFlash");
+const levelUpBannerEl = document.getElementById("levelUpBanner");
 
 let W, H;
 let scene, camera, renderer, roadTexture;
@@ -609,6 +644,7 @@ let gamePaused = false;
 
 let score = 0;
 let speed = 5;
+let level = 1;
 
 let trafficCars = [];
 let particles = [];
@@ -623,6 +659,35 @@ let crashTimer = 0;
 const CRASH_DURATION = 26;
 
 let shakeMag = 0;
+
+let groundMat = null;
+let currentThemeIndex = -1;
+
+const LEVEL_THRESHOLDS = [0, 12, 28, 50, 80, 120, 170, 230, 300, 380];
+
+const THEMES = [
+    { name:"Countryside", minLevel:1, sky:0x8fd3f4, ground:0x2f9e45, prop:"tree" },
+    { name:"Desert",      minLevel:3, sky:0xf6d79a, ground:0xd8b876, prop:"cactus" },
+    { name:"City",        minLevel:5, sky:0xb9c4cc, ground:0x5a5f66, prop:"building" },
+    { name:"Snowfield",   minLevel:7, sky:0xe6eef4, ground:0xeef3f6, prop:"snowtree" },
+    { name:"Night City",  minLevel:9, sky:0x0c1026, ground:0x33363d, prop:"lamp" }
+];
+
+function themeForLevel(lvl){
+    let idx = 0;
+    for(let i = 0; i < THEMES.length; i++){
+        if(lvl >= THEMES[i].minLevel) idx = i;
+    }
+    return idx;
+}
+
+function speedForLevel(lvl){
+    return 5 + (lvl - 1) * 1.1;
+}
+
+function spawnRateForLevel(lvl){
+    return Math.max(30, 85 - (lvl - 1) * 6);
+}
 
 
 /* =========================
@@ -656,8 +721,8 @@ const player = {
     x: 0,
     vx: 0,
 
-    halfW: 0.9,
-    halfD: 1.8,
+    halfW: 0.93,
+    halfD: 2.0,
 
     mesh: null,
 
@@ -674,9 +739,8 @@ function initThree(){
 
     scene = new THREE.Scene();
 
-    const skyColor = 0x8fd3f4;
-    scene.background = new THREE.Color(skyColor);
-    scene.fog = new THREE.Fog(skyColor, 40, 130);
+    scene.background = new THREE.Color(THEMES[0].sky);
+    scene.fog = new THREE.Fog(THEMES[0].sky, 40, 130);
 
     camera = new THREE.PerspectiveCamera(62, W / H, 0.1, 400);
 
@@ -694,14 +758,15 @@ function initThree(){
 
     buildGround();
     buildRoad();
-    buildTreePool();
+
+    applyTheme(0);
 
 }
 
 
 function buildGround(){
 
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x2f9e45 });
+    groundMat = new THREE.MeshStandardMaterial({ color: THEMES[0].ground });
     const groundGeo = new THREE.PlaneGeometry(200, ROAD_PLANE_LENGTH);
     const ground = new THREE.Mesh(groundGeo, groundMat);
 
@@ -709,6 +774,23 @@ function buildGround(){
     ground.position.set(0, -0.02, -ROAD_PLANE_LENGTH / 2 + 100);
 
     scene.add(ground);
+
+}
+
+
+function applyTheme(themeIndex){
+
+    if(themeIndex === currentThemeIndex) return;
+
+    currentThemeIndex = themeIndex;
+
+    const theme = THEMES[themeIndex];
+
+    scene.background.set(theme.sky);
+    scene.fog.color.set(theme.sky);
+    groundMat.color.set(theme.ground);
+
+    buildTreePool(theme.prop);
 
 }
 
@@ -840,9 +922,128 @@ function buildCarMesh(colorValue, dims){
 }
 
 
+function buildPlayerCarMesh(colorValue){
+
+    const w = 1.85, len = 4.0, h = 1.05;
+
+    const group = new THREE.Group();
+
+    const bodyMat = new THREE.MeshStandardMaterial({ color: colorValue, metalness: 0.45, roughness: 0.35 });
+    group.userData.bodyMaterial = bodyMat;
+
+    /* Low wide main body */
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.36, len * 0.78), bodyMat);
+    body.position.set(0, h * 0.2, 0);
+    group.add(body);
+
+    /* Sloped nose (front, -Z) */
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(w * 0.92, h * 0.22, len * 0.26), bodyMat);
+    nose.position.set(0, h * 0.14, -len * 0.42);
+    nose.rotation.x = 0.22;
+    group.add(nose);
+
+    /* Front splitter */
+    const splitterMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+    const splitter = new THREE.Mesh(new THREE.BoxGeometry(w * 0.98, 0.05, 0.22), splitterMat);
+    splitter.position.set(0, h * 0.04, -(len / 2 + 0.02));
+    group.add(splitter);
+
+    /* Cabin, low and sleek */
+    const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1b2733, metalness: 0.2, roughness: 0.15, transparent: true, opacity: 0.85 });
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(w * 0.62, h * 0.3, len * 0.3), cabinMat);
+    cabin.position.set(0, h * 0.36 + h * 0.15, -len * 0.02);
+    cabin.rotation.x = 0.08;
+    group.add(cabin);
+
+    /* Rear deck / engine cover */
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(w * 0.86, h * 0.18, len * 0.3), bodyMat);
+    deck.position.set(0, h * 0.3, len * 0.26);
+    group.add(deck);
+
+    /* Rear wing + struts (most visible from the chase camera) */
+    const spoilerMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 });
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(w * 0.72, 0.05, 0.32), spoilerMat);
+    wing.position.set(0, h * 0.56, len / 2 - 0.12);
+    group.add(wing);
+
+    [-1, 1].forEach(sx => {
+        const strut = new THREE.Mesh(new THREE.BoxGeometry(0.06, h * 0.24, 0.06), spoilerMat);
+        strut.position.set(sx * w * 0.28, h * 0.44, len / 2 - 0.14);
+        group.add(strut);
+    });
+
+    /* Side skirts */
+    const skirtMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.8 });
+    [-1, 1].forEach(sx => {
+        const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.08, h * 0.1, len * 0.5), skirtMat);
+        skirt.position.set(sx * (w / 2 + 0.02), h * 0.1, 0);
+        group.add(skirt);
+    });
+
+    /* Wide sporty wheels with rims */
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+    const wheelGeo = new THREE.CylinderGeometry(h * 0.3, h * 0.3, w * 0.24, 12);
+    const rimMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3 });
+    const rimGeo = new THREE.CylinderGeometry(h * 0.14, h * 0.14, w * 0.25, 8);
+
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx, sz]) => {
+
+        const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(sx * (w / 2), h * 0.3, sz * (len * 0.33));
+        group.add(wheel);
+
+        const rim = new THREE.Mesh(rimGeo, rimMat);
+        rim.rotation.z = Math.PI / 2;
+        rim.position.copy(wheel.position);
+        group.add(rim);
+
+    });
+
+    /* Slim angled headlights (front) */
+    const lightMat = new THREE.MeshStandardMaterial({ color: 0xfff59d, emissive: 0xffe066, emissiveIntensity: 0.9 });
+    [-1, 1].forEach(sx => {
+        const lamp = new THREE.Mesh(new THREE.BoxGeometry(w * 0.16, h * 0.08, 0.06), lightMat);
+        lamp.position.set(sx * w * 0.3, h * 0.26, -(len / 2 - 0.05));
+        lamp.rotation.y = sx * 0.3;
+        group.add(lamp);
+    });
+
+    /* Round taillights (rear, facing the chase camera) */
+    const tailMat = new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 1.0 });
+    const tailGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.04, 10);
+    [-0.32, -0.11, 0.11, 0.32].forEach(ox => {
+        const tail = new THREE.Mesh(tailGeo, tailMat);
+        tail.rotation.x = Math.PI / 2;
+        tail.position.set(w * ox, h * 0.3, len / 2 - 0.02);
+        group.add(tail);
+    });
+
+    /* Exhaust tips */
+    const exhaustMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.6, roughness: 0.4 });
+    [-1, 1].forEach(sx => {
+        const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.18, 8), exhaustMat);
+        exhaust.rotation.x = Math.PI / 2;
+        exhaust.position.set(sx * w * 0.22, h * 0.08, len / 2 + 0.05);
+        group.add(exhaust);
+    });
+
+    /* Mirrors */
+    const mirrorMat = new THREE.MeshStandardMaterial({ color: colorValue, metalness: 0.4, roughness: 0.4 });
+    [-1, 1].forEach(sx => {
+        const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.2), mirrorMat);
+        mirror.position.set(sx * (w / 2 + 0.08), h * 0.4, -len * 0.16);
+        group.add(mirror);
+    });
+
+    return group;
+
+}
+
+
 function buildPlayerMesh(){
 
-    player.mesh = buildCarMesh(player.color, { w: 1.8, len: 3.6, h: 1.3 });
+    player.mesh = buildPlayerCarMesh(player.color);
     player.mesh.position.set(0, 0, 0);
     scene.add(player.mesh);
 
@@ -850,12 +1051,83 @@ function buildPlayerMesh(){
 
 
 /* =========================
-   ROADSIDE TREES
+   ROADSIDE SCENERY (theme-aware props)
 ========================= */
 
-function buildTreeMesh(){
+function buildPropMesh(kind){
 
     const group = new THREE.Group();
+
+    if(kind === "cactus"){
+
+        const mat = new THREE.MeshStandardMaterial({ color: 0x2e7d52 });
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 2.0, 8), mat);
+        trunk.position.y = 1.0;
+        group.add(trunk);
+
+        [[-1, 0.9], [1, 1.3]].forEach(([sx, ay]) => {
+            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.8, 8), mat);
+            arm.position.set(sx * 0.32, ay, 0);
+            arm.rotation.z = sx * 0.9;
+            group.add(arm);
+        });
+
+        return group;
+
+    }
+
+    if(kind === "building"){
+
+        const h = 2.4 + Math.random() * 3.2;
+        const colors = [0x6b7380, 0x59616c, 0x7c838d];
+        const mat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * 3)] });
+
+        const box = new THREE.Mesh(new THREE.BoxGeometry(1.6, h, 1.6), mat);
+        box.position.y = h / 2;
+        group.add(box);
+
+        const winMat = new THREE.MeshStandardMaterial({ color: 0xffe29a, emissive: 0xffe29a, emissiveIntensity: 0.5 });
+        const win = new THREE.Mesh(new THREE.BoxGeometry(1.64, h * 0.5, 0.05), winMat);
+        win.position.set(0, h * 0.5, 0.83);
+        group.add(win);
+
+        return group;
+
+    }
+
+    if(kind === "snowtree"){
+
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4b3a2f });
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.2, 6), trunkMat);
+        trunk.position.y = 0.6;
+        group.add(trunk);
+
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0xdfeef5 });
+        const leaf = new THREE.Mesh(new THREE.ConeGeometry(1.0, 2.0, 8), leafMat);
+        leaf.position.y = 2.0;
+        group.add(leaf);
+
+        return group;
+
+    }
+
+    if(kind === "lamp"){
+
+        const poleMat = new THREE.MeshStandardMaterial({ color: 0x222428 });
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 3.0, 6), poleMat);
+        pole.position.y = 1.5;
+        group.add(pole);
+
+        const lampMat = new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffe066, emissiveIntensity: 1.1 });
+        const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), lampMat);
+        lamp.position.y = 3.05;
+        group.add(lamp);
+
+        return group;
+
+    }
+
+    /* default: tree (countryside) */
 
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.2, 6), trunkMat);
@@ -880,11 +1152,18 @@ function randomTreeX(){
 }
 
 
-function buildTreePool(){
+function buildTreePool(kind){
+
+    treePool.forEach(g => {
+        scene.remove(g);
+        disposeMesh(g);
+    });
+
+    treePool = [];
 
     for(let i = 0; i < TREE_COUNT; i++){
 
-        const group = buildTreeMesh();
+        const group = buildPropMesh(kind);
         const z = -(Math.floor(i / 2) * TREE_SPACING) - 10;
 
         group.position.set(randomTreeX(), 0, z);
@@ -982,11 +1261,7 @@ function spawnTraffic(){
 
     spawnTimer++;
 
-    const spawnRate =
-        Math.max(
-            35,
-            85 - Math.floor(score / 200)
-        );
+    const spawnRate = spawnRateForLevel(level);
 
     if(spawnTimer >= spawnRate){
 
@@ -1232,14 +1507,84 @@ function updateScore(){
 
 function updateSpeed(){
 
-    speed =
-        5 +
-        Math.floor(score / 500);
+    speed = speedForLevel(level);
 
     document.getElementById(
         "speed"
     ).textContent =
-        speed - 4;
+        Math.round(speed - 4);
+
+}
+
+
+/* =========================
+   LEVELS
+========================= */
+
+function updateLevel(){
+
+    const displayedScore = Math.floor(score / 10);
+
+    let newLevel = 1;
+
+    for(let i = 0; i < LEVEL_THRESHOLDS.length; i++){
+        if(displayedScore >= LEVEL_THRESHOLDS[i]) newLevel = i + 1;
+    }
+
+    if(newLevel !== level){
+
+        level = newLevel;
+
+        document.getElementById("level").textContent = level;
+
+        applyTheme(themeForLevel(level));
+
+        playLevelUp();
+        shakeScreen(6);
+        showLevelBanner(level);
+
+    }
+
+}
+
+
+function showLevelBanner(lvl){
+
+    const theme = THEMES[themeForLevel(lvl)];
+
+    levelUpBannerEl.textContent = "Level " + lvl + " — " + theme.name + "!";
+    levelUpBannerEl.classList.remove("show");
+
+    void levelUpBannerEl.offsetWidth;
+
+    levelUpBannerEl.classList.add("show");
+
+}
+
+
+function playLevelUp(){
+
+    if(!audioCtx || soundMuted) return;
+
+    const now = audioCtx.currentTime;
+
+    [523, 659, 784].forEach((freq, i) => {
+
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.09);
+
+        g.gain.setValueAtTime(0.18, now + i * 0.09);
+        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.22);
+
+        osc.connect(g).connect(audioCtx.destination);
+
+        osc.start(now + i * 0.09);
+        osc.stop(now + i * 0.09 + 0.24);
+
+    });
 
 }
 
@@ -1295,6 +1640,7 @@ function gameLoop(){
 
         checkCollision();
         updateScore();
+        updateLevel();
         updateSpeed();
         updateEngineSound(speed);
 
@@ -1335,6 +1681,14 @@ function startGame(){
     score = 0;
 
     speed = 5;
+
+    level = 1;
+
+    document.getElementById("level").textContent = "1";
+
+    currentThemeIndex = -1;
+
+    applyTheme(themeForLevel(1));
 
     clearTraffic();
 
