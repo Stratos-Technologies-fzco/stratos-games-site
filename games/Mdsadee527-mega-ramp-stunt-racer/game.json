@@ -6,5 +6,18 @@
   "github": "Mdsadee527",
   "added": "2026-11-07",
   "how_to_play": "W/↑ gas, S/↓ brake-reverse, A/D steer. In the air, A/D rolls and W/S flips the car — land clean to bank stunt points. Space boosts. On phone, use the on-screen buttons.",
-  "description": "A physics-based mega-ramp stunt racer: real suspension and air control, not scripted jumps. Launch off ramps, flip and barrel-roll in the air for a scoring combo, then stick the landing to bank it. Three courses (Time Trial with checkpoints and stars, or a no-timer Free Ride), four unlockable cars with different speed/handling/jump stats, and a stunt-scoring system that rewards clean landings over wild crashes."
+  "description": "Mega Ramp Stunt Racer is a physics-based stunt racer — real suspension and air control, nothing scripted. Launch off mega ramps, and while you're airborne you're in control: roll and flip the car to rack up points, then line up a clean landing to bank what you earned. Steer with WASD or the arrow keys, hold Space to boost once you've built it up by drifting and sticking landings, and reset back to your last checkpoint any time with R (or the on-screen button on phone) if you crash hard or flip.\n\nThere are two ways to play: Time Trial, which times you through checkpoints and rewards clean stunts with stars, or Free Ride, a no-timer sandbox to just launch off ramps and mess around. Three courses to run — Sky Gaps, Canyon Jump, and Neon Loop City — and four cars with real tradeoffs in speed, acceleration, handling, and jump height, from the balanced Rookie to the high-flying Monster, unlocked by earning stars in Time Trial.\n\nIt's for anyone who likes the moment right before a landing — did I flip too much, am I going to stick this? No ads in the way, no waiting, just ramps and whatever stunt you can pull off before you hit the ground.",
+  "controls": [
+    "W/↑ gas, S/↓ brake-reverse, A/D or ←/→ steer",
+    "In the air: A/D rolls the car, W/S pitches it — line up your landing",
+    "Space boosts (fill the meter by drifting and landing clean)",
+    "R resets to your last checkpoint (↻ button on phone)",
+    "C cycles camera, Esc pauses"
+  ],
+  "tips": [
+    "A clean landing (wheels down, low tilt) banks your stunt combo — a wild landing loses it, so it's often worth under-rotating rather than risking one more flip",
+    "Build boost by drifting and landing clean, then save it for the next big ramp instead of burning it right away",
+    "Earn 3 stars per level in Time Trial to unlock faster, higher-jumping cars in the Garage"
+  ],
+  "story": "I wanted a mega-ramp stunt racer with real physics instead of scripted jumps, so the suspension and air control are simulated, not faked. Getting the stunt scoring to reward a clean landing over a wild crash — and building four cars with real speed and handling tradeoffs — was the part I cared about getting right."
 }
