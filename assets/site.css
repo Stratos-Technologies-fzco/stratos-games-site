@@ -366,7 +366,7 @@ body.poki.side-open .pk-side .lb{opacity:1}
   /* bar under the game: cover, name and maker, plus favourite and share (the rest stays on bigger screens) */
   body[data-game] .pk-bar{gap:8px;padding:8px 12px}
   body[data-game] .pk-bar .pk-vote,body[data-game] .pk-bar .pk-flag,body[data-game] .pk-bar .pk-full{display:none}
-  body[data-game] .pk-bt b{font-size:17px}body[data-game] .pk-bt small{font-size:13px}
+  body[data-game] .pk-bt b{font-size:17px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15}body[data-game] .pk-bt small{font-size:13px}
 }
 /* ===== phones, game pages: 4 similar games, then the game's details, then all the other games (Nov 2026) =====
    Scrolling past every game to reach the description was too long on a phone. build_play() marks tiles after the
