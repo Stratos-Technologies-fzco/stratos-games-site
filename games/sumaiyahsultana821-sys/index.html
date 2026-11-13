@@ -1267,7 +1267,7 @@
   function gameOver(){
     stopTimer();
     var best = saveBestIfHigher(state.totalScore);
-    bestEl.textContent = best;
+    coverBestEl.textContent = best;
     track("game_over", { level: state.islandIndex + 1, score: state.totalScore, pairs_left: state.totalPairs - state.matchedPairs });
     showModal(
       "Game over",
@@ -1304,7 +1304,7 @@
     if (unlockedNew) progress.unlocked = idx + 2;
     saveProgress();
     var best = saveBestIfHigher(state.totalScore);
-    bestEl.textContent = best;
+    coverBestEl.textContent = best;
 
     track("level_complete", { level: idx + 1, moves: state.moves, seconds: state.seconds, bonus: bonus, score: state.totalScore, stars: stars });
     if (unlockedNew) track("island_unlocked", { level: idx + 2 });
