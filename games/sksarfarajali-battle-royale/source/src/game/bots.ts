@@ -63,7 +63,7 @@ export class BotBrain {
     const far = Math.hypot(gx - a.body.x, gz - a.body.z);
     if (far > 6 && (env.time - this.pathAt > 0.5 || Math.hypot(this.goal[0] - gx, this.goal[1] - gz) > 12)) { this.pathAt = env.time; this.goal = [gx, gz]; this.pathPts = this.nav.path(a.body.x, a.body.z, gx, gz) ?? []; }
     while (this.pathPts.length > 1 && Math.hypot(this.pathPts[0][0] - a.body.x, this.pathPts[0][1] - a.body.z) < 3) this.pathPts.shift();
-    const [tx, tz] = far <= 6 || !this.pathPts.length ? [gx, gz] : this.pathPts[0];
+    const [tx, tz] = far <= 14 || !this.pathPts.length ? [gx, gz] : this.pathPts[0];
     const dx = tx - a.body.x, dz = tz - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.sprint = sprint;
     // stuck detection: jump and nudge sideways
     if (Math.hypot(a.body.x - this.lx, a.body.z - this.lz) < 0.05 * 0.5) this.stuckT += 0.05; else this.stuckT = 0; this.lx = a.body.x; this.lz = a.body.z;
@@ -120,7 +120,7 @@ export class BotBrain {
         const wantDist = Math.min(want * 0.7, 45);
         if (dist > wantDist + 6) { cmd.dx = dx / dist; cmd.dz = dz / dist; cmd.sprint = false; } else if (dist < wantDist * 0.4) { cmd.dx = -dx / dist; cmd.dz = -dz / dist; }
         cmd.dx += (-dz / dist) * this.strafe * 0.8; cmd.dz += (dx / dist) * this.strafe * 0.8;
-        cmd.fire = dist < want * 1.6 && this.aimT > 0.25; if (a.inv.main[0] || a.inv.main[1]) cmd.slot = a.inv.main[0] ? 0 : 1; else if (a.inv.pistol) cmd.slot = 2; else cmd.slot = 3;
+        cmd.fire = dist < Math.min(want * 1.05, 110) && this.aimT > 0.35 && Math.sin(env.time * 4 + a.id) > -0.35; if (a.inv.main[0] || a.inv.main[1]) cmd.slot = a.inv.main[0] ? 0 : 1; else if (a.inv.pistol) cmd.slot = 2; else cmd.slot = 3;
         if (gun && gun.mag === 0) cmd.reload = true;
         this.barrierT -= dt; if (a.hp < 60 && a.inv.barriers > 0 && this.barrierT < 0 && dist > 8) { cmd.barrier = true; this.barrierT = 20; }
         break;
@@ -130,7 +130,7 @@ export class BotBrain {
         const g = this.lootGoal;
         if (g) {
           this.go(a, env, g.x, g.z, cmd, true); cmd.yaw = Math.atan2(cmd.dx, cmd.dz);
-          if (Math.hypot(g.x - a.body.x, g.z - a.body.z) < 1.6 && Math.abs(g.y - a.body.y) < 2.5) { cmd.interact = g; this.lootGoal = null; }
+          if (Math.hypot(g.x - a.body.x, g.z - a.body.z) < 2.1 && Math.abs(g.y - a.body.y) < 2.5) { cmd.interact = g; this.lootGoal = null; }
         } else { const P = POIS[this.dropPoi]; this.go(a, env, P.x, P.z, cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); }
       }
     }

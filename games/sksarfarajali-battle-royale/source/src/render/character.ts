@@ -1,6 +1,6 @@
 // Survivor model with a procedural animator: limb nodes are rotated in code and blended by state and speed.
 import * as THREE from 'three';
-import { cloneModel } from './assets';
+import { cloneModel, sharedMaterial } from './assets';
 
 export type Survivor = 'survivor_kiran' | 'survivor_meera' | 'survivor_arjun' | 'survivor_zoya';
 export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string; color: string; lines: string[] }[] = [
@@ -12,9 +12,9 @@ export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string
 
 export interface AnimState {
   speed: number; crouch: boolean; onGround: boolean; vy: number; mode: 'ground' | 'skydive' | 'glide';
-  aiming: boolean; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number;
+  aiming: boolean; pitch: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number;
 }
-export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0 });
+export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0 });
 
 interface Pose { aLx: number; aLz: number; aRx: number; aRz: number; lL: number; lR: number; torso: number; hip: number; head: number; lean: number; roll: number }
 const zero = (): Pose => ({ aLx: 0, aLz: 0, aRx: 0, aRz: 0, lL: 0, lR: 0, torso: 0, hip: 0, head: 0, lean: 0, roll: 0 });
@@ -47,6 +47,7 @@ export class Character {
 
   update(dt: number, s: AnimState, lod10fps = false) {
     if (!this.ready) return;
+    if (this.flashT > 0) { this.flashT -= dt; if (this.flashT <= 0) this.swapMat(false); }
     if (lod10fps) { this.accum += dt; if (this.accum < 0.1) return; dt = this.accum; this.accum = 0; }
     this.t += dt;
     const target = zero();
@@ -77,7 +78,7 @@ export class Character {
     if (this.landRoll > 0) { this.landRoll -= dt; rootRoll = (1 - this.landRoll / 0.5) * Math.PI * 2; }
     if (s.fallLanded > 6) this.landRoll = 0.5;
     if (!s.dead && s.mode === 'ground') {
-      if (s.armed && !s.melee) { const raise = s.aiming ? -1.5 : -0.95; target.aRx = raise - s.kick * 0.25; target.aLx = s.aiming ? -1.3 : target.aLx * 0.4; target.aLz = s.aiming ? -0.45 : 0.1; target.torso += s.aiming ? 0.25 : 0; }
+      if (s.armed && !s.melee) { const raise = -1.45 - Math.max(-0.6, Math.min(0.6, s.pitch)) * 0.85; target.aRx = raise - s.kick * 0.25; target.aLx = raise + 0.15; target.aLz = -0.5; target.torso += s.aiming ? 0.25 : 0; }
       if (s.melee && s.kick > 0) { target.aRx = -1.6 + s.kick * 2.2; target.torso += s.kick * 0.5; }
       if (s.reload) { target.aLx = -0.9 + Math.sin(this.t * 12) * 0.15; target.aLz = -0.4; target.aRx = -0.7; }
       if (s.heal) { target.aLx = -1.1; target.aRx = -1.1; target.aLz = -0.35; target.aRz = 0.35; target.head = 0.2; }
@@ -102,5 +103,10 @@ export class Character {
     if (s.dead) { const f = Math.min(1, Math.max(0, (this.tDead - 1.5) / 0.4)); this.root.scale.setScalar(1 - f * 0.9); this.root.visible = f < 1; }
     void this.lastFrame;
   }
+  private flashT = 0; private static flashMat = new THREE.MeshBasicMaterial({ color: 0xff9a9a });
+  /** Brief white-red flash when this survivor is hit. */
+  flash(t: number) { this.flashT = t; this.swapMat(true); }
+  private swapMat(on: boolean) { this.body.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh && !(this.wing && this.isChild(m))) m.material = on ? Character.flashMat : sharedMaterial; }); }
+  private isChild(m: THREE.Object3D) { let p: THREE.Object3D | null = m; while (p) { if (p === this.wing) return true; p = p.parent; } return false; }
   resetDeath() { this.tDead = 0; this.root.scale.setScalar(1); this.root.visible = true; }
 }

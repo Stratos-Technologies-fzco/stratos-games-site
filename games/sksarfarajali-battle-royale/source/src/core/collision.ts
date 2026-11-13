@@ -80,7 +80,7 @@ export function rayBox(ox: number, oy: number, oz: number, dx: number, dy: numbe
 }
 
 export interface Body { x: number; y: number; z: number; vy: number; onGround: boolean; crouch: boolean }
-export interface MoveInput { dx: number; dz: number; speed: number; jump: boolean; crouch: boolean }
+export interface MoveInput { dx: number; dz: number; speed: number; jump: boolean; crouch: boolean; coyote?: boolean }
 const P = B.player;
 
 /** Shared movement step. Cylinder of radius P.radius against boxes; terrain and box tops give ground. */
@@ -97,7 +97,7 @@ export function stepBody(c: Colliders, b: Body, inp: MoveInput, dt: number): { l
     else { const px = Math.min(nx - bx.x0, bx.x1 - nx), pz = Math.min(nz - bx.z0, bx.z1 - nz); if (px < pz) nx += (nx - bx.x0 < bx.x1 - nx ? -px : px) + Math.sign(nx - (bx.x0 + bx.x1) / 2) * P.radius; else nz += (nz - bx.z0 < bx.z1 - nz ? -pz : pz) + Math.sign(nz - (bx.z0 + bx.z1) / 2) * P.radius; }
   });
   b.x = nx; b.z = nz;
-  if (inp.jump && b.onGround) { b.vy = Math.sqrt(2 * P.gravity * P.jumpHeight); b.onGround = false; }
+  if (inp.jump && (b.onGround || inp.coyote)) { b.vy = Math.sqrt(2 * P.gravity * P.jumpHeight); b.onGround = false; }
   const prevVy = b.vy; b.vy -= P.gravity * dt;
   let ny = b.y + b.vy * dt;
   const gh = c.surfaceBelow(b.x, b.z, b.y + P.stepUp + Math.max(0, b.vy) * dt + 0.05) ?? c.terrain.height(b.x, b.z);

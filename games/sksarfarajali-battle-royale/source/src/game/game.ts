@@ -107,7 +107,7 @@ export class Game {
     const a: Actor = {
       id: nextId++, name: isBot ? brain!.name : name, isBot, isPlayer, alive: true, body: { x: 0, y: 0, z: 0, vy: 0, onGround: true, crouch: false }, yaw: 0, pitch: 0, hp: B.player.hp,
       armour: { vestLv: 0, vestDur: 0, helmetLv: 0 }, inv: new Inventory(), slot: 3, char, anim: defaultAnim(), mode: 'ground', fireCd: 0, reloadT: 0, reloadMax: 1, healT: 0, healItem: '', swingT: 0, kickT: 0, shots: 0, lastShot: -9, recoilPitch: 0,
-      kills: 0, damage: 0, headshots: 0, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, speedNow: 0, fallStartY: 0, survivor, bot: brain,
+      kills: 0, damage: 0, headshots: 0, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, speedNow: 0, vx: 0, vz: 0, fireHeld: false, coyote: 0, jumpBuf: 0, fallStartY: 0, survivor, bot: brain,
     };
     if (isBot) { const names = this.actors.map((x) => x.name); while (names.filter((n) => n === a.name).length) a.name += 'x'; }
     void char.setWeapon('tide_machete'); this.actors.push(a); return a;
@@ -132,7 +132,7 @@ export class Game {
       const s = g.items[0].kind === 'tokens' ? 0.35 : g.crate ? 1 : ['vest', 'helmet', 'backpack'].includes(g.items[0].kind) ? 1.2 : g.items[0].kind === 'weapon' ? 1.6 : 1.4; m.scale.setScalar(s); g.mesh.add(m);
       if (g.items[0].kind === 'weapon') m.rotation.z = Math.PI / 2 * 0; // weapons lie along +Z
       const ring = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.7, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(RC[g.rarity]), transparent: true, opacity: 0.8, side: THREE.DoubleSide })); ring.position.set(g.x, g.y + 0.06, g.z); this.view.scene.add(ring); g.ring = ring;
-      if (g.rarity === 3 || g.crate) cloneModel('legendary_beam').then((b) => { b.position.set(g.x, g.y, g.z); this.view.scene.add(b); g.beam = b; });
+      if (g.crate && g.rarity === 3) cloneModel('legendary_beam').then((b) => { b.scale.set(0.3, 1, 0.3); b.position.set(g.x, g.y, g.z); this.view.scene.add(b); g.beam = b; });
     });
   }
 
@@ -265,7 +265,7 @@ export class Game {
   private playerCmd(a: Actor, dt: number): Cmd {
     const cmd: Cmd = { dx: 0, dz: 0, sprint: input.sprint, crouch: input.crouch, jump: input.jump, yaw: a.yaw, pitch: a.pitch, fire: input.fire, reload: input.reload, heal: input.heal, barrier: input.barrier, slot: input.slot, interact: null, leavePlane: false };
     if (this.kioskOpen || this.inventoryOpen && false) { cmd.fire = false; }
-    const sens = 0.0022 * settings.sensitivity * (a.slot >= 0 ? (this.scoped() ? this.camera.fov / 70 : 1) : 1);
+    const sens = 0.0022 * settings.sensitivity * (input.aim ? this.camera.fov / 70 : 1);
     let ax = 1; if (touch.look.id >= 0 && settings.aimAssist && this.overTarget()) ax = 0.55;
     a.yaw -= input.lookDX * sens * ax; a.pitch = Math.max(-1.35, Math.min(1.35, a.pitch - input.lookDY * sens * ax));
     a.pitch = Math.max(-1.35, Math.min(1.35, a.pitch + a.recoilPitch)); a.recoilPitch = 0; cmd.yaw = a.yaw; cmd.pitch = a.pitch;
@@ -313,7 +313,12 @@ export class Game {
     speed *= Math.min(1, mag || 0) * 1; if (!a.isPlayer) speed = (c.crouch ? B.player.crouch : c.sprint ? B.player.sprint : B.player.walk) * Math.min(1, mag) * (healing ? 0.5 : 1);
     if (this.perks() && a.survivor === 'survivor_kiran' && c.sprint) speed *= 1.08;
     const prevY = a.body.y, wasGround = a.body.onGround;
-    const res = stepBody(this.colliders, a.body, { dx: ndx, dz: ndz, speed, jump: c.jump, crouch: c.crouch }, dt);
+    // smooth acceleration, coyote time and jump buffering for a better feel
+    const tvx = ndx * speed, tvz = ndz * speed; const acc = (a.body.onGround ? (Math.hypot(tvx, tvz) > 0.1 ? 38 : 55) : 8) * dt; const dvx = tvx - a.vx, dvz = tvz - a.vz, dl = Math.hypot(dvx, dvz);
+    if (dl <= acc) { a.vx = tvx; a.vz = tvz; } else { a.vx += (dvx / dl) * acc; a.vz += (dvz / dl) * acc; }
+    const vm = Math.hypot(a.vx, a.vz); a.coyote = a.body.onGround ? 0.1 : a.coyote - dt; if (c.jump) a.jumpBuf = 0.12; else a.jumpBuf -= dt;
+    const wantJump = a.jumpBuf > 0 && (a.body.onGround || a.coyote > 0); if (wantJump) { a.jumpBuf = 0; a.coyote = 0; }
+    const res = stepBody(this.colliders, a.body, { dx: vm > 0.01 ? a.vx / vm : 0, dz: vm > 0.01 ? a.vz / vm : 0, speed: vm, jump: wantJump, crouch: c.crouch, coyote: a.coyote > 0 }, dt);
     if (wasGround && !a.body.onGround && a.body.vy <= 0) a.fallStartY = prevY; if (!a.body.onGround && wasGround && a.body.vy > 0) a.fallStartY = a.body.y;
     if (res.landedFall > 0) { const fallM = Math.max(0, a.fallStartY - a.body.y); const dmg = fallDamage(fallM); if (dmg > 0) this.hurt(a, null, dmg, false, 'a fall', true); an.fallLanded = fallM; if (a.isPlayer && fallM > 3) this.shake = 0.4; }
     a.speedNow = Math.hypot(a.body.x - (a.char.root.position.x), a.body.z - (a.char.root.position.z)) / Math.max(dt, 1e-3);
@@ -336,14 +341,14 @@ export class Game {
     // bots throw grenades at engaged targets sometimes
     if (a.bot && a.bot.state === 'engage' && a.inv.count('frag_grenade') > 0 && Math.random() < dt * 0.05 && a.bot.target) this.throwGrenade(a, false);
     // ---- animation state
-    an.speed = a.body.onGround ? Math.min(7, Math.hypot(ndx, ndz) * speed) : 0; an.crouch = c.crouch; an.onGround = a.body.onGround; an.vy = a.body.vy; an.armed = !!gun && a.slot !== 3; an.melee = a.slot === 3; an.aiming = (a.isPlayer ? input.aim : c.fire) && an.armed;
+    a.fireHeld = c.fire; an.pitch = a.pitch; an.speed = a.body.onGround ? Math.min(7, vm) : 0; an.crouch = c.crouch; an.onGround = a.body.onGround; an.vy = a.body.vy; an.armed = !!gun && a.slot !== 3; an.melee = a.slot === 3; an.aiming = (a.isPlayer ? input.aim : c.fire) && an.armed;
     an.reload = a.reloadT > 0; an.heal = a.healT > 0; an.dead = 0; this.poseActor(a, dt);
   }
   private perks() { return B.perksEnabled; }
   private poseActor(a: Actor, dt: number) {
     const r = a.char.root; r.position.set(a.body.x, a.body.y, a.body.z); r.rotation.y = a.yaw;
     const far = !a.isPlayer && Math.hypot(a.body.x - this.player.body.x, a.body.z - this.player.body.z) > 60;
-    r.visible = a.mode !== 'plane' && (a.isPlayer || Math.hypot(a.body.x - this.camera.position.x, a.body.z - this.camera.position.z) < 220) && !(a.hidden && !a.isPlayer && Math.hypot(a.body.x - this.player.body.x, a.body.z - this.player.body.z) > B.player.bushHideRange);
+    r.visible = a.mode !== 'plane' && (a.isPlayer || Math.hypot(a.body.x - this.camera.position.x, a.body.z - this.camera.position.z) < 150) && !(a.hidden && !a.isPlayer && Math.hypot(a.body.x - this.player.body.x, a.body.z - this.player.body.z) > B.player.bushHideRange);
     if (a.mode === 'skydive' || a.mode === 'glide') { r.rotation.x = 0; }
     const g = this.gun(a); void a.char.setWeapon(a.mode === 'ground' && g ? g.id : null);
     a.char.update(dt, a.anim, far);
@@ -363,6 +368,8 @@ export class Game {
     if (wd.reloadPerShell) { if (have > 0 && g.mag < wd.mag) { a.inv.take(wd.ammo as string, 1); g.mag++; if (g.mag < wd.mag && a.inv.count(wd.ammo as string) > 0) { a.reloadT = wd.reload; } } return; }
     const need = Math.min(wd.mag - g.mag, have); if (need > 0) { a.inv.take(wd.ammo as string, need); g.mag += need; }
   }
+  /** World position of the gun barrel tip, for flashes and tracers. */
+  private tip(a: Actor, fallback: THREE.Vector3): THREE.Vector3 { const w = a.char.weapon; if (!w) return fallback; const len = MODEL_INFO.get(a.char.weaponName)?.size_m_xyz[2] ?? 0.5; w.updateWorldMatrix(true, false); return w.localToWorld(V(0, 0.08, len)); }
   private muzzle(a: Actor): THREE.Vector3 { return V(a.body.x + Math.sin(a.yaw) * 0.6 - Math.cos(a.yaw) * 0.3, a.body.y + (a.body.crouch ? 1.0 : 1.45), a.body.z + Math.cos(a.yaw) * 0.6 + Math.sin(a.yaw) * 0.3); }
   eye(a: Actor): THREE.Vector3 { return V(a.body.x, a.body.y + (a.body.crouch ? 1.1 : 1.6), a.body.z); }
   private aimDir(a: Actor): THREE.Vector3 { return V(Math.sin(a.yaw) * Math.cos(a.pitch), Math.sin(a.pitch), Math.cos(a.yaw) * Math.cos(a.pitch)); }
@@ -376,7 +383,7 @@ export class Game {
   private tryFire(a: Actor, c: Cmd) {
     const g = this.gun(a); if (!g) return; const wd = W[g.id]; if (a.fireCd > 0) return;
     if (a.slot === 3) return this.swing(a);
-    if (g.mag <= 0) return; if (!wd.auto && a.isPlayer && (a as Actor & { held?: boolean }).held) return; if (!wd.auto && !a.isPlayer && a.fireCd > 0) return;
+    if (g.mag <= 0) return; if (!wd.auto && a.isPlayer && a.fireHeld) return; if (!wd.auto && !a.isPlayer && a.fireCd > 0) return;
     a.fireCd = fireInterval(g.id); g.mag--; a.shots++; a.lastShot = this.time; a.kickT = 1; if (a.isPlayer) a.anim.kick = 1; a.reloadT = 0;
     const origin = a.isPlayer ? this.muzzle(a) : this.muzzle(a); let dir: THREE.Vector3;
     if (a.isPlayer) { const ap = this.aimPoint(a, 400); dir = ap.sub(origin).normalize(); } else dir = this.aimDir(a);
@@ -384,14 +391,13 @@ export class Game {
     if (this.scoped() && a.isPlayer) spread *= 0.5; const pellets = wd.pellets;
     const snd: SoundId = wd.class === 'pistol' ? 'pistol' : wd.class === 'smg' ? 'smg' : wd.class === 'shotgun' ? 'shotgun' : wd.class === 'sniper' ? 'sniper' : wd.class === 'marksman' ? 'dmr' : 'rifle';
     if (a.isPlayer) audio.play(snd); else audio.playAt(snd, a.body.x - this.player.body.x, a.body.z - this.player.body.z, this.player.yaw, 120, true);
-    this.shotsHeard.push({ x: a.body.x, z: a.body.z, t: 2 }); this.flash(origin);
+    this.shotsHeard.push({ x: a.body.x, z: a.body.z, t: 2 }); this.flash(this.tip(a, origin));
     if (a.isPlayer) { const idx = a.shots; a.recoilPitch += wd.recoil * (0.7 + Math.min(idx, 8) * 0.04); a.yaw += Math.sin(idx * 1.7) * wd.recoil * 0.5 + (Math.random() - 0.5) * wd.recoil * 0.3; if (wd.class === 'sniper' || wd.class === 'marksman') this.shake = 0.3; }
     for (let i = 0; i < pellets; i++) {
       const d = dir.clone(); d.x += (Math.random() - 0.5) * 2 * spread; d.y += (Math.random() - 0.5) * 2 * spread; d.z += (Math.random() - 0.5) * 2 * spread; d.normalize();
       if (wd.projectileSpeed) this.spawnProjectile(a, g, origin, d, wd);
       else this.hitscan(a, g, origin, d, wd, a.shots % 3 === 0 && i === 0);
     }
-    if (!wd.auto && a.isPlayer) { (a as Actor & { held?: boolean }).held = true; setTimeout(() => ((a as Actor & { held?: boolean }).held = false), 0); }
     void c;
   }
   private swing(a: Actor) {
@@ -416,16 +422,16 @@ export class Game {
     for (const sm of this.smokes) void sm;
     if (worldOnly) return res;
     for (const t of this.targets(shooter ?? ({} as Actor))) {
-      const h = t.crouch ? 1.2 : 1.8; const headY = t.y + (t.crouch ? 1.05 : 1.62), headR = 0.24;
+      const h = t.crouch ? 1.2 : 1.8; const headY = t.y + (t.crouch ? 1.05 : 1.62), headR = 0.3;
       const hx = t.x - o.x, hy = headY - o.y, hz = t.z - o.z; const proj = hx * d.x + hy * d.y + hz * d.z;
       if (proj > 0) { const cx = o.x + d.x * proj - t.x, cy = o.y + d.y * proj - headY, cz = o.z + d.z * proj - t.z; if (Math.hypot(cx, cy, cz) < headR && proj < best) { best = proj; res = { t: proj, actor: t.actor, dummy: t.dummy, head: true }; continue; } }
-      const tb = rayBox(o.x, o.y, o.z, d.x, d.y, d.z, { x0: t.x - 0.38, x1: t.x + 0.38, z0: t.z - 0.3, z1: t.z + 0.3, y0: t.y, y1: t.y + h - 0.2 }); if (tb < best) { best = tb; res = { t: tb, actor: t.actor, dummy: t.dummy, head: false }; }
+      const tb = rayBox(o.x, o.y, o.z, d.x, d.y, d.z, { x0: t.x - 0.45, x1: t.x + 0.45, z0: t.z - 0.4, z1: t.z + 0.4, y0: t.y, y1: t.y + h - 0.2 }); if (tb < best) { best = tb; res = { t: tb, actor: t.actor, dummy: t.dummy, head: false }; }
     }
     return res;
   }
   private hitscan(a: Actor, g: GunSlot, o: THREE.Vector3, d: THREE.Vector3, wd: (typeof W)[string], tracer: boolean) {
     const range = wd.range * 2; const h = this.trace(o, d, range, a); const end = o.clone().addScaledVector(d, h.t);
-    if (tracer) this.tracerLine(o, end);
+    if (tracer) this.tracerLine(this.tip(a, o), end);
     this.resolveHit(a, g.id, g.rarity, h, o, d, end);
   }
   private resolveHit(a: Actor, w: WeaponId, rarity: Rarity, h: ReturnType<Game['trace']>, o: THREE.Vector3, d: THREE.Vector3, end: THREE.Vector3) {
@@ -453,7 +459,7 @@ export class Game {
   hurt(v: Actor, by: Actor | null, raw: number, head: boolean, source: string, ignoreArmour = false) {
     if (!v.alive || v.mode !== 'ground' && v.mode !== 'plane' && false) return; if (this.phase === 'ended') return;
     let hp = raw; if (!ignoreArmour) { const r = applyArmour(raw, head, v.armour); hp = r.hp; v.armour.vestDur = Math.max(0, v.armour.vestDur - r.vestDamage); if (v.armour.vestDur <= 0) v.armour.vestLv = v.armour.vestDur > 0 ? v.armour.vestLv : v.armour.vestLv; }
-    v.hp -= hp; v.hitFlash = 1; v.anim.hit = 1; if (by && by !== v) { by.damage += hp; if (head) by.headshots++; }
+    v.hp -= hp; v.hitFlash = 1; v.anim.hit = 1; v.char.flash(0.12); if (by && by !== v) { by.damage += hp; if (head) by.headshots++; }
     if (v.isPlayer && by) { const a = Math.atan2(by.body.x - v.body.x, by.body.z - v.body.z) - v.yaw; this.dmgArcs.push({ a, t: 1.2 }); this.shake = Math.max(this.shake, 0.25); }
     if (by?.isPlayer && by !== v) { this.numbers.push({ id: nextId++, x: 0, y: 0, v: Math.round(hp), head }); this.numberPos(v.body.x, v.body.y + 2, v.body.z); }
     if (v.healT > 0 && !ignoreArmour) v.healT = 0; if (v.hp <= 0) this.kill(v, by, source);
@@ -522,10 +528,13 @@ export class Game {
   private dropWeapon(a: Actor, g: GunSlot) { this.addGroundItem(a.body.x + Math.sin(a.yaw) * 1.2, a.body.y, a.body.z + Math.cos(a.yaw) * 1.2, [{ kind: 'weapon', id: g.id, rarity: g.rarity, qty: 1 }], g.rarity, false); }
   dropSlot(a: Actor, slot: number) { const g = slot === 2 ? a.inv.pistol : a.inv.main[slot]; if (!g) return; this.dropWeapon(a, g); if (slot === 2) a.inv.pistol = null; else a.inv.main[slot] = null; if (a.slot === slot) a.slot = 3; }
   private updateLootVisibility() {
-    const p = this.player.body;
+    const p = this.player.body, range = this.effQuality === 'low' ? 55 : 80, near: { g: GroundItem; d: number }[] = [];
     for (const g of this.items) {
-      if (g.taken) continue; const near = Math.hypot(g.x - p.x, g.z - p.z) < (this.effQuality === 'low' ? 55 : 80); g.mesh.visible = near; if (g.ring) g.ring.visible = near; if (g.beam) g.beam.visible = Math.hypot(g.x - p.x, g.z - p.z) < 220; if (near && !(g.mesh.userData as { loaded?: boolean }).loaded) this.ensureItemVisual(g);
+      if (g.taken) continue; const d = Math.hypot(g.x - p.x, g.z - p.z); if (g.beam) g.beam.visible = d < 220;
+      if (d < range) near.push({ g, d }); else { g.mesh.visible = false; if (g.ring) g.ring.visible = false; }
     }
+    near.sort((a, b) => a.d - b.d); const cap = this.effQuality === 'low' ? 18 : 28;
+    near.forEach(({ g }, i) => { const show = i < cap; g.mesh.visible = show; if (g.ring) g.ring.visible = show; if (show && !(g.mesh.userData as { loaded?: boolean }).loaded) this.ensureItemVisual(g); });
     this.items = this.items.filter((g) => !g.taken); this.env.items = this.items;
   }
   // ------------------------------------------------------------------ healing, throwables, barrier
