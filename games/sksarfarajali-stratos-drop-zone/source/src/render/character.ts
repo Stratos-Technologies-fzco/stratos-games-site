@@ -13,13 +13,21 @@ export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string
 export interface AnimState {
   speed: number; crouch: boolean; onGround: boolean; vy: number; mode: 'ground' | 'skydive' | 'glide';
   aiming: boolean; pitch: number; swap: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number; slide: boolean;
+  /** inputs for the humanoid animator: aim yaw, world velocity, firing, sprinting, reload progress 0-1, world angle toward the last attacker */
+  yaw: number; vx: number; vz: number; firing: boolean; sprint: boolean; reloadP: number; hitFrom: number;
 }
-export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, swap: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0, slide: false });
+/** What the game needs from a survivor model: the old procedural Character and the new skinned Humanoid both provide it. */
+export interface Avatar {
+  root: THREE.Group; weapon: THREE.Object3D | null; weaponName: string;
+  load(): Promise<void>; setWeapon(name: string | null): Promise<void>; setWing(on: boolean): Promise<void>; update(dt: number, s: AnimState, far?: boolean): void; setFar(on: boolean): void; flash(t: number): void; resetDeath(): void;
+  setDistance?(d: number): void; muzzleWorld?(out: THREE.Vector3): boolean; headCam?: THREE.Vector3;
+}
+export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, swap: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0, slide: false, yaw: 0, vx: 0, vz: 0, firing: false, sprint: false, reloadP: 0, hitFrom: 0 });
 
 interface Pose { aLx: number; aLz: number; aRx: number; aRz: number; lL: number; lR: number; torso: number; hip: number; head: number; lean: number; roll: number }
 const zero = (): Pose => ({ aLx: 0, aLz: 0, aRx: 0, aRz: 0, lL: 0, lR: 0, torso: 0, hip: 0, head: 0, lean: 0, roll: 0 });
 
-export class Character {
+export class Character implements Avatar {
   root = new THREE.Group(); body = new THREE.Group();
   parts: Record<'torso' | 'head' | 'arm_L' | 'arm_R' | 'leg_L' | 'leg_R', THREE.Object3D | undefined> = { torso: undefined, head: undefined, arm_L: undefined, arm_R: undefined, leg_L: undefined, leg_R: undefined };
   private base = new Map<THREE.Object3D, THREE.Vector3>();

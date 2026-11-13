@@ -1,0 +1,86 @@
+{
+  "Crouch_Idle_Loop": {
+    "duration": 2.9333,
+    "rootSpeed": 0
+  },
+  "Dance_Loop": {
+    "duration": 1,
+    "rootSpeed": 0
+  },
+  "Death01": {
+    "duration": 2.4,
+    "rootSpeed": 0.271
+  },
+  "Idle_Loop": {
+    "duration": 2.5,
+    "rootSpeed": 0
+  },
+  "Jog_Fwd_Loop": {
+    "duration": 0.9333,
+    "rootSpeed": 5.357
+  },
+  "Jump_Land": {
+    "duration": 1.2667,
+    "rootSpeed": 0
+  },
+  "Jump_Loop": {
+    "duration": 2.5,
+    "rootSpeed": 0
+  },
+  "Jump_Start": {
+    "duration": 1.3333,
+    "rootSpeed": 0
+  },
+  "PickUp_Table": {
+    "duration": 0.8333,
+    "rootSpeed": 0
+  },
+  "Pistol_Aim_Down": {
+    "duration": 0.1667,
+    "rootSpeed": 0
+  },
+  "Pistol_Aim_Neutral": {
+    "duration": 0.1667,
+    "rootSpeed": 0
+  },
+  "Pistol_Aim_Up": {
+    "duration": 0.1667,
+    "rootSpeed": 0
+  },
+  "Pistol_Idle_Loop": {
+    "duration": 1.6667,
+    "rootSpeed": 0
+  },
+  "Pistol_Reload": {
+    "duration": 1.6667,
+    "rootSpeed": 0
+  },
+  "Punch_Cross": {
+    "duration": 1,
+    "rootSpeed": 0
+  },
+  "Roll": {
+    "duration": 1.4667,
+    "rootSpeed": 3.403
+  },
+  "Sprint_Loop": {
+    "duration": 0.6667,
+    "rootSpeed": 8.25
+  },
+  "Swim_Fwd_Loop": {
+    "duration": 1.3333,
+    "rootSpeed": 2.175
+  },
+  "Sword_Attack": {
+    "duration": 1.5333,
+    "rootSpeed": 0.979
+  },
+  "Sword_Idle": {
+    "duration": 1.6667,
+    "rootSpeed": 0
+  },
+  "Walk_Loop": {
+    "duration": 1.3333,
+    "rootSpeed": 0.975
+  }
+}

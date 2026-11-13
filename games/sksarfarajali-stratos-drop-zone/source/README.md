@@ -42,3 +42,13 @@ The screens use the pictures in `public/ui/` (lobby, loading, results and Locker
 - **Drop marker:** during the flight, tap the map (or press V) near Salt Docks, Radar Ridge or Rail Yard to see that place's card for 3 seconds.
 
 All text is live HTML on top of the pictures. UI artwork was generated with AI tools and edited for Stratos Drop Zone (see Settings and About).
+
+## Character animation
+
+Survivors are skinned, rigged humanoids (CC0 Quaternius body and animation library, repainted into our colour atlas), driven by `src/anim/`:
+
+- `CharacterAnimator.ts`: the layered animator. 1 base locomotion (8-direction blend space, stride matched to ground speed), 2 upper-body weapon pose, 3 aim offset (spine twist 35 / 35 / 30, then an exact correction so the barrel points at the aim), 4 additives (breathing, lean into turns and acceleration, landing compression, recoil, hit reacts, idle variations), 5 IK (left hand to the handguard, feet to the ground, head look-at).
+- `blend.ts`, `facing.ts`, `ik.ts`: the pure parts (blend weights, facing rules, two-bone solver), unit tested. `rig.ts`: the skeleton as flat arrays with forward kinematics. `clips.ts`: clips baked to arrays. `debugPanel.ts`: the F9 panel.
+- `src/render/humanoid.ts`: the model class the game uses. If its files fail to load, the game falls back to the old procedural survivor.
+- **Anim lab:** open `anim-lab.html` (`npm run dev`, then `/anim-lab.html`). A survivor walks a circle, a figure-eight, a 20 degree slope or stairs, with a free camera and a foot-slide meter. Pick any weapon and action. F9 shows state, blend weights, feet targets and the aim vector.
+- Swapping in the final character models: `tools/README_characters.md`.

@@ -1,0 +1,10 @@
+{
+  "_note": "Positions are in each weapon GLB's own space (+Z = barrel direction, +Y up, metres). socket_grip sits at the right hand, socket_left_hand on the handguard (the left hand is moved there by IK), muzzle is where flashes and tracers start. hold picks the hand pose set; recoil is the upper-body kick in degrees per shot.",
+  "monsoon_ar": { "hold": "rifle", "socket_grip": [0, -0.01, -0.03], "socket_left_hand": [0, 0.05, 0.36], "muzzle": [0, 0.07, 0.72], "recoil": 2.0 },
+  "kestrel_p9": { "hold": "pistol", "socket_grip": [0, -0.01, -0.02], "socket_left_hand": [0.012, -0.04, -0.005], "muzzle": [0, 0.075, 0.17], "recoil": 2.5 },
+  "hornet_smg": { "hold": "rifle", "socket_grip": [0, -0.02, -0.03], "socket_left_hand": [0, 0.04, 0.28], "muzzle": [0, 0.07, 0.44], "recoil": 1.5 },
+  "scatter12": { "hold": "rifle", "socket_grip": [0, -0.025, -0.03], "socket_left_hand": [0, 0.0, 0.33], "muzzle": [0, 0.07, 0.77], "recoil": 5.0 },
+  "ridgeline_dmr": { "hold": "rifle", "socket_grip": [0, -0.025, -0.03], "socket_left_hand": [0, 0.04, 0.36], "muzzle": [0, 0.07, 0.92], "recoil": 3.5 },
+  "longwatch": { "hold": "rifle", "socket_grip": [0, -0.025, -0.03], "socket_left_hand": [0, 0.03, 0.5], "muzzle": [0, 0.07, 1.07], "recoil": 6.0 },
+  "tide_machete": { "hold": "melee", "socket_grip": [0, 0.012, -0.02], "socket_left_hand": null, "muzzle": null, "recoil": 0 }
+}

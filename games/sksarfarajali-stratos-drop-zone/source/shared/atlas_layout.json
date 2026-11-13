@@ -1,0 +1,48 @@
+{
+  "grid": 32,
+  "regions": [
+    "skin",
+    "hair",
+    "eye",
+    "jacket",
+    "sleeve",
+    "forearm",
+    "neckwear",
+    "trousers",
+    "beard",
+    "boots",
+    "sole",
+    "belt",
+    "glove",
+    "band",
+    "trim",
+    "knee",
+    "cuff",
+    "laces",
+    "pack",
+    "roll",
+    "strap"
+  ],
+  "rows": [
+    {
+      "row": 0,
+      "id": "survivor_kiran",
+      "body": "male"
+    },
+    {
+      "row": 1,
+      "id": "survivor_meera",
+      "body": "female"
+    },
+    {
+      "row": 2,
+      "id": "survivor_arjun",
+      "body": "male"
+    },
+    {
+      "row": 3,
+      "id": "survivor_zoya",
+      "body": "female"
+    }
+  ]
+}

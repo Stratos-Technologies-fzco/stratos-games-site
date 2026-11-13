@@ -5,5 +5,5 @@ import preact from '@preact/preset-vite';
 export default defineConfig({
   base: './',
   plugins: [preact()],
-  build: { outDir: '..', emptyOutDir: false, target: 'es2020', chunkSizeWarningLimit: 900 },
+  build: { outDir: '..', emptyOutDir: false, target: 'es2020', chunkSizeWarningLimit: 900, rollupOptions: { input: { main: 'index.html', lab: 'anim-lab.html' } } },
 });
