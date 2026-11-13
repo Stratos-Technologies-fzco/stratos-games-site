@@ -6,5 +6,5 @@
   "github": "Mdsadee527",
   "added": "2026-09-29",
   "how_to_play": "Steer left and right to dodge traffic and stay on the road. Arrow keys on desktop, on-screen left/right buttons on mobile.",
-  "description": "A lane-dodging car racer, one file, no libraries. Traffic gets faster the longer you survive, with a live score, a saved best score, and five car colors that unlock as you beat your best."
+  "description": "A real 3D lane-dodging car racer (Three.js, third-person chase camera) with a saved best score, five car colors that unlock as you beat your best, and traffic that gets faster the longer you survive."
 }
