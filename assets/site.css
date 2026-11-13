@@ -360,11 +360,22 @@ body.poki.side-open .pk-side .lb{opacity:1}
    Row 1 of the grid is exactly one screen tall (svh = the screen with the browser bars showing), so the game and
    the bar under it fit with no scrolling; logo, search and the other games start right below. */
 @media (max-width:620px){
-  body[data-game] .pk-grid{grid-template-rows:calc(100vh - 12px);grid-template-rows:calc(100svh - 12px)}
+  body[data-game] main.pk-grid{grid-template-rows:calc(100vh - 12px);grid-template-rows:calc(100svh - 12px)}
   body[data-game] .pk-stage{grid-row:1;grid-column:1/-1;margin:-12px -12px 0;border-radius:0;box-shadow:none}
   body[data-game] .pk-nav{grid-column:1/-1}
   /* bar under the game: cover, name and maker, plus favourite and share (the rest stays on bigger screens) */
   body[data-game] .pk-bar{gap:8px;padding:8px 12px}
   body[data-game] .pk-bar .pk-vote,body[data-game] .pk-bar .pk-flag,body[data-game] .pk-bar .pk-full{display:none}
   body[data-game] .pk-bt b{font-size:17px}body[data-game] .pk-bt small{font-size:13px}
+}
+/* ===== phones, game pages: 4 similar games, then the game's details, then all the other games (Nov 2026) =====
+   Scrolling past every game to reach the description was too long on a phone. build_play() marks tiles after the
+   first 4 as .pk-later and repeats them, with the category cards, in .pk-more after the details. While searching,
+   the full list comes back in the main grid and .pk-more steps aside. Computers and tablets are unchanged. */
+.pk-grid.pk-more{display:none}
+@media (max-width:620px){
+  body[data-game] main.pk-grid .pk-later,body[data-game] main.pk-grid>.pk-cta,body[data-game] main.pk-grid>.pk-cat{display:none}
+  body[data-game] .pk-grid.pk-more{display:grid;margin-top:20px}
+  body.pk-searching[data-game] main.pk-grid .pk-later{display:block}
+  body.pk-searching .pk-grid.pk-more{display:none!important}
 }

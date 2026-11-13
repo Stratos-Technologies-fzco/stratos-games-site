@@ -269,9 +269,11 @@ def pk_tile(g, base="", size="s1", pv=False):
     return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
             f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}{meta}</span></a>')
 
-def pk_tiles(items, base="", first_big=True):
+def pk_tiles(items, base="", first_big=True, later_from=None):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
-    out = [pk_tile(g, base, "s3" if i == 0 and first_big else "s2") for i, g in enumerate(real)]
+    def size(i):   # later_from: these tiles get "pk-later" (game pages hide them on phones, see build_play)
+        return ("s3" if i == 0 and first_big else "s2") + (" pk-later" if later_from is not None and i >= later_from else "")
+    out = [pk_tile(g, base, size(i)) for i, g in enumerate(real)]
     return "".join(out + [pk_tile(g, base, "s1") for g in soon])
 
 def pk_cta():
@@ -566,8 +568,12 @@ def build_play(g, fam, studio):
         others = [x for x in fam if x["slug"] != g["slug"] and not x.get("soon")]
         others.sort(key=lambda x: x["category"] != g["category"])   # similar games (same category) first
         gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
-        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False) + pk_cta() + pk_cats(base),
-                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words)
+        # Phones: only the first few similar games sit between the game and its details, the rest come after the details.
+        # The .pk-later tiles hide on phones and show again in the .pk-more grid, which only phones see (assets/site.css).
+        near = 4
+        rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cta()}{pk_cats(base)}</section>'
+        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cta() + pk_cats(base),
+                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words + rest)
         write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'
