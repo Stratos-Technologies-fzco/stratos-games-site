@@ -6,5 +6,5 @@
   "github": "Mdsadee527",
   "added": "2026-09-29",
   "how_to_play": "Steer left and right to dodge traffic and stay on the road. Arrow keys on desktop, on-screen left/right buttons on mobile.",
-  "description": "A lane-dodging car racer, one file, no libraries. Traffic gets faster the longer you survive, with a live score, high score, and a mute toggle."
+  "description": "A lane-dodging car racer, one file, no libraries. Traffic gets faster the longer you survive, with a live score, a saved best score, and five car colors that unlock as you beat your best."
 }

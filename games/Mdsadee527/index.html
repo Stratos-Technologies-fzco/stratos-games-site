@@ -166,6 +166,61 @@ button:active{
     color:#bbb;
     margin-top:15px;
 }
+
+.best-score{
+    font-size:16px;
+    color:#ffd740;
+    margin-bottom:6px;
+    font-weight:bold;
+}
+
+.new-best{
+    color:#4caf50;
+    font-weight:bold;
+    margin-bottom:12px;
+}
+
+.car-picker{
+    margin:14px 0 6px;
+}
+
+.car-picker-label{
+    font-size:13px;
+    color:#bbb;
+    margin-bottom:8px;
+}
+
+.car-row{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.car-swatch{
+    width:46px;
+    height:46px;
+    border-radius:10px;
+    border:3px solid rgba(255,255,255,.2);
+    cursor:pointer;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    color:rgba(0,0,0,.6);
+    font-weight:bold;
+}
+
+.car-swatch.selected{
+    border-color:#fff;
+    box-shadow:0 0 10px rgba(255,255,255,.6);
+}
+
+.car-swatch.locked{
+    opacity:.35;
+    cursor:default;
+    filter:grayscale(1);
+}
 </style>
 </head>
 
@@ -203,6 +258,15 @@ button:active{
             Dodge the traffic and survive as long as possible!
         </p>
 
+        <div class="best-score" id="startBest">
+            🏆 Best: 0
+        </div>
+
+        <div class="car-picker">
+            <div class="car-picker-label">Pick your car (unlock more by beating your best)</div>
+            <div class="car-row" id="carRow"></div>
+        </div>
+
         <button id="startBtn">
             ▶️ START GAME
         </button>
@@ -222,6 +286,14 @@ button:active{
 
         <div class="final-score">
             Score: <span id="finalScore">0</span>
+        </div>
+
+        <div id="newBestMsg" class="new-best hidden">
+            🎉 New Best Score!
+        </div>
+
+        <div class="best-score" id="overBest">
+            🏆 Best: 0
         </div>
 
         <button id="restartBtn">
@@ -269,6 +341,73 @@ function resizeCanvas(){
 resizeCanvas();
 
 window.addEventListener("resize", resizeCanvas);
+
+
+/* =========================
+   STRATOS ANALYTICS
+========================= */
+
+function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+
+
+/* =========================
+   BEST SCORE + UNLOCKABLE CARS
+========================= */
+
+const BEST_KEY = "racingMania_bestScore";
+const CAR_KEY = "racingMania_selectedCar";
+
+const CARS = [
+    { id:"red",    color:"#e53935", name:"Red",    unlockAt:0 },
+    { id:"blue",   color:"#2196f3", name:"Blue",   unlockAt:20 },
+    { id:"yellow", color:"#ffeb3b", name:"Yellow", unlockAt:50 },
+    { id:"purple", color:"#9c27b0", name:"Purple", unlockAt:100 },
+    { id:"green",  color:"#00c853", name:"Green",  unlockAt:200 }
+];
+
+function getBest(){ return parseInt(localStorage.getItem(BEST_KEY) || "0", 10); }
+function setBest(v){ localStorage.setItem(BEST_KEY, String(v)); }
+
+function getCar(id){ return CARS.find(c => c.id === id) || CARS[0]; }
+function isUnlocked(car, best){ return best >= car.unlockAt; }
+
+function getSelectedCarId(){ return localStorage.getItem(CAR_KEY) || CARS[0].id; }
+function setSelectedCarId(id){ localStorage.setItem(CAR_KEY, id); }
+
+function applyPlayerCar(){ player.color = getCar(getSelectedCarId()).color; }
+
+function updateBestDisplays(){
+    const best = getBest();
+    document.getElementById("startBest").textContent = "🏆 Best: " + best;
+    document.getElementById("overBest").textContent = "🏆 Best: " + best;
+}
+
+function renderCarPicker(){
+    const best = getBest();
+    let selectedId = getSelectedCarId();
+    if (!isUnlocked(getCar(selectedId), best)) {
+        selectedId = CARS[0].id;
+        setSelectedCarId(selectedId);
+    }
+    const row = document.getElementById("carRow");
+    row.innerHTML = "";
+    CARS.forEach(car => {
+        const unlocked = isUnlocked(car, best);
+        const sw = document.createElement("div");
+        sw.className = "car-swatch" + (unlocked ? "" : " locked") + (selectedId === car.id ? " selected" : "");
+        sw.style.background = car.color;
+        sw.title = unlocked ? car.name : ("Unlock at best " + car.unlockAt);
+        sw.textContent = unlocked ? "" : "🔒";
+        if (unlocked) {
+            sw.addEventListener("click", () => {
+                setSelectedCarId(car.id);
+                applyPlayerCar();
+                renderCarPicker();
+            });
+        }
+        row.appendChild(sw);
+    });
+}
 
 
 /* =========================
@@ -470,7 +609,9 @@ const player = {
     x: 0,
     y: 0,
 
-    moveSpeed: 7
+    moveSpeed: 7,
+
+    color: "#e53935"
 
 };
 
@@ -622,7 +763,7 @@ function drawPlayer(){
 
     /* Car body */
 
-    ctx.fillStyle = "#e53935";
+    ctx.fillStyle = player.color;
 
     roundRect(
         x,
@@ -1156,6 +1297,10 @@ function startGame(){
 
     resetPlayer();
 
+    applyPlayerCar();
+
+    track("level_start", { mode: "endless", car: getSelectedCarId() });
+
     document.getElementById(
         "score"
     ).textContent = "0";
@@ -1209,10 +1354,31 @@ function gameOver(){
         animationId
     );
 
+    const finalScoreValue = Math.floor(score / 10);
+
     document.getElementById(
         "finalScore"
-    ).textContent =
-        Math.floor(score / 10);
+    ).textContent = finalScoreValue;
+
+    const newBestMsgEl = document.getElementById("newBestMsg");
+
+    if (finalScoreValue > getBest()) {
+
+        setBest(finalScoreValue);
+
+        newBestMsgEl.classList.remove("hidden");
+
+    } else {
+
+        newBestMsgEl.classList.add("hidden");
+
+    }
+
+    updateBestDisplays();
+
+    renderCarPicker();
+
+    track("game_over", { score: finalScoreValue, best: getBest(), car: getSelectedCarId() });
 
     document.getElementById(
         "gameOverScreen"
@@ -1483,6 +1649,12 @@ document.getElementById(
 /* =========================
    INITIAL DRAW
 ========================= */
+
+updateBestDisplays();
+
+renderCarPicker();
+
+applyPlayerCar();
 
 resetPlayer();
 
