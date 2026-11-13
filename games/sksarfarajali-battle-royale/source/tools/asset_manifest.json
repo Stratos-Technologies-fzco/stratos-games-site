@@ -1,0 +1,1314 @@
+[
+ {
+  "id": "ENV_BLDG_001",
+  "name": "house_small",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/house_small.glb",
+  "triangles": 104,
+  "size_m_xyz": [
+   6.6,
+   4.85,
+   6.5
+  ],
+  "description": "Single-storey plaster house, laterite roof, 2 doors (front/back)",
+  "tags": "enterable, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_002",
+  "name": "house_twostorey",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/house_twostorey.glb",
+  "triangles": 288,
+  "size_m_xyz": [
+   8.8,
+   7.2,
+   7.37
+  ],
+  "description": "Spice Market two-storey house with outside stair, rooftop parapet, amber shop awning",
+  "tags": "enterable, rooftop, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_003",
+  "name": "shed",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/shed.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   4.4,
+   3.6,
+   3.4
+  ],
+  "description": "Small storage shed with tin roof",
+  "tags": "enterable, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_004",
+  "name": "warehouse",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/warehouse.glb",
+  "triangles": 104,
+  "size_m_xyz": [
+   16.6,
+   9.4,
+   10.4
+  ],
+  "description": "Salt Docks warehouse, roller door + side door",
+  "tags": "enterable, loot, high tier",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_005",
+  "name": "market_stall_amber",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/market_stall_amber.glb",
+  "triangles": 108,
+  "size_m_xyz": [
+   3.0,
+   3.0,
+   2.4
+  ],
+  "description": "Spice Market stall with produce crates",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_006",
+  "name": "market_stall_violet",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/market_stall_violet.glb",
+  "triangles": 108,
+  "size_m_xyz": [
+   3.0,
+   3.0,
+   2.4
+  ],
+  "description": "Spice Market stall, violet canopy variant",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_007",
+  "name": "fisher_hut",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/fisher_hut.glb",
+  "triangles": 140,
+  "size_m_xyz": [
+   4.2,
+   5.1,
+   5.22
+  ],
+  "description": "Fisher's Cove hut on stilts with steps",
+  "tags": "enterable, loot, low tier",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_008",
+  "name": "watch_tower",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/watch_tower.glb",
+  "triangles": 512,
+  "size_m_xyz": [
+   3.8,
+   11.4,
+   3.6
+  ],
+  "description": "Wooden watch tower with ladder and covered platform (8 m)",
+  "tags": "climbable, sniper",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_009",
+  "name": "lighthouse",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/lighthouse.glb",
+  "triangles": 324,
+  "size_m_xyz": [
+   6.4,
+   22.3,
+   6.09
+  ],
+  "description": "Lighthouse Point landmark, 22 m, amber lamp",
+  "tags": "landmark",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_010",
+  "name": "fort_wall_segment",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/fort_wall_segment.glb",
+  "triangles": 96,
+  "size_m_xyz": [
+   10.0,
+   6.0,
+   2.8
+  ],
+  "description": "Old Sea Fort laterite wall, 10 m segment with walkway and merlons",
+  "tags": "modular, cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_011",
+  "name": "fort_corner_tower",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/fort_corner_tower.glb",
+  "triangles": 152,
+  "size_m_xyz": [
+   6.8,
+   8.5,
+   6.84
+  ],
+  "description": "Old Sea Fort round corner tower with doorway",
+  "tags": "modular, landmark",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_012",
+  "name": "radar_dish",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/radar_dish.glb",
+  "triangles": 128,
+  "size_m_xyz": [
+   5.2,
+   7.31,
+   4.26
+  ],
+  "description": "Radar Ridge dish on concrete base",
+  "tags": "landmark",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_013",
+  "name": "dock_crane",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/dock_crane.glb",
+  "triangles": 132,
+  "size_m_xyz": [
+   4.0,
+   18.6,
+   25.0
+  ],
+  "description": "Salt Docks gantry crane, 18 m",
+  "tags": "landmark",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_014",
+  "name": "jetty_section",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/jetty_section.glb",
+  "triangles": 168,
+  "size_m_xyz": [
+   2.2,
+   1.72,
+   7.45
+  ],
+  "description": "Wooden jetty section, 8 m, tileable",
+  "tags": "modular",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_015",
+  "name": "tea_drying_shed",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/tea_drying_shed.glb",
+  "triangles": 128,
+  "size_m_xyz": [
+   9.4,
+   4.4,
+   5.6
+  ],
+  "description": "Tea Terraces open drying shed with racks",
+  "tags": "cover, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_016",
+  "name": "station_shed",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/station_shed.glb",
+  "triangles": 96,
+  "size_m_xyz": [
+   9.0,
+   4.0,
+   4.4
+  ],
+  "description": "Rail Yard station building on platform",
+  "tags": "enterable, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_BLDG_017",
+  "name": "dam_section",
+  "category": "Environment_Buildings",
+  "file": "Models/Environment_Buildings/dam_section.glb",
+  "triangles": 84,
+  "size_m_xyz": [
+   12.0,
+   10.0,
+   8.0
+  ],
+  "description": "Monsoon Dam section with walkway and spillway gates, 12 m, tileable",
+  "tags": "modular, chokepoint",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_001",
+  "name": "container_closed_laterite",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/container_closed_laterite.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   6.06,
+   2.59,
+   2.48
+  ],
+  "description": "Shipping container 6 m (closed), laterite",
+  "tags": "cover, climbable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_002",
+  "name": "container_closed_blue",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/container_closed_blue.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   6.06,
+   2.59,
+   2.48
+  ],
+  "description": "Shipping container 6 m (closed), blue",
+  "tags": "cover, climbable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_003",
+  "name": "container_closed_green",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/container_closed_green.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   6.06,
+   2.59,
+   2.48
+  ],
+  "description": "Shipping container 6 m (closed), green",
+  "tags": "cover, climbable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_004",
+  "name": "container_closed_amber",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/container_closed_amber.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   6.06,
+   2.59,
+   2.48
+  ],
+  "description": "Shipping container 6 m (closed), amber",
+  "tags": "cover, climbable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_005",
+  "name": "container_open_laterite",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/container_open_laterite.glb",
+  "triangles": 132,
+  "size_m_xyz": [
+   7.27,
+   2.59,
+   2.82
+  ],
+  "description": "Shipping container with open door, enterable",
+  "tags": "cover, loot",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_006",
+  "name": "boxcar",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/boxcar.glb",
+  "triangles": 176,
+  "size_m_xyz": [
+   10.2,
+   4.25,
+   3.2
+  ],
+  "description": "Rail Yard boxcar with sliding door",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_007",
+  "name": "rail_track_10m",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/rail_track_10m.glb",
+  "triangles": 144,
+  "size_m_xyz": [
+   2.6,
+   0.3,
+   10.0
+  ],
+  "description": "Rail track, 10 m tileable",
+  "tags": "modular",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_008",
+  "name": "barrel_red",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/barrel_red.glb",
+  "triangles": 120,
+  "size_m_xyz": [
+   0.62,
+   0.9,
+   0.59
+  ],
+  "description": "Oil barrel",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_009",
+  "name": "barrel_blue",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/barrel_blue.glb",
+  "triangles": 120,
+  "size_m_xyz": [
+   0.62,
+   0.9,
+   0.59
+  ],
+  "description": "Water barrel",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_010",
+  "name": "crate_wood",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/crate_wood.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   1.43,
+   1.43,
+   1.03
+  ],
+  "description": "Wooden crate 1 m",
+  "tags": "cover, loot anchor",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_011",
+  "name": "pallet",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/pallet.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   1.2,
+   0.15,
+   1.0
+  ],
+  "description": "Wooden pallet",
+  "tags": "decor",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_012",
+  "name": "fence_3m",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/fence_3m.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   3.1,
+   1.2,
+   0.1
+  ],
+  "description": "Wooden fence section 3 m",
+  "tags": "modular",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_013",
+  "name": "street_light",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/street_light.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   0.4,
+   5.3,
+   1.38
+  ],
+  "description": "Street light with amber lamp",
+  "tags": "decor, light",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_014",
+  "name": "bench",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/bench.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   1.6,
+   0.95,
+   0.47
+  ],
+  "description": "Park bench",
+  "tags": "decor",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_015",
+  "name": "generator",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/generator.glb",
+  "triangles": 60,
+  "size_m_xyz": [
+   1.6,
+   1.35,
+   0.8
+  ],
+  "description": "Diesel generator",
+  "tags": "cover, audio source",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_016",
+  "name": "sandbag_wall",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/sandbag_wall.glb",
+  "triangles": 168,
+  "size_m_xyz": [
+   3.1,
+   0.75,
+   0.38
+  ],
+  "description": "Sandbag wall 3 m",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_017",
+  "name": "road_barrier",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/road_barrier.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   2.02,
+   0.9,
+   0.6
+  ],
+  "description": "Concrete road barrier",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_018",
+  "name": "rock_small",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/rock_small.glb",
+  "triangles": 20,
+  "size_m_xyz": [
+   1.14,
+   0.73,
+   1.04
+  ],
+  "description": "Rock small",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_019",
+  "name": "rock_medium",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/rock_medium.glb",
+  "triangles": 20,
+  "size_m_xyz": [
+   2.64,
+   1.72,
+   2.39
+  ],
+  "description": "Rock medium",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_020",
+  "name": "rock_large",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/rock_large.glb",
+  "triangles": 20,
+  "size_m_xyz": [
+   6.12,
+   4.18,
+   5.82
+  ],
+  "description": "Rock large",
+  "tags": "cover, climbable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_021",
+  "name": "palm_tree",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/palm_tree.glb",
+  "triangles": 248,
+  "size_m_xyz": [
+   6.62,
+   7.85,
+   6.79
+  ],
+  "description": "Coconut palm, 8 m",
+  "tags": "vegetation",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_022",
+  "name": "broadleaf_tree",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/broadleaf_tree.glb",
+  "triangles": 84,
+  "size_m_xyz": [
+   5.19,
+   6.0,
+   4.06
+  ],
+  "description": "Broadleaf tree, 6 m",
+  "tags": "vegetation, cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_023",
+  "name": "bush",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/bush.glb",
+  "triangles": 60,
+  "size_m_xyz": [
+   2.13,
+   1.25,
+   1.56
+  ],
+  "description": "Bush (hides crouching player)",
+  "tags": "vegetation, concealment",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_024",
+  "name": "grass_clump",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/grass_clump.glb",
+  "triangles": 56,
+  "size_m_xyz": [
+   0.4,
+   0.91,
+   0.29
+  ],
+  "description": "Grass clump (instancing)",
+  "tags": "vegetation",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_025",
+  "name": "fallen_log",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/fallen_log.glb",
+  "triangles": 76,
+  "size_m_xyz": [
+   4.02,
+   1.21,
+   0.68
+  ],
+  "description": "Fallen log",
+  "tags": "cover",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "ENV_PROP_026",
+  "name": "fishing_boat",
+  "category": "Environment_Props",
+  "file": "Models/Environment_Props/fishing_boat.glb",
+  "triangles": 64,
+  "size_m_xyz": [
+   1.72,
+   0.9,
+   5.3
+  ],
+  "description": "Fisher's Cove boat",
+  "tags": "cover, decor",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_PST_001",
+  "name": "kestrel_p9",
+  "category": "Weapons",
+  "file": "Models/Weapons/kestrel_p9.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   0.04,
+   0.15,
+   0.21
+  ],
+  "description": "Pistol \u2014 Kestrel P9",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_SMG_001",
+  "name": "hornet_smg",
+  "category": "Weapons",
+  "file": "Models/Weapons/hornet_smg.glb",
+  "triangles": 84,
+  "size_m_xyz": [
+   0.05,
+   0.26,
+   0.69
+  ],
+  "description": "SMG \u2014 Hornet",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_SG_001",
+  "name": "scatter12",
+  "category": "Weapons",
+  "file": "Models/Weapons/scatter12.glb",
+  "triangles": 108,
+  "size_m_xyz": [
+   0.06,
+   0.18,
+   1.17
+  ],
+  "description": "Pump shotgun \u2014 Scatter-12",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_AR_001",
+  "name": "monsoon_ar",
+  "category": "Weapons",
+  "file": "Models/Weapons/monsoon_ar.glb",
+  "triangles": 108,
+  "size_m_xyz": [
+   0.06,
+   0.32,
+   1.12
+  ],
+  "description": "Assault rifle \u2014 Monsoon AR",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_DMR_001",
+  "name": "ridgeline_dmr",
+  "category": "Weapons",
+  "file": "Models/Weapons/ridgeline_dmr.glb",
+  "triangles": 148,
+  "size_m_xyz": [
+   0.06,
+   0.3,
+   1.37
+  ],
+  "description": "NEW marksman rifle \u2014 Ridgeline DMR (semi-auto, 2x scope)",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_SR_001",
+  "name": "longwatch",
+  "category": "Weapons",
+  "file": "Models/Weapons/longwatch.glb",
+  "triangles": 156,
+  "size_m_xyz": [
+   0.15,
+   0.27,
+   1.57
+  ],
+  "description": "Bolt sniper \u2014 Longwatch, 4x scope",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_MEL_001",
+  "name": "tide_machete",
+  "category": "Weapons",
+  "file": "Models/Weapons/tide_machete.glb",
+  "triangles": 40,
+  "size_m_xyz": [
+   0.1,
+   0.03,
+   0.64
+  ],
+  "description": "NEW melee \u2014 Tide Machete",
+  "tags": "held + pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_THR_001",
+  "name": "frag_grenade",
+  "category": "Weapons",
+  "file": "Models/Weapons/frag_grenade.glb",
+  "triangles": 80,
+  "size_m_xyz": [
+   0.08,
+   0.13,
+   0.08
+  ],
+  "description": "Frag grenade",
+  "tags": "throwable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_THR_002",
+  "name": "smoke_can",
+  "category": "Weapons",
+  "file": "Models/Weapons/smoke_can.glb",
+  "triangles": 88,
+  "size_m_xyz": [
+   0.07,
+   0.15,
+   0.07
+  ],
+  "description": "Smoke can",
+  "tags": "throwable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "WPN_DEP_001",
+  "name": "monsoon_barrier",
+  "category": "Weapons",
+  "file": "Models/Weapons/monsoon_barrier.glb",
+  "triangles": 120,
+  "size_m_xyz": [
+   3.37,
+   1.42,
+   0.98
+  ],
+  "description": "NEW deployable curved cover wall (Arjun ability / loot item), 4 m wide",
+  "tags": "deployable, destructible",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_AMMO_001",
+  "name": "ammo_light",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/ammo_light.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   0.31,
+   0.2,
+   0.22
+  ],
+  "description": "Light ammo box (pistol/SMG)",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_AMMO_002",
+  "name": "ammo_heavy",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/ammo_heavy.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   0.31,
+   0.2,
+   0.22
+  ],
+  "description": "Heavy ammo box (rifle/DMR/sniper)",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_AMMO_003",
+  "name": "ammo_shells",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/ammo_shells.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   0.31,
+   0.2,
+   0.22
+  ],
+  "description": "Shotgun shells box",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_HEAL_001",
+  "name": "bandage",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/bandage.glb",
+  "triangles": 64,
+  "size_m_xyz": [
+   0.1,
+   0.14,
+   0.08
+  ],
+  "description": "Bandage +15 HP",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_HEAL_002",
+  "name": "medkit",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/medkit.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   0.36,
+   0.23,
+   0.12
+  ],
+  "description": "Med kit +75 HP",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_REP_001",
+  "name": "armour_repair_kit",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/armour_repair_kit.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   0.35,
+   0.21,
+   0.26
+  ],
+  "description": "NEW armour repair kit (+50 vest durability)",
+  "tags": "pickup",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_VEST_001",
+  "name": "vest_lv1",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/vest_lv1.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   0.43,
+   0.62,
+   0.24
+  ],
+  "description": "Vest Lv1",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_HELM_001",
+  "name": "helmet_lv1",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/helmet_lv1.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   0.35,
+   0.12,
+   0.34
+  ],
+  "description": "Helmet Lv1",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_BAG_001",
+  "name": "backpack_lv1",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/backpack_lv1.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   0.36,
+   0.5,
+   0.27
+  ],
+  "description": "NEW backpack Lv1 (+2 stacks)",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_VEST_002",
+  "name": "vest_lv2",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/vest_lv2.glb",
+  "triangles": 84,
+  "size_m_xyz": [
+   0.43,
+   0.62,
+   0.24
+  ],
+  "description": "Vest Lv2",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_HELM_002",
+  "name": "helmet_lv2",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/helmet_lv2.glb",
+  "triangles": 72,
+  "size_m_xyz": [
+   0.35,
+   0.12,
+   0.34
+  ],
+  "description": "Helmet Lv2",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_BAG_002",
+  "name": "backpack_lv2",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/backpack_lv2.glb",
+  "triangles": 68,
+  "size_m_xyz": [
+   0.36,
+   0.74,
+   0.27
+  ],
+  "description": "NEW backpack Lv2 (+4 stacks)",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_VEST_003",
+  "name": "vest_lv3",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/vest_lv3.glb",
+  "triangles": 96,
+  "size_m_xyz": [
+   0.43,
+   0.62,
+   0.24
+  ],
+  "description": "Vest Lv3",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_HELM_003",
+  "name": "helmet_lv3",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/helmet_lv3.glb",
+  "triangles": 84,
+  "size_m_xyz": [
+   0.35,
+   0.16,
+   0.35
+  ],
+  "description": "Helmet Lv3",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "LOOT_BAG_003",
+  "name": "backpack_lv3",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/backpack_lv3.glb",
+  "triangles": 68,
+  "size_m_xyz": [
+   0.36,
+   0.84,
+   0.27
+  ],
+  "description": "NEW backpack Lv3 (+6 stacks)",
+  "tags": "pickup, wearable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "INT_CRATE_001",
+  "name": "death_loot_crate",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/death_loot_crate.glb",
+  "triangles": 36,
+  "size_m_xyz": [
+   0.92,
+   0.63,
+   0.65
+  ],
+  "description": "Crate dropped on elimination",
+  "tags": "interactable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "INT_CRATE_002",
+  "name": "supply_crate",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/supply_crate.glb",
+  "triangles": 104,
+  "size_m_xyz": [
+   1.46,
+   1.84,
+   1.44
+  ],
+  "description": "Legendary supply crate (landed)",
+  "tags": "interactable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "INT_CRATE_003",
+  "name": "supply_crate_parachute",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/supply_crate_parachute.glb",
+  "triangles": 198,
+  "size_m_xyz": [
+   6.0,
+   6.9,
+   5.71
+  ],
+  "description": "Supply crate descending under parachute",
+  "tags": "interactable, animated",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "INT_VEND_001",
+  "name": "supply_kiosk",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/supply_kiosk.glb",
+  "triangles": 60,
+  "size_m_xyz": [
+   1.62,
+   2.4,
+   1.06
+  ],
+  "description": "NEW in-match vending kiosk (spend match tokens)",
+  "tags": "interactable",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "INT_TRN_001",
+  "name": "target_dummy",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/target_dummy.glb",
+  "triangles": 132,
+  "size_m_xyz": [
+   0.8,
+   2.03,
+   0.8
+  ],
+  "description": "Training-ground target dummy",
+  "tags": "training",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "FX_BEAM_001",
+  "name": "legendary_beam",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/legendary_beam.glb",
+  "triangles": 64,
+  "size_m_xyz": [
+   1.2,
+   30.0,
+   1.2
+  ],
+  "description": "Legendary loot sky beam (use additive transparent material)",
+  "tags": "fx",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "FX_FLR_001",
+  "name": "signal_flare",
+  "category": "Loot_Interactables",
+  "file": "Models/Loot_Interactables/signal_flare.glb",
+  "triangles": 48,
+  "size_m_xyz": [
+   0.1,
+   0.35,
+   0.09
+  ],
+  "description": "Supply-crate signal flare",
+  "tags": "fx",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "VEH_AIR_001",
+  "name": "cargo_glider",
+  "category": "Vehicles",
+  "file": "Models/Vehicles/cargo_glider.glb",
+  "triangles": 228,
+  "size_m_xyz": [
+   26.2,
+   5.75,
+   20.7
+  ],
+  "description": "Drop aircraft that crosses the island",
+  "tags": "flight path",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "VEH_AIR_002",
+  "name": "personal_glider_wing",
+  "category": "Vehicles",
+  "file": "Models/Vehicles/personal_glider_wing.glb",
+  "triangles": 68,
+  "size_m_xyz": [
+   4.8,
+   1.41,
+   1.31
+  ],
+  "description": "Personal glider wing used after the jump (attach at player origin)",
+  "tags": "deployment",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "VEH_LND_001",
+  "name": "coast_buggy",
+  "category": "Vehicles",
+  "file": "Models/Vehicles/coast_buggy.glb",
+  "triangles": 420,
+  "size_m_xyz": [
+   2.26,
+   1.86,
+   3.44
+  ],
+  "description": "NEW 2-seat beach buggy (P1); wheels are separate nodes for spin/steer",
+  "tags": "vehicle, rigged nodes",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "CHR_KIRAN",
+  "name": "survivor_kiran",
+  "category": "Characters",
+  "file": "Models/Characters/survivor_kiran.glb",
+  "triangles": 228,
+  "size_m_xyz": [
+   0.75,
+   1.84,
+   0.47
+  ],
+  "description": "Kiran \u2014 Scout; segmented nodes torso/head/arm_L/arm_R/leg_L/leg_R with joint pivots for procedural animation",
+  "tags": "character, segmented",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "CHR_MEERA",
+  "name": "survivor_meera",
+  "category": "Characters",
+  "file": "Models/Characters/survivor_meera.glb",
+  "triangles": 228,
+  "size_m_xyz": [
+   0.75,
+   1.84,
+   0.47
+  ],
+  "description": "Meera \u2014 Field medic; segmented nodes torso/head/arm_L/arm_R/leg_L/leg_R with joint pivots for procedural animation",
+  "tags": "character, segmented",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "CHR_ARJUN",
+  "name": "survivor_arjun",
+  "category": "Characters",
+  "file": "Models/Characters/survivor_arjun.glb",
+  "triangles": 228,
+  "size_m_xyz": [
+   0.75,
+   1.84,
+   0.47
+  ],
+  "description": "Arjun \u2014 Engineer; segmented nodes torso/head/arm_L/arm_R/leg_L/leg_R with joint pivots for procedural animation",
+  "tags": "character, segmented",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ },
+ {
+  "id": "CHR_ZOYA",
+  "name": "survivor_zoya",
+  "category": "Characters",
+  "file": "Models/Characters/survivor_zoya.glb",
+  "triangles": 228,
+  "size_m_xyz": [
+   0.75,
+   1.84,
+   0.47
+  ],
+  "description": "Zoya \u2014 Tracker; segmented nodes torso/head/arm_L/arm_R/leg_L/leg_R with joint pivots for procedural animation",
+  "tags": "character, segmented",
+  "source_licence": "Original \u2014 generated for Stratos Drop Zone (owned by stratos.games)",
+  "status": "Placeholder v1 (game-ready)"
+ }
+]
