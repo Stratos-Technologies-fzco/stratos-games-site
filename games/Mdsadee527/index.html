@@ -31,8 +31,23 @@ body{
     height:100vh;
     max-height:800px;
     position:relative;
-    background:#222;
+    background:#8fd3f4;
     overflow:hidden;
+}
+
+canvas{
+    display:block;
+    width:100%;
+    height:100%;
+}
+
+#crashFlash{
+    position:absolute;
+    inset:0;
+    z-index:15;
+    background:#fff;
+    opacity:0;
+    pointer-events:none;
 }
 
 /* HUD */
@@ -56,15 +71,6 @@ body{
     background:rgba(0,0,0,.65);
     padding:8px 12px;
     border-radius:10px;
-}
-
-/* Road */
-
-canvas{
-    display:block;
-    width:100%;
-    height:100%;
-    background:#555;
 }
 
 /* Start / Game Over */
@@ -230,6 +236,8 @@ button:active{
 
     <canvas id="gameCanvas"></canvas>
 
+    <div id="crashFlash"></div>
+
     <div class="hud">
         <div class="hud-box">
             🏆 Score: <span id="score">0</span>
@@ -318,23 +326,32 @@ button:active{
 
 </div>
 
+<script src="vendor/three.min.js"></script>
 <script>
 
 /* =========================
-   CANVAS SETUP
+   CANVAS / RENDERER SETUP
 ========================= */
 
 const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
 const container = document.querySelector(".game-container");
+const crashFlashEl = document.getElementById("crashFlash");
 
 let W, H;
+let scene, camera, renderer, roadTexture;
 
 function resizeCanvas(){
 
-    W = canvas.width = container.clientWidth;
-    H = canvas.height = container.clientHeight;
+    W = container.clientWidth;
+    H = container.clientHeight;
+
+    if(renderer && camera){
+
+        renderer.setSize(W, H, false);
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+
+    }
 
 }
 
@@ -374,7 +391,12 @@ function isUnlocked(car, best){ return best >= car.unlockAt; }
 function getSelectedCarId(){ return localStorage.getItem(CAR_KEY) || CARS[0].id; }
 function setSelectedCarId(id){ localStorage.setItem(CAR_KEY, id); }
 
-function applyPlayerCar(){ player.color = getCar(getSelectedCarId()).color; }
+function applyPlayerCar(){
+    player.color = getCar(getSelectedCarId()).color;
+    if(player.mesh && player.mesh.userData.bodyMaterial){
+        player.mesh.userData.bodyMaterial.color.set(player.color);
+    }
+}
 
 function updateBestDisplays(){
     const best = getBest();
@@ -588,9 +610,9 @@ let gamePaused = false;
 let score = 0;
 let speed = 5;
 
-let roadOffset = 0;
-
 let trafficCars = [];
+let particles = [];
+let treePool = [];
 
 let spawnTimer = 0;
 
@@ -602,28 +624,27 @@ const CRASH_DURATION = 26;
 
 let shakeMag = 0;
 
-let particles = [];
-
 
 /* =========================
-   COLOR HELPER
+   WORLD CONSTANTS
 ========================= */
 
-function shade(hex, percent){
+const ROAD_WIDTH = 9;
+const LANE_COUNT = 3;
+const LANE_WIDTH = ROAD_WIDTH / LANE_COUNT;
+const ROAD_LEFT = -ROAD_WIDTH / 2;
 
-    const num = parseInt(hex.slice(1), 16);
+const SPAWN_Z = -140;
+const REMOVE_Z = 14;
+const Z_PER_SPEED = 0.19;
+const ROAD_PLANE_LENGTH = 2000;
 
-    let r = (num >> 16) + percent;
-    let g = ((num >> 8) & 0x00FF) + percent;
-    let b = (num & 0x0000FF) + percent;
+const TREE_COUNT = 18;
+const TREE_SPACING = 14;
 
-    r = Math.max(0, Math.min(255, r));
-    g = Math.max(0, Math.min(255, g));
-    b = Math.max(0, Math.min(255, b));
-
-    return "rgb(" + r + "," + g + "," + b + ")";
-
-}
+const PLAYER_ACCEL = 0.032;
+const PLAYER_MAX_VX = 0.22;
+const PLAYER_FRICTION = 0.85;
 
 
 /* =========================
@@ -632,506 +653,347 @@ function shade(hex, percent){
 
 const player = {
 
-    width: 45,
-    height: 75,
-
     x: 0,
-    y: 0,
-
     vx: 0,
+
+    halfW: 0.9,
+    halfD: 1.8,
+
+    mesh: null,
 
     color: "#e53935"
 
 };
 
-const PLAYER_ACCEL = 0.9;
-const PLAYER_MAX_VX = 8;
-const PLAYER_FRICTION = 0.85;
-
 
 /* =========================
-   ROAD
+   THREE.JS SCENE SETUP
 ========================= */
 
-function getRoad(){
+function initThree(){
 
-    const roadWidth = Math.min(W * .78, 350);
+    scene = new THREE.Scene();
 
-    const roadLeft = (W - roadWidth) / 2;
+    const skyColor = 0x8fd3f4;
+    scene.background = new THREE.Color(skyColor);
+    scene.fog = new THREE.Fog(skyColor, 40, 130);
 
-    return {
-        width: roadWidth,
-        left: roadLeft,
-        right: roadLeft + roadWidth
-    };
+    camera = new THREE.PerspectiveCamera(62, W / H, 0.1, 400);
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(W, H, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.68);
+    scene.add(ambient);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 0.95);
+    sun.position.set(-15, 25, 10);
+    scene.add(sun);
+
+    buildGround();
+    buildRoad();
+    buildTreePool();
 
 }
 
 
-/* =========================
-   START PLAYER
-========================= */
+function buildGround(){
 
-function resetPlayer(){
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x2f9e45 });
+    const groundGeo = new THREE.PlaneGeometry(200, ROAD_PLANE_LENGTH);
+    const ground = new THREE.Mesh(groundGeo, groundMat);
 
-    const road = getRoad();
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.set(0, -0.02, -ROAD_PLANE_LENGTH / 2 + 100);
 
-    player.x =
-        road.left +
-        road.width / 2 -
-        player.width / 2;
-
-    player.y =
-        H - player.height - 90;
-
-    player.vx = 0;
+    scene.add(ground);
 
 }
 
 
-/* =========================
-   ASPHALT TEXTURE (built once, tiled)
-========================= */
+function buildRoadTexture(){
 
-const asphaltCanvas = document.createElement("canvas");
-asphaltCanvas.width = 64;
-asphaltCanvas.height = 64;
+    const w = 256, h = 512;
 
-(function buildAsphalt(){
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
 
-    const actx = asphaltCanvas.getContext("2d");
+    const tctx = c.getContext("2d");
 
-    actx.fillStyle = "#454550";
-    actx.fillRect(0, 0, 64, 64);
+    tctx.fillStyle = "#454550";
+    tctx.fillRect(0, 0, w, h);
 
-    for(let i = 0; i < 140; i++){
+    for(let i = 0; i < 260; i++){
 
-        const gx = Math.random() * 64;
-        const gy = Math.random() * 64;
+        const gx = Math.random() * w;
+        const gy = Math.random() * h;
         const speckleColor = Math.random() < 0.5 ? "rgba(0,0,0,.12)" : "rgba(255,255,255,.06)";
 
-        actx.fillStyle = speckleColor;
-        actx.fillRect(gx, gy, 1 + Math.random() * 2, 1 + Math.random() * 2);
+        tctx.fillStyle = speckleColor;
+        tctx.fillRect(gx, gy, 1 + Math.random() * 2, 1 + Math.random() * 2);
 
     }
 
-})();
+    const edgeW = 10;
 
-let asphaltPattern = null;
+    tctx.fillStyle = "#e53935";
+    tctx.fillRect(0, 0, edgeW, h / 2);
+    tctx.fillRect(w - edgeW, h / 2, edgeW, h / 2);
+
+    tctx.fillStyle = "#ffffff";
+    tctx.fillRect(0, h / 2, edgeW, h / 2);
+    tctx.fillRect(w - edgeW, 0, edgeW, h / 2);
+
+    const laneX1 = w / 3, laneX2 = (w * 2) / 3, laneLineW = 6;
+
+    tctx.fillStyle = "#ffffff";
+    tctx.fillRect(laneX1 - laneLineW / 2, 0, laneLineW, h * 0.45);
+    tctx.fillRect(laneX2 - laneLineW / 2, 0, laneLineW, h * 0.45);
+
+    return new THREE.CanvasTexture(c);
+
+}
+
+
+function buildRoad(){
+
+    roadTexture = buildRoadTexture();
+    roadTexture.wrapS = THREE.RepeatWrapping;
+    roadTexture.wrapT = THREE.RepeatWrapping;
+    roadTexture.repeat.set(1, 200);
+
+    const roadGeo = new THREE.PlaneGeometry(ROAD_WIDTH, ROAD_PLANE_LENGTH);
+    const roadMat = new THREE.MeshStandardMaterial({ map: roadTexture, roughness: 1 });
+    const roadMesh = new THREE.Mesh(roadGeo, roadMat);
+
+    roadMesh.rotation.x = -Math.PI / 2;
+    roadMesh.position.set(0, 0, -ROAD_PLANE_LENGTH / 2 + 100);
+
+    scene.add(roadMesh);
+
+}
 
 
 /* =========================
-   DRAW ROAD
+   SHARED CAR MESH BUILDER
 ========================= */
 
-function drawRoad(){
+function disposeMesh(group){
 
-    const road = getRoad();
-
-    /* Grass */
-
-    const grassGrad = ctx.createLinearGradient(0, 0, W, 0);
-    grassGrad.addColorStop(0, "#1f7a2f");
-    grassGrad.addColorStop(0.5, "#2fa542");
-    grassGrad.addColorStop(1, "#1f7a2f");
-
-    ctx.fillStyle = grassGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    /* Roadside scenery, scrolls with the road */
-
-    drawScenery(road);
-
-    /* Road surface: textured asphalt */
-
-    if(!asphaltPattern) asphaltPattern = ctx.createPattern(asphaltCanvas, "repeat");
-
-    ctx.fillStyle = asphaltPattern;
-    ctx.fillRect(road.left, 0, road.width, H);
-
-    /* Subtle shading for depth */
-
-    const roadShade = ctx.createLinearGradient(road.left, 0, road.right, 0);
-    roadShade.addColorStop(0, "rgba(0,0,0,.25)");
-    roadShade.addColorStop(0.12, "rgba(0,0,0,0)");
-    roadShade.addColorStop(0.88, "rgba(0,0,0,0)");
-    roadShade.addColorStop(1, "rgba(0,0,0,.25)");
-
-    ctx.fillStyle = roadShade;
-    ctx.fillRect(road.left, 0, road.width, H);
-
-    /* Rumble-strip curb edges */
-
-    drawRumbleStrip(road.left - 3, 6);
-    drawRumbleStrip(road.right - 3, 6);
-
-    /* Lane markings */
-
-    const laneWidth = road.width / 3;
-
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 5;
-    ctx.setLineDash([35,35]);
-
-    ctx.lineDashOffset = -roadOffset;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        road.left + laneWidth,
-        0
-    );
-
-    ctx.lineTo(
-        road.left + laneWidth,
-        H
-    );
-
-    ctx.moveTo(
-        road.left + laneWidth * 2,
-        0
-    );
-
-    ctx.lineTo(
-        road.left + laneWidth * 2,
-        H
-    );
-
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-
-    /* Motion streaks alongside the road at higher speed */
-
-    drawSpeedLines(road);
+    group.traverse(obj => {
+        if(obj.geometry) obj.geometry.dispose();
+        if(obj.material) obj.material.dispose();
+    });
 
 }
 
 
-function drawRumbleStrip(x, w){
+function buildCarMesh(colorValue, dims){
 
-    ctx.save();
+    const w = dims.w, len = dims.len, h = dims.h;
 
-    ctx.lineWidth = w;
+    const group = new THREE.Group();
 
-    ctx.setLineDash([18, 18]);
-    ctx.lineDashOffset = -roadOffset;
-    ctx.strokeStyle = "#e53935";
-    ctx.beginPath();
-    ctx.moveTo(x + w / 2, 0);
-    ctx.lineTo(x + w / 2, H);
-    ctx.stroke();
+    const bodyMat = new THREE.MeshStandardMaterial({ color: colorValue, metalness: 0.25, roughness: 0.55 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h * 0.55, len), bodyMat);
+    body.position.y = h * 0.275;
+    group.add(body);
+    group.userData.bodyMaterial = bodyMat;
 
-    ctx.setLineDash([18, 18]);
-    ctx.lineDashOffset = -roadOffset - 18;
-    ctx.strokeStyle = "#fff";
-    ctx.beginPath();
-    ctx.moveTo(x + w / 2, 0);
-    ctx.lineTo(x + w / 2, H);
-    ctx.stroke();
+    const cabinMat = new THREE.MeshStandardMaterial({ color: 0x9fd8e8, metalness: 0.1, roughness: 0.15, transparent: true, opacity: 0.88 });
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(w * 0.76, h * 0.42, len * 0.48), cabinMat);
+    cabin.position.set(0, h * 0.55 + h * 0.21, -len * 0.02);
+    group.add(cabin);
 
-    ctx.restore();
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.9 });
+    const wheelGeo = new THREE.CylinderGeometry(h * 0.26, h * 0.26, w * 0.2, 10);
+
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx, sz]) => {
+        const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(sx * (w / 2), h * 0.26, sz * (len * 0.32));
+        group.add(wheel);
+    });
+
+    const lightMat = new THREE.MeshStandardMaterial({ color: 0xfff59d, emissive: 0xffe066, emissiveIntensity: 0.9 });
+    const lightGeo = new THREE.BoxGeometry(w * 0.2, h * 0.09, 0.06);
+
+    [-1,1].forEach(sx => {
+        const lamp = new THREE.Mesh(lightGeo, lightMat);
+        lamp.position.set(sx * w * 0.28, h * 0.32, -len / 2 - 0.02);
+        group.add(lamp);
+    });
+
+    const mirrorMat = new THREE.MeshStandardMaterial({ color: colorValue, metalness: 0.3, roughness: 0.5 });
+
+    [-1,1].forEach(sx => {
+        const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.2), mirrorMat);
+        mirror.position.set(sx * (w / 2 + 0.06), h * 0.42, -len * 0.12);
+        group.add(mirror);
+    });
+
+    return group;
 
 }
 
 
-function drawScenery(road){
+function buildPlayerMesh(){
 
-    const spacing = 150;
-    const count = Math.ceil(H / spacing) + 2;
+    player.mesh = buildCarMesh(player.color, { w: 1.8, len: 3.6, h: 1.3 });
+    player.mesh.position.set(0, 0, 0);
+    scene.add(player.mesh);
 
-    for(let i = 0; i < count; i++){
+}
 
-        const y = ((i * spacing + roadOffset * 0.9) % (H + spacing)) - spacing;
 
-        drawTree(road.left - 26, y, i % 3);
-        drawTree(road.right + 26, y + spacing * 0.5, (i + 1) % 3);
+/* =========================
+   ROADSIDE TREES
+========================= */
+
+function buildTreeMesh(){
+
+    const group = new THREE.Group();
+
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.2, 6), trunkMat);
+    trunk.position.y = 0.6;
+    group.add(trunk);
+
+    const leafColors = [0x1b5e20, 0x2e7d32, 0x33691e];
+    const leafMat = new THREE.MeshStandardMaterial({ color: leafColors[Math.floor(Math.random() * 3)] });
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.2, 8), leafMat);
+    leaf.position.y = 2.1;
+    group.add(leaf);
+
+    return group;
+
+}
+
+
+function randomTreeX(){
+
+    return (Math.random() < 0.5 ? -1 : 1) * (ROAD_WIDTH / 2 + 2.5 + Math.random() * 2);
+
+}
+
+
+function buildTreePool(){
+
+    for(let i = 0; i < TREE_COUNT; i++){
+
+        const group = buildTreeMesh();
+        const z = -(Math.floor(i / 2) * TREE_SPACING) - 10;
+
+        group.position.set(randomTreeX(), 0, z);
+        scene.add(group);
+        treePool.push(group);
 
     }
 
 }
 
 
-function drawTree(x, y, variant){
+function updateTrees(delta){
 
-    const colors = ["#1b5e20", "#2e7d32", "#33691e"];
+    treePool.forEach(tree => {
 
-    ctx.fillStyle = "rgba(0,0,0,.2)";
-    ctx.beginPath();
-    ctx.ellipse(x, y + 18, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
+        tree.position.z += delta;
 
-    ctx.fillStyle = "#5d4037";
-    ctx.fillRect(x - 3, y, 6, 16);
+        if(tree.position.z > 12){
 
-    ctx.fillStyle = colors[variant];
+            tree.position.z -= (TREE_SPACING * TREE_COUNT) / 2;
+            tree.position.x = randomTreeX();
 
-    ctx.beginPath();
-    ctx.arc(x, y - 6, 14, 0, Math.PI * 2);
-    ctx.fill();
+        }
 
-    ctx.beginPath();
-    ctx.arc(x - 8, y, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(x + 8, y, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-}
-
-
-function drawSpeedLines(road){
-
-    const intensity = Math.max(0, speed - 5);
-    if(intensity <= 0) return;
-
-    ctx.save();
-
-    ctx.strokeStyle = "rgba(255,255,255," + Math.min(0.35, intensity * 0.06) + ")";
-    ctx.lineWidth = 2;
-
-    for(let i = 0; i < 6; i++){
-
-        const y = ((i * 90 + roadOffset * 2.2) % (H + 90)) - 45;
-
-        ctx.beginPath();
-        ctx.moveTo(road.left - 16, y);
-        ctx.lineTo(road.left - 16, y + 24 + intensity * 2);
-        ctx.moveTo(road.right + 16, y + 45);
-        ctx.lineTo(road.right + 16, y + 69 + intensity * 2);
-        ctx.stroke();
-
-    }
-
-    ctx.restore();
+    });
 
 }
 
 
 /* =========================
-   SHARED CAR SPRITE
+   TRAFFIC
 ========================= */
 
-function roundRectPath(x, y, w, h, r){
+const TRAFFIC_CLASSES = [
+    { w:1.8, len:3.6, h:1.3 },
+    { w:1.8, len:3.6, h:1.3 },
+    { w:1.6, len:3.0, h:1.15 },
+    { w:2.1, len:4.6, h:1.9 }
+];
 
-    ctx.beginPath();
+const TRAFFIC_COLORS = [0x2196f3, 0xff9800, 0x9c27b0, 0x00bcd4, 0xffeb3b, 0x757575];
 
-    ctx.moveTo(x + r, y);
-
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-
-    ctx.closePath();
-
-}
-
-
-function drawWheel(x, y, w, h){
-
-    ctx.fillStyle = "#111";
-    ctx.fillRect(x, y, w, h);
-
-    ctx.fillStyle = "#3a3a3a";
-    ctx.fillRect(x + w * 0.2, y + h * 0.25, w * 0.6, h * 0.5);
-
-}
-
-
-function drawCarSprite(x, y, w, h, bodyColor, lean){
-
-    ctx.save();
-
-    const cx = x + w / 2, cy = y + h / 2;
-
-    ctx.translate(cx, cy);
-    if(lean) ctx.rotate(lean);
-    ctx.translate(-w / 2, -h / 2);
-
-    /* Body, side-to-side gradient for a rounded painted look */
-
-    const bodyGrad = ctx.createLinearGradient(0, 0, w, 0);
-    bodyGrad.addColorStop(0, shade(bodyColor, -35));
-    bodyGrad.addColorStop(0.45, shade(bodyColor, 25));
-    bodyGrad.addColorStop(1, shade(bodyColor, -35));
-
-    ctx.fillStyle = bodyGrad;
-    roundRectPath(0, 0, w, h, 10);
-    ctx.fill();
-
-    /* Mirrors */
-
-    ctx.fillStyle = shade(bodyColor, -40);
-    ctx.fillRect(-4, h * 0.22, 5, 8);
-    ctx.fillRect(w - 1, h * 0.22, 5, 8);
-
-    /* Wheels */
-
-    drawWheel(-5, h * 0.16, 7, 20);
-    drawWheel(w - 2, h * 0.16, 7, 20);
-    drawWheel(-5, h * 0.64, 7, 20);
-    drawWheel(w - 2, h * 0.64, 7, 20);
-
-    /* Windshield + rear window, glass gradient */
-
-    const glassGrad = ctx.createLinearGradient(0, 0, w, 0);
-    glassGrad.addColorStop(0, "#3f8aa8");
-    glassGrad.addColorStop(0.5, "#bdeeff");
-    glassGrad.addColorStop(1, "#3f8aa8");
-
-    ctx.fillStyle = glassGrad;
-    roundRectPath(w * 0.16, h * 0.12, w * 0.68, h * 0.26, 5);
-    ctx.fill();
-    roundRectPath(w * 0.16, h * 0.55, w * 0.68, h * 0.22, 5);
-    ctx.fill();
-
-    /* Roof shading line */
-
-    ctx.fillStyle = "rgba(0,0,0,.12)";
-    roundRectPath(w * 0.16, h * 0.37, w * 0.68, h * 0.08, 3);
-    ctx.fill();
-
-    /* Headlights with a soft glow */
-
-    const lightGlowL = ctx.createRadialGradient(w * 0.26, h * 0.04, 0, w * 0.26, h * 0.04, 10);
-    lightGlowL.addColorStop(0, "rgba(255,235,59,.55)");
-    lightGlowL.addColorStop(1, "rgba(255,235,59,0)");
-    ctx.fillStyle = lightGlowL;
-    ctx.fillRect(w * 0.26 - 10, h * 0.04 - 10, 20, 20);
-
-    const lightGlowR = ctx.createRadialGradient(w * 0.74, h * 0.04, 0, w * 0.74, h * 0.04, 10);
-    lightGlowR.addColorStop(0, "rgba(255,235,59,.55)");
-    lightGlowR.addColorStop(1, "rgba(255,235,59,0)");
-    ctx.fillStyle = lightGlowR;
-    ctx.fillRect(w * 0.74 - 10, h * 0.04 - 10, 20, 20);
-
-    ctx.fillStyle = "#fff59d";
-    roundRectPath(w * 0.16, h * 0.02, w * 0.22, 5, 2);
-    ctx.fill();
-    roundRectPath(w * 0.62, h * 0.02, w * 0.22, 5, 2);
-    ctx.fill();
-
-    ctx.restore();
-
-}
-
-
-/* =========================
-   DRAW PLAYER CAR
-========================= */
-
-function drawPlayer(){
-
-    const x = player.x;
-    const y = player.y;
-
-    const lean = Math.max(-1, Math.min(1, player.vx / PLAYER_MAX_VX)) * 0.12;
-
-    /* Shadow, nudged with the lean for a grounded feel */
-
-    ctx.fillStyle = "rgba(0,0,0,.35)";
-    ctx.fillRect(x + 4 + lean * 10, y + 7, player.width, player.height);
-
-    drawCarSprite(x, y, player.width, player.height, player.color, lean);
-
-}
-
-
-/* =========================
-   TRAFFIC CAR
-========================= */
 
 function createTrafficCar(){
 
-    const road = getRoad();
+    const lane = Math.floor(Math.random() * LANE_COUNT);
+    const x = ROAD_LEFT + LANE_WIDTH * (lane + 0.5);
 
-    const lane = Math.floor(
-        Math.random() * 3
-    );
+    const cls = TRAFFIC_CLASSES[Math.floor(Math.random() * TRAFFIC_CLASSES.length)];
+    const color = TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)];
 
-    const laneWidth =
-        road.width / 3;
+    const mesh = buildCarMesh(color, cls);
+    mesh.position.set(x, 0, SPAWN_Z);
+    scene.add(mesh);
 
-    const classes = [
-        { w:45, h:75 },
-        { w:45, h:75 },
-        { w:40, h:66 },
-        { w:54, h:94 }
-    ];
+    trafficCars.push({ mesh: mesh, halfW: cls.w / 2, halfD: cls.len / 2 });
 
-    const cls = classes[Math.floor(Math.random() * classes.length)];
+}
 
-    const carWidth = cls.w;
-    const carHeight = cls.h;
 
-    const x =
-        road.left +
-        lane * laneWidth +
-        laneWidth / 2 -
-        carWidth / 2;
+function updateTraffic(delta){
 
-    trafficCars.push({
+    trafficCars.forEach(car => {
+        car.mesh.position.z += delta;
+    });
 
-        x:x,
+    trafficCars = trafficCars.filter(car => {
 
-        y:-carHeight - 20,
+        if(car.mesh.position.z > REMOVE_Z){
+            scene.remove(car.mesh);
+            disposeMesh(car.mesh);
+            return false;
+        }
 
-        width:carWidth,
-
-        height:carHeight,
-
-        color:[
-            "#2196f3",
-            "#ff9800",
-            "#9c27b0",
-            "#00bcd4",
-            "#ffeb3b",
-            "#757575"
-        ][Math.floor(
-            Math.random()*6
-        )]
+        return true;
 
     });
 
 }
 
 
-/* =========================
-   DRAW TRAFFIC
-========================= */
-
-function drawTraffic(){
+function clearTraffic(){
 
     trafficCars.forEach(car => {
-
-        ctx.fillStyle = "rgba(0,0,0,.35)";
-        ctx.fillRect(car.x + 4, car.y + 7, car.width, car.height);
-
-        drawCarSprite(car.x, car.y, car.width, car.height, car.color, 0);
-
+        scene.remove(car.mesh);
+        disposeMesh(car.mesh);
     });
+
+    trafficCars = [];
 
 }
 
 
-/* =========================
-   UPDATE TRAFFIC
-========================= */
+function spawnTraffic(){
 
-function updateTraffic(){
+    spawnTimer++;
 
-    trafficCars.forEach(car => {
-
-        car.y += speed;
-
-    });
-
-    trafficCars =
-        trafficCars.filter(
-            car => car.y < H + 100
+    const spawnRate =
+        Math.max(
+            35,
+            85 - Math.floor(score / 200)
         );
+
+    if(spawnTimer >= spawnRate){
+
+        createTrafficCar();
+        spawnTimer = 0;
+
+    }
 
 }
 
@@ -1140,42 +1002,21 @@ function updateTraffic(){
    COLLISION
 ========================= */
 
-function collision(a,b){
-
-    const padding = 7;
-
-    return (
-
-        a.x + padding <
-        b.x + b.width - padding &&
-
-        a.x + a.width - padding >
-        b.x + padding &&
-
-        a.y + padding <
-        b.y + b.height - padding &&
-
-        a.y + a.height - padding >
-        b.y + padding
-
-    );
-
-}
-
-
 function checkCollision(){
 
-    for(let car of trafficCars){
+    for(const car of trafficCars){
+
+        const dx = car.mesh.position.x - player.x;
+        const dz = car.mesh.position.z - 0;
+
+        const padding = 0.12;
 
         if(
-            collision(
-                player,
-                car
-            )
+            Math.abs(dx) < (player.halfW + car.halfW - padding) &&
+            Math.abs(dz) < (player.halfD + car.halfD - padding)
         ){
 
             triggerCrash();
-
             return;
 
         }
@@ -1196,21 +1037,29 @@ function shakeScreen(mag){
 }
 
 
-function spawnCrashParticles(cx, cy){
+function spawnCrashParticles(x, y, z){
 
-    for(let i = 0; i < 22; i++){
+    for(let i = 0; i < 16; i++){
+
+        const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+        const mat = new THREE.MeshStandardMaterial({
+            color: Math.random() < 0.5 ? 0xffd740 : 0xff7043,
+            transparent: true
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(x, y, z);
+        scene.add(mesh);
 
         const angle = Math.random() * Math.PI * 2;
-        const spd = 2 + Math.random() * 6;
+        const spd = 0.08 + Math.random() * 0.18;
 
         particles.push({
-            x: cx,
-            y: cy,
+            mesh: mesh,
             vx: Math.cos(angle) * spd,
-            vy: Math.sin(angle) * spd,
-            life: 1,
-            size: 2 + Math.random() * 3,
-            color: Math.random() < 0.5 ? "#ffd740" : "#ff7043"
+            vy: 0.12 + Math.random() * 0.14,
+            vz: Math.sin(angle) * spd,
+            life: 1
         });
 
     }
@@ -1221,28 +1070,43 @@ function spawnCrashParticles(cx, cy){
 function updateParticles(){
 
     particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.25;
+
+        p.mesh.position.x += p.vx;
+        p.mesh.position.y += p.vy;
+        p.mesh.position.z += p.vz;
+
+        p.vy -= 0.01;
         p.life -= 0.035;
+
+        p.mesh.material.opacity = Math.max(0, p.life);
+        p.mesh.rotation.x += 0.2;
+        p.mesh.rotation.y += 0.15;
+
     });
 
-    particles = particles.filter(p => p.life > 0);
+    particles = particles.filter(p => {
+
+        if(p.life <= 0){
+            scene.remove(p.mesh);
+            disposeMesh(p.mesh);
+            return false;
+        }
+
+        return true;
+
+    });
 
 }
 
 
-function drawParticles(){
+function clearParticles(){
 
     particles.forEach(p => {
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        scene.remove(p.mesh);
+        disposeMesh(p.mesh);
     });
 
-    ctx.globalAlpha = 1;
+    particles = [];
 
 }
 
@@ -1255,7 +1119,7 @@ function triggerCrash(){
     crashTimer = 0;
 
     shakeScreen(16);
-    spawnCrashParticles(player.x + player.width / 2, player.y + player.height / 2);
+    spawnCrashParticles(player.x, 0.7, 0);
 
     playCrashSound();
     stopEngineSound();
@@ -1273,8 +1137,6 @@ let moveRight = false;
 
 function movePlayer(){
 
-    const road = getRoad();
-
     if(moveLeft) player.vx -= PLAYER_ACCEL;
     if(moveRight) player.vx += PLAYER_ACCEL;
 
@@ -1284,21 +1146,66 @@ function movePlayer(){
 
     player.x += player.vx;
 
-    /* Keep car inside road */
+    const minX = ROAD_LEFT + player.halfW + 0.15;
+    const maxX = ROAD_LEFT + ROAD_WIDTH - player.halfW - 0.15;
 
-    if(player.x < road.left + 8){
-
-        player.x = road.left + 8;
+    if(player.x < minX){
+        player.x = minX;
         if(player.vx < 0) player.vx = 0;
-
     }
 
-    if(player.x + player.width > road.right - 8){
-
-        player.x = road.right - player.width - 8;
+    if(player.x > maxX){
+        player.x = maxX;
         if(player.vx > 0) player.vx = 0;
+    }
+
+    const lean = Math.max(-1, Math.min(1, player.vx / PLAYER_MAX_VX));
+
+    player.mesh.position.x = player.x;
+    player.mesh.rotation.z = -lean * 0.18;
+    player.mesh.rotation.y = lean * 0.06;
+
+}
+
+
+function resetPlayer(){
+
+    player.x = 0;
+    player.vx = 0;
+
+    if(player.mesh){
+        player.mesh.position.set(0, 0, 0);
+        player.mesh.rotation.set(0, 0, 0);
+    }
+
+}
+
+
+/* =========================
+   CAMERA
+========================= */
+
+function updateCamera(){
+
+    const lean = Math.max(-1, Math.min(1, player.vx / PLAYER_MAX_VX));
+
+    let jx = 0, jy = 0;
+
+    if(shakeMag > 0.3){
+
+        jx = (Math.random() - 0.5) * shakeMag * 0.05;
+        jy = (Math.random() - 0.5) * shakeMag * 0.05;
+        shakeMag *= 0.88;
+
+    } else {
+
+        shakeMag = 0;
 
     }
+
+    camera.position.set(player.x + jx, 5.0 + jy, 8.5);
+    camera.rotation.z = -lean * 0.03 + jx * 0.02;
+    camera.lookAt(player.x, 1.1, -20);
 
 }
 
@@ -1338,33 +1245,6 @@ function updateSpeed(){
 
 
 /* =========================
-   SPAWN TRAFFIC
-========================= */
-
-function spawnTraffic(){
-
-    spawnTimer++;
-
-    const spawnRate =
-        Math.max(
-            35,
-            85 - Math.floor(score/200)
-        );
-
-    if(
-        spawnTimer >= spawnRate
-    ){
-
-        createTrafficCar();
-
-        spawnTimer = 0;
-
-    }
-
-}
-
-
-/* =========================
    GAME LOOP
 ========================= */
 
@@ -1379,61 +1259,30 @@ function gameLoop(){
 
     }
 
-    ctx.clearRect(0, 0, W, H);
-
-    ctx.save();
-
-    if(shakeMag > 0.3){
-
-        ctx.translate(
-            (Math.random() - 0.5) * shakeMag,
-            (Math.random() - 0.5) * shakeMag
-        );
-
-        shakeMag *= 0.88;
-
-    } else {
-
-        shakeMag = 0;
-
-    }
-
-    if(!crashing){
-
-        roadOffset += speed;
-
-    }
-
-    drawRoad();
+    const worldDelta = crashing ? 0 : speed * Z_PER_SPEED;
 
     if(!crashing){
 
         movePlayer();
-        updateTraffic();
+        updateTraffic(worldDelta);
+        updateTrees(worldDelta);
         spawnTraffic();
+
+        roadTexture.offset.y -= worldDelta / ROAD_PLANE_LENGTH;
 
     }
 
-    drawTraffic();
-    drawPlayer();
-
     updateParticles();
-    drawParticles();
+    updateCamera();
 
-    ctx.restore();
+    renderer.render(scene, camera);
 
     if(crashing){
 
         crashTimer++;
 
         const flashAlpha = Math.max(0, 0.55 - crashTimer * 0.07);
-
-        if(flashAlpha > 0){
-
-            ctx.fillStyle = "rgba(255,255,255," + flashAlpha + ")";
-            ctx.fillRect(0, 0, W, H);
-
-        }
+        crashFlashEl.style.opacity = flashAlpha;
 
         if(crashTimer >= CRASH_DURATION){
 
@@ -1487,7 +1336,9 @@ function startGame(){
 
     speed = 5;
 
-    trafficCars = [];
+    clearTraffic();
+
+    clearParticles();
 
     spawnTimer = 0;
 
@@ -1497,7 +1348,7 @@ function startGame(){
 
     shakeMag = 0;
 
-    particles = [];
+    crashFlashEl.style.opacity = 0;
 
     resetPlayer();
 
@@ -1554,6 +1405,8 @@ function gameOver(){
         animationId
     );
 
+    crashFlashEl.style.opacity = 0;
+
     const finalScoreValue = Math.floor(score / 10);
 
     document.getElementById(
@@ -1595,6 +1448,8 @@ function gameOver(){
     document.getElementById(
         "controls"
     ).classList.add("hidden");
+
+    renderer.render(scene, camera);
 
 }
 
@@ -1847,8 +1702,12 @@ document.getElementById(
 
 
 /* =========================
-   INITIAL DRAW
+   INITIAL SCENE + DRAW
 ========================= */
+
+initThree();
+
+buildPlayerMesh();
 
 updateBestDisplays();
 
@@ -1858,9 +1717,9 @@ applyPlayerCar();
 
 resetPlayer();
 
-drawRoad();
+updateCamera();
 
-drawPlayer();
+renderer.render(scene, camera);
 
 </script>
 
