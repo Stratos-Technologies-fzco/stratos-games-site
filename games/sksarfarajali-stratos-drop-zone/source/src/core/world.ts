@@ -195,7 +195,9 @@ export function buildWorld(seed = 20241113): WorldData {
     const P = poi(5), wall = modelSize('fort_wall_segment'), seg = Math.max(wall[0], wall[2]), side = 4, half = (seg * side) / 2;
     for (let s = 0; s < side; s++) for (const sgn of [-1, 1]) {
       const o = -half + seg * (s + 0.5);
-      place('fort_wall_segment', P.x + o, P.z + sgn * half, 0, 5, true); place('fort_wall_segment', P.x + sgn * half, P.z + o, Math.PI / 2, 5, true);
+      // gates: one wall segment is left out of the north, south and east walls (the west side has the river), so the inside is reachable
+      if (s !== 1) place('fort_wall_segment', P.x + o, P.z + sgn * half, 0, 5, true);
+      if (!(s === 1 && sgn === 1)) place('fort_wall_segment', P.x + sgn * half, P.z + o, Math.PI / 2, 5, true);
     }
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) place('fort_corner_tower', P.x + sx * half, P.z + sz * half, 0, 5, true);
     scatter('crate_wood', 5, 10, 3, half - 4); scatter('sandbag_wall', 5, 6, 4, half - 4);

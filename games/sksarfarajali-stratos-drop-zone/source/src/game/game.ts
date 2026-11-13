@@ -83,7 +83,8 @@ export class Game {
     this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix();
   }
   private dynRes = 1;
-  private autoQuality() { if (settings.quality === 'auto') { const mobile = matchMedia('(pointer: coarse)').matches; this.effQuality = mobile ? 'low' : 'medium'; } else this.effQuality = settings.quality; this.hud.quality = this.effQuality; }
+  private autoTier: 'medium' | 'high' | null = null; private tierGood = 0; private tierBad = 0; private tierLocked = false;
+  private autoQuality() { if (settings.quality === 'auto') { const mobile = matchMedia('(pointer: coarse)').matches; this.effQuality = this.autoTier ?? (mobile ? 'low' : 'medium'); } else this.effQuality = settings.quality; this.hud.quality = this.effQuality; }
   effQuality: 'low' | 'medium' | 'high' | 'auto' = 'medium';
   /** Re-reads the graphics setting: resolution, and real shadows on High only. */
   applyQuality() {
@@ -218,6 +219,11 @@ export class Game {
   setPaused(p: boolean) { this.paused = p; if (p) exitPointerLock(); }
   private adaptResolution() {
     if (settings.quality !== 'auto') { this.dynRes = 1; return; }
+    // Auto: a desktop that holds 58+ FPS for 6 seconds at Medium moves up to High (real shadows). If High then drops under 42 FPS for 3 seconds it goes back and stays there.
+    if (this.phase !== 'menu' && !this.paused && !matchMedia('(pointer: coarse)').matches) {
+      if (!this.tierLocked && this.autoTier === null) { this.tierGood = this.fps >= 58 && this.dynRes >= 1 ? this.tierGood + 1 : 0; if (this.tierGood >= 6) { this.autoTier = 'high'; this.tierGood = 0; this.applyQuality(); } }
+      else if (this.autoTier === 'high') { this.tierBad = this.fps < 42 ? this.tierBad + 1 : 0; if (this.tierBad >= 3) { this.autoTier = 'medium'; this.tierLocked = true; this.tierBad = 0; this.applyQuality(); } }
+    }
     if (this.fps < 28 && this.dynRes > 0.6) { this.dynRes -= 0.1; this.applyResolution(); } else if (this.fps > 52 && this.dynRes < 1) { this.dynRes = Math.min(1, this.dynRes + 0.05); this.applyResolution(); }
   }
   private menuT = 0;

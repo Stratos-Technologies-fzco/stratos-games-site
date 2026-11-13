@@ -18,13 +18,15 @@ export interface BotEnv {
 /** Walkable grid built once from collider data. */
 export class NavGrid {
   blocked = new Uint8Array((GRID - 1) * (GRID - 1)); n = GRID - 1;
+  /** Cells with a little wall or tower in them: not blocked, but the planner avoids them so paths do not squeeze through gaps too narrow for a character. */
+  risky = new Uint8Array((GRID - 1) * (GRID - 1));
   constructor(colliders: Colliders, terrain: Terrain) {
     for (let iz = 0; iz < this.n; iz++) for (let ix = 0; ix < this.n; ix++) {
       const x = (ix + 0.5) * CELL - HALF, z = (iz + 0.5) * CELL - HALF, h = terrain.height(x, z);
       if (coastDist(x, z) < 1.5 || terrain.slope(x, z) > 1.1) { this.blocked[iz * this.n + ix] = 1; continue; }
       let cover = 0; const x0 = x - CELL / 2, x1 = x + CELL / 2, z0 = z - CELL / 2, z1 = z + CELL / 2;
       colliders.near(x0, z0, x1, z1, (b) => { if (b.y1 < h + 0.6 || b.y0 > h + 1.8) return; const w = Math.min(x1, b.x1) - Math.max(x0, b.x0), d = Math.min(z1, b.z1) - Math.max(z0, b.z0); if (w > 0 && d > 0) cover += w * d; });
-      if (cover > CELL * CELL * 0.55) this.blocked[iz * this.n + ix] = 1;
+      if (cover > CELL * CELL * 0.55) this.blocked[iz * this.n + ix] = 1; else if (cover > CELL * CELL * 0.08) this.risky[iz * this.n + ix] = 1;
     }
   }
   cell(x: number, z: number): [number, number] { return [Math.max(0, Math.min(this.n - 1, Math.floor((x + HALF) / CELL))), Math.max(0, Math.min(this.n - 1, Math.floor((z + HALF) / CELL)))]; }
@@ -44,7 +46,7 @@ export class NavGrid {
       for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
         if (!dx && !dz) continue; const nx = cx + dx, nz = cz + dz; if (nx < 0 || nz < 0 || nx >= n || nz >= n) continue; const ni = nz * n + nx;
         if (this.blocked[ni] || closed.has(ni)) continue; if (dx && dz && (this.blocked[cz * n + nx] || this.blocked[nz * n + cx])) continue;
-        const ng = (g.get(cur) ?? 0) + (dx && dz ? 1.414 : 1); if (ng < (g.get(ni) ?? 1e9)) { g.set(ni, ng); f.set(ni, ng + hfn(ni)); from.set(ni, cur); if (!open.includes(ni)) open.push(ni); }
+        const ng = (g.get(cur) ?? 0) + (dx && dz ? 1.414 : 1) * (this.risky[ni] ? 4 : 1); if (ng < (g.get(ni) ?? 1e9)) { g.set(ni, ng); f.set(ni, ng + hfn(ni)); from.set(ni, cur); if (!open.includes(ni)) open.push(ni); }
       }
     }
     return null;
@@ -55,7 +57,7 @@ const TIER_W: Record<Tier, number> = { low: 3, mid: 2.5, high: 1.5, top: 1 };
 export class BotBrain {
   state: BotState = 'drop'; stateT = 0; target: Actor | null = null; seenT = 0; react = 0.5; pathPts: [number, number][] = []; pathAt = -9; goal: [number, number] = [0, 0];
   strafe = 1; strafeT = 0; lootGoal: GroundItem | null = null; dropPoi = 0; jumpAt = 0; landedAt = 0; difficulty: 'easy' | 'normal' | 'hard'; aimT = 0; barrierT = 0; stuckT = 0; lx = 0; lz = 0; name: string;
-  lastCmd: Cmd | null = null; lt = 0; nudge = 1; escUntil = 0; escAng = 0; escIdx = 0; invPt: [number, number] | null = null; invUntil = 0; invAt = -99; slotLock = 0; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
+  lastCmd: Cmd | null = null; bad = new Map<number, number>(); lt = 0; nudge = 1; escUntil = 0; escAng = 0; escIdx = 0; invPt: [number, number] | null = null; invUntil = 0; invAt = -99; slotLock = 0; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
   constructor(rand: () => number, difficulty: 'easy' | 'normal' | 'hard', public nav: NavGrid) {
     this.difficulty = difficulty; this.name = BOT_NAMES[Math.floor(rand() * BOT_NAMES.length)];
     let tot = 0; const ws = POIS.map((p) => (tot += TIER_W[p.tier])); const r = rand() * tot; this.dropPoi = ws.findIndex((w) => r < w); this.jumpAt = 4 + rand() * 20;
@@ -71,7 +73,7 @@ export class BotBrain {
     // blocked? Judged over 1 s windows so jitter against a wall still counts. Each time we are stuck we try a new escape direction for 1.5 s.
     if (env.time - this.lt > 1.0) {
       const moved = Math.hypot(a.body.x - this.lx, a.body.z - this.lz), escaping = env.time < this.escUntil + 0.2;
-      if (moved < 1.0 && (cmd.dx || cmd.dz) && !escaping) { this.stuckT += 1; this.escAng = Math.atan2(cmd.dx, cmd.dz) + ++this.escIdx * 0.8; this.escUntil = env.time + 2.2; if (this.stuckT >= 3) { this.pathPts = []; this.pathAt = -9; this.lootGoal = null; this.patrolGoal = null; } if (this.stuckT >= 7) { this.rescue(a, env); this.stuckT = 0; this.escIdx = 0; } }
+      if (moved < 1.0 && (cmd.dx || cmd.dz) && !escaping) { this.stuckT += 1; this.escAng = Math.atan2(cmd.dx, cmd.dz) + ++this.escIdx * 0.8; this.escUntil = env.time + 2.2; if (this.stuckT >= 3) { if (this.lootGoal) this.bad.set(this.lootGoal.id, env.time + 40); this.pathPts = []; this.pathAt = -9; this.lootGoal = null; this.patrolGoal = null; } if (this.stuckT >= 7) { this.rescue(a, env); this.stuckT = 0; this.escIdx = 0; } }
       else if (moved >= 1.0 && !escaping) { this.stuckT = 0; this.escIdx = 0; } else if (escaping && moved >= 2.0) { this.pathAt = -9; this.stuckT = 0; }
       this.lx = a.body.x; this.lz = a.body.z; this.lt = env.time;
     }
@@ -212,6 +214,8 @@ export class BotBrain {
     const z = env.zone; let best: GroundItem | null = null, bs = -1e9;
     for (const it of env.items) {
       if (it.taken) continue; const dist = Math.hypot(it.x - a.body.x, it.z - a.body.z); if (dist > 120) continue;
+      if ((this.bad.get(it.id) ?? 0) > env.time) continue; // could not reach it a moment ago
+      if (!it.crate && it.y - env.terrain.height(it.x, it.z) > 2.2) continue; // rooftop loot: bots cannot climb the outside stairs
       if (z && env.time - this.landedAt > 20 && Math.hypot(it.x - z.nextCx, it.z - z.nextCz) > z.nextRadius + 25) continue;
       let w = 0;
       for (const x of it.items) {

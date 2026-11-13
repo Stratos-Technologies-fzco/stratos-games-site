@@ -17,6 +17,13 @@ describe('island', () => {
     const lt = toWorld(430, 205); expect(w.placements.some((p) => p.model === 'watch_tower' && Math.hypot(p.x - lt[0], p.z - lt[1]) < 2)).toBe(true);
     expect(w.placements.filter((p) => p.model === 'fishing_boat' && p.poi === 0).length).toBeGreaterThanOrEqual(1);
   });
+  it('has gates in the Old Sea Fort so its loot and kiosk can be reached', () => {
+    expect(w.placements.filter((p) => p.model === 'fort_wall_segment').length).toBe(13); // 16 segments minus 3 gates
+    const P = POIS[4]; const open = (sx: number, sz: number) => { const b: Body = { x: sx, y: w.terrain.height(sx, sz), z: sz, vy: 0, onGround: true, crouch: false }; for (let i = 0; i < 260; i++) { const tx = P.x - b.x, tz = P.z - b.z, l = Math.hypot(tx, tz) || 1; stepBody(col, b, { dx: tx / l, dz: tz / l, speed: 4.5, jump: i % 30 === 0, crouch: false }, 1 / 30); if (l < 5) return true; } return false; };
+    let south = false, north = false, east = false;
+    for (let d = -12; d <= 12; d += 2) { south ||= open(P.x - 5 + d, P.z + 32); north ||= open(P.x - 5 + d, P.z - 32); east ||= open(P.x + 32, P.z - 5 + d); }
+    expect(south && north && east).toBe(true);
+  });
   it('has a river', () => { const [x, z] = toWorld(300, 420); expect(inRiver(x, z)).toBe(true); });
   it('generates 12-30 loot spawns per location', () => {
     const loot = generateLoot(w, (x, z, y) => col.surfaceBelow(x, z, y), (x, z, y) => col.blocked(x, z, y));
