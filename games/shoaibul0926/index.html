@@ -506,7 +506,7 @@ function updateEnemies(dt){
       } else if(mode==='push'){
         if(dist>ar*0.35){ dvx=dxp/(dist||1)*e.speed; dvy=dyp/(dist||1)*e.speed; }
       } else {
-        if(dist>ar){ dvx=dxp/(dist||1)*e.speed; dvy=dyp/(dist||1)*e.speed; }
+        if(dist>ar*0.45){ dvx=dxp/(dist||1)*e.speed; dvy=dyp/(dist||1)*e.speed; }
       }
       var a2=Math.min(8*dt,1);
       e.vx+=(dvx-e.vx)*a2; e.vy+=(dvy-e.vy)*a2;

@@ -1,1 +1,23 @@
-{"title": "Skyfall Armada", "maker": "Shoaibul Hoque", "one_line": "Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles.", "category": "arcade", "github": "shoaibul0926", "how_to_play": "Move with the left stick, aim with the right stick, and hold FIRE to shoot (desktop: WASD, mouse to aim, click or Space to fire)."}
+{
+  "title": "Skyfall Armada",
+  "maker": "Shoaibul Hoque",
+  "one_line": "Command a flying warship, destroy enemy fleets, and rule the skies in fast-paced aerial battles.",
+  "category": "arcade",
+  "github": "shoaibul0926",
+  "how_to_play": "Move with the left stick, aim with the right stick, and hold FIRE to shoot (desktop: WASD, mouse to aim, click or Space to fire).",
+  "description": "Skyfall Armada is a fast arcade shooter. You fly a lone warship against an enemy fleet that pours in from every edge of the sky. Move anywhere, aim in any direction and keep firing.\n\nThe battle has five waves, each tougher than the last. Some enemy ships dive straight at you, some fire spreads of bullets, some launch homing missiles and some hide behind shields. Between waves you pick one of three upgrades, drawn at random from six kinds: more damage, faster fire, more health, a stronger shield, more speed or faster shots, so every run builds a different ship.\n\nSwitch between four weapons at any time: Laser Cannon, Plasma Cannon, Missile Launcher and Railgun. The last wave brings the armada's boss, a huge warship that fires bursts of bullets.\n\nIf your ship goes down, you get one second chance per run. Your best score is saved, and new ships unlock as you go further: the Viper at wave 2, the Phantom at wave 4 and the Ace when you defeat the armada. There is always a better score to beat.",
+  "controls": [
+    "Phone: left stick moves, right stick aims, hold FIRE to shoot",
+    "Computer: WASD or arrow keys to move, mouse to aim, click or Space to fire",
+    "Keys 1 to 4 (or the weapon buttons) switch weapons",
+    "P or Esc pauses"
+  ],
+  "tips": [
+    "Keep moving: enemies come from every side",
+    "Shoot the ships that dive at you before they reach you",
+    "Shielded ships recover, so keep firing until they break",
+    "Health and shield upgrades help most against the boss",
+    "Reach wave 2 and wave 4 to unlock new ships"
+  ],
+  "story": "I wanted a quick arcade shooter I could jump into between other things, so I built Skyfall Armada piece by piece — enemies, weapons, then upgrades — testing each wave as I went until the fights felt tough but fair. The second-chance revive and the ship unlocks came later, once I saw how often I wanted \"one more run\" myself."
+}
