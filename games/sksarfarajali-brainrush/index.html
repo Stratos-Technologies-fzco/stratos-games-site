@@ -9,6 +9,46 @@
 <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <title>BrainRush Daily</title>
+  <script id="sg-stratos-analytics">
+  /* Stratos analytics (added Nov 2026 on Sahariar's OK so the game can stay live on stratos.games; the game code is untouched).
+     level_start: a puzzle run opens (the game's "screen play" appears).
+     level_complete: the game saves a finished run (a new daily result in "sessions", or one more practice round). */
+  (function () {
+    function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+    var KEY = 'brainrush:v1';
+    function tally(json) {
+      var d = {}; try { d = JSON.parse(json || '{}') || {}; } catch (e) {}
+      var s = d.sessions || {}, p = d.practice || {}, daily = 0, practice = 0, last = null;
+      Object.keys(s).forEach(function (k) { var x = s[k]; if (x && x.completedAt) { daily++; if (!last || x.completedAt > last.completedAt) last = x; } });
+      Object.keys(p).forEach(function (k) { practice += (p[k] && p[k].rounds) || 0; });
+      return { daily: daily, practice: practice, last: last };
+    }
+    var seen; try { seen = tally(localStorage.getItem(KEY)); } catch (e) { seen = tally(null); }
+    try {
+      var setItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k, v) {
+        var out = setItem.apply(this, arguments);   // the game's own save happens first, exactly as before
+        try {
+          if (k === KEY && this === window.localStorage) {
+            var now = tally(v);
+            if (now.daily > seen.daily) track('level_complete', { mode: 'daily', score: now.last && now.last.score, accuracy: now.last && now.last.accuracy });
+            if (now.practice > seen.practice) track('level_complete', { mode: 'practice' });
+            seen = now;
+          }
+        } catch (e) {}
+        return out;
+      };
+    } catch (e) {}
+    function watch() {
+      new MutationObserver(function (ms) {
+        ms.forEach(function (m) { [].forEach.call(m.addedNodes, function (n) {
+          if (n.nodeType === 1 && (n.matches('.screen.play') || n.querySelector('.screen.play'))) track('level_start');
+        }); });
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+    if (document.body) watch(); else document.addEventListener('DOMContentLoaded', watch);
+  })();
+  </script>
   <script type="module" crossorigin src="./assets/index-DVU3GYhR.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-kUfVW6Ge.css">
 </head>

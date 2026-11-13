@@ -96,9 +96,15 @@ export function refreshHints() {
 }
 
 // ---- privacy-friendly anonymous events: kept on device, handed to the portal if it listens ----
+// Stratos analytics (added Nov 2026 on Sahariar's OK so the game can stay live on stratos.games):
+// every moment also goes to Stratos; round starts and ends use the names every Stratos game uses.
+const STRATOS_NAME = { tutorial_start: 'level_start', daily_start: 'level_start', round_start: 'level_start', daily_complete: 'level_complete', round_complete: 'level_complete' };
+function stratos(name, details) { try { const St = window.Stratos || parent.Stratos; if (St) St.track(name, details); } catch (e) {} }
+
 export function track(name, props = {}) {
   S.events.push({ name, ...props, t: Math.floor(nowMs() / 1000) });
   if (S.events.length > 200) S.events.splice(0, S.events.length - 200);
   save('events');
   try { window.dispatchEvent(new CustomEvent('babelharbour:event', { detail: { name, ...props } })); } catch (e) {}
+  stratos(STRATOS_NAME[name] || name, props);
 }
