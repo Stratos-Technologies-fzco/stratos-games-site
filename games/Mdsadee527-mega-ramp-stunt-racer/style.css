@@ -212,6 +212,7 @@ html, body {
 #touch-brake { width: 56px; height: 56px; bottom: 100px; right: 90px; font-size: 0.75em; }
 .touch-btn.gas { width: 76px; height: 76px; bottom: 30px; right: 16px; font-size: 0.85em; background: rgba(77,201,255,0.25); }
 .touch-btn.boost { width: 64px; height: 64px; bottom: 110px; right: 20px; font-size: 0.7em; background: rgba(255,92,122,0.3); }
+.touch-btn.reset { width: 52px; height: 52px; top: 14px; right: 16px; font-size: 1.3em; background: rgba(255,196,92,0.3); }
 
 @media (hover: none) and (pointer: coarse) {
   #touch-controls:not(.hidden) { display: block; }
