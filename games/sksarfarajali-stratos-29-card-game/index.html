@@ -69,6 +69,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 .bidbtn:disabled{background:#0E1714;color:#4F625A;border-color:#18241F;cursor:not-allowed}
 .bidbtn[aria-pressed=true]{background:var(--gold);color:#1B1608;border:2px solid var(--gold)}
 #stage button,#stage a,#stage input,#stage label,#stage select{pointer-events:auto}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1);opacity:1}100%{transform:scale(1)}}.pop{animation:pop .7s ease-out}
 .toast{position:absolute;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(8,18,14,.94);border:1px solid var(--rail);font:600 14px var(--bf);z-index:30;white-space:nowrap;animation:pop .25s}
 .coach{position:absolute;left:50%;transform:translateX(-50%);max-width:620px;padding:12px 16px;border-radius:14px;background:#1B3A2E;border:1px solid var(--gold);z-index:25;font-size:14px;line-height:1.4;display:flex;gap:12px;align-items:flex-start}
 .m .coach{max-width:350px;font-size:12.5px;padding:10px 12px}
@@ -204,6 +205,7 @@ function sfx(n) {
     else if (n === 'bid') { tone(392, 0, 0.18, 'sine', 0.05); tone(523, 0.1, 0.22, 'sine', 0.04); }
     else if (n === 'trump') { tone(523, 0, 0.3, 'sine', 0.05); tone(659, 0.12, 0.3, 'sine', 0.045); tone(784, 0.24, 0.45, 'sine', 0.04); }
     else if (n === 'trick') { tone(330, 0, 0.14, 'sine', 0.04); tone(440, 0.08, 0.18, 'sine', 0.04); }
+    else if (n === 'rwin') { [392, 523, 659, 784].forEach(function (f, i) { tone(f, i * 0.09, 0.35, 'sine', 0.05); }); [523, 659, 784].forEach(function (f) { tone(f, 0.4, 0.7, 'sine', 0.04); }); }
     else if (n === 'tw') { tone(523, 0, 0.12, 'sine', 0.07); tone(659, 0.09, 0.14, 'sine', 0.07); tone(880, 0.18, 0.26, 'sine', 0.06); }
     else if (n === 'tl') { tone(294, 0, 0.16, 'triangle', 0.05); tone(247, 0.11, 0.22, 'triangle', 0.045); }
     else if (n === 'win') { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.14, 0.5, 'sine', 0.05); }); }
@@ -691,7 +693,7 @@ function resultHTML() {
   var over = M.over, won = over && M.winner === 0;
   var head = A.mode === 'demo' ? (r.success ? 'Bid made!' : 'Bid failed') : over ? (won ? 'Victory!' : 'Defeat') : (r.success ? 'Bid made!' : 'Bid failed');
   var sub = teamName(r.bidTeam) + ' bid ' + r.bid + (r.target !== r.bid ? ' (target ' + r.target + ' after pair)' : '') + ' with trump ' + sym(r.trump) + ' ' + E.SUIT_NAME[r.trump] + ' and collected ' + r.points[r.bidTeam] + ' points' + (r.mult > 1 ? ' · stakes ×' + r.mult : '');
-  var conf = ''; if (over && won && S.anim !== 'Off') for (var i = 0; i < 30; i++) conf += '<i class="cf" style="left:' + (i * 3.4) + '%;background:' + ['#E9C46A', '#5AA9E6', '#F29E4C', '#6FC3A0'][i % 4] + ';animation-delay:' + ((i * 0.37) % 2.5) + 's"></i>';
+  var conf = ''; var nconf = A.mode === 'demo' ? 0 : over ? (won ? 30 : 0) : (mine ? 18 : 0); if (nconf && S.anim !== 'Off') for (var i = 0; i < nconf; i++) conf += '<i class="cf" style="left:' + (i * 100 / nconf) + '%;background:' + ['#E9C46A', '#5AA9E6', '#F29E4C', '#6FC3A0'][i % 4] + ';animation-delay:' + ((i * 0.37) % 2.5) + 's"></i>';
   var lvlup = '';
   if (A.mode === 'play' && !M.over && mine && G.teamPts[0] >= 20 && !A.ui.lvlDone && E.LEVELS.indexOf(A.level) < E.LEVELS.length - 1) {
     var nx = E.LEVELS[E.LEVELS.indexOf(A.level) + 1];
@@ -699,7 +701,7 @@ function resultHTML() {
   }
   var daily = A.mode === 'daily' ? '<div class="row" style="justify-content:center;gap:8px;padding:10px;border-radius:12px;background:#1B3A2E;color:var(--gold);font-weight:600">🔥 Daily streak: ' + DAILY.streak + ' day' + (DAILY.streak === 1 ? '' : 's') + (dailyState() && dailyState().won ? ' · Today’s deal won!' : ' · Come back tomorrow for a new deal') + '</div>' : '';
   return '<div class="modal" style="pointer-events:auto;overflow:hidden">' + conf + '<section class="panel col" role="dialog" aria-modal="true" style="width:' + (m ? 360 : 860) + 'px;padding:' + (m ? 18 : 30) + 'px;gap:' + (m ? 10 : 16) + 'px;position:relative;border-color:' + (over ? (won ? 'var(--gold)' : '#8a3a2a') : 'var(--rail)') + '">' +
-    '<div class="col" style="gap:4px"><span class="gold lbl" style="letter-spacing:.14em">' + (A.mode === 'demo' ? 'DEMO ROUND COMPLETE' : A.mode === 'daily' ? 'DAILY DEAL' : 'ROUND ' + M.round + ' COMPLETE') + '</span><h2 class="hf" style="margin:0;font-size:' + (m ? 30 : 40) + 'px;color:' + (over ? (won ? 'var(--gold)' : '#F0A07A') : (mine ? '#6FC3A0' : '#F0A07A')) + '">' + head + '</h2><span class="mute" style="font-size:' + (m ? 13 : 15) + 'px">' + sub + '</span></div>' +
+    '<div class="col" style="gap:4px"><span class="gold lbl" style="letter-spacing:.14em">' + (A.mode === 'demo' ? 'DEMO ROUND COMPLETE' : A.mode === 'daily' ? 'DAILY DEAL' : 'ROUND ' + M.round + ' COMPLETE') + '</span><h2 class="hf' + (mine || (over && won) ? ' pop' : '') + '" style="margin:0;font-size:' + (m ? 30 : 40) + 'px;color:' + (over ? (won ? 'var(--gold)' : '#F0A07A') : (mine ? '#6FC3A0' : '#F0A07A')) + '">' + head + '</h2><span class="mute" style="font-size:' + (m ? 13 : 15) + 'px">' + sub + '</span></div>' +
     '<div class="row" style="gap:12px;' + (m ? 'flex-direction:column' : '') + '">' + tm(0) + tm(1) + '</div>' +
     '<div class="col" style="gap:6px"><span class="lbl">Trick by trick</span><div class="row" style="gap:5px;flex-wrap:wrap">' + tricks + '</div></div>' +
     (A.mode === 'demo' ? '' : A.mode === 'daily' ? daily : '<div class="row" style="justify-content:space-between;padding:12px 16px;border-radius:14px;background:#12201B;border:1px solid var(--line)"><span class="lbl">Game score · first to ' + M.rules.targetScore + '</span><b class="hf" style="font-size:' + (m ? 18 : 22) + 'px"><span style="color:#9CCBF0">Team A ' + M.scores[0] + '</span> — <span style="color:#F6B97C">' + M.scores[1] + ' Team B</span></b><span class="gold" style="font-size:13px;font-weight:600">' + (r.delta > 0 ? '+' : '') + r.delta + ' to ' + teamName(r.bidTeam) + '</span></div>') +
@@ -1021,7 +1023,7 @@ function guestResultMaybe() {
   var m = Net.lastM, G = A.G;
   if (m && m.fin && G && G.phase === 'done' && A.ui.modal !== 'result') {
     var M = A.M, r = G.result;
-    sfx(M.over ? (M.winner === 0 ? 'win' : 'lose') : ((r.success === (r.bidTeam === 0)) ? 'trick' : 'lose'));
+    sfx(M.over ? (M.winner === 0 ? 'win' : 'lose') : ((r.success === (r.bidTeam === 0)) ? 'rwin' : 'lose'));
     A.ui.modal = 'result';
   }
 }
@@ -1203,7 +1205,7 @@ function finishRound() {
   var G = A.G, M = A.M, r = G.result;
   if (A.mode === 'online') {
     E.applyRound(M, r); track('level_complete', { mode: 'online', round: M.round, bid: r.bid, made: r.success });
-    if (M.over) { sfx(M.winner === 0 ? 'win' : 'lose'); track('game_over', { mode: 'online', won: M.winner === 0 }); } else sfx((r.success === (r.bidTeam === 0)) ? 'trick' : 'lose');
+    if (M.over) { sfx(M.winner === 0 ? 'win' : 'lose'); track('game_over', { mode: 'online', won: M.winner === 0 }); } else sfx((r.success === (r.bidTeam === 0)) ? 'rwin' : 'lose');
     A.ui.modal = 'result'; render(); return;
   }
   if (A.mode === 'demo') { track('demo_complete', { made: r.success }); sfx('trick'); A.ui.modal = 'result'; render(); return; }
@@ -1234,7 +1236,7 @@ function finishRound() {
       ST.history.push({ date: dayKey(), mode: 'Vs AI', ai: A.aiLevel, won: won, score: M.scores[0] + '–' + M.scores[1] }); ST.history = ST.history.slice(-30);
     }
     track('game_over', { mode: A.mode, won: won, score_a: M.scores[0], score_b: M.scores[1] });
-  } else sfx(roundWon ? 'trick' : 'lose');
+  } else sfx(roundWon ? 'rwin' : 'lose');
   save('stats', ST);
   A.ui.modal = 'result'; render();
 }
