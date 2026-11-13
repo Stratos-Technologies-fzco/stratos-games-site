@@ -291,6 +291,7 @@ function ptrn(html) { return '<div style="pointer-events:none;position:absolute;
 
 /* ---------- render ---------- */
 function render() {
+  dlEnsure();
   applyTheme();
   if (A.screen === 'lobby') { clearRegions(['lobby', 'modal', 'toast']); region('lobby', lobbyHTML()); }
   else if (A.screen === 'settings') { clearRegions(['settings', 'modal', 'toast']); region('settings', settingsHTML()); }
@@ -512,6 +513,11 @@ function handHTML() {
   return '<div class="abs row" style="pointer-events:auto;left:0;right:0;' + (m ? 'top:590px;justify-content:center;padding-left:' + (hand.length < 8 ? 0 : 12) + 'px' : 'bottom:' + (G.phase === 'bidding' || G.phase === 'trump' ? 96 : 92) + 'px;justify-content:center;gap:10px') + '">' + cards + '</div>';
 }
 function turnText() {
+  var t = turnText0();
+  if (A.ui.dl && t && !A.ui.trickShow) t += ' \u00B7 ' + Math.max(0, Math.ceil((A.ui.dl.at - Date.now()) / 1000)) + 's';
+  return t;
+}
+function turnText0() {
   var G = A.G;
   if (A.ui.trickShow) return 'Next trick…';
   if (G.phase === 'bidding') return hu(G.turn) ? 'Your bid' : 'Waiting for ' + seatName(G.turn);
@@ -753,7 +759,16 @@ function applySeatNames() {
 }
 function resetSeatNames() { SEAT.forEach(function (s, i) { s.name = SEAT_DEFAULT[i].name; s.ini = SEAT_DEFAULT[i].ini; delete s.tag; }); }
 
+var TURN = { bidding: 30000, trump: 30000, double: 20000, play: 30000, afk: 10000 };
+function saveNet() {
+  if (Net.role !== 'guest' || !Net.kp) return;
+  crypto.subtle.exportKey('jwk', Net.kp.privateKey).then(function (priv) { save('net', { code: Net.code, pid: Net.me, priv: priv, pub: Net.myPub, ts: Date.now() }); }).catch(function () {});
+}
+function loadNet() { var v = load('net', null); return (v && v.code && v.pid && v.priv && v.pub && Date.now() - v.ts < 3 * 3600 * 1000) ? v : null; }
+function clearSaved() { try { localStorage.removeItem('s29_net'); } catch (e) {} }
+
 var Net = {
+  pubs: {}, idle: {}, an: null, anId: 0, lastAn: undefined, pending: null, rejoining: false,
   client: null, role: null, code: null, me: rid(), token: {}, timers: [], roster: [], keys: {}, seen: {}, kp: null, myPub: null, hpub: null, hkey: null, hostPid: null,
   joined: false, deriving: false, started: false, ver: 0, seats: [], my: 0, status: '', codeText: '', lastSig: null, lastSync: {}, hostSeen: 0, queued: null, lastM: null, copied: false,
   setStatus: function (t) { this.status = t; if (A.ui.modal === 'online') render(); },
@@ -837,7 +852,26 @@ var Net = {
     var t0 = Date.now(); this.hostSeen = Date.now(); var nm = cleanName(S.name);
     var beat = function () {
       if (!Net.joined) { if (Date.now() - t0 > 25000) { Net.close(); Net.setStatus('Room not found. Check the code, and ask your friend to keep the room open.'); return; } Net.send({ t: 'hello', name: nm, pub: Net.myPub }, 0); }
-      else { if (Date.now() - Net.hostSeen > 30000) { leaveNet('Lost connection to the host.'); return; } Net.send({ t: 'ping', ver: Net.ver }, 0); }
+      else { if (Date.now() - Net.hostSeen > 30000) { leaveNet('Lost connection to the host.', true); return; } Net.send({ t: 'ping', ver: Net.ver }, 0); }
+    };
+    beat(); this.every(beat, 2000);
+  },
+  rejoin: async function () {
+    var sv = loadNet(); if (!sv) { this.pending = null; render(); return; }
+    if (!this.secure()) return; this.close(true); var token = this.token; this.setStatus('Reconnecting…');
+    try { await this.loadLib(); } catch (e) { this.setStatus('Online play could not load. Check your internet and try again.'); return; }
+    try { this.kp = { privateKey: await crypto.subtle.importKey('jwk', sv.priv, { name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']) }; }
+    catch (e) { clearSaved(); this.pending = null; this.setStatus('Could not restore your seat.'); return; }
+    this.myPub = sv.pub; this.me = sv.pid;
+    var b = brokerOf(sv.code), c;
+    try { c = await this.connect(BROKERS[b], NROOT + sv.code + '/all', function (d) { if (token === Net.token) Net.onData(d); }); }
+    catch (e) { if (token === this.token) this.setStatus('Could not reach the game relay. Check your internet and try again.'); return; }
+    if (token !== this.token) { c.end(true); return; }
+    this.client = c; this.code = sv.code; this.role = 'guest'; this.rejoining = true; this.hostSeen = Date.now();
+    var t0 = Date.now(), nm = cleanName(sv.name || S.name);
+    var beat = function () {
+      if (!Net.joined) { if (Date.now() - t0 > 25000) { Net.close(); Net.setStatus('That room is no longer open.'); return; } Net.send({ t: 'hello', name: nm, pub: Net.myPub, re: 1 }, 0); }
+      else { if (Date.now() - Net.hostSeen > 30000) { leaveNet('Lost connection to the host.', true); return; } Net.send({ t: 'ping', ver: Net.ver }, 0); }
     };
     beat(); this.every(beat, 2000);
   },
@@ -854,13 +888,18 @@ var Net = {
     switch (d.t) {
       case 'hello': {
         if (this.role !== 'host') return;
-        var known = this.roster.some(function (p) { return p.pid === d.from; });
-        if (known) { if (this.started) this.pushTo(d.from); return; }
+        var known = this.roster.some(function (p) { return p.pid === d.from; }) || seatOfPid(d.from) > 0;
+        if (known) {
+          if (!d.pub || this.pubs[d.from] !== d.pub.x + '.' + d.pub.y || !this.keys[d.from]) return;
+          this.send({ t: 'welcome', to: d.from, hpub: this.hpub });
+          if (this.started) setTimeout(function () { self.pushTo(d.from); }, 400);
+          return;
+        }
         if (this.started || this.roster.length >= 4) { this.send({ t: 'reject', to: d.from, why: this.started ? 'That game already started. Ask the host to make a new room.' : 'The room is full (4 players max).' }); return; }
         var nm = cleanName(d.name);
         CR.derive(this.kp.privateKey, d.pub).then(function (k) {
           if (self.started || self.roster.length >= 4 || self.roster.some(function (p) { return p.pid === d.from; })) return;
-          self.keys[d.from] = k; self.roster.push({ pid: d.from, name: nm }); sfx('bid'); self.pushLobby();
+          self.keys[d.from] = k; self.pubs[d.from] = d.pub.x + '.' + d.pub.y; self.roster.push({ pid: d.from, name: nm }); sfx('bid'); self.pushLobby();
         }).catch(function () {});
         break;
       }
@@ -871,11 +910,19 @@ var Net = {
         if (this.roster.some(function (p) { return p.pid === self.me; })) {
           if (!this.joined && !this.deriving) {
             this.deriving = true;
-            CR.derive(this.kp.privateKey, d.hpub).then(function (k) { self.hkey = k; self.joined = true; self.deriving = false; self.status = ''; self.stage = 'lobby'; track('online_joined', {}); A.ui.modal = 'online'; if (A.screen !== 'lobby') { A.screen = 'lobby'; } render(); }).catch(function () { self.deriving = false; });
+            CR.derive(this.kp.privateKey, d.hpub).then(function (k) { self.hkey = k; self.joined = true; self.deriving = false; self.status = ''; self.stage = 'lobby'; track('online_joined', {}); saveNet(); A.ui.modal = 'online'; if (A.screen !== 'lobby') { A.screen = 'lobby'; } render(); }).catch(function () { self.deriving = false; });
           } else if (this.joined && !this.started && A.ui.modal === 'online') render();
         }
         break;
       }
+      case 'welcome':
+        if (this.role !== 'guest' || this.joined || d.to !== this.me || !this.kp) return;
+        this.hostPid = d.from; this.hostSeen = Date.now();
+        if (!this.deriving) {
+          this.deriving = true;
+          CR.derive(this.kp.privateKey, d.hpub).then(function (k) { self.hkey = k; self.joined = true; self.deriving = false; self.status = ''; self.rejoining = false; saveNet(); render(); }).catch(function () { self.deriving = false; });
+        }
+        break;
       case 'reject': if (d.to === this.me && !this.joined) { var why = String(d.why || 'Could not join.'); this.close(); this.setStatus(why); } break;
       case 'enc':
         if (this.role !== 'guest' || d.to !== this.me || d.from !== this.hostPid || !this.hkey) return;
@@ -898,7 +945,9 @@ var Net = {
       case 'closed': if (this.role === 'guest' && d.from === this.hostPid) leaveNet('The host closed the room.'); break;
     }
   },
-  close: function () {
+  close: function (keep) {
+    if (!keep) { clearSaved(); this.pending = null; this.me = rid(); }
+    this.pubs = {}; this.idle = {}; this.rejoining = false;
     this.token = {}; this.timers.forEach(clearInterval); this.timers = [];
     var c = this.client; this.client = null;
     if (c) { try { c.publish(NROOT + this.code + '/all', JSON.stringify({ t: this.role === 'host' ? 'closed' : 'bye', from: this.me }), { qos: 0 }); } catch (e) {} setTimeout(function () { try { c.end(true); } catch (e) {} }, 300); }
@@ -906,10 +955,10 @@ var Net = {
     this.ver = 0; this.lastSync = {}; this.seats = []; this.my = 0; this.queued = null; this.lastM = null; this.lastSig = null; this.pq = null; this.copied = false;
   }
 };
-window.addEventListener('pagehide', function () { if (Net.client) Net.close(); });
+window.addEventListener('pagehide', function () { if (Net.client) Net.close(true); });
 
-function leaveNet(msg) {
-  clearTimers(); Net.close(); resetSeatNames();
+function leaveNet(msg, keep) {
+  clearTimers(); Net.close(keep); if (keep) Net.pending = loadNet(); resetSeatNames();
   A.mode = 'play'; A.screen = 'lobby'; A.G = null; A.cache = {}; A.ui = {}; if (msg) A.ui.toast = msg; render();
   if (msg) setTimeout(function () { A.ui.toast = null; render(); }, 4000);
 }
@@ -923,9 +972,28 @@ function startOnlineMatch() {
   Net.lastSig = null;
   newRound();
 }
+function dlEnsure() {
+  var G = A.G;
+  if (A.mode !== 'online' || Net.role !== 'host') return;
+  if (!G || A.screen !== 'table' || A.ui.trickShow || A.ui.modal === 'result' || ['bidding', 'trump', 'double', 'play'].indexOf(G.phase) < 0) { A.ui.dl = null; return; }
+  var p = G.turn;
+  if (!(hu(p) || isRemote(p))) { A.ui.dl = null; A.ui.dlKey = null; return; }
+  var key = [G.gid, G.phase, G.turn, G.bidLog.length, G.tricks.length, G.trick.length, G.dblStage].join(':');
+  if (A.ui.dlKey !== key) { A.ui.dlKey = key; A.ui.dl = { p: p, at: Date.now() + (Net.idle[p] >= 2 ? TURN.afk : TURN[G.phase]) }; }
+}
+setInterval(function () {
+  if (A.mode !== 'online' || A.screen !== 'table' || !A.G || !A.ui.dl) return;
+  if (Net.role === 'host' && Date.now() >= A.ui.dl.at) {
+    var p = A.ui.dl.p; Net.idle[p] = (Net.idle[p] || 0) + 1; A.ui.dl = null; A.ui.forceAI = p;
+    Net.an = { s: p, id: ++Net.anId };
+    if (p === 0) toast('Time is up: the computer played for you', 2600);
+    step(); return;
+  }
+  render();
+}, 1000);
 function netSig() {
   var G = A.G, M = A.M;
-  return [G.gid, G.phase, G.turn, G.bidLog.length, G.trick.length, G.tricks.length, G.revealed ? 1 : 0, G.pair ? 1 : 0, G.mult, G.dblStage, G.hands[0].length, M.round, M.scores.join(), A.ui.modal === 'result' ? 1 : 0, Net.seats.map(function (s) { return s.away ? 1 : 0; }).join('')].join('|');
+  return [G.gid, G.phase, G.turn, G.bidLog.length, G.trick.length, G.tricks.length, G.revealed ? 1 : 0, G.pair ? 1 : 0, G.mult, G.dblStage, G.hands[0].length, M.round, M.scores.join(), A.ui.modal === 'result' ? 1 : 0, A.ui.dl ? A.ui.dl.at : 0, Net.an ? Net.an.id : 0, Net.seats.map(function (s) { return s.away ? 1 : 0; }).join('')].join('|');
 }
 function netPush() {
   if (Net.role !== 'host' || !Net.started || !A.G || A.mode !== 'online') return;
@@ -953,13 +1021,14 @@ function viewFor(my) {
     netCanPair: E.canDeclarePair(G, my)
   };
   return { ver: Net.ver, my: my, seats: Net.seats.map(function (s) { return { n: s.name, c: !!s.cpu, a: !!s.away }; }), fin: A.ui.modal === 'result',
+    dl: A.ui.dl ? { s: r(A.ui.dl.p), left: Math.max(0, A.ui.dl.at - Date.now()) } : null, an: Net.an ? { s: r(Net.an.s), id: Net.an.id } : null,
     G: v, M: { rules: M.rules, scores: tm(M.scores), round: M.round, over: M.over, winner: M.winner === null ? null : (sw ? 1 - M.winner : M.winner), dealer: r(M.dealer) } };
 }
 /* ----- host: a guest asked to do something ----- */
 function hostAct(pid, o) {
   var G = A.G, seat = seatOfPid(pid);
   if (!G || !(seat > 0) || !o || typeof o !== 'object' || A.screen !== 'table' || A.ui.modal === 'result') return;
-  if (o.v !== Net.ver) { Net.pushTo(pid); return; }
+  if (o.v !== Net.ver || A.ui.forceAI === seat) { Net.pushTo(pid); return; }
   if (A.ui.trickShow) { o.__r = (o.__r || 0) + 1; if (o.__r < 10) later(function () { hostAct(pid, o); }, 300); return; }
   var ok = false;
   if (o.a === 'bid') { ok = E.placeBid(G, seat, +o.amount).ok; if (ok) { sfx('bid'); cap(esc(seatName(seat)) + ' bids ' + (+o.amount) + '.'); render(); step(); } }
@@ -969,7 +1038,7 @@ function hostAct(pid, o) {
   else if (o.a === 'play') { var before = G.seen.length; doPlay(seat, String(o.c)); ok = G.seen.length > before; }
   else if (o.a === 'ask') { ok = E.revealTrump(G, seat).ok; if (ok) { sfx('trump'); announce(esc(seatName(seat)) + ' asks for trump<br><span style="font-size:22px">' + sym(G.trump) + ' ' + E.SUIT_NAME[G.trump] + '</span>'); render(); } }
   else if (o.a === 'pair') { ok = E.declarePair(G, seat).ok; if (ok) { sfx('trump'); announce('Pair declared by ' + esc(seatName(seat)) + '!<br><small style="font-size:16px;color:var(--mute)">Target is now ' + G.target + '</small>'); render(); } }
-  if (!ok) Net.pushTo(pid);
+  if (ok) Net.idle[seat] = 0; else Net.pushTo(pid);
 }
 /* ----- guest: every update from the host ----- */
 function onGuestView(m) {
@@ -981,6 +1050,7 @@ function onGuestView(m) {
     A.mode = 'online'; A.screen = 'table'; A.G = null; A.ui = {}; A.cache = {};
   }
   Net.my = m.my;
+  if (m.an) { if (Net.lastAn === undefined) Net.lastAn = m.an.id; else if (m.an.id !== Net.lastAn) { Net.lastAn = m.an.id; if (m.an.s === 0) setTimeout(function () { toast('Time is up: the computer played for you', 2600); }, 300); } }
   Net.seats = m.seats.map(function (s) { return { name: cleanName(s.n), cpu: !!s.c, away: !!s.a }; });
   applySeatNames();
   guestApply(m);
@@ -989,8 +1059,10 @@ function guestApply(m) {
   if (A.ui.trickShow) { Net.queued = m; return; }
   var prev = A.G, G = m.G, fresh = !prev || prev.gid !== G.gid;
   Net.lastM = m; A.G = G; A.M = m.M;
-  if (fresh) { A.ui = { dealt: dealMap(G.hands[0], []), tags: {} }; sfx('deal'); }
+  var dlv = m.dl ? { p: m.dl.s, at: Date.now() + m.dl.left } : null;
+  if (fresh) { A.ui = { dealt: dealMap(G.hands[0], []), tags: {}, dl: dlv }; sfx('deal'); }
   else {
+    A.ui.dl = dlv;
     if (G.seen.length > prev.seen.length) { sfx('play'); A.ui.sel = null; A.ui.freshAt = G.seen.length; }
     if (G.bidLog.length > prev.bidLog.length) sfx('bid');
     if (prev.phase === 'trump' && G.phase !== 'trump') afterTrump();
@@ -1033,10 +1105,11 @@ function netAct(o) { Net.act(o); }
 function onlineHTML(wrap, m) {
   var close = '<button class="ibtn" data-act="closemodal" aria-label="Close" style="width:36px;height:36px">✕</button>';
   var inLobby = Net.role && Net.joined;
+  var rejoinBox = Net.pending ? '<div class="col" style="gap:8px;padding:12px;border-radius:12px;background:#1B3A2E;border:1px solid var(--gold)"><span style="font-size:13px">You were in room <b class="gold">' + esc(Net.pending.code) + '</b>. Rejoin to get your seat back.</span><div class="row" style="gap:8px"><button class="btn pri" data-act="netrejoin" style="flex:2;height:44px">Rejoin room</button><button class="btn" data-act="netforget" style="flex:1;height:44px">Forget</button></div></div>' : '';
   if (!inLobby) {
     return wrap('<div class="row" style="justify-content:space-between"><h2 class="hf" style="margin:0;font-size:' + (m ? 24 : 28) + 'px">Play online</h2>' + close + '</div>' +
       '<p style="margin:0;color:#D3E3DA;font-size:' + (m ? 13 : 15) + 'px;line-height:1.5">Play with up to <b>4 real players</b>. Partners sit opposite each other. Any empty seat is played by the computer and is marked AI.</p>' +
-      '<label class="col" style="gap:6px"><span style="font:600 14px var(--bf)">Your name</span><input id="nm" maxlength="12" value="' + esc(S.name) + '" data-act="name" style="height:44px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--ink);padding:0 12px;font:600 16px var(--bf);user-select:text;-webkit-user-select:text"></label>' +
+      rejoinBox + '<label class="col" style="gap:6px"><span style="font:600 14px var(--bf)">Your name</span><input id="nm" maxlength="12" value="' + esc(S.name) + '" data-act="name" style="height:44px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--ink);padding:0 12px;font:600 16px var(--bf);user-select:text;-webkit-user-select:text"></label>' +
       '<button class="btn pri" data-act="netcreate" style="height:54px;font-size:17px">Create a room</button>' +
       '<div class="mute" style="text-align:center;font-size:13px">or join a friend’s room</div>' +
       '<div class="row" style="gap:8px"><input id="jc" maxlength="5" placeholder="ROOM CODE" value="' + esc(Net.codeText) + '" autocomplete="off" style="flex:1;min-width:0;height:48px;border-radius:10px;border:1px solid #2E4A3E;background:#0D1915;color:var(--gold);padding:0 12px;font:700 20px var(--hf);letter-spacing:.2em;text-transform:uppercase;user-select:text;-webkit-user-select:text"><button class="btn" data-act="netjoin" style="height:48px;padding:0 22px">Join</button></div>' +
@@ -1103,13 +1176,15 @@ function step() {
   var G = A.G; if (!G || A.screen !== 'table' || A.ui.trickShow || A.ui.modal === 'result') return;
   if (isGuest()) return;
   var p = G.turn;
+  if (A.ui.forceAI != null && A.ui.forceAI !== p) A.ui.forceAI = null;
+  var force = A.ui.forceAI === p;
   if (G.phase === 'redeal') {
     toast('Everyone passed — redeal', 1700);
     sched(function () { A.M.dealer = (A.M.dealer + 1) % 4; newRound(); }, 1800); return;
   }
-  if (isRemote(p)) { render(); return; }
+  if (isRemote(p) && !force) { render(); return; }
   if (G.phase === 'bidding') {
-    if (hu(p)) { render(); return; }
+    if (hu(p) && !force) { render(); return; }
     sched(function () {
       if (A.G !== G || G.phase !== 'bidding' || G.turn !== p) return;
       var d = E.ai.bid(E.observe(G, p), A.aiLevel, Math.random);
@@ -1120,7 +1195,7 @@ function step() {
     }, 900 + Math.random() * 500); return;
   }
   if (G.phase === 'trump') {
-    if (hu(p)) { sfx('bid'); coachMaybe('trump'); render(); return; }
+    if (hu(p) && !force) { sfx('bid'); coachMaybe('trump'); render(); return; }
     sched(function () {
       if (A.G !== G || G.phase !== 'trump' || G.turn !== p) return;
       var o = E.observe(G, p), d = E.ai.trump(o, A.aiLevel);
@@ -1128,14 +1203,14 @@ function step() {
       afterTrump(); }, 1100); return;
   }
   if (G.phase === 'double') {
-    if (hu(p)) { coachMaybe('dbl'); render(); return; }
+    if (hu(p) && !force) { coachMaybe('dbl'); render(); return; }
     sched(function () {
       if (A.G !== G || G.phase !== 'double' || G.turn !== p) return;
       var o = E.observe(G, p), yes = G.dblStage === 'redouble' ? E.ai.redouble(o, A.aiLevel, Math.random) : E.ai.double(o, A.aiLevel, Math.random);
       applyDouble(p, yes); }, 900); return;
   }
   if (G.phase === 'play') {
-    if (hu(p)) {
+    if (hu(p) && !force) {
       var legal = E.legalCards(G, 0);
       var o0 = E.observe(G, 0);
       if (G.trick.length) coachMaybe(o0.canReveal ? 'ask' : 'follow');
@@ -1176,6 +1251,7 @@ function applyDouble(p, yes) {
 }
 function doPlay(p, card) {
   var G = A.G, before = G.tricks.length;
+  if (p === 0) Net.idle[0] = 0;
   if (isGuest()) { if (p === 0 && !A.ui.trickShow) { netAct({ a: 'play', c: card }); A.ui.sel = null; render(); } return; }
   if (A.ui.trickShow) return;
   var r = E.playCard(G, p, card);
@@ -1269,6 +1345,8 @@ var H = {
   netcreate: function () { var nm = document.getElementById('nm'); if (nm) { S.name = nm.value.slice(0, 12).trim() || 'Player'; saveS(); } ac(); Net.create(); },
   netjoin: function () { var jc = document.getElementById('jc'); if (jc) Net.codeText = jc.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); var nm = document.getElementById('nm'); if (nm) { S.name = nm.value.slice(0, 12).trim() || 'Player'; saveS(); } ac(); Net.join(Net.codeText); },
   netstart: function () { Net.startGame(); },
+  netrejoin: function () { ac(); Net.rejoin(); },
+  netforget: function () { clearSaved(); Net.pending = null; render(); },
   netleave: function () { Net.close(); A.ui.modal = null; render(); },
   netcopy: function () {
     var url = location.origin + location.pathname + '?room=' + Net.code, txt = 'Play STRATOS 29 with me! Room code: ' + Net.code + ' ' + url;
@@ -1295,17 +1373,18 @@ var H = {
   again: function () { if (A.mode === 'online') { A.ui.modal = null; if (Net.role === 'host') startOnlineMatch(); return; } var md = A.mode === 'daily' ? 'practice' : A.mode; A.ui.modal = null; startGame(md); },
   coachx: function () { A.ui.coach = null; A.ui.hintWhy = null; render(); },
   bidpick: function (d) { A.ui.bidPick = +d.v; render(); },
-  placebid: function () { var G = A.G; if (isGuest()) { netAct({ a: 'bid', amount: A.ui.bidPick }); A.ui.coach = null; return; } if (E.placeBid(G, 0, A.ui.bidPick).ok) { sfx('bid'); A.ui.coach = null; track('bid_made', { amount: A.ui.bidPick }); render(); step(); } },
-  pass: function () { var G = A.G; if (isGuest()) { netAct({ a: 'pass' }); return; } if (E.passBid(G, 0).ok) { A.ui.coach = null; render(); step(); } },
+  placebid: function () { var G = A.G; Net.idle[0] = 0; if (isGuest()) { netAct({ a: 'bid', amount: A.ui.bidPick }); A.ui.coach = null; return; } if (E.placeBid(G, 0, A.ui.bidPick).ok) { sfx('bid'); A.ui.coach = null; track('bid_made', { amount: A.ui.bidPick }); render(); step(); } },
+  pass: function () { var G = A.G; Net.idle[0] = 0; if (isGuest()) { netAct({ a: 'pass' }); return; } if (E.passBid(G, 0).ok) { A.ui.coach = null; render(); step(); } },
   trumppick: function (d) { A.ui.trumpPick = d.v; render(); },
   hidepick: function () { A.ui.hidePick = !(A.ui.hidePick === undefined ? S.hidden : A.ui.hidePick); render(); },
   confirmtrump: function () {
+    Net.idle[0] = 0;
     var G = A.G, s = A.ui.trumpPick || E.bestSuit(G.hands[0]).suit, hid = A.ui.hidePick === undefined ? S.hidden : A.ui.hidePick;
     A.ui.coach = null;
     if (isGuest()) { netAct({ a: 'trump', suit: s, hidden: !!hid }); return; }
     if (E.chooseTrump(G, 0, s, hid).ok) afterTrump();
   },
-  dbl: function (d) { A.ui.coach = null; if (isGuest()) { netAct({ a: 'dbl', yes: d.v === '1' }); return; } applyDouble(0, d.v === '1'); },
+  dbl: function (d) { A.ui.coach = null; Net.idle[0] = 0; if (isGuest()) { netAct({ a: 'dbl', yes: d.v === '1' }); return; } applyDouble(0, d.v === '1'); },
   card: function (d) {
     var G = A.G; if (!(G.phase === 'play' && hu(G.turn)) || A.ui.trickShow) return;
     var c = d.c;
@@ -1343,8 +1422,8 @@ window.addEventListener('orientationchange', fit);
 /* ---------- boot ---------- */
 $stage.className = 'd'; fit(); render();
 if (S.music) document.addEventListener('pointerdown', function once() { musicOn(true); document.removeEventListener('pointerdown', once); });
-try { var rq = new URLSearchParams(location.search).get('room'); if (rq) { Net.codeText = String(rq).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); A.ui.modal = 'online'; render(); } } catch (e) {}
-window.__S29 = { A: A, E: E, Net: Net }; // for automated checks
+try { Net.pending = loadNet(); var rq = new URLSearchParams(location.search).get('room'); if (rq) { Net.codeText = String(rq).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); A.ui.modal = 'online'; render(); } else if (Net.pending) { A.ui.modal = 'online'; render(); } } catch (e) {}
+window.__S29 = { A: A, E: E, Net: Net, TURN: TURN }; // for automated checks
 })();
 </script>
 </body>
