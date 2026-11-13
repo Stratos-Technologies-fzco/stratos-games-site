@@ -566,7 +566,14 @@ def build_play(g, fam, studio):
                  f'<a class="pk-ib pk-flag" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'
                  f'<button class="pk-ib pk-full" type="button" title="Fullscreen" aria-label="Fullscreen" onclick="var f=document.getElementById(\'game\');(f.requestFullscreen||f.webkitRequestFullscreen).call(f)">{icon("full", 18)}</button></div></div>')
         others = [x for x in fam if x["slug"] != g["slug"] and not x.get("soon")]
-        others.sort(key=lambda x: x["category"] != g["category"])   # similar games (same category) first
+        # the maker's other games first (matched by GitHub name: display names vary, e.g. "Nikhat" / "Nikhat Sultana"),
+        # then similar games (same category), then the rest. Kids game pages keep kids games first (the maker's kids
+        # games lead), so a child is never steered to a maker's shooter or card game right under a kids game.
+        owner = lambda x: (x.get("github") or x["maker"]).strip().lower()
+        if g["category"] == "kids":
+            others.sort(key=lambda x: (x["category"] != "kids", x["category"] == "kids" and owner(x) != owner(g)))
+        else:
+            others.sort(key=lambda x: (owner(x) != owner(g), x["category"] != g["category"]))
         gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
         # Phones: only the first few similar games sit between the game and its details, the rest come after the details.
         # The .pk-later tiles hide on phones and show again in the .pk-more grid, which only phones see (assets/site.css).
