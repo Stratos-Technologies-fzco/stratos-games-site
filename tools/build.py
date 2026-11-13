@@ -11,7 +11,7 @@ Reads site.json and games/*/game.json, writes:
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
-import json, os, re, html, datetime, hashlib
+import json, os, re, html, datetime, hashlib, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -83,8 +83,35 @@ def has_analytics(d):
     return (bool(re.search(r"Stratos[\s\S]{0,80}\.track\(", code)) and "level_start" in code
             and ("level_complete" in code or "game_over" in code))
 
+def first_added():
+    """The day each games/<box>/game.json first appeared in git, on any branch: {box: "YYYY-MM-DD"}.
+    A file's own time is only the checkout time (on GitHub every game looked added on build day), so git history
+    decides. A renamed box keeps the day of its first name. The builds check out the full history (fetch-depth: 0);
+    with no git at all this is {} and the file time is used."""
+    try:
+        out = subprocess.run(["git", "log", "--all", "--reverse", "-M", "--diff-filter=AR", "--format=@%as", "--name-status", "--", "games"],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60).stdout
+    except Exception:
+        return {}
+    def box(path):
+        p = path.strip().split("/")
+        return p[1] if len(p) == 3 and p[0] == "games" and p[2] == "game.json" else None
+    days, day = {}, None
+    for line in out.splitlines():
+        if line.startswith("@"):
+            day = line[1:]
+            continue
+        f = line.split("\t")
+        if not day or len(f) < 2: continue
+        if f[0].startswith("A") and box(f[1]) and box(f[1]) not in days:            # oldest first, so the first add wins
+            days[box(f[1])] = day
+        elif f[0].startswith("R") and len(f) == 3 and box(f[2]) and box(f[2]) not in days:
+            days[box(f[2])] = days.get(box(f[1]), day)                              # a renamed box keeps its first day
+    return days
+
 def load_games():
     games, problems = [], []
+    firsts = first_added()
     for slug in sorted(os.listdir(GAMES)):
         d = os.path.join(GAMES, slug)
         if not os.path.isdir(d) or slug.startswith((".", "_")): continue
@@ -109,7 +136,7 @@ def load_games():
             g["thumb"] = f"assets/covers/generated/{slug}.svg"
         g["game_url"] = f"games/{slug}/index.html"
         g["url"] = f"play/{slug}/"
-        g["added"] = g.get("added") or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
+        g["added"] = g.get("added") or firsts.get(slug) or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
         g["kind"] = "family"
         games.append(g)
     games.sort(key=lambda g: g["added"], reverse=True)
