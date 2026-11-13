@@ -219,6 +219,10 @@ export function buildWorld(seed = 20241113): WorldData {
   // 10 Mangrove Delta
   scatter('bush', 10, 22, 5, 50); scatter('broadleaf_tree', 10, 9, 8, 50); scatter('fallen_log', 10, 5, 8, 40);
   for (let i = 0; i < 3; i++) place('jetty_section', poi(10).x - 22 + i * 10, poi(10).z + 30, 0, 10, true);
+  // extra landmarks between the named places: a stone circle, a lone watch tower and beached boats
+  { const sc = toWorld(200, 250); for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; place('rock_large', sc[0] + Math.cos(a) * 9, sc[1] + Math.sin(a) * 9, a, 0, true); } place('rock_large', sc[0], sc[1], 0, 0, true); place('crate_wood', sc[0] + 2, sc[1] + 1, 0.4, 0, true); }
+  { const lt = toWorld(430, 205); place('watch_tower', lt[0], lt[1], 0.8, 0, true); place('sandbag_wall', lt[0] + 6, lt[1] + 2, 0, 0, true); place('sandbag_wall', lt[0] - 6, lt[1] - 3, Math.PI / 2, 0, true); }
+  for (let t = 0, c = 0; t < 400 && c < 3; t++) { const [bx, bz] = toWorld(592 + (rng() - 0.5) * 50, 255 + (rng() - 0.5) * 80); const cd = coastDist(bx, bz); if (cd > 3 && cd < 9 && place('fishing_boat', bx, bz, rng() * 6.28, 0)) c++; }
   // rail track
   for (let i = 0; i + 1 < RAIL.length; i++) {
     const [ax, az] = RAIL[i], [bx, bz] = RAIL[i + 1], len = Math.hypot(bx - ax, bz - az), n = Math.ceil(len / 10), yaw = Math.atan2(bx - ax, bz - az);
@@ -257,7 +261,7 @@ export function buildWorld(seed = 20241113): WorldData {
   const free = (x: number, z: number, pad: number) => { for (const t of taken) if (Math.hypot(t.x - x, t.z - z) < t.r + pad) return false; return true; };
   const okLand = (x: number, z: number) => coastDist(x, z) > 3 && !inRiver(x, z) && roadDist(x, z) > 6 && terrain.slope(x, z) < 0.7 && polyDist(x, z, RAIL) > 6;
   for (const [x, z] of poisson(rng, 11, (x, z) => okLand(x, z) && coastDist(x, z) < 70 && free(x, z, 3))) veg.push({ model: 'palm_tree', x, y: terrain.height(x, z), z, yaw: rng() * 6.28, poi: 0 });
-  for (const [x, z] of poisson(rng, 13, (x, z) => okLand(x, z) && coastDist(x, z) > 35 && free(x, z, 4))) veg.push({ model: 'broadleaf_tree', x, y: terrain.height(x, z), z, yaw: rng() * 6.28, poi: 0 });
+  for (const [x, z] of poisson(rng, 9, (x, z) => okLand(x, z) && coastDist(x, z) > 35 && free(x, z, 4) && fbm(x * 1.3 + 300, z * 1.3 - 120) > 0.5)) veg.push({ model: 'broadleaf_tree', x, y: terrain.height(x, z), z, yaw: rng() * 6.28, poi: 0 });
   for (const [x, z] of poisson(rng, 9, (x, z) => okLand(x, z) && free(x, z, 3))) veg.push({ model: rng() < 0.6 ? 'bush' : rng() < 0.5 ? 'rock_medium' : 'rock_small', x, y: terrain.height(x, z), z, yaw: rng() * 6.28, poi: 0 });
   for (const [x, z] of poisson(rng, 6, (x, z) => okLand(x, z) && free(x, z, 2), 20000)) veg.push({ model: 'grass_clump', x, y: terrain.height(x, z), z, yaw: rng() * 6.28, poi: 0 });
 

@@ -77,6 +77,8 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
             <div class="compass panel"><div class="mid-tick" />{[0, 45, 90, 135, 180, 225, 270, 315].map((a) => { let d = ((a - hd + 540) % 360) - 180; const lab = dirs.find(([, v]) => v === a)?.[0] ?? String(a); return Math.abs(d) < 70 ? <span class="tick" style={{ left: `${50 + (d / 70) * 50}%` }}>{lab}</span> : null; })}</div>
           </div>
           <div class="tr">{hud.feed.map((f) => <div key={f.id} class={`feed panel ${f.mine ? 'mine' : ''}`}>{f.text}</div>)}</div>
+          {hud.weaponName && hud.weaponClass !== 'melee' && <div class="ammo panel"><div class="t" style="font-size:12px;color:var(--muted)">{hud.weaponName}</div><div class="t" style="font-size:28px;line-height:1">{hud.ammoMag}<span style="font-size:16px;color:var(--muted)"> / {hud.ammoReserve}</span></div></div>}
+          {hud.reloading > 0 && <div class="reloadbar"><i style={{ width: Math.round(hud.reloading * 100) + '%' }} /></div>}
           {hud.elim && <div class="banner panel" style="top:36%;color:#fff;border-color:var(--amber);font-size:20px">{hud.elim.text}</div>}
           {hud.zoneWarn && hud.zoneWarn.dist > 0 && <div class="banner panel" style="top:30%;color:#fff;border-color:var(--red);background:rgba(120,20,40,.82);font-size:18px">OUTSIDE THE SAFE ZONE · {hud.zoneWarn.dps} HP per second · run {Math.round(hud.zoneWarn.dist)} m to the circle</div>}
           {hud.prompt && <div class="prompt panel" style={{ color: hud.prompt.color, borderColor: hud.prompt.color }} onClick={() => press('interact')}>{touchUI ? 'Tap: ' : '[F] '}{hud.prompt.text}</div>}

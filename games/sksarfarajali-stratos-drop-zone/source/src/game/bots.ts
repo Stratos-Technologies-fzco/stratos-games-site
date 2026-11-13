@@ -11,7 +11,7 @@ export type BotState = 'drop' | 'loot' | 'rotate' | 'engage' | 'heal' | 'flee' |
 export interface Cmd { dx: number; dz: number; sprint: boolean; crouch: boolean; jump: boolean; yaw: number; pitch: number; fire: boolean; reload: boolean; heal: boolean; barrier: boolean; slot: number; interact: GroundItem | null; leavePlane: boolean }
 
 export interface BotEnv {
-  time: number; actors: Actor[]; colliders: Colliders; terrain: Terrain; zone: ZoneState | null; items: GroundItem[]; rand: () => number;
+  time: number; actors: Actor[]; colliders: Colliders; terrain: Terrain; zone: ZoneState | null; items: GroundItem[]; shots: { x: number; z: number; t: number; id?: number }[]; rand: () => number;
   seeThrough: (from: Actor, to: Actor) => boolean;
 }
 
@@ -55,7 +55,7 @@ const TIER_W: Record<Tier, number> = { low: 3, mid: 2.5, high: 1.5, top: 1 };
 export class BotBrain {
   state: BotState = 'drop'; stateT = 0; target: Actor | null = null; seenT = 0; react = 0.5; pathPts: [number, number][] = []; pathAt = -9; goal: [number, number] = [0, 0];
   strafe = 1; strafeT = 0; lootGoal: GroundItem | null = null; dropPoi = 0; jumpAt = 0; landedAt = 0; difficulty: 'easy' | 'normal' | 'hard'; aimT = 0; barrierT = 0; stuckT = 0; lx = 0; lz = 0; name: string;
-  lastCmd: Cmd | null = null; lt = 0; nudge = 1; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
+  lastCmd: Cmd | null = null; lt = 0; nudge = 1; invPt: [number, number] | null = null; invUntil = 0; invAt = -99; slotLock = 0; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
   constructor(rand: () => number, difficulty: 'easy' | 'normal' | 'hard', public nav: NavGrid) {
     this.difficulty = difficulty; this.name = BOT_NAMES[Math.floor(rand() * BOT_NAMES.length)];
     let tot = 0; const ws = POIS.map((p) => (tot += TIER_W[p.tier])); const r = rand() * tot; this.dropPoi = ws.findIndex((w) => r < w); this.jumpAt = 4 + rand() * 20;
@@ -84,6 +84,16 @@ export class BotBrain {
     });
     return best;
   }
+  /** Best weapon for this distance: shotguns and SMGs close, rifles in the middle, snipers far. Holds a choice for 1.5 s so it does not flicker. */
+  private pickSlot(a: Actor, dist: number, env: BotEnv): number {
+    if (env.time < this.slotLock) return a.slot;
+    const cands: [number, { id: string; mag: number } | null][] = [[0, a.inv.main[0]], [1, a.inv.main[1]], [2, a.inv.pistol]]; let best = 3, bs = dist < 3 ? 0 : -1;
+    for (const [i, g] of cands) {
+      if (!g) continue; const w = (B.weapons as Record<string, { range: number; ammo: string | null }>)[g.id]; if (!(g.mag > 0 || (w.ammo && a.inv.count(w.ammo) > 0))) continue;
+      const s = 3 - (Math.abs(dist - w.range * 0.55) / w.range) * 3 + (g.mag > 0 ? 0.5 : 0); if (s > bs) { bs = s; best = i; }
+    }
+    if (best !== a.slot) this.slotLock = env.time + 1.5; return best;
+  }
   private patrol(a: Actor, env: BotEnv, cmd: Cmd) {
     const z = env.zone; const near = this.patrolGoal ? Math.hypot(this.patrolGoal[0] - a.body.x, this.patrolGoal[1] - a.body.z) : 0;
     if (!this.patrolGoal || env.time - this.patrolAt > 25 || near < 8) {
@@ -104,10 +114,13 @@ export class BotBrain {
     if (this.state === 'drop') { this.set('loot'); this.landedAt = env.time; }
 
     // ---- perception ----
-    let best: Actor | null = null, bd = B.bots.sightRange;
+    let best: Actor | null = null, bd = B.bots.sightRange, bestScore = -1e9;
     for (const o of env.actors) {
-      if (o === a || !o.alive || o.mode !== 'ground') continue; const dist = Math.hypot(o.body.x - a.body.x, o.body.z - a.body.z); if (dist > bd) continue;
-      if (o.hidden && dist > B.player.bushHideRange) continue; if (!env.seeThrough(a, o)) continue; best = o; bd = dist;
+      if (o === a || !o.alive || o.mode !== 'ground') continue; const dist = Math.hypot(o.body.x - a.body.x, o.body.z - a.body.z); if (dist > B.bots.sightRange) continue;
+      if (o.hidden && dist > B.player.bushHideRange) continue; if (!env.seeThrough(a, o)) continue;
+      // who to fight: close, wounded, shooting at us, and the one we are already on
+      const score = 100 - dist + (o.hp < 40 ? 18 : 0) + (a.lastHitBy === o && env.time - a.lastHitAt < 6 ? 40 : 0) + (this.target === o ? 12 : 0) - (o.hidden ? 25 : 0);
+      if (score > bestScore) { bestScore = score; best = o; bd = dist; }
     }
     if (best) { if (this.target === best) this.seenT += dt; else { this.target = best; this.seenT = 0; this.aimT = 0; } } else { this.seenT = 0; if (this.target && !this.target.alive) this.target = null; this.aimT = Math.max(0, this.aimT - dt); if (!best && this.state === 'engage' && this.stateT > 1.5) this.set('loot'); }
     const lowHp = a.hp < B.bots.healBelow, canHeal = a.inv.count('medkit') > 0 || a.inv.count('bandage') > 0;
@@ -115,6 +128,12 @@ export class BotBrain {
     const outNext = z ? Math.hypot(a.body.x - z.nextCx, a.body.z - z.nextCz) > z.nextRadius * (this.difficulty === 'hard' ? 0.75 : this.difficulty === 'easy' ? 1.0 : 0.9) : false;
 
     const armed = !!(a.inv.main[0] || a.inv.main[1] || a.inv.pistol) && (a.inv.count('light') + a.inv.count('heavy') + a.inv.count('shells') > 0 || a.inv.main.some((g) => g && g.mag > 0));
+    // hearing: armed bots (not Easy) go and look where they heard shooting
+    if (!best && armed && this.difficulty !== 'easy' && env.time - this.invAt > 5) {
+      let sd = 70, sp: { x: number; z: number } | null = null;
+      for (const s of env.shots) { if (s.id === a.id || s.t < 1.2) continue; const d = Math.hypot(s.x - a.body.x, s.z - a.body.z); if (d < sd && d > 12) { sd = d; sp = s; } }
+      if (sp) { this.invPt = [sp.x, sp.z]; this.invUntil = env.time + 8; this.invAt = env.time; }
+    }
     if (outside && this.state !== 'flee') this.set('flee');
     else if (this.state === 'flee' && !outside) this.set('rotate');
     if (this.state !== 'flee') {
@@ -151,12 +170,13 @@ export class BotBrain {
         }
         if (dist > wantDist + 6) { cmd.dx = dx / dist; cmd.dz = dz / dist; cmd.sprint = false; } else if (dist < wantDist * 0.4) { cmd.dx = -dx / dist; cmd.dz = -dz / dist; }
         const lat = this.difficulty === 'hard' && dist > wantDist ? 1.3 : 0.8; if (this.difficulty === 'hard' && dist > wantDist) this.tactic = 'flank'; cmd.dx += (-dz / dist) * this.strafe * lat; cmd.dz += (dx / dist) * this.strafe * lat;
-        cmd.fire = dist < Math.min(want * 1.05, 110) && this.aimT > 0.35 && Math.sin(env.time * 4 + a.id) > -0.35; if (a.inv.main[0] || a.inv.main[1]) cmd.slot = a.inv.main[0] ? 0 : 1; else if (a.inv.pistol) cmd.slot = 2; else cmd.slot = 3;
+        cmd.fire = dist < Math.min(want * 1.05, 110) && this.aimT > 0.35 && Math.sin(env.time * 4 + a.id) > -0.35; cmd.slot = this.pickSlot(a, dist, env);
         if (gun && gun.mag === 0) cmd.reload = true;
         this.barrierT -= dt; if (a.hp < 60 && a.inv.barriers > 0 && this.barrierT < 0 && dist > 8) { cmd.barrier = true; this.barrierT = 20; }
         break;
       }
       default: { // loot
+        if (this.invPt && env.time < this.invUntil && armed && this.difficulty !== 'easy' && !this.lootGoal) { this.go(a, env, this.invPt[0], this.invPt[1], cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); this.tactic = 'investigate'; break; }
         if (!this.lootGoal || this.lootGoal.taken || Math.hypot(this.lootGoal.x - a.body.x, this.lootGoal.z - a.body.z) > 150) this.lootGoal = this.chooseLoot(a, env);
         const g = this.lootGoal;
         if (g) {
@@ -168,13 +188,28 @@ export class BotBrain {
     if (!cmd.fire && this.state !== 'engage') cmd.pitch = 0;
     return cmd;
   }
+  /** Looting with a plan: wanted upgrades first, ammo that fits our guns, healing and armour only when useful, nothing far outside the next safe zone. */
   private chooseLoot(a: Actor, env: BotEnv): GroundItem | null {
-    const armed = !!(a.inv.main[0] || a.inv.main[1]); let best: GroundItem | null = null, bs = -1e9;
+    const WV: Record<string, number> = { monsoon_ar: 8, ridgeline_dmr: 7, hornet_smg: 6, longwatch: 6, scatter12: 5, kestrel_p9: 2 };
+    const W = B.weapons as Record<string, { ammo: string | null }>;
+    const mains = a.inv.main.filter(Boolean) as { id: string; rarity: number }[]; const worst = mains.length < 2 ? -1 : Math.min(...mains.map((g) => (WV[g.id] ?? 3) + g.rarity * 1.5));
+    const owns = new Set<string>([...mains.map((g) => W[g.id].ammo ?? ''), a.inv.pistol ? 'light' : '']);
+    const z = env.zone; let best: GroundItem | null = null, bs = -1e9;
     for (const it of env.items) {
-      if (it.taken) continue; const dist = Math.hypot(it.x - a.body.x, it.z - a.body.z); if (dist > 110) continue; const k = it.items[0].kind;
-      let w = k === 'weapon' ? (armed ? 3 : 12) : k === 'ammo' ? (armed ? 6 : 2) : k === 'heal' ? 5 : k === 'vest' || k === 'helmet' ? 6 : 3; w += it.rarity * 2 + (it.crate ? 8 : 0);
-      const s = w * 20 - dist; if (s > bs) { bs = s; best = it; }
+      if (it.taken) continue; const dist = Math.hypot(it.x - a.body.x, it.z - a.body.z); if (dist > 120) continue;
+      if (z && env.time - this.landedAt > 20 && Math.hypot(it.x - z.nextCx, it.z - z.nextCz) > z.nextRadius + 25) continue;
+      let w = 0;
+      for (const x of it.items) {
+        if (x.kind === 'weapon') { const val = (WV[x.id] ?? 3) + x.rarity * 1.5; w += val - worst > 0 ? 6 + (val - worst) * 2 + (mains.length < 2 ? 8 : 0) : 0.2; }
+        else if (x.kind === 'ammo') w += owns.has(x.id) ? (a.inv.count(x.id) < 60 ? 7 : 2) : 0.3;
+        else if (x.kind === 'heal') w += a.hp < 80 || a.inv.count(x.id) < 3 ? 5 : 1.5;
+        else if (x.kind === 'vest') w += Number(x.id.slice(-1)) > a.armour.vestLv ? 6 : 0.2;
+        else if (x.kind === 'helmet') w += Number(x.id.slice(-1)) > a.armour.helmetLv ? 5 : 0.2;
+        else if (x.kind === 'backpack') w += Number(x.id.slice(-1)) > a.inv.backpackLv ? 3 : 0.1;
+        else w += 2;
+      }
+      w += it.rarity * 2 + (it.crate ? 8 : 0); const sc = w * 18 - dist; if (sc > bs) { bs = sc; best = it; }
     }
-    return best;
+    return best && bs > -60 ? best : null;
   }
 }

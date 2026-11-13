@@ -1,6 +1,6 @@
 // Survivor model with a procedural animator: limb nodes are rotated in code and blended by state and speed.
 import * as THREE from 'three';
-import { cloneModel, sharedMaterial } from './assets';
+import { cloneModel, modelGeometry, sharedMaterial } from './assets';
 
 export type Survivor = 'survivor_kiran' | 'survivor_meera' | 'survivor_arjun' | 'survivor_zoya';
 export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string; color: string; lines: string[] }[] = [
@@ -25,12 +25,15 @@ export class Character {
   private base = new Map<THREE.Object3D, THREE.Vector3>();
   private pose = zero(); private phase = 0; private tDead = 0; private landRoll = 0; private t = 0; private lastFrame = 0; private accum = 0;
   weapon: THREE.Object3D | null = null; weaponName = ''; ready = false; height = 1.84; wing: THREE.Object3D | null = null;
-  constructor(public model: Survivor) { this.root.add(this.body); }
+  private static blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 });
+  private landT = 0; private farMesh: THREE.Mesh | null = null; private blobMesh: THREE.Mesh | null = null; private isFar = false;
+  constructor(public model: Survivor) { this.root.add(this.body); const blob = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16).rotateX(-Math.PI / 2), Character.blobMat); blob.position.y = 0.05; blob.renderOrder = 1; this.root.add(blob); this.blobMesh = blob; }
 
   async load() {
     const m = await cloneModel(this.model); this.body.add(m);
     m.traverse((o) => { if (o.name in this.parts) { this.parts[o.name as keyof Character['parts']] = o; this.base.set(o, o.position.clone()); } });
     this.ready = true;
+    void modelGeometry(this.model).then((geo) => { this.farMesh = new THREE.Mesh(geo, sharedMaterial); this.farMesh.visible = this.isFar; this.root.add(this.farMesh); if (this.isFar) this.body.visible = false; });
   }
   async setWeapon(name: string | null) {
     if (name === this.weaponName) return; this.weaponName = name ?? '';
@@ -39,9 +42,11 @@ export class Character {
     const w = await cloneModel(name); if (this.weaponName !== name) return;
     w.rotation.x = Math.PI / 2; w.position.set(0, -0.6, 0.02); hand.add(w); this.weapon = w;
   }
+  private wantWing = false;
   async setWing(on: boolean) {
-    if (on && !this.wing) { this.wing = await cloneModel('personal_glider_wing'); this.wing.position.set(0, 1.5, -0.1); this.body.add(this.wing); }
-    if (this.wing) this.wing.visible = on;
+    this.wantWing = on; // remembered, because the model loads asynchronously and the answer may change meanwhile
+    if (on && !this.wing) { const w = await cloneModel('personal_glider_wing'); if (!this.wing) { this.wing = w; w.position.set(0, 1.5, -0.1); this.body.add(w); } }
+    if (this.wing) this.wing.visible = this.wantWing;
   }
   setTint(hex: number) { void hex; }
 
@@ -49,7 +54,7 @@ export class Character {
     if (!this.ready) return;
     if (this.flashT > 0) { this.flashT -= dt; if (this.flashT <= 0) this.swapMat(false); }
     if (lod10fps) { this.accum += dt; if (this.accum < 0.1) return; dt = this.accum; this.accum = 0; }
-    this.t += dt;
+    this.t += dt; if (s.fallLanded > 1.5 && s.fallLanded <= 6) this.landT = 0.28; this.landT = Math.max(0, this.landT - dt);
     const target = zero();
     let hipY = 0, rootRoll = 0;
     const run = Math.min(1, s.speed / 6.5), moving = s.speed > 0.4;
@@ -75,10 +80,11 @@ export class Character {
       target.lean = moving ? 0.05 + run * 0.18 : 0; if (s.crouch) { hipY = -0.45; target.lL -= 0.45; target.lR -= 0.45; target.lean += 0.2; }
       if (!moving) { target.aLx = Math.sin(this.t * 1.6) * 0.05; target.aRx = -Math.sin(this.t * 1.6) * 0.05; }
     }
+    if (this.landT > 0 && s.mode === 'ground' && !s.dead) { const lk = this.landT / 0.28; hipY -= 0.3 * lk; target.lL += 0.5 * lk; target.lR += 0.5 * lk; }
     if (this.landRoll > 0) { this.landRoll -= dt; rootRoll = (1 - this.landRoll / 0.5) * Math.PI * 2; }
     if (s.fallLanded > 6) this.landRoll = 0.5;
     if (!s.dead && s.mode === 'ground') {
-      if (s.armed && !s.melee) { const raise = -1.45 - Math.max(-0.6, Math.min(0.6, s.pitch)) * 0.85; target.aRx = raise - s.kick * 0.25; target.aLx = raise + 0.15; target.aLz = -0.5; target.aRx += s.swap * 0.9; target.aLx += s.swap * 0.7; target.torso += s.aiming ? 0.25 : 0; }
+      if (s.armed && !s.melee) { const raise = -1.45 - Math.max(-0.6, Math.min(0.6, s.pitch)) * 0.85; target.aRx = raise - s.kick * 0.25; target.aLx = raise + 0.15; target.aLz = -0.5; target.aRx += s.swap * 0.9; target.aLx += s.swap * 0.7; target.torso -= s.kick * 0.1; target.torso += s.aiming ? 0.25 : 0; }
       if (s.melee && s.kick > 0) { target.aRx = -1.6 + s.kick * 2.2; target.torso += s.kick * 0.5; }
       if (s.reload) { target.aLx = -0.9 + Math.sin(this.t * 12) * 0.15; target.aLz = -0.4; target.aRx = -0.7; }
       if (s.heal) { target.aLx = -1.1; target.aRx = -1.1; target.aLz = -0.35; target.aRz = 0.35; target.head = 0.2; }
@@ -108,5 +114,7 @@ export class Character {
   flash(t: number) { this.flashT = t; this.swapMat(true); }
   private swapMat(on: boolean) { this.body.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh && !(this.wing && this.isChild(m))) m.material = on ? Character.flashMat : sharedMaterial; }); }
   private isChild(m: THREE.Object3D) { let p: THREE.Object3D | null = m; while (p) { if (p === this.wing) return true; p = p.parent; } return false; }
+  /** Distant survivors are drawn as one merged mesh in the standing pose (1 draw call instead of about 8). */
+  setFar(on: boolean) { if (on === this.isFar) return; this.isFar = on; this.body.visible = !on || !this.farMesh; if (this.farMesh) this.farMesh.visible = on; if (this.blobMesh) this.blobMesh.visible = !on; }
   resetDeath() { this.tDead = 0; this.root.scale.setScalar(1); this.root.visible = true; }
 }

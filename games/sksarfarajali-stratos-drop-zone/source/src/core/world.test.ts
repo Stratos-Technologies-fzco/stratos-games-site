@@ -12,6 +12,11 @@ describe('island', () => {
     expect(w.terrain.height(tea[0], tea[1])).toBeGreaterThan(15); expect(w.terrain.height(radar[0], radar[1])).toBeGreaterThan(25);
   });
   it('places every location', () => { for (const p of POIS) expect(w.placements.filter((q) => q.poi === p.id).length).toBeGreaterThan(2); });
+  it('has the extra landmarks: a stone circle, a lone watch tower and beached boats', () => {
+    const sc = toWorld(200, 250); expect(w.placements.filter((p) => p.model === 'rock_large' && Math.hypot(p.x - sc[0], p.z - sc[1]) < 12).length).toBeGreaterThanOrEqual(8);
+    const lt = toWorld(430, 205); expect(w.placements.some((p) => p.model === 'watch_tower' && Math.hypot(p.x - lt[0], p.z - lt[1]) < 2)).toBe(true);
+    expect(w.placements.filter((p) => p.model === 'fishing_boat' && p.poi === 0).length).toBeGreaterThanOrEqual(1);
+  });
   it('has a river', () => { const [x, z] = toWorld(300, 420); expect(inRiver(x, z)).toBe(true); });
   it('generates 12-30 loot spawns per location', () => {
     const loot = generateLoot(w, (x, z, y) => col.surfaceBelow(x, z, y), (x, z, y) => col.blocked(x, z, y));

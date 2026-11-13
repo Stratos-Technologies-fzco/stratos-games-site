@@ -12,7 +12,7 @@ export interface Actor {
   char: Character; anim: AnimState; mode: 'plane' | 'skydive' | 'glide' | 'ground';
   fireCd: number; reloadT: number; reloadMax: number; healT: number; healItem: string; swingT: number; kickT: number; shots: number; lastShot: number; recoilPitch: number;
   kills: number; damage: number; headshots: number; tokensEarned: number; hitFlash: number; placement: number; killer: string; diedAt: number; hidden: boolean;
-  speedNow: number; vx: number; vz: number; fireHeld: boolean; coyote: number; jumpBuf: number; fallStartY: number; survivor: string; bot?: import('./bots').BotBrain;
+  lastHitBy: Actor | null; lastHitAt: number; speedNow: number; vx: number; vz: number; fireHeld: boolean; coyote: number; jumpBuf: number; fallStartY: number; survivor: string; bot?: import('./bots').BotBrain;
 }
 
 export interface GroundItem { id: number; x: number; y: number; z: number; items: Item[]; rarity: Rarity; mesh: THREE.Object3D; ring: THREE.Mesh | null; crate: boolean; spin: number; beam?: THREE.Object3D; taken: boolean }

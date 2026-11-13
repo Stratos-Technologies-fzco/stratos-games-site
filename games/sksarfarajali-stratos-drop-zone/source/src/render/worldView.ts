@@ -51,6 +51,7 @@ function bankLevel(x: number, z: number) {
 }
 
 const CHUNK = 80;
+const VEG = new Set(['palm_tree', 'broadleaf_tree', 'bush', 'grass_clump', 'rock_small', 'rock_medium']);
 export interface Chunk { mesh: THREE.Mesh; cx: number; cz: number; center: THREE.Vector3; hasTall: boolean }
 
 /** Merge every static model into one mesh per 80 m cell: a handful of draw calls instead of thousands. */
@@ -62,7 +63,13 @@ export async function buildStaticChunks(list: Placement[]): Promise<Chunk[]> {
   const out: Chunk[] = []; const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
   for (const [k, ps] of cells) {
     const parts: THREE.BufferGeometry[] = [];
-    for (const p of ps) { const g = geos.get(p.model)!.clone(); q.setFromAxisAngle(up, p.yaw); m.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(1, 1, 1)); g.applyMatrix4(m); parts.push(g); }
+    for (const p of ps) {
+      const g = geos.get(p.model)!.clone(); const hsh = (Math.abs(Math.sin(p.x * 12.9898 + p.z * 78.233)) * 43758.5453) % 1, veg = VEG.has(p.model), sc = veg ? 0.85 + hsh * 0.4 : 1;
+      q.setFromAxisAngle(up, p.yaw); m.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(sc, veg ? sc * (0.9 + ((hsh * 7) % 1) * 0.3) : 1, sc)); g.applyMatrix4(m);
+      const col = g.getAttribute('color') as THREE.BufferAttribute, f = veg ? 0.82 + ((hsh * 13) % 1) * 0.36 : 0.9 + ((hsh * 13) % 1) * 0.2, tr = veg && p.model.includes('tree'), tn = tr ? [f * 0.95, f, f * 0.9] : [f, f, f];
+      for (let i = 0; i < col.count; i++) col.setXYZ(i, Math.min(1, col.getX(i) * tn[0]), Math.min(1, col.getY(i) * tn[1]), Math.min(1, col.getZ(i) * tn[2]));
+      parts.push(g);
+    }
     const merged = mergeGeometries(parts, false); if (!merged) continue; merged.computeVertexNormals();
     const mesh = new THREE.Mesh(merged, sharedMaterial); mesh.matrixAutoUpdate = false; mesh.frustumCulled = true; mesh.castShadow = false;
     merged.computeBoundingSphere(); const [cx, cz] = k.split(',').map(Number);
@@ -92,11 +99,20 @@ export async function buildWorldView(w: WorldData): Promise<WorldView> {
     transparent: true, side: THREE.DoubleSide, depthWrite: false,
     uniforms: { uTime: { value: 0 }, uInside: { value: 0 } },
     vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-    fragmentShader: 'uniform float uTime; uniform float uInside; varying vec3 vP; float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453);} float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y);} void main(){ float a = atan(vP.z, vP.x); float v = n(vec2(a*6.0, vP.y*0.05 - uTime*0.6))*0.6 + n(vec2(a*14.0 + uTime*0.2, vP.y*0.12 - uTime*1.4))*0.4; float edge = 1.0 - smoothstep(0.0, 160.0, vP.y); float alpha = mix(0.55, 0.4, uInside) * (0.55 + v*0.6) * (0.5 + edge*0.5); gl_FragColor = vec4(0.486, 0.231, 0.929, alpha); }',
+    fragmentShader: 'uniform float uTime; uniform float uInside; varying vec3 vP; float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453);} float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y);} void main(){ float a = atan(vP.z, vP.x); float v = n(vec2(a*6.0, vP.y*0.05 - uTime*0.6))*0.6 + n(vec2(a*14.0 + uTime*0.2, vP.y*0.12 - uTime*1.4))*0.4; float top = 1.0 - smoothstep(30.0, 110.0, vP.y); float low = smoothstep(-110.0, -75.0, vP.y); float rim = pow(max(0.0, 1.0 - abs(vP.y + 20.0) / 130.0), 2.0); float streak = n(vec2(a*40.0, vP.y*0.02 - uTime*0.3)); float alpha = clamp(mix(0.85, 0.55, uInside) * (0.45 + v*0.7 + streak*0.25) * top * low, 0.0, 0.92); vec3 col = mix(vec3(0.30,0.10,0.66), vec3(0.78,0.62,1.0), v*0.4 + rim*0.6); gl_FragColor = vec4(col, alpha); }',
   });
-  const storm = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 220, 96, 1, true), stormMat); storm.position.y = 60; storm.name = 'storm'; storm.frustumCulled = false; storm.visible = false; scene.add(storm);
-  const ringPts: THREE.Vector3[] = []; for (let i = 0; i <= 96; i++) ringPts.push(new THREE.Vector3(Math.cos((i / 96) * Math.PI * 2), 0, Math.sin((i / 96) * Math.PI * 2)));
+  const storm = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 220, 384, 12, true), stormMat); storm.position.y = 60; storm.name = 'storm'; storm.frustumCulled = false; storm.visible = false; scene.add(storm);
+  const ringPts: THREE.Vector3[] = []; for (let i = 0; i <= 384; i++) ringPts.push(new THREE.Vector3(Math.cos((i / 384) * Math.PI * 2), 0, Math.sin((i / 384) * Math.PI * 2)));
   const stormNext = new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), new THREE.LineDashedMaterial({ color: 0xa78bfa, dashSize: 0.02, gapSize: 0.02 })); stormNext.computeLineDistances(); stormNext.visible = false; stormNext.frustumCulled = false; scene.add(stormNext);
+
+  // storm atmosphere: violet motes drifting along the wall, rain and violet fog outside the safe zone
+  const dot = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d')!; const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+  const MOTES = 420, RAIN = 360, seeds = Array.from({ length: Math.max(MOTES, RAIN) }, () => [Math.random(), Math.random(), Math.random()]);
+  const moteGeo = new THREE.BufferGeometry(); moteGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MOTES * 3), 3));
+  const motes = new THREE.Points(moteGeo, new THREE.PointsMaterial({ color: 0xc4a8ff, size: 3.4, map: dot, transparent: true, opacity: 0.42, depthWrite: false, blending: THREE.AdditiveBlending })); motes.frustumCulled = false; motes.visible = false; scene.add(motes);
+  const rainGeo = new THREE.BufferGeometry(); rainGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN * 3), 3));
+  const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: 0xb9a5f5, size: 0.35, map: dot, transparent: true, opacity: 0.5, depthWrite: false })); rain.frustumCulled = false; rain.visible = false; scene.add(rain);
+  const zone = { cx: 0, cz: 0, r: 0 }, fogIn = new THREE.Color(0xf0c898), fogOut = new THREE.Color(0x6a4aa8), bgIn = new THREE.Color(0xf4c58a), bgOut = new THREE.Color(0x4a3a7a); let outK = 0;
 
   return {
     scene, sun, chunks, storm, stormNext, water,
@@ -106,9 +122,24 @@ export async function buildWorldView(w: WorldData): Promise<WorldView> {
       const far = low ? 260 : 420;
       for (const c of chunks) c.mesh.visible = Math.hypot(c.center.x - cam.x, c.center.z - cam.z) < far + 60;
       water.children[0].position.x = cam.x; water.children[0].position.z = cam.z;
+      // atmosphere
+      const dz = Math.hypot(cam.x - zone.cx, cam.z - zone.cz), wallOn = storm.visible && zone.r > 0; outK += ((wallOn && dz > zone.r ? 1 : 0) - outK) * 0.04;
+      const fog = scene.fog as THREE.Fog; fog.color.copy(fogIn).lerp(fogOut, outK); fog.near = 140 - 80 * outK; fog.far = 520 - 240 * outK; (scene.background as THREE.Color).copy(bgIn).lerp(bgOut, outK);
+      motes.visible = wallOn && Math.abs(dz - zone.r) < 110;
+      if (motes.visible) {
+        const pos = moteGeo.getAttribute('position') as THREE.BufferAttribute, a0 = Math.atan2(cam.z - zone.cz, cam.x - zone.cx), arc = 140 / Math.max(zone.r, 40), n = low ? 160 : MOTES; moteGeo.setDrawRange(0, n);
+        for (let i = 0; i < n; i++) { const s = seeds[i], ang = a0 + (s[0] - 0.5) * arc * 2, rad = zone.r + (s[1] - 0.5) * 10, y = ((s[2] * 70 + t * (4 + s[0] * 6)) % 70) - 5; pos.setXYZ(i, zone.cx + Math.cos(ang) * rad, y, zone.cz + Math.sin(ang) * rad); }
+        pos.needsUpdate = true;
+      }
+      rain.visible = outK > 0.3;
+      if (rain.visible) {
+        const pos = rainGeo.getAttribute('position') as THREE.BufferAttribute, n = low ? 140 : RAIN; rainGeo.setDrawRange(0, n);
+        for (let i = 0; i < n; i++) { const s = seeds[i]; pos.setXYZ(i, cam.x + (s[0] - 0.5) * 44, cam.y + 14 - ((s[2] * 28 + t * 24) % 28), cam.z + (s[1] - 0.5) * 44); }
+        pos.needsUpdate = true;
+      }
     },
     setZone(cx, cz, r, nx, nz, nr) {
-      storm.visible = r > 0; storm.position.set(cx, 60, cz); storm.scale.set(Math.max(r, 0.01), 1, Math.max(r, 0.01));
+      zone.cx = cx; zone.cz = cz; zone.r = r; storm.visible = r > 0; storm.position.set(cx, 60, cz); storm.scale.set(Math.max(r, 0.01), 1, Math.max(r, 0.01));
       stormNext.visible = nr > 0; stormNext.position.set(nx, 1, nz); stormNext.scale.set(nr, 1, nr);
     },
   };

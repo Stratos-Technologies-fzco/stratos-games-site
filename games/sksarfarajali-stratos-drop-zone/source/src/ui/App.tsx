@@ -40,7 +40,7 @@ export function App() {
   const toggleMusic = () => { settings.musicOn = !settings.musicOn; setMusicOn(settings.musicOn); audio.unlock(); audio.setMusicOn(settings.musicOn); saveSettings(); };
   const backToLobby = () => { g?.toLobby(); setScreen('lobby'); setPause(false); };
   const st = getStats(); const lv0 = lvlOf(st.xp); const lv = { l: lv0.level, pct: lv0.pct }; const svDef = SURVIVORS.find((s) => s.id === sv)!;
-  const upd = (fn: () => void) => { fn(); saveSettings(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); audio.setMusicOn(settings.musicOn); document.documentElement.style.setProperty('--ui', String(settings.uiScale)); tick((n) => n + 1); };
+  const upd = (fn: () => void) => { fn(); saveSettings(); g?.applyQuality(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); audio.setMusicOn(settings.musicOn); document.documentElement.style.setProperty('--ui', String(settings.uiScale)); tick((n) => n + 1); };
 
   return (
     <>
