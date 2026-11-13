@@ -40,6 +40,15 @@ function MapCanvas({ hud, big, size, onClick }: { hud: Hud; big?: boolean; size:
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const heading = (y: number) => { const d = ((-y * 180) / Math.PI + 180 + 360 * 10) % 360; return d; };
 
+function Crosshair({ cls, spread }: { cls: string; spread: number }) {
+  const g = 6 + spread * 600;
+  if (cls === 'shotgun') return <div class="xhair"><i style={{ position: 'absolute', width: g * 2 + 16, height: g * 2 + 16, left: -(g + 8), top: -(g + 8), border: '2px solid #fff', borderRadius: '50%', background: 'none', boxShadow: '0 0 2px #000' }} /><i style={{ position: 'absolute', width: 3, height: 3, left: -1.5, top: -1.5, borderRadius: '50%' }} /></div>;
+  if (cls === 'sniper' || cls === 'marksman') return <div class="xhair"><i style={{ position: 'absolute', width: 4, height: 4, left: -2, top: -2, borderRadius: '50%', background: '#ff4d5e' }} /><i style={{ position: 'absolute', width: 1, height: 24, left: -0.5, top: -12 }} /><i style={{ position: 'absolute', width: 24, height: 1, left: -12, top: -0.5 }} /></div>;
+  if (cls === 'pistol') return <div class="xhair"><i style={{ position: 'absolute', width: 3, height: 3, left: -1.5, top: -1.5, borderRadius: '50%' }} />{[-1, 1].map((s) => <><i class="b" style={{ left: s * (g * 0.7 + 6) - 4, width: 6 }} /><i class="a" style={{ top: s * (g * 0.7 + 6) - 4, height: 6 }} /></>)}</div>;
+  if (cls === 'melee') return <div class="xhair"><i style={{ position: 'absolute', width: 6, height: 6, left: -3, top: -3, borderRadius: '50%', opacity: 0.8 }} /></div>;
+  return <div class="xhair">{[-1, 1].map((s) => <><i class="a" style={{ top: s * g - 4 }} /><i class="b" style={{ left: s * g - 4 }} /></>)}</div>;
+}
+
 function HoldBtn({ cls, label, down, set }: { cls: string; label: string; down: boolean; set: (v: boolean) => void }) {
   return <button class={cls + (down ? ' down on' : '')} onPointerDown={(e) => { e.preventDefault(); (e.target as HTMLElement).setPointerCapture?.(e.pointerId); set(true); }} onPointerUp={() => set(false)} onPointerCancel={() => set(false)} onContextMenu={(e) => e.preventDefault()}>{label}</button>;
 }
@@ -64,15 +73,17 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
           <div class="tl"><MapCanvas hud={hud} size={280} onClick={() => press('map')} />
             <div class="mini-sub panel t">{hud.zone ? `Phase ${hud.zone.phase} · ${hud.zone.stage === 'shrink' ? 'closing ' : ''}${fmt(hud.zone.timeLeft)}` : hud.mode === 'training' ? 'Training' : 'Landing…'}</div></div>
           <div class="tc">
-            <div class="counters"><div class="panel"><small>ALIVE</small>{hud.alive}</div><div class="panel"><small>KILLS</small>{hud.kills}</div><div class="panel"><small>TOKENS</small>{hud.tokens}</div></div>
+            <div class="counters"><div class="panel"><small>ALIVE</small>{hud.alive}</div><div class="panel"><small>KILLS</small>{hud.kills}</div><div class="panel"><small>TOKENS</small>{hud.tokens}</div>{hud.zone && hud.zone.stage !== 'done' && <div class="panel" style={{ borderBottom: '3px solid ' + (hud.zone.stage === 'shrink' ? '#FF4D5E' : '#A78BFA') }}><small>{hud.zone.stage === 'shrink' ? 'STORM CLOSING' : 'STORM MOVES IN'}</small>{fmt(hud.zone.timeLeft)}</div>}</div>
             <div class="compass panel"><div class="mid-tick" />{[0, 45, 90, 135, 180, 225, 270, 315].map((a) => { let d = ((a - hd + 540) % 360) - 180; const lab = dirs.find(([, v]) => v === a)?.[0] ?? String(a); return Math.abs(d) < 70 ? <span class="tick" style={{ left: `${50 + (d / 70) * 50}%` }}>{lab}</span> : null; })}</div>
           </div>
           <div class="tr">{hud.feed.map((f) => <div key={f.id} class={`feed panel ${f.mine ? 'mine' : ''}`}>{f.text}</div>)}</div>
+          {hud.elim && <div class="banner panel" style="top:36%;color:#fff;border-color:var(--amber);font-size:20px">{hud.elim.text}</div>}
+          {hud.zoneWarn && hud.zoneWarn.dist > 0 && <div class="banner panel" style="top:30%;color:#fff;border-color:var(--red);background:rgba(120,20,40,.82);font-size:18px">OUTSIDE THE SAFE ZONE · {hud.zoneWarn.dps} HP per second · run {Math.round(hud.zoneWarn.dist)} m to the circle</div>}
           {hud.prompt && <div class="prompt panel" style={{ color: hud.prompt.color, borderColor: hud.prompt.color }} onClick={() => press('interact')}>{touchUI ? 'Tap: ' : '[F] '}{hud.prompt.text}</div>}
           {hud.chat && <div class="chat panel">{hud.chat}</div>}
           {hud.banner && <div class="banner panel">{hud.banner.text}</div>}
           {hud.hitT > 0 && <div class={`hitm ${hud.hitHead ? 'head' : ''}`} />}
-          {!hud.scope && hud.hp > 0 && <div class="xhair">{[-1, 1].map((s) => <><i class="a" style={{ top: s * (6 + hud.spread * 600) - 4 }} /><i class="b" style={{ left: s * (6 + hud.spread * 600) - 4 }} /></>)}</div>}
+          {!hud.scope && hud.hp > 0 && <Crosshair cls={hud.weaponClass} spread={hud.spread} />}
           {hud.numbers.map((n) => <div key={n.id} class={`num ${n.head ? 'head' : ''}`} style={{ left: n.x, top: n.y }}>{n.v}</div>)}
           <div class="arc">{hud.dmgArc.map((d) => <i style={{ transform: `rotate(${(d.a * 180) / Math.PI + 180}deg)`, opacity: Math.min(1, d.t) }} />)}</div>
           {hud.reloading > 0 && <div class="chat panel" style="bottom:210px">Reloading {Math.round(hud.reloading * 100)}%</div>}
@@ -117,6 +128,7 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
           <div class="t" style="font-size:28px">#{res.placement}<span style="color:var(--muted);font-size:18px"> / {res.total}</span></div>
           <div class="tiles"><div class="tile"><b>{res.kills}</b><span>Eliminations</span></div><div class="tile"><b>{res.damage}</b><span>Damage</span></div><div class="tile"><b>{fmt(res.time)}</b><span>Survived</span></div><div class="tile"><b>{res.headshots}</b><span>Headshots</span></div><div class="tile"><b>{res.tokens}</b><span>Tokens earned</span></div><div class="tile"><b style="color:var(--violet)">+{res.xp}</b><span>XP</span></div></div>
           {!res.win && res.killer && <div class="note">Eliminated by {res.killer}</div>}
+          {res.outcome && <div class="card" style="width:min(540px,90vw);padding:10px"><div class="row"><span>Run score (local leaderboard)</span><b>{res.outcome.score}</b></div>{res.outcome.bonusXp > 0 && <div class="row"><span>Mission bonus</span><b style="color:var(--violet)">+{res.outcome.bonusXp} XP</b></div>}{res.outcome.missionsDone.map((m) => <div class="row" key={m.id}><span>Mission complete: {m.text}</span><b style="color:var(--green)">✓</b></div>)}{res.outcome.achievements.map((a) => <div class="row" key={a.id}><span>Achievement: <b>{a.name}</b> · {a.text}</span><b style="color:var(--amber)">★</b></div>)}</div>}
           <div style="display:flex;gap:10px"><button class="btn primary" onClick={onAgain}>Play again</button><button class="btn" onClick={onLobby}>Lobby</button><button class="btn" onClick={() => { const t = `I placed #${res.placement} in Stratos Drop Zone with ${res.kills} eliminations! https://stratos.games`; (navigator.share ? navigator.share({ text: t }) : navigator.clipboard?.writeText(t))?.catch?.(() => {}); }}>Share</button></div>
         </div>
       )}

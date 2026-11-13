@@ -13,6 +13,7 @@ import { BotBrain, NavGrid, type BotEnv, type Cmd } from './bots';
 import { crateContents, itemLabel, itemModel, rollItem } from './loot';
 import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, SmokeCloud } from './types';
 import { track } from '../analytics';
+import { recordMatch } from '../progress';
 const isTouchDevice = () => matchMedia('(pointer: coarse)').matches;
 
 const W = B.weapons as Record<string, { label: string; class: string; damage: number; pellets: number; headshot: number; rpm?: number; swing?: number; mag: number; range: number; ammo: string | null; reload: number; reloadPerShell?: boolean; spread: number; recoil: number; auto: boolean; scope: number; projectileSpeed?: number; drop?: number }>;
@@ -31,7 +32,7 @@ export class Game {
   survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
-  onChange = () => {}; ready = false; demo = false; demoStep = 0; demoFlags = { reloaded: false, healed: false }; private demoStart = { x: 0, z: 0 };
+  onChange = () => {}; ready = false; private elimText = ''; private elimT = 0; private autoPickT = 0; demo = false; demoStep = 0; demoFlags = { reloaded: false, healed: false }; private demoStart = { x: 0, z: 0 };
 
   constructor(public canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -225,7 +226,7 @@ export class Game {
       if (!a.alive) { a.char.update(dt, { ...a.anim, dead: a.anim.dead || 1 }); continue; }
       let cmd: Cmd;
       if (a.isPlayer) cmd = this.playerCmd(a, dt);
-      else { cmd = a.bot!.think(a, this.env, 0.1); if (!botTick) cmd = this.carryCmd(a, cmd); }
+      else { const br = a.bot!; if (botTick || !br.lastCmd) br.lastCmd = br.think(a, this.env, Math.max(botDt, 0.05)); cmd = botTick ? br.lastCmd : this.carryCmd(a, br.lastCmd); }
       void botDt; (a as Actor & { lastCmd?: Cmd }).lastCmd = cmd; this.applyCmd(a, cmd, dt);
     }
     this.updateProjectiles(dt); this.updateGrenades(dt); this.updateBarriers(dt); this.updateDummies(dt);
@@ -238,7 +239,7 @@ export class Game {
       if (!p.alive && this.endT === 0) { this.endT = 0.001; setTimeout(() => this.finish(null), 2200); }
     }
     for (const f of this.feed) f.t -= dt; this.feed = this.feed.filter((f) => f.t > 0);
-    this.hitT = Math.max(0, this.hitT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
+    this.hitT = Math.max(0, this.hitT - dt); this.elimT = Math.max(0, this.elimT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
     this.numbers = this.numbers.filter((n) => (n.y -= dt * 40) > -120); this.dmgArcs = this.dmgArcs.filter((d) => (d.t -= dt) > 0); this.shotsHeard = this.shotsHeard.filter((s) => (s.t -= dt) > 0);
     audio.setTension(!!this.zone && this.zone.stage !== 'done' && this.zone.timeLeft < 20);
     if (this.zone && this.zone.phase >= 5 && this.mode === 'solo') audio.startMusic('final');
@@ -274,6 +275,9 @@ export class Game {
     if (input.map) { this.mapOpen = !this.mapOpen; } if (input.inventory) this.inventoryOpen = !this.inventoryOpen;
     if (input.marker && this.mapOpen === false) { const hit = this.aimPoint(a, 500); this.marker = { x: hit.x, z: hit.z }; }
     if (input.interact) { const g = this.nearestItem(a); const k = this.nearestKiosk(a); if (k && (!g || Math.hypot(k.x - a.body.x, k.z - a.body.z) < Math.hypot(g.x - a.body.x, g.z - a.body.z))) { this.kioskOpen = !this.kioskOpen; } else if (g) cmd.interact = g; }
+    // optional auto-pickup of ammo, healing, gadgets and tokens (never weapons or armour)
+    this.autoPickT -= dt;
+    if (settings.autoPickup && !cmd.interact && this.autoPickT <= 0 && a.alive) { const g = this.nearestItem(a); if (g && Math.hypot(g.x - a.body.x, g.z - a.body.z) < 1.8 && g.items.every((it) => ['ammo', 'heal', 'throwable', 'tokens'].includes(it.kind))) { cmd.interact = g; this.autoPickT = 0.5; } }
     if (this.kioskOpen && !this.nearestKiosk(a)) this.kioskOpen = false; void dt; return cmd;
   }
   private overTarget() { return this.actors.some((o) => o !== this.player && o.alive && this.angleTo(this.player, o) < 0.06) || this.dummies.some((d) => Math.abs(Math.atan2(d.x - this.player.body.x, d.z - this.player.body.z) - this.player.yaw) < 0.06); }
@@ -287,7 +291,7 @@ export class Game {
   private applyCmd(a: Actor, c: Cmd, dt: number) {
     a.fireCd = Math.max(0, a.fireCd - dt); a.kickT = Math.max(0, a.kickT - dt * 5); a.hitFlash = Math.max(0, a.hitFlash - dt * 4); a.swingT = Math.max(0, a.swingT - dt); if (a.anim.throwT > 0) a.anim.throwT = Math.max(0, a.anim.throwT - dt * 2.5);
     if (!a.isPlayer) { a.yaw = c.yaw; a.pitch = c.pitch; }
-    const an = a.anim; an.hit = Math.max(0, an.hit - dt * 5); an.kick = a.kickT; an.fallLanded = 0;
+    const an = a.anim; an.hit = Math.max(0, an.hit - dt * 5); an.swap = Math.max(0, an.swap - dt * 4); an.kick = a.kickT; an.fallLanded = 0;
     // ---- air phases
     if (a.mode === 'plane') {
       a.body.x = this.plane.position.x; a.body.z = this.plane.position.z; a.body.y = this.plane.position.y; a.char.root.visible = false; if (c.leavePlane) this.leavePlane(a); return;
@@ -356,7 +360,7 @@ export class Game {
 
   // ------------------------------------------------------------------ weapons
   equip(a: Actor, slot: number) {
-    if (slot === a.slot) return; const g = slot === 3 ? true : slot === 2 ? a.inv.pistol : a.inv.main[slot]; if (!g) return; a.slot = slot; a.reloadT = 0; if (a.isPlayer) audio.play('tap', { bus: 'ui', gain: 0.5 });
+    if (slot === a.slot) return; const g = slot === 3 ? true : slot === 2 ? a.inv.pistol : a.inv.main[slot]; if (!g) return; a.slot = slot; a.reloadT = 0; a.anim.swap = 1; if (a.isPlayer) audio.play('tap', { bus: 'ui', gain: 0.5 });
   }
   private startReload(a: Actor) {
     const g = this.gun(a); if (!g || a.slot === 3) return; const wd = W[g.id]; if (g.mag >= wd.mag || a.inv.count(wd.ammo as string) <= 0) return;
@@ -473,7 +477,7 @@ export class Game {
   private kill(v: Actor, by: Actor | null, source: string) {
     v.alive = false; v.hp = 0; v.diedAt = this.time; v.anim.dead = Math.random() < 0.5 ? 1 : 2; v.killer = by?.name ?? source; v.char.resetDeath(); v.healT = 0;
     const alive = this.actors.filter((x) => x.alive).length; v.placement = alive + 1;
-    if (by && by !== v) { by.kills++; by.inv.tokens += B.tokens.perKill; by.tokensEarned += B.tokens.perKill; }
+    if (by && by !== v) { by.kills++; by.inv.tokens += B.tokens.perKill; by.tokensEarned += B.tokens.perKill; if (by.isPlayer) { this.elimText = `ELIMINATED ${v.name}  +${B.tokens.perKill} tokens`; this.elimT = 2.4; } }
     const you = by?.isPlayer; const line = by?.isPlayer ? SURVIVORS.find((s) => s.id === by.survivor)?.lines[0] : '';
     this.addFeed(`${by ? by.name : 'The storm'} ${by ? 'eliminated' : 'got'} ${v.isPlayer ? 'you' : v.name}${by ? ` (${source})` : ` (${source})`}${you && line ? `  "${line}"` : ''}`, !!you || v.isPlayer);
     // drop everything as a death crate
@@ -491,9 +495,8 @@ export class Game {
   private finish(winner: Actor | null) {
     if (this.phase === 'ended') return; this.phase = 'ended'; const p = this.player; const win = winner === p; const placement = win ? 1 : p.placement || this.actors.filter((a) => a.alive).length + 1;
     const res: Result = { win, placement, total: B.match.players, kills: p.kills, damage: Math.round(p.damage), time: Math.round(this.matchT), headshots: p.headshots, tokens: p.tokensEarned, xp: xpFor(p.kills, p.damage, placement), killer: p.killer };
-    this.hud.result = res; audio.play(win ? 'victory' : 'lose'); track(win ? 'level_complete' : 'game_over', { placement, kills: p.kills }); this.saveStats(res); this.onChange();
+    res.outcome = recordMatch(res); this.hud.result = res; audio.play(win ? 'victory' : 'lose'); track(win ? 'level_complete' : 'game_over', { placement, kills: p.kills }); this.onChange();
   }
-  private saveStats(r: Result) { try { const k = 'sdz-stats'; const s = JSON.parse(localStorage.getItem(k) ?? '{"matches":0,"wins":0,"kills":0,"xp":0,"best":99}'); s.matches++; s.wins += r.win ? 1 : 0; s.kills += r.kills; s.xp += r.xp; s.best = Math.min(s.best, r.placement); localStorage.setItem(k, JSON.stringify(s)); } catch { /* storage unavailable */ } }
 
   // ------------------------------------------------------------------ items
   nearestItem(a: Actor): GroundItem | null {
@@ -641,7 +644,7 @@ export class Game {
   showChat(t: string) { this.chat = t; this.chatT = 2; }
   addFeed(text: string, mine: boolean) { this.feed.push({ id: nextId++, text, t: 4, mine }); if (this.feed.length > 4) this.feed.shift(); }
   private blankHud(): Hud {
-    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
+    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, weaponClass: '', zoneWarn: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
   }
   private snapshot() {
     const h = this.hud, p = this.player; if (!p) return; h.phase = this.phase; h.mode = this.mode; h.hp = Math.max(0, Math.round(p.hp)); h.vest = Math.round(p.armour.vestDur); h.vestMax = p.armour.vestLv ? B.armour.vest.durability[p.armour.vestLv - 1] : 1; h.helmet = p.armour.helmetLv;
@@ -658,6 +661,7 @@ export class Game {
     h.reloading = p.reloadT > 0 ? 1 - p.reloadT / p.reloadMax : 0; h.healing = p.healT > 0 ? 1 - p.healT / (((B.healing as Record<string, { time: number }>)[p.healItem]?.time) || 1) : 0; h.aim = input.aim; h.scope = this.scoped() ? (W[g!.id].scope) : 0; h.spread = (g ? W[g.id].spread : 0.02) * (p.speedNow > 1 ? 1.8 : 1) * (input.aim ? 0.55 : 1);
     h.fps = Math.round(this.fps); h.numbers = [...this.numbers]; h.shots = this.shotsHeard.map((s) => ({ ...s })); h.marker = this.marker;
     h.planeX = this.plane?.position.x ?? 0; h.planeZ = this.plane?.position.z ?? 0; h.planeDir = [this.planeDir.x, this.planeDir.z]; h.canJump = this.phase === 'flight' && p.mode === 'plane'; h.autoJumpIn = Math.max(0, B.match.flightSeconds - this.flightT);
+    h.elim = this.elimT > 0 ? { text: this.elimText, t: this.elimT } : null; h.weaponClass = g ? W[g.id].class : ''; h.zoneWarn = this.zone && p.alive && this.phase === 'playing' ? { dist: Math.hypot(p.body.x - this.zone.cx, p.body.z - this.zone.cz) - this.zone.radius, dps: this.zone.dps } : null;
     h.kioskNear = !!kiosk; h.kioskOpen = this.kioskOpen; h.inventoryOpen = this.inventoryOpen; h.mapOpen = this.mapOpen; h.stack = [...p.inv.stacks].map(([id, qty]) => ({ id, qty })); h.capacity = p.inv.capacity; h.chat = this.chatT > 0 ? this.chat : '';
     h.shake = this.shake; h.inBush = p.hidden; h.inZoneDanger = !!this.zone && zoneDamage(this.zone, p.body.x, p.body.z) > 0; h.spectating = !p.alive ? this.spectateTarget?.name ?? null : null; h.quality = this.effQuality;
   }

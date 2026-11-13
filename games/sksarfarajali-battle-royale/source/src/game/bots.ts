@@ -5,8 +5,9 @@ import { CELL, GRID, HALF, POIS, coastDist, type Terrain, type Tier } from '../c
 import type { Actor, GroundItem } from './types';
 import type { ZoneState } from '../core/rules';
 import { BOT_NAMES } from './names';
+const W_MAG = (id: string) => (B.weapons as Record<string, { mag: number }>)[id].mag;
 
-export type BotState = 'drop' | 'loot' | 'rotate' | 'engage' | 'heal' | 'flee';
+export type BotState = 'drop' | 'loot' | 'rotate' | 'engage' | 'heal' | 'flee' | 'patrol' | 'cover';
 export interface Cmd { dx: number; dz: number; sprint: boolean; crouch: boolean; jump: boolean; yaw: number; pitch: number; fire: boolean; reload: boolean; heal: boolean; barrier: boolean; slot: number; interact: GroundItem | null; leavePlane: boolean }
 
 export interface BotEnv {
@@ -54,6 +55,7 @@ const TIER_W: Record<Tier, number> = { low: 3, mid: 2.5, high: 1.5, top: 1 };
 export class BotBrain {
   state: BotState = 'drop'; stateT = 0; target: Actor | null = null; seenT = 0; react = 0.5; pathPts: [number, number][] = []; pathAt = -9; goal: [number, number] = [0, 0];
   strafe = 1; strafeT = 0; lootGoal: GroundItem | null = null; dropPoi = 0; jumpAt = 0; landedAt = 0; difficulty: 'easy' | 'normal' | 'hard'; aimT = 0; barrierT = 0; stuckT = 0; lx = 0; lz = 0; name: string;
+  lastCmd: Cmd | null = null; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
   constructor(rand: () => number, difficulty: 'easy' | 'normal' | 'hard', public nav: NavGrid) {
     this.difficulty = difficulty; this.name = BOT_NAMES[Math.floor(rand() * BOT_NAMES.length)];
     let tot = 0; const ws = POIS.map((p) => (tot += TIER_W[p.tier])); const r = rand() * tot; this.dropPoi = ws.findIndex((w) => r < w); this.jumpAt = 4 + rand() * 20;
@@ -64,10 +66,30 @@ export class BotBrain {
     if (far > 6 && (env.time - this.pathAt > 0.5 || Math.hypot(this.goal[0] - gx, this.goal[1] - gz) > 12)) { this.pathAt = env.time; this.goal = [gx, gz]; this.pathPts = this.nav.path(a.body.x, a.body.z, gx, gz) ?? []; }
     while (this.pathPts.length > 1 && Math.hypot(this.pathPts[0][0] - a.body.x, this.pathPts[0][1] - a.body.z) < 3) this.pathPts.shift();
     const [tx, tz] = far <= 14 || !this.pathPts.length ? [gx, gz] : this.pathPts[0];
-    const dx = tx - a.body.x, dz = tz - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.sprint = sprint;
+    const dx = tx - a.body.x, dz = tz - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.sprint = sprint && this.difficulty !== 'easy';
     // stuck detection: jump and nudge sideways
-    if (Math.hypot(a.body.x - this.lx, a.body.z - this.lz) < 0.05 * 0.5) this.stuckT += 0.05; else this.stuckT = 0; this.lx = a.body.x; this.lz = a.body.z;
+    if (Math.hypot(a.body.x - this.lx, a.body.z - this.lz) < 0.05 * 0.5) this.stuckT += 0.1; else this.stuckT = 0; this.lx = a.body.x; this.lz = a.body.z;
     if (this.stuckT > 0.6) { cmd.jump = true; const s = Math.sin(env.time * 3) > 0 ? 1 : -1; cmd.dx += -cmd.dz * s * 0.8; cmd.dz += cmd.dx * s * 0.8; if (this.stuckT > 2) { this.pathPts = []; this.pathAt = -9; this.stuckT = 0; } }
+  }
+  /** Behind-a-wall spot near us that the threat cannot see (cheap sampling of nearby boxes). */
+  private findCover(a: Actor, threat: Actor, env: BotEnv): [number, number] | null {
+    let best: [number, number] | null = null, bd = 1e9; const ty = threat.body.y + 1.5;
+    env.colliders.near(a.body.x - 25, a.body.z - 25, a.body.x + 25, a.body.z + 25, (b) => {
+      const h = b.y1 - b.y0, w = b.x1 - b.x0, d = b.z1 - b.z0; if (h < 1.1 || Math.max(w, d) < 0.8 || b.y0 > env.terrain.height((b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2) + 1) return;
+      const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, dx = cx - threat.body.x, dz = cz - threat.body.z, l = Math.hypot(dx, dz) || 1, r = Math.max(w, d) / 2 + 1.3; const px = cx + (dx / l) * r, pz = cz + (dz / l) * r;
+      if (coastDist(px, pz) < 3) return; const d2 = Math.hypot(px - a.body.x, pz - a.body.z); if (d2 >= bd || d2 > 24) return;
+      const gy = env.terrain.height(px, pz) + 1.5, ox = px - threat.body.x, oy = gy - ty, oz = pz - threat.body.z, dist = Math.hypot(ox, oy, oz) || 1;
+      if (env.colliders.raycast(threat.body.x, ty, threat.body.z, ox / dist, oy / dist, oz / dist, dist) < dist - 0.5) { bd = d2; best = [px, pz]; }
+    });
+    return best;
+  }
+  private patrol(a: Actor, env: BotEnv, cmd: Cmd) {
+    const z = env.zone; const near = this.patrolGoal ? Math.hypot(this.patrolGoal[0] - a.body.x, this.patrolGoal[1] - a.body.z) : 0;
+    if (!this.patrolGoal || env.time - this.patrolAt > 25 || near < 8) {
+      const pool = POIS.filter((p) => !z || Math.hypot(p.x - z.nextCx, p.z - z.nextCz) < z.nextRadius + 20); const P = (pool.length ? pool : POIS)[Math.floor(env.rand() * (pool.length || POIS.length))];
+      this.patrolGoal = [P.x + (env.rand() - 0.5) * 50, P.z + (env.rand() - 0.5) * 50]; this.patrolAt = env.time;
+    }
+    this.go(a, env, this.patrolGoal[0], this.patrolGoal[1], cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); this.tactic = 'patrol';
   }
   private set(s: BotState) { if (this.state !== s) { this.state = s; this.stateT = 0; this.pathAt = -9; } }
 
@@ -89,7 +111,7 @@ export class BotBrain {
     if (best) { if (this.target === best) this.seenT += dt; else { this.target = best; this.seenT = 0; this.aimT = 0; } } else { this.seenT = 0; if (this.target && !this.target.alive) this.target = null; this.aimT = Math.max(0, this.aimT - dt); if (!best && this.state === 'engage' && this.stateT > 1.5) this.set('loot'); }
     const lowHp = a.hp < B.bots.healBelow, canHeal = a.inv.count('medkit') > 0 || a.inv.count('bandage') > 0;
     const z = env.zone; const outside = z ? Math.hypot(a.body.x - z.cx, a.body.z - z.cz) > z.radius - 4 : false;
-    const outNext = z ? Math.hypot(a.body.x - z.nextCx, a.body.z - z.nextCz) > z.nextRadius * 0.9 : false;
+    const outNext = z ? Math.hypot(a.body.x - z.nextCx, a.body.z - z.nextCz) > z.nextRadius * (this.difficulty === 'hard' ? 0.75 : this.difficulty === 'easy' ? 1.0 : 0.9) : false;
 
     const armed = !!(a.inv.main[0] || a.inv.main[1] || a.inv.pistol) && (a.inv.count('light') + a.inv.count('heavy') + a.inv.count('shells') > 0 || a.inv.main.some((g) => g && g.mag > 0));
     if (outside && this.state !== 'flee') this.set('flee');
@@ -118,8 +140,16 @@ export class BotBrain {
         this.strafeT -= dt; if (this.strafeT < 0) { this.strafe = Math.random() < 0.5 ? -1 : 1; this.strafeT = 0.8 + Math.random() * 1.4; cmd.crouch = Math.random() < 0.3; }
         const gun = a.inv.main[Math.max(0, a.slot)] ?? a.inv.main[0] ?? a.inv.main[1] ?? a.inv.pistol; const want = gun ? B.weapons[gun.id].range : 2;
         const wantDist = Math.min(want * 0.7, 45);
+        // tactics (not on Easy): fall back to cover to reload or heal when hurt
+        const need = !!gun && gun.mag <= Math.max(1, W_MAG(gun.id) * 0.15);
+        if (this.difficulty !== 'easy' && env.time > this.coverUntil + 4 && (a.hp < 50 || need) && dist > 6) { const cp = this.findCover(a, t, env); if (cp) { this.coverPt = cp; this.coverUntil = env.time + 3 + Math.random() * 2; this.tactic = a.hp < 50 ? 'retreat' : 'reload in cover'; } }
+        if (env.time < this.coverUntil && this.coverPt) {
+          const dd = Math.hypot(this.coverPt[0] - a.body.x, this.coverPt[1] - a.body.z); cmd.yaw = Math.atan2(dx, dz);
+          if (dd > 1.2) { cmd.dx = (this.coverPt[0] - a.body.x) / dd; cmd.dz = (this.coverPt[1] - a.body.z) / dd; cmd.sprint = true; } else { cmd.crouch = true; cmd.reload = need || (!!gun && gun.mag < W_MAG(gun.id)); cmd.heal = a.hp < 70 && canHeal; if (this.difficulty === 'hard' && Math.sin(env.time * 3) > 0.6 && gun && gun.mag > 0) cmd.fire = true; }
+          break;
+        }
         if (dist > wantDist + 6) { cmd.dx = dx / dist; cmd.dz = dz / dist; cmd.sprint = false; } else if (dist < wantDist * 0.4) { cmd.dx = -dx / dist; cmd.dz = -dz / dist; }
-        cmd.dx += (-dz / dist) * this.strafe * 0.8; cmd.dz += (dx / dist) * this.strafe * 0.8;
+        const lat = this.difficulty === 'hard' && dist > wantDist ? 1.3 : 0.8; if (this.difficulty === 'hard' && dist > wantDist) this.tactic = 'flank'; cmd.dx += (-dz / dist) * this.strafe * lat; cmd.dz += (dx / dist) * this.strafe * lat;
         cmd.fire = dist < Math.min(want * 1.05, 110) && this.aimT > 0.35 && Math.sin(env.time * 4 + a.id) > -0.35; if (a.inv.main[0] || a.inv.main[1]) cmd.slot = a.inv.main[0] ? 0 : 1; else if (a.inv.pistol) cmd.slot = 2; else cmd.slot = 3;
         if (gun && gun.mag === 0) cmd.reload = true;
         this.barrierT -= dt; if (a.hp < 60 && a.inv.barriers > 0 && this.barrierT < 0 && dist > 8) { cmd.barrier = true; this.barrierT = 20; }
@@ -131,7 +161,7 @@ export class BotBrain {
         if (g) {
           this.go(a, env, g.x, g.z, cmd, true); cmd.yaw = Math.atan2(cmd.dx, cmd.dz);
           if (Math.hypot(g.x - a.body.x, g.z - a.body.z) < 2.1 && Math.abs(g.y - a.body.y) < 2.5) { cmd.interact = g; this.lootGoal = null; }
-        } else { const P = POIS[this.dropPoi]; this.go(a, env, P.x, P.z, cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); }
+        } else { this.patrol(a, env, cmd); }
       }
     }
     if (!cmd.fire && this.state !== 'engage') cmd.pitch = 0;

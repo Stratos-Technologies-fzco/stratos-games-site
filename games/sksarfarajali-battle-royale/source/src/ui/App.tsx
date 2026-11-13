@@ -6,10 +6,9 @@ import { initInput, input, isTouch, press, saveSettings, setPauseHandler, settin
 import { SURVIVORS, type Survivor } from '../render/character';
 import { Hud as HudView } from './Hud';
 import { track } from '../analytics';
+import { ACHIEVEMENTS, dailyMissions, getStats, level as lvlOf, missionState, unlocked, weeklyBoard } from '../progress';
 
 type Screen = 'loading' | 'lobby' | 'match';
-const stats = () => { try { return JSON.parse(localStorage.getItem('sdz-stats') ?? '{}'); } catch { return {}; } };
-const level = (xp: number) => { let l = 1, need = 100; while (xp >= need) { xp -= need; l++; need = 100 + l * 40; } return { l, pct: xp / need }; };
 
 export function App() {
   const canvas = useRef<HTMLCanvasElement>(null); const game = useRef<Game | null>(null);
@@ -17,6 +16,7 @@ export function App() {
   const [tab, setTab] = useState<'play' | 'survivors' | 'locker' | 'ranks' | 'missions'>('play'); const [mode, setMode] = useState<'solo' | 'training'>('solo');
   const [sv, setSv] = useState<Survivor>((localStorage.getItem('sdz-sv') as Survivor) || 'survivor_kiran'); const [settingsOpen, setSettingsOpen] = useState(false); const [pause, setPause] = useState(false);
   const [info, setInfo] = useState<'' | 'how' | 'about'>(''); const [musicOn, setMusicOn] = useState(settings.musicOn); const [demo, setDemo] = useState(false);
+  const [diff, setDiff] = useState<'easy' | 'normal' | 'hard'>((localStorage.getItem('sdz-diff') as 'easy' | 'normal' | 'hard') || 'normal');
   const [bots, setBots] = useState(false); const [err, setErr] = useState('');
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function App() {
     setPauseHandler(() => { if (g.phase === 'playing' || g.phase === 'flight') { g.setPaused(true); setPause(true); } });
     g.init(setProgress).then(() => { setScreen('lobby'); track('game_open'); }).catch((e) => { console.error(e); setErr(String(e?.message ?? e)); });
     const unlock = () => { audio.unlock(); audio.startMusic('lobby'); removeEventListener('pointerdown', unlock); };
-    addEventListener('pointerdown', unlock); document.documentElement.classList.toggle('reduce', settings.reduceMotion);
+    addEventListener('pointerdown', unlock); document.documentElement.classList.toggle('reduce', settings.reduceMotion); document.documentElement.style.setProperty('--ui', String(settings.uiScale));
     return () => g.dispose();
   }, []);
 
@@ -34,12 +34,12 @@ export function App() {
   const play = async (m: 'solo' | 'training' = mode, d: boolean = demo) => {
     if (!g) return; audio.unlock(); audio.play('tap'); localStorage.setItem('sdz-sv', sv); setScreen('match'); setPause(false);
     try { if (isTouch()) { document.documentElement.requestFullscreen?.().catch(() => {}); (navigator as unknown as { wakeLock?: { request: (t: string) => Promise<unknown> } }).wakeLock?.request('screen').catch(() => {}); } } catch { /* optional */ }
-    await g.start(m, sv, { bots, demo: d }); tick((n) => n + 1);
+    await g.start(m, sv, { bots, demo: d, difficulty: diff }); tick((n) => n + 1);
   };
   const toggleMusic = () => { settings.musicOn = !settings.musicOn; setMusicOn(settings.musicOn); audio.unlock(); audio.setMusicOn(settings.musicOn); saveSettings(); };
   const backToLobby = () => { g?.toLobby(); setScreen('lobby'); setPause(false); };
-  const st = stats(); const lv = level(st.xp ?? 0); const svDef = SURVIVORS.find((s) => s.id === sv)!;
-  const upd = (fn: () => void) => { fn(); saveSettings(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); audio.setMusicOn(settings.musicOn); tick((n) => n + 1); };
+  const st = getStats(); const lv0 = lvlOf(st.xp); const lv = { l: lv0.level, pct: lv0.pct }; const svDef = SURVIVORS.find((s) => s.id === sv)!;
+  const upd = (fn: () => void) => { fn(); saveSettings(); document.documentElement.classList.toggle('reduce', settings.reduceMotion); for (const k of ['master', 'music', 'sfx', 'ui'] as const) audio.setVolume(k, settings[k]); audio.setMusicOn(settings.musicOn); document.documentElement.style.setProperty('--ui', String(settings.uiScale)); tick((n) => n + 1); };
 
   return (
     <>
@@ -65,6 +65,7 @@ export function App() {
             <div class="stage">{tab === 'play' && <img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt={svDef.name} />}</div>
             <div class="col">
               <div class="panel" style="padding:10px"><div class="t" style="font-size:14px">Offline match</div><div class="note">Plays on your device. No sign-up. Bots fill every empty slot.</div></div>
+              <div class="panel" style="padding:8px"><div class="note" style="margin-bottom:4px">Bot difficulty</div><div style="display:flex;gap:6px">{(['easy', 'normal', 'hard'] as const).map((d) => <button class={'btn ' + (diff === d ? 'sel' : '')} style="min-width:0;flex:1;padding:0 4px;font-size:13px" onClick={() => { setDiff(d); localStorage.setItem('sdz-diff', d); }}>{d[0].toUpperCase() + d.slice(1)}</button>)}</div></div>
               {<label class="panel" style="padding:8px;font-size:13px;display:flex;gap:8px;align-items:center"><input type="checkbox" checked={bots} onChange={(e) => setBots((e.target as HTMLInputElement).checked)} /> Training: add 3 easy bots</label>}
               <button class="btn primary" style="min-height:64px" onClick={() => void play()}>PLAY</button>
               <div class="note" style="text-align:center">{svDef.name} · {svDef.role}</div>
@@ -78,10 +79,10 @@ export function App() {
               <div class="survivors">{SURVIVORS.map((s) => <div class={`sv ${s.id === sv ? 'on' : ''}`} onClick={() => setSv(s.id)}><img src={`art/${s.id.replace('survivor_', 'character_')}.jpg`} alt={s.name} /><b>{s.name}</b><span>{s.role}</span><span style={{ display: 'block', color: s.color }}>{B.perksEnabled ? s.perk : 'Cosmetic in v1'}</span></div>)}</div>
               <p class="note">Perks switch on in a later update. For now every survivor plays the same.</p><button class="btn primary" onClick={() => setTab('play')}>Done</button></div></div>
           )}
-          {(tab === 'locker' || tab === 'missions') && <div class="modal" onClick={() => setTab('play')}><div class="card center"><h2>{tab === 'locker' ? 'Locker' : 'Missions'}</h2><p>Coming soon.</p><button class="btn" onClick={() => setTab('play')}>Back</button></div></div>}
-          {tab === 'ranks' && <div class="modal" onClick={() => setTab('play')}><div class="card"><h2>Your record</h2>
-            <div class="row"><span>Matches</span><b>{st.matches ?? 0}</b></div><div class="row"><span>Wins</span><b>{st.wins ?? 0}</b></div><div class="row"><span>Eliminations</span><b>{st.kills ?? 0}</b></div><div class="row"><span>Best placement</span><b>{st.best && st.best < 99 ? `#${st.best}` : '-'}</b></div><div class="row"><span>XP</span><b>{st.xp ?? 0}</b></div>
-            <p class="note">Weekly leaderboards arrive when online play does. This is stored on your device.</p><button class="btn" onClick={() => setTab('play')}>Back</button></div></div>}
+          {tab === 'missions' && <MissionsModal onClose={() => setTab('play')} />}
+          {tab === 'ranks' && <RanksModal onClose={() => setTab('play')} />}
+          {tab === 'locker' && <div class="modal" onClick={() => setTab('play')}><div class="card center"><h2>{tab === 'locker' ? 'Locker' : 'Missions'}</h2><p>Coming soon.</p><button class="btn" onClick={() => setTab('play')}>Back</button></div></div>}
+          
         </div>
       )}
       {info === 'how' && <div class="modal" onClick={() => setInfo('')}><div class="card" onClick={(e) => e.stopPropagation()}><h2>How to play</h2>
@@ -104,6 +105,8 @@ export function App() {
           <div class="row"><span>Look sensitivity</span><input type="range" min="0.3" max="3" step="0.1" value={settings.sensitivity} onInput={(e) => upd(() => (settings.sensitivity = +(e.target as HTMLInputElement).value))} /></div>
           <div class="row"><span>Aim assist (touch)</span><input type="checkbox" checked={settings.aimAssist} onChange={(e) => upd(() => (settings.aimAssist = (e.target as HTMLInputElement).checked))} /></div>
           {(['master', 'music', 'sfx', 'ui'] as const).map((k) => <div class="row"><span>{k[0].toUpperCase() + k.slice(1)} volume</span><input type="range" min="0" max="1" step="0.05" value={settings[k]} onInput={(e) => upd(() => (settings[k] = +(e.target as HTMLInputElement).value))} /></div>)}
+          <div class="row"><span>Auto-pickup ammo, healing and gadgets</span><input type="checkbox" checked={settings.autoPickup} onChange={(e) => upd(() => (settings.autoPickup = (e.target as HTMLInputElement).checked))} /></div>
+          <div class="row"><span>HUD size</span><input type="range" min="0.7" max="1.4" step="0.1" value={settings.uiScale} onInput={(e) => upd(() => (settings.uiScale = +(e.target as HTMLInputElement).value))} /></div>
           <div class="row"><span>Reduce motion</span><input type="checkbox" checked={settings.reduceMotion} onChange={(e) => upd(() => (settings.reduceMotion = (e.target as HTMLInputElement).checked))} /></div>
           <p class="note">Keys: WASD move · mouse look · click fire · right-click aim · R reload · Space jump · C crouch · Shift sprint · F pick up · 1-4 weapons · G grenade · B barrier · H heal · Tab pack · M map · Esc pause</p>
           <button class="btn primary" onClick={() => setSettingsOpen(false)}>Done</button></div></div>
@@ -113,3 +116,24 @@ export function App() {
   );
 }
 void input; void press; void touch;
+
+function MissionsModal({ onClose }: { onClose: () => void }) {
+  const ms = missionState(), list = dailyMissions();
+  return (
+    <div class="modal" onClick={onClose}><div class="card" onClick={(e) => e.stopPropagation()}><h2>Daily missions</h2>
+      {list.map((m) => { const p = ms.progress[m.id] ?? 0, done = !!ms.done[m.id]; return <div class="row" key={m.id}><span>{done ? '✓ ' : ''}{m.text}<div class="xpbar" style="width:160px;margin-top:4px"><i style={{ width: Math.min(100, (p / m.target) * 100) + '%', background: done ? 'var(--green)' : 'var(--violet)' }} /></div></span><b style={{ color: done ? 'var(--green)' : 'var(--amber)' }}>{done ? 'Done' : '+' + m.reward + ' XP'}</b></div>; })}
+      <p class="note">New missions every day. Finish a match to make progress. Rewards are added to your XP automatically.</p><button class="btn primary" onClick={onClose}>Back</button></div></div>
+  );
+}
+function RanksModal({ onClose }: { onClose: () => void }) {
+  const s = getStats(), l = lvlOf(s.xp), un = unlocked(), board = weeklyBoard();
+  return (
+    <div class="modal" onClick={onClose}><div class="card" onClick={(e) => e.stopPropagation()}><h2>Your record</h2>
+      <div class="row"><span>Level</span><b>{l.level} · {l.into}/{l.need} XP</b></div><div class="row"><span>Matches · wins</span><b>{s.matches} · {s.wins}</b></div><div class="row"><span>Eliminations · deaths (K/D)</span><b>{s.kills} · {s.deaths} ({(s.kills / Math.max(1, s.deaths)).toFixed(2)})</b></div><div class="row"><span>Headshots · damage</span><b>{s.headshots} · {Math.round(s.damage)}</b></div><div class="row"><span>Best placement</span><b>{s.best < 99 ? '#' + s.best : '-'}</b></div><div class="row"><span>Time survived</span><b>{Math.floor(s.seconds / 60)} min</b></div>
+      <h2 style="margin-top:12px">Achievements ({ACHIEVEMENTS.filter((a) => un[a.id]).length}/{ACHIEVEMENTS.length})</h2>
+      {ACHIEVEMENTS.map((a) => <div class="row" key={a.id} style={{ opacity: un[a.id] ? 1 : 0.5 }}><span><b>{un[a.id] ? '★ ' : '☆ '}{a.name}</b> · {a.text}</span></div>)}
+      <h2 style="margin-top:12px">Best runs this week (this device)</h2>
+      {board.length === 0 ? <p class="note">Play a match to set your first score.</p> : board.map((r, i) => <div class="row" key={i}><span>#{i + 1} · placed #{r.placement} · {r.kills} elims{r.win ? ' · WIN' : ''}</span><b>{r.score}</b></div>)}
+      <p class="note">A shared online leaderboard will come with online play.</p><button class="btn primary" onClick={onClose}>Back</button></div></div>
+  );
+}

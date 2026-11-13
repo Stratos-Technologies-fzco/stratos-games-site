@@ -5,7 +5,7 @@ export interface InputState {
   slot: number; map: boolean; inventory: boolean; pause: boolean; marker: boolean;
 }
 export const input: InputState = { moveX: 0, moveY: 0, sprint: false, lookDX: 0, lookDY: 0, fire: false, aim: false, jump: false, crouch: false, reload: false, interact: false, heal: false, grenade: false, barrier: false, slot: -1, map: false, inventory: false, pause: false, marker: false };
-export const settings = { sensitivity: 1, aimAssist: true, reduceMotion: false, quality: 'auto' as 'auto' | 'low' | 'medium' | 'high', resScale: 1, fps: false, musicOn: true, master: 0.55, music: 0.45, sfx: 1, ui: 0.6, hints: true };
+export const settings = { sensitivity: 1, aimAssist: true, reduceMotion: false, quality: 'auto' as 'auto' | 'low' | 'medium' | 'high', resScale: 1, fps: false, musicOn: true, autoPickup: matchMedia('(pointer: coarse)').matches, uiScale: 1, master: 0.55, music: 0.45, sfx: 1, ui: 0.6, hints: true };
 try { const s = JSON.parse(localStorage.getItem('sdz-settings') ?? '{}'); Object.assign(settings, s); } catch { /* storage unavailable */ }
 export const saveSettings = () => { try { localStorage.setItem('sdz-settings', JSON.stringify(settings)); } catch { /* ignore */ } };
 

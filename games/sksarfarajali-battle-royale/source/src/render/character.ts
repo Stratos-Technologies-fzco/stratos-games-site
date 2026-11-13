@@ -12,9 +12,9 @@ export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string
 
 export interface AnimState {
   speed: number; crouch: boolean; onGround: boolean; vy: number; mode: 'ground' | 'skydive' | 'glide';
-  aiming: boolean; pitch: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number;
+  aiming: boolean; pitch: number; swap: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number;
 }
-export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0 });
+export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, swap: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0 });
 
 interface Pose { aLx: number; aLz: number; aRx: number; aRz: number; lL: number; lR: number; torso: number; hip: number; head: number; lean: number; roll: number }
 const zero = (): Pose => ({ aLx: 0, aLz: 0, aRx: 0, aRz: 0, lL: 0, lR: 0, torso: 0, hip: 0, head: 0, lean: 0, roll: 0 });
@@ -78,7 +78,7 @@ export class Character {
     if (this.landRoll > 0) { this.landRoll -= dt; rootRoll = (1 - this.landRoll / 0.5) * Math.PI * 2; }
     if (s.fallLanded > 6) this.landRoll = 0.5;
     if (!s.dead && s.mode === 'ground') {
-      if (s.armed && !s.melee) { const raise = -1.45 - Math.max(-0.6, Math.min(0.6, s.pitch)) * 0.85; target.aRx = raise - s.kick * 0.25; target.aLx = raise + 0.15; target.aLz = -0.5; target.torso += s.aiming ? 0.25 : 0; }
+      if (s.armed && !s.melee) { const raise = -1.45 - Math.max(-0.6, Math.min(0.6, s.pitch)) * 0.85; target.aRx = raise - s.kick * 0.25; target.aLx = raise + 0.15; target.aLz = -0.5; target.aRx += s.swap * 0.9; target.aLx += s.swap * 0.7; target.torso += s.aiming ? 0.25 : 0; }
       if (s.melee && s.kick > 0) { target.aRx = -1.6 + s.kick * 2.2; target.torso += s.kick * 0.5; }
       if (s.reload) { target.aLx = -0.9 + Math.sin(this.t * 12) * 0.15; target.aLz = -0.4; target.aRx = -0.7; }
       if (s.heal) { target.aLx = -1.1; target.aRx = -1.1; target.aLz = -0.35; target.aRz = 0.35; target.head = 0.2; }
