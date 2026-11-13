@@ -55,7 +55,8 @@ export function Lobby(p: LobbyProps) {
         <div class="diffs">{(['easy', 'normal', 'hard'] as const).map((d) => <button class={`pill ${p.diff === d ? 'on' : ''}`} onClick={() => p.onDiff(d)}><span>{d[0].toUpperCase() + d.slice(1)}</span></button>)}</div>
         <label class="lb-check"><input type="checkbox" checked={p.bots} onChange={(e) => p.onBots((e.target as HTMLInputElement).checked)} /> Training: add 3 easy bots</label>
         <div class="lb-info">Vayu Island · 24 players · bots fill the empty slots</div>
-        <button class="play" onClick={p.onPlay}>PLAY</button>
+        <button class="play pulse" onClick={p.onPlay}>PLAY</button>
+        <div class="lb-hint">Tap SOLO or PLAY to start a match</div>
       </div>
 
       <nav class="lb-nav" aria-label="Menu">

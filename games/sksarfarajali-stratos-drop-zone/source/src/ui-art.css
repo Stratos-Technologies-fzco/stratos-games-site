@@ -1,6 +1,7 @@
 /* ================= image UI: lobby, matchmaking, results, locker =================
    Sizes are in em, with the base size tied to the screen height, so the 844x390 mockups scale up to 1920x1080. */
-.lobby2, .mm, .rs, .locker { font-size: clamp(11px, 3.1vh, 30px); color: var(--text); background: #0E0B1A; overflow: hidden; }
+/* tied to the smaller of height and width, so a squarer frame (the stratos.games play page) never pushes buttons off the edge */
+.lobby2, .mm, .rs, .locker { font-size: clamp(10px, min(3.1vh, 1.42vw), 30px); color: var(--text); background: #0E0B1A; overflow: hidden; }
 .glass { background: rgba(14, 11, 26, .72); border: 1px solid rgba(167, 139, 250, .25); border-radius: .83em; backdrop-filter: blur(6px); }
 .lbl { font-size: .92em; letter-spacing: .16em; color: #C9C4DE; font-weight: 600; } .lbl.sm { font-size: .8em; margin-top: .3em; }
 .pill { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 1em; border-radius: .83em; border: 1px solid #2E2650; background: rgba(26, 21, 48, .85); font: 600 1.08em var(--body); color: var(--text); cursor: pointer; }
@@ -32,6 +33,8 @@
 .lb-right { position: absolute; right: 1.17em; top: 5.17em; width: 19em; display: flex; flex-direction: column; gap: .5em; z-index: 1; }
 .diffs { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4em; } .diffs .pill { justify-content: center; padding: 0 .2em; font-size: 1em; }
 .lb-check { font-size: .92em; color: #C9C4DE; display: flex; align-items: center; gap: .5em; padding: .2em 0; } .lb-info { font-size: .92em; color: #C9C4DE; line-height: 1.35; margin: .15em 0 .4em; }
+.lb-hint { font-size: .92em; color: #FFB020; font-weight: 600; text-align: center; margin-top: .5em; }
+.play.pulse { animation: pulse 2.2s ease-in-out infinite; } @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
 .lb-nav { position: absolute; left: 0; right: 0; bottom: .4em; display: flex; justify-content: center; gap: 1.5em; z-index: 2; }
 .lb-nav button { background: none; border: 0; color: #C9C4DE; font: 500 1.08em var(--body); min-height: 44px; padding: 0 .4em; cursor: pointer; } .lb-nav .on { color: #FFB020; font-weight: 700; }
 
