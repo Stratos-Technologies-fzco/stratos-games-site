@@ -4,5 +4,19 @@
   "one_line": "Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in.",
   "category": "arcade",
   "github": "sksarfarajali",
-  "how_to_play": "Tap JUMP to leave the plane, find a weapon, then be the last one standing. Move with the left thumb, look with the right, FIRE to shoot. On a computer: WASD, mouse, click to fire."
+  "how_to_play": "Tap JUMP to leave the plane, find a weapon, then be the last one standing. Move with the left thumb, look with the right, FIRE to shoot. On a computer: WASD, mouse, click to fire.",
+  "description": "Battle Royale is a quick shooter set on Vayu Island, a made-up island on a monsoon coast. You and 23 other players jump from a cargo plane, land wherever you like, and race to find weapons, armour and healing. The last one standing wins. The other 23 are bots, so you can play any time with no sign-up.\n\nPress Jump to leave the plane, glide down, then run into a building to loot. There are seven weapons, from a machete to a long-range sniper rifle, plus grenades, smoke and a wall you can put down for cover. A violet storm called the Monsoon Wall closes in six steps, so keep moving toward the safe circle. Every elimination earns tokens you can spend at a supply kiosk.\n\nA match takes about five and a half minutes, so it fits a short break. The Demo button teaches the basics in a minute, and Training lets you try every weapon on target dummies. It works on phones and computers with no download. It is for anyone who likes fast games with a bit of strategy.",
+  "controls": [
+    "Computer: WASD to move, mouse to look, click to fire, right-click to aim",
+    "R reload, F pick up, Space jump, C crouch, Shift sprint, 1-4 switch weapon",
+    "G grenade, B barrier, H heal, Tab backpack, M map, Esc pause",
+    "Phone: left thumb moves, right thumb looks, hold FIRE to keep shooting",
+    "Phone buttons: AIM, JUMP, CROUCH and RELOAD sit on the right"
+  ],
+  "tips": [
+    "Big places like Spice Market and the Old Sea Fort have the best loot and a supply kiosk, but also the most rivals. Land somewhere quieter if you want a safe start.",
+    "The storm does more damage every phase. Start moving toward the circle before it closes, and heal before a fight, not during it.",
+    "Crouch inside a bush and anyone more than 15 metres away can't see you."
+  ],
+  "story": "I enjoy survival and shooting games, and I wanted to bring that battle royale excitement to my own platform, STRATOS.GAMES. My goal is a fun, lightweight game that plays right in the browser, with no large app to download. I'm building it with Claude Code and TypeScript, using Three.js for the 3D, together with original low-poly models and my own game ideas and UI. Right now you play against bots, and online matches are something I want to add later."
 }
