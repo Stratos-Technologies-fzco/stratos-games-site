@@ -618,7 +618,21 @@
     var d = el('fx ' + cls, html || ''); d.style.left = x + 'px'; d.style.top = y + 'px'; if (w) d.style.width = w + 'px'; if (h) d.style.height = h + 'px';
     layerF.appendChild(d); setTimeout(function () { d.remove(); }, 1000 * T + 100); return d;
   }
-  function showFx(f) {
+  /* The Rainbow: rainbow rings burst out of the crystal and a glowing light flies to every crystal it clears, each ending in a sparkle. */
+  function rainbowBurst(f, cells) {
+    var p = centre(f.r, f.c);
+    if (document.body.classList.contains('lowfx') || T < 1) return;
+    boardEl.classList.remove('rbglow'); void boardEl.offsetWidth; boardEl.classList.add('rbglow'); setTimeout(function () { boardEl.classList.remove('rbglow'); }, 900);
+    fxEl('rbcore', p.x, p.y, cell * 1.6, cell * 1.6);
+    [0, 90, 180].forEach(function (delay, i) { var r = fxEl('rbring', p.x, p.y, cell * (5 + i * 3), cell * (5 + i * 3)); r.style.animationDelay = delay + 'ms'; });
+    Cel.rainbowTargets(cells || [], 28).forEach(function (c, i) {
+      var q = centre(c.r, c.c), col = c.color >= 0 ? GLOW[c.color] : '#fff';
+      var o = fxEl('orb', p.x - cell * 0.18, p.y - cell * 0.18, cell * 0.36, cell * 0.36); o.style.background = 'radial-gradient(circle,#fff 0%,' + col + ' 55%,rgba(255,255,255,0) 72%)'; o.style.boxShadow = '0 0 10px 3px ' + col;
+      setTimeout(function () { o.style.transform = 'translate(' + (q.x - p.x) + 'px,' + (q.y - p.y) + 'px) scale(.8)'; }, 30 + i * 12);
+      setTimeout(function () { var z = fxEl('zap', q.x - cell * 0.5, q.y - cell * 0.5, cell, cell); z.style.setProperty('--zc', col); }, 340 + i * 12);
+    });
+  }
+  function showFx(f, cells) {
     var p = centre(f.r, f.c), W = cols * cell, H = rows * cell;
     switch (f.type) {
       case 'lightning': fxEl('beamh', 0, f.r * cell + cell * 0.1, W); A.sfx('lightning'); break;
@@ -626,10 +640,10 @@
       case 'bomb': fxEl('ring', p.x, p.y, cell * 3, cell * 3); A.sfx('explosion'); break;
       case 'nova': fxEl('ring', p.x, p.y, cell * 5, cell * 5); fxEl('flash', 0, 0); A.sfx('explosion'); break;
       case 'star': fxEl('beamh', 0, f.r * cell + cell * 0.1, W); fxEl('beamv', f.c * cell + cell * 0.1, 0, 0, H); fxEl('ring', p.x, p.y, cell * 4, cell * 4); A.sfx('lightning'); break;
-      case 'rainbow': fxEl('rainbowfx', 0, 0); A.sfx('rainbow'); break;
+      case 'rainbow': rainbowBurst(f, cells); A.sfx('rainbow'); break;
       case 'fish': (f.targets || []).forEach(function (t, i) { var q = centre(t[0], t[1]), d = fxEl('fish', p.x - cell / 2, p.y - cell / 2, 0, 0, '<img alt="" src="' + spSrc('fish') + '">'); setTimeout(function () { d.style.transform = 'translate(' + (q.x - p.x) + 'px,' + (q.y - p.y) + 'px) scale(.7)'; }, 20 + i * 60); }); A.sfx('booster'); break;
       case 'super': fxEl('flash', 0, 0); fxEl('ring', p.x, p.y, cell * 8, cell * 8); A.sfx('explosion'); break;
-      case 'combo': fxEl('flash', 0, 0); fxEl('ring', p.x, p.y, cell * 6, cell * 6); A.sfx('explosion'); if (f.a === 'rainbow' || f.b === 'rainbow') fxEl('rainbowfx', 0, 0); break;
+      case 'combo': fxEl('flash', 0, 0); fxEl('ring', p.x, p.y, cell * 6, cell * 6); A.sfx('explosion'); if (f.a === 'rainbow' || f.b === 'rainbow') rainbowBurst(f, cells); break;
       case 'hammer': fxEl('hammer', p.x - cell / 2, p.y - cell / 2 - 4, 0, 0, '<img alt="" src="' + icon('hammer') + '">'); A.sfx('booster'); break;
     }
   }
@@ -640,7 +654,7 @@
     var d = el('fx praise t' + tier, '<span>' + word + '</span>');
     d.style.left = (cols * cell / 2) + 'px'; d.style.top = (rows * cell * 0.42) + 'px';
     if (tier >= 2 && T === 1 && !document.body.classList.contains('lowfx')) {
-      var n = tier * 3 + 2;
+      var n = tier * 2 + 4;
       for (var i = 0; i < n; i++) { var sp = document.createElement('i'); sp.style.setProperty('--a', Math.round(360 / n * i + (i % 2 ? 14 : 0)) + 'deg'); sp.style.setProperty('--d', Math.round(cell * (1.2 + tier * 0.4)) + 'px'); d.appendChild(sp); }
     }
     layerF.appendChild(d); A.chime(tier);
@@ -661,7 +675,7 @@
   }
   async function doClear(s) {
     var n = s.cells.length, big = false;
-    s.fx.forEach(function (f) { showFx(f); if (f.type === 'nova' || f.type === 'combo' || f.type === 'super') big = true; });
+    s.fx.forEach(function (f) { showFx(f, s.cells); if (f.type === 'nova' || f.type === 'combo' || f.type === 'super') big = true; });
     if (!s.fx.length) A.sfx(n >= 5 ? 'match5' : n === 4 ? 'match4' : 'match3');
     if (big) { boardEl.classList.remove('bossshake'); void boardEl.offsetWidth; boardEl.classList.add('bossshake'); }
     var sx = 0, sy = 0;
@@ -672,7 +686,7 @@
       else { updBlk(d, b.hp); d.classList.remove('hit'); void d.offsetWidth; d.classList.add('hit'); }
     });
     if (n) { var p = centre(sy / n, sx / n); fxEl('pts', p.x, p.y, 0, 0, '+' + s.pts); }
-    var tier = Cel.tierFor({ cleared: n, cascade: s.cascade, specials: s.fx.filter(function (f) { return f.type !== 'hammer'; }).length, combo: s.fx.some(function (f) { return f.type === 'combo' || f.type === 'super'; }) });
+    var tier = Cel.tierFor({ cleared: n, cascade: s.cascade, kinds: s.fx.map(function (f) { return f.type; }), combo: s.fx.some(function (f) { return f.type === 'combo' || f.type === 'super'; }) });
     if (tier) showPraise(tier);
     s.makes.forEach(function (m) {
       var d = tiles[m.id]; if (d) { look(d, { sp: m.sp, color: m.color }); d.classList.add('born'); setTimeout(function () { d.classList.remove('born'); }, 450); }
@@ -857,7 +871,7 @@
     go: function (id, starters) { startLevel(LV.LEVELS[id - 1], false, starters); },
     save: function () { return save; }, screen: function () { return cur.name; },
     intro: function (id) { showIntro(LV.LEVELS[id - 1]); }, kingdom: function (w, f) { kingdom(w, f); }, shop: function (t) { shop(t); }, settings: settings, map: function (w) { map(w); },
-    engine: function () { return eng; }, praise: showPraise, resync: function () { sync(); }, goWithSet: function (id, setId) { var Lx = JSON.parse(JSON.stringify(LV.LEVELS[id - 1])); Lx.crystalSet = setId; startLevel(Lx); }, collection: collection, curSet: function () { return curSet; }, setStates: function () { var o = {}; for (var k in setLoad) o[k] = setLoad[k].state; return o; }, profile: profile, daily: dailyReward, dailyIntro: dailyChallengeIntro, pause: pauseMenu, home: home, lose: function () { showLose(); }, i18n: I18N, audio: function () { return A.debug(); },
+    engine: function () { return eng; }, swap: function (r1, c1, r2, c2) { if (!eng || busy || eng.state !== 'ready') return false; trySwap([r1, c1], [r2, c2]); return true; }, praise: showPraise, resync: function () { sync(); }, goWithSet: function (id, setId) { var Lx = JSON.parse(JSON.stringify(LV.LEVELS[id - 1])); Lx.crystalSet = setId; startLevel(Lx); }, collection: collection, curSet: function () { return curSet; }, setStates: function () { var o = {}; for (var k in setLoad) o[k] = setLoad[k].state; return o; }, profile: profile, daily: dailyReward, dailyIntro: dailyChallengeIntro, pause: pauseMenu, home: home, lose: function () { showLose(); }, i18n: I18N, audio: function () { return A.debug(); },
     unlockAll: function () { for (var i = 1; i <= 100; i++) save.stars[i] = 2; persist(); }
   };
 

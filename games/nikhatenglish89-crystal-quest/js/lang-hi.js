@@ -66,7 +66,7 @@ window.CQI18n.register('hi', {
   '{t} made! Swap it to set it off.': '{1} बना! इसे बदलकर चलाओ।', 'Magic Wand! {t}': 'जादुई छड़ी! {1}', 'Got {n} {t}!': '{2} मिला! ×{1}',
   /* ---------- toasts ---------- */
   'Finish the level before to unlock this one.': 'इसे खोलने के लिए पिछला स्तर पूरा करो।', 'None left. Get some in the shop.': 'कोई नहीं बचा। दुकान से लो।', 'Not now.': 'अभी नहीं।', 'Tap a normal crystal.': 'कोई साधारण क्रिस्टल छुओ।', 'Tap a crystal or block.': 'कोई क्रिस्टल या अवरोध छुओ।',
-  'Treasure found!': 'खज़ाना मिला!', 'Your Magic Shield blocked the attack!': 'आपकी जादुई ढाल ने हमला रोक लिया!', 'No moves left, shuffling!': 'कोई चाल नहीं बची, फेंट रहे हैं!', 'Nice!': 'बढ़िया!', 'Great!': 'शानदार!', 'Awesome!': 'कमाल!', 'Crystal Master!': 'क्रिस्टल उस्ताद!',
+  'Treasure found!': 'खज़ाना मिला!', 'Your Magic Shield blocked the attack!': 'आपकी जादुई ढाल ने हमला रोक लिया!', 'No moves left, shuffling!': 'कोई चाल नहीं बची, फेंट रहे हैं!', 'Nice!': 'बढ़िया!', 'Great!': 'बहुत बढ़िया!', 'Excellent!': 'उत्कृष्ट!', 'Awesome!': 'ज़बरदस्त!', 'Crystal Master!': 'क्रिस्टल उस्ताद!',
   '{t} freezes some crystals! Clear them to break the frost.': '{1} कुछ क्रिस्टल जमा देता है! उन्हें साफ़ करके बर्फ़ तोड़ो।',
   /* ---------- tips ---------- */
   'Swap two neighbouring crystals to line up {n} of the same colour. Reach the goal before you run out of moves.': 'पास-पास के दो क्रिस्टल आपस में बदलकर एक रंग के {1} क्रिस्टल एक क़तार में लाओ। चालें ख़त्म होने से पहले लक्ष्य पूरा करो।',

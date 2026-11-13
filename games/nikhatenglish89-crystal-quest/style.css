@@ -315,9 +315,11 @@ img.inl2{display:inline-block}
 .fx.praise{transform:translate(-50%,-50%);white-space:nowrap;max-width:96%;text-align:center;pointer-events:none;animation:praise .5s ease-out forwards;z-index:9}
 .praise span{display:block;font-weight:900;letter-spacing:1px;line-height:1;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink)}
 .praise.t1{--pk:1.1}.praise.t1 span{font-size:calc(var(--cell)*.7);color:#fff}
-.praise.t2{--pk:1.16}.praise.t2 span{font-size:calc(var(--cell)*.85);color:#FFE27A}
-.praise.t3{--pk:1.22}.praise.t3 span{font-size:calc(var(--cell)*1.0);color:#FF9ACB;text-shadow:0 4px 0 var(--ink),0 0 16px rgba(255,154,203,.8)}
-.praise.t4{--pk:1.3}.praise.t4 span{font-size:calc(var(--cell)*1.1);color:#FFF3A0;text-shadow:0 4px 0 var(--ink),0 0 14px #FF6B8B,0 0 28px #7DF3EC}
+.praise.t2{--pk:1.14}.praise.t2 span{font-size:calc(var(--cell)*.78);color:#FFE27A}
+.praise.t3{--pk:1.18}.praise.t3 span{font-size:calc(var(--cell)*.88);color:#9BFFC2;text-shadow:0 4px 0 var(--ink),0 0 14px rgba(155,255,194,.8)}
+.praise.t4{--pk:1.22}.praise.t4 span{font-size:calc(var(--cell)*.98);color:#FF9ACB;text-shadow:0 4px 0 var(--ink),0 0 16px rgba(255,154,203,.9)}
+.praise.t5{--pk:1.27}.praise.t5 span{font-size:calc(var(--cell)*1.06);color:#BFF3FF;text-shadow:0 4px 0 var(--ink),0 0 18px #7DF3EC,0 0 28px #7B5CFF}
+.praise.t6{--pk:1.32}.praise.t6 span{font-size:calc(var(--cell)*1.12);color:#FFF3A0;text-shadow:0 4px 0 var(--ink),0 0 14px #FF6B8B,0 0 28px #7DF3EC}
 .praise i{position:absolute;left:50%;top:50%;width:calc(var(--cell)*.3);height:calc(var(--cell)*.3);background:#fff7b0;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:spark .5s ease-out forwards}
 @keyframes praise{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}22%{transform:translate(-50%,-50%) scale(var(--pk,1.15));opacity:1}60%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-64%) scale(1.04);opacity:0}}
 @keyframes spark{0%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(var(--d)*-1)) scale(1.1);opacity:0}}
@@ -344,3 +346,16 @@ h2.winbanner::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-
 @keyframes confetti{0%{opacity:0;transform:translate(0,0) rotate(0) scale(.3)}12%{opacity:1;transform:translate(var(--dx),calc(var(--up)*-1)) rotate(calc(var(--rot)*.3)) scale(1)}100%{opacity:0;transform:translate(var(--dx2),70vh) rotate(var(--rot)) scale(1)}}
 .lowfx .confetti,.lowfx .praise i,.lowfx h2.winbanner::after,.lowfx .stars .star b{display:none}
 @media (prefers-reduced-motion:reduce){.fx.praise{animation:none!important;opacity:1}.stars .star.earn .fill{animation:none!important;opacity:1;transform:none}}
+
+
+/* ---- Rainbow burst ---- */
+.fx.rbring{transform:translate(-50%,-50%) scale(.1);border-radius:50%;background:conic-gradient(#ff4d6d,#ffd24d,#4dff88,#4dc3ff,#b04dff,#ff4d6d);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 8px));mask:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 8px));opacity:0;animation:rbring .62s ease-out forwards;z-index:9}
+@keyframes rbring{0%{opacity:1;transform:translate(-50%,-50%) scale(.1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1) rotate(120deg)}}
+.fx.rbcore{transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0%,rgba(255,255,255,.9) 25%,rgba(255,154,203,.6) 50%,rgba(255,255,255,0) 72%);animation:rbcore .5s ease-out forwards;z-index:9}
+@keyframes rbcore{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.5)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}}
+.fx.orb{border-radius:50%;transition:transform .34s cubic-bezier(.5,0,.8,.6),opacity .34s;z-index:9}
+.fx.zap{--zc:#fff;background:radial-gradient(circle,#fff 0%,var(--zc) 40%,rgba(255,255,255,0) 70%);border-radius:50%;animation:zap .34s ease-out forwards;z-index:9}
+@keyframes zap{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+#board.rbglow{animation:rbglow .9s ease-out}
+@keyframes rbglow{0%{box-shadow:0 0 0 0 rgba(255,107,139,0)}25%{box-shadow:0 0 26px 8px #ff6b8b,0 0 52px 16px #7df3ec}100%{box-shadow:0 0 0 0 rgba(125,243,236,0)}}
+.lowfx .fx.rbring,.lowfx .fx.rbcore,.lowfx .fx.orb,.lowfx .fx.zap{display:none}

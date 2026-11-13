@@ -22,7 +22,7 @@ const check = (name, ok, extra) => { if (ok) { pass++; console.log('  ok   ' + n
 
   console.log('Praise words');
   const sizes = [], words = [];
-  for (let tier = 1; tier <= 4; tier++) {
+  for (let tier = 1; tier <= 6; tier++) {
     const c0 = (await audio()).chimes;
     await ev(`__cq.praise(${tier})`); await sl(80);
     sizes.push(parseFloat(await ev("getComputedStyle(document.querySelector('.praise span')).fontSize")));
@@ -30,9 +30,9 @@ const check = (name, ok, extra) => { if (ok) { pass++; console.log('  ok   ' + n
     check(`tier ${tier} plays a soft chime`, (await audio()).chimes === c0 + 1, JSON.stringify(await audio()));
     await sl(800);
   }
-  check('the words are Good! Great! Amazing! Incredible!', JSON.stringify(words) === JSON.stringify(['Good!', 'Great!', 'Amazing!', 'Incredible!']), words.join(','));
-  check('the word grows with the blast', sizes[0] < sizes[1] && sizes[1] < sizes[2] && sizes[2] < sizes[3], sizes.join(' < '));
-  await ev('__cq.praise(4)'); await sl(120);
+  check('the six words are Good! Great! Excellent! Awesome! Amazing! Incredible!', JSON.stringify(words) === JSON.stringify(['Good!', 'Great!', 'Excellent!', 'Awesome!', 'Amazing!', 'Incredible!']), words.join(','));
+  check('the word grows with the blast', sizes.every((s, i) => i === 0 || s > sizes[i - 1]), sizes.join(' < '));
+  await ev('__cq.praise(6)'); await sl(120);
   check('the biggest word still fits inside the board', await ev("(()=>{const w=document.querySelector('.praise span').getBoundingClientRect(), b=document.getElementById('board').getBoundingClientRect(); return w.left>=b.left-2 && w.right<=b.right+2})()"));
   await sl(800);
   await ev('__cq.praise(2); __cq.praise(3); __cq.praise(1)'); await sl(50);
@@ -41,15 +41,46 @@ const check = (name, ok, extra) => { if (ok) { pass++; console.log('  ok   ' + n
   check('and it is gone after about half a second', (await ev("document.querySelectorAll('.praise').length")) === 0);
   const life = JSON.parse(await ev("JSON.stringify(window.__pr.filter(x => x.t1).map(x => Math.round(x.t1 - x.t0)))"));
   const natural = life.filter(v => v > 100);                                    // (a word replaced by the next one at once is not counted)
-  check('each word lasts about half a second (took ' + natural.join(', ') + ' ms)', natural.length >= 5 && natural.every(v => v <= 650 && v >= 400));
+  check('each word lasts about half a second (took ' + natural.join(', ') + ' ms)', natural.length >= 6 && natural.every(v => v <= 650 && v >= 400));
   check('chimes follow the effects volume (default is the soft middle)', (await audio()).sfxLevel === 0.5);
 
   console.log('Real play');
   await ev('window.__pr.length = 0');
   for (let i = 0; i < 28; i++) { const inf = JSON.parse(await ev('JSON.stringify(__cq.info())')); if (inf.state !== 'ready') break; if (!inf.busy) await ev('__cq.botMove()'); await sl(900); }
   const seen = JSON.parse(await ev('JSON.stringify(window.__pr.map(x => x.word))'));
-  check('big blasts during real moves showed words (' + seen.length + ': ' + seen.join(' ') + ')', seen.length >= 1 && seen.every(w => ['Good!', 'Great!', 'Amazing!', 'Incredible!'].includes(w)));
+  check('big blasts during real moves showed words (' + seen.length + ': ' + seen.join(' ') + ')', seen.length >= 1 && seen.every(w => ['Good!', 'Great!', 'Excellent!', 'Awesome!', 'Amazing!', 'Incredible!'].includes(w)));
   check('a plain 3-match gets no word (not every move says something)', seen.length < 28);
+
+  console.log('Rainbow crystal and Rainbow Blast');
+  const watch = `window.__fx = { ring: 0, orb: 0, zap: 0, words: [], glow: false, core: 0 }; new MutationObserver(m => m.forEach(r => r.addedNodes.forEach(n => { const c = n.classList; if (!c) return; if (c.contains('rbring')) window.__fx.ring++; if (c.contains('rbcore')) window.__fx.core++; if (c.contains('orb')) window.__fx.orb++; if (c.contains('zap')) window.__fx.zap++; if (c.contains('praise')) window.__fx.words.push(n.innerText); }))).observe(document.getElementById('board'), { childList: true, subtree: true }); 0`;
+  const fx = async () => JSON.parse(await ev('JSON.stringify(window.__fx)'));
+  const AWESOME_UP = ['Awesome!', 'Amazing!', 'Incredible!'];
+  // 1) a Rainbow crystal swapped with a colour that has plenty of crystals
+  await ev('__cq.home()'); await sl(150); await ev('__cq.go(3)'); await sl(600); await ev(watch);
+  await ev("(()=>{const e=__cq.engine(); const t=e.grid[3][3]; t.sp='rainbow'; t.color=-2; __cq.resync();})()"); await sl(300);
+  const cc0 = (await audio()).chimes; await ev('__cq.swap(3,3,3,4)');
+  check('the board glows when the Rainbow goes off', await until("document.getElementById('board').classList.contains('rbglow')", 1500));
+  await sl(1500); let f1 = await fx();
+  check('rainbow rings burst out of the crystal (' + f1.ring + ')', f1.ring >= 3);
+  check('a light flies to the crystals it clears (' + f1.orb + ') and each ends in a sparkle (' + f1.zap + ')', f1.orb >= 6 && f1.zap >= 6);
+  check('the first word is Awesome! or bigger (' + f1.words[0] + ')', AWESOME_UP.includes(f1.words[0]));
+  check('and a soft chime plays', (await audio()).chimes > cc0);
+  // 2) a tiny Rainbow burst: only a few crystals of that colour are left, it still gets its word and its effect
+  await ev('__cq.home()'); await sl(150); await ev('__cq.go(3)'); await sl(600); await ev(watch);
+  await ev("(()=>{const e=__cq.engine(); const t=e.grid[3][3]; t.sp='rainbow'; t.color=-2; const X=e.grid[3][4].color; let left=2; for(let r=0;r<e.rows;r++)for(let c=0;c<e.cols;c++){const q=e.grid[r][c]; if(q&&q.color===X&&!(r===3&&c===4)){ if(left>0) left--; else q.color=(X+1)%e.ncol; }} __cq.resync();})()"); await sl(300);
+  await ev('__cq.swap(3,3,3,4)'); await sl(1500); const f2 = await fx();
+  check('even a tiny Rainbow burst (3 crystals) gets the word Awesome! (' + f2.words[0] + ')', f2.words[0] === 'Awesome!');
+  check('and the rainbow rings and lights (' + f2.ring + ' rings, ' + f2.orb + ' lights)', f2.ring >= 3 && f2.orb >= 3);
+  // 3) the Rainbow Blast booster: tap it, tap a crystal
+  await ev('__cq.home()'); await sl(150); await ev('__cq.go(5)'); await sl(600); await ev(watch); await ev('__cq.save().boosters.rainbow = 3');
+  const gm = JSON.parse(await ev("JSON.stringify((()=>{const b=document.getElementById('board').getBoundingClientRect(); return {x:b.left,y:b.top,cell:parseFloat(getComputedStyle(document.getElementById('app')).getPropertyValue('--cell'))}})())"));
+  await ev("document.querySelector('.boost[data-k=rainbow]').click()"); await sl(200); await p.click(gm.x + gm.cell * 2.5, gm.y + gm.cell * 4.5); await sl(1600); const f3 = await fx();
+  check('Rainbow Blast: rings, lights and the word too (' + f3.ring + ' rings, ' + f3.orb + ' lights, "' + f3.words[0] + '")', f3.ring >= 3 && f3.orb >= 5 && AWESOME_UP.includes(f3.words[0]));
+  // 4) Calmer effects: no rings or lights, but the word stays
+  await ev("document.body.classList.add('lowfx')"); await ev('__cq.home()'); await sl(150); await ev('__cq.go(3)'); await sl(600); await ev(watch);
+  await ev("(()=>{const e=__cq.engine(); const t=e.grid[3][3]; t.sp='rainbow'; t.color=-2; __cq.resync();})()"); await sl(300); await ev('__cq.swap(3,3,3,4)'); await sl(1500); const f4 = await fx();
+  check('with Calmer effects: no rings or lights, the word stays (' + f4.words[0] + ')', f4.ring === 0 && f4.orb === 0 && AWESOME_UP.includes(f4.words[0]));
+  await ev("document.body.classList.remove('lowfx')");
 
   console.log('Level complete');
   const c1 = (await audio()).chimes;
@@ -76,7 +107,7 @@ const check = (name, ok, extra) => { if (ok) { pass++; console.log('  ok   ' + n
   console.log('Hindi');
   await ev('__cq.home()'); await sl(200); await ev('__cq.settings()'); await sl(200); await ev("document.querySelector('.lbtn[data-l=hi]').click()"); await sl(300); await ev("document.getElementById('mX').click()");
   await ev('__cq.go(3)'); await sl(600); await ev('__cq.praise(3)'); await sl(100);
-  check('the praise word is shown in Hindi', (await ev("document.querySelector('.praise span').innerText")) === 'कमाल!');
+  check('the praise word is shown in Hindi', (await ev("document.querySelector('.praise span').innerText")) === 'उत्कृष्ट!');
   check('the banner is shown in Hindi', (await winLevel(1)) && (await ev("document.querySelector('h2.winbanner').innerText")) === 'स्तर पूरा हुआ!');
 
   console.log('\n' + pass + ' passed, ' + fail + ' failed; console errors: ' + JSON.stringify(p.errors));
