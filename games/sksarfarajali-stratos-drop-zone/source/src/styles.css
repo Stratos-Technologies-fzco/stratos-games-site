@@ -39,7 +39,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mid { display: grid; grid-template-columns: minmax(150px, 220px) 1fr minmax(160px, 240px); gap: 12px; min-height: 0; align-items: stretch; }
 .col { display: flex; flex-direction: column; gap: 10px; justify-content: center; } .col .btn.sel { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber); }
 .map-card { padding: 10px; font-size: 13px; color: var(--muted); } .map-card b { color: var(--text); font-family: var(--title); font-size: 16px; display: block; }
-.stage { display: flex; align-items: flex-end; justify-content: center; min-height: 0; pointer-events: none !important; } .stage img { height: 100%; max-height: 62vh; object-fit: contain; filter: drop-shadow(0 12px 24px rgba(0,0,0,.5)); animation: float 4s ease-in-out infinite; } @keyframes float { 50% { transform: translateY(-6px) rotate(.6deg); } }
+.stage { display: flex; align-items: flex-end; justify-content: center; min-height: 0; pointer-events: none !important; } .stage canvas { height: 100%; max-height: 68vh; width: min(340px, 32vw); filter: drop-shadow(0 12px 24px rgba(0,0,0,.45)); }
+.stage img { height: 100%; max-height: 62vh; object-fit: contain; filter: drop-shadow(0 12px 24px rgba(0,0,0,.5)); animation: float 4s ease-in-out infinite; } @keyframes float { 50% { transform: translateY(-6px) rotate(.6deg); } }
 .nav { display: flex; gap: 8px; justify-content: center; } .nav .btn { flex: 0 1 130px; padding: 0 8px; font-size: 14px; } .nav .btn.on { background: var(--violet); color: #1a1530; }
 .note { font-size: 12px; color: var(--muted); }
 .modal { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(8,6,16,.7); }

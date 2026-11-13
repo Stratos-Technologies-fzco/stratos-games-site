@@ -55,7 +55,7 @@ const TIER_W: Record<Tier, number> = { low: 3, mid: 2.5, high: 1.5, top: 1 };
 export class BotBrain {
   state: BotState = 'drop'; stateT = 0; target: Actor | null = null; seenT = 0; react = 0.5; pathPts: [number, number][] = []; pathAt = -9; goal: [number, number] = [0, 0];
   strafe = 1; strafeT = 0; lootGoal: GroundItem | null = null; dropPoi = 0; jumpAt = 0; landedAt = 0; difficulty: 'easy' | 'normal' | 'hard'; aimT = 0; barrierT = 0; stuckT = 0; lx = 0; lz = 0; name: string;
-  lastCmd: Cmd | null = null; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
+  lastCmd: Cmd | null = null; lt = 0; nudge = 1; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
   constructor(rand: () => number, difficulty: 'easy' | 'normal' | 'hard', public nav: NavGrid) {
     this.difficulty = difficulty; this.name = BOT_NAMES[Math.floor(rand() * BOT_NAMES.length)];
     let tot = 0; const ws = POIS.map((p) => (tot += TIER_W[p.tier])); const r = rand() * tot; this.dropPoi = ws.findIndex((w) => r < w); this.jumpAt = 4 + rand() * 20;
@@ -68,8 +68,9 @@ export class BotBrain {
     const [tx, tz] = far <= 14 || !this.pathPts.length ? [gx, gz] : this.pathPts[0];
     const dx = tx - a.body.x, dz = tz - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.sprint = sprint && this.difficulty !== 'easy';
     // stuck detection: jump and nudge sideways
-    if (Math.hypot(a.body.x - this.lx, a.body.z - this.lz) < 0.05 * 0.5) this.stuckT += 0.1; else this.stuckT = 0; this.lx = a.body.x; this.lz = a.body.z;
-    if (this.stuckT > 0.6) { cmd.jump = true; const s = Math.sin(env.time * 3) > 0 ? 1 : -1; cmd.dx += -cmd.dz * s * 0.8; cmd.dz += cmd.dx * s * 0.8; if (this.stuckT > 2) { this.pathPts = []; this.pathAt = -9; this.stuckT = 0; } }
+    // judged over 1.2 s windows, so small jitter against a wall still counts as stuck
+    if (env.time - this.lt > 1.2) { const moved = Math.hypot(a.body.x - this.lx, a.body.z - this.lz); this.stuckT = moved < 1.2 && (cmd.dx || cmd.dz) ? this.stuckT + 1.2 : 0; this.lx = a.body.x; this.lz = a.body.z; this.lt = env.time; }
+    if (this.stuckT > 0.6) { cmd.jump = true; const s = this.nudge; cmd.dx += -cmd.dz * s * 0.9; cmd.dz += cmd.dx * s * 0.9; if (this.stuckT > 2) { this.pathPts = []; this.pathAt = -9; this.stuckT = 0; this.nudge = -this.nudge; this.lootGoal = null; this.patrolGoal = null; } }
   }
   /** Behind-a-wall spot near us that the threat cannot see (cheap sampling of nearby boxes). */
   private findCover(a: Actor, threat: Actor, env: BotEnv): [number, number] | null {

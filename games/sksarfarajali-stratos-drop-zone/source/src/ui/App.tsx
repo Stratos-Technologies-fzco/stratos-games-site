@@ -6,6 +6,7 @@ import { initInput, input, isTouch, press, saveSettings, setPauseHandler, settin
 import { SURVIVORS, type Survivor } from '../render/character';
 import { Hud as HudView } from './Hud';
 import { track } from '../analytics';
+import { Turntable } from './Turntable';
 import { ACHIEVEMENTS, dailyMissions, getStats, level as lvlOf, missionState, unlocked, weeklyBoard } from '../progress';
 
 type Screen = 'loading' | 'lobby' | 'match';
@@ -50,7 +51,7 @@ export function App() {
       {screen === 'lobby' && (
         <div class="lobby">
           <div class="top">
-            <div class="chip panel"><div class="av"><img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt="" /></div><div><div class="t" style="font-size:15px">You · Lv {lv.l}</div><div class="xpbar"><i style={{ width: `${lv.pct * 100}%` }} /></div></div></div>
+            <div class="chip panel"><div class="av"><img src={`art/${svDef.id.replace('survivor_', 'character_')}_face.jpg`} alt="" /></div><div><div class="t" style="font-size:15px">You · Lv {lv.l}</div><div class="xpbar"><i style={{ width: `${lv.pct * 100}%` }} /></div></div></div>
             <div class="title">STRATOS DROP ZONE<small>VAYU ISLAND · SOLO</small></div>
             <div style="display:flex;gap:8px;align-items:center"><div class="panel t" style="padding:8px 12px">◆ {Math.max(0, lv.l - 1) * 10}</div><button class="btn" aria-label={musicOn ? 'Music on' : 'Music off'} title="Music" onClick={toggleMusic}>{musicOn ? '♪' : '♪̸'}</button><button class="btn" aria-label="How to play" title="How to play" onClick={() => setInfo('how')}>?</button><button class="btn" aria-label="About" title="About" onClick={() => setInfo('about')}>i</button><button class="btn" aria-label="Settings" onClick={() => setSettingsOpen(true)}>⚙</button></div>
           </div>
@@ -62,7 +63,7 @@ export function App() {
               <button class="btn" disabled style="opacity:.5">Squad · Coming soon</button>
               <div class="map-card panel"><b>Vayu Island</b>640 × 640 m · 10 locations · 6 storm phases · about 5½ minutes</div>
             </div>
-            <div class="stage">{tab === 'play' && <img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt={svDef.name} />}</div>
+            <div class="stage">{tab === 'play' && <Turntable survivor={sv} />}</div>
             <div class="col">
               <div class="panel" style="padding:10px"><div class="t" style="font-size:14px">Offline match</div><div class="note">Plays on your device. No sign-up. Bots fill every empty slot.</div></div>
               <div class="panel" style="padding:8px"><div class="note" style="margin-bottom:4px">Bot difficulty</div><div style="display:flex;gap:6px">{(['easy', 'normal', 'hard'] as const).map((d) => <button class={'btn ' + (diff === d ? 'sel' : '')} style="min-width:0;flex:1;padding:0 4px;font-size:13px" onClick={() => { setDiff(d); localStorage.setItem('sdz-diff', d); }}>{d[0].toUpperCase() + d.slice(1)}</button>)}</div></div>
@@ -76,7 +77,7 @@ export function App() {
           </div>
           {tab === 'survivors' && (
             <div class="modal" onClick={() => setTab('play')}><div class="card" onClick={(e) => e.stopPropagation()}><h2>Survivors</h2>
-              <div class="survivors">{SURVIVORS.map((s) => <div class={`sv ${s.id === sv ? 'on' : ''}`} onClick={() => setSv(s.id)}><img src={`art/${s.id.replace('survivor_', 'character_')}.jpg`} alt={s.name} /><b>{s.name}</b><span>{s.role}</span><span style={{ display: 'block', color: s.color }}>{B.perksEnabled ? s.perk : 'Cosmetic in v1'}</span></div>)}</div>
+              <div class="survivors">{SURVIVORS.map((s) => <div class={`sv ${s.id === sv ? 'on' : ''}`} onClick={() => setSv(s.id)}><img src={`art/${s.id.replace('survivor_', 'character_')}_face.jpg`} alt={s.name} /><b>{s.name}</b><span>{s.role}</span><span style={{ display: 'block', color: s.color }}>{B.perksEnabled ? s.perk : 'Cosmetic in v1'}</span></div>)}</div>
               <p class="note">Perks switch on in a later update. For now every survivor plays the same.</p><button class="btn primary" onClick={() => setTab('play')}>Done</button></div></div>
           )}
           {tab === 'missions' && <MissionsModal onClose={() => setTab('play')} />}
