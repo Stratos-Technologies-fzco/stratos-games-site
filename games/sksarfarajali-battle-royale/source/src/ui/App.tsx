@@ -31,10 +31,10 @@ export function App() {
   }, []);
 
   const g = game.current; const hud = g?.hud;
-  const play = async () => {
+  const play = async (m: 'solo' | 'training' = mode, d: boolean = demo) => {
     if (!g) return; audio.unlock(); audio.play('tap'); localStorage.setItem('sdz-sv', sv); setScreen('match'); setPause(false);
     try { if (isTouch()) { document.documentElement.requestFullscreen?.().catch(() => {}); (navigator as unknown as { wakeLock?: { request: (t: string) => Promise<unknown> } }).wakeLock?.request('screen').catch(() => {}); } } catch { /* optional */ }
-    await g.start(mode, sv, { bots, demo }); tick((n) => n + 1);
+    await g.start(m, sv, { bots, demo: d }); tick((n) => n + 1);
   };
   const toggleMusic = () => { settings.musicOn = !settings.musicOn; setMusicOn(settings.musicOn); audio.unlock(); audio.setMusicOn(settings.musicOn); saveSettings(); };
   const backToLobby = () => { g?.toLobby(); setScreen('lobby'); setPause(false); };
@@ -56,17 +56,17 @@ export function App() {
           </div>
           <div class="mid">
             <div class="col">
-              <button class={`btn ${mode === 'solo' && !demo ? 'sel' : ''}`} onClick={() => { setMode('solo'); setDemo(false); }}>Solo · 24 players</button>
-              <button class={`btn ${mode === 'training' && !demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(false); }}>Training</button>
-              <button class={`btn ${demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(true); }}>Demo · learn in 1 min</button>
+              <button class={`btn ${mode === 'solo' && !demo ? 'sel' : ''}`} onClick={() => { setMode('solo'); setDemo(false); void play('solo', false); }}>Solo · 24 players</button>
+              <button class={`btn ${mode === 'training' && !demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(false); void play('training', false); }}>Training</button>
+              <button class={`btn ${demo ? 'sel' : ''}`} onClick={() => { setMode('training'); setDemo(true); void play('training', true); }}>Demo · learn in 1 min</button>
               <button class="btn" disabled style="opacity:.5">Squad · Coming soon</button>
               <div class="map-card panel"><b>Vayu Island</b>640 × 640 m · 10 locations · 6 storm phases · about 5½ minutes</div>
             </div>
             <div class="stage">{tab === 'play' && <img src={`art/${svDef.id.replace('survivor_', 'character_')}.jpg`} alt={svDef.name} />}</div>
             <div class="col">
               <div class="panel" style="padding:10px"><div class="t" style="font-size:14px">Offline match</div><div class="note">Plays on your device. No sign-up. Bots fill every empty slot.</div></div>
-              {mode === 'training' && !demo && <label class="panel" style="padding:8px;font-size:13px;display:flex;gap:8px;align-items:center"><input type="checkbox" checked={bots} onChange={(e) => setBots((e.target as HTMLInputElement).checked)} /> Add 3 easy bots</label>}
-              <button class="btn primary" style="min-height:64px" onClick={play}>PLAY</button>
+              {<label class="panel" style="padding:8px;font-size:13px;display:flex;gap:8px;align-items:center"><input type="checkbox" checked={bots} onChange={(e) => setBots((e.target as HTMLInputElement).checked)} /> Training: add 3 easy bots</label>}
+              <button class="btn primary" style="min-height:64px" onClick={() => void play()}>PLAY</button>
               <div class="note" style="text-align:center">{svDef.name} · {svDef.role}</div>
             </div>
           </div>
@@ -92,7 +92,7 @@ export function App() {
       {info === 'about' && <div class="modal" onClick={() => setInfo('')}><div class="card" onClick={(e) => e.stopPropagation()}><h2>About</h2>
         <p>Stratos Drop Zone is a quick battle royale on Vayu Island, a made-up monsoon coast. It runs in your browser with no download and no sign-up.</p><p>Made by Sk Sarfaraj Ali for stratos.games. All models, sounds and art are original to this game.</p><p class="note">This version plays offline against bots. Online matches may come later.</p>
         <button class="btn primary" onClick={() => setInfo('')}>Close</button></div></div>}
-      {screen === 'match' && g && hud && <HudView g={g} hud={hud} onPause={() => { g.setPaused(true); setPause(true); }} onLobby={backToLobby} onAgain={() => play()} />}
+      {screen === 'match' && g && hud && <HudView g={g} hud={hud} onPause={() => { g.setPaused(true); setPause(true); }} onLobby={backToLobby} onAgain={() => void play()} />}
       {pause && screen === 'match' && (
         <div class="modal"><div class="card center"><h2>Paused</h2><button class="btn primary" onClick={() => { g?.setPaused(false); setPause(false); }}>Resume</button><button class="btn" onClick={() => setSettingsOpen(true)}>Settings</button><button class="btn" onClick={backToLobby}>Leave match</button></div></div>
       )}
