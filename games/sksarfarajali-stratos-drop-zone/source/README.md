@@ -1,10 +1,10 @@
-# Stratos Drop Zone (Battle Royale)
+# Stratos Drop Zone
 
 A low-poly battle royale on Vayu Island. Drop in, loot, and outlast 23 bots before the Monsoon Wall closes. Runs in a phone or desktop browser, fully offline once loaded.
 
 ## Run it
 
-    cd games/sksarfarajali-battle-royale/source
+    cd games/sksarfarajali-stratos-drop-zone/source
     npm install
     npm run dev        # http://localhost:5173
     npm test           # rules and world tests
