@@ -111,7 +111,7 @@ kbd{font:600 13px var(--f-data);padding:2px 7px;border:1px solid currentColor;bo
 .sheet{width:min(760px,100%);display:grid;gap:18px;padding-block:12px;margin:auto}
 .brand{display:grid;gap:2px}
 .brand .ey{font:600 13px var(--f-hud);letter-spacing:.42em;text-transform:uppercase;color:var(--sodium)}
-.brand h1{margin:0;font:900 clamp(64px,13vw,132px)/.82 var(--f-display);letter-spacing:.01em;color:var(--ink);text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.brand h1{margin:0 0 .1em;font:900 clamp(64px,13vw,132px)/.9 var(--f-display);letter-spacing:.01em;color:var(--ink);text-shadow:0 4px 30px rgba(0,0,0,.6)}
 .brand .tag{font:500 13px var(--f-data);color:var(--ink-dim);letter-spacing:.04em}
 .lede{margin:0;font:500 19px/1.4 var(--f-hud);max-width:58ch;color:var(--ink);text-wrap:pretty}
 .row{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start}
@@ -2674,6 +2674,8 @@ function finishIntro() {
   $('fade').style.opacity = 1; begin(false, true);
 }
 function updateIntro(dt) {
+  // upright phone: the intro waits behind "turn your phone sideways" instead of playing unseen
+  if (!$('rotate').hidden) { stopVoice(); return; }
   const t = INTRO.t; INTRO.t += dt;
   while (INTRO.ev < IEV.length && IEV[INTRO.ev][0] <= t) IEV[INTRO.ev++][1]();
   if (!INTRO.on) return;
