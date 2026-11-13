@@ -79,37 +79,93 @@ function resize(){
 
 var isTouch=matchMedia('(pointer: coarse)').matches;
 
-var actx=null;
+var actx=null,masterGain=null,musicGain=null,sfxGain=null;
+var audioBuffers={};
+var AUDIO_FILES={
+  shoot_laser:'audio/sfx_shoot_laser.ogg',shoot_plasma:'audio/sfx_shoot_plasma.ogg',
+  shoot_missile:'audio/sfx_shoot_missile.ogg',shoot_railgun:'audio/sfx_shoot_railgun.ogg',
+  enemy_shoot:'audio/sfx_enemy_shoot.ogg',hit:'audio/sfx_hit.ogg',shield:'audio/sfx_shield.ogg',
+  explosion_small:'audio/sfx_explosion_small.ogg',explosion_big:'audio/sfx_explosion_big.ogg',
+  weapon_switch:'audio/sfx_weapon_switch.ogg',upgrade:'audio/sfx_upgrade.ogg',
+  wave_start:'audio/sfx_wave_start.ogg',boss_intro:'audio/sfx_boss_intro.ogg',
+  victory:'audio/sfx_victory.ogg',gameover:'audio/sfx_gameover.ogg',revive:'audio/sfx_revive.ogg',
+  button:'audio/sfx_button.ogg',best:'audio/sfx_best.ogg',music:'audio/music_loop.ogg'
+};
+var MUTE_KEY='skyfall_armada_muted';
+var muted=localStorage.getItem(MUTE_KEY)==='1';
 function ensureAudio(){
   if(actx) return;
-  try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
-}
-function resumeAudio(){ if(actx&&actx.state==='suspended'){ try{actx.resume();}catch(e){} } }
-function beep(freq,dur,type,vol){
-  if(!actx) return;
   try{
-    var t0=actx.currentTime;
-    var osc=actx.createOscillator();
-    var gain=actx.createGain();
-    osc.type=type||'square';
-    osc.frequency.setValueAtTime(freq,t0);
-    gain.gain.setValueAtTime(0,t0);
-    gain.gain.linearRampToValueAtTime(vol||0.05,t0+0.006);
-    gain.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    osc.connect(gain).connect(actx.destination);
-    osc.start(t0);
-    osc.stop(t0+dur+0.02);
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=actx.createGain(); masterGain.gain.value=muted?0:1; masterGain.connect(actx.destination);
+    musicGain=actx.createGain(); musicGain.gain.value=0.55; musicGain.connect(masterGain);
+    sfxGain=actx.createGain(); sfxGain.gain.value=0.9; sfxGain.connect(masterGain);
+    loadAllAudio();
   }catch(e){}
 }
+function resumeAudio(){ if(actx&&actx.state==='suspended'){ try{actx.resume();}catch(e){} } }
+function loadAllAudio(){
+  for(var key in AUDIO_FILES){
+    (function(k){
+      fetch(AUDIO_FILES[k]).then(function(r){ return r.arrayBuffer(); }).then(function(buf){
+        actx.decodeAudioData(buf,function(decoded){ audioBuffers[k]=decoded; if(k==='music') startMusicIfWanted(); },function(){});
+      }).catch(function(){});
+    })(key);
+  }
+}
+function playSfx(name,vol){
+  if(!actx||!audioBuffers[name]) return;
+  try{
+    var src=actx.createBufferSource();
+    src.buffer=audioBuffers[name];
+    var g=actx.createGain(); g.gain.value=vol==null?1:vol;
+    src.connect(g).connect(sfxGain);
+    src.start();
+  }catch(e){}
+}
+var musicSource=null,musicWanted=false;
+function startMusic(){
+  musicWanted=true;
+  if(!actx||!audioBuffers.music||musicSource) return;
+  try{
+    musicSource=actx.createBufferSource();
+    musicSource.buffer=audioBuffers.music;
+    musicSource.loop=true;
+    musicSource.connect(musicGain);
+    musicSource.start();
+  }catch(e){}
+}
+function stopMusic(){
+  musicWanted=false;
+  if(musicSource){ try{musicSource.stop();}catch(e){} musicSource=null; }
+}
+function startMusicIfWanted(){ if(musicWanted) startMusic(); }
+function toggleMute(){
+  muted=!muted;
+  try{ localStorage.setItem(MUTE_KEY,muted?'1':'0'); }catch(e){}
+  if(masterGain) masterGain.gain.value=muted?0:1;
+}
 var lastShootSfx=0;
-function sfxShoot(isPlayer){
+function sfxShoot(weapon){
   var now=performance.now();
   if(now-lastShootSfx<40) return;
   lastShootSfx=now;
-  beep(isPlayer?820:210,0.05,'square',0.025);
+  if(weapon===false){ playSfx('enemy_shoot',0.5); return; }
+  var key='shoot_'+(weapon||'laser');
+  playSfx(audioBuffers[key]?key:'shoot_laser',0.6);
 }
-function sfxHit(){ beep(150,0.06,'triangle',0.035); }
-function sfxExplosion(big){ beep(big?65:110,big?0.5:0.22,'sawtooth',big?0.08:0.05); }
+function sfxHit(){ playSfx('hit',0.6); }
+function sfxShield(){ playSfx('shield',0.6); }
+function sfxExplosion(big){ playSfx(big?'explosion_big':'explosion_small',0.8); }
+function sfxWeaponSwitch(){ playSfx('weapon_switch',0.5); }
+function sfxUpgrade(){ playSfx('upgrade',0.6); }
+function sfxWaveStart(){ playSfx('wave_start',0.6); }
+function sfxBossIntro(){ playSfx('boss_intro',0.7); }
+function sfxVictory(){ playSfx('victory',0.7); }
+function sfxGameOver(){ playSfx('gameover',0.7); }
+function sfxRevive(){ playSfx('revive',0.6); }
+function sfxButton(){ playSfx('button',0.5); }
+function sfxBest(){ playSfx('best',0.6); }
 
 var images={};
 function loadImg(key,src){
@@ -197,6 +253,7 @@ var newBestThisRun=false;
 function saveBestScore(){
   if(score>bestScore){
     bestScore=score;
+    if(!newBestThisRun) sfxBest();
     newBestThisRun=true;
     try{ localStorage.setItem(BEST_SCORE_KEY,String(bestScore)); }catch(e){}
   }
@@ -214,6 +271,7 @@ function revivePlayer(){
   player.flash=0.3;
   shakeCamera(6,0.3);
   reviveMessageTimer=1.4;
+  sfxRevive();
 }
 
 var BEST_WAVE_KEY='skyfall_armada_best_wave';
@@ -240,6 +298,7 @@ function selectSkin(id){
   var skin=getSkin(id);
   if(!isSkinUnlocked(skin)) return;
   selectedSkinId=id;
+  sfxButton();
   try{ localStorage.setItem(SELECTED_SKIN_KEY,id); }catch(e){}
 }
 var bannerText='',bannerTimer=0,deathTimer=0,bossTimer=0;
@@ -308,6 +367,7 @@ function startWave(n){
     currentWaveIsBoss=true;
     enemiesToSpawn=0;
     spawnEnemy('boss',{});
+    sfxBossIntro();
     return;
   }
   currentWaveIsBoss=false;
@@ -316,6 +376,7 @@ function startWave(n){
   waveTypePool=wd.pool;
   waveMult=wd.mult;
   spawnNextInWave();
+  sfxWaveStart();
 }
 
 function spawnBullet(x,y,dirx,diry,speed,damage,fromPlayer,weaponType,forceHoming,forceTurnRate){
@@ -334,7 +395,7 @@ function damagePlayer(amount){
   if(player.hp<=0) return;
   var remaining=amount;
   if(player.shield>0){ var absorbed=Math.min(player.shield,remaining); player.shield-=absorbed; remaining-=absorbed; }
-  if(remaining<=0) return;
+  if(remaining<=0){ if(absorbed>0) sfxShield(); return; }
   var before=player.hp;
   player.hp=Math.max(player.hp-Math.ceil(remaining),0);
   if(player.hp<before){ shakeCamera(5,0.2); player.flash=0.15; sfxHit(); }
@@ -365,7 +426,7 @@ function damageEnemy(e,amount){
     var absorbed=Math.min(e.shield,amount);
     e.shield-=absorbed; amount-=absorbed;
   }
-  if(amount<=0){ e.flash=0.15; sfxHit(); return; }
+  if(amount<=0){ e.flash=0.15; sfxShield(); return; }
   var before=e.hp;
   e.hp=Math.max(e.hp-Math.ceil(amount),0);
   if(e.hp<before) e.flash=0.15;
@@ -596,25 +657,27 @@ function getPos(e){ var r=canvas.getBoundingClientRect(); return {x:e.clientX-r.
 function hitRect(p,rect){ return rect && p.x>=rect.x && p.x<=rect.x+rect.w && p.y>=rect.y && p.y<=rect.y+rect.h; }
 function hitCircle(p,c){ return c && Math.hypot(p.x-c.x,p.y-c.y)<=c.r; }
 
-var startBtnRect=null, restartBtnRect=null, pauseBtnRect=null, uiButtons=[], weaponButtons=[], skinButtons=[];
+var startBtnRect=null, restartBtnRect=null, pauseBtnRect=null, muteBtnRect=null, uiButtons=[], weaponButtons=[], skinButtons=[];
+function switchWeapon(key){ if(player.weapon!==key){ player.weapon=key; sfxWeaponSwitch(); } }
 
 function onPointerDown(e){
   if(e.pointerType!=='mouse') e.preventDefault();
   var p=getPos(e);
   ensureAudio(); resumeAudio();
+  if(hitCircle(p,muteBtnRect)){ toggleMute(); return; }
   if(state===STATE_START){
     for(var si=0;si<skinButtons.length;si++){ if(hitRect(p,skinButtons[si])){ selectSkin(skinButtons[si].id); return; } }
-    if(hitRect(p,startBtnRect)) beginGame();
+    if(hitRect(p,startBtnRect)){ sfxButton(); beginGame(); return; }
     return;
   }
   if(state===STATE_UPGRADE){
     for(var i=0;i<uiButtons.length;i++){ if(hitRect(p,uiButtons[i])){ uiButtons[i].action(); break; } }
     return;
   }
-  if(state===STATE_GAMEOVER||state===STATE_VICTORY){ if(hitRect(p,restartBtnRect)) beginGame(); return; }
+  if(state===STATE_GAMEOVER||state===STATE_VICTORY){ if(hitRect(p,restartBtnRect)){ sfxButton(); beginGame(); } return; }
   if(state!==STATE_PLAYING) return;
   if(hitCircle(p,pauseBtnRect)){ togglePause(); return; }
-  for(var wi=0;wi<weaponButtons.length;wi++){ if(hitRect(p,weaponButtons[wi])){ player.weapon=weaponButtons[wi].key; return; } }
+  for(var wi=0;wi<weaponButtons.length;wi++){ if(hitRect(p,weaponButtons[wi])){ switchWeapon(weaponButtons[wi].key); return; } }
   if(paused) return;
   if(isTouch){
     if(!controls.move.active && Math.hypot(p.x-controls.move.cx,p.y-controls.move.cy)<=controls.move.r*1.7){
@@ -650,16 +713,16 @@ window.addEventListener('keydown',function(e){
   keys[e.code]=true;
   if(e.code==='Space'){ keyFireDown=true; ensureAudio(); resumeAudio(); }
   if(e.code==='KeyP'||e.code==='Escape'){ togglePause(); }
-  if(e.code==='Digit1') player.weapon=WEAPON_ORDER[0];
-  if(e.code==='Digit2') player.weapon=WEAPON_ORDER[1];
-  if(e.code==='Digit3') player.weapon=WEAPON_ORDER[2];
-  if(e.code==='Digit4') player.weapon=WEAPON_ORDER[3];
+  if(e.code==='Digit1') switchWeapon(WEAPON_ORDER[0]);
+  if(e.code==='Digit2') switchWeapon(WEAPON_ORDER[1]);
+  if(e.code==='Digit3') switchWeapon(WEAPON_ORDER[2]);
+  if(e.code==='Digit4') switchWeapon(WEAPON_ORDER[3]);
 });
 window.addEventListener('keyup',function(e){ keys[e.code]=false; if(e.code==='Space') keyFireDown=false; });
 document.addEventListener('visibilitychange',function(){ if(document.hidden && state===STATE_PLAYING && !paused) paused=true; });
 window.addEventListener('resize',resize);
 
-function togglePause(){ if(state!==STATE_PLAYING) return; paused=!paused; }
+function togglePause(){ if(state!==STATE_PLAYING) return; paused=!paused; sfxButton(); }
 
 function pickRandomUpgrades(n){
   var keysArr=Object.keys(UPGRADES);
@@ -675,6 +738,7 @@ function applyUpgradeEffects(){
   player.shield=Math.min(player.shield,player.shieldMax);
 }
 function chooseUpgrade(key){
+  sfxUpgrade();
   levels[key]=(levels[key]||0)+1;
   applyUpgradeEffects();
   startWave(waveNumber+1);
@@ -690,6 +754,7 @@ function beginGame(){
   paused=false;
   startWave(1);
   state=STATE_PLAYING;
+  stopMusic(); startMusic();
 }
 
 function updateGameplay(dt){
@@ -744,7 +809,7 @@ function updateGameplay(dt){
     var wx=player.x+mlx*cos-mly*sin;
     var wy=player.y+mlx*sin+mly*cos;
     spawnBullet(wx,wy,aimDir.x,aimDir.y,bspeed,dmg,true,player.weapon);
-    sfxShoot(true);
+    sfxShoot(player.weapon);
   }
 
   updateEnemies(dt);
@@ -753,8 +818,8 @@ function updateGameplay(dt){
 function update(dt){
   if(state===STATE_PLAYING && !paused) updateGameplay(dt);
   if(state===STATE_WAVEBANNER){ bannerTimer-=dt; if(bannerTimer<=0){ upgradeChoices=pickRandomUpgrades(3); state=STATE_UPGRADE; } }
-  if(state===STATE_DEATHDELAY){ deathTimer-=dt; if(deathTimer<=0) state=STATE_GAMEOVER; }
-  if(state===STATE_BOSSDEADDELAY){ bossTimer-=dt; if(bossTimer<=0) state=STATE_VICTORY; }
+  if(state===STATE_DEATHDELAY){ deathTimer-=dt; if(deathTimer<=0){ state=STATE_GAMEOVER; stopMusic(); sfxGameOver(); } }
+  if(state===STATE_BOSSDEADDELAY){ bossTimer-=dt; if(bossTimer<=0){ state=STATE_VICTORY; stopMusic(); sfxVictory(); } }
   if((state===STATE_PLAYING||state===STATE_WAVEBANNER||state===STATE_DEATHDELAY||state===STATE_BOSSDEADDELAY) && !paused){
     updateBullets(dt);
     updateParticles(dt);
@@ -914,6 +979,27 @@ function drawHUD(){
     ctx.fillRect(pauseBtnRect.x+3,pauseBtnRect.y-9,5,18);
   }
   if(state===STATE_PLAYING) drawWeaponBar();
+}
+
+function drawMuteButton(){
+  muteBtnRect={x:W-32,y:80,r:18};
+  ctx.save();
+  ctx.beginPath(); ctx.arc(muteBtnRect.x,muteBtnRect.y,muteBtnRect.r,0,Math.PI*2);
+  ctx.fillStyle='rgba(10,10,20,0.45)'; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+  var cx=muteBtnRect.x-4,cy=muteBtnRect.y;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.moveTo(cx-6,cy-4); ctx.lineTo(cx-2,cy-4); ctx.lineTo(cx+4,cy-9); ctx.lineTo(cx+4,cy+9); ctx.lineTo(cx-2,cy+4); ctx.lineTo(cx-6,cy+4);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=1.6; ctx.lineCap='round';
+  if(muted){
+    ctx.beginPath(); ctx.moveTo(cx+9,cy-5); ctx.lineTo(cx+15,cy+5); ctx.moveTo(cx+15,cy-5); ctx.lineTo(cx+9,cy+5); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(cx+8,cy,4,-0.7,0.7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+8,cy,8,-0.7,0.7); ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawWeaponIcon(cx,cy,size,key,color){
@@ -1328,6 +1414,7 @@ function render(){
     if(state===STATE_VICTORY) drawEnd(true);
     if(state===STATE_PLAYING && paused) drawPausedOverlay();
   }
+  drawMuteButton();
 }
 
 var lastT=null;
