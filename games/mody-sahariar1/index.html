@@ -1128,5 +1128,73 @@
     </div>
   </div>
 
+<!-- Stratos web (Nov 2026): the Adventure worlds come in pages instead of one long scrolling list,
+     so every screen fits with no scrolling (staging check rule). Web only: if this folder is replaced by a
+     new build from the Arrow Rush project, keep this block (or move the same idea into the project). -->
+<style id="sg-adv-pages">
+#adventure-grid{overflow:hidden!important;overflow:clip!important}
+#adventure-grid>.sg-off{display:none!important}
+@media (min-width:700px){#adventure-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))!important}}
+.sg-pager{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:16px;padding:4px 0 6px;flex:none;
+  font-family:"Fredoka One",var(--font-display),sans-serif;color:var(--text-primary,#243A6B)}
+.sg-pager.sg-one{visibility:hidden}
+.sg-pager button{width:42px;height:42px;border-radius:50%;border:0;padding:0;background:var(--bg-card,#fff);box-shadow:0 4px 12px #32261033;
+  font:inherit;font-size:24px;line-height:1;color:inherit;cursor:pointer}
+.sg-pager button:disabled{opacity:.35;cursor:default}
+.sg-pager span{min-width:56px;text-align:center;font-size:17px}
+</style>
+<script id="sg-adv-pages-js">
+(function () {
+  var grid = document.getElementById('adventure-grid');
+  if (!grid || !window.ResizeObserver || !window.MutationObserver) return;
+  var pager = document.createElement('div');
+  pager.className = 'sg-pager sg-one';
+  pager.innerHTML = '<button type="button" aria-label="Previous worlds">\u2039</button><span aria-live="polite"></span><button type="button" aria-label="Next worlds">\u203a</button>';
+  grid.parentNode.insertBefore(pager, grid.nextSibling);   // always takes its row, so showing it never changes the grid's size
+  var prev = pager.children[0], label = pager.children[1], next = pager.children[2];
+  var page = 0, pages = 1, opened = false, busy = false;
+  function cards() { return [].filter.call(grid.children, function (c) { return c.classList.contains('world-card'); }); }
+  function layout() {
+    if (busy) return; busy = true;
+    var cs = cards();
+    if (cs.length) {
+      cs.forEach(function (c) { c.classList.remove('sg-off'); });            // measure with every card in place
+      var st = getComputedStyle(grid), gap = parseFloat(st.rowGap) || 0;
+      var cols = st.gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      var h = cs[0].getBoundingClientRect().height || 1;
+      var room = grid.clientHeight - (parseFloat(st.paddingTop) || 0) - (parseFloat(st.paddingBottom) || 0);
+      var per = Math.max(cols, Math.floor((room + gap) / (h + gap)) * cols);
+      pages = Math.ceil(cs.length / per);
+      if (!opened) {                                                         // first time: the page with the newest open world
+        var last = 0; cs.forEach(function (c, i) { if (!c.classList.contains('locked')) last = i; });
+        page = Math.floor(last / per); opened = true;
+      }
+      page = Math.max(0, Math.min(page, pages - 1));
+      cs.forEach(function (c, i) { c.classList.toggle('sg-off', Math.floor(i / per) !== page); });
+      pager.classList.toggle('sg-one', pages < 2);
+      label.textContent = (page + 1) + ' / ' + pages;
+      prev.disabled = page === 0; next.disabled = page >= pages - 1;
+      grid.scrollTop = 0;
+    }
+    busy = false;
+  }
+  function go(d) { if (page + d < 0 || page + d >= pages) return; page += d; layout(); }
+  prev.addEventListener('click', function () { go(-1); });
+  next.addEventListener('click', function () { go(1); });
+  var x0 = null, y0 = 0;                                                     // swipe left / right on the worlds
+  grid.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  grid.addEventListener('touchend', function (e) {
+    if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  new MutationObserver(layout).observe(grid, { childList: true });          // the game redraws the cards
+  var lastW = 0, lastH = 0;
+  new ResizeObserver(function () {                                           // screen turned, window resized, tab bar shown
+    if (grid.clientWidth === lastW && grid.clientHeight === lastH) return;
+    lastW = grid.clientWidth; lastH = grid.clientHeight; layout();
+  }).observe(grid);
+  layout();
+})();
+</script>
 </body>
 </html>
