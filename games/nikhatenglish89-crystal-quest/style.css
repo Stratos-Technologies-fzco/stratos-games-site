@@ -309,3 +309,38 @@ html[lang="hi"] body{line-height:1.25}
 .scard.locked{opacity:.6}.lockbox{grid-column:span 3;display:grid;place-items:center}.lockbox img{width:34px;height:34px;max-height:none}
 img.inl2{display:inline-block}
 @media (max-height:470px){.sets{grid-template-columns:repeat(5,1fr)}.sgems img{max-height:calc((100vh - 150px) / 4)}}
+
+
+/* ---- celebrations: praise words, the level-complete banner, stars that fill in, confetti ---- */
+.fx.praise{transform:translate(-50%,-50%);white-space:nowrap;max-width:96%;text-align:center;pointer-events:none;animation:praise .5s ease-out forwards;z-index:9}
+.praise span{display:block;font-weight:900;letter-spacing:1px;line-height:1;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink)}
+.praise.t1{--pk:1.1}.praise.t1 span{font-size:calc(var(--cell)*.7);color:#fff}
+.praise.t2{--pk:1.16}.praise.t2 span{font-size:calc(var(--cell)*.85);color:#FFE27A}
+.praise.t3{--pk:1.22}.praise.t3 span{font-size:calc(var(--cell)*1.0);color:#FF9ACB;text-shadow:0 4px 0 var(--ink),0 0 16px rgba(255,154,203,.8)}
+.praise.t4{--pk:1.3}.praise.t4 span{font-size:calc(var(--cell)*1.1);color:#FFF3A0;text-shadow:0 4px 0 var(--ink),0 0 14px #FF6B8B,0 0 28px #7DF3EC}
+.praise i{position:absolute;left:50%;top:50%;width:calc(var(--cell)*.3);height:calc(var(--cell)*.3);background:#fff7b0;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:spark .5s ease-out forwards}
+@keyframes praise{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}22%{transform:translate(-50%,-50%) scale(var(--pk,1.15));opacity:1}60%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-64%) scale(1.04);opacity:0}}
+@keyframes spark{0%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(var(--d)*-1)) scale(1.1);opacity:0}}
+
+h2.winbanner{position:relative;overflow:hidden;padding:5px 16px;border-radius:16px;border:3px solid var(--ink);background:linear-gradient(#FFE27A,#F5A31A);color:#3a2000;text-shadow:0 2px 0 rgba(255,255,255,.45);box-shadow:0 4px 0 rgba(27,16,51,.55);animation:bannerin .55s cubic-bezier(.2,1.5,.4,1) both}
+h2.winbanner.boss{background:linear-gradient(#F26A7F,#C4213A);color:#fff;text-shadow:0 2px 0 rgba(27,16,51,.6)}
+h2.winbanner::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);animation:shine 1s .5s ease-out forwards}
+@keyframes bannerin{0%{transform:translateY(-30px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+@keyframes shine{to{left:130%}}
+
+.stars{gap:10px}
+.stars .star{position:relative;display:block;width:clamp(44px,14vw,64px);aspect-ratio:1}
+.stars .star:nth-child(2){margin-top:-10px}
+.stars .star img{position:absolute;inset:0;width:100%;height:100%;margin:0!important;transform:none;animation:none}
+.stars .star img:first-child{filter:grayscale(1) brightness(.5)}
+.stars .star .fill{opacity:0;transform:scale(0)}
+.stars .star.earn .fill{animation:fillstar .5s cubic-bezier(.2,1.7,.4,1) forwards;animation-delay:calc(.38s + var(--i)*.38s)}
+.stars .star b{position:absolute;inset:-35%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,226,122,.7) 35%,transparent 65%);opacity:0;pointer-events:none;animation:starburst .6s ease-out forwards;animation-delay:calc(.38s + var(--i)*.38s)}
+@keyframes fillstar{0%{opacity:0;transform:scale(0) rotate(-40deg)}70%{opacity:1;transform:scale(1.25) rotate(8deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes starburst{0%{opacity:0;transform:scale(.3)}30%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+
+.confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:70}
+.confetti i{position:absolute;left:50%;top:24%;opacity:0;animation:confetti 1.8s ease-out forwards}
+@keyframes confetti{0%{opacity:0;transform:translate(0,0) rotate(0) scale(.3)}12%{opacity:1;transform:translate(var(--dx),calc(var(--up)*-1)) rotate(calc(var(--rot)*.3)) scale(1)}100%{opacity:0;transform:translate(var(--dx2),70vh) rotate(var(--rot)) scale(1)}}
+.lowfx .confetti,.lowfx .praise i,.lowfx h2.winbanner::after,.lowfx .stars .star b{display:none}
+@media (prefers-reduced-motion:reduce){.fx.praise{animation:none!important;opacity:1}.stars .star.earn .fill{animation:none!important;opacity:1;transform:none}}

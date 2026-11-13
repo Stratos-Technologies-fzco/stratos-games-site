@@ -112,6 +112,7 @@ window.CQI18n.register('hi', {
   'Gem style': 'रत्न शैली', 'Themed': 'थीम वाली', 'Classic': 'क्लासिक', 'Guest gems!': 'मेहमान रत्न!', 'Gem Collection': 'रत्न संग्रह', 'Reach {t} to unlock': 'खोलने के लिए {1} तक पहुँचो', 'Coming soon': 'जल्द आ रहा है', 'New gem set: {t}!': 'नया रत्न सेट: {1}!',
   'Every world has its own gems. The colours always stay the same.': 'हर दुनिया के अपने रत्न हैं। रंग हमेशा वही रहते हैं।',
   'Classic Gems': 'क्लासिक रत्न', 'Frozen Shards': 'जमे हुए टुकड़े', 'Forest Leaves': 'जंगल के पत्ते', 'Desert Relics': 'रेगिस्तानी अवशेष', 'Dragon Scales': 'ड्रैगन के शल्क', 'Ocean Pearls': 'सागर के मोती', 'Sky Feathers': 'आकाश के पंख', 'Dark Obsidian': 'काला ज्वालामुखी काँच', 'Celestial Stars': 'दिव्य तारे',
+  'Good!': 'अच्छा!', 'Amazing!': 'कमाल!', 'Incredible!': 'अविश्वसनीय!', 'Daily Puzzle done!': 'रोज़ की पहेली पूरी!',
   'Well done, Guardian!': 'शाबाश, रक्षक!', 'Wonderful! The kingdom is healing.': 'बहुत बढ़िया! राज्य ठीक हो रहा है।', 'Crystal clear! Nicely played.': 'एकदम साफ़! बढ़िया खेले।', 'The Shadow Lord trembles!': 'छाया स्वामी काँप रहा है!', 'You make magic look easy!': 'आप जादू को आसान बना देते हो!', 'Another step closer to the Heart!': 'हृदय के और एक क़दम क़रीब!',
   '"You will never mend the Heart, Guardian!"': '"तुम हृदय को कभी नहीं जोड़ पाओगे, रक्षक!"', '"My frost will freeze your hopes!"': '"मेरी बर्फ़ तुम्हारी उम्मीदें जमा देगी!"', '"The forest is mine now!"': '"जंगल अब मेरा है!"', '"The sand will bury you!"': '"रेत तुम्हें दबा देगी!"', '"Burn, little Guardian!"': '"जल जाओ, नन्हे रक्षक!"'
 });

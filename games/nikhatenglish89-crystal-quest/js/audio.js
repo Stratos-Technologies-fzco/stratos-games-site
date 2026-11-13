@@ -36,12 +36,45 @@
   function musicVol(name) { return Math.min(1, (MUSIC_VOL[name] || VOL.music) * level.music * 2); }
   function setVolume(kind, v) { level[kind] = Math.max(0, Math.min(1, +v || 0)); if (kind === 'music' && cur) { try { cur.volume = musicVol(curName); } catch (e) {} } }
   function stopMusic() { try { if (cur) { cur.pause(); } } catch (e) {} cur = null; curName = null; }
-  function unlock() { if (unlocked) return; unlocked = true; if (wanted) music(wanted); }
+  /* Soft chimes made with the browser's own sound generator (no sound files): gentle pentatonic notes, quiet, about half a second.
+     Used for praise words ("Good!" ... "Incredible!") and the stars of a finished level. They follow the effects switch and volume. */
+  var ctx = null, chimeCount = 0, lastChime = '';
+  var SCALE = [523.25, 659.25, 783.99, 880.00, 1046.50, 1318.51];            // C5 E5 G5 A5 C6 E6
+  function audioCtx() {
+    if (ctx) return ctx;
+    try { var C = window.AudioContext || window.webkitAudioContext; if (C) ctx = new C(); } catch (e) { ctx = null; }
+    return ctx;
+  }
+  function note(freq, at, dur, gain) {
+    var c = ctx, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), g2 = c.createGain(), t = c.currentTime + at;
+    o.type = 'sine'; o2.type = 'sine'; o.frequency.value = freq; o2.frequency.value = freq * 2; g2.gain.value = 0.2;
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+  }
+  function play(idx, step, dur, base) {
+    if (!unlocked || !on.sfx) return;
+    var c = audioCtx(); if (!c) return;
+    try {
+      if (c.state === 'suspended') c.resume();
+      var gain = Math.min(0.28, base * level.sfx * 2);                      // never loud, even with the slider at the top
+      idx.forEach(function (i, k) { note(SCALE[i], k * step, dur, gain); });
+      chimeCount++; lastChime = idx.join(',');
+    } catch (e) {}
+  }
+  var CHIME_NOTES = [null, [0, 2], [0, 1, 2], [0, 1, 2, 3], [0, 1, 2, 3, 5]], CHIME_GAIN = [0, 0.07, 0.08, 0.09, 0.1];
+  function chime(tier) { tier = Math.max(1, Math.min(4, tier | 0)); play(CHIME_NOTES[tier], 0.06, 0.26, CHIME_GAIN[tier]); }
+  /* the stars of a finished level: one rising note each, a little sparkle after the third */
+  function starChime(i, total) {
+    play([[0], [2], [4]][Math.max(0, Math.min(2, i))], 0, 0.5, 0.09);
+    if (i === 2 && total === 3) setTimeout(function () { play([5, 4], 0.09, 0.4, 0.07); }, 140);
+  }
+  function unlock() { if (unlocked) return; unlocked = true; audioCtx(); try { if (ctx && ctx.state === 'suspended') ctx.resume(); } catch (e) {} if (wanted) music(wanted); }
   function set(kind, v) { on[kind] = !!v; if (kind === 'music') { if (!v) stopMusic(); else if (wanted) music(wanted); } }
   function init(opts) { if (opts) { on.music = opts.music !== false; on.sfx = opts.sfx !== false; if (opts.musicVol !== undefined) level.music = opts.musicVol; if (opts.sfxVol !== undefined) level.sfx = opts.sfxVol; } }
   // pause music when the tab is hidden
   try { document.addEventListener('visibilitychange', function () { if (document.hidden) { if (cur) cur.pause(); } else if (cur && on.music) { var p = cur.play(); if (p && p.catch) p.catch(function () {}); } }); } catch (e) {}
 
-  function debug() { return { unlocked: unlocked, music: on.music, sfx: on.sfx, track: curName, playing: !!(cur && !cur.paused), volume: cur ? cur.volume : null, musicLevel: level.music, sfxLevel: level.sfx }; }
-  root.CQAudio = { debug: debug, init: init, unlock: unlock, sfx: sfx, music: music, stopMusic: stopMusic, set: set, setVolume: setVolume, state: on, level: level };
+  function debug() { return { chimes: chimeCount, lastChime: lastChime, unlocked: unlocked, music: on.music, sfx: on.sfx, track: curName, playing: !!(cur && !cur.paused), volume: cur ? cur.volume : null, musicLevel: level.music, sfxLevel: level.sfx }; }
+  root.CQAudio = { chime: chime, starChime: starChime, debug: debug, init: init, unlock: unlock, sfx: sfx, music: music, stopMusic: stopMusic, set: set, setVolume: setVolume, state: on, level: level };
 })(window);
