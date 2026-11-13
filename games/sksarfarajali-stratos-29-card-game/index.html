@@ -159,7 +159,7 @@ function backFace(id, cls, w, h, fs) {
   var dot = function (top, left) { return '<span style="position:absolute;top:' + top + 'em;left:' + left + 'em;width:.17em;height:.17em;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center"><span style="width:.08em;height:.08em;border-radius:50%;background:#111"></span></span>'; };
   return '<span class="' + cls + '" style="width:' + w + 'px;height:' + h + 'px;font-size:' + fs + 'px;background:repeating-linear-gradient(45deg,' + b[1] + ' 0 6px,' + b[2] + ' 6px 12px);border:2px solid ' + b[3] + ';box-shadow:inset 0 0 0 ' + (w > 60 ? 3 : 2) + 'px ' + b[1] + ',inset 0 0 0 ' + (w > 60 ? 4 : 3) + 'px ' + b[3] + ',0 3px 8px rgba(0,0,0,.4)">' +
     '<span style="position:relative;display:block;font:700 .62em/.92 Fredoka,Arial Rounded MT Bold,Trebuchet MS,sans-serif;color:' + b[4] + '">S' + dot(0.04, 0.19) + dot(0.01, 0.35) + '</span>' +
-    '<span style="font:700 .17em/1 Fredoka,Arial Rounded MT Bold,Trebuchet MS,sans-serif;color:' + b[5] + '">Stratos</span></span>';
+    (fs >= 56 ? '<span style="font:700 .17em/1 Fredoka,Arial Rounded MT Bold,Trebuchet MS,sans-serif;color:' + b[5] + '">Stratos</span>' : '') + '</span>';
 }
 var FACES = { classic: ['Classic', 'Red and black suits'], four: ['Four colour', 'Each suit its own colour'], large: ['Large print', 'Bigger rank letters'] };
 var SPEED = { Relaxed: 1.5, Normal: 1, Quick: 0.55 };
@@ -204,6 +204,8 @@ function sfx(n) {
     else if (n === 'bid') { tone(392, 0, 0.18, 'sine', 0.05); tone(523, 0.1, 0.22, 'sine', 0.04); }
     else if (n === 'trump') { tone(523, 0, 0.3, 'sine', 0.05); tone(659, 0.12, 0.3, 'sine', 0.045); tone(784, 0.24, 0.45, 'sine', 0.04); }
     else if (n === 'trick') { tone(330, 0, 0.14, 'sine', 0.04); tone(440, 0.08, 0.18, 'sine', 0.04); }
+    else if (n === 'tw') { tone(523, 0, 0.12, 'sine', 0.07); tone(659, 0.09, 0.14, 'sine', 0.07); tone(880, 0.18, 0.26, 'sine', 0.06); }
+    else if (n === 'tl') { tone(294, 0, 0.16, 'triangle', 0.05); tone(247, 0.11, 0.22, 'triangle', 0.045); }
     else if (n === 'win') { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.14, 0.5, 'sine', 0.05); }); }
     else if (n === 'lose') { [330, 262, 196].forEach(function (f, i) { tone(f, i * 0.2, 0.55, 'sine', 0.045); }); }
   } catch (e) {}
@@ -325,7 +327,9 @@ function lobbyHTML() {
   var side = function (ic, t, d, act, soon) {
     return '<button type="button" data-act="' + act + '" class="tile row" style="gap:14px;text-align:left;width:100%;' + (soon ? 'opacity:.75' : '') + '"><span style="width:44px;height:44px;border-radius:12px;background:#1B3A2E;display:flex;align-items:center;justify-content:center;color:var(--gold);flex:none"><span style="width:22px;height:22px;display:block">' + icon(ic) + '</span></span><span class="col" style="gap:2px"><span style="font:600 16px var(--bf)">' + t + (soon ? ' <em style="font-style:normal;font-size:11px;background:#3A4A44;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:middle">SOON</em>' : '') + '</span><span class="mute" style="font-size:13px">' + d + '</span></span></button>';
   };
-  var nav = '<nav class="row" style="gap:8px"><button class="tab" data-act="learn">Learn to Play</button><button class="tab" data-act="demo">Watch Demo</button><button class="tab" data-act="rules">Rules</button><button class="tab" data-act="stats">Statistics</button><button class="tab" data-act="settings">Settings</button><button class="tab" data-act="about">About</button></nav>';
+  var fsOK = !!document.fullscreenEnabled, fsOn = !!document.fullscreenElement;
+  var fsBtn = fsOK ? '<button class="tab" data-act="fs" style="color:var(--gold)">' + (fsOn ? 'Exit full screen' : '\u26F6 Full screen') + '</button>' : '';
+  var nav = '<nav class="row" style="gap:8px"><button class="tab" data-act="learn">Learn to Play</button><button class="tab" data-act="demo">Watch Demo</button><button class="tab" data-act="rules">Rules</button><button class="tab" data-act="stats">Statistics</button><button class="tab" data-act="settings">Settings</button><button class="tab" data-act="about">About</button>' + fsBtn + '</nav>';
   var daily = '<button type="button" data-act="daily" class="btn" style="height:' + (m ? 52 : 64) + 'px;padding:0 24px;display:inline-flex;align-items:center;gap:10px;border-color:var(--gold);color:var(--gold)"><span style="width:20px;height:20px;display:block">' + icon('cal') + '</span><span class="col" style="text-align:left;line-height:1.15"><span style="font:700 ' + (m ? 15 : 16) + 'px var(--hf)">Daily Deal</span><span style="font-size:11px;color:var(--mute)">' + (dk ? (dk.won ? 'Done ✓' : 'Played') : 'Same cards for everyone') + ' · 🔥 ' + DAILY.streak + '</span></span></button>';
   if (m) return ptr(
     '<div class="abs row" style="left:16px;right:16px;top:14px;justify-content:space-between"><div class="col"><div class="brand hf" style="font-size:24px">STRATOS <b>29</b></div><div class="mute" style="font-size:11px">Think Smart. Bid Bold. Win 29.</div></div><button class="ibtn" data-act="settings" aria-label="Settings">' + icon('gear') + '</button></div>' +
@@ -338,7 +342,7 @@ function lobbyHTML() {
     '<button class="tile col" data-act="friends" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Friends</b><span class="mute" style="font-size:11px">Create room</span></button>' +
     '<button class="tile col" data-act="online" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Join room</b><span class="mute" style="font-size:11px">Use a code</span></button>' +
     '<button class="tile col" data-act="learn" style="flex:1;align-items:flex-start;gap:2px;padding:12px"><b style="font-size:14px">Learn to play</b><span class="mute" style="font-size:11px">Tutorial</span></button></div>' +
-    '<div class="abs row" style="left:12px;right:12px;top:730px;gap:8px"><button class="btn" data-act="demo" style="flex:1;padding:0 4px;font-size:13px">Watch demo</button><button class="btn" data-act="stats" style="flex:1;padding:0 4px;font-size:13px">Stats</button><button class="btn" data-act="settings" style="flex:1;padding:0 4px;font-size:13px">Settings</button><button class="btn" data-act="about" style="flex:1;padding:0 4px;font-size:13px">About</button></div>' +
+    '<div class="abs row" style="left:12px;right:12px;top:730px;gap:8px"><button class="btn" data-act="demo" style="flex:1;padding:0 4px;font-size:13px">Watch demo</button><button class="btn" data-act="stats" style="flex:1;padding:0 4px;font-size:13px">Stats</button><button class="btn" data-act="settings" style="flex:1;padding:0 4px;font-size:13px">Settings</button><button class="btn" data-act="about" style="flex:1;padding:0 4px;font-size:13px">About</button>' + (fsOK ? '<button class="btn" data-act="fs" aria-label="Full screen" style="flex:1;padding:0 4px;font-size:15px;color:var(--gold)">\u26F6</button>' : '') + '</div>' +
     '<div class="abs mute" style="left:0;right:0;bottom:16px;text-align:center;font-size:11px">Free to play \u00B7 No real money \u00B7 <a href="how-to-play.html" target="_blank" rel="noopener" style="color:var(--gold)">How-to-play guide</a></div>');
   return ptr(
     '<header class="abs row" style="left:48px;right:48px;top:32px;justify-content:space-between"><div class="row" style="gap:16px">' +
@@ -427,7 +431,7 @@ function roleText(p) {
   bits.push(p === 0 ? 'Team A' : p === 2 ? 'Partner' : 'Team B');
   if (G.declarer === p) bits.push('Bidder');
   var n = G.hands[p].length + (G.phase === 'bidding' || G.phase === 'trump' ? 0 : 0);
-  bits.push(n + ' cards');
+  bits.push(n + (n === 1 ? ' card' : ' cards'));
   return bits.join(' · ');
 }
 function seatHTML(p) {
@@ -453,7 +457,7 @@ function backsHTML() {
   for (i = 0; i < G.hands[1].length; i++) l += backFace(id, 'bk v', 72, 50, 44);
   for (i = 0; i < G.hands[3].length; i++) r += backFace(id, 'bk v', 72, 50, 44);
   return '<div class="abs row" style="left:50%;top:168px;transform:translateX(-50%);z-index:1" aria-hidden="true">' + top + '</div>' +
-    '<div class="abs col" style="left:196px;top:300px;z-index:1" aria-hidden="true">' + l + '</div><div class="abs col" style="right:196px;top:300px;z-index:1" aria-hidden="true">' + r + '</div>';
+    '<div class="abs col" style="left:196px;top:334px;z-index:1" aria-hidden="true">' + l + '</div><div class="abs col" style="right:196px;top:334px;z-index:1" aria-hidden="true">' + r + '</div>';
 }
 function statusText() {
   var G = A.G, u = A.ui;
@@ -491,7 +495,7 @@ function boardHTML() {
   return '<div class="felt" style="' + (m ? 'left:10px;right:10px;top:72px;height:470px;border-radius:120px' : 'left:150px;right:150px;top:110px;height:560px;border-radius:280px') + '"></div>' +
     seatHTML(2) + seatHTML(1) + seatHTML(3) + backsHTML() + trumpBox +
     '<div class="abs" style="' + boxPos.left + ';width:' + boxPos.w + 'px;height:' + boxPos.h + 'px;z-index:2">' + tc +
-    '<div class="abs status" style="left:50%;top:' + (m ? 322 : 340) + 'px;transform:translateX(-50%);color:' + st.c + ';z-index:9">' + esc(st.t) + '</div></div>';
+    '<div class="abs status" style="left:50%;top:' + (m ? 322 : 340) + 'px;transform:translateX(-50%);color:' + st.c + ';z-index:9' + (A.ui.trickShow ? ';font-size:' + (m ? 15 : 19) + 'px;padding:10px 22px;border:2px solid ' + st.c : '') + '">' + esc(st.t) + '</div></div>';
 }
 function legalFor0() { var G = A.G; return (G.phase === 'play' && hu(G.turn) && !A.ui.trickShow) ? E.legalCards(G, 0) : []; }
 function handHTML() {
@@ -521,7 +525,7 @@ function turnText() {
 function footHTML() {
   var G = A.G, m = A.layout === 'm', obs = G.phase === 'play' ? E.observe(G, 0) : null, my = G.phase === 'play' && hu(G.turn) && !A.ui.trickShow;
   var sel = my && A.ui.sel && legalFor0().indexOf(A.ui.sel) >= 0;
-  var info = G.phase === 'bidding' ? (function () { var b = E.bestSuit(G.hands[0]); return 'Strongest suit ' + sym(b.suit); })() : turnText();
+  var info = G.phase === 'bidding' ? (function () { var b = E.bestSuit(G.hands[0]), cs = G.hands[0].filter(function (c) { return E.suit(c) === b.suit; }), pp = cs.reduce(function (a, c) { return a + E.cardPoints(c); }, 0); return 'Strongest suit ' + sym(b.suit) + ' (' + cs.length + ' card' + (cs.length === 1 ? '' : 's') + ', ' + pp + ' pt' + (pp === 1 ? '' : 's') + ')'; })() : turnText();
   var tt = turnText();
   var ava = '<div class="row" style="gap:' + (m ? 10 : 12) + 'px"><div class="av me" style="width:' + (m ? 40 : 50) + 'px;height:' + (m ? 40 : 50) + 'px;border-width:3px;' + (my ? 'box-shadow:0 0 0 6px rgba(233,196,106,.18)' : '') + '">' + esc(inits(myName())) + '</div><div class="col" style="gap:2px"><span style="font:600 ' + (m ? 14 : 16) + 'px var(--bf)">' + esc(myName()) + ' · Team A</span><span class="gold" style="font-size:' + (m ? 12 : 13) + 'px">' + esc(G.phase === 'bidding' && hu(G.turn) ? 'Your bid · ' + info : tt) + '</span></div></div>';
   var showPlay = G.phase === 'play' && A.mode !== 'demo';
@@ -549,7 +553,7 @@ function overlayHTML() {
     var hist = G.bidLog.map(function (b) { return '<span style="padding:6px 12px;border-radius:999px;background:#13231E;border:1px solid ' + (teamOf(b.p) === 0 ? '#1F3A4E' : '#5C4127') + ';font-size:13px">' + esc(seatName(b.p)) + ' · <b>' + (b.bid || 'Pass') + '</b></span>'; }).join('') || '<span class="mute" style="font-size:13px">You bid first</span>';
     var hint = A.mode === 'practice' ? '<div class="gold" style="font-size:13px">Coach: a hand like yours can usually bid up to about ' + Math.max(16, E.bidCeiling(G.hands[0], 3, false, function () { return 0.5; })) + '.</div>' : '';
     h += '<section class="panel abs col" aria-label="Place your bid" style="pointer-events:auto;' + (m ? 'left:16px;width:358px;top:84px;padding:18px 16px;gap:12px' : 'left:50%;top:200px;transform:translateX(-50%);width:620px;padding:26px 28px;gap:20px') + '">' +
-      '<div class="row" style="justify-content:space-between;align-items:flex-start"><div class="col" style="gap:4px"><h2 class="hf" style="margin:0;font-size:' + (m ? 22 : 26) + 'px">Your bid</h2><span class="mute" style="font-size:14px">' + (G.bid ? 'Highest: <b style="color:#F6B97C">' + G.bid.amount + ' by ' + esc(seatName(G.bid.by)) + '</b>' : 'No bid yet') + ' · min 16, max 29</span></div></div>' +
+      '<div class="row" style="justify-content:space-between;align-items:flex-start"><div class="col" style="gap:4px"><h2 class="hf" style="margin:0;font-size:' + (m ? 22 : 26) + 'px">Your bid</h2><span class="mute" style="font-size:14px">' + (G.bid ? 'Highest: <b style="color:#F6B97C">' + G.bid.amount + ' by ' + esc(seatName(G.bid.by)) + '</b>' : 'No bid yet') + (G.bid ? ' \u00B7 you must bid ' + (G.bid.amount + 1) + ' or more' : ' \u00B7 min 16, max 29') + '</span></div></div>' +
       '<div style="display:grid;grid-template-columns:repeat(' + (m ? 5 : 7) + ',minmax(0,1fr));gap:8px">' + grid + '</div>' + hint +
       '<div class="row" style="gap:12px"><button type="button" class="btn ghost" data-act="pass" style="flex:1;height:54px;font-size:17px;border-radius:14px">Pass</button><button type="button" class="btn pri" data-act="placebid" style="flex:2;height:54px;font-size:18px;border-radius:14px">Bid ' + pick + '</button></div>' +
       '<div class="col" style="gap:8px;padding-top:12px;border-top:1px solid var(--line)"><span class="lbl">Bid history</span><div class="row" style="gap:8px;flex-wrap:wrap">' + hist + '</div></div></section>';
@@ -577,6 +581,7 @@ function overlayHTML() {
 }
 function coachHTML() {
   if (A.mode === 'demo' && A.screen === 'table') return '<div class="coach" style="pointer-events:auto;' + (A.layout === 'm' ? 'top:556px' : 'bottom:10px') + ';border-color:var(--a)"><span class="gold" style="font-weight:700;flex:none">DEMO</span><span>' + (A.ui.caption || 'Watch four Expert players. Each sees only their own cards.') + '</span><button data-act="lobby">Stop</button></div>';
+  if (A.ui.hintWhy) return '<div class="coach" style="pointer-events:auto;max-width:460px;' + (A.layout === 'm' ? 'top:556px' : 'bottom:10px') + '"><span class="gold" style="font-weight:700;flex:none">HINT</span><span>' + esc(A.ui.hintWhy) + '</span><button data-act="coachx">Got it</button></div>';
   var t = A.ui.coach;
   if (!t) return '';
   return '<div class="coach" style="pointer-events:auto;' + (A.layout === 'm' ? 'top:556px' : 'bottom:10px') + '"><span style="width:20px;height:20px;flex:none;color:var(--gold)">' + icon('bulb') + '</span><span>' + esc(TIPS[t]) + '</span><button data-act="coachx">Got it</button></div>';
@@ -687,13 +692,18 @@ function resultHTML() {
   var head = A.mode === 'demo' ? (r.success ? 'Bid made!' : 'Bid failed') : over ? (won ? 'Victory!' : 'Defeat') : (r.success ? 'Bid made!' : 'Bid failed');
   var sub = teamName(r.bidTeam) + ' bid ' + r.bid + (r.target !== r.bid ? ' (target ' + r.target + ' after pair)' : '') + ' with trump ' + sym(r.trump) + ' ' + E.SUIT_NAME[r.trump] + ' and collected ' + r.points[r.bidTeam] + ' points' + (r.mult > 1 ? ' · stakes ×' + r.mult : '');
   var conf = ''; if (over && won && S.anim !== 'Off') for (var i = 0; i < 30; i++) conf += '<i class="cf" style="left:' + (i * 3.4) + '%;background:' + ['#E9C46A', '#5AA9E6', '#F29E4C', '#6FC3A0'][i % 4] + ';animation-delay:' + ((i * 0.37) % 2.5) + 's"></i>';
+  var lvlup = '';
+  if (A.mode === 'play' && !M.over && mine && G.teamPts[0] >= 20 && !A.ui.lvlDone && E.LEVELS.indexOf(A.level) < E.LEVELS.length - 1) {
+    var nx = E.LEVELS[E.LEVELS.indexOf(A.level) + 1];
+    lvlup = '<div class="row" style="justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;background:#1B3A2E;border:1px solid var(--gold)"><span style="font-size:' + (m ? 12 : 13) + 'px">You are winning easily on ' + esc(A.level) + '. Ready for a tougher table?</span><button class="btn" data-act="levelup" style="height:38px;padding:0 14px;flex:none">Try ' + nx + '</button></div>';
+  }
   var daily = A.mode === 'daily' ? '<div class="row" style="justify-content:center;gap:8px;padding:10px;border-radius:12px;background:#1B3A2E;color:var(--gold);font-weight:600">🔥 Daily streak: ' + DAILY.streak + ' day' + (DAILY.streak === 1 ? '' : 's') + (dailyState() && dailyState().won ? ' · Today’s deal won!' : ' · Come back tomorrow for a new deal') + '</div>' : '';
   return '<div class="modal" style="pointer-events:auto;overflow:hidden">' + conf + '<section class="panel col" role="dialog" aria-modal="true" style="width:' + (m ? 360 : 860) + 'px;padding:' + (m ? 18 : 30) + 'px;gap:' + (m ? 10 : 16) + 'px;position:relative;border-color:' + (over ? (won ? 'var(--gold)' : '#8a3a2a') : 'var(--rail)') + '">' +
     '<div class="col" style="gap:4px"><span class="gold lbl" style="letter-spacing:.14em">' + (A.mode === 'demo' ? 'DEMO ROUND COMPLETE' : A.mode === 'daily' ? 'DAILY DEAL' : 'ROUND ' + M.round + ' COMPLETE') + '</span><h2 class="hf" style="margin:0;font-size:' + (m ? 30 : 40) + 'px;color:' + (over ? (won ? 'var(--gold)' : '#F0A07A') : (mine ? '#6FC3A0' : '#F0A07A')) + '">' + head + '</h2><span class="mute" style="font-size:' + (m ? 13 : 15) + 'px">' + sub + '</span></div>' +
     '<div class="row" style="gap:12px;' + (m ? 'flex-direction:column' : '') + '">' + tm(0) + tm(1) + '</div>' +
     '<div class="col" style="gap:6px"><span class="lbl">Trick by trick</span><div class="row" style="gap:5px;flex-wrap:wrap">' + tricks + '</div></div>' +
     (A.mode === 'demo' ? '' : A.mode === 'daily' ? daily : '<div class="row" style="justify-content:space-between;padding:12px 16px;border-radius:14px;background:#12201B;border:1px solid var(--line)"><span class="lbl">Game score · first to ' + M.rules.targetScore + '</span><b class="hf" style="font-size:' + (m ? 18 : 22) + 'px"><span style="color:#9CCBF0">Team A ' + M.scores[0] + '</span> — <span style="color:#F6B97C">' + M.scores[1] + ' Team B</span></b><span class="gold" style="font-size:13px;font-weight:600">' + (r.delta > 0 ? '+' : '') + r.delta + ' to ' + teamName(r.bidTeam) + '</span></div>') +
-    (isGuest() ? '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Leave</button><button class="btn" disabled style="flex:2;height:54px">Waiting for the host…</button></div>' : A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
+    lvlup + (isGuest() ? '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Leave</button><button class="btn" disabled style="flex:2;height:54px">Waiting for the host…</button></div>' : A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
 }
 
 /* ===================== ONLINE: up to 4 real players, no game server =====================
@@ -991,20 +1001,21 @@ function guestApply(m) {
   guestResultMaybe(); render();
 }
 function guestTrick(lt) {
-  A.ui.trickShow = { plays: lt.plays, winner: lt.winner, pts: lt.pts }; render();
+  A.ui.trickShow = { plays: lt.plays, winner: lt.winner, pts: lt.pts }; sfx(teamOf(lt.winner) === 0 ? 'tw' : 'tl'); render();
+  var hold = lt.last ? 2800 : 2000;
   later(function () {
     sfx('trick');
     document.querySelectorAll('.tcard').forEach(function (el) {
       var d = { 0: ['0px', '300px'], 1: ['-420px', '0px'], 2: ['0px', '-300px'], 3: ['420px', '0px'] }[lt.winner];
       el.style.setProperty('--dx', d[0]); el.style.setProperty('--dy', d[1]); el.classList.add('sweep');
     });
-  }, 900);
+  }, hold - 500);
   later(function () {
     A.ui.trickShow = null;
     var q = Net.queued; Net.queued = null;
     if (q) { guestApply(q); return; }
     guestResultMaybe(); render();
-  }, 1400);
+  }, hold);
 }
 function guestResultMaybe() {
   var m = Net.lastM, G = A.G;
@@ -1168,10 +1179,11 @@ function doPlay(p, card) {
   var r = E.playCard(G, p, card);
   if (!r.ok) { render(); return; }
   cap(esc(seatName(p)) + ' plays the ' + cardName(card) + '.' + (G.trick.length === 1 ? ' The suit led is ' + E.SUIT_NAME[E.suit(card)] + ': everyone who can must follow it.' : ''));
-  sfx('play'); A.ui.sel = null; A.ui.hint = null; A.ui.coach = null; A.ui.freshAt = G.seen.length;
+  sfx('play'); A.ui.sel = null; A.ui.hint = null; A.ui.hintWhy = null; A.ui.coach = null; A.ui.freshAt = G.seen.length;
   if (G.tricks.length > before) {
     var lt = G.lastTrick;
-    A.ui.trickShow = { plays: lt.plays, winner: lt.winner, pts: lt.pts };
+    A.ui.trickShow = { plays: lt.plays, winner: lt.winner, pts: lt.pts }; sfx(teamOf(lt.winner) === 0 ? 'tw' : 'tl');
+    var hold = lt.last ? 2800 : 2000;
     cap(esc(seatName(lt.winner)) + ' wins the trick and collects ' + lt.pts + ' point' + (lt.pts === 1 ? '' : 's') + '. The winner leads the next trick.');
     render();
     later(function () {
@@ -1180,11 +1192,11 @@ function doPlay(p, card) {
         var d = { 0: ['0px', '300px'], 1: ['-420px', '0px'], 2: ['0px', '-300px'], 3: ['420px', '0px'] }[lt.winner];
         el.style.setProperty('--dx', d[0]); el.style.setProperty('--dy', d[1]); el.classList.add('sweep');
       });
-    }, 900);
+    }, hold - 500);
     later(function () {
       A.ui.trickShow = null;
       if (G.phase === 'done') { finishRound(); } else { render(); step(); }
-    }, 1400);
+    }, hold);
   } else { render(); step(); }
 }
 function finishRound() {
@@ -1227,6 +1239,17 @@ function finishRound() {
   A.ui.modal = 'result'; render();
 }
 
+function hintWhy(G, card) {
+  var tr = G.revealed ? G.trump : null, plays = G.trick, pts = E.cardPoints(card), rk = E.rank(card), nm = cardName(card);
+  var pl = function (n) { return n + ' point' + (n === 1 ? '' : 's'); };
+  if (!plays.length) return (rk === 'J' || rk === '9' || rk === 'A') ? 'Lead the ' + nm + ': a strong card that is likely to win this trick.' : 'Lead the ' + nm + ': a low lead shows what the others hold without risking points.';
+  var all = plays.concat([{ p: 0, card: card }]), w = E.trickWinner(all, tr), led = E.suit(plays[0].card);
+  var tot = all.reduce(function (a, x) { return a + E.cardPoints(x.card); }, 0);
+  if (w === 0) return (E.suit(card) !== led ? 'Cut with trump to win this trick' : 'Win this trick with the ' + nm) + ' (' + pl(tot) + ' in it so far).';
+  if (teamOf(w) === 0) return pts ? 'Your partner is winning, so add the ' + nm + ' (' + pl(pts) + ') to their trick.' : 'Your partner is already winning, so a low card keeps your good cards for later.';
+  return 'The ' + nm + ' will not win this trick, but it gives away ' + (pts ? pl(pts) : 'no points') + ' and keeps your stronger cards for later.';
+}
+
 /* ===================== ACTIONS ===================== */
 var H = {
   level: function (d) { A.level = d.v; S.level = d.v; saveS(); render(); },
@@ -1236,6 +1259,7 @@ var H = {
   tutnext: function (d) { var n = A.tut.i + (+d.v); if (n >= TUT.length) { A.ui.modal = null; } else { A.tut.i = Math.max(0, n); A.tut.ans = null; } render(); },
   tutans: function (d) { A.tut.ans = d.v; render(); },
   about: function () { A.ui.modal = 'about'; render(); },
+  fs: function () { try { if (document.fullscreenElement) document.exitFullscreen(); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {}); } catch (e) {} },
   practice: function () { A.ui.modal = null; startGame('practice'); },
   daily: function () { startGame('daily'); },
   friends: function () { A.ui.modal = 'online'; render(); },
@@ -1256,7 +1280,7 @@ var H = {
   stats: function () { A.ui.modal = 'stats'; render(); },
   settings: function () { if (A.mode === 'online') { toast('Settings are available from the lobby', 1500); return; } if (A.mode === 'demo') { clearTimers(); A.mode = 'play'; } A.prevScreen = A.screen === 'settings' ? A.prevScreen : A.screen; A.screen = 'settings'; A.ui.modal = null; render(); },
   stab: function (d) { A.sTab = d.v; render(); },
-  tog: function (d) { S[d.v] = !S[d.v]; saveS(); if (d.v === 'music') musicOn(S.music); if (d.v === 'sound' && S.sound) sfx('bid'); render(); },
+  tog: function (d) { S[d.v] = !S[d.v]; saveS(); if (d.v === 'music') musicOn(S.music); if (d.v === 'sound' && S.sound) sfx('bid'); render(); if ((d.v === 'hidden' || d.v === 'dbl' || d.v === 'pair') && A.G) toast('House rules apply from the next game', 2400); },
   set: function (d) { S[d.k] = d.v; if (d.k === 'level') A.level = d.v; saveS(); render(); },
   name: function () {},
   snd: function () { S.sound = !S.sound; saveS(); render(); },
@@ -1267,7 +1291,7 @@ var H = {
   modalbg: function (d, e) { if (e.target === e.currentTarget && A.ui.modal !== 'result') H.closemodal(); },
   next: function () { A.ui.modal = null; A.M.dealer = (A.M.dealer + 1) % 4; newRound(); },
   again: function () { if (A.mode === 'online') { A.ui.modal = null; if (Net.role === 'host') startOnlineMatch(); return; } var md = A.mode === 'daily' ? 'practice' : A.mode; A.ui.modal = null; startGame(md); },
-  coachx: function () { A.ui.coach = null; render(); },
+  coachx: function () { A.ui.coach = null; A.ui.hintWhy = null; render(); },
   bidpick: function (d) { A.ui.bidPick = +d.v; render(); },
   placebid: function () { var G = A.G; if (isGuest()) { netAct({ a: 'bid', amount: A.ui.bidPick }); A.ui.coach = null; return; } if (E.placeBid(G, 0, A.ui.bidPick).ok) { sfx('bid'); A.ui.coach = null; track('bid_made', { amount: A.ui.bidPick }); render(); step(); } },
   pass: function () { var G = A.G; if (isGuest()) { netAct({ a: 'pass' }); return; } if (E.passBid(G, 0).ok) { A.ui.coach = null; render(); step(); } },
@@ -1288,9 +1312,10 @@ var H = {
     A.ui.sel = c; render();
   },
   playcard: function () { if (A.ui.sel) doPlay(0, A.ui.sel); },
+  levelup: function () { var i = E.LEVELS.indexOf(A.level) + 1; if (i < E.LEVELS.length) { A.level = E.LEVELS[i]; S.level = A.level; A.aiLevel = A.level; saveS(); A.ui.lvlDone = true; toast('AI level is now ' + A.level, 2000); } },
   hint: function () {
     var G = A.G; if (A.mode === 'online') return; if (!(G.phase === 'play' && hu(G.turn))) return;
-    var run = function () { var o = E.observe(G, 0); A.ui.hint = E.ai.play(o, 'Expert', Math.random); A.ui.sel = A.ui.hint; if (A.ui.hintsLeft > 0) A.ui.hintsLeft--; render(); };
+    var run = function () { var o = E.observe(G, 0); A.ui.hint = E.ai.play(o, 'Expert', Math.random); A.ui.sel = A.ui.hint; A.ui.hintWhy = hintWhy(G, A.ui.hint); if (A.ui.hintsLeft > 0) A.ui.hintsLeft--; render(); };
     if (A.mode === 'practice') run(); else offerReward(run);
   },
   lasttrick: function () { A.ui.modal = 'last'; render(); },
@@ -1309,6 +1334,7 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && A.ui.modal && A.ui.modal !== 'result') H.closemodal();
   if (e.key === 'Enter' && A.screen === 'table' && A.ui.sel && !A.ui.modal && document.activeElement === document.body) H.playcard();
 });
+document.addEventListener('fullscreenchange', function () { fit(); render(); });
 window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', fit);
 
