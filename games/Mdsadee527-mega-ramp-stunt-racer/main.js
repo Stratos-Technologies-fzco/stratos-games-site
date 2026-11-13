@@ -59,6 +59,15 @@ bindTouch('touch-gas', 'forward');
 bindTouch('touch-brake', 'backward');
 bindTouch('touch-boost', 'boost');
 
+// Reset is a one-tap action (not a held direction), so it gets its own
+// listener instead of the hold-state bindTouch() pattern above. This is
+// the only way to recover a flipped car on a touch device -- KeyR covers
+// the same action on keyboard.
+document.getElementById('touch-reset').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  requestReset();
+});
+
 // ---------------------------------------------------------------------------
 // Game / run state
 // ---------------------------------------------------------------------------
