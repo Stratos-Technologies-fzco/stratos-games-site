@@ -1,8 +1,8 @@
 {
   "title": "Battle Royale",
   "maker": "Sk Sarfaraj Ali",
-  "one_line": "A fast last-player-standing battle royale: drop in, loot up and outlast everyone.",
+  "one_line": "Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in.",
   "category": "arcade",
   "github": "sksarfarajali",
-  "status": "coming_soon"
+  "how_to_play": "Tap JUMP to leave the plane, find a weapon, then be the last one standing. Move with the left thumb, look with the right, FIRE to shoot. On a computer: WASD, mouse, click to fire."
 }
