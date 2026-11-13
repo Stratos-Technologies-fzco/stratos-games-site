@@ -325,6 +325,9 @@
   hi.pats.push([/^🔥 Daily streak: (\d+) days?$/, function (m) { return '🔥 लगातार दिन: ' + m[1]; }]);
   bn.pats.push([/^🔥 Daily streak: (\d+) days?$/, function (m) { return '🔥 টানা দিন: ' + m[1]; }]);
 
+
+  hi.pats.push([/^(Team [AB]) (-?\d+)$/, function (m) { return 'टीम ' + m[1].slice(-1) + ' ' + m[2]; }], [/^(-?\d+) (Team [AB])$/, function (m) { return m[1] + ' टीम ' + m[2].slice(-1); }], [/^(\d+)W (\d+)L$/, function (m) { return m[1] + ' जीत ' + m[2] + ' हार'; }]);
+  bn.pats.push([/^(Team [AB]) (-?\d+)$/, function (m) { return 'টিম ' + m[1].slice(-1) + ' ' + m[2]; }], [/^(-?\d+) (Team [AB])$/, function (m) { return m[1] + ' টিম ' + m[2].slice(-1); }], [/^(\d+)W (\d+)L$/, function (m) { return m[1] + ' জয় ' + m[2] + ' হার'; }]);
   /* ============================ WHOLE PAGES ============================ */
   function rankGrid(unit) {
     var rk = [['J', 3], ['9', 2], ['A', 1], ['10', 1], ['K', 0], ['Q', 0], ['8', 0], ['7', 0]];
