@@ -23,7 +23,7 @@ export function Results({ res, onAgain, onLobby }: { res: Result; onAgain: () =>
         <div class="rs-head"><h1 class={`t ${res.win ? 'win' : 'lose'}`}>{res.win ? <>STORM<br />CLEARED</> : 'ELIMINATED'}</h1><div class="rs-place t">#{res.placement}<small>/{res.total}</small></div></div>
         <div class="rs-tiles">
           <div class="glass"><b class="t">{res.kills}</b><span>KILLS</span></div><div class="glass"><b class="t">{res.damage.toLocaleString('en-US')}</b><span>DAMAGE</span></div>
-          <div class="glass"><b class="t">{mmss(res.time)}</b><span>SURVIVED</span></div><div class="glass"><b class="t">{res.headshots}</b><span>HEADSHOTS</span></div>
+          <div class="glass"><b class="t">{mmss(res.time)}</b><span>SURVIVED</span></div><div class="glass"><b class="t">{res.tokens}</b><span>TOKENS</span></div><div class="glass"><b class="t">{res.headshots}</b><span>HEADSHOTS</span></div>
         </div>
         <div class="rs-lvl"><span>{la.level > lb.level ? `Level ${lb.level} → ${la.level}` : `Level ${la.level}`}</span><b>+{gained} XP{shards ? ` · +${shards} Shards` : ''}</b></div>
         <div class="rs-bar"><i style={{ width: `${Math.round(la.pct * 100)}%` }} /></div>

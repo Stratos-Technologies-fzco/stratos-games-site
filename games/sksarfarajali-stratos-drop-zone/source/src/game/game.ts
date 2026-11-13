@@ -5,7 +5,7 @@ import { Colliders, rayBox, stepBody, type Body } from '../core/collision';
 import { Inventory, BarrierState, applyArmour, baseDamage, fallDamage, fireInterval, grenadeDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime, type Armour, type GunSlot, type Item, type Rarity, type WeaponId, type ZonePlan, type ZoneState } from '../core/rules';
 import { POIS, buildWorld, generateLoot, mulberry32, HALF, inRiver, coastDist, modelSize, type WorldData, type LootSpawn } from '../core/world';
 import { audio, type SoundId } from '../audio';
-import { clearLook, input, pollInput, settings, touch, exitPointerLock } from '../input';
+import { clearLook, input, pollInput, settings, touch, exitPointerLock, spec } from '../input';
 import { Character, SURVIVORS, defaultAnim, type Survivor } from '../render/character';
 import { cloneModel, preload, MODEL_INFO, sharedMaterial } from '../render/assets';
 import { buildWorldView, type WorldView } from '../render/worldView';
@@ -33,7 +33,7 @@ export class Game {
   rand = mulberry32(1); plane!: THREE.Object3D; planeStart = V(); planeDir = V(); planeSpeed = 0; kiosks: { x: number; z: number; y: number; last: { lastAt: number } }[] = [];
   hud: Hud; feed: FeedRow[] = []; private fx!: { tracers: THREE.Line[]; flashes: THREE.Mesh[]; puffs: THREE.Mesh[] }; private ghost: THREE.Object3D | null = null; placing = false;
   private raf = 0; private last = 0; private hudT = 0; private lootT = 0; private botT = 0; private bushT = 0; private fpsAcc = 0; private fpsN = 0; fps = 60; private lowFpsT = 0; private res = 1;
-  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
+  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; elimRes: Result | null = null; deadT = 0; diedMatchT = 0; specYaw = 0; specPitch = 0; landInfo: { x: number; z: number; secs: number; dist: number } | null = null; private landMark!: THREE.Group; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number; id?: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
   private canopies: { x: number; y: number; z: number; r: number }[] = []; private canopyCells = new Map<number, number[]>(); private camDist = 3.2;
@@ -60,7 +60,7 @@ export class Game {
     onProgress?.(0.1);
     await preload([...MODEL_INFO.keys()].filter((n) => n !== 'coast_buggy'), (d, t) => onProgress?.(0.1 + 0.5 * (d / t)));
     this.view = await buildWorldView(this.world); onProgress?.(0.9);
-    this.buildKiosks(); this.buildFx(); this.plane = await cloneModel('cargo_glider'); this.plane.visible = false; this.view.scene.add(this.plane);
+    this.buildKiosks(); this.buildFx(); this.buildLandMark(); this.plane = await cloneModel('cargo_glider'); this.plane.visible = false; this.view.scene.add(this.plane);
     const ghost = await cloneModel('monsoon_barrier'); ghost.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.material = new THREE.MeshBasicMaterial({ color: 0xa78bfa, transparent: true, opacity: 0.5 }); }); ghost.visible = false; this.ghost = ghost; this.view.scene.add(ghost);
     this.applyQuality(); this.ready = true; onProgress?.(1); this.loop(performance.now());
   }
@@ -100,7 +100,7 @@ export class Game {
   async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean } = {}) {
     this.demo = !!opts.demo; this.demoStep = 0; this.demoFlags = { reloaded: false, healed: false }; if (this.demo) track('demo_start');
     this.cleanup(); this.mode = mode; this.survivor = survivor; this.rand = mulberry32((Math.random() * 1e9) | 0); this.difficulty = opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots;
-    this.time = 0; this.matchT = 0; this.flightT = 0; this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
+    this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
     this.zonePlan = planZone(this.rand); this.zone = null; this.env.zone = null;
     this.player = await this.makeActor(settings ? 'You' : 'You', false, true, survivor);
     const bots = mode === 'solo' ? B.match.players - 1 : opts.bots ? B.bots.trainingCount : 0;
@@ -128,7 +128,7 @@ export class Game {
     const a: Actor = {
       id: nextId++, name: isBot ? brain!.name : name, isBot, isPlayer, alive: true, body: { x: 0, y: 0, z: 0, vy: 0, onGround: true, crouch: false }, yaw: 0, pitch: 0, hp: B.player.hp,
       armour: { vestLv: 0, vestDur: 0, helmetLv: 0 }, inv: new Inventory(), slot: 3, char, anim: defaultAnim(), mode: 'ground', fireCd: 0, reloadT: 0, reloadMax: 1, healT: 0, healItem: '', swingT: 0, kickT: 0, shots: 0, lastShot: -9, recoilPitch: 0,
-      kills: 0, damage: 0, headshots: 0, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, lastHitBy: null, lastHitAt: -99, speedNow: 0, vx: 0, vz: 0, fireHeld: false, coyote: 0, jumpBuf: 0, fallStartY: 0, survivor, bot: brain,
+      kills: 0, damage: 0, headshots: 0, slideT: 0, slideCd: 0, slideDx: 0, slideDz: 0, prevCrouch: false, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, lastHitBy: null, lastHitAt: -99, speedNow: 0, vx: 0, vz: 0, fireHeld: false, coyote: 0, jumpBuf: 0, fallStartY: 0, survivor, bot: brain,
     };
     if (isBot) { const names = this.actors.map((x) => x.name); while (names.filter((n) => n === a.name).length) a.name += 'x'; }
     void char.setWeapon('tide_machete'); if (this.effQuality === 'high') char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = true; }); this.actors.push(a); return a;
@@ -216,7 +216,7 @@ export class Game {
     if (this.phase !== 'menu') { this.updateEffects(dt); this.render(dt); } clearLook();
     this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.onChange(); }
   };
-  setPaused(p: boolean) { this.paused = p; if (p) exitPointerLock(); }
+  setPaused(p: boolean) { this.paused = p; if (p) audio.stopEngine(); if (p) exitPointerLock(); }
   private adaptResolution() {
     if (settings.quality !== 'auto') { this.dynRes = 1; return; }
     // Auto: a desktop that holds 58+ FPS for 6 seconds at Medium moves up to High (real shadows). If High then drops under 42 FPS for 3 seconds it goes back and stays there.
@@ -259,11 +259,18 @@ export class Game {
     this.updateProjectiles(dt); this.updateGrenades(dt); this.updateBarriers(dt); this.updateDummies(dt);
     this.bushT += dt; if (this.bushT > 0.3) { this.bushT = 0; for (const a of this.actors) a.hidden = a.alive && a.body.crouch && this.bushes.some((b) => Math.abs(b.x - a.body.x) < 1.4 && Math.abs(b.z - a.body.z) < 1.4); }
     this.lootT += dt; if (this.lootT > 0.25) { this.lootT = 0; this.updateLootVisibility(); }
+    if (this.phase === 'flight' && this.plane.visible) audio.setEngine(this.player.mode === 'plane' ? 1 : Math.max(0, 1 - this.camera.position.distanceTo(this.plane.position) / 500)); else audio.stopEngine();
     // ---- win / end checks
-    if (this.mode === 'solo' && this.phase === 'playing') {
+    if (this.mode === 'solo' && (this.phase === 'playing' || this.phase === 'flight')) { // a player can be eliminated while the last bots are still gliding down
       const alive = this.actors.filter((a) => a.alive);
       if (alive.length <= 1 && this.matchT > 5) this.finish(alive[0] ?? null);
-      if (!p.alive && this.endT === 0) { this.endT = 0.001; setTimeout(() => this.finish(null), 2200); }
+      spec.active = !p.alive;
+      if (!p.alive) {
+        this.deadT += dt; if (!this.elimRes && this.deadT > 1.6) { this.elimRes = this.buildResult(false); this.hud.eliminated = this.elimRes; }
+        if (spec.prev) this.spectate(-1); if (spec.next) this.spectate(1); if (!this.spectateTarget?.alive) this.spectate(1);
+        this.specYaw -= input.lookDX * 0.003; this.specPitch = Math.max(-0.8, Math.min(0.8, this.specPitch - input.lookDY * 0.003));
+      }
+      spec.prev = false; spec.next = false;
     }
     for (const f of this.feed) f.t -= dt; this.feed = this.feed.filter((f) => f.t > 0);
     this.dropT = Math.max(0, this.dropT - dt); this.hitT = Math.max(0, this.hitT - dt); this.elimT = Math.max(0, this.elimT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
@@ -331,8 +338,12 @@ export class Game {
       if (a.isPlayer) { dx = Math.sin(a.yaw) * fwd * hs - Math.cos(a.yaw) * steerX * hs * 0.6; dz = Math.cos(a.yaw) * fwd * hs + Math.sin(a.yaw) * steerX * hs * 0.6; } else { dx = c.dx * hs; dz = c.dz * hs; a.yaw = Math.atan2(c.dx, c.dz) || a.yaw; }
       a.body.x += dx * dt; a.body.z += dz * dt; a.body.y -= (a.mode === 'skydive' ? B.match.skydiveSpeed : B.match.glideDown) * dt;
       const lim = HALF + B.match.softWallMeters; a.body.x = Math.max(-lim, Math.min(lim, a.body.x)); a.body.z = Math.max(-lim, Math.min(lim, a.body.z));
-      if (a.mode === 'skydive' && alt <= B.match.gliderOpenAltitude) { a.mode = 'glide'; void a.char.setWing(true); }
-      if (a.body.y <= gnd + 0.2) { a.body.y = gnd; a.mode = 'ground'; a.body.onGround = true; a.body.vy = 0; void a.char.setWing(false); if (this.phase === 'flight') { /* landed */ } if (a.isPlayer) { this.showBanner('Landed. Find a weapon!'); } }
+      if (a.isPlayer) { // where will I land? straight on at the current heading: freefall to the opening height, then the glide
+        const open = B.match.gliderOpenAltitude, tS = a.mode === 'skydive' ? Math.max(0, alt - open) / B.match.skydiveSpeed : 0, tG = (a.mode === 'skydive' ? Math.min(alt, open) : alt) / B.match.glideDown, ux = dx / Math.max(hs, 1e-3), uz = dz / Math.max(hs, 1e-3), reach = 24 * tS + B.match.glideForward * tG;
+        const lim2 = HALF + B.match.softWallMeters, lx = Math.max(-lim2, Math.min(lim2, a.body.x + ux * reach)), lz = Math.max(-lim2, Math.min(lim2, a.body.z + uz * reach)); this.landInfo = { x: lx, z: lz, secs: tS + tG, dist: Math.hypot(lx - a.body.x, lz - a.body.z) };
+      }
+      if (a.mode === 'skydive' && alt <= B.match.gliderOpenAltitude) { a.mode = 'glide'; void a.char.setWing(true); if (a.isPlayer) { this.shake = Math.max(this.shake, 0.4); audio.play('chute'); } }
+      if (a.body.y <= gnd + 0.2) { a.body.y = gnd; a.mode = 'ground'; a.body.onGround = true; a.body.vy = 0; void a.char.setWing(false); an.fallLanded = 3; if (a.isPlayer) this.shake = Math.max(this.shake, 0.25); if (this.phase === 'flight') { /* landed */ } if (a.isPlayer) { this.showBanner('Landed. Find a weapon!'); } }
       an.mode = a.mode === 'skydive' ? 'skydive' : 'glide'; an.speed = 0; this.poseActor(a, dt); return;
     }
     // ---- ground
@@ -345,11 +356,15 @@ export class Game {
     if (this.perks() && a.survivor === 'survivor_kiran' && c.sprint) speed *= 1.08;
     const prevY = a.body.y, wasGround = a.body.onGround;
     // smooth acceleration, coyote time and jump buffering for a better feel
-    const tvx = ndx * speed, tvz = ndz * speed; const acc = (a.body.onGround ? (Math.hypot(tvx, tvz) > 0.1 ? 38 : 55) : 8) * dt; const dvx = tvx - a.vx, dvz = tvz - a.vz, dl = Math.hypot(dvx, dvz);
+    const v0 = Math.hypot(a.vx, a.vz), vx0 = a.vx, vz0 = a.vz; /* speed before this frame's braking, for the slide check */ const tvx = ndx * speed, tvz = ndz * speed; const acc = (a.body.onGround ? (Math.hypot(tvx, tvz) > 0.1 ? 38 : 55) : 8) * dt; const dvx = tvx - a.vx, dvz = tvz - a.vz, dl = Math.hypot(dvx, dvz);
     if (dl <= acc) { a.vx = tvx; a.vz = tvz; } else { a.vx += (dvx / dl) * acc; a.vz += (dvz / dl) * acc; }
+    // sliding: crouch while sprinting at speed starts a short fast slide that fades out; a jump cancels it
+    a.slideCd -= dt; if (a.slideT > 0) { a.slideT -= dt; if (!a.body.onGround || a.slideT <= 0) a.slideT = 0; }
+    else if (c.crouch && !a.prevCrouch && a.slideCd <= 0 && a.body.onGround && !healing && v0 > B.player.sprint * 0.8) { a.slideT = 0.75; a.slideCd = 1.4; a.slideDx = vx0 / v0; a.slideDz = vz0 / v0; if (a.isPlayer) audio.play('slide', { gain: 0.5 }); }
+    a.prevCrouch = c.crouch; if (a.slideT > 0) { const k0 = a.slideT / 0.75, sp = 2.8 + 5.4 * k0 * k0; a.vx = a.slideDx * sp; a.vz = a.slideDz * sp; }
     const vm = Math.hypot(a.vx, a.vz); a.coyote = a.body.onGround ? 0.1 : a.coyote - dt; if (c.jump) a.jumpBuf = 0.12; else a.jumpBuf -= dt;
     const wantJump = a.jumpBuf > 0 && (a.body.onGround || a.coyote > 0); if (wantJump) { a.jumpBuf = 0; a.coyote = 0; }
-    const res = stepBody(this.colliders, a.body, { dx: vm > 0.01 ? a.vx / vm : 0, dz: vm > 0.01 ? a.vz / vm : 0, speed: vm, jump: wantJump, crouch: c.crouch, coyote: a.coyote > 0 }, dt);
+    const res = stepBody(this.colliders, a.body, { dx: vm > 0.01 ? a.vx / vm : 0, dz: vm > 0.01 ? a.vz / vm : 0, speed: vm, jump: wantJump, crouch: c.crouch || a.slideT > 0, coyote: a.coyote > 0 }, dt);
     if (wasGround && !a.body.onGround && a.body.vy <= 0) a.fallStartY = prevY; if (!a.body.onGround && wasGround && a.body.vy > 0) a.fallStartY = a.body.y;
     if (res.landedFall > 0) { const fallM = Math.max(0, a.fallStartY - a.body.y); const dmg = fallDamage(fallM); if (dmg > 0) this.hurt(a, null, dmg, false, 'a fall', true); an.fallLanded = fallM; if (a.isPlayer && fallM > 3) this.shake = 0.4; }
     a.speedNow = Math.hypot(a.body.x - (a.char.root.position.x), a.body.z - (a.char.root.position.z)) / Math.max(dt, 1e-3);
@@ -372,7 +387,7 @@ export class Game {
     // bots throw grenades at engaged targets sometimes
     if (a.bot && a.bot.state === 'engage' && a.inv.count('frag_grenade') > 0 && Math.random() < dt * 0.05 && a.bot.target) this.throwGrenade(a, false);
     // ---- animation state
-    a.fireHeld = c.fire; an.pitch = a.pitch; an.speed = a.body.onGround ? Math.min(7, vm) : 0; an.crouch = c.crouch; an.onGround = a.body.onGround; an.vy = a.body.vy; an.armed = !!gun && a.slot !== 3; an.melee = a.slot === 3; an.aiming = (a.isPlayer ? input.aim : c.fire) && an.armed;
+    a.fireHeld = c.fire; an.pitch = a.pitch; an.speed = a.body.onGround ? Math.min(7, vm) : 0; an.crouch = c.crouch || a.slideT > 0; an.slide = a.slideT > 0; an.onGround = a.body.onGround; an.vy = a.body.vy; an.armed = !!gun && a.slot !== 3; an.melee = a.slot === 3; an.aiming = (a.isPlayer ? input.aim : c.fire) && an.armed;
     an.reload = a.reloadT > 0; an.heal = a.healT > 0; an.dead = 0; this.poseActor(a, dt);
   }
   private perks() { return B.perksEnabled; }
@@ -536,15 +551,19 @@ export class Game {
     if (v.armour.vestLv) items.push({ kind: 'vest', id: `vest_lv${v.armour.vestLv}`, rarity: 0, qty: 1 }); if (v.armour.helmetLv) items.push({ kind: 'helmet', id: `helmet_lv${v.armour.helmetLv}`, rarity: 0, qty: 1 }); if (inv.backpackLv) items.push({ kind: 'backpack', id: `backpack_lv${inv.backpackLv}`, rarity: 0, qty: 1 });
     if (inv.tokens) items.push({ kind: 'tokens', id: 'tokens', rarity: 0, qty: inv.tokens });
     if (items.length) { const gen0 = this.gen; setTimeout(() => { if (gen0 === this.gen) this.addGroundItem(v.body.x, v.body.y, v.body.z, items, 1, true, 'death_loot_crate'); }, 700); }
-    void a11(); if (v.isPlayer) { audio.play('lose'); exitPointerLock(); this.spectateTarget = by && by.alive ? by : this.actors.find((x) => x.alive) ?? null; }
+    void a11(); if (v.isPlayer) { this.diedMatchT = this.matchT; this.deadT = 0; audio.play('lose'); exitPointerLock(); this.spectateTarget = by && by.alive ? by : this.actors.find((x) => x.alive) ?? null; }
     if (this.mode === 'training' && v.isBot) setTimeout(() => { v.alive = true; v.hp = 100; v.char.resetDeath(); v.anim.dead = 0; }, 3000);
     if (this.mode === 'training' && v.isPlayer) setTimeout(() => this.respawnTraining(v), 1500);
   }
   private respawnTraining(v: Actor) { v.alive = true; v.hp = 100; v.anim.dead = 0; v.char.resetDeath(); const f = POIS[4]; this.placeActor(v, f.x, f.z + 27); }
+  /** The player's result. Stats are recorded here, once, so Lobby / Play Again while spectating still count the match. */
+  private buildResult(win: boolean): Result { const p = this.player; const placement = win ? 1 : p.placement || this.actors.filter((a) => a.alive).length + 1; const res: Result = { win, placement, total: B.match.players, kills: p.kills, damage: Math.round(p.damage), time: Math.round(p.alive ? this.matchT : this.diedMatchT), headshots: p.headshots, tokens: p.tokensEarned, xp: xpFor(p.kills, p.damage, placement), killer: p.killer }; res.outcome = recordMatch(res); return res; }
+  skipToResults() { if ((this.phase === 'playing' || this.phase === 'flight') && !this.player.alive) this.finish(null); }
+  private buildLandMark() { const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(2.4, 3.3, 28), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 60, 6, 1, true), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.35, depthWrite: false })); beam.position.y = 30; g.add(ring, beam); g.visible = false; this.view.scene.add(g); this.landMark = g; }
   private finish(winner: Actor | null) {
     if (this.phase === 'ended') return; this.phase = 'ended'; const p = this.player; const win = winner === p; const placement = win ? 1 : p.placement || this.actors.filter((a) => a.alive).length + 1;
-    const res: Result = { win, placement, total: B.match.players, kills: p.kills, damage: Math.round(p.damage), time: Math.round(this.matchT), headshots: p.headshots, tokens: p.tokensEarned, xp: xpFor(p.kills, p.damage, placement), killer: p.killer };
-    res.outcome = recordMatch(res); this.hud.result = res; audio.play(win ? 'victory' : 'lose'); track(win ? 'level_complete' : 'game_over', { placement, kills: p.kills }); this.onChange();
+    void placement; const res: Result = !win && this.elimRes ? this.elimRes : this.buildResult(win); spec.active = false;
+    this.hud.result = res; audio.play(win ? 'victory' : 'lose'); track(win ? 'level_complete' : 'game_over', { placement, kills: p.kills }); this.onChange();
   }
 
   // ------------------------------------------------------------------ items
@@ -675,10 +694,11 @@ export class Game {
   // ------------------------------------------------------------------ camera
   private updateCamera(dt: number) {
     let a = this.player; if (!a.alive && this.spectateTarget?.alive) a = this.spectateTarget; else if (!a.alive && this.phase === 'ended') a = this.spectateTarget ?? a;
-    if (this.phase === 'flight' && a.mode === 'plane') { const p = this.plane.position; this.camera.position.set(p.x - 30, p.y + 14, p.z - 30).add(this.planeDir.clone().multiplyScalar(-10)); this.camera.lookAt(p); this.camera.fov = 70; this.camera.updateProjectionMatrix(); return; }
+    if (this.phase === 'flight' && a.mode === 'plane') { const p = this.plane.position; const ft = this.flightT; this.camera.position.set(p.x - 30 + Math.sin(ft * 0.25) * 7, p.y + 14 + Math.sin(ft * 0.4) * 1.6, p.z - 30 + Math.cos(ft * 0.2) * 6).add(this.planeDir.clone().multiplyScalar(-10)); this.camera.lookAt(p.clone().addScaledVector(this.planeDir, 14)); this.plane.rotation.z = Math.sin(ft * 0.6) * 0.06; this.camera.fov = 70; this.camera.updateProjectionMatrix(); return; }
     const scoped = a === this.player && this.scoped(); const g = this.gun(a); const targetFov = a === this.player && input.aim && g ? (W[g.id].scope === 2 ? 35 : W[g.id].scope === 4 ? 20 : 55) : a.mode === 'skydive' ? 85 : 70;
     this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, dt / 0.16 * 1); this.camera.updateProjectionMatrix();
-    const head = V(a.body.x, a.body.y + (a.body.crouch ? 1.15 : 1.65), a.body.z), f = this.aimDir(a), r = V(-Math.cos(a.yaw), 0, Math.sin(a.yaw));
+    const spectating = a !== this.player, yw = a.yaw + (spectating ? this.specYaw : 0), pt = spectating ? Math.max(-1.1, Math.min(1, a.pitch * 0.5 + this.specPitch)) : a.pitch;
+    const head = V(a.body.x, a.body.y + (a.body.crouch ? 1.15 : 1.65), a.body.z), f = V(Math.sin(yw) * Math.cos(pt), Math.sin(pt), Math.cos(yw) * Math.cos(pt)), r = V(-Math.cos(yw), 0, Math.sin(yw));
     if (scoped) { this.camera.position.copy(head).addScaledVector(f, 0.3); }
     else {
       const sk = a.mode === 'skydive' ? 1.6 : 1; const back = 3.2 * sk, side = 0.6; const want = head.clone().addScaledVector(r, side).addScaledVector(f, -back);
@@ -698,7 +718,7 @@ export class Game {
   showChat(t: string) { this.chat = t; this.chatT = 2; }
   addFeed(text: string, mine: boolean) { this.feed.push({ id: nextId++, text, t: 4, mine }); if (this.feed.length > 4) this.feed.shift(); }
   private blankHud(): Hud {
-    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, dropCard: null, weaponClass: '', zoneWarn: null, result: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
+    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, dropCard: null, weaponClass: '', zoneWarn: null, result: null, eliminated: null, landing: null, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
   }
   private snapshot() {
     const h = this.hud, p = this.player; if (!p) return; h.phase = this.phase; h.mode = this.mode; h.hp = Math.max(0, Math.round(p.hp)); h.vest = Math.round(p.armour.vestDur); h.vestMax = p.armour.vestLv ? B.armour.vest.durability[p.armour.vestLv - 1] : 1; h.helmet = p.armour.helmetLv;
@@ -719,9 +739,13 @@ export class Game {
     h.elim = this.elimT > 0 ? { text: this.elimText, t: this.elimT } : null; h.weaponClass = g ? W[g.id].class : ''; h.zoneWarn = this.zone && p.alive && this.phase === 'playing' ? { dist: Math.hypot(p.body.x - this.zone.cx, p.body.z - this.zone.cz) - this.zone.radius, dps: this.zone.dps } : null;
     h.kioskNear = !!kiosk; h.kioskOpen = this.kioskOpen; h.inventoryOpen = this.inventoryOpen; h.mapOpen = this.mapOpen; h.stack = [...p.inv.stacks].map(([id, qty]) => ({ id, qty })); h.capacity = p.inv.capacity; h.chat = this.chatT > 0 ? this.chat : '';
     h.shake = this.shake; h.inBush = p.hidden; h.inZoneDanger = !!this.zone && zoneDamage(this.zone, p.body.x, p.body.z) > 0; h.spectating = !p.alive ? this.spectateTarget?.name ?? null : null; h.quality = this.effQuality;
+    const li = this.landInfo; this.landInfo = null; this.landMark.visible = !!li; h.eliminated = this.hud.eliminated;
+    if (li) { this.landMark.position.set(li.x, this.world.terrain.height(li.x, li.z) + 0.3, li.z); const np = POIS.reduce((b, q) => Math.hypot(q.x - li.x, q.z - li.z) < Math.hypot(b.x - li.x, b.z - li.z) ? q : b); h.landing = { dist: Math.round(li.dist), secs: Math.ceil(li.secs), name: Math.hypot(np.x - li.x, np.z - li.z) < 110 ? np.name : 'open ground' }; } else h.landing = null;
   }
-  spectateNext() { const alive = this.actors.filter((a) => a.alive && !a.isPlayer); if (!alive.length) return; const i = Math.max(0, alive.indexOf(this.spectateTarget!)); this.spectateTarget = alive[(i + 1) % alive.length]; }
-  toLobby() { this.cleanup(); this.phase = 'menu'; this.hud.result = null; audio.startMusic('lobby'); this.onChange(); }
+  spectate(dir: 1 | -1) { const l = this.actors.filter((a) => a.alive && !a.isPlayer); if (!l.length) return; const i = l.indexOf(this.spectateTarget!); this.spectateTarget = l[i < 0 ? (dir > 0 ? 0 : l.length - 1) : (i + dir + l.length) % l.length]; this.specYaw = 0; this.specPitch = 0; }
+  spectatePrev() { this.spectate(-1); }
+  spectateNext() { this.spectate(1); }
+  toLobby() { this.cleanup(); this.phase = 'menu'; this.hud.result = null; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); audio.startMusic('lobby'); this.onChange(); }
   dispose() { cancelAnimationFrame(this.raf); }
 }
 function a11() { /* placeholder to keep kill() readable */ }

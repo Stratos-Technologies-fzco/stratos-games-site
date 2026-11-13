@@ -85,3 +85,16 @@
 .teaser-pic { position: relative; border-radius: 10px; overflow: hidden; height: 34vh; max-height: 240px; margin-bottom: 10px; }
 .credit { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 @media (prefers-reduced-motion: reduce) { .kb img { animation: none; } }
+
+/* Results: five tiles */
+.rs-tiles { grid-template-columns: repeat(5, 1fr); } .rs-tiles b { font-size: 1.35em; }
+/* Eliminated: spectator bar and summary card */
+.gone { display: none !important; }
+.spec-bar { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 6px 10px; pointer-events: auto; font-size: 14px; }
+.spec-bar .spec-name { text-align: center; min-width: 120px; } .spec-bar .spec-name small { display: block; font-size: 10px; letter-spacing: .12em; color: var(--muted, #a9a3c4); } .spec-bar .spec-name b { font-size: 18px; }
+.spec-bar .spec-alive { font-weight: 700; color: var(--amber, #ffb020); padding-left: 6px; }
+.elim-card { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(560px, 94vw); padding: 10px 14px; pointer-events: auto; display: grid; gap: 8px; }
+.elim-h { display: flex; align-items: baseline; gap: 12px; } .elim-h b { font-size: 24px; color: var(--red, #ff4d5e); } .elim-h span { font-size: 22px; } .elim-h small { font-size: 13px; opacity: .7; } .elim-h em { margin-left: auto; font-style: normal; font-size: 13px; opacity: .85; }
+.elim-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } .elim-tiles div { background: rgba(255,255,255,.06); border-radius: 8px; padding: 5px 4px; text-align: center; } .elim-tiles b { display: block; font-size: 20px; } .elim-tiles span { font-size: 9px; letter-spacing: .08em; opacity: .75; }
+.elim-btns { display: flex; gap: 8px; justify-content: center; align-items: center; } .elim-hint { text-align: center; font-size: 11px; opacity: .6; }
+@media (max-height: 460px) { .spec-bar { top: 70px; padding: 3px 8px; } .elim-card { padding: 6px 10px; gap: 4px; } .elim-h b { font-size: 18px; } .elim-tiles b { font-size: 16px; } .elim-hint { display: none; } }

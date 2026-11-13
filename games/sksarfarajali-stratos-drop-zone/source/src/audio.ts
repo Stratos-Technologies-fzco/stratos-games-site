@@ -1,7 +1,7 @@
 // Procedural Web Audio. Recipes are ported from Design/Audio.dc.html, plus the extra cues from the spec.
 export type SoundId =
   | 'pistol' | 'rifle' | 'dmr' | 'shotgun' | 'sniper' | 'reload' | 'hit' | 'head' | 'pickup' | 'legend' | 'grenade' | 'steps' | 'whoosh' | 'siren'
-  | 'tap' | 'victory' | 'lose' | 'machete' | 'machete_hit' | 'barrier' | 'purchase' | 'smg';
+  | 'tap' | 'victory' | 'lose' | 'machete' | 'machete_hit' | 'barrier' | 'purchase' | 'smg' | 'chute' | 'slide';
 export type Bus = 'sfx' | 'ui' | 'music';
 
 interface Opts { bus?: Bus; gain?: number; pan?: number; lowpass?: number }
@@ -81,6 +81,8 @@ export class AudioManager {
       case 'victory': [293.66, 369.99, 440, 587.33].forEach((f, i) => { T('triangle', f, i * 0.12, 0.3, 0.3); T('sawtooth', f, 0.6, 1.6, 0.08); }); break;
       case 'lose': [440, 349.23, 293.66, 220].forEach((f, i) => T('sine', f, i * 0.25, 0.45, 0.3)); break;
       case 'machete': N(0, 0.18, 0.5, 'bandpass', 500, 2400); break;
+      case 'chute': N(0, 0.4, 0.9, 'bandpass', 1100, 250); T('sine', 90, 0.04, 0.45, 0.9, 40); N(0.08, 0.5, 0.35, 'highpass', 2500); break;
+      case 'slide': N(0, 0.6, 0.45, 'bandpass', 1500, 380); break;
       case 'machete_hit': T('sine', 140, 0, 0.1, 0.7, 60); N(0, 0.05, 0.4, 'lowpass', 1500); break;
       case 'barrier': T('sawtooth', 120, 0, 0.35, 0.25, 520); T('sine', 70, 0.3, 0.25, 0.8, 35); break;
       case 'purchase': T('sine', 660, 0, 0.1, 0.3); T('sine', 990, 0.1, 0.16, 0.3); break;
@@ -134,6 +136,20 @@ export class AudioManager {
     s.connect(f); f.connect(g); g.connect(this.buses.music); s.start(); this.wind = s; this.windGain = g;
   }
   setTension(on: boolean) { this.tension = on; }
+  private engine: { o1: OscillatorNode; o2: OscillatorNode; lfo: OscillatorNode; n: AudioBufferSourceNode; g: GainNode } | null = null;
+  /** Aircraft engine: two low oscillators with a slow propeller beat plus a band of rushing air. */
+  startEngine() {
+    if (this.engine) return; const ac = this.ctx();
+    const g = ac.createGain(); g.gain.value = 0; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520;
+    const mod = ac.createGain(); mod.gain.value = 0.7; const lfo = ac.createOscillator(); lfo.frequency.value = 11; const lg = ac.createGain(); lg.gain.value = 0.3; lfo.connect(lg); lg.connect(mod.gain);
+    const o1 = ac.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = 58; const o2 = ac.createOscillator(); o2.type = 'square'; o2.frequency.value = 87; const g2 = ac.createGain(); g2.gain.value = 0.3;
+    const n = ac.createBufferSource(); n.buffer = this.noiseBuf(); n.loop = true; const nf = ac.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 700; const ng = ac.createGain(); ng.gain.value = 0.08;
+    o1.connect(mod); o2.connect(g2); g2.connect(mod); mod.connect(lp); n.connect(nf); nf.connect(ng); ng.connect(lp); lp.connect(g); g.connect(this.buses.sfx);
+    o1.start(); o2.start(); lfo.start(); n.start(); this.engine = { o1, o2, lfo, n, g };
+  }
+  /** 0..1 loudness: full inside the aircraft, fading with distance after the jump. */
+  setEngine(v: number) { if (!this.engine) this.startEngine(); this.engine!.g.gain.setTargetAtTime(0.16 * v, this.ctx().currentTime, 0.15); }
+  stopEngine() { const e = this.engine; if (!e) return; this.engine = null; e.g.gain.setTargetAtTime(0, this.ctx().currentTime, 0.12); setTimeout(() => { for (const n of [e.o1, e.o2, e.lfo, e.n]) { try { n.stop(); } catch { /* already stopped */ } } }, 700); }
   stopMusic() { if (this.timer) clearInterval(this.timer); this.timer = null; this.musicMode = 'off'; if (this.wind) { try { this.wind.stop(); } catch { /* already stopped */ } this.wind = null; } void this.windGain; }
 }
 export const audio = new AudioManager();

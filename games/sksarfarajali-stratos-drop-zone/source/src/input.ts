@@ -9,6 +9,9 @@ export const settings = { sensitivity: 1, aimAssist: true, reduceMotion: false, 
 try { const s = JSON.parse(localStorage.getItem('sdz-settings') ?? '{}'); Object.assign(settings, s); } catch { /* storage unavailable */ }
 export const saveSettings = () => { try { localStorage.setItem('sdz-settings', JSON.stringify(settings)); } catch { /* ignore */ } };
 
+/** Spectator controls: Q / E / arrows switch player, drag orbits the camera. `active` is set by the game while the player is eliminated. */
+export const spec = { prev: false, next: false, active: false };
+let dragOn = false;
 export const isTouch = () => matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const keys = new Set<string>();
 const edge = { jump: false, reload: false, interact: false, heal: false, grenade: false, barrier: false, map: false, inventory: false, pause: false, marker: false };
@@ -21,6 +24,7 @@ export function initInput(canvas: HTMLElement, getOverlayActive: () => boolean) 
     keys.add(e.code);
     if (e.code === 'Space') edge.jump = true; if (e.code === 'KeyR') edge.reload = true; if (e.code === 'KeyF') edge.interact = true; if (e.code === 'KeyH') edge.heal = true;
     if (e.code === 'KeyG') edge.grenade = true; if (e.code === 'KeyB') edge.barrier = true; if (e.code === 'KeyM') edge.map = true; if (e.code === 'Tab') { edge.inventory = true; e.preventDefault(); }
+    if (e.code === 'KeyQ' || e.code === 'ArrowLeft') spec.prev = true; if (e.code === 'KeyE' || e.code === 'ArrowRight') spec.next = true;
     if (e.code === 'KeyV') edge.marker = true; if (e.code === 'Escape') { edge.pause = true; onPause?.(); }
     const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code); if (n >= 0) input.slot = n;
     if (e.code === 'Space') e.preventDefault();
@@ -29,13 +33,14 @@ export function initInput(canvas: HTMLElement, getOverlayActive: () => boolean) 
   addEventListener('blur', () => keys.clear());
   canvas.addEventListener('mousedown', (e) => {
     if (isTouch() || getOverlayActive()) return;
+    if (spec.active) { dragOn = true; return; }
     if (!locked) { canvas.requestPointerLock?.(); return; }
     if (e.button === 0) mouse.fire = true; if (e.button === 2) mouse.aim = true;
   });
-  addEventListener('mouseup', (e) => { if (e.button === 0) mouse.fire = false; if (e.button === 2) mouse.aim = false; });
+  addEventListener('mouseup', (e) => { dragOn = false; if (e.button === 0) mouse.fire = false; if (e.button === 2) mouse.aim = false; });
   addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; if (!locked) { mouse.fire = false; mouse.aim = false; } });
-  addEventListener('mousemove', (e) => { if (locked) { input.lookDX += e.movementX; input.lookDY += e.movementY; } });
+  addEventListener('mousemove', (e) => { if (locked || dragOn) { input.lookDX += e.movementX; input.lookDY += e.movementY; } });
   initTouch(canvas);
 }
 const mouse = { fire: false, aim: false };

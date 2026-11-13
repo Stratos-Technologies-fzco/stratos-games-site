@@ -12,9 +12,9 @@ export const SURVIVORS: { id: Survivor; name: string; role: string; perk: string
 
 export interface AnimState {
   speed: number; crouch: boolean; onGround: boolean; vy: number; mode: 'ground' | 'skydive' | 'glide';
-  aiming: boolean; pitch: number; swap: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number;
+  aiming: boolean; pitch: number; swap: number; armed: boolean; reload: boolean; heal: boolean; melee: boolean; throwT: number; kick: number; hit: number; dead: 0 | 1 | 2; emote: boolean; fallLanded: number; slide: boolean;
 }
-export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, swap: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0 });
+export const defaultAnim = (): AnimState => ({ speed: 0, crouch: false, onGround: true, vy: 0, mode: 'ground', aiming: false, pitch: 0, swap: 0, armed: false, reload: false, heal: false, melee: false, throwT: 0, kick: 0, hit: 0, dead: 0, emote: false, fallLanded: 0, slide: false });
 
 interface Pose { aLx: number; aLz: number; aRx: number; aRz: number; lL: number; lR: number; torso: number; hip: number; head: number; lean: number; roll: number }
 const zero = (): Pose => ({ aLx: 0, aLz: 0, aRx: 0, aRz: 0, lL: 0, lR: 0, torso: 0, hip: 0, head: 0, lean: 0, roll: 0 });
@@ -42,11 +42,11 @@ export class Character {
     const w = await cloneModel(name); if (this.weaponName !== name) return;
     w.rotation.x = Math.PI / 2; w.position.set(0, -0.6, 0.02); hand.add(w); this.weapon = w;
   }
-  private wantWing = false;
+  private wantWing = false; private wingK = 0;
   async setWing(on: boolean) {
     this.wantWing = on; // remembered, because the model loads asynchronously and the answer may change meanwhile
-    if (on && !this.wing) { const w = await cloneModel('personal_glider_wing'); if (!this.wing) { this.wing = w; w.position.set(0, 1.5, -0.1); this.body.add(w); } }
-    if (this.wing) this.wing.visible = this.wantWing;
+    if (on && !this.wing) { const w = await cloneModel('personal_glider_wing'); if (!this.wing) { this.wing = w; w.position.set(0, 1.5, -0.1); w.scale.setScalar(0.01); this.body.add(w); } }
+    if (this.wing && on) this.wing.visible = true; // update() animates the size and hides it once folded
   }
   setTint(hex: number) { void hex; }
 
@@ -54,6 +54,7 @@ export class Character {
     if (!this.ready) return;
     if (this.flashT > 0) { this.flashT -= dt; if (this.flashT <= 0) this.swapMat(false); }
     if (lod10fps) { this.accum += dt; if (this.accum < 0.1) return; dt = this.accum; this.accum = 0; }
+    if (this.wing) { this.wingK = this.wantWing ? Math.min(1, this.wingK + dt / 0.7) : Math.max(0, this.wingK - dt / 0.25); const k = this.wingK - 1; const e = this.wantWing ? 1 + 2.70158 * k * k * k + 1.70158 * k * k : this.wingK; this.wing.scale.setScalar(Math.max(0.01, e)); this.wing.visible = this.wingK > 0.01; } // opens over 0.7 s with a small overshoot, folds in 0.25 s
     this.t += dt; if (s.fallLanded > 1.5 && s.fallLanded <= 6) this.landT = 0.28; this.landT = Math.max(0, this.landT - dt);
     const target = zero();
     let hipY = 0, rootRoll = 0;
@@ -78,6 +79,7 @@ export class Character {
       target.torso = sway; target.head = Math.sin(this.t * 1.1) * 0.03;
       target.lL = sw * amp; target.lR = -sw * amp; target.aLx = -sw * amp * 0.9; target.aRx = sw * amp * 0.9;
       target.lean = moving ? 0.05 + run * 0.18 : 0; if (s.crouch) { hipY = -0.45; target.lL -= 0.45; target.lR -= 0.45; target.lean += 0.2; }
+      if (s.slide) { hipY = -0.7; target.lL = 1.15; target.lR = -0.25; target.lean = -0.38; target.aLx = -0.5; target.aRx = -0.5; }
       if (!moving) { target.aLx = Math.sin(this.t * 1.6) * 0.05; target.aRx = -Math.sin(this.t * 1.6) * 0.05; }
     }
     if (this.landT > 0 && s.mode === 'ground' && !s.dead) { const lk = this.landT / 0.28; hipY -= 0.3 * lk; target.lL += 0.5 * lk; target.lR += 0.5 * lk; }

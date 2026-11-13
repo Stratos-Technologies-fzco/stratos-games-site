@@ -7,6 +7,7 @@ import { input, isTouch, press, settings, touch } from '../input';
 import { iconFor } from '../render/icons';
 import { audio } from '../audio';
 import { Results } from './Results';
+import { Elim } from './Elim';
 import { Pic } from './art';
 import { itemLabel } from '../game/loot';
 
@@ -64,9 +65,10 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
     <div class="layer hud">
       {hud.scope > 0 && <div class="scope" />}
       <div class={`vig ${hud.hp < 35 || hud.dmgArc.length ? 'on' : ''}`} /><div class={`vig storm ${hud.inZoneDanger ? 'on' : ''}`} />
-      {hud.phase === 'flight' ? (
+      {hud.phase === 'flight' && !hud.eliminated ? (
         <div class="flight">
           <div class="info panel"><span>ALT {hud.alt || '—'} m</span><span>{hud.alive} aboard</span>{hud.canJump && <span class="pill">AUTO-JUMP {Math.ceil(hud.autoJumpIn)}s</span>}</div>
+          {hud.landing && <div class="banner panel" style="top:58px;color:var(--amber);border-color:var(--amber);font-size:15px;white-space:nowrap;padding:6px 14px">LANDING · {hud.landing.name} · {hud.landing.dist} m · {hud.landing.secs}s</div>}
           <div class="tl" style="left:10px;top:10px;pointer-events:auto"><MapCanvas hud={hud} size={280} onClick={() => press('map')} /></div>
           {hud.canJump && <button class="jumpbtn" style="pointer-events:auto" onClick={() => { press('jump'); }}>JUMP</button>}
         </div>
@@ -91,9 +93,9 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
           {hud.numbers.map((n) => <div key={n.id} class={`num ${n.head ? 'head' : ''}`} style={{ left: n.x, top: n.y }}>{n.v}</div>)}
           <div class="arc">{hud.dmgArc.map((d) => <i style={{ transform: `rotate(${(d.a * 180) / Math.PI + 180}deg)`, opacity: Math.min(1, d.t) }} />)}</div>
           {hud.reloading > 0 && <div class="chat panel" style="bottom:210px">Reloading {Math.round(hud.reloading * 100)}%</div>}
-          {hud.healing > 0 && <div class="chat panel" style="bottom:210px;color:var(--green)">Healing {Math.round(hud.healing * 100)}%</div>}
-          {hud.spectating && <div class="banner panel" style="top:12%;color:var(--text);border-color:var(--line);pointer-events:auto">Spectating {hud.spectating}<br /><button class="btn" onClick={() => { g.spectateNext(); force((n) => n + 1); }}>Next player</button></div>}
-          <div class="bc">
+          {hud.healing > 0 && <div class="chat panel" style="bottom:210px;color:var(--green)">Healing {Math.round(hud.healing * 100)}%</div>}          {hud.eliminated && !res && <Elim g={g} res={hud.eliminated} spec={hud.spectating} alive={hud.alive} onLobby={onLobby} onAgain={onAgain} />}
+          {hud.landing && <div class="banner panel" style="top:17%;color:var(--amber);border-color:var(--amber);font-size:18px">LANDING · {hud.landing.name} · {hud.landing.dist} m · {hud.landing.secs}s</div>}
+          <div class={`bc${hud.eliminated ? ' gone' : ''}`}>
             <div class="weap">
               {hud.slots.map((s, i) => <button key={i} class={`wcard panel ${s.active ? 'on' : ''}`} style={{ borderBottom: s.id ? `3px solid ${RC[s.rarity]}` : undefined }} onPointerDown={() => { input.slot = i; }}><span class="k">{i + 1}</span>{s.id ? <Icon name={s.id} /> : <div style="height:30px" />}<div>{s.label}</div>{s.id && s.id !== 'tide_machete' && <div class="am">{s.mag}{s.active ? ` / ${hud.ammoReserve}` : ''}</div>}</button>)}
               <button class="sbtn panel" onClick={() => press('heal')}>Heal<b>{hud.heals.bandage + hud.heals.medkit}</b></button>
@@ -107,7 +109,7 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
             </div>
           </div>
           <div style="position:fixed;right:12px;bottom:10px;display:flex;gap:6px;flex-direction:column;align-items:flex-end">{!touchUI && <div class="note">Tab pack · M map · Esc pause</div>}</div>
-          {touchUI && (
+          {touchUI && !hud.eliminated && (
             <div class="tbtns">
               <HoldBtn cls="fire" label="FIRE" down={touch.fire} set={(v) => { touch.fire = v; force((n) => n + 1); }} />
               <button class={`tb ${touch.aim ? 'on' : ''}`} style="right:132px;bottom:34px" onPointerDown={() => { touch.aim = !touch.aim; force((n) => n + 1); }}>AIM</button>

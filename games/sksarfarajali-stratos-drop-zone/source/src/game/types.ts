@@ -11,7 +11,7 @@ export interface Actor {
   body: Body; yaw: number; pitch: number; hp: number; armour: Armour; inv: Inventory; slot: number; // 0,1 main; 2 pistol; 3 machete
   char: Character; anim: AnimState; mode: 'plane' | 'skydive' | 'glide' | 'ground';
   fireCd: number; reloadT: number; reloadMax: number; healT: number; healItem: string; swingT: number; kickT: number; shots: number; lastShot: number; recoilPitch: number;
-  kills: number; damage: number; headshots: number; tokensEarned: number; hitFlash: number; placement: number; killer: string; diedAt: number; hidden: boolean;
+  kills: number; damage: number; headshots: number; slideT: number; slideCd: number; slideDx: number; slideDz: number; prevCrouch: boolean; tokensEarned: number; hitFlash: number; placement: number; killer: string; diedAt: number; hidden: boolean;
   lastHitBy: Actor | null; lastHitAt: number; speedNow: number; vx: number; vz: number; fireHeld: boolean; coyote: number; jumpBuf: number; fallStartY: number; survivor: string; bot?: import('./bots').BotBrain;
 }
 
@@ -30,6 +30,6 @@ export interface Hud {
   px: number; pz: number; yaw: number; alt: number; hitT: number; hitHead: boolean; dmgArc: { a: number; t: number }[]; reloading: number; healing: number; scope: number; aim: boolean; spread: number; fps: number;
   numbers: { id: number; x: number; y: number; v: number; head: boolean }[]; shots: { x: number; z: number; t: number }[]; marker: { x: number; z: number } | null;
   planeX: number; planeZ: number; planeDir: [number, number]; canJump: boolean; autoJumpIn: number; kioskNear: boolean; kioskOpen: boolean; inventoryOpen: boolean; mapOpen: boolean; stack: { id: string; qty: number }[]; capacity: number; chat: string;
-  demo: { step: number; total: number; text: string } | null; elim: { text: string; t: number } | null; dropCard: { id: number; key: string; name: string } | null; weaponClass: string; zoneWarn: { dist: number; dps: number } | null; result: Result | null; quality: string; shake: number; inBush: boolean; inZoneDanger: boolean; spectating: string | null;
+  demo: { step: number; total: number; text: string } | null; elim: { text: string; t: number } | null; dropCard: { id: number; key: string; name: string } | null; weaponClass: string; zoneWarn: { dist: number; dps: number } | null; result: Result | null; eliminated: Result | null; landing: { dist: number; secs: number; name: string } | null; quality: string; shake: number; inBush: boolean; inZoneDanger: boolean; spectating: string | null;
 }
 export interface Result { win: boolean; placement: number; total: number; kills: number; damage: number; time: number; headshots: number; tokens: number; xp: number; killer: string; outcome?: import('../progress').MatchOutcome }
