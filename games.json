@@ -302,19 +302,6 @@
    "soon": false
   },
   {
-   "slug": "sksarfarajali-battle-royale",
-   "title": "Stratos Drop Zone",
-   "maker": "Sk Sarfaraj Ali",
-   "one_line": "Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in.",
-   "category": "arcade",
-   "url": "play/sksarfarajali-battle-royale/",
-   "thumb": "games/sksarfarajali-battle-royale/thumbnail.png",
-   "added": "2026-11-13",
-   "github": "sksarfarajali",
-   "kind": "family",
-   "soon": false
-  },
-  {
    "slug": "sksarfarajali-brainrush",
    "title": "BrainRush Daily",
    "maker": "Sk Sarfaraj Ali",
@@ -374,6 +361,19 @@
    "category": "party",
    "url": "play/sksarfarajali-stratos-29-card-game/",
    "thumb": "games/sksarfarajali-stratos-29-card-game/thumbnail.png",
+   "added": "2026-11-13",
+   "github": "sksarfarajali",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sksarfarajali-stratos-drop-zone",
+   "title": "Stratos Drop Zone",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in.",
+   "category": "arcade",
+   "url": "play/sksarfarajali-stratos-drop-zone/",
+   "thumb": "games/sksarfarajali-stratos-drop-zone/thumbnail.png",
    "added": "2026-11-13",
    "github": "sksarfarajali",
    "kind": "family",
