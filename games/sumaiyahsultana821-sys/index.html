@@ -16,10 +16,65 @@
   body{
     height:100vh; height:100dvh;
     font-family:"Segoe UI",Nunito,Arial,sans-serif;
-    background:radial-gradient(1200px 600px at 50% -10%, #0ea5c7 0%, #0b7a9b 40%, #075166 100%);
+    background:#0369a1;
     color:var(--white);
     -webkit-user-select:none; user-select:none;
   }
+
+  /* ---------- The island world behind everything: sky, sun, clouds, a far island, the sea ---------- */
+  /* Each island sets its own colours (see THEMES in the script). */
+  .scene{
+    --sky1:#0369a1; --sky2:#38bdf8; --sea1:#0e7490; --sea2:#075166; --sun:#fde68a; --stars:0; --cloud:.55;
+    position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
+    background:linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 74%);
+  }
+  .stars{
+    position:absolute; inset:0 0 26% 0; opacity:var(--stars);
+    background-image:
+      radial-gradient(1.5px 1.5px at 12% 18%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 27% 42%, #fff 99%, transparent),
+      radial-gradient(1.5px 1.5px at 44% 12%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 58% 33%, #fff 99%, transparent),
+      radial-gradient(2px 2px at 71% 8%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 83% 47%, #fff 99%, transparent),
+      radial-gradient(1.5px 1.5px at 92% 24%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 6% 58%, #fff 99%, transparent),
+      radial-gradient(1px 1px at 36% 64%, #fff 99%, transparent),
+      radial-gradient(1.5px 1.5px at 64% 56%, #fff 99%, transparent);
+  }
+  .sun{
+    position:absolute; top:15%; right:5%; width:clamp(56px, 14vmin, 110px); aspect-ratio:1; border-radius:50%;
+    background:var(--sun); box-shadow:0 0 40px 12px color-mix(in srgb, var(--sun) 45%, transparent); opacity:.9;
+  }
+  .cloud{
+    position:absolute; left:0; width:110px; height:30px; border-radius:30px; background:#fff; opacity:var(--cloud);
+    animation:drift 70s linear infinite;
+  }
+  .cloud::before, .cloud::after{content:""; position:absolute; background:#fff; border-radius:50%}
+  .cloud::before{width:46px; height:46px; left:18px; top:-22px}
+  .cloud::after{width:34px; height:34px; left:54px; top:-14px}
+  .cloud.c1{top:24%}
+  .cloud.c2{top:40%; transform:scale(.7); animation-duration:100s; animation-delay:-55s}
+  @keyframes drift{from{transform:translateX(-160px)} to{transform:translateX(calc(100vw + 160px))}}
+  .far-island{
+    position:absolute; bottom:calc(26% - 6px); left:7%; width:clamp(90px, 22vmin, 170px); height:clamp(18px, 4vmin, 30px);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0; background:linear-gradient(180deg, #f6e3b4, #e8c788);
+    display:flex; justify-content:center;
+  }
+  .far-island span{font-size:clamp(28px, 7vmin, 52px); line-height:1; transform:translateY(-78%)}
+  .sea{
+    position:absolute; left:0; right:0; bottom:0; height:26%;
+    background:linear-gradient(180deg, var(--sea1), var(--sea2));
+  }
+  .wave{
+    position:absolute; left:0; width:calc(100% + 120px); height:24px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24'%3E%3Cpath d='M0 12 Q30 2 60 12 T120 12' fill='none' stroke='white' stroke-opacity='.6' stroke-width='3'/%3E%3C/svg%3E") repeat-x;
+    background-size:120px 24px; animation:waves 7s linear infinite;
+  }
+  .wave.w1{top:-12px}
+  .wave.w2{top:14px; opacity:.45; animation-duration:11s; animation-direction:reverse}
+  .wave.w3{top:44px; opacity:.25; animation-duration:15s}
+  @keyframes waves{from{transform:translateX(0)} to{transform:translateX(-120px)}}
 
   /* Two screens: the cover and the game. Each fills the window exactly, no scrolling. */
   .screen{
@@ -59,8 +114,9 @@
   .art-btn.ping{animation:ping .5s ease}
   @keyframes bob{0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}}
   @keyframes ping{0%{transform:scale(1)} 40%{transform:scale(1.18)} 100%{transform:scale(1)}}
-  .cover h1{margin:0; font-size:clamp(28px, 5.5vh, 44px); text-shadow:0 2px 0 rgba(0,0,0,.25)}
-  .cover .tag{margin:0; opacity:.9; font-size:clamp(13px, 2vh, 16px); max-width:420px}
+  .cover h1{margin:0; font-size:clamp(28px, 5.5vh, 44px); text-shadow:0 2px 0 rgba(0,0,0,.3), 0 0 14px rgba(0,0,0,.35)}
+  .cover .tag{margin:0; font-size:clamp(13px, 2vh, 16px); max-width:420px; text-shadow:0 1px 3px rgba(0,0,0,.6)}
+  .topbar h1{text-shadow:0 1px 3px rgba(0,0,0,.5)}
   .btn-big{
     font-size:clamp(20px, 3.6vh, 26px); padding:clamp(14px, 2.4vh, 18px) 56px; min-width:240px;
     box-shadow:0 6px 0 #b4530a; animation:startGlow 2.2s ease-in-out infinite;
@@ -70,11 +126,11 @@
     0%,100%{box-shadow:0 6px 0 #b4530a, 0 0 0 0 rgba(255,233,179,.0)}
     50%{box-shadow:0 6px 0 #b4530a, 0 0 0 10px rgba(255,233,179,.35)}
   }
-  .cover-best{margin:0; font-size:14px; opacity:.85}
+  .cover-best{margin:0; font-size:14px; padding:4px 12px; border-radius:999px; background:rgba(11,39,48,.45)}
   .cover-best b{color:#ffe9b3}
   .goal{
     margin:0; padding:8px 16px; border-radius:999px; max-width:440px;
-    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25);
+    background:rgba(11,39,48,.5); border:1px solid rgba(255,255,255,.25);
     font-size:clamp(13px, 2vh, 15px); font-weight:700;
   }
 
@@ -119,15 +175,20 @@
 
   /* Island map on the cover: unlocked islands can be replayed, locked ones show a lock */
   .map{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; width:100%; max-width:440px}
+  /* Each map tile is a little sandy island in its own patch of sea */
   .map-tile{
-    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:14px;
+    background:
+      radial-gradient(ellipse 50% 20% at 50% 40%, #f6e3b4 0 66%, #e8c788 72%, transparent 78%),
+      linear-gradient(180deg, rgba(14,116,144,.85), rgba(7,81,102,.92));
+    border:1px solid rgba(255,255,255,.4); border-radius:14px;
     padding:6px 4px; min-width:0; color:var(--white); font-family:inherit; cursor:pointer; min-height:clamp(50px, 8vh, 64px);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
     -webkit-tap-highlight-color:transparent;
   }
   .map-tile:focus-visible{outline:3px solid #ffe9b3; outline-offset:2px}
   .mt-icon{font-size:clamp(18px, 3.2vh, 24px); line-height:1.1}
-  .mt-name{font-size:10px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
+  .mt-name{font-size:10px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; position:relative; z-index:1; padding:0 5px; border-radius:6px; background:rgba(11,39,48,.7)}
+  .map-tile.locked{background:linear-gradient(180deg, rgba(14,116,144,.85), rgba(7,81,102,.92))}
   .mt-stars{font-size:11px; letter-spacing:1px; color:#ffe9b3}
   .map-tile.locked{opacity:.45}
   .map-tile.next{border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent)}
@@ -136,6 +197,10 @@
 
   .board-wrap{flex:1; min-height:0; display:flex; align-items:center; justify-content:center}
   .board{display:grid; gap:8px; justify-content:center}
+  /* Phones and tablets held upright: the cards sit right under the tip, not in the middle of the space */
+  @media (orientation:portrait){
+    .board-wrap{align-items:flex-start}
+  }
   .card{
     width:var(--card); height:var(--card);
     perspective:700px; background:none; border:none; padding:0; cursor:pointer;
@@ -194,6 +259,70 @@
     from{opacity:1; transform:translate(0,0) scale(.6)}
     to{opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.1)}
   }
+  /* Island cleared: the cards ripple, stars and sparkles burst out, then the stars pop in one by one */
+  .burst.big{font-size:28px}
+  .card.cheer .card-inner{animation:pop .4s ease both; animation-delay:var(--d, 0s)}
+  .modal-stars{margin:-2px 0 8px; font-size:34px; line-height:1.1; letter-spacing:6px}
+  .modal-stars[hidden]{display:none}
+  .modal-stars span{display:inline-block; color:#cbd5e1}
+  .modal-stars span.on{color:#f59e0b; animation:starPop .4s ease both; animation-delay:var(--d, 0s)}
+  @keyframes starPop{
+    0%{opacity:0; transform:scale(.3) rotate(-30deg)}
+    60%{opacity:1; transform:scale(1.3) rotate(8deg)}
+    100%{opacity:1; transform:none}
+  }
+
+  /* "+50" that floats up from a matched pair */
+  .float-pts{
+    position:fixed; pointer-events:none; z-index:15; font-weight:900; font-size:18px; color:#fde68a;
+    text-shadow:0 2px 0 rgba(0,0,0,.45); animation:floatUp .8s ease-out forwards;
+  }
+  @keyframes floatUp{from{opacity:1; transform:translateY(0)} to{opacity:0; transform:translateY(-40px)}}
+
+  /* ---------- Power-ups bar under the board ---------- */
+  .powerbar{display:flex; justify-content:center; gap:14px; margin-top:10px; flex:none}
+  .powerbar[hidden]{display:none}
+  .power{
+    position:relative; width:58px; height:48px; padding:0; border-radius:14px; cursor:pointer;
+    border:2px solid rgba(255,255,255,.6); background:linear-gradient(180deg, #fde68a, #f59e0b);
+    font-size:24px; line-height:1; font-family:inherit; box-shadow:0 4px 0 #b45309;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .power[hidden]{display:none}
+  .power:active{transform:translateY(3px); box-shadow:0 1px 0 #b45309}
+  .power:focus-visible{outline:3px solid #ffe9b3; outline-offset:2px}
+  .power.aim{outline:3px solid #fff; animation:aimPulse .8s ease-in-out infinite}
+  @keyframes aimPulse{50%{transform:scale(1.08)}}
+  .p-count{
+    position:absolute; top:-8px; right:-8px; min-width:22px; height:22px; padding:0 5px; border-radius:11px;
+    background:#0b2730; color:#fff; border:2px solid #fff; font-size:12px; font-weight:800; line-height:18px;
+  }
+  .p-count.zero{background:#16a34a}
+  .board.aiming .card:not(.matched) .card-inner{box-shadow:0 0 0 3px #fde68a, 0 0 14px 2px rgba(253,230,138,.8)}
+
+  /* ---------- Treasure chest on the "cleared" card ---------- */
+  .reward-row{display:flex; align-items:center; justify-content:center; gap:12px; margin:0 0 10px}
+  .reward-row[hidden]{display:none}
+  .chest{width:64px; height:56px; padding:0; border:none; background:none; cursor:pointer; animation:chestWiggle 1.4s ease-in-out infinite}
+  .chest:focus-visible{outline:3px solid #f59e0b; outline-offset:2px; border-radius:8px}
+  .chest svg{width:100%; height:100%; overflow:visible}
+  .chest .lid{transform-box:fill-box; transform-origin:0% 100%; transition:transform .35s ease}
+  .chest .glow{opacity:0; transition:opacity .3s}
+  .chest.open{animation:none; cursor:default}
+  .chest.open .lid{transform:rotate(-32deg) translateY(-4px)}
+  .chest.open .glow{opacity:.9}
+  @keyframes chestWiggle{0%,64%,100%{transform:rotate(0)} 72%{transform:rotate(-7deg)} 80%{transform:rotate(7deg)} 88%{transform:rotate(-3deg)}}
+  .reward-text{font-size:15px; font-weight:800; color:var(--ink)}
+  .modal{position:relative}
+  .modal-close{
+    position:absolute; top:8px; right:8px; width:36px; height:36px; border-radius:50%; border:none;
+    background:rgba(11,39,48,.08); color:var(--ink); font-size:16px; cursor:pointer; font-family:inherit;
+  }
+  .modal-close[hidden]{display:none}
+
+  /* ⛵ marks the island you are sailing to on the map */
+  .map-tile{position:relative}
+  .mt-boat{position:absolute; top:-10px; right:-6px; font-size:20px; animation:bob 2.4s ease-in-out infinite}
 
   .overlay{
     position:fixed; inset:0; background:rgba(5,20,25,.72);
@@ -223,12 +352,38 @@
     .map{grid-template-columns:repeat(7, minmax(0, 1fr)); max-width:640px}
     .mt-name{display:none}
   }
+  /* Phone held sideways: a more compact results card so its buttons stay on screen */
+  @media (max-height:480px){
+    .overlay{padding:8px}
+    .modal{padding:12px 18px}
+    .modal h2{font-size:18px; margin-bottom:2px}
+    .modal-stars{font-size:24px; margin:0 0 2px}
+    .modal p{font-size:13px; line-height:1.4; margin-bottom:10px}
+    .modal-actions{flex-direction:row; justify-content:center}
+    .modal-actions .btn{padding:10px 16px; font-size:14px}
+    .reward-row{margin:0 0 4px}
+    .chest{width:44px; height:38px}
+    /* power-ups move to a column on the right so the board keeps its height */
+    .powerbar{position:fixed; right:12px; bottom:max(12px, env(safe-area-inset-bottom)); flex-direction:column; gap:10px; margin:0; z-index:5}
+    .power{width:46px; height:40px; font-size:20px}
+    #game.has-powers .board-wrap{margin-right:58px}
+  }
   @media (prefers-reduced-motion:reduce){
-    .card.pop .card-inner, .art-btn, .art-btn.ping, .btn-big{animation:none}
+    .card.pop .card-inner, .card.cheer .card-inner, .modal-stars span.on, .art-btn, .art-btn.ping, .btn-big, .cloud, .wave, .chest, .power.aim, .mt-boat{animation:none}
   }
 </style>
 </head>
 <body>
+
+<!-- The island world: changes look on every island -->
+<div id="scene" class="scene" aria-hidden="true">
+  <div class="stars"></div>
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="far-island"><span id="landmark">🌴</span></div>
+  <div class="sea"><div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div></div>
+</div>
 
 <button id="muteBtn" class="icon-btn mute-btn" type="button" aria-label="Mute sound" aria-pressed="false">🔊</button>
 
@@ -243,7 +398,7 @@
     <h1>🏝️ Island Match Quest</h1>
     <p class="tag">Flip, match, and unlock seven islands of shells, fruits, gems and more.</p>
     <button id="playBtn" class="btn btn-primary btn-big" type="button">▶ Start Game</button>
-    <p class="cover-best">Best score: <b id="coverBest">0</b> · Stars: <b id="coverStars">0</b></p>
+    <p class="cover-best">Best score: <b id="coverBest">0</b> · Stars: <b id="coverStars">0</b> · 🪙 <b id="coverCoins">0</b></p>
     <div id="map" class="map" aria-label="Island map"></div>
     <p class="goal">🎯 Match every pair to unlock the next island</p>
   </div>
@@ -261,18 +416,41 @@
     <div class="hud-item"><span class="hud-label">Score</span><span id="score" class="hud-value">0</span></div>
     <div class="hud-item"><span class="hud-label">Moves</span><span id="moves" class="hud-value">0</span></div>
     <div class="hud-item"><span class="hud-label">Time</span><span id="time" class="hud-value">0:00</span></div>
-    <div class="hud-item"><span class="hud-label">Best</span><span id="best" class="hud-value">0</span></div>
+    <div class="hud-item"><span class="hud-label">Coins</span><span id="coins" class="hud-value">🪙 0</span></div>
   </div>
   <div id="islandLabel" class="island-label"></div>
   <div id="hint" class="hint" role="status" aria-live="polite" hidden></div>
   <div id="boardWrap" class="board-wrap">
     <main id="board" class="board" aria-label="Memory match board"></main>
   </div>
+  <div id="powerbar" class="powerbar" hidden>
+    <button class="power" type="button" data-p="bolt" hidden><span aria-hidden="true">⚡</span><span class="p-count">0</span></button>
+    <button class="power" type="button" data-p="bomb" hidden><span aria-hidden="true">💣</span><span class="p-count">0</span></button>
+    <button class="power" type="button" data-p="rainbow" hidden><span aria-hidden="true">🌈</span><span class="p-count">0</span></button>
+  </div>
 </section>
 
 <div id="overlay" class="overlay" hidden>
   <div class="modal">
+    <button id="overlayClose" class="modal-close" type="button" aria-label="Close" hidden>✕</button>
     <h2 id="overlayTitle">Island cleared!</h2>
+    <div id="overlayStars" class="modal-stars" hidden></div>
+    <div id="rewardRow" class="reward-row" hidden>
+      <button id="chestBtn" class="chest" type="button" aria-label="Open the treasure chest">
+        <svg viewBox="0 0 64 56" aria-hidden="true">
+          <ellipse class="glow" cx="32" cy="22" rx="30" ry="18" fill="#fde68a"/>
+          <rect x="6" y="24" width="52" height="28" rx="4" fill="#92400e"/>
+          <rect x="6" y="24" width="52" height="6" fill="#78350f"/>
+          <rect x="28" y="24" width="8" height="28" fill="#f59e0b"/>
+          <g class="lid">
+            <path d="M6 24 V16 Q6 4 32 4 Q58 4 58 16 V24 Z" fill="#b45309"/>
+            <rect x="28" y="4" width="8" height="20" fill="#f59e0b"/>
+          </g>
+          <rect x="27" y="21" width="10" height="9" rx="2" fill="#fde68a" stroke="#92400e"/>
+        </svg>
+      </button>
+      <span id="rewardText" class="reward-text">Tap the chest!</span>
+    </div>
     <p id="overlayBody"></p>
     <div class="modal-actions">
       <button id="overlayBtn" class="btn btn-primary" type="button">Next island</button>
@@ -294,6 +472,16 @@
     { name: "Jungle Trail",  icons: ["🐒","🦜","🐍","🦋","🐸","🌺","🍄","🦎","🐆","🌿","🐘","🐯"] },
     { name: "Volcano Peak",  icons: ["🌋","🔥","💥","☄️","🐉","🦖","🦕","🧨","⚡","🌑","🏮","🦂"] },
     { name: "Starry Lagoon", icons: ["🌙","🌟","🪐","🚀","🛸","🌈","☀️","🌠","🌛","🌌","🔭","👽","🌍","💫"] }
+  ];
+  // How each island looks: sky, sea, sun (or moon), stars, clouds, and what stands on the far island.
+  var THEMES = [
+    { sky1:"#0369a1", sky2:"#38bdf8", sea1:"#0e7490", sea2:"#075166", sun:"#fde68a", stars:0,   cloud:.55, mark:"🌴" }, // Shell Shore: sunny day
+    { sky1:"#0f766e", sky2:"#5eead4", sea1:"#0d9488", sea2:"#134e4a", sun:"#fef08a", stars:0,   cloud:.5,  mark:"🌴" }, // Fruit Grove: warm morning
+    { sky1:"#3b0764", sky2:"#a855f7", sea1:"#4338ca", sea2:"#1e1b4b", sun:"#f0abfc", stars:.5,  cloud:.2,  mark:"⛰️" }, // Gem Cavern: purple dusk
+    { sky1:"#0284c7", sky2:"#67e8f9", sea1:"#06b6d4", sea2:"#155e75", sun:"#fef9c3", stars:0,   cloud:.6,  mark:"⛵" }, // Coral Reef: bright noon
+    { sky1:"#065f46", sky2:"#6ee7b7", sea1:"#047857", sea2:"#022c22", sun:"#fde68a", stars:0,   cloud:.45, mark:"🌳" }, // Jungle Trail: misty green
+    { sky1:"#7c2d12", sky2:"#fb923c", sea1:"#9a3412", sea2:"#431407", sun:"#fecaca", stars:.15, cloud:.25, mark:"🌋" }, // Volcano Peak: fiery sunset
+    { sky1:"#020617", sky2:"#312e81", sea1:"#1e1b4b", sea2:"#020617", sun:"#e5e7eb", stars:1,   cloud:.08, mark:"🏝️" }  // Starry Lagoon: night, moon
   ];
   var BEST_KEY = "islandMatchQuest.bestScore";
   var PROGRESS_KEY = "islandMatchQuest.progress"; // { unlocked: how many islands are open, stars: [per island] }
@@ -321,15 +509,35 @@
   var scoreEl = document.getElementById("score");
   var movesEl = document.getElementById("moves");
   var timeEl = document.getElementById("time");
-  var bestEl = document.getElementById("best");
+  var coinsEl = document.getElementById("coins");
+  var coverCoinsEl = document.getElementById("coverCoins");
+  var powerbarEl = document.getElementById("powerbar");
+  var powerBtns = powerbarEl.querySelectorAll(".power");
+  var overlayClose = document.getElementById("overlayClose");
+  var rewardRow = document.getElementById("rewardRow");
+  var chestBtn = document.getElementById("chestBtn");
+  var rewardText = document.getElementById("rewardText");
   var overlay = document.getElementById("overlay");
   var overlayTitle = document.getElementById("overlayTitle");
   var overlayBody = document.getElementById("overlayBody");
+  var overlayStars = document.getElementById("overlayStars");
   var overlayBtn = document.getElementById("overlayBtn");
   var overlayBtn2 = document.getElementById("overlayBtn2");
   var restartBtn = document.getElementById("restartBtn");
   var muteBtn = document.getElementById("muteBtn");
   var hintEl = document.getElementById("hint");
+  var sceneEl = document.getElementById("scene");
+  var landmarkEl = document.getElementById("landmark");
+
+  // Paint the island world in this island's colours.
+  function applyTheme(i){
+    var t = THEMES[i] || THEMES[0];
+    ["sky1", "sky2", "sea1", "sea2", "sun", "stars", "cloud"].forEach(function(k){
+      sceneEl.style.setProperty("--" + k, String(t[k]));
+    });
+    document.body.style.background = t.sky1;
+    landmarkEl.textContent = t.mark;
+  }
 
   /* ---------- First-island tutorial: teach by playing, one short hint at a time ---------- */
   var TUT_KEY = "islandMatchQuest.tutorialDone";
@@ -479,6 +687,27 @@
   function soundCelebrate(){ [523, 659, 784, 1047].forEach(function(f, i){ tone(f, i * 0.12, 0.8, 0.18); }); }
   function soundStart(){ [392, 523, 659].forEach(function(f, i){ tone(f, i * 0.09, 0.55, 0.18); }); }
   function soundTap(){ tone(560, 0, 0.12, 0.13, "triangle"); }
+  function soundZap(){ tone(1200, 0, 0.25, 0.08, "triangle", 600); tone(900, 0.08, 0.25, 0.06, "triangle", 450); }
+  function soundBoom(){ tone(220, 0, 0.4, 0.14, "sine", 90); tone(440, 0.02, 0.25, 0.05, "triangle", 200); }
+  function soundShimmer(){ [523, 659, 784, 1047, 1319].forEach(function(f, i){ tone(f, i * 0.05, 0.45, 0.06); }); }
+  function soundChest(){ [659, 880, 1175].forEach(function(f, i){ tone(f, i * 0.09, 0.6, 0.12); }); }
+
+  // Soft background music: a slow, calm island tune (C, A minor, F, G) under the waves.
+  var musicTimer = null, musicStep = 0;
+  var CHORDS = [[262, 330, 392], [220, 262, 330], [175, 220, 262], [196, 247, 294]];
+  var PATTERN = [0, 1, 2, 1, 2, 1, 0, 2];
+  function startMusic(){
+    if (musicTimer || !soundStarted) return;
+    musicTimer = setInterval(function(){
+      var i = musicStep % 8, chord = CHORDS[Math.floor(musicStep / 8) % 4];
+      musicStep++;
+      if (muted || document.hidden || !audioCtx || audioCtx.state !== "running") return;
+      if (i === 0) tone(chord[0], 0, 2.2, 0.045, "sine");
+      if (i % 2 === 0 || Math.random() < 0.5) tone(chord[PATTERN[i]] * 2, 0, 0.8, 0.026, "triangle");
+    }, 360);
+  }
+  // One soft bell note per star as it pops in, each a little higher.
+  function soundStar(i, delay){ tone([784, 988, 1175][i], delay, 0.5, 0.12); tone([784, 988, 1175][i] * 2, delay + 0.02, 0.3, 0.03); }
 
   function renderMute(){
     muteBtn.textContent = muted ? "🔇" : "🔊";
@@ -489,7 +718,7 @@
     muted = !muted;
     try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) {}
     if (master && audioCtx) master.gain.setTargetAtTime(muted ? 0 : 1, audioCtx.currentTime, 0.05);
-    if (!muted){ soundStarted = true; startWaves(); soundTap(); }
+    if (!muted){ soundStarted = true; startWaves(); startMusic(); soundTap(); }
     renderMute();
   });
   renderMute();
@@ -502,13 +731,13 @@
   });
 
   // Little sparkles that fly out from an element and fade.
-  function burst(el, glyphs, count, spread){
+  function burst(el, glyphs, count, spread, big){
     if (reduceMotion) return;
     var r = el.getBoundingClientRect();
     var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     for (var i = 0; i < count; i++){
       var s = document.createElement("span");
-      s.className = "burst";
+      s.className = big ? "burst big" : "burst";
       s.textContent = glyphs[i % glyphs.length];
       var ang = Math.random() * Math.PI * 2;
       var d = spread * (0.6 + Math.random() * 0.6);
@@ -519,6 +748,47 @@
       document.body.appendChild(s);
       setTimeout(function(n){ return function(){ n.remove(); }; }(s), 950);
     }
+  }
+
+  // "+50" floating up from a card.
+  function floatPoints(el, text){
+    if (reduceMotion) return;
+    var r = el.getBoundingClientRect();
+    var s = document.createElement("span");
+    s.className = "float-pts";
+    s.textContent = text;
+    s.style.left = (r.left + r.width / 2 - 16) + "px";
+    s.style.top = (r.top + 4) + "px";
+    document.body.appendChild(s);
+    setTimeout(function(){ s.remove(); }, 850);
+  }
+
+  // Island cleared, part 1 (on the board, about half a second):
+  // the cards ripple one after another and stars and sparkles burst out.
+  var CELEBRATE_MS = 550;
+  function celebrateBoard(){
+    if (reduceMotion) return;
+    [].forEach.call(boardEl.querySelectorAll(".card"), function(c, i){
+      c.classList.remove("pop");
+      c.style.setProperty("--d", Math.min(i * 0.02, 0.3) + "s");
+      c.classList.add("cheer");
+    });
+    burst(boardEl, ["⭐", "✨", "🌟", "✨"], 16, Math.min(200, boardEl.offsetWidth * 0.55), true);
+  }
+
+  // Island cleared, part 2 (in the results card): the stars pop in one by one, each with a soft chime.
+  function popStars(n){
+    overlayStars.innerHTML = "";
+    for (var i = 0; i < 3; i++){
+      var s = document.createElement("span");
+      s.textContent = "★";
+      if (i < n){ s.className = "on"; s.style.setProperty("--d", (0.1 + i * 0.25) + "s"); }
+      overlayStars.appendChild(s);
+    }
+    overlayStars.setAttribute("aria-label", n + (n === 1 ? " star" : " stars"));
+    overlayStars.hidden = false;
+    for (var j = 0; j < n; j++) soundStar(j, 0.1 + j * 0.25);
+    setTimeout(function(){ if (!overlay.hidden) burst(overlayStars, ["✨", "⭐"], 10, 80); }, 100 + n * 250);
   }
 
   /* ---------- Game ---------- */
@@ -534,7 +804,11 @@
     usedSecondChance: false,
     flipped: [],
     busy: false,
-    timer: null
+    timer: null,
+    aiming: null,          // "bolt" while waiting for the player to tap a card for Lightning
+    powerHint: false,      // a power-up tip is showing above the board
+    freePowerUsed: false,  // one free power-up per island
+    runId: 0 // changes on every new board, so a late celebration never opens over a new one
   };
 
   function shuffle(arr){
@@ -584,6 +858,50 @@
   function saveProgress(){
     try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress)); } catch (e) {}
   }
+  /* ---------- Coins and power-ups (saved) ---------- */
+  // Power-ups arrive one at a time on later islands, each with a free first one and a tip.
+  var POWERS = {
+    bolt:    { icon: "⚡", name: "Lightning", from: 1, price: 30, tip: "⚡ New! Lightning: tap it, then tap any card. Its twin is found for you. Here's one free!" },
+    bomb:    { icon: "💣", name: "Bomb",      from: 2, price: 50, tip: "💣 New! Bomb clears 2 pairs at once. Here's one free!" },
+    rainbow: { icon: "🌈", name: "Rainbow",   from: 3, price: 40, tip: "🌈 New! Rainbow shows every card for a moment. Here's one free!" }
+  };
+  var POWER_ORDER = ["bolt", "bomb", "rainbow"];
+  var WALLET_KEY = "islandMatchQuest.wallet";
+  function loadWallet(){
+    var w = null;
+    try { w = JSON.parse(localStorage.getItem(WALLET_KEY)); } catch (e) {}
+    if (!w || typeof w !== "object") w = {};
+    var out = { coins: Math.max(0, parseInt(w.coins, 10) || 0), power: {}, seen: {} };
+    POWER_ORDER.forEach(function(p){
+      out.power[p] = Math.max(0, parseInt(w.power && w.power[p], 10) || 0);
+      out.seen[p] = !!(w.seen && w.seen[p]);
+    });
+    return out;
+  }
+  var wallet = loadWallet();
+  function saveWallet(){
+    try { localStorage.setItem(WALLET_KEY, JSON.stringify(wallet)); } catch (e) {}
+  }
+  function renderCoins(){
+    coinsEl.textContent = "🪙 " + wallet.coins;
+    coverCoinsEl.textContent = wallet.coins;
+  }
+  function renderPowers(){
+    var any = false;
+    [].forEach.call(powerBtns, function(btn){
+      var p = btn.dataset.p, def = POWERS[p], open = state.islandIndex >= def.from, n = wallet.power[p];
+      btn.hidden = !open;
+      if (open) any = true;
+      var c = btn.querySelector(".p-count");
+      c.textContent = n > 0 ? n : "+";
+      c.classList.toggle("zero", n === 0);
+      btn.classList.toggle("aim", state.aiming === p);
+      btn.setAttribute("aria-label", def.name + (n > 0 ? ", " + n + " left" : ", none left, tap to get more"));
+    });
+    powerbarEl.hidden = !any;
+    gameEl.classList.toggle("has-powers", any);
+  }
+
   function totalStars(){ return progress.stars.reduce(function(a, b){ return a + b; }, 0); }
   function starText(n){ return "★★★".slice(0, n) + "☆☆☆".slice(0, 3 - n); }
 
@@ -609,7 +927,8 @@
       tile.innerHTML =
         '<span class="mt-icon">' + (open ? isl.icons[0] : "🔒") + '</span>' +
         '<span class="mt-name">' + (i + 1) + '. ' + isl.name + '</span>' +
-        '<span class="mt-stars">' + (open ? starText(progress.stars[i]) : "&nbsp;") + '</span>';
+        '<span class="mt-stars">' + (open ? starText(progress.stars[i]) : "&nbsp;") + '</span>' +
+        (i === progress.unlocked - 1 ? '<span class="mt-boat" aria-hidden="true">⛵</span>' : '');
       tile.addEventListener("click", function(){
         if (!open){
           tone(220, 0, 0.18, 0.1, "triangle");
@@ -633,7 +952,7 @@
     scoreEl.textContent = state.totalScore;
     renderMoves();
     timeEl.textContent = formatTime(state.seconds);
-    bestEl.textContent = loadBest();
+    renderCoins();
   }
 
   function stopTimer(){
@@ -673,6 +992,7 @@
   }
 
   function startIsland(index){
+    state.runId++;
     state.islandIndex = index;
     state.scoreAtStart = state.totalScore;
     state.moves = 0;
@@ -685,6 +1005,10 @@
     state.totalPairs = island.icons.length;
     state.moveLimit = state.totalPairs * MOVES_PER_PAIR;
     state.usedSecondChance = false;
+    state.aiming = null;
+    state.powerHint = false;
+    state.freePowerUsed = false;
+    boardEl.classList.remove("aiming");
 
     var deck = buildDeck(island);
     boardEl.innerHTML = "";
@@ -706,10 +1030,16 @@
     });
 
     renderIslandLabel();
+    applyTheme(index);
     updateHud();
     tut.active = false;
     hintEl.hidden = true;
     if (index === 0 && !tutDone && !progress.stars[0]) startTutorial();
+    // New power-ups for this island: give one free and show a short tip.
+    var fresh = POWER_ORDER.filter(function(p){ return POWERS[p].from <= index && !wallet.seen[p]; });
+    fresh.forEach(function(p){ wallet.seen[p] = true; wallet.power[p] += 1; });
+    if (fresh.length){ saveWallet(); showHint(POWERS[fresh[fresh.length - 1]].tip); state.powerHint = true; }
+    renderPowers();
     fitBoard();
     startTimer();
     track("level_start", { level: index + 1, island: island.name });
@@ -717,7 +1047,9 @@
 
   function onCardClick(e){
     var card = e.currentTarget;
-    if (state.busy || card.classList.contains("flipped") || card.classList.contains("matched")) return;
+    if (state.busy || card.classList.contains("matched")) return;
+    if (state.aiming === "bolt"){ usePower("bolt"); boltOn(card); return; }
+    if (card.classList.contains("flipped")) return;
 
     card.classList.add("flipped");
     state.flipped.push(card);
@@ -734,23 +1066,12 @@
       if (a.dataset.icon === b.dataset.icon){
         setTimeout(function(){
           if (island !== state.islandIndex || !a.isConnected) return; // board was restarted
-          a.classList.add("matched");
-          b.classList.add("matched");
-          a.setAttribute("aria-label", "Matched " + a.dataset.icon);
-          b.setAttribute("aria-label", "Matched " + b.dataset.icon);
-          a.classList.add("pop"); b.classList.add("pop");
-          setTimeout(function(){ a.classList.remove("pop"); b.classList.remove("pop"); }, 520);
-          soundMatch();
-          burst(a, ["✨"], 4, 40);
-          burst(b, ["✨"], 4, 40);
-          state.matchedPairs++;
-          state.totalScore += 50;
-          updateHud();
+          markMatched(a, b, 50);
           state.flipped = [];
           state.busy = false;
           tutOnPair(true);
-          if (state.matchedPairs === state.totalPairs) onIslandComplete();
-          else checkOutOfMoves();
+          powerHintTick();
+          afterMatch();
         }, 350);
       } else {
         setTimeout(function(){
@@ -760,10 +1081,157 @@
           state.flipped = [];
           state.busy = false;
           tutOnPair(false);
+          powerHintTick();
           checkOutOfMoves();
         }, 800);
       }
     }
+  }
+
+  function markMatched(a, b, points){
+    [a, b].forEach(function(c){
+      c.classList.add("flipped", "matched", "pop");
+      c.setAttribute("aria-label", "Matched " + c.dataset.icon);
+    });
+    setTimeout(function(){ a.classList.remove("pop"); b.classList.remove("pop"); }, 520);
+    soundMatch();
+    burst(a, ["✨"], 4, 40);
+    burst(b, ["✨"], 4, 40);
+    floatPoints(b, "+" + points);
+    state.matchedPairs++;
+    state.totalScore += points;
+    updateHud();
+  }
+  function afterMatch(){
+    if (state.matchedPairs === state.totalPairs) onIslandComplete();
+    else checkOutOfMoves();
+  }
+  // A power-up tip goes away after a few moves.
+  function powerHintTick(){
+    if (state.powerHint && state.moves >= 3){ state.powerHint = false; hideHint(); }
+  }
+
+  /* ---------- Power-ups ---------- */
+  function unmatchedCards(){
+    return [].filter.call(boardEl.querySelectorAll(".card"), function(c){ return !c.classList.contains("matched"); });
+  }
+
+  function onPowerClick(p){
+    if (state.busy || !overlay.hidden || gameEl.hidden || state.matchedPairs === state.totalPairs) return;
+    if (state.aiming === p){ // tap again to cancel
+      state.aiming = null; boardEl.classList.remove("aiming"); renderPowers(); hideHint(); soundTap();
+      return;
+    }
+    if (wallet.power[p] <= 0){ openPowerShop(p); return; }
+    if (p === "bolt"){
+      if (state.flipped.length === 1){ var first = state.flipped[0]; usePower(p); boltOn(first); return; }
+      state.aiming = "bolt"; boardEl.classList.add("aiming"); renderPowers(); soundTap();
+      showHint("⚡ Now tap any card"); state.powerHint = true;
+      return;
+    }
+    // Bomb and Rainbow: turn back a lone face-up card first.
+    if (state.flipped.length === 1){ state.flipped[0].classList.remove("flipped"); state.flipped = []; }
+    usePower(p);
+    if (p === "bomb") bombBlast(); else rainbowPeek();
+  }
+  [].forEach.call(powerBtns, function(btn){
+    btn.addEventListener("click", function(){ onPowerClick(btn.dataset.p); });
+  });
+
+  function usePower(p){
+    wallet.power[p] = Math.max(0, wallet.power[p] - 1);
+    saveWallet();
+    state.aiming = null;
+    boardEl.classList.remove("aiming");
+    renderPowers();
+    if (state.powerHint){ state.powerHint = false; hideHint(); }
+    track("powerup_used", { type: p, level: state.islandIndex + 1 });
+  }
+
+  // Lightning: the tapped card and its twin flip up and match.
+  function boltOn(card){
+    var twin = unmatchedCards().filter(function(c){ return c !== card && c.dataset.icon === card.dataset.icon; })[0];
+    if (!twin) return;
+    state.busy = true;
+    state.flipped = [];
+    card.classList.add("flipped"); twin.classList.add("flipped");
+    soundZap();
+    burst(card, ["⚡"], 4, 36);
+    burst(twin, ["⚡"], 4, 36);
+    var run = state.runId;
+    setTimeout(function(){
+      if (run !== state.runId) return;
+      markMatched(card, twin, 50);
+      state.busy = false;
+      afterMatch();
+    }, 420);
+  }
+
+  // Bomb: two random pairs are blasted and matched at once.
+  function bombBlast(){
+    var cards = unmatchedCards(), icons = [];
+    cards.forEach(function(c){ if (icons.indexOf(c.dataset.icon) < 0) icons.push(c.dataset.icon); });
+    var pairs = shuffle(icons).slice(0, 2).map(function(ic){
+      return cards.filter(function(c){ return c.dataset.icon === ic; });
+    });
+    state.busy = true;
+    soundBoom();
+    burst(boardEl, ["💥", "✨", "💥"], 12, Math.min(160, boardEl.offsetWidth * 0.45), true);
+    pairs.forEach(function(two){ two.forEach(function(c){ c.classList.add("flipped"); }); });
+    var run = state.runId;
+    setTimeout(function(){
+      if (run !== state.runId) return;
+      pairs.forEach(function(two){ markMatched(two[0], two[1], 50); });
+      state.busy = false;
+      afterMatch();
+    }, 480);
+  }
+
+  // Rainbow: every hidden card shows for a moment, then turns back.
+  function rainbowPeek(){
+    var cards = unmatchedCards();
+    state.busy = true;
+    soundShimmer();
+    burst(boardEl, ["🌈", "✨"], 10, Math.min(160, boardEl.offsetWidth * 0.45), true);
+    cards.forEach(function(c){ c.classList.add("flipped"); });
+    var run = state.runId;
+    setTimeout(function(){
+      if (run !== state.runId) return;
+      cards.forEach(function(c){ c.classList.remove("flipped"); });
+      state.busy = false;
+    }, 1700);
+  }
+
+  // Out of a power-up: buy one with coins, or get one free (once per island; later a rewarded video).
+  function openPowerShop(p){
+    var def = POWERS[p], level = state.islandIndex + 1;
+    var canBuy = wallet.coins >= def.price, canFree = !state.freePowerUsed;
+    stopTimer();
+    function resume(){
+      hideOverlay();
+      if (!gameEl.hidden && state.matchedPairs < state.totalPairs) startTimer();
+    }
+    function buy(){
+      wallet.coins -= def.price; wallet.power[p] += 1; saveWallet();
+      renderCoins(); renderPowers(); soundChest();
+      track("powerup_bought", { type: p, level: level, price: def.price });
+      resume();
+    }
+    function free(){
+      offerReward(function(){
+        track("reward_taken", { type: "free_powerup", power: p, level: level });
+        state.freePowerUsed = true;
+        wallet.power[p] += 1; saveWallet(); renderPowers(); soundChest();
+        resume();
+      });
+    }
+    if (canFree) track("reward_offered", { type: "free_powerup", power: p, level: level });
+    var body = "You have 🪙 " + wallet.coins + ".\n" +
+      (canBuy ? "Buy one for 🪙 " + def.price + (canFree ? ", or get one free." : ".")
+              : (canFree ? "Get one free now, or" : "") + " earn coins by clearing islands and opening chests.");
+    if (canBuy) showModal(def.icon + " More " + def.name, body, "Buy for 🪙 " + def.price, buy, canFree ? "🎁 Get one free" : null, canFree ? free : null, resume);
+    else if (canFree) showModal(def.icon + " More " + def.name, body, "🎁 Get one free", free, null, null, resume);
+    else showModal(def.icon + " No " + def.name + " left", body, "Keep playing", resume, null, null, resume);
   }
 
   function checkOutOfMoves(){
@@ -842,11 +1310,22 @@
     if (unlockedNew) track("island_unlocked", { level: idx + 2 });
 
     var lines =
-      starText(stars) + (newBestStars && stars > 1 ? "  new best!" : "") + "\n" +
+      (newBestStars && stars > 1 ? "New best!\n" : "") +
       "Moves: " + state.moves + "  ·  Time: " + formatTime(state.seconds) + "\n" +
       "Speed bonus: +" + bonus + "\n" +
       "Score: " + state.totalScore;
 
+    state.busy = true;
+    soundCelebrate();
+    celebrateBoard();
+    var run = state.runId;
+    setTimeout(function(){
+      if (run !== state.runId || gameEl.hidden) return; // player restarted or went home
+      showResults(isLast, idx, island, stars, lines, best, unlockedNew);
+    }, reduceMotion ? 0 : CELEBRATE_MS);
+  }
+
+  function showResults(isLast, idx, island, stars, lines, best, unlockedNew){
     if (isLast){
       showModal(
         "All 7 islands cleared! 🎉",
@@ -860,19 +1339,19 @@
       showModal(
         island.name + " cleared!",
         lines + (unlockedNew ? "\n🔓 New island unlocked: " + next.name + "!" : ""),
-        "Next island: " + next.name,
+        "⛵ Sail to " + next.name,
         function(){ hideOverlay(); startIsland(idx + 1); },
         "Island map",
         function(){ hideOverlay(); showCover(); }
       );
     }
-    soundCelebrate();
-    burst(overlayTitle, ["🎉", "✨", "⭐"].concat(island.icons.slice(0, 3)), 18, 170);
+    popStars(stars);
   }
 
   function showModal(title, body, label, onClick, label2, onClick2){
     overlayTitle.textContent = title;
     overlayBody.textContent = body;
+    overlayStars.hidden = true; // only the "cleared" card shows stars (popStars turns them on)
     overlayBtn.textContent = label;
     overlayBtn.onclick = onClick;
     overlayBtn2.hidden = !label2;
@@ -905,6 +1384,7 @@
     coverEl.hidden = false;
     coverBestEl.textContent = loadBest();
     renderMap();
+    applyTheme(Math.min(progress.unlocked, ISLANDS.length) - 1); // the cover shows the island you're heading to
     playBtn.focus();
   }
 
