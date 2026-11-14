@@ -35,6 +35,20 @@ export type StratosBoardNumbers = {
   retentionD30: StratosBoardMetric
 }
 
+/**
+ * A big project the team discusses every week: an issue labelled `project`.
+ * Its progress is the issue's checklist (`- [x]` out of all `- [ ]`).
+ */
+export type StratosBoardProject = {
+  number: number
+  title: string
+  isOpen: boolean
+  /** GitHub logins of who leads it. */
+  leads: string[]
+  tasksDone: number
+  tasksTotal: number
+}
+
 /** The raw facts of the last refresh. The pane computes its numbers from these. */
 export type StratosBoardData = {
   /** When the last refresh finished, in milliseconds; null before the first. */
@@ -45,6 +59,8 @@ export type StratosBoardData = {
   hidden: string[]
   /** Every issue of the repo, open and closed. */
   issues: StratosBoardIssue[]
+  /** Issues labelled `project`, lowest number first. */
+  projects: StratosBoardProject[]
   /** Player numbers; null until the workflow first stored them. */
   numbers: StratosBoardNumbers | null
   /** The sources that failed at the last refresh; their last values are kept. */

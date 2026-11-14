@@ -2,7 +2,17 @@ import { expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
-import { daysToSaturday, makersOf, nextIssue, parseNumbers, shortName, summarize } from '../hooks/board'
+import {
+  daysToSaturday,
+  makersOf,
+  nextIssue,
+  parseNumbers,
+  projectName,
+  projectRows,
+  shortName,
+  summarize,
+  taskCount,
+} from '../hooks/board'
 
 const PANE = {
   plugin: 'stratos-board',
@@ -49,6 +59,17 @@ const NUMBERS = {
   retentionD30: { today: null, week: null, trend: null },
 }
 
+const PROJECTS = [
+  {
+    number: 73, title: 'Feature requirement: Stratos Coins, one coin for every game', state: 'OPEN',
+    assignees: [{ login: 'sksarfarajali' }], body: '- [x] Wallet\n- [ ] Ledger\n  - [ ] Game API\n* [X] Earn rules',
+  },
+  {
+    number: 74, title: 'Project: an always-online shooting game everyone can join', state: 'OPEN',
+    assignees: [{ login: 'im-mohua-liza' }], body: 'No checklist yet',
+  },
+]
+
 type Gh = { isDown: boolean; runs: number; numbers?: 'set' | 'unset' | 'broken' }
 
 /** Stands for the engine: the repo's files, the `gh` command and the clock. */
@@ -70,6 +91,17 @@ function world(on: On, gh: Gh) {
   on('fs.read', () => ({ value: JSON.stringify(SITE) }))
   on('process.run', (_, e) => {
     gh.runs += 1
+    if (e.argv.includes('--label')) {
+      return {
+        value: {
+          exitCode: gh.isDown ? 1 : 0,
+          stdout: gh.isDown ? '' : JSON.stringify(PROJECTS),
+          stderr: '',
+          isStdoutTruncated: false,
+          isStderrTruncated: false,
+        },
+      }
+    }
     if (e.argv.includes('api')) {
       const state = gh.isDown ? 'broken' : (gh.numbers ?? 'unset')
 
@@ -130,6 +162,12 @@ test('the board shows the numbers it read, on every surface', async ($, on) => {
     expect(await ui.find({ type: 'Text', text: /Saturday release: 2 days/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /9 hidden games back live 1\/2/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /offline/ })).toBe(undefined)
+    // Big projects, under the objective: lead, name, checklist progress.
+    expect(await ui.find({ type: 'Text', text: /BIG PROJECTS/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /#73 Stratos Coins/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /#74 an always-online/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /^Sarfaraj/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /2\/4$/ })).toBeDefined()
     await ui.unmount()
   }
 })
@@ -157,12 +195,12 @@ test('the board refreshes itself every 10 minutes', async ($, on) => {
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
   await clock.settle()
-  // Each refresh runs gh twice: the issues and the player numbers.
-  expect(gh.runs).toBe(2)
-  await clock.advance(10 * 60 * 1000)
-  expect(gh.runs).toBe(4)
+  // Each refresh runs gh three times: issues, projects, player numbers.
+  expect(gh.runs).toBe(3)
   await clock.advance(10 * 60 * 1000)
   expect(gh.runs).toBe(6)
+  await clock.advance(10 * 60 * 1000)
+  expect(gh.runs).toBe(9)
 })
 
 const BAND = {
@@ -239,6 +277,7 @@ test('issues count for the maker, not for Mohua as tester', async () => {
       issue(4, true, [], ['objective', 'doing']),
       issue(5, false, [], ['objective']),
     ],
+    projects: [],
     numbers: null,
     offline: [],
   })
@@ -311,4 +350,19 @@ test('stored numbers are read safely', async () => {
   expect(numbers.dailyPlayers).toEqual({ today: null, week: 3, trend: [1, 2] })
   expect(numbers.retentionD30).toEqual({ today: null, week: null, trend: null })
   expect(() => parseNumbers('[]')).toThrow()
+})
+
+test('big projects: checklist counted, open first, Sahil never a lead', async () => {
+  expect(taskCount('- [x] a\n- [ ] b\n  * [X] c\ntext [ ] not a box')).toEqual({ done: 2, total: 3 })
+  expect(projectName('Project: Online shooter')).toBe('Online shooter')
+  expect(projectName('Feature requirement: Stratos Coins')).toBe('Stratos Coins')
+
+  const rows = projectRows([
+    { number: 9, title: 'Project: Old', isOpen: false, leads: ['saiqulmodi'], tasksDone: 3, tasksTotal: 3 },
+    { number: 74, title: 'Project: Shooter', isOpen: true, leads: ['im-mohua-liza', 'sahilmodi1965'], tasksDone: 0, tasksTotal: 9 },
+    { number: 80, title: 'Project: Nobody', isOpen: true, leads: ['sahilmodi1965'], tasksDone: 0, tasksTotal: 0 },
+  ])
+  expect(rows.map(row => row.number)).toEqual([74, 80, 9])
+  expect(rows[0]?.leads).toBe('Mohua')
+  expect(rows[1]?.leads).toBe('no lead yet')
 })

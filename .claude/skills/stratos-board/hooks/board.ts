@@ -6,6 +6,7 @@ import type {
   StratosBoardIssue,
   StratosBoardMetric,
   StratosBoardNumbers,
+  StratosBoardProject,
 } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -172,6 +173,52 @@ export type BoardView = {
   /** The open ones among them, lowest number first. */
   openSiteIssues: number[]
   cards: Card[]
+}
+
+// ---------------------------------------------------------------------------
+// Big projects
+// ---------------------------------------------------------------------------
+
+/** The label that puts an issue under BIG PROJECTS. */
+export const PROJECT_LABEL = 'project'
+
+/** Checklist boxes in an issue's text: ticked, and all of them. */
+export function taskCount(body: string): { done: number; total: number } {
+  const boxes = body.match(/^\s*[-*] \[[ xX]\]/gm) ?? []
+  const done = boxes.filter(box => /\[[xX]\]/.test(box)).length
+
+  return { done, total: boxes.length }
+}
+
+/** The title without a leading "Project:" or "Feature requirement:". */
+export function projectName(title: string): string {
+  return title.replace(/^\s*(project|feature requirement|feature)\s*:\s*/i, '').trim()
+}
+
+export type ProjectRow = {
+  number: number
+  name: string
+  /** Who leads it, by the names the team uses. */
+  leads: string
+  isOpen: boolean
+  tasks: Progress
+}
+
+/** Open projects first, then by number: the same order for everyone. */
+export function projectRows(projects: readonly StratosBoardProject[]): ProjectRow[] {
+  return [...projects]
+    .sort((a, b) => Number(b.isOpen) - Number(a.isOpen) || a.number - b.number)
+    .map(project => ({
+      number: project.number,
+      name: projectName(project.title),
+      leads:
+        project.leads
+          .filter(login => login !== OWNER_LOGIN)
+          .map(login => DISPLAY_NAMES[login] ?? login)
+          .join(' + ') || 'no lead yet',
+      isOpen: project.isOpen,
+      tasks: { done: project.tasksDone, total: project.tasksTotal },
+    }))
 }
 
 /** The login a game folder belongs to: the folder is `X` or starts with `X-`. */

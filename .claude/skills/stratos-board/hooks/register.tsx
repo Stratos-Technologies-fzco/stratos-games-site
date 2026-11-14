@@ -9,7 +9,12 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
-import type { StratosBoardData, StratosBoardIssue, StratosBoardNumbers } from '../types'
+import type {
+  StratosBoardData,
+  StratosBoardIssue,
+  StratosBoardNumbers,
+  StratosBoardProject,
+} from '../types'
 import {
   adMetrics,
   bar,
@@ -23,6 +28,9 @@ import {
   missionItems,
   OBJECTIVE,
   parseNumbers,
+  PROJECT_LABEL,
+  projectRows,
+  taskCount,
   percent,
   sparkline,
   summarize,
@@ -43,6 +51,7 @@ const EMPTY: StratosBoardData = {
   folders: [],
   hidden: [],
   issues: [],
+  projects: [],
   numbers: null,
   offline: [],
 }
@@ -50,7 +59,7 @@ const EMPTY: StratosBoardData = {
 // Change the tag when StratosBoardData changes: it declines what an earlier
 // version stored, which outlives a reload.
 const board = atom({ plugin: 'stratos-board', key: 'data' } as const, EMPTY, {
-  shape: 'board-4',
+  shape: 'board-5',
 })
 
 // ---------------------------------------------------------------------------
@@ -115,6 +124,38 @@ async function loadIssues($: EngineInterface): Promise<StratosBoardIssue[]> {
     .sort((a, b) => a.number - b.number)
 }
 
+/** Issues labelled `project`, with their checklist progress. */
+async function loadProjects($: EngineInterface): Promise<StratosBoardProject[]> {
+  const ran = await $.process.run(
+    [
+      'gh', 'issue', 'list',
+      '--repo', REPO,
+      '--label', PROJECT_LABEL,
+      '--state', 'all',
+      '--limit', '30',
+      '--json', 'number,title,state,assignees,body',
+    ],
+    { timeoutMs: 20_000 },
+  )
+  if (ran.exitCode !== 0) throw new Error('gh could not list the projects')
+  const listed = JSON.parse(ran.stdout) as (GhIssue & { body?: string })[]
+
+  return listed
+    .map(issue => {
+      const tasks = taskCount(issue.body ?? '')
+
+      return {
+        number: issue.number,
+        title: issue.title,
+        isOpen: issue.state.toUpperCase() === 'OPEN',
+        leads: (issue.assignees ?? []).map(one => one.login),
+        tasksDone: tasks.done,
+        tasksTotal: tasks.total,
+      }
+    })
+    .sort((a, b) => a.number - b.number)
+}
+
 /**
  * The player numbers the `board numbers` workflow stored. Null while the
  * variable does not exist yet: that is not a failure, only not set up.
@@ -152,13 +193,14 @@ async function refresh($: EngineInterface): Promise<StratosBoardData> {
   }
 
   try {
-    const [folders, hidden, issues, numbers] = await Promise.all([
+    const [folders, hidden, issues, projects, numbers] = await Promise.all([
       attempt('games folder', () => loadFolders($)),
       attempt('site.json', () => loadHidden($)),
       attempt('GitHub issues', () => loadIssues($)),
+      attempt('projects', () => loadProjects($)),
       attempt('player numbers', () => loadNumbers($)),
     ])
-    const isAnyRead = failed.length < 4
+    const isAnyRead = failed.length < 5
     const now = await $.clock.now()
 
     return await update($, board, last => ({
@@ -166,6 +208,7 @@ async function refresh($: EngineInterface): Promise<StratosBoardData> {
       folders: folders ?? last.folders,
       hidden: hidden ?? last.hidden,
       issues: issues ?? last.issues,
+      projects: projects ?? last.projects,
       numbers: numbers === undefined ? last.numbers : numbers,
       offline: failed,
     }))
@@ -513,6 +556,24 @@ export const register: Register = on => {
       ? 'waiting for the first numbers'
       : `full days · read ${dateTime(readAt)}`
 
+    // -- BIG PROJECTS -------------------------------------------------------
+
+    const projects = projectRows(data.projects)
+    const PROJECT_BAR = 10
+    const PROJECT_TASKS = 7
+    const PROJECT_LEAD = isWide ? 12 : 10
+    const PROJECT_NAME = inner - PROJECT_LEAD - PROJECT_BAR - PROJECT_TASKS - 2
+
+    const projectLines = projects.map(project => (
+      <Text wrap="truncate-end" dimColor={!project.isOpen}>
+        <Text bold>{cell(project.leads, PROJECT_LEAD)}</Text>
+        {cell(`#${project.number} ${project.name}`, PROJECT_NAME)}
+        {'  '}
+        {project.isOpen ? barOf(project.tasks, PROJECT_BAR) : '✓ done'.padEnd(PROJECT_BAR)}
+        {` ${project.tasks.done}/${project.tasks.total}`.padStart(PROJECT_TASKS)}
+      </Text>
+    ))
+
     // -- the board, top to bottom -------------------------------------------
 
     const updated =
@@ -587,6 +648,13 @@ export const register: Register = on => {
         <Box flexDirection="row" width={inner}>
           {objectiveColumns}
         </Box>
+
+        {rule}
+        {heading('BIG PROJECTS', 'discussed every week · label an issue "project"')}
+        {projectLines.length === 0 && (
+          <Text dimColor>No big projects yet: label an issue "project".</Text>
+        )}
+        {projectLines}
       </Box>
     )
   })
