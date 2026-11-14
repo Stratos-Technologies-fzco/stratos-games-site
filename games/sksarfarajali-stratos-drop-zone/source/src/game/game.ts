@@ -338,13 +338,13 @@ export class Game {
     a.char.root.visible = true;
     if (a.mode === 'skydive' || a.mode === 'glide') {
       const gnd = this.colliders.surfaceBelow(a.body.x, a.body.z, a.body.y + 5) ?? this.world.terrain.height(a.body.x, a.body.z), alt = a.body.y - gnd;
-      const hs = a.mode === 'skydive' ? 24 : B.match.glideForward; const steerX = a.isPlayer ? input.moveX : 0; const fwd = a.isPlayer ? Math.max(0.35, input.moveY * 0.5 + 0.5) : 1;
+      const hs = a.mode === 'skydive' ? B.match.skydiveForward : B.match.glideForward; const steerX = a.isPlayer ? input.moveX : 0; const fwd = a.isPlayer ? Math.max(0.35, input.moveY * 0.5 + 0.5) : 1;
       let dx: number, dz: number;
       if (a.isPlayer) { dx = Math.sin(a.yaw) * fwd * hs - Math.cos(a.yaw) * steerX * hs * 0.6; dz = Math.cos(a.yaw) * fwd * hs + Math.sin(a.yaw) * steerX * hs * 0.6; } else { dx = c.dx * hs; dz = c.dz * hs; a.yaw = Math.atan2(c.dx, c.dz) || a.yaw; }
       a.body.x += dx * dt; a.body.z += dz * dt; a.body.y -= (a.mode === 'skydive' ? B.match.skydiveSpeed : B.match.glideDown) * dt;
       const lim = HALF + B.match.softWallMeters; a.body.x = Math.max(-lim, Math.min(lim, a.body.x)); a.body.z = Math.max(-lim, Math.min(lim, a.body.z));
       if (a.isPlayer) { // where will I land? straight on at the current heading: freefall to the opening height, then the glide
-        const open = B.match.gliderOpenAltitude, tS = a.mode === 'skydive' ? Math.max(0, alt - open) / B.match.skydiveSpeed : 0, tG = (a.mode === 'skydive' ? Math.min(alt, open) : alt) / B.match.glideDown, ux = dx / Math.max(hs, 1e-3), uz = dz / Math.max(hs, 1e-3), reach = 24 * tS + B.match.glideForward * tG;
+        const open = B.match.gliderOpenAltitude, tS = a.mode === 'skydive' ? Math.max(0, alt - open) / B.match.skydiveSpeed : 0, tG = (a.mode === 'skydive' ? Math.min(alt, open) : alt) / B.match.glideDown, ux = dx / Math.max(hs, 1e-3), uz = dz / Math.max(hs, 1e-3), reach = B.match.skydiveForward * tS + B.match.glideForward * tG;
         const lim2 = HALF + B.match.softWallMeters, lx = Math.max(-lim2, Math.min(lim2, a.body.x + ux * reach)), lz = Math.max(-lim2, Math.min(lim2, a.body.z + uz * reach)); this.landInfo = { x: lx, z: lz, secs: tS + tG, dist: Math.hypot(lx - a.body.x, lz - a.body.z) };
       }
       if (a.mode === 'skydive' && alt <= B.match.gliderOpenAltitude) { a.mode = 'glide'; void a.char.setWing(true); if (a.isPlayer) { this.shake = Math.max(this.shake, 0.4); audio.play('chute'); } }

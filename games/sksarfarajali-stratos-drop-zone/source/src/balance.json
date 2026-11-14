@@ -1,7 +1,7 @@
 {
   "perksEnabled": false,
   "vehiclesEnabled": false,
-  "match": { "players": 24, "flightSeconds": 30, "flightAltitude": 420, "skydiveSpeed": 50, "gliderOpenAltitude": 80, "glideForward": 12, "glideDown": 4, "worldSize": 640, "softWallMeters": 30 },
+  "match": { "players": 24, "flightSeconds": 30, "flightAltitude": 420, "skydiveSpeed": 65, "skydiveForward": 34, "gliderOpenAltitude": 60, "glideForward": 16, "glideDown": 8, "worldSize": 640, "softWallMeters": 30 },
   "player": { "hp": 100, "walk": 4.5, "sprint": 6.5, "crouch": 2.5, "jumpHeight": 1.1, "gravity": 22, "fallDamageMin": 8, "fallDamagePerMeter": 5, "riverSlow": 0.7, "healSlow": 0.5, "radius": 0.35, "height": 1.8, "crouchHeight": 1.2, "stepUp": 0.5, "bushHideRange": 15 },
   "rarity": { "names": ["common", "rare", "epic", "legendary"], "damageBonus": [0, 0.05, 0.1, 0.15], "colors": ["#9CA3AF", "#4EA8FF", "#A78BFA", "#FFB020"] },
   "weapons": {
