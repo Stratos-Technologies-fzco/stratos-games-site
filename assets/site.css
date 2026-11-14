@@ -379,3 +379,7 @@ body.poki.side-open .pk-side .lb{opacity:1}
   body.pk-searching[data-game] main.pk-grid .pk-later{display:block}
   body.pk-searching .pk-grid.pk-more{display:none!important}
 }
+/* ===== brand logo (#62): the snake on the info pages' top bar and in the logo box on game and category pages ===== */
+.top .sn-logo .sn-row{font-size:28px}.top .sn-logo .sn-w2{font-size:11.5px}
+@media (max-width:600px){.top .sn-logo .sn-row{font-size:23px}.top .sn-logo .sn-w2{font-size:9.5px}}
+.pk-nav .pk-logo.sn-box .sn-row{font-size:25px}.pk-nav .pk-logo.sn-box .sn-w2{font-size:10px}
