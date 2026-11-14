@@ -1,13 +1,15 @@
 // stratos-board: a pane beside the chat that shows how stratos.games grows.
 //
 // It reads shared sources only (the repo's games/ and site.json, and the
-// repo's GitHub issues), so every teammate sees the same numbers. It
+// repo's GitHub issues, and the player numbers the `board numbers` workflow
+// stores in the repo variable BOARD_NUMBERS), so every teammate sees the
+// same numbers. It
 // refreshes when the session starts, every 10 minutes, and on /board.
 
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
-import type { StratosBoardData, StratosBoardIssue } from '../types'
+import type { StratosBoardData, StratosBoardIssue, StratosBoardNumbers } from '../types'
 import {
   adMetrics,
   bar,
@@ -20,6 +22,7 @@ import {
   MARKS,
   missionItems,
   OBJECTIVE,
+  parseNumbers,
   percent,
   sparkline,
   summarize,
@@ -40,13 +43,14 @@ const EMPTY: StratosBoardData = {
   folders: [],
   hidden: [],
   issues: [],
+  numbers: null,
   offline: [],
 }
 
 // Change the tag when StratosBoardData changes: it declines what an earlier
 // version stored, which outlives a reload.
 const board = atom({ plugin: 'stratos-board', key: 'data' } as const, EMPTY, {
-  shape: 'board-3',
+  shape: 'board-4',
 })
 
 // ---------------------------------------------------------------------------
@@ -112,6 +116,23 @@ async function loadIssues($: EngineInterface): Promise<StratosBoardIssue[]> {
 }
 
 /**
+ * The player numbers the `board numbers` workflow stored. Null while the
+ * variable does not exist yet: that is not a failure, only not set up.
+ */
+async function loadNumbers($: EngineInterface): Promise<StratosBoardNumbers | null> {
+  const ran = await $.process.run(
+    ['gh', 'api', `repos/${REPO}/actions/variables/BOARD_NUMBERS`, '--jq', '.value'],
+    { timeoutMs: 20_000 },
+  )
+  if (ran.exitCode !== 0) {
+    if (/404|Not Found/i.test(ran.stderr)) return null
+    throw new Error('gh could not read BOARD_NUMBERS')
+  }
+
+  return parseNumbers(ran.stdout)
+}
+
+/**
  * Reads every source and stores what it found. A source that fails keeps
  * its last values and is named in `offline`; this never throws.
  */
@@ -131,12 +152,13 @@ async function refresh($: EngineInterface): Promise<StratosBoardData> {
   }
 
   try {
-    const [folders, hidden, issues] = await Promise.all([
+    const [folders, hidden, issues, numbers] = await Promise.all([
       attempt('games folder', () => loadFolders($)),
       attempt('site.json', () => loadHidden($)),
       attempt('GitHub issues', () => loadIssues($)),
+      attempt('player numbers', () => loadNumbers($)),
     ])
-    const isAnyRead = failed.length < 3
+    const isAnyRead = failed.length < 4
     const now = await $.clock.now()
 
     return await update($, board, last => ({
@@ -144,6 +166,7 @@ async function refresh($: EngineInterface): Promise<StratosBoardData> {
       folders: folders ?? last.folders,
       hidden: hidden ?? last.hidden,
       issues: issues ?? last.issues,
+      numbers: numbers === undefined ? last.numbers : numbers,
       offline: failed,
     }))
   } catch {
@@ -329,7 +352,8 @@ export const register: Register = on => {
     const hasTrendRoom = inner >= LABEL + 2 * VALUE + TREND_DAYS
 
     const asCount = (n: number): string => String(Math.round(n))
-    const asMinutes = (minutes: number): string => `${Math.round(minutes)} min`
+    const asMinutes = (minutes: number): string =>
+      `${minutes < 10 ? minutes.toFixed(1) : Math.round(minutes)} min`
     const asPercent = (share: number): string => `${Math.round(share * 100)}%`
     const asDollars = (dollars: number): string => `$${dollars.toFixed(2)}`
 
@@ -353,7 +377,7 @@ export const register: Register = on => {
 
     const numbersHeader = (
       <Text dimColor wrap="truncate-end">
-        {cell('', LABEL) + cell('today', VALUE) + cell('7 days', VALUE)}
+        {cell('', LABEL) + cell('latest', VALUE) + cell('7 days', VALUE)}
         {hasTrendRoom ? 'trend (14 days)' : ''}
       </Text>
     )
@@ -483,6 +507,12 @@ export const register: Register = on => {
       )
     })
 
+    const players = firebaseMetrics(data.numbers)
+    const readAt = data.numbers ? Date.parse(data.numbers.at) : Number.NaN
+    const playersNote = Number.isNaN(readAt)
+      ? 'waiting for the first numbers'
+      : `full days · read ${dateTime(readAt)}`
+
     // -- the board, top to bottom -------------------------------------------
 
     const updated =
@@ -513,13 +543,13 @@ export const register: Register = on => {
         </Box>
 
         {rule}
-        {heading('PLAYERS (Firebase)', 'connect Firebase to fill')}
+        {heading('PLAYERS (Firebase)', playersNote)}
         {numbersHeader}
-        {numbersRow('Daily players', firebaseMetrics.dailyPlayers, asCount)}
-        {numbersRow('Avg time per player', firebaseMetrics.avgMinutesPerPlayer, asMinutes)}
-        {numbersRow('Day 1 back', firebaseMetrics.retentionD1, asPercent)}
-        {numbersRow('Day 7 back', firebaseMetrics.retentionD7, asPercent)}
-        {numbersRow('Day 30 back', firebaseMetrics.retentionD30, asPercent)}
+        {numbersRow('Daily players', players.dailyPlayers, asCount)}
+        {numbersRow('Avg time per player', players.avgMinutesPerPlayer, asMinutes)}
+        {numbersRow('Day 1 back', players.retentionD1, asPercent)}
+        {numbersRow('Day 7 back', players.retentionD7, asPercent)}
+        {numbersRow('Day 30 back', players.retentionD30, asPercent)}
         <Text> </Text>
         {heading('MONEY', 'web ads not live yet')}
         {numbersRow('Ad revenue', adMetrics.revenue, asDollars)}

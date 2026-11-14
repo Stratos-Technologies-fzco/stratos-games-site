@@ -1,7 +1,12 @@
 // The board's numbers: pure functions over the facts a refresh collected.
 // Nothing here touches the engine, so the same facts always give the same board.
 
-import type { StratosBoardData, StratosBoardIssue } from '../types'
+import type {
+  StratosBoardData,
+  StratosBoardIssue,
+  StratosBoardMetric,
+  StratosBoardNumbers,
+} from '../types'
 
 // ---------------------------------------------------------------------------
 // The team
@@ -31,34 +36,78 @@ export const HIDDEN_ISSUE_MARK = '(hidden from live)'
 export const ANALYTICS_ISSUE_START = 'stratos analytics for your games'
 
 // ---------------------------------------------------------------------------
-// Placeholders: filled by a later version, with no layout change
+// Player numbers (Firebase) and money (placeholder until web ads go live)
 // ---------------------------------------------------------------------------
 
-/** One line of a numbers table: today, the last 7 days, and a 14-day trend. */
-export type MetricRow = {
-  today: number | null
-  week: number | null
-  /** One value per day, oldest first, 14 days. */
-  trend: number[] | null
-}
+/** One line of a numbers table: the latest full day, 7 days, a 14-day trend. */
+export type MetricRow = StratosBoardMetric
 
 const NOT_YET: MetricRow = { today: null, week: null, trend: null }
 
+const METRIC_KEYS = [
+  'dailyPlayers',
+  'avgMinutesPerPlayer',
+  'retentionD1',
+  'retentionD7',
+  'retentionD30',
+] as const
+
 /**
- * Player numbers from Firebase project `stratos-analytics-497908`.
- * Every value is null until the board can read Firebase; a value that is not
- * null is drawn as it is, so filling this object fills the pane.
+ * Player numbers from Firebase project `stratos-analytics-497908`, as the
+ * `board numbers` workflow stored them. Every row is empty until it has.
  */
-export const firebaseMetrics = {
-  /** Players a day: today, and the 7-day average. */
-  dailyPlayers: NOT_YET,
-  /** Minutes a player spends a day. */
-  avgMinutesPerPlayer: NOT_YET,
-  /** Share of players who come back after 1, 7 and 30 days, 0 to 1. */
-  retentionD1: NOT_YET,
-  retentionD7: NOT_YET,
-  retentionD30: NOT_YET,
-} satisfies Record<string, MetricRow>
+export function firebaseMetrics(
+  numbers: StratosBoardNumbers | null,
+): Record<(typeof METRIC_KEYS)[number], MetricRow> {
+  return {
+    dailyPlayers: numbers?.dailyPlayers ?? NOT_YET,
+    avgMinutesPerPlayer: numbers?.avgMinutesPerPlayer ?? NOT_YET,
+    retentionD1: numbers?.retentionD1 ?? NOT_YET,
+    retentionD7: numbers?.retentionD7 ?? NOT_YET,
+    retentionD30: numbers?.retentionD30 ?? NOT_YET,
+  }
+}
+
+const isCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value)
+
+function metricFrom(value: unknown): MetricRow {
+  if (typeof value !== 'object' || value === null) return NOT_YET
+  const row = value as Record<string, unknown>
+  const trend = Array.isArray(row.trend) ? row.trend.filter(isCount) : null
+
+  return {
+    today: isCount(row.today) ? row.today : null,
+    week: isCount(row.week) ? row.week : null,
+    trend: trend && trend.length > 0 ? trend : null,
+  }
+}
+
+/**
+ * The repo variable BOARD_NUMBERS, read safely: a row it lacks or got wrong
+ * stays empty. Throws when the text is not a numbers object at all.
+ */
+export function parseNumbers(text: string): StratosBoardNumbers {
+  const parsed: unknown = JSON.parse(text)
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    Array.isArray(parsed) ||
+    !('at' in parsed)
+  ) {
+    throw new Error('BOARD_NUMBERS is not a numbers object')
+  }
+  const raw = parsed as Record<string, unknown>
+
+  return {
+    at: String(raw.at),
+    dailyPlayers: metricFrom(raw.dailyPlayers),
+    avgMinutesPerPlayer: metricFrom(raw.avgMinutesPerPlayer),
+    retentionD1: metricFrom(raw.retentionD1),
+    retentionD7: metricFrom(raw.retentionD7),
+    retentionD30: metricFrom(raw.retentionD30),
+  }
+}
 
 /** Ad money in US dollars. Null until web ads are live. */
 export const adMetrics = {
@@ -90,8 +139,8 @@ export const PLACEHOLDER_CARDS: Card[] = [
   { column: 'todo', text: 'Ad consent choice', short: 'Ad consent' },
   { column: 'todo', text: 'Daily challenge + streak on site', short: 'Daily streak' },
   { column: 'doing', text: HIDDEN_GAMES_CARD, short: '9 games back' },
-  { column: 'doing', text: 'Board reads Firebase (DAU, retention, time)', short: 'Firebase numbers' },
   { column: 'done', text: 'Stratos analytics on every page', short: 'Analytics' },
+  { column: 'done', text: 'Board reads Firebase (players, retention, time)', short: 'Firebase numbers' },
   { column: 'done', text: 'Staging site + Saturday release', short: 'Staging' },
 ]
 

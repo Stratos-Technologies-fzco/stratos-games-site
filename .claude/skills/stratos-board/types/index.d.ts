@@ -13,6 +13,28 @@ export type StratosBoardIssue = {
   labels: string[]
 }
 
+/** One numbers row: the latest full day, the last 7 days, a 14-day trend. */
+export type StratosBoardMetric = {
+  today: number | null
+  week: number | null
+  /** One value per day, oldest first, up to 14. */
+  trend: number[] | null
+}
+
+/**
+ * Player numbers from Stratos analytics, as the `board numbers` workflow
+ * stores them in the repo variable BOARD_NUMBERS.
+ */
+export type StratosBoardNumbers = {
+  /** When the workflow read them, ISO time. */
+  at: string
+  dailyPlayers: StratosBoardMetric
+  avgMinutesPerPlayer: StratosBoardMetric
+  retentionD1: StratosBoardMetric
+  retentionD7: StratosBoardMetric
+  retentionD30: StratosBoardMetric
+}
+
 /** The raw facts of the last refresh. The pane computes its numbers from these. */
 export type StratosBoardData = {
   /** When the last refresh finished, in milliseconds; null before the first. */
@@ -23,6 +45,8 @@ export type StratosBoardData = {
   hidden: string[]
   /** Every issue of the repo, open and closed. */
   issues: StratosBoardIssue[]
+  /** Player numbers; null until the workflow first stored them. */
+  numbers: StratosBoardNumbers | null
   /** The sources that failed at the last refresh; their last values are kept. */
   offline: string[]
 }

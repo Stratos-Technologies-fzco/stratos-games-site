@@ -2,7 +2,7 @@ import { expect, mock, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
-import { daysToSaturday, makersOf, nextIssue, shortName, summarize } from '../hooks/board'
+import { daysToSaturday, makersOf, nextIssue, parseNumbers, shortName, summarize } from '../hooks/board'
 
 const PANE = {
   plugin: 'stratos-board',
@@ -39,8 +39,20 @@ const ISSUES = [
   { number: 35, title: 'Racing Mania: needs a cover (hidden from live)', state: 'CLOSED', assignees: [{ login: 'im-mohua-liza' }, { login: 'Mdsadee527' }], labels: [] },
 ]
 
+const NUMBERS = {
+  version: 1,
+  at: '2026-11-12T09:17:00Z',
+  dailyPlayers: { today: 42, week: 37.5, trend: [20, 30, 42] },
+  avgMinutesPerPlayer: { today: 6.25, week: 5.5, trend: [5, 6, 6.25] },
+  retentionD1: { today: 0.18, week: 0.21, trend: [0.2, 0.18] },
+  retentionD7: { today: null, week: null, trend: null },
+  retentionD30: { today: null, week: null, trend: null },
+}
+
+type Gh = { isDown: boolean; runs: number; numbers?: 'set' | 'unset' | 'broken' }
+
 /** Stands for the engine: the repo's files, the `gh` command and the clock. */
-function world(on: On, gh: { isDown: boolean; runs: number }) {
+function world(on: On, gh: Gh) {
   on('command.register', () => ({ value: { command: 'board' } }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
@@ -58,6 +70,19 @@ function world(on: On, gh: { isDown: boolean; runs: number }) {
   on('fs.read', () => ({ value: JSON.stringify(SITE) }))
   on('process.run', (_, e) => {
     gh.runs += 1
+    if (e.argv.includes('api')) {
+      const state = gh.isDown ? 'broken' : (gh.numbers ?? 'unset')
+
+      return {
+        value: {
+          exitCode: state === 'set' ? 0 : 1,
+          stdout: state === 'set' ? JSON.stringify(NUMBERS) : '',
+          stderr: state === 'unset' ? 'gh: Not Found (HTTP 404)' : 'gh: HTTP 502',
+          isStdoutTruncated: false,
+          isStderrTruncated: false,
+        },
+      }
+    }
 
     return {
       value: {
@@ -87,7 +112,8 @@ test('the board shows the numbers it read, on every surface', async ($, on) => {
 
     expect(await ui.find({ type: 'Text', text: /STRATOS\.GAMES · GROW/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /updated \d+ Nov \d\d:\d\d/ })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: /connect Firebase to fill/ })).toBeDefined()
+    // No numbers stored yet: the rows wait, and that is not "offline".
+    expect(await ui.find({ type: 'Text', text: /waiting for the first numbers/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /web ads not live yet/ })).toBeDefined()
     // 3 games built, 2 hidden.
     expect(await ui.find({ type: 'Text', text: /1\/3/ })).toBeDefined()
@@ -131,11 +157,12 @@ test('the board refreshes itself every 10 minutes', async ($, on) => {
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
   await clock.settle()
-  expect(gh.runs).toBe(1)
-  await clock.advance(10 * 60 * 1000)
+  // Each refresh runs gh twice: the issues and the player numbers.
   expect(gh.runs).toBe(2)
   await clock.advance(10 * 60 * 1000)
-  expect(gh.runs).toBe(3)
+  expect(gh.runs).toBe(4)
+  await clock.advance(10 * 60 * 1000)
+  expect(gh.runs).toBe(6)
 })
 
 const BAND = {
@@ -179,7 +206,7 @@ test('the band shows one line, the same for everyone', async ($, on) => {
 
   // Doing first, then to do; the hidden games card carries its progress.
   expect(await bandLine($, 140)).toBe(
-    'STRATOS  Live 1/3 ███░░░░░░░  Fixed 2/5  ·  Mission: 9 games back 1/2 ▸ · Firebase numbers ▸ · AdSense ○' +
+    'STRATOS  Live 1/3 ███░░░░░░░  Fixed 2/5  ·  Mission: 9 games back 1/2 ▸ · AdSense ○ · Ads live ○' +
       '  ·  Sat release 2d  ·  /board',
   )
   // Narrower: the mission shortens, then parts are dropped from the right.
@@ -212,6 +239,7 @@ test('issues count for the maker, not for Mohua as tester', async () => {
       issue(4, true, [], ['objective', 'doing']),
       issue(5, false, [], ['objective']),
     ],
+    numbers: null,
     offline: [],
   })
 
@@ -250,4 +278,37 @@ test('the Saturday countdown', async () => {
   expect(daysToSaturday(THURSDAY)).toBe(2)
   expect(daysToSaturday(THURSDAY + 2 * 86_400_000)).toBe(0)
   expect(daysToSaturday(THURSDAY + 3 * 86_400_000)).toBe(6)
+})
+
+test('the players rows show the numbers the workflow stored', async ($, on) => {
+  const gh: Gh = { isDown: false, runs: 0, numbers: 'set' }
+  world(on, gh)
+
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  await $.command.run(BOARD)
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /full days · read 12 Nov/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^42\s*$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^38\s*$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^6\.3 min/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^18%/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^21%/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /offline/ })).toBe(undefined)
+  await ui.unmount()
+
+  // GitHub fails later: the last numbers stay, marked offline.
+  gh.numbers = 'broken'
+  const ran = await $.command.run(BOARD)
+  expect(ran.text).toContain('Offline: player numbers')
+  const again = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await again.find({ type: 'Text', text: /^42\s*$/ })).toBeDefined()
+  await again.unmount()
+})
+
+test('stored numbers are read safely', async () => {
+  const numbers = parseNumbers(JSON.stringify({ at: 'x', dailyPlayers: { today: 'lots', week: 3, trend: [1, 'a', 2] } }))
+  expect(numbers.dailyPlayers).toEqual({ today: null, week: 3, trend: [1, 2] })
+  expect(numbers.retentionD30).toEqual({ today: null, week: null, trend: null })
+  expect(() => parseNumbers('[]')).toThrow()
 })

@@ -1,0 +1,40 @@
+name: board numbers
+# Every 3 hours: read player numbers from Stratos analytics (GA4, read only)
+# and store them in the repo variable BOARD_NUMBERS. The team board in every
+# Claude session reads that variable, so everyone sees the same numbers.
+#
+# No password file: GitHub proves who it is to Google (workload identity),
+# and Google lets only this repo's main branch act as the read-only
+# stratos-board service account.
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: board-numbers
+  cancel-in-progress: true
+jobs:
+  numbers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: google
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/960886305896/locations/global/workloadIdentityPools/github/providers/stratos-site
+          service_account: stratos-board@stratos-analytics-497908.iam.gserviceaccount.com
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/analytics.readonly
+      - name: read the numbers
+        env:
+          GA_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
+        run: python3 tools/board_numbers.py > "$RUNNER_TEMP/numbers.json" && cat "$RUNNER_TEMP/numbers.json"
+      - name: store them for the board
+        env:
+          # A fine-grained token with "Variables: read and write" on this repo
+          # only. GitHub's own token cannot write repo variables.
+          GH_TOKEN: ${{ secrets.BOARD_TOKEN }}
+        run: gh variable set BOARD_NUMBERS --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/numbers.json"
