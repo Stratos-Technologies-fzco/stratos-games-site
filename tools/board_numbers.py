@@ -18,7 +18,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 PROPERTY = os.environ.get("GA_PROPERTY", "561723361")
 API = f"https://analyticsdata.googleapis.com/v1beta/properties/{PROPERTY}"
@@ -70,6 +70,8 @@ def daily():
         "keepEmptyRows": True,
     })
     days = [(dims[0], mets[0], mets[1]) for dims, mets in rows(report)]
+    # The last row is yesterday in the property's own time zone.
+    yesterday = datetime.strptime(days[-1][0], "%Y%m%d").date() if days else None
     # Days before analytics went live have no players: leave them out.
     while days and days[0][1] == 0:
         days.pop(0)
@@ -79,13 +81,13 @@ def daily():
     last7 = days[-7:]
     sum_players = sum(p for _, p, _ in last7)
     sum_seconds = sum(s for _, _, s in last7)
-    return (
+    return yesterday, (
         row_of(players, sum_players / len(last7) if last7 else None),
         row_of(minutes, sum_seconds / 60 / sum_players if sum_players else None),
     )
 
 
-def retention():
+def retention(yesterday: date):
     """Share of new players back on day 1, 7 and 30, per day they arrived.
 
     A cohort is the players whose first visit was k days ago. Its day-n
@@ -105,7 +107,9 @@ def retention():
                 "cohorts": [{
                     "name": f"k{k}",
                     "dimension": "firstSessionDate",
-                    "dateRange": {"startDate": f"{k}daysAgo", "endDate": f"{k}daysAgo"},
+                    # Cohort dates must be YYYY-MM-DD: k days ago is yesterday - (k - 1).
+                    "dateRange": {"startDate": str(yesterday - timedelta(days=k - 1)),
+                                  "endDate": str(yesterday - timedelta(days=k - 1))},
                 } for k in batch],
                 "cohortsRange": {"granularity": "DAILY", "startOffset": 0, "endOffset": 30},
             },
@@ -128,8 +132,10 @@ def retention():
 
 
 def main():
-    players, minutes = daily()
-    back = retention()
+    yesterday, (players, minutes) = daily()
+    if yesterday is None:
+        sys.exit("GA4 returned no days at all")
+    back = retention(yesterday)
     print(json.dumps({
         "version": 1,
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
