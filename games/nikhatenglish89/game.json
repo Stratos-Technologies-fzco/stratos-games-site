@@ -4,5 +4,18 @@
   "one_line": "Explore five islands, solve puzzles and mini-games, and collect the map pieces that unlock the treasure.",
   "category": "kids",
   "github": "nikhatenglish89",
-  "how_to_play": "Tap or click to explore islands and solve each level's challenge; earn stars, coins and gems."
+  "how_to_play": "Tap or click to explore islands and solve each level's challenge; earn stars, coins and gems.",
+  "description": "Mystery Island is a treasure hunt for kids aged 6 to 12. A treasure map has been torn into pieces and hidden on four islands: Pirate Beach, Mystery Jungle, Crystal Cave and Ancient Temple. Your parrot guide Kiki helps you find every piece, and then you can sail to Treasure Island.\n\nEach island has ten small levels. In every level you play a quick mini-game. You count things, build a word, find the missing item in a pattern, spot the difference, repeat a memory sequence, find your way through a maze or answer a science question. Hints are always there, and a mistake is just a chance to try again. You earn stars, coins and gems, and you can spend them on hats, pets and decorations for your Explorer Camp.\n\nThere is no sign-up. You tap Play and start. You can pick Explorer, Adventurer or Master Explorer, so the puzzles fit your age. It is made for young children, parents and teachers who want screen time that is playful and gentle, not stressful.",
+  "controls": [
+    "Tap or click to pick answers, objects and islands",
+    "Word puzzles: tap a letter tile to place it, tap a placed letter to take it back",
+    "Memory puzzles: watch the crystals light up, then tap them in the same order",
+    "Tap an island on the map to choose your next level"
+  ],
+  "tips": [
+    "Look closely before you tap. Small clues hide in the pictures.",
+    "Replay a level to earn more stars and coins, then spend them at your camp.",
+    "Collect all four map pieces to unlock Treasure Island."
+  ],
+  "story": "I wanted to turn early learning into a treasure hunt, with colourful islands, a parrot guide called Kiki and torn map pieces to collect. I made it for young children, parents and teachers who want screen time that is playful and gentle rather than stressful. My goal was a game simple enough for a child to start alone, with enough surprises to make them want to come back for the next island."
 }

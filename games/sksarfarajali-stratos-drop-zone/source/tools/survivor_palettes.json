@@ -1,0 +1,112 @@
+{
+  "survivors": [
+    {
+      "id": "survivor_kiran",
+      "body": "male",
+      "colors": {
+        "skin": "#B07A55",
+        "hair": "#1B1714",
+        "eye": "#2A1D16",
+        "jacket": "#3E9B5F",
+        "sleeve": "#3E9B5F",
+        "forearm": "#B07A55",
+        "neckwear": "#3A3A44",
+        "trousers": "#6E6B3C",
+        "beard": "#B07A55",
+        "boots": "#6B4A2F",
+        "sole": "#2A2420",
+        "belt": "#4A3A28",
+        "glove": "#B07A55",
+        "band": "#FFB020",
+        "trim": "#7A5C3A",
+        "knee": "#6E6B3C",
+        "cuff": "#2F7A49",
+        "laces": "#D8D0B8",
+        "pack": "#8C7A55",
+        "roll": "#4F6B4A",
+        "strap": "#3A332B"
+      }
+    },
+    {
+      "id": "survivor_meera",
+      "body": "female",
+      "colors": {
+        "skin": "#C98F6B",
+        "hair": "#17120F",
+        "eye": "#2A1D16",
+        "jacket": "#F2F0FA",
+        "sleeve": "#F2F0FA",
+        "forearm": "#F2F0FA",
+        "neckwear": "#9A98A8",
+        "trousers": "#1F2A4A",
+        "beard": "#C98F6B",
+        "boots": "#1A1A1F",
+        "sole": "#0C0C0F",
+        "belt": "#2E3550",
+        "glove": "#C98F6B",
+        "band": "#17120F",
+        "trim": "#FF4D5E",
+        "knee": "#6B7288",
+        "cuff": "#C9D2E8",
+        "laces": "#8A8A92",
+        "pack": "#7A8470",
+        "roll": "#D9D5C5",
+        "strap": "#2A2A30"
+      }
+    },
+    {
+      "id": "survivor_arjun",
+      "body": "male",
+      "colors": {
+        "skin": "#8D5A3B",
+        "hair": "#14100E",
+        "eye": "#2A1D16",
+        "jacket": "#5B6478",
+        "sleeve": "#4A5266",
+        "forearm": "#8D5A3B",
+        "neckwear": "#E8E2D2",
+        "trousers": "#5B6478",
+        "beard": "#1A1514",
+        "boots": "#3B3430",
+        "sole": "#1A1614",
+        "belt": "#3A3A44",
+        "glove": "#6B4A2F",
+        "band": "#E8A040",
+        "trim": "#4EA8FF",
+        "knee": "#4A5266",
+        "cuff": "#4A5266",
+        "laces": "#FF8A2A",
+        "pack": "#6A5D45",
+        "roll": "#3E4A5C",
+        "strap": "#2A2623"
+      }
+    },
+    {
+      "id": "survivor_zoya",
+      "body": "female",
+      "colors": {
+        "skin": "#C0855F",
+        "hair": "#14101E",
+        "eye": "#2A1D16",
+        "jacket": "#7C3AED",
+        "sleeve": "#7C3AED",
+        "forearm": "#7C3AED",
+        "neckwear": "#C9B8F5",
+        "trousers": "#6F7F66",
+        "beard": "#C0855F",
+        "boots": "#5A4A3A",
+        "sole": "#231E1A",
+        "belt": "#2E2A3A",
+        "glove": "#C0855F",
+        "band": "#14101E",
+        "trim": "#A78BFA",
+        "knee": "#5A6652",
+        "cuff": "#5B2BB5",
+        "laces": "#3A2F26",
+        "pack": "#7A6B58",
+        "roll": "#A0997F",
+        "strap": "#2A2623"
+      }
+    }
+  ]
+}

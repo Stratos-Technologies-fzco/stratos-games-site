@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Gem silhouette check</title>
+<style>body{font:14px system-ui;background:#1B1033;color:#fff;padding:12px}table{border-collapse:collapse}td,th{border:1px solid #555;padding:2px 6px;text-align:right}.bad{background:#7a1f2b}.ok{background:#1d5c3a}#result{font-size:18px;margin:8px 0}</style></head>
+<body>
+<h3>Gem silhouette check</h3>
+<p>Every gem of a set is drawn to a mask (the shape only, no colour). Two gems in one set must not have the same shape: overlap (IoU) below <b id="limit"></b>. Open this page from the game folder (a local web server).</p>
+<div id="result">running…</div><div id="out"></div>
+<script src="../js/sets.js"></script>
+<script>
+(function () {
+  var LIMIT = 0.90, N = 96, SETS = window.CQSets.SETS, GEMS = window.CQSets.GEMS;
+  document.getElementById('limit').textContent = LIMIT;
+  function load(src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { rej(new Error('cannot load ' + src)); }; i.src = '../' + src; }); }
+  function mask(img) {
+    var c = document.createElement('canvas'); c.width = c.height = N; var x = c.getContext('2d'); x.drawImage(img, 0, 0, N, N);
+    var d = x.getImageData(0, 0, N, N).data, m = new Uint8Array(N * N); for (var i = 0; i < N * N; i++) m[i] = d[i * 4 + 3] > 40 ? 1 : 0; return m;
+  }
+  function iou(a, b) { var inter = 0, uni = 0; for (var i = 0; i < a.length; i++) { if (a[i] && b[i]) inter++; if (a[i] || b[i]) uni++; } return uni ? inter / uni : 1; }
+  /* Known weak pairs in the first art version: shapes that are too close for a colour-blind player. They need new art (see CRYSTAL_SETS.md).
+     They are shown as warnings. Any NEW pair that gets this close makes the check fail. */
+  var KNOWN = ['set_01_classic:ruby/topaz', 'set_02_frozen_shards:sapphire/topaz', 'set_06_ocean_pearls:ruby/topaz', 'set_08_dark_obsidian:ruby/sapphire'];
+  var failures = [], warnings = [], rows = [], minDistinct = 1;
+  Promise.all(SETS.map(function (s) { return Promise.all(GEMS.map(function (g) { return load(window.CQSets.gemSrc(g, s.id)).then(mask); })).then(function (masks) { return { s: s, masks: masks }; }); })).then(function (all) {
+    all.forEach(function (o) {
+      var worst = 0, pair = '';
+      for (var i = 0; i < 6; i++) for (var j = i + 1; j < 6; j++) { var v = iou(o.masks[i], o.masks[j]); if (v > worst) { worst = v; pair = GEMS[i] + ' / ' + GEMS[j]; } if (v >= LIMIT) { var key = o.s.id + ':' + GEMS[i] + '/' + GEMS[j], msg = o.s.id + ': ' + GEMS[i] + ' and ' + GEMS[j] + ' overlap ' + v.toFixed(2); if (KNOWN.indexOf(key) > -1) warnings.push(msg); else failures.push(msg); } }
+      var filled = o.masks.map(function (m) { var n = 0; for (var k = 0; k < m.length; k++) n += m[k]; return n; });
+      if (filled.some(function (n) { return n < 400; })) failures.push(o.s.id + ': a gem is almost empty');
+      rows.push('<tr class="' + (worst >= LIMIT ? 'bad' : 'ok') + '"><td style="text-align:left">' + o.s.id + '</td><td>' + worst.toFixed(2) + '</td><td style="text-align:left">' + pair + '</td></tr>');
+      minDistinct = Math.min(minDistinct, 1 - worst);
+    });
+    document.getElementById('out').innerHTML = '<table><tr><th>set</th><th>most similar pair (IoU)</th><th>which two</th></tr>' + rows.join('') + '</table>';
+    window.__result = { ok: failures.length === 0, failures: failures, warnings: warnings, sets: all.length };
+    document.getElementById('result').textContent = (failures.length ? 'FAIL: ' + failures.join('; ') : 'PASS: no new look-alike gems in ' + all.length + ' sets') + (warnings.length ? '  |  KNOWN WEAK PAIRS (need new art): ' + warnings.join('; ') : '');
+  }).catch(function (e) { window.__result = { ok: false, failures: [String(e)] }; document.getElementById('result').textContent = 'FAIL: ' + e; });
+})();
+</script></body></html>

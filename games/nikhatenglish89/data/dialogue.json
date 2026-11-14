@@ -9,7 +9,8 @@
     "splash": {
       "title": "Mystery Island",
       "tagline": "Explore islands, solve puzzles and find the lost treasure!",
-      "play": "▶ Play"
+      "play": "▶ Play",
+      "goal": "Your goal: win all {n} map pieces, then dig up the treasure!"
     },
     "common": {
       "back": "Back",
@@ -146,7 +147,12 @@
       "music": "Music",
       "voice": "Kiki's voice",
       "voiceOn": "Hello again! I'm back!",
-      "autoRead": "Read questions aloud"
+      "autoRead": "Read questions aloud",
+      "me": "About you",
+      "nickLabel": "Your nickname",
+      "ageLabel": "Your age",
+      "save": "Save",
+      "saved": "Saved!"
     },
     "parent": {
       "entry": "Parent Area",

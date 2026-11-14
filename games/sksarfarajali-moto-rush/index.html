@@ -890,7 +890,7 @@ function stepSim(dt) {
 
   /* cars */
   var activeWant = menu ? 8 : demo ? (demo.t < 17 ? 5 : 10) : Math.min(MAXCARS, Math.round((12 + Math.floor(dist / 150)) * trafK));
-  var hit = false, draftNow = false;
+  var hit = false, wallHit = false, draftNow = false;
   for (var i = 0; i < cars.length; i++) {
     var c = cars[i];
     if (!c.active) { if (i < activeWant) placeCar(c, DRAW * SEG + 500, DRAW * SEG + 14000); continue; }
@@ -916,7 +916,9 @@ function stepSim(dt) {
     if (chainT > 0) { chainT -= dt; if (chainT <= 0) chain = 0; }
     draft = draftNow ? Math.min(1, draft + dt * 3) : Math.max(0, draft - dt * 3);
     if (draftNow) nitro = Math.min(100, nitro + 9 * dt);
-    if (hit) { if (demo) demoRecover(); else crash(); }
+    var wallX = (BT - 0.5) / ROADM;   /* the low barrier and the fence stand at BT: touching them is a crash. Everything beyond (trees, rocks, containers) is behind them. */
+    if (Math.abs(playerX) >= wallX) { hit = true; wallHit = true; playerX = clamp(playerX, -wallX, wallX); }
+    if (hit) { if (demo) { if (wallHit) playerX = clamp(playerX, -0.9, 0.9); demoRecover(); } else { if (wallHit) { track('wall_crash', { track_name: runTrack >= 0 ? TRACKS[runTrack].name : 'world tour', speed: Math.round(speed / MAXS * 100) }); } crash(); } }
   }
   /* pops + sparks */
   for (i = pops.length - 1; i >= 0; i--) { pops[i].life -= dt; if (pops[i].life <= 0) pops.splice(i, 1); }
@@ -2066,5 +2068,49 @@ window.__moto = { addBonus: function (n) { bonus += n; }, run: function () { ret
 requestAnimationFrame(frame);
 })();
 </script>
+<!-- about-panel:start -->
+<style>#sx-about-btn{position:fixed;top:8px;right:8px;z-index:2147483000;min-width:44px;height:30px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:15px;background:rgba(15,20,30,.72);color:#fff;font:600 13px/28px system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;cursor:pointer;opacity:.85;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#sx-about-btn:hover,#sx-about-btn:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}
+#sx-about{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.7)}
+#sx-about[hidden]{display:none}
+#sx-about .sx-card{box-sizing:border-box;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:#fff;color:#14202e;border-radius:14px;padding:18px 20px 20px;font:15px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;text-align:left;user-select:text;-webkit-user-select:text}
+#sx-about h2{margin:0 36px 8px 0;font-size:20px;line-height:1.25;color:#0b2238}
+#sx-about h3{margin:14px 0 4px;font-size:15px;color:#0b2238}
+#sx-about p{margin:0 0 8px}
+#sx-about ul{margin:0;padding-left:20px}
+#sx-about li{margin:2px 0}
+#sx-about .sx-x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:36px;height:36px;border:0;border-radius:50%;background:#e8edf3;color:#0b2238;font:700 20px/36px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}#sx-about-btn{top:8px;left:50%;right:auto;transform:translateX(-50%)}</style>
+<button id="sx-about-btn" type="button" aria-haspopup="dialog" aria-label="About MOTO RUSH">About</button>
+<div id="sx-about" role="dialog" aria-modal="true" aria-labelledby="sx-about-t" hidden><div class="sx-card"><button class="sx-x" type="button" aria-label="Close">&times;</button></div></div>
+<script type="application/json" id="sx-about-data">{"title":"MOTO RUSH","maker":"Sk Sarfaraj Ali","description":"Moto Rush is a fast 3D bike game. Your superbike speeds up by itself, and you ride through busy traffic on a sunset coast, a neon city night, a desert road and an alpine pass. You only need to steer, brake and use your nitro.\n\nThe fun is in the close calls. Pass near a car without touching it and you earn bonus points and free nitro. Chain near misses together for a big combo, and boost to pop a wheelie for even more points. Hit a car and the run ends, but you get one second chance in every run.\n\nBetween rides, you can unlock five bikes, from the Rover 250 to the Phantom X hyperbike and the MotoRush RR race bike. Spend your coins on upgrades for the engine, nitro, tyres and brakes. Every day there are three new challenges and a Daily Run, the same road for everyone, with a streak to keep alive. It is made for anyone who wants quick, exciting rides that are easy to start and hard to put down.","controls":["Steer: touch the left or right side of the screen, or use the left and right arrows or A and D.","Brake: hold BRAKE, or press the down arrow or S.","Nitro: hold NITRO, or press Space, Shift, the up arrow or W."],"tips":["Pass close to cars without touching them. You get bonus points and free nitro.","Save your second chance for a good run, because you only get one each time.","Do the Daily Run every day to keep your streak going."],"story":""}</script>
+<script>(function(){
+var btn=document.getElementById('sx-about-btn'),ov=document.getElementById('sx-about'),card=ov.querySelector('.sx-card'),x=ov.querySelector('.sx-x');
+var d=JSON.parse(document.getElementById('sx-about-data').textContent);
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e;}
+function list(h,a){if(!a||!a.length)return;card.appendChild(el('h3',h));var u=el('ul');a.forEach(function(s){u.appendChild(el('li',s));});card.appendChild(u);}
+var h=el('h2','About '+d.title);h.id='sx-about-t';card.appendChild(h);
+String(d.description||'').split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});
+list('Controls',d.controls);list('Tips',d.tips);
+if(d.story){card.appendChild(el('h3','From the maker'));String(d.story).split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});}
+card.appendChild(el('p','Made by '+d.maker+'.')).style.marginTop='12px';
+var last=null;
+function open(){last=document.activeElement;ov.hidden=false;card.scrollTop=0;x.focus();}
+function close(){ov.hidden=true;if(btn)btn.blur();try{if(last&&last.focus&&last!==btn)last.focus();}catch(e){}}
+btn.addEventListener('click',function(e){e.stopPropagation();open();});
+['pointerdown','mousedown','touchstart','keydown','keyup'].forEach(function(n){btn.addEventListener(n,function(e){e.stopPropagation();});});
+x.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+['keydown','keyup','keypress'].forEach(function(n){window.addEventListener(n,function(e){if(ov.hidden)return;if(n==='keydown'&&e.key==='Escape')close();if(e.key==='Tab'){return;}e.stopPropagation();},true);});
+['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
+})();</script>
+<!-- about-panel:end -->
+<!-- about-beside-sound:start -->
+<style>
+/* the About button sits right beside Sound (to its left) on every screen; same height, same look */
+#sx-about-btn{top:calc(12px + env(safe-area-inset-top));right:122px;left:auto;bottom:auto;margin:0;transform:none;height:44px;min-height:44px;border:0;border-radius:0;background:rgba(11,13,18,.72);font:600 14px Barlow,Arial,sans-serif;padding:0 16px;color:#F4F1EA;line-height:1;opacity:1;width:max-content;white-space:nowrap}
+body.racing #sx-about-btn{top:calc(20px*var(--u) + 176px*var(--u) + env(safe-area-inset-top));right:calc(24px*var(--u) + 110px)}
+body.sub #sx-about-btn{right:12px}
+</style>
+<!-- about-beside-sound:end -->
 </body>
 </html>

@@ -4,5 +4,17 @@
   "one_line": "Three quick brain puzzles every day, plus endless puzzle rounds and 30 levels of Gem Match. No sign-up.",
   "category": "puzzle",
   "github": "sksarfarajali",
-  "how_to_play": "Tap to solve the daily Pattern, Sudoku and Logic puzzles, then keep playing in the Play tab: swap gems in Gem Match, count, sort and spot the odd one out."
+  "how_to_play": "Tap to solve the daily Pattern, Sudoku and Logic puzzles, then keep playing in the Play tab: swap gems in Gem Match, count, sort and spot the odd one out.",
+  "description": "BrainRush Daily gives you three short brain puzzles every day: a Pattern, a Sudoku and a Logic puzzle. Everyone gets the same ones on the same day, so you can compare with friends. There is no sign-up, and the game remembers where you stopped.\n\nWhen you want more, open the Play tab. There you will find endless quick rounds: count the shapes, tap numbers from smallest to biggest or biggest to smallest, and find the one that does not belong. You will also find Gem Match, a 30-level puzzle where you swap neighbouring gems to line up three or more before your moves run out. Match four to make a blaster, and match five to make a bomb.\n\nEach puzzle takes only a minute or two, so it fits into a break, a bus ride or a quiet evening. It is made for anyone who likes to keep their mind sharp, from school kids to grown-ups. If you fail a level, nothing is lost, and the next board is a little different.",
+  "controls": [
+    "Tap to answer the daily Pattern, Sudoku and Logic puzzles.",
+    "Gem Match: swap two neighbouring gems to match three or more.",
+    "Number rounds: tap the numbers in order, as the question asks.",
+    "Count and odd-one-out rounds: tap your answer."
+  ],
+  "tips": [
+    "Do the three daily puzzles first. They change every day.",
+    "In Gem Match, watch your moves left and plan ahead. A match of four makes a blaster, and five makes a bomb.",
+    "Lost a level? Just try again. Every board is a little different."
+  ]
 }

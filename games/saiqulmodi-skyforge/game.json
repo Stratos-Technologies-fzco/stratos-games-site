@@ -3,7 +3,22 @@
   "maker": "Md. Saiqul Haque Modi",
   "category": "arcade",
   "github": "saiqulmodi",
-  "one_line": "Fly a stealth fighter over real South India terrain and earn stars for every landing.",
-  "how_to_play": "Power up, roll down the runway, pull back gently to lift off. Bank to turn, flare to land for 3 stars. Phone: on-screen stick and buttons. Computer: W/S pitch, A/D roll, Q/E rudder, Shift/Ctrl power.",
-  "description": "A 3D fighter flight simulator on real flight physics over real South India terrain and coastline, with 29 real airports, wind and rain, a weapons range, stall, g and speed limits, stars for every landing and a daily streak."
+  "one_line": "A 3D flight simulator on real flight physics: take off, fly and land at 29 real South India airports while you learn the basics pilots train on.",
+  "how_to_play": "Power up, roll down the runway, pull back gently to lift off. Bank to turn, lift the nose just before the wheels touch for 3 stars. Phone: on-screen stick and buttons. Computer: W/S pitch, A/D roll, Q/E rudder, Shift/Ctrl power.",
+  "description": "SkyForge is a 3D flight simulator built on real flight physics. You start on the runway at Bengaluru and fly a fighter jet over real South India terrain and coastline, with 29 real airports and their real runways. The jet behaves like a real aircraft: it stalls if you fly too slowly, it has limits on speed and on how hard you can turn, and it moves in wind and rain.\n\nIt practises the basics that real pilot training starts with: setting power and speed for take-off, staying above stall speed, following a steady 3-degree glide path down to the runway with the landing guide, reading the head-up display from the cockpit, and using the autopilot and altitude hold. It is a game, not a certified training simulator, so it does not count toward a pilot licence, but it is a free and safe way to get a real feel for flying and to practise the hand-and-eye coordination that pilot aptitude tests look for.\n\nEvery landing earns up to three stars, and a smooth touchdown gets all three. Keep a daily streak, practise on the weapons range, or share one screen with a friend. On a phone you get an on-screen stick and buttons; on a computer every control also sits in a bar under the 3D view.",
+  "controls": [
+    "Phone: on-screen stick and buttons",
+    "Nose up / down: W / S",
+    "Tilt left / right: A / D",
+    "Turn the nose left / right (rudder): Q / E",
+    "Power: Shift / Ctrl"
+  ],
+  "tips": [
+    "Build speed on the runway, then pull back gently to lift off.",
+    "Watch your speed on the approach: too slow and the jet stalls.",
+    "Lift the nose a little just before the wheels touch for three stars.",
+    "Turn smoothly: pulling too hard pushes the jet past its limit.",
+    "Follow the landing guide's glide path: a steady 3-degree descent gives the smoothest landings."
+  ],
+  "story": "I wanted a flight game where the physics are real and the ground below is a place I know: South India's hills, coast and airports. Landing well is the real challenge, so the stars reward a smooth touchdown. I also wanted young people who dream of becoming pilots to practise the first lessons of flying for free."
 }

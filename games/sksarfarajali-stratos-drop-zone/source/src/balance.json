@@ -1,0 +1,63 @@
+{
+  "perksEnabled": false,
+  "vehiclesEnabled": false,
+  "match": { "players": 24, "flightSeconds": 30, "flightAltitude": 420, "skydiveSpeed": 65, "skydiveForward": 34, "gliderOpenAltitude": 60, "glideForward": 16, "glideDown": 8, "worldSize": 640, "softWallMeters": 30 },
+  "player": { "hp": 100, "walk": 4.5, "sprint": 6.5, "crouch": 2.5, "jumpHeight": 1.1, "gravity": 22, "fallDamageMin": 8, "fallDamagePerMeter": 5, "riverSlow": 0.7, "healSlow": 0.5, "radius": 0.35, "height": 1.8, "crouchHeight": 1.2, "stepUp": 0.5, "bushHideRange": 15 },
+  "rarity": { "names": ["common", "rare", "epic", "legendary"], "damageBonus": [0, 0.05, 0.1, 0.15], "colors": ["#9CA3AF", "#4EA8FF", "#A78BFA", "#FFB020"] },
+  "weapons": {
+    "kestrel_p9": { "label": "Kestrel P9", "class": "pistol", "damage": 22, "pellets": 1, "headshot": 1.5, "rpm": 300, "mag": 12, "range": 40, "ammo": "light", "reload": 1.2, "spread": 0.012, "recoil": 0.012, "auto": false, "scope": 0 },
+    "hornet_smg": { "label": "Hornet", "class": "smg", "damage": 14, "pellets": 1, "headshot": 1.5, "rpm": 800, "mag": 30, "range": 30, "ammo": "light", "reload": 1.8, "spread": 0.022, "recoil": 0.008, "auto": true, "scope": 0 },
+    "scatter12": { "label": "Scatter-12", "class": "shotgun", "damage": 11, "pellets": 9, "headshot": 1.25, "rpm": 70, "mag": 6, "range": 12, "ammo": "shells", "reload": 0.5, "reloadPerShell": true, "spread": 0.07, "recoil": 0.05, "auto": false, "scope": 0 },
+    "monsoon_ar": { "label": "Monsoon AR", "class": "rifle", "damage": 24, "pellets": 1, "headshot": 1.5, "rpm": 600, "mag": 30, "range": 80, "ammo": "heavy", "reload": 2.2, "spread": 0.014, "recoil": 0.01, "auto": true, "scope": 0 },
+    "ridgeline_dmr": { "label": "Ridgeline DMR", "class": "marksman", "damage": 46, "pellets": 1, "headshot": 1.75, "rpm": 180, "mag": 10, "range": 150, "ammo": "heavy", "reload": 2.4, "spread": 0.004, "recoil": 0.025, "auto": false, "scope": 2, "projectileSpeed": 320, "drop": 6 },
+    "longwatch": { "label": "Longwatch", "class": "sniper", "damage": 80, "pellets": 1, "headshot": 2.0, "rpm": 40, "mag": 5, "range": 300, "ammo": "heavy", "reload": 2.6, "spread": 0.002, "recoil": 0.05, "auto": false, "scope": 4, "projectileSpeed": 450, "drop": 4 },
+    "tide_machete": { "label": "Tide Machete", "class": "melee", "damage": 55, "pellets": 1, "headshot": 1.0, "swing": 0.6, "range": 2, "ammo": null, "mag": 0, "reload": 0, "spread": 0, "recoil": 0, "auto": false, "scope": 0 }
+  },
+  "falloff": { "fullRangeMult": 1, "minAtDoubleRange": 0.5 },
+  "ammo": { "light": { "label": "Light ammo", "model": "ammo_light", "pickup": 30, "cap": 180 }, "heavy": { "label": "Heavy ammo", "model": "ammo_heavy", "pickup": 30, "cap": 180 }, "shells": { "label": "Shells", "model": "ammo_shells", "pickup": 12, "cap": 48 } },
+  "throwables": {
+    "frag_grenade": { "label": "Frag grenade", "damage": 90, "radius": 5, "fuse": 3, "stack": 3 },
+    "smoke_can": { "label": "Smoke can", "radius": 8, "duration": 12, "fuse": 1.2, "stack": 3 },
+    "monsoon_barrier": { "label": "Monsoon Barrier", "hp": 800, "lifetime": 30, "width": 4, "carry": 2 }
+  },
+  "armour": {
+    "vest": { "reduction": [0.2, 0.3, 0.4], "durability": [100, 150, 200] },
+    "helmet": { "headReduction": [0.2, 0.35, 0.5] },
+    "backpack": { "baseStacks": 6, "extraStacks": [2, 4, 6] }
+  },
+  "healing": {
+    "bandage": { "label": "Bandage", "heal": 15, "time": 2, "stack": 10 },
+    "medkit": { "label": "Med kit", "heal": 75, "time": 5, "stack": 3 },
+    "armour_repair_kit": { "label": "Repair kit", "repair": 50, "time": 4, "stack": 3 }
+  },
+  "tokens": { "perKill": 50, "pickup": 25 },
+  "kiosk": { "cooldown": 2, "items": [ { "id": "bandage", "label": "Bandage x3", "qty": 3, "price": 25 }, { "id": "medkit", "label": "Med kit", "qty": 1, "price": 75 }, { "id": "ammo", "label": "Ammo pack", "qty": 1, "price": 25 }, { "id": "armour_repair_kit", "label": "Repair kit", "qty": 1, "price": 50 }, { "id": "smoke_can", "label": "Smoke can", "qty": 1, "price": 25 } ] },
+  "zone": {
+    "firstCenterJitter": 40, "firstRadius": 330,
+    "phases": [
+      { "wait": 45, "shrink": 30, "endRadius": 220, "dps": 1 },
+      { "wait": 35, "shrink": 25, "endRadius": 150, "dps": 2 },
+      { "wait": 30, "shrink": 20, "endRadius": 95, "dps": 4 },
+      { "wait": 25, "shrink": 15, "endRadius": 55, "dps": 6 },
+      { "wait": 20, "shrink": 15, "endRadius": 25, "dps": 9 },
+      { "wait": 15, "shrink": 20, "endRadius": 0, "dps": 15 }
+    ],
+    "crateAtPhases": [2, 4], "crateFall": 12
+  },
+  "loot": {
+    "tiers": {
+      "low": { "chance": 0.5, "rarity": [0.8, 0.17, 0.03, 0] },
+      "mid": { "chance": 0.65, "rarity": [0.62, 0.28, 0.1, 0] },
+      "high": { "chance": 0.8, "rarity": [0.45, 0.33, 0.22, 0] },
+      "top": { "chance": 0.9, "rarity": [0.32, 0.36, 0.32, 0] }
+    },
+    "table": { "weapon": 0.3, "ammo": 0.22, "heal": 0.18, "armour": 0.18, "throwable": 0.09, "tokens": 0.03 },
+    "pickupRange": 2.2
+  },
+  "bots": {
+    "difficulty": { "easy": { "react": [0.55, 0.9], "aimErr": 0.07, "aimTime": 2.0 }, "normal": { "react": [0.35, 0.7], "aimErr": 0.04, "aimTime": 1.5 }, "hard": { "react": [0.3, 0.5], "aimErr": 0.022, "aimTime": 1.0 } },
+    "sightRange": 90, "healBelow": 40, "trainingCount": 3
+  },
+  "outfits": { "chrome_vanguard": { "label": "Chrome Vanguard", "rarity": 3, "unlockLevel": 10 }, "ember_vanguard": { "label": "Ember Vanguard", "rarity": 2, "unlockLevel": 5 } },
+  "xp": { "perKill": 10, "per100Damage": 2, "placement": { "1": 150, "5": 80, "10": 40 } }
+}

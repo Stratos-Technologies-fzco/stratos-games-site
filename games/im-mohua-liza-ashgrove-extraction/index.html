@@ -111,7 +111,7 @@ kbd{font:600 13px var(--f-data);padding:2px 7px;border:1px solid currentColor;bo
 .sheet{width:min(760px,100%);display:grid;gap:18px;padding-block:12px;margin:auto}
 .brand{display:grid;gap:2px}
 .brand .ey{font:600 13px var(--f-hud);letter-spacing:.42em;text-transform:uppercase;color:var(--sodium)}
-.brand h1{margin:0;font:900 clamp(64px,13vw,132px)/.82 var(--f-display);letter-spacing:.01em;color:var(--ink);text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.brand h1{margin:0 0 .1em;font:900 clamp(64px,13vw,132px)/.9 var(--f-display);letter-spacing:.01em;color:var(--ink);text-shadow:0 4px 30px rgba(0,0,0,.6)}
 .brand .tag{font:500 13px var(--f-data);color:var(--ink-dim);letter-spacing:.04em}
 .lede{margin:0;font:500 19px/1.4 var(--f-hud);max-width:58ch;color:var(--ink);text-wrap:pretty}
 .row{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start}
@@ -215,6 +215,39 @@ body.touch .touchHelp{display:block}
 #ctrl .tbtn.red{fill:rgba(120,30,20,.5);stroke:var(--danger)}
 #ctrl .tt{fill:var(--ink);font:700 15px var(--f-hud);letter-spacing:.06em;text-transform:uppercase;text-anchor:middle}
 #ctrl .zt{fill:var(--mara);font:700 20px var(--f-hud);letter-spacing:.1em;text-transform:uppercase;text-anchor:middle}
+/* every screen fits the window: no scrolling (Stratos rule) */
+.wrap,#ctrl{overflow:hidden}
+.sheet{max-height:100%}
+.brand h1{font-size:clamp(52px,min(13vw,17vh),132px)}
+.brand .h2{margin:0;font:900 clamp(40px,min(9vw,11vh),80px)/.9 var(--f-display);color:var(--ink)}
+.btn.big{padding:15px 34px;font-size:19px}
+.links .btn{font-size:14px;padding:9px 16px;border-color:rgba(235,230,218,.55)}
+#tKnife{right:calc(186px + env(safe-area-inset-right,0px));bottom:calc(104px + env(safe-area-inset-bottom,0px));width:54px;height:54px}
+@media (max-height:560px){
+  .sheet{gap:10px;padding-block:2px}
+  .brand .ey{font-size:11px}.brand .tag{display:none}
+  .lede{font-size:15px}
+  .btn{padding:8px 14px;font-size:14px}.btn.big{padding:11px 24px;font-size:16px}
+  .seg button{padding:6px 10px;font-size:13px}
+  .row{gap:10px 18px}
+  .fine{font-size:11px;line-height:1.35}
+  .end h2{font-size:clamp(40px,13vh,80px)}
+  .stats{gap:6px}.stats dd{font-size:18px}
+}
+@media (max-height:380px){ #setPanel .fine{display:none} }
+/* tutorial coach: teaches while you play */
+.coach{position:absolute;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:clamp(240px,calc(100vw - 744px),460px);display:flex;gap:12px;align-items:center;padding:10px 14px;background:rgba(10,12,13,.84);border:1px solid rgba(232,166,64,.6);border-radius:3px;box-shadow:0 8px 30px rgba(0,0,0,.45);animation:coachIn .35s ease}
+@keyframes coachIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translateX(-50%)}}
+.coach .ck{flex:none;min-width:46px;max-width:110px;padding:6px 8px;border:1.5px solid var(--sodium);border-radius:4px;color:var(--sodium);font:700 13px/1.15 var(--f-data);text-align:center;text-transform:uppercase}
+.coach .cx{min-width:0;flex:1}
+.coach b{display:block;font:700 14px var(--f-hud);letter-spacing:.16em;text-transform:uppercase;color:var(--sodium)}
+.coach .ct{display:block;font:500 16px/1.3 var(--f-hud);color:var(--ink);text-wrap:pretty}
+.coach .cn{flex:none;align-self:flex-start;font:500 11px var(--f-data);color:var(--ink-dim)}
+.coach.done{border-color:var(--mara)}.coach.done .ck{border-color:var(--mara);color:var(--mara)}.coach.done b{color:var(--mara)}
+body.touch .coach{top:calc(84px + env(safe-area-inset-top,0px));left:calc(28px + min(210px,34vw) + env(safe-area-inset-left,0px));transform:none;animation-name:coachInT;width:clamp(180px,calc(100vw - min(210px,34vw) - 202px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)),360px);padding:7px 10px;gap:9px}
+@keyframes coachInT{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+body.touch .coach .ct{font-size:13px}body.touch .coach b{font-size:12px}body.touch .coach .ck{font-size:11px;min-width:40px}
+@media (prefers-reduced-motion:reduce){.coach{animation:none}}
 </style>
 </head>
 <body>
@@ -253,6 +286,7 @@ body.touch .touchHelp{display:block}
   <div id="prompt" class="prompt" hidden><kbd>E</kbd><span id="promptText"></span><div class="hold"><i id="holdBar"></i></div></div>
   <div id="toast" class="toast" hidden></div>
   <div id="inv" class="inv" hidden></div>
+  <div id="coach" class="coach" hidden aria-live="polite"><span class="ck" id="coachKey"></span><div class="cx"><b id="coachTitle"></b><span class="ct" id="coachText"></span></div><span class="cn" id="coachStep"></span></div>
   <div id="touchUI" hidden>
     <div class="zone" id="stickZone"></div>
     <div class="zone" id="lookZone"></div>
@@ -264,6 +298,7 @@ body.touch .touchHelp{display:block}
     <button type="button" class="tb" id="tCrouch" aria-pressed="false">Crouch</button>
     <button type="button" class="tb" id="tUse">Use</button>
     <button type="button" class="tb" id="tRun" aria-pressed="false">Run</button>
+    <button type="button" class="tb" id="tKnife">Knife</button>
     <div class="trow"><button type="button" class="tb" id="tMara">Mara: wait</button><button type="button" class="tb" id="tMed">Medkit 1</button><button type="button" class="tb" id="tSwap">Swap gun</button><button type="button" class="tb" id="tPause">Pause</button></div>
   </div>
 </div>
@@ -278,39 +313,27 @@ body.touch .touchHelp{display:block}
       <h1>Ashgrove</h1>
       <span class="tag">Mill town, 41 km from the coast · 19:40 · rain, wind from the west</span>
     </div>
-    <p class="lede">The Ravel militia have taken Mara and locked her in the back room of the west warehouse. They hold the whole town. Get to her, keep her alive, find a way to call for help, and get both of you onto the evac flight.</p>
+    <p class="lede">The militia have taken Mara. Get her out, keep her alive and reach the helicopter.</p>
+    <div class="actions">
+      <button type="button" class="btn pri big" id="btnStart">Start mission</button>
+      <button type="button" class="btn" id="btnContinue" hidden>Continue</button>
+    </div>
+    <div class="actions links">
+      <button type="button" class="btn" id="btnControls">Controls</button>
+      <button type="button" class="btn" id="btnSettings">Settings</button>
+      <button type="button" class="btn" id="btnDemo">Watch demo</button>
+    </div>
+    <p id="loadErr" class="err" hidden>The 3D engine could not load. Check your connection and reload the page.</p>
+  </div>
+  <div class="sheet" id="setPanel" hidden>
+    <div class="brand"><span class="ey">Ashgrove</span><h2 class="h2">Settings</h2></div>
     <div class="row">
       <div class="field"><span>Difficulty</span><div class="seg" id="segDiff"><button type="button" data-v="recruit" id="dRecruit">Recruit</button><button type="button" data-v="veteran" id="dVeteran" aria-pressed="true">Veteran</button><button type="button" data-v="hardened" id="dHardened">Hardened</button></div></div>
       <div class="field"><span>Graphics</span><div class="seg" id="segGfx"><button type="button" data-v="high" id="gHigh" aria-pressed="true">High</button><button type="button" data-v="low" id="gLow">Low</button></div></div>
       <div class="field"><span>Spoken lines</span><div class="seg" id="segVoice"><button type="button" data-v="on" id="vOn" aria-pressed="true">On</button><button type="button" data-v="off" id="vOff">Off</button></div></div>
       <div class="field"><span>Mouse sensitivity</span><input type="range" id="sens" min="0.4" max="2" step="0.1" value="1"></div>
     </div>
-    <div class="actions">
-      <button type="button" class="btn pri" id="btnStart">Start mission</button>
-      <button type="button" class="btn" id="btnContinue" hidden>Continue</button>
-      <button type="button" class="btn" id="btnDemo">Watch demo</button>
-      <button type="button" class="btn" id="btnControls">Controls</button>
-    </div>
-    <p id="loadErr" class="err" hidden>The 3D engine could not load. Check your connection and reload the page.</p>
-    <p id="touchNote" class="fine" hidden>This prototype needs a keyboard and mouse.</p>
-    <div class="keys">
-      <div><kbd>W A S D</kbd><span>Move</span></div>
-      <div><kbd>Shift</kbd><span>Sprint (uses stamina)</span></div>
-      <div><kbd>C</kbd><span>Crouch / stand</span></div>
-      <div><kbd>Right mouse</kbd><span>Aim</span></div>
-      <div><kbd>Left mouse</kbd><span>Fire</span></div>
-      <div><kbd>R</kbd><span>Reload</span></div>
-      <div><kbd>1</kbd><kbd>2</kbd><span>Carbine / sidearm</span></div>
-      <div><kbd>E</kbd><span>Interact (hold for some)</span></div>
-      <div><kbd>F</kbd><span>Tell Mara to wait / follow</span></div>
-      <div><kbd>H</kbd><span>Use a medkit</span></div>
-      <div><kbd>V</kbd><span>Swap shoulder</span></div>
-      <div><kbd>Tab</kbd><span>Inventory</span></div>
-      <div><kbd>Esc</kbd><span>Pause</span></div>
-      <div><kbd>Arrow keys</kbd><span>Look around (no mouse needed)</span></div>
-    </div>
-    <p class="fine touchHelp">Phone controls: drag on the left side to move, drag on the right side to look around. Hold FIRE to shoot, tap AIM to aim, tap USE near Mara or items. Play with the phone turned sideways.</p>
-    <p class="fine">Crouch behind low walls, cars and crates to break line of sight. Enemies hear gunfire. If Mara dies, the mission fails. Checkpoints save after each objective.</p>
+    <div class="actions"><button type="button" class="btn pri" id="btnBack">Back</button><button type="button" class="btn" id="btnTutReset">Show the tutorial again</button></div>
     <p class="fine">Characters: Elias is the AvatarSDK MetaPerson sample avatar and Mara is the Avaturn sample avatar, both from the TalkingHead project and licensed for non-commercial use. The militia soldier and motion capture come from the three.js examples (Mixamo).</p>
   </div>
   <div class="sheet" id="pausePanel" hidden>
@@ -1399,8 +1422,36 @@ function heliSound(on) {
     s.connect(f); f.connect(am); am.connect(g); g.connect(AU.master); s.start(); lfo.start(); HELI_A.s = s; HELI_A.g = g; HELI_A.lfo = lfo; }
   if (!on && HELI_A.on) { HELI_A.on = false; try { HELI_A.s.stop(); HELI_A.lfo.stop(); } catch (e) {} }
 }
+/* recorded voices: human-sounding takes in voice/, the browser's own voice is only a backup */
+const VO = { files: /*VO_FILES*/{"mara|Thank you. I can keep going.": "voice/00.mp3", "pilot|Wheels down! Get aboard, now!": "voice/01.mp3", "mara|Elias? It’s me. They locked me in the back room of the warehouse. I grabbed a radio off the table. Please hurry.": "voice/02.mp3", "mara|Which way out? I will stay right behind you.": "voice/03.mp3", "mara|We can’t run on empty. Those houses might have water, medicine, maybe a battery for the radio.": "voice/04.mp3", "mara|The radio tower, north-east. If the transmitter still works, we can call for help.": "voice/05.mp3", "pilot|Ashgrove, this is Kite Two. Eighty seconds out. Keep that field clear for me.": "voice/06.mp3", "mara|Is that it? Please tell me that’s the helicopter.": "voice/07.mp3", "mara|I think that’s all of them. For now.": "voice/08.mp3", "mara|It’s quiet. Let’s keep moving.": "voice/09.mp3", "mara|More of them! Coming from over there!": "voice/10.mp3", "mara|They are bringing more!": "voice/11.mp3", "pilot|Copy, Ashgrove. This is Kite Two. Landing zone is the field east of town. Be there.": "voice/12.mp3", "mara|They heard the radio. Move!": "voice/13.mp3", "mara|Reload! I’m staying down!": "voice/14.mp3", "mara|You’re hurt! Patch yourself up!": "voice/15.mp3", "mara|Ah! They hit me!": "voice/16.mp3", "mara|I’m bleeding. Do you have a medkit?": "voice/17.mp3", "mara|They’ve seen us!": "voice/18.mp3", "mara|They spotted us! Get down!": "voice/19.mp3", "mara|Elias! You came for me. They left me back here alone. Get me out of here.": "voice/20.mp3", "mara|Taking cover!": "voice/21.mp3", "mara|I’m getting down!": "voice/22.mp3", "mara|Over here, behind this!": "voice/23.mp3", "mara|Behind you!": "voice/24.mp3", "mara|Elias, slow down! Wait for me!": "voice/25.mp3", "mara|Check in here. There might be something we can use.": "voice/26.mp3", "mara|Okay. I’ll wait here. Don’t be long.": "voice/27.mp3", "mara|Coming. I’m right behind you.": "voice/28.mp3", "pilot|Got you both. Hold on, we’re lifting.": "voice/29.mp3", "pilot|Kite Two, on final. Get to the pad!": "voice/30.mp3", "mara|The road north is clear. We’re almost out, Elias.": "voice/31.mp3", "elias|Stay close to me. Just a little further.": "voice/32.mp3", "mil|Stop right there! Hands up! Don’t move!": "voice/33.mp3", "mara|No! Elias!": "voice/34.mp3", "mara|Let go of me! Elias! Help me!": "voice/35.mp3", "mil|Take her to the warehouse. Move!": "voice/36.mp3", "elias|Don’t worry, Mara. I’m coming for you.": "voice/37.mp3"}/*/VO_FILES*/, buf: {}, src: null, loading: false };
+function loadVO() {
+  if (VO.loading || !AU.ctx) return; VO.loading = true;
+  for (const f of new Set(Object.values(VO.files))) fetch(f).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(a => AU.ctx.decodeAudioData(a)).then(b => { VO.buf[f] = b; }).catch(() => {});
+}
+function stopVO() { if (VO.src) { try { VO.src.stop(); } catch (e) {} VO.src = null; } }
+function stopVoice() { stopVO(); try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} }
+function playVO(buf, radio) {
+  const ctx = AU.ctx; stopVoice(); const s = ctx.createBufferSource(); s.buffer = buf; let node = s;
+  if (radio) { // a little walkie-talkie colour for radio lines
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 380; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000;
+    const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1500; pk.gain.value = 5; s.connect(hp); hp.connect(pk); pk.connect(lp); node = lp;
+  }
+  const g = ctx.createGain(); g.gain.value = radio ? 1.25 : 1.1; node.connect(g); g.connect(AU.master); s.start(); VO.src = s;
+  s.onended = () => { if (VO.src === s) VO.src = null; };
+}
 let VOICE = null;
-function speak(text, who) {
+function speak(text, who, tag) {
+  if (!S.voice) return;
+  const f = VO.files[who + '|' + text];
+  if (f && AU.ctx) {
+    const radio = who === 'pilot' || tag === 'radio';
+    if (VO.buf[f]) { playVO(VO.buf[f], radio); return; }
+    loadVO(); fetch(f).then(r => r.arrayBuffer()).then(a => AU.ctx.decodeAudioData(a)).then(b => { VO.buf[f] = b; if (S.voice) playVO(b, radio); }).catch(() => speakTTS(text, who));
+    return;
+  }
+  speakTTS(text, who);
+}
+function speakTTS(text, who) {
   if (!S.voice || !window.speechSynthesis) return;
   try {
     if (!VOICE) { const vs = speechSynthesis.getVoices(); VOICE = { f: vs.find(v => /female|zira|samantha|victoria|karen|moira|tessa|fiona|aria|jenny|libby|sonia/i.test(v.name) && /^en/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)), m: vs.find(v => !/female/i.test(v.name) && /male|david|daniel|guy|ryan|george|alex|mark|christopher|eric/i.test(v.name) && /^en/i.test(v.lang)) }; }
@@ -1512,7 +1563,7 @@ function updateHeli(dt) {
 /* ---------- entity setup ---------- */
 function newPlayerState() {
   Object.assign(P, { x: START.x, z: START.z, vx: 0, vz: 0, yaw: Math.PI, hp: 100, stam: 100, stamT: 0, exhausted: false, crouch: false, aim: false, run: false, speed: 0, dead: false,
-    w: 0, reloading: 0, fireCD: 0, lastShot: -9, lastHurt: -99, medkits: 1, healing: 0, inCover: false, flinch: 0, bloom: 0, triggerHeld: false, holdT: 0, holdA: null, ePressed: false, stepPh: 0, noiseT: 0,
+    w: 0, reloading: 0, fireCD: 0, lastShot: -9, lastHurt: -99, medkits: 1, healing: 0, inCover: false, flinch: 0, bloom: 0, triggerHeld: false, holdT: 0, holdA: null, ePressed: false, stepPh: 0, noiseT: 0, meleeT: 0, meleeE: null,
     weapons: [
       { name: 'KR-9 Harrow', kind: 'Carbine', mag: 30, size: 30, res: 90, rpm: 640, auto: true, dmg: 27, reload: 2.3, spread: .03, aimSpread: .006, kick: .016, noise: 65, snd: 'rifle' },
       { name: 'Vesper S2', kind: 'Sidearm', mag: 12, size: 12, res: 36, rpm: 380, auto: false, dmg: 34, reload: 1.5, spread: .026, aimSpread: .008, kick: .028, noise: 48, snd: 'pistol' }] });
@@ -1553,14 +1604,14 @@ function resetMission() {
   CAM.yaw = Math.atan2(-(-80 - START.x), -(0 - START.z)); CAM.pitch = -0.08; CAM.recoil = 0;
   for (const k in CUE) delete CUE[k];
   setStage(0, true);
-  setTimeout(() => { if (S.running && !INTRO.on && M.stage === 0) say('mara', 'Elias? It is me. They locked me in the back room of the warehouse. I took a radio off the table. Please hurry.', 'radio'); }, 1600);
+  setTimeout(() => { if (S.running && !INTRO.on && M.stage === 0) say('mara', 'Elias? It’s me. They locked me in the back room of the warehouse. I grabbed a radio off the table. Please hurry.', 'radio'); }, 1600);
 }
 function setStage(i, silent) {
   M.stage = i; const st = STAGES[i];
   if (!silent) toast(st.title);
   refreshObjective();
   if (st.id === 'escape') say('mara', 'Which way out? I will stay right behind you.');
-  if (st.id === 'supplies') setTimeout(() => say('mara', 'We can not run on empty. Those houses might have water, medicine, maybe a battery for a radio.'), 3500);
+  if (st.id === 'supplies') setTimeout(() => say('mara', 'We can’t run on empty. Those houses might have water, medicine, maybe a battery for the radio.'), 3500);
   if (st.id === 'tower') setTimeout(() => say('mara', 'The radio tower, north-east. If the transmitter still works, we can call for help.'), 2500);
   if (st.id === 'defend') { M.defT = DEF_TIME; M.waveI = 0; }
 }
@@ -1593,14 +1644,14 @@ function updateMission(dt) {
   else if (id === 'defend') {
     M.defT -= dt; const el = DEF_TIME - M.defT;
     if (M.waveI < WAVE_AT.length && el >= WAVE_AT[M.waveI]) spawnWave(M.waveI++);
-    if (M.defT <= HELI_TIME && !HELI.active) { HELI.active = true; HELI.landed = false; HELI.t = 0; HELI.g.visible = true; HELI.spot.intensity = 2.5; heliSound(true); setTimeout(() => say('mara', 'Is that it? Please tell me that is the helicopter.'), 1500); }
+    if (M.defT <= HELI_TIME && !HELI.active) { HELI.active = true; HELI.landed = false; HELI.t = 0; HELI.g.visible = true; HELI.spot.intensity = 2.5; heliSound(true); setTimeout(() => say('mara', 'Is that it? Please tell me that’s the helicopter.'), 1500); }
     const s = Math.max(0, Math.ceil(M.defT)); $('obText').textContent = `Keep Mara alive until the helicopter lands · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   }
   updateHeli(dt);
   // combat tracking for Mara's "clear" line
   const inCombat = enemies.some(e => e.alive && e.state === 'combat');
   if (inCombat) { M.combatT = S.t; M.cleared = false; }
-  else if (!M.cleared && S.t - M.combatT > 6) { M.cleared = true; if (MA.joined) cue('clear', pick(['I think that is all of them. For now.', 'It is quiet. Let us keep moving.']), 25); }
+  else if (!M.cleared && S.t - M.combatT > 6) { M.cleared = true; if (MA.joined) cue('clear', pick(['I think that’s all of them. For now.', 'It’s quiet. Let’s keep moving.']), 25); }
 }
 function spawnWave(i) {
   const n = S.D.waves[Math.min(i, S.D.waves.length - 1)];
@@ -1659,7 +1710,7 @@ function say(who, text, tag) {
   sub.innerHTML = ''; const b = document.createElement('b'); b.textContent = name; if (who === 'pilot') b.className = 'pilot'; if (who === 'mil') b.className = 'mil'; if (who === 'elias') b.className = 'elias';
   sub.appendChild(b); sub.appendChild(document.createTextNode(text)); sub.hidden = false;
   subUntil = S.t + 2.6 + text.length * 0.045;
-  if (who !== 'mil' || INTRO.on) speak(text, who);
+  if (who !== 'mil' || INTRO.on) speak(text, who, tag);
 }
 function cue(key, text, cd, urgent) {
   if (!MA.joined || MA.dead) return; if (S.t < (CUE[key] || -1)) return; if (!urgent && S.t < (CUE._g || -1)) return;
@@ -1702,14 +1753,14 @@ function updatePlayer(dt) {
   const ox = P.x, oz = P.z; P.x += P.vx * dt; P.z += P.vz * dt; collide(P);
   P.speed = Math.hypot(P.x - ox, P.z - oz) / Math.max(dt, 1e-4);
   const faceCam = P.aim || S.t - P.lastShot < 0.8 || MB.l;
-  let ty = P.yaw; if (faceCam) ty = CAM.yaw + Math.PI; else if (P.speed > 0.4) ty = Math.atan2(P.vx, P.vz);
+  let ty = P.yaw; if (P.meleeT > 0 && P.meleeE && P.meleeE.alive) ty = Math.atan2(P.meleeE.x - P.x, P.meleeE.z - P.z); else if (faceCam) ty = CAM.yaw + Math.PI; else if (P.speed > 0.4) ty = Math.atan2(P.vx, P.vz);
   P.yaw += angDiff(P.yaw, ty) * (1 - Math.exp(-14 * dt));
   P.inCover = P.crouch && nearCover(P.x, P.z, 1.1);
   P.fireCD -= dt;
   if (P.reloading > 0) { P.reloading -= dt; if (P.reloading <= 0) { const need = w.size - w.mag, take = Math.min(need, w.res); w.mag += take; w.res -= take; } }
   if (P.healing > 0) { P.healing -= dt; if (P.healing <= 0) { P.hp = Math.min(100, P.hp + 55); toast('Patched up'); } }
   if (MB.l) {
-    if (!P.run && P.reloading <= 0 && P.healing <= 0 && P.fireCD <= 0 && (w.auto || !P.triggerHeld)) {
+    if (!P.run && P.reloading <= 0 && P.healing <= 0 && !(P.meleeT > 0) && P.fireCD <= 0 && (w.auto || !P.triggerHeld)) {
       if (w.mag > 0) { firePlayer(w); P.fireCD = 60 / w.rpm; } else if (!P.triggerHeld) { sfxClick(3000, 0.2, 0.03); startReload(); }
     }
     P.triggerHeld = true;
@@ -1722,14 +1773,15 @@ function updatePlayer(dt) {
   if (Math.floor(prev) !== Math.floor(P.stepPh) && P.speed > 0.5) sfxStep(P.crouch ? 0.04 : P.run ? 0.16 : 0.08);
   if (P.run) { P.noiseT -= dt; if (P.noiseT <= 0) { P.noiseT = 0.5; makeNoise(P.x, P.z, 11, 'step'); } }
   // pose
-  const h = P.model; h.gun = h.guns[P.w]; h.guns[0].visible = P.w === 0; h.guns[1].visible = P.w === 1;
-  animHuman(h, { speed: P.speed, run: P.run, crouch: P.crouch, aim: P.aim || S.t - P.lastShot < 0.6, armed: true, pitch: CAM.pitch, flinch: P.flinch, reload: P.reloading > 0 ? 1 - P.reloading / w.reload : 0, lookYaw: 0, mx: P.vx, mz: P.vz }, dt);
+  const h = P.model, knifing = P.meleeT > 0; h.gun = h.guns[P.w]; h.guns[0].visible = P.w === 0 && !knifing; h.guns[1].visible = P.w === 1 && !knifing;
+  animHuman(h, { speed: P.speed, run: P.run, crouch: P.crouch, aim: !knifing && (P.aim || S.t - P.lastShot < 0.6), armed: !knifing, pitch: CAM.pitch, flinch: P.flinch, reload: P.reloading > 0 ? 1 - P.reloading / w.reload : 0, lookYaw: 0, mx: P.vx, mz: P.vz }, dt);
   syncModel(P);
+  if (knifing) { P.meleeT -= dt; meleePose(); } else KNIFE.visible = false;
 }
 function startReload() {
   const w = P.weapons[P.w]; if (P.reloading > 0 || w.mag >= w.size || w.res <= 0 || P.healing > 0) return;
   P.reloading = w.reload; sfxReload(w.reload);
-  if (enemies.some(e => e.alive && e.state === 'combat') && Math.random() < 0.35) cue('reload', 'Reload! I am staying down!', 25);
+  if (enemies.some(e => e.alive && e.state === 'combat') && Math.random() < 0.35) cue('reload', 'Reload! I’m staying down!', 25);
 }
 function rayCyl(o, d, cx, cz, r, y0, y1) {
   const ox = o.x - cx, oz = o.z - cz, a = d.x * d.x + d.z * d.z; if (a < 1e-9) return -1;
@@ -1769,23 +1821,24 @@ function hurt(t, dmg, src) {
   t.hp -= dmg; if (S.demo) t.hp = Math.max(t.hp, 45); t.lastHurt = S.t; t.flinch = 1;
   if (t === P) {
     sfxHurt(); CAM.shake = Math.min(1, CAM.shake + 0.5); hurtFlash = Math.min(1, hurtFlash + 0.5); dmgIndicator(src.x, src.z);
-    if (P.hp < 35) cue('pLow', 'You are hurt! Patch yourself up!', 28);
+    if (P.hp < 35) cue('pLow', 'You’re hurt! Patch yourself up!', 28);
     if (P.hp <= 0) { P.hp = 0; P.dead = true; endGame(false, 'Elias went down. Without him, Mara had no way out.'); }
   } else if (t === MA) {
-    MA.lastHit = S.t; cue('hit', pick(['I am hit!', 'Ah! They hit me!']), 8, true);
-    if (MA.hp < 40) cue('maraLow', 'I am bleeding. Do you have a medkit?', 30);
+    MA.lastHit = S.t; cue('hit', pick(['I’m hit!', 'Ah! They hit me!']), 8, true);
+    if (MA.hp < 40) cue('maraLow', 'I’m bleeding. Do you have a medkit?', 30);
     if (MA.hp <= 0) { MA.hp = 0; MA.dead = true; reserve(MA, null); endGame(false, 'Mara was killed. The mission failed.'); }
   }
 }
-function damageEnemy(e, dmg, head) {
+function damageEnemy(e, dmg, head, silent) {
   e.hp -= dmg; e.flinch = 1;
-  if (e.state !== 'combat') enterCombat(e, P, true);
+  if (e.state !== 'combat' && !(silent && e.hp <= 0)) enterCombat(e, P, true);
   e.lastKnown = { x: P.x, z: P.z }; e.lastSeenT = Math.max(e.lastSeenT, S.t - 1);
   if (e.hp <= 0) {
     e.alive = false; e.dead = true; e.state = 'dead'; reserve(e, null); M.kills++;
     const pos = { x: e.x, z: e.z };
     addIA({ temp: true, pos, r: 1.8, label: 'Search the body', use() { this.active = false; const a = randi(14, 30), b = randi(0, 8); P.weapons[0].res += a; P.weapons[1].res += b; let t = `+${a} carbine`; if (b) t += ` · +${b} sidearm`; if (Math.random() < 0.18 && P.medkits < 5) { P.medkits++; t += ' · medkit'; } sfxPickup(); toast(t); } });
-    for (const o of enemies) if (o.alive && Math.hypot(o.x - e.x, o.z - e.z) < 30) { bark(o, 'down'); break; }
+    if (!silent) for (const o of enemies) if (o.alive && Math.hypot(o.x - e.x, o.z - e.z) < 30) { bark(o, 'down'); break; }
+    COACH.event('kill');
   }
 }
 
@@ -1834,7 +1887,7 @@ function makeNoise(x, z, radius, kind) {
 function enterCombat(e, t, share) {
   if (!e.alive) return; const was = e.state === 'combat';
   e.state = 'combat'; e.susp = 1; e.target = t; e.lastKnown = { x: t.x, z: t.z }; e.lastSeenT = S.t;
-  if (!was) { e.aimT = 0; e.coverEvalT = 0; e.phase = 'move'; e.burst = 0; if (e.type === 'flanker') setupFlank(e); bark(e, 'contact'); if (MA.joined) cue('contact', pick(['They have seen us!', 'They spotted us! Get down!']), 14, true); }
+  if (!was) { e.aimT = 0; e.coverEvalT = 0; e.phase = 'move'; e.burst = 0; if (e.type === 'flanker') setupFlank(e); bark(e, 'contact'); if (MA.joined) cue('contact', pick(['They’ve seen us!', 'They spotted us! Get down!']), 14, true); }
   if (share && !was) for (const o of enemies) if (o !== e && o.alive && o.state !== 'combat' && Math.hypot(o.x - e.x, o.z - e.z) < 45) { enterCombat(o, t, false); o.lastSeenT = S.t - 3; }
 }
 function setupFlank(e) {
@@ -2016,7 +2069,7 @@ function updateMara(dt) {
   } else if (th.length) {
     MA.coverEvalT -= dt;
     const exposed = MA.cover ? !hiddenFrom(MA.cover, th) : true, far = MA.cover ? dist(MA.cover, anchor) > (MA.mode === 'hold' ? 8 : 11) : true;
-    if (MA.coverEvalT <= 0 && (exposed || far)) { MA.coverEvalT = 0.9; const np = findCoverFor(MA, th, anchor); if (np && np !== MA.cover) cue('cover', pick(['Taking cover!', 'I am getting down!', 'Over here, behind this!']), 14); reserve(MA, np); }
+    if (MA.coverEvalT <= 0 && (exposed || far)) { MA.coverEvalT = 0.9; const np = findCoverFor(MA, th, anchor); if (np && np !== MA.cover) cue('cover', pick(['Taking cover!', 'I’m getting down!', 'Over here, behind this!']), 14); reserve(MA, np); }
     if (MA.cover) { goal = MA.cover; const dc = dist(MA, MA.cover); speed = dc > 0.5 ? 5.4 : 0; crouch = dc < 2.5; MA.status = dc < 1 ? 'In cover' : 'Moving to cover'; }
     else { const t0 = th[0]; let vx = anchor.x - t0.x, vz = anchor.z - t0.z; const L = Math.hypot(vx, vz) || 1; goal = { x: anchor.x + vx / L * 1.8, z: anchor.z + vz / L * 1.8 }; if (!navFree(goal.x, goal.z)) goal = { x: anchor.x, z: anchor.z }; speed = 4.5; crouch = true; MA.status = 'Staying low'; }
     if (speed === 0) face = th[0];
@@ -2176,24 +2229,153 @@ function updateInteract(dt) {
   P.ePressed = false;
 }
 
+/* ================= knife (close combat) ================= */
+const KNIFE = (() => {
+  const g = new THREE.Group();
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.034, 0.2), new THREE.MeshStandardMaterial({ color: '#c9ccd0', metalness: 0.9, roughness: 0.3 })); blade.position.z = 0.13;
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.03, 0.1), new THREE.MeshStandardMaterial({ color: '#1d1c1a', roughness: 0.8 }));
+  g.add(blade, grip); g.visible = false; scene.add(g); return g;
+})();
+const MELEE_TIME = 0.5;
+function meleeTarget() {
+  const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw); let best = null, bs = 1e9;
+  for (const e of enemies) {
+    if (!e.alive) continue; const dx = e.x - P.x, dz = e.z - P.z, d = Math.hypot(dx, dz); if (d > 2.6) continue;
+    const dot = d > 0.01 ? (dx * fx + dz * fz) / d : 1; if (dot < 0.2) continue;
+    const sc = d - dot; if (sc < bs) { bs = sc; best = e; }
+  }
+  return best;
+}
+function melee() {
+  if (!S.running || S.paused || S.over || P.dead || DEMO.on || INTRO.on) return;
+  if (P.meleeT > 0 || P.healing > 0) return;
+  P.meleeT = MELEE_TIME; P.reloading = 0; P.fireCD = Math.max(P.fireCD, 0.45);
+  const e = meleeTarget(); P.meleeE = e;
+  if (AU.ctx) noiseHit(0.3, 2600, 0.16, undefined, undefined, 'bandpass', 1.5);
+  if (!e) return;
+  // from behind, or before he has seen you: one quiet strike. Face to face: heavy damage, the heavy gunner takes two.
+  const toP = Math.atan2(P.x - e.x, P.z - e.z), behind = Math.abs(angDiff(e.yaw, toP)) > 1.9;
+  const quiet = e.state !== 'combat' || behind;
+  const dmg = quiet ? 999 : (e.type === 'heavy' ? 125 : 120);
+  setTimeout(() => {
+    if (!e.alive || P.dead || !S.running) return; if (Math.hypot(e.x - P.x, e.z - P.z) > 3.2) return;
+    damageEnemy(e, dmg, false, quiet); hitMarker(quiet); impactFX(new V3(e.x, 1.25 * e.model.scale, e.z), 'enemy');
+    if (AU.ctx) { noiseHit(0.45, 520, 0.12); tone(170, 60, 0.16, 0.12); }
+    CAM.shake = Math.min(1, CAM.shake + 0.25); if (quiet && !e.alive) toast('Silent takedown');
+  }, 170);
+}
+function meleePose() {
+  const h = P.model, k = 1 - P.meleeT / MELEE_TIME, lunge = Math.sin(Math.min(1, k * 1.5) * Math.PI);
+  const fwd = new V3(Math.sin(P.yaw), 0, Math.cos(P.yaw)), right = new V3().crossVectors(fwd, UP);
+  const tgt = new V3(P.x, lerp(1.32, 0.98, h.cb || 0) * (h.scale || 1), P.z).addScaledVector(fwd, 0.22 + 0.5 * lunge).addScaledVector(right, 0.12 - 0.1 * lunge);
+  if (h.B && h.B.RightHand) { ik2(h.B.RightArm, h.B.RightForeArm, h.B.RightHand, tgt, right.clone().addScaledVector(UP, -0.6)); h.B.RightHand.getWorldPosition(_v2); } else _v2.copy(tgt);
+  KNIFE.visible = true; KNIFE.position.copy(_v2); KNIFE.lookAt(_v2.x + fwd.x, _v2.y + 0.15 - 0.3 * lunge, _v2.z + fwd.z);
+}
+
+/* ================= tutorial coach: teaches while you play ================= */
+const COACH = (() => {
+  const KEY = 'ashgrove-tutorial-v1', el = $('coach'), T = () => TOUCH.on;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { seen = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(seen)); } catch (e) {} };
+  const BASICS = [
+    { key: () => T() ? 'Left side' : 'W A S D', title: 'Move', text: () => T() ? 'Drag on the left side of the screen to walk. RUN makes you faster.' : 'Walk with W A S D. Hold Shift to sprint.', done: c => c.moved > 4 },
+    { key: () => T() ? 'Right side' : 'Mouse', title: 'Look around', text: () => T() ? 'Drag on the right side of the screen to turn and look.' : 'Move the mouse to look around. The arrow keys work too.', done: c => c.turned > 1.4 },
+    { key: () => T() ? 'Crouch' : 'C', title: 'Stay low', text: () => (T() ? 'Tap CROUCH.' : 'Press C to crouch.') + ' Crouched, you are quiet and hard to spot.', done: () => P.crouch },
+    { key: () => T() ? 'Aim' : 'Right mouse', title: 'Aim and fire', text: () => T() ? 'Tap AIM, then hold FIRE to shoot. Gunfire brings the militia running.' : 'Hold the right mouse button to aim, left click to fire. Gunfire brings the militia running.', done: c => c.aimed > 0.35 || c.fired },
+    { key: () => 'Marker', title: 'Find Mara', text: () => 'Follow the orange marker to the warehouse. Sneak past the guards, or take them on.', done: c => c.t > 9 || MA.joined }
+  ];
+  const TIPS = {
+    knife: { urgent: 1, key: () => T() ? 'Knife' : 'Q', title: 'Too close? Use your knife', text: () => (T() ? 'Tap KNIFE' : 'Press Q') + ' to strike. From behind, or before he sees you, one strike takes him down quietly.' },
+    spotted: { urgent: 1, key: () => T() ? 'Crouch' : 'C', title: 'Spotted!', text: () => 'Get behind a wall, car or crate and crouch. Then aim over it and fire back.' },
+    hurt: { urgent: 1, key: () => T() ? 'Medkit' : 'H', title: 'You are hurt', text: () => (T() ? 'Tap MEDKIT' : 'Press H') + ' to patch yourself up. Bodies and houses have more medkits.' },
+    heavy: { key: () => 'Heavy', title: 'Heavy gunner', text: () => 'Armoured and tough. Aim for the head, it hurts over twice as much. Stay down while he fires.' },
+    flanker: { key: () => 'Flanker', title: 'Flanker', text: () => 'This one runs around your side. Keep turning, and watch the map for red dots.' },
+    reload: { key: () => T() ? 'Reload' : 'R', title: 'Empty', text: () => (T() ? 'Tap RELOAD' : 'Press R') + ' behind cover. ' + (T() ? 'SWAP GUN' : 'Press 2') + ' for your pistol in a hurry.' },
+    maraHurt: { key: () => T() ? 'Hold Use' : 'Hold E', title: 'Mara is hurt', text: () => 'Stand next to her and ' + (T() ? 'hold USE' : 'hold E') + ' to treat her with a medkit.' },
+    mara: { key: () => T() ? 'Mara' : 'F', title: 'Mara is with you', text: () => 'She follows you and hides by herself. ' + (T() ? 'Tap MARA: WAIT' : 'Press F') + ' to make her wait. If she dies, the mission fails.' },
+    kill: { key: () => T() ? 'Use' : 'E', title: 'Search the body', text: () => 'Walk up to a fallen soldier and ' + (T() ? 'tap USE' : 'press E') + ' for ammo, sometimes a medkit.' },
+    supplies: { key: () => T() ? 'Hold Use' : 'Hold E', title: 'Search the town', text: () => 'Follow the marker to each house and ' + (T() ? 'hold USE' : 'hold E') + ' to search. You need water, medicine and a radio battery.' },
+    tower: { key: () => T() ? 'Hold Use' : 'Hold E', title: 'Call for help', text: () => 'At the radio tower, ' + (T() ? 'hold USE' : 'hold E') + ' on the transmitter. The militia will hear it, so be ready.' },
+    defend: { key: () => 'Hold', title: 'Hold the landing zone', text: () => 'More militia come from the edges of the field. Stay in cover close to Mara until the helicopter lands.' },
+    board: { key: () => 'Go', title: 'The helicopter is down', text: () => 'Run to it. Mara boards with you, so keep her close.' }
+  };
+  const ORDER = Object.keys(TIPS);
+  const c = { on: false, i: 0, t: 0, moved: 0, turned: 0, aimed: 0, fired: false, lx: 0, lz: 0, ly: 0, doneT: 0, cur: null, curT: 0, events: {} };
+  function show(o, step) {
+    $('coachKey').textContent = o.key(); $('coachTitle').textContent = o.title; $('coachText').textContent = o.text(); $('coachStep').textContent = step || '';
+    el.classList.remove('done'); el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  }
+  function showStep() { Object.assign(c, { t: 0, moved: 0, turned: 0, aimed: 0, fired: false, lx: P.x, lz: P.z, ly: CAM.yaw, doneT: 0 }); show(BASICS[c.i], `${c.i + 1}/${BASICS.length}`); }
+  function endBasics() { c.on = false; seen.basics = 1; save(); el.hidden = true; }
+  function wants(id) {
+    if (seen[id]) return false;
+    const near = (type, r) => enemies.some(e => e.alive && e.state === 'combat' && (!type || e.type === type) && Math.hypot(e.x - P.x, e.z - P.z) < r);
+    const st = STAGES[M.stage].id;
+    switch (id) {
+      case 'knife': return enemies.some(e => e.alive && Math.hypot(e.x - P.x, e.z - P.z) < 3.4);
+      case 'spotted': return near(null, 90);
+      case 'hurt': return P.hp < 55 && P.medkits > 0 && P.healing <= 0;
+      case 'heavy': return near('heavy', 40);
+      case 'flanker': return near('flanker', 35);
+      case 'reload': return P.weapons[P.w].mag === 0;
+      case 'maraHurt': return MA.joined && !MA.dead && MA.hp < 70 && P.medkits > 0;
+      case 'mara': return MA.joined && st === 'escape';
+      case 'kill': return !!c.events.kill;
+      case 'supplies': case 'tower': case 'defend': return st === id;
+      case 'board': return st === 'board' && HELI.landed;
+    }
+    return false;
+  }
+  function update(dt) {
+    if (S.demo || P.dead) { el.hidden = true; return; }
+    if (c.on) {
+      // basics, one step at a time; a fight ends them early so the combat tips can help
+      if (enemies.some(e => e.alive && e.state === 'combat')) { endBasics(); }
+      else {
+        c.t += dt; c.moved += Math.hypot(P.x - c.lx, P.z - c.lz); c.lx = P.x; c.lz = P.z; c.turned += Math.abs(angDiff(c.ly, CAM.yaw)); c.ly = CAM.yaw;
+        if (P.aim) c.aimed += dt; if (MB.l) c.fired = true;
+        if (c.doneT > 0) { c.doneT -= dt; if (c.doneT <= 0) { c.i++; if (c.i >= BASICS.length) endBasics(); else showStep(); } }
+        else if (BASICS[c.i].done(c)) { el.classList.add('done'); c.doneT = 0.8; if (AU.ctx) tone(880, 1320, 0.07, 0.12, 'triangle'); }
+        return;
+      }
+    }
+    if (c.cur) {
+      c.curT -= dt;
+      const urgentNow = !TIPS[c.cur].urgent && ORDER.find(id => TIPS[id].urgent && wants(id));
+      if (c.curT > 0 && !urgentNow) return;
+      c.cur = null; el.hidden = true; if (!urgentNow) { c.curT = -1.2; return; } // short gap between tips
+    }
+    if (c.curT < 0) { c.curT += dt; if (c.curT < 0) return; }
+    const id = ORDER.find(wants); if (!id) return;
+    seen[id] = 1; save(); c.cur = id; c.curT = 7.5; show(TIPS[id]); if (AU.ctx) tone(660, 990, 0.06, 0.12, 'triangle');
+  }
+  return {
+    start(fresh) { c.cur = null; c.curT = 0; c.events = {}; el.hidden = true; c.i = 0; c.on = !!fresh && !seen.basics; if (c.on) showStep(); },
+    update, event(name) { c.events[name] = true; },
+    reset() { seen = {}; save(); },
+    hide() { el.hidden = true; c.cur = null; }
+  };
+})();
+
 /* ================= menus / flow ================= */
 const menu = $('menu'), hud = $('hud');
-function showPanel(id) { for (const p of ['startPanel', 'pausePanel', 'endPanel']) $(p).hidden = p !== id; menu.hidden = !id; }
+function showPanel(id) { for (const p of ['startPanel', 'setPanel', 'pausePanel', 'endPanel']) $(p).hidden = p !== id; menu.hidden = !id; }
 function requestLock() { if (S.noLock) return; try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => { S.noLock = true; }); } catch (e) { S.noLock = true; } }
 function doCrouch() { if (!P.run) P.crouch = !P.crouch; }
 function switchWeapon(n) { if (n !== P.w) { P.w = n; P.reloading = 0; P.fireCD = 0.4; sfxClick(1500, 0.2, 0.05); } }
 function useMedkit() { if (P.medkits > 0 && P.hp < 100 && P.healing <= 0) { P.medkits--; P.healing = 2.2; P.reloading = 0; } else if (P.medkits <= 0) toast('No medkits'); else if (P.hp >= 100) toast('Health is full'); }
-function toggleMara() { if (!MA.joined || MA.dead) return; if (MA.mode === 'follow') { MA.mode = 'hold'; MA.hold = { x: MA.x, z: MA.z }; say('mara', 'Okay. I will wait here. Do not be long.'); } else { MA.mode = 'follow'; MA.hold = null; say('mara', 'Coming. Right behind you.'); } }
+function toggleMara() { if (!MA.joined || MA.dead) return; if (MA.mode === 'follow') { MA.mode = 'hold'; MA.hold = { x: MA.x, z: MA.z }; say('mara', 'Okay. I’ll wait here. Don’t be long.'); } else { MA.mode = 'follow'; MA.hold = null; say('mara', 'Coming. I’m right behind you.'); } }
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function begin(fromCheckpoint, afterIntro) {
-  initAudio(); applyGfx();
+  initAudio(); loadVO(); applyGfx();
   track('level_start', { difficulty: S.diffKey, from_checkpoint: !!(fromCheckpoint && CP) });
   if (fromCheckpoint && CP) restoreCheckpoint(); else { CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {} resetMission(); }
   S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0; canvas.focus();
+  COACH.start(!(fromCheckpoint && CP));
   if (TOUCH.on) goFullscreen(); else if (afterIntro && !S.noLock) toast('Click the game to take control'); else { requestLock(); setTimeout(() => { if (S.running && !S.locked) toast('Move the mouse over the game to look. Arrow keys also turn.'); }, 1500); }
 }
 function goFullscreen() { try { const el = document.documentElement, r = el.requestFullscreen ? el.requestFullscreen() : el.webkitRequestFullscreen && el.webkitRequestFullscreen(); if (r && r.then) r.then(() => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); } catch (e) {} }
-function pause() { if (!S.running || S.over) return; S.paused = true; showPanel('pausePanel'); for (const k in K) K[k] = false; MB.l = MB.r = false; try { speechSynthesis.cancel(); } catch (e) {} }
+function pause() { if (!S.running || S.over) return; S.paused = true; showPanel('pausePanel'); for (const k in K) K[k] = false; MB.l = MB.r = false; stopVoice(); }
 function resume() { S.paused = false; showPanel(null); canvas.focus(); if (!TOUCH.on) requestLock(); }
 function toTitle() { S.running = false; S.paused = false; S.over = false; hud.hidden = true; heliSound(false); refreshContinue(); showPanel('startPanel'); try { document.exitPointerLock(); } catch (e) {} }
 function endGame(won, text) {
@@ -2210,7 +2392,7 @@ function endGame(won, text) {
   }, won ? 1300 : 1600);
   if (won) $('fade').style.opacity = 1;
 }
-function winGame() { say('pilot', 'Got you both. Hold on, we are lifting.', 'pilot'); endGame(true, 'Mara is on board. The helicopter lifts out of Ashgrove with both of you alive.'); }
+function winGame() { say('pilot', 'Got you both. Hold on, we’re lifting.', 'pilot'); endGame(true, 'Mara is on board. The helicopter lifts out of Ashgrove with both of you alive.'); }
 function refreshContinue() { loadSaved(); const b = $('btnContinue'); if (CP) { b.hidden = false; b.textContent = `Continue: ${STAGES[CP.stage].title}`; } else b.hidden = true; }
 function applyGfx() {
   const low = S.gfx === 'low';
@@ -2223,8 +2405,8 @@ function segInit(id, cb) { const el = $(id); el.addEventListener('click', ev => 
 function setPressed(id, v) { for (const x of $(id).querySelectorAll('button')) x.setAttribute('aria-pressed', x.dataset.v === v ? 'true' : 'false'); }
 segInit('segDiff', v => { S.diffKey = v; S.D = DIFFS[v]; });
 segInit('segGfx', v => { S.gfx = v; applyGfx(); });
-segInit('segVoice', v => { S.voice = v === 'on'; setPressed('segVoice2', v); });
-segInit('segVoice2', v => { S.voice = v === 'on'; setPressed('segVoice', v); if (!S.voice) try { speechSynthesis.cancel(); } catch (e) {} });
+segInit('segVoice', v => { S.voice = v === 'on'; setPressed('segVoice2', v); if (!S.voice) stopVoice(); });
+segInit('segVoice2', v => { S.voice = v === 'on'; setPressed('segVoice', v); if (!S.voice) stopVoice(); });
 for (const id of ['sens', 'sens2']) $(id).addEventListener('input', e => { S.sens = parseFloat(e.target.value); $('sens').value = $('sens2').value = S.sens; });
 $('btnStart').addEventListener('click', () => startIntro());
 $('btnSkip').addEventListener('click', () => finishIntro());
@@ -2236,11 +2418,14 @@ $('btnQuit').addEventListener('click', toTitle);
 $('btnRetry').addEventListener('click', () => begin(true));
 $('btnRestart').addEventListener('click', () => begin(false));
 $('btnTitle').addEventListener('click', toTitle);
-if (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches) $('touchNote').hidden = false;
+$('btnSettings').addEventListener('click', () => showPanel('setPanel'));
+$('btnBack').addEventListener('click', () => showPanel('startPanel'));
+$('btnTutReset').addEventListener('click', () => { COACH.reset(); toastMenu('The tutorial will show again'); });
+function toastMenu(t) { const b = $('btnTutReset'); b.textContent = t; b.disabled = true; setTimeout(() => { b.textContent = 'Show the tutorial again'; b.disabled = false; }, 1800); }
 
 /* ================= control layout card ================= */
 function keyboardArt() {
-  const ON = 'Esc 1 2 Tab W E R A S D F H Shift C V'.split(' ');
+  const ON = 'Esc 1 2 Tab Q W E R A S D F H Shift C V'.split(' ');
   const rows = [
     [110, [['Esc', 150, 40], '1', '2', '3', '4', '5', '6']],
     [160, [['Tab', 150, 62], 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P']],
@@ -2281,7 +2466,7 @@ function keyboardArt() {
     <rect class="ms" x="835" y="136" width="10" height="30" rx="5"/>
     ${ln('800,160 740,160')}${dot(740, 160)}${lb(732, 165, 'Fire', 'end')}
     ${ln('880,160 912,160')}${dot(912, 160)}${lb(920, 165, 'Aim', 'start')}
-    ${lb(840, 338, 'Move mouse: look')}${lb(840, 360, 'Arrow keys also look', 'middle', ' dim')}${lb(840, 382, 'P also pauses', 'middle', ' dim')}`;
+    ${lb(840, 338, 'Move mouse: look')}${lb(840, 360, 'Arrow keys also look', 'middle', ' dim')}${lb(840, 382, 'P also pauses', 'middle', ' dim')}${lb(840, 408, 'Q: knife, up close')}`;
   return `<svg viewBox="22 14 958 404" role="img" aria-label="Keyboard and mouse controls">${keys}${callouts}${mouse}</svg>`;
 }
 function touchArt() {
@@ -2292,14 +2477,14 @@ function touchArt() {
     <rect class="zn" x="84" y="124" width="330" height="262" rx="10"/><rect class="zn" x="420" y="22" width="456" height="364" rx="10" style="fill:rgba(121,199,189,.04)"/>
     <text class="zt" x="290" y="160">Drag here to move</text><text class="zt" x="600" y="140">Drag here to look around</text>
     <circle cx="144" cy="278" r="48" fill="none" stroke="rgba(235,230,218,.4)" stroke-width="2" stroke-dasharray="5 5"/><circle cx="144" cy="278" r="20" fill="rgba(235,230,218,.45)"/>
-    ${pills}${b(127, 185, 27, 'Run')}${b(654, 326, 30, 'Use')}${b(728, 334, 30, 'Aim')}${b(741, 263, 27, 'Reload')}${b(819, 241, 27, 'Crouch')}${b(816, 326, 42, 'Fire', true)}
+    ${pills}${b(127, 185, 27, 'Run')}${b(654, 326, 30, 'Use')}${b(728, 334, 30, 'Aim')}${b(741, 263, 27, 'Reload')}${b(819, 241, 27, 'Crouch')}${b(668, 258, 27, 'Knife')}${b(816, 326, 42, 'Fire', true)}
   </svg>`;
 }
 let ctrlBack = null;
 function openControls() {
   const touch = TOUCH.on || (matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches);
   $('ctrlArt').innerHTML = touch ? touchArt() : keyboardArt();
-  $('ctrlNote').textContent = touch ? 'Turn your phone sideways to play. Hold FIRE to shoot, tap USE near Mara or items. Reopen this from Controls.' : 'Click the game to take mouse control. Esc pauses at any time. Reopen this from Controls.';
+  $('ctrlNote').textContent = touch ? 'Turn your phone sideways to play. Hold FIRE to shoot, tap KNIFE up close, tap USE near Mara or items.' : 'Click the game to take mouse control. Esc pauses at any time. Reopen this from Controls.';
   ctrlBack = document.activeElement; $('ctrl').hidden = false; $('ctrl').scrollTop = 0; $('ctrlOk').focus({ preventScroll: true });
 }
 function closeControls() { $('ctrl').hidden = true; if (ctrlBack && ctrlBack.focus) ctrlBack.focus(); ctrlBack = null; }
@@ -2337,6 +2522,7 @@ addEventListener('keydown', e => {
     case 'KeyH': useMedkit(); break;
     case 'KeyV': CAM.side *= -1; break;
     case 'KeyF': toggleMara(); break;
+    case 'KeyQ': melee(); break;
     case 'Tab': $('inv').hidden = !$('inv').hidden; break;
   }
 });
@@ -2399,8 +2585,8 @@ function startDemo() {
   resetMission(); S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0;
 }
 function stopDemo() {
-  DEMO.on = false; S.demo = false; for (const k in K) K[k] = false; MB.l = MB.r = false; S.D = DEMO.savedD || DIFFS[S.diffKey];
-  heliSound(false); try { speechSynthesis.cancel(); } catch (e) {}
+  COACH.hide(); DEMO.on = false; S.demo = false; for (const k in K) K[k] = false; MB.l = MB.r = false; S.D = DEMO.savedD || DIFFS[S.diffKey];
+  heliSound(false); stopVoice();
   resetMission(); toTitle(); setTimeout(() => { $('fade').style.opacity = 0; }, 300);
 }
 function updateDemo(dt) {
@@ -2451,10 +2637,10 @@ function armMid(h, side) { if (!h.B) return null; const B = h.B, a = side > 0 ? 
 // timeline, seconds from the start of the scene
 const IEV = [
   [0.4, () => { toast('Ashgrove · 19:20'); sfxThunder(); }],
-  [1.4, () => say('mara', 'The road north is clear. We are almost out, Elias.')],
+  [1.4, () => say('mara', 'The road north is clear. We’re almost out, Elias.')],
   [4.6, () => say('elias', 'Stay close to me. Just a little further.')],
   [7.0, () => { sfxClick(1700, 0.35, 0.05); setTimeout(() => sfxClick(1300, 0.35, 0.05), 160); }],
-  [7.3, () => say('mil', 'Stop right there! Hands up! Do not move!')],
+  [7.3, () => say('mil', 'Stop right there! Hands up! Don’t move!')],
   [9.9, () => say('mara', 'Elias!')],
   [11.6, () => { sfxHurt(); sfxStep(0.6); CAM.shake = 0.9; }],
   [12.1, () => say('mara', 'No! Elias!')],
@@ -2462,7 +2648,7 @@ const IEV = [
   [17.4, () => say('mil', 'Take her to the warehouse. Move!')],
   [19.6, () => { $('fade').style.opacity = 1; }],
   [21.0, () => { sfxThunder(); $('fade').style.opacity = 0; }],
-  [23.6, () => say('elias', 'Do not worry, Mara. I am coming to save you.')],
+  [23.6, () => say('elias', 'Don’t worry, Mara. I’m coming for you.')],
   [27.4, () => { $('fade').style.opacity = 1; }],
   [28.8, () => finishIntro()]
 ];
@@ -2474,7 +2660,7 @@ const SOLK = [
   [[0, -93.5, 99.5], [7, -93.5, 99.5], [9.4, -98.4, 98.3], [12.8, -99.4, 97.6], [13.5, -99.9, 96.66]]
 ];
 function startIntro() {
-  initAudio(); applyGfx(); if (TOUCH.on) goFullscreen();
+  initAudio(); loadVO(); applyGfx(); if (TOUCH.on) goFullscreen();
   CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {}
   INTRO.on = true; resetMission(); INTRO.t = 0; INTRO.ev = 0; INTRO.cut = true;
   INTRO.ext = [['rifle', SOLK[0]], ['heavy', SOLK[1]], ['flanker', SOLK[2]]].map(([type, k]) => spawnEnemy({ type, x: k[0][1], z: k[0][2], route: [[k[0][1], k[0][2]]] }, null));
@@ -2483,11 +2669,13 @@ function startIntro() {
 }
 function finishIntro() {
   if (!INTRO.on) return; INTRO.on = false; INTRO.ext = null;
-  document.body.classList.remove('cine'); $('btnSkip').hidden = true; $('sub').hidden = true; subUntil = 0; try { speechSynthesis.cancel(); } catch (e) {}
+  document.body.classList.remove('cine'); $('btnSkip').hidden = true; $('sub').hidden = true; subUntil = 0; stopVoice();
   MA.model.root.visible = true; for (const e of enemies) e.model.root.visible = true;
   $('fade').style.opacity = 1; begin(false, true);
 }
 function updateIntro(dt) {
+  // upright phone: the intro waits behind "turn your phone sideways" instead of playing unseen
+  if (!$('rotate').hidden) { stopVoice(); return; }
   const t = INTRO.t; INTRO.t += dt;
   while (INTRO.ev < IEV.length && IEV[INTRO.ev][0] <= t) IEV[INTRO.ev++][1]();
   if (!INTRO.on) return;
@@ -2574,6 +2762,7 @@ function enableTouch() {
   tap('tReload', () => startReload());
   tap('tCrouch', () => doCrouch());
   tap('tRun', () => { TOUCH.run = !TOUCH.run; });
+  tap('tKnife', () => melee());
   tap('tMara', () => toggleMara());
   tap('tMed', () => useMedkit());
   tap('tSwap', () => switchWeapon(1 - P.w));
@@ -2598,7 +2787,6 @@ function enableTouch() {
 /* ================= boot ================= */
 buildWorld(); buildVegetation(); flushStatic(); buildNav(); buildCover(); defineIAs();
 const startBtn = $('btnStart'); startBtn.disabled = true; startBtn.textContent = 'Loading characters 0/3';
-openControls();
 loadRigs().then(ok => {
   P.model = buildHuman(LOOKS.player); MA.model = buildHuman(LOOKS.mara); P.model.ent = P; MA.model.ent = MA;
   newPlayerState(); newMaraState(); Object.assign(M, { stage: 0, sup: { water: false, med: false, battery: false }, defT: DEF_TIME, waveI: 0, kills: 0, shots: 0, hits: 0 });
@@ -2618,7 +2806,7 @@ function frame() {
       S.t += dt; pathBudget = 3;
       if (DEMO.on) updateDemo(dt);
       updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate();
-      updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt);
+      updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); if (!DEMO.on) COACH.update(dt);
     } else if (S.running && S.over) { updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); updateHeli(dt); updateCamera(dt); }
     else if (!S.running && MA.model) { menuCamera(dt); animHuman(MA.model, { speed: 0, crouch: true, cower: true }, dt); for (const e of enemies) { updateEnemyIdle(e, dt); } }
     updateFX(dt); updateWeather(dt);
@@ -2628,7 +2816,7 @@ function frame() {
 }
 function updateEnemyIdle(e, dt) { if (!e.alive) return; const wp = e.route[e.ri]; if (e.wait > 0) e.wait -= dt; else { steer(e, wp.x, wp.z, e.T.walk, dt); if (Math.hypot(wp.x - e.x, wp.z - e.z) < 0.9) { e.ri = (e.ri + 1) % e.route.length; e.wait = rand(1.5, 4); } if (e.speed > 0.3) e.yaw += angDiff(e.yaw, Math.atan2(e.vx, e.vz)) * (1 - Math.exp(-6 * dt)); } animHuman(e.model, { speed: e.speed, armed: true, mx: e.vx, mz: e.vz }, dt); syncModel(e); }
 frame();
-function tick(dt){ if (INTRO.on) { S.t += dt; updateIntro(dt); updateFX(dt); updateWeather(dt); return; } S.t += dt; S.menuT += dt; pathBudget = 3; if (DEMO.on) updateDemo(dt); if (!S.running) return; updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate(); updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); updateFX(dt); updateWeather(dt); }
+function tick(dt){ if (INTRO.on) { S.t += dt; updateIntro(dt); updateFX(dt); updateWeather(dt); return; } S.t += dt; S.menuT += dt; pathBudget = 3; if (DEMO.on) updateDemo(dt); if (!S.running) return; updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate(); updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); if (!DEMO.on) COACH.update(dt); updateFX(dt); updateWeather(dt); }
 function renderNow() { renderer.render(scene, camera); }
 window.__ash = { setSize: (w, h) => { renderer.setPixelRatio(1); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }, renderNow, startDemo, startIntro, finishIntro, INTRO, DEMO, AU, canvas, tick, camera, CAM, S, P, MA, M, get enemies() { return enemies; }, completeStage, begin, IA, HELI };
 })();

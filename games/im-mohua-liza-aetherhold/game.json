@@ -5,5 +5,17 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Tap a plot to build or upgrade, tap the bubbles to collect, then pick your heroes and march in the Campaign. Drag to look around, pinch or scroll to zoom.",
-  "description": "Your kingdom floats above the clouds. Raise farms, mills, quarries and a gold mine, and tap the bubbles over them to gather what they make. Summon heroes at the Tavern: sixteen of them across four rarities and seven classes, each with a signature skill. Train pikemen, longbows and griffin knights, then march through the Thornwood Marches, the Ashen Steppe and the Stormspire Peaks, with a boss every fifth stage. Your realm keeps working while you are away, day turns to night over the island, and the steward's quest list always has a next goal."
+  "description": "Aetherhold is a kingdom-building game on a floating island in the sky. You start with a small realm above the clouds, grow it into a strong citadel, then lead heroes and an army through a 30-stage campaign.\n\nTap an empty plot to build farms, mills, quarries and a gold mine, and tap the bubbles above them to collect what they make. Upgrade the Citadel to unlock more. Build a Tavern to summon heroes, sixteen of them with their own skills, and a Barracks to train pikemen, longbows and griffin knights. Then pick up to three heroes and march into the Campaign across the Thornwood Marches, the Ashen Steppe and the Stormspire Peaks, with a boss every fifth stage. The steward's list always has a next goal for you.\n\nIt is fun because your kingdom keeps working while you are away, so something is always waiting when you come back. Day turns to night over the island while you play. It is for players who enjoy slow building and planning, with a big battle now and then.",
+  "controls": [
+    "Tap a plot to build or upgrade",
+    "Tap the bubbles to collect resources",
+    "Drag to look around the island",
+    "Pinch or scroll to zoom"
+  ],
+  "tips": [
+    "Finish the steward's tasks for easy rewards.",
+    "You have two builders, so keep both of them busy.",
+    "Lost a stage? Train more troops or raise a Watchtower, then try again. Cleared stages can be replayed for spoils."
+  ],
+  "story": "I enjoy kingdom-building games, and I wanted one with a sky island floating above the clouds. I made it with Claude, with my own heroes, buildings and campaign, and tested every battle until winning and losing both felt fair."
 }

@@ -21,5 +21,41 @@
 </div>
 <noscript>Babel Harbour needs JavaScript to run.</noscript>
 <script type="module" src="js/main.js"></script>
+<!-- about-panel:start -->
+<style>#sx-about-btn{position:fixed;top:8px;right:8px;z-index:2147483000;min-width:44px;height:30px;padding:0 12px;border:1px solid rgba(255,255,255,.55);border-radius:15px;background:rgba(15,20,30,.72);color:#fff;font:600 13px/28px system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;cursor:pointer;opacity:.85;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#sx-about-btn:hover,#sx-about-btn:focus-visible{opacity:1;outline:2px solid #fff;outline-offset:2px}
+#sx-about{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(0,0,0,.7)}
+#sx-about[hidden]{display:none}
+#sx-about .sx-card{box-sizing:border-box;width:min(560px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;background:#fff;color:#14202e;border-radius:14px;padding:18px 20px 20px;font:15px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;text-align:left;user-select:text;-webkit-user-select:text}
+#sx-about h2{margin:0 36px 8px 0;font-size:20px;line-height:1.25;color:#0b2238}
+#sx-about h3{margin:14px 0 4px;font-size:15px;color:#0b2238}
+#sx-about p{margin:0 0 8px}
+#sx-about ul{margin:0;padding-left:20px}
+#sx-about li{margin:2px 0}
+#sx-about .sx-x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:36px;height:36px;border:0;border-radius:50%;background:#e8edf3;color:#0b2238;font:700 20px/36px system-ui,sans-serif;cursor:pointer;touch-action:manipulation}</style>
+<button id="sx-about-btn" type="button" aria-haspopup="dialog" aria-label="About Babel Harbour">About</button>
+<div id="sx-about" role="dialog" aria-modal="true" aria-labelledby="sx-about-t" hidden><div class="sx-card"><button class="sx-x" type="button" aria-label="Close">&times;</button></div></div>
+<script type="application/json" id="sx-about-data">{"title":"Babel Harbour","maker":"Sk Sarfaraj Ali","description":"Babel Harbour is a calm word puzzle with a new challenge every day. Ships arrive with crates, and each crate holds a word from German, French or Spanish. Your job is to carry every crate to the dock that shows what the word really means.\n\nSome words are easy because they look like English and mean the same. Others are false friends: they look like a word you know but mean something else. Spotting those is the heart of the game. Choose the wrong dock and you lose a heart, so think before you drop.\n\nIf you finish the Daily Harbour, you get coins and a streak bonus. Spend the coins to build your harbour, and each new building brings ships from a new country. You can also play Free Sail as much as you like, and pick Easy, Mixed or Tricky. Passport stamps reward you for learning a language. It is made for anyone who is learning a language, or who simply enjoys words and a few quiet minutes.","controls":["Drag a crate onto a dock.","Or tap the crate, then tap the dock.","Tap Hint to rule out one wrong dock.","Use the bottom tabs: Play, Harbour and Passport."],"tips":["If a word looks like English, stop and check twice. It might be a false friend.","You get 3 hints a day, so save them for the crates that really stump you.","Play the Daily Harbour every day. The streak bonus grows with each day and gives you more coins."],"story":""}</script>
+<script>(function(){
+var btn=document.getElementById('sx-about-btn'),ov=document.getElementById('sx-about'),card=ov.querySelector('.sx-card'),x=ov.querySelector('.sx-x');
+var d=JSON.parse(document.getElementById('sx-about-data').textContent);
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e;}
+function list(h,a){if(!a||!a.length)return;card.appendChild(el('h3',h));var u=el('ul');a.forEach(function(s){u.appendChild(el('li',s));});card.appendChild(u);}
+var h=el('h2','About '+d.title);h.id='sx-about-t';card.appendChild(h);
+String(d.description||'').split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});
+list('Controls',d.controls);list('Tips',d.tips);
+if(d.story){card.appendChild(el('h3','From the maker'));String(d.story).split(/\n\s*\n/).forEach(function(p){if(p.trim())card.appendChild(el('p',p.trim()));});}
+card.appendChild(el('p','Made by '+d.maker+'.')).style.marginTop='12px';
+var last=null;
+function open(){last=document.activeElement;ov.hidden=false;card.scrollTop=0;x.focus();}
+function close(){ov.hidden=true;if(btn)btn.blur();try{if(last&&last.focus&&last!==btn)last.focus();}catch(e){}}
+btn.addEventListener('click',function(e){e.stopPropagation();open();});
+['pointerdown','mousedown','touchstart','keydown','keyup'].forEach(function(n){btn.addEventListener(n,function(e){e.stopPropagation();});});
+x.addEventListener('click',close);
+ov.addEventListener('click',function(e){if(e.target===ov)close();});
+['keydown','keyup','keypress'].forEach(function(n){window.addEventListener(n,function(e){if(ov.hidden)return;if(n==='keydown'&&e.key==='Escape')close();if(e.key==='Tab'){return;}e.stopPropagation();},true);});
+['pointerdown','pointerup','mousedown','mouseup','touchstart','touchend','wheel'].forEach(function(n){ov.addEventListener(n,function(e){e.stopPropagation();},{passive:true});});
+})();</script>
+<!-- about-panel:end -->
 </body>
 </html>

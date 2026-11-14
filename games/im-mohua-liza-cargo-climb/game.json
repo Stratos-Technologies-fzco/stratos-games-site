@@ -5,5 +5,16 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Phone: hold GAS and BRAKE in the bottom corners. Computer: right arrow or D for gas, left arrow or A to brake. In the air, gas tips the nose up and brake tips it down.",
-  "description": "Your pickup carries three crates that slide and bounce for real. Every 400 metres there is a depot: each crate still on board pays 30 coins, a full load pays a bonus, and you get a full tank and three new crates. Grab coins and fuel cans, land flips for bonus coins, and keep the driver's head off the ground. The hills change every day, so there is a new route to beat each morning and a day streak to keep going. Day turns to dusk and night as you drive, and your headlights come on in the dark."
+  "description": "Cargo Climb is a hill-climb driving game with a twist: your truck carries three loose crates, and they bounce and slide for real. Every 400 metres there is a depot, and you get 30 coins for every crate still on board, plus a bonus for a full load.\n\nHold gas to drive and brake to slow down. In the air, gas tips the nose up and brake tips it down, so you can land on your wheels or pull off a flip for bonus coins. Pick up coins and fuel cans on the way, and keep the driver's head off the ground. Spend your coins in the garage to unlock the Tractor, Dirt Bike, Monster Truck and Supercar, each with its own feel and its own number of crates.\n\nThe hills change every day, so there is a fresh route each morning and a day streak to keep going. Day turns to dusk and night as you drive, and your headlights come on in the dark. It is a quick, silly, satisfying game for anyone who likes driving and a bit of wobbly physics chaos.",
+  "controls": [
+    "Phone: hold GAS and BRAKE in the bottom corners",
+    "Computer: right arrow or D for gas, left arrow or A to brake",
+    "In the air, gas tips the nose up and brake tips it down"
+  ],
+  "tips": [
+    "Go gently over big bumps. Speed throws your crates off.",
+    "Watch your fuel and grab every can you see.",
+    "Bring all three crates to the depot for the full-load bonus."
+  ],
+  "story": "I love hill-climb driving games, and I wanted my own one with a twist. So the truck carries loose crates that can fall off. I built it with Claude and played it over and over until the bumps, the flips and the crashes felt just right."
 }

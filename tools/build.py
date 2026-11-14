@@ -11,7 +11,7 @@ Reads site.json and games/*/game.json, writes:
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
-import json, os, re, html, datetime, hashlib
+import json, os, re, html, datetime, hashlib, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -83,8 +83,35 @@ def has_analytics(d):
     return (bool(re.search(r"Stratos[\s\S]{0,80}\.track\(", code)) and "level_start" in code
             and ("level_complete" in code or "game_over" in code))
 
+def first_added():
+    """The day each games/<box>/game.json first appeared in git, on any branch: {box: "YYYY-MM-DD"}.
+    A file's own time is only the checkout time (on GitHub every game looked added on build day), so git history
+    decides. A renamed box keeps the day of its first name. The builds check out the full history (fetch-depth: 0);
+    with no git at all this is {} and the file time is used."""
+    try:
+        out = subprocess.run(["git", "log", "--all", "--reverse", "-M", "--diff-filter=AR", "--format=@%as", "--name-status", "--", "games"],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60).stdout
+    except Exception:
+        return {}
+    def box(path):
+        p = path.strip().split("/")
+        return p[1] if len(p) == 3 and p[0] == "games" and p[2] == "game.json" else None
+    days, day = {}, None
+    for line in out.splitlines():
+        if line.startswith("@"):
+            day = line[1:]
+            continue
+        f = line.split("\t")
+        if not day or len(f) < 2: continue
+        if f[0].startswith("A") and box(f[1]) and box(f[1]) not in days:            # oldest first, so the first add wins
+            days[box(f[1])] = day
+        elif f[0].startswith("R") and len(f) == 3 and box(f[2]) and box(f[2]) not in days:
+            days[box(f[2])] = days.get(box(f[1]), day)                              # a renamed box keeps its first day
+    return days
+
 def load_games():
     games, problems = [], []
+    firsts = first_added()
     for slug in sorted(os.listdir(GAMES)):
         d = os.path.join(GAMES, slug)
         if not os.path.isdir(d) or slug.startswith((".", "_")): continue
@@ -109,7 +136,7 @@ def load_games():
             g["thumb"] = f"assets/covers/generated/{slug}.svg"
         g["game_url"] = f"games/{slug}/index.html"
         g["url"] = f"play/{slug}/"
-        g["added"] = g.get("added") or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
+        g["added"] = g.get("added") or firsts.get(slug) or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
         g["kind"] = "family"
         games.append(g)
     games.sort(key=lambda g: g["added"], reverse=True)
@@ -269,9 +296,11 @@ def pk_tile(g, base="", size="s1", pv=False):
     return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
             f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}{meta}</span></a>')
 
-def pk_tiles(items, base="", first_big=True):
+def pk_tiles(items, base="", first_big=True, later_from=None):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
-    out = [pk_tile(g, base, "s3" if i == 0 and first_big else "s2") for i, g in enumerate(real)]
+    def size(i):   # later_from: these tiles get "pk-later" (game pages hide them on phones, see build_play)
+        return ("s3" if i == 0 and first_big else "s2") + (" pk-later" if later_from is not None and i >= later_from else "")
+    out = [pk_tile(g, base, size(i)) for i, g in enumerate(real)]
     return "".join(out + [pk_tile(g, base, "s1") for g in soon])
 
 def pk_cta():
@@ -364,22 +393,46 @@ q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,see
   if(hit&&v){if(seen[t.href])hit=false;seen[t.href]=1}t.hidden=!hit;if(hit)n++});
  body.classList.toggle('pk-searching',!!v);if(none)none.hidden=!(v&&!n)})})();</script>"""
 
-def pk_body(base, inner, attrs="", active="", nav=None, cls="", top=""):
+def pk_body(base, inner, attrs="", active="", nav=None, cls="", top="", after=""):
     return (f'<body class="pk{cls}" data-base="{esc(base)}"{attrs}>{top}{pk_side(base, active)}<main class="pk-grid">{pk_nav(base) if nav is None else nav}{inner}</main>'
-            f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{pk_foot(base)}{PK_JS}</body></html>')
+            f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{after}{pk_foot(base)}{PK_JS}</body></html>')
+
+# Written text under the tiles (AdSense, Nov 2026: pages need words of their own, not only game tiles).
+# It sits outside the tile grid (the grid's rows are a fixed height) and hides while someone searches.
+def pk_paras(text):
+    return [p.strip() for p in re.split(r"\n\s*\n|\n", str(text or "")) if p.strip()]
+
+def pk_list(items):
+    items = [items] if isinstance(items, str) else list(items or [])
+    return "<ul>" + "".join(f"<li>{esc(x)}</li>" for x in items if str(x).strip()) + "</ul>" if items else ""
+
+def pk_text(title, paras=(), extra=""):
+    if not paras and not extra: return ""
+    return f'<section class="pk-text"><h2>{esc(title)}</h2>' + "".join(f"<p>{esc(p)}</p>" for p in paras) + extra + "</section>"
 
 # --- home page: Poki look (turquoise page, square logo box, mixed tile sizes) ---
 ICONS["thumbup"] = '<path d="M7 11v9H4v-9zM7 11l4-8c1.5 0 2.5 1.2 2.2 2.7L12.6 9H19a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>'
 ICONS["thumbdown"] = '<path d="M7 13V4H4v9zM7 13l4 8c1.5 0 2.5-1.2 2.2-2.7L12.6 15H19a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17.8 4H7"/>'
 ICONS["user"] ='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>'
 
+# --- S-Snake logo (purple snake S with googly eyes): eyes follow the cursor, blinks, wiggle + boing on hover ---
+SN_INNER = '\n<g fill="none" stroke-linecap="round" stroke-linejoin="round">\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#2A1060" stroke-width="64" transform="translate(5 9)"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#0B0614" stroke-width="64"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#8B5CF6" stroke-width="44"/>\n<path d="M118 44 C102 36 76 42 72 66" stroke="#C4B0FF" stroke-width="10"/>\n<path d="M74 92 C96 106 128 104 132 120" stroke="#C4B0FF" stroke-width="10" opacity=".7"/>\n<path class="sn-tongue" d="M146 86 L146 100 M146 100 L140 108 M146 100 L152 108" stroke="#FF4D6D" stroke-width="4.5"/>\n</g>\n<g class="sn-eye"><circle cx="130" cy="58" r="15" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="132" data-y="59" cx="132" cy="59" r="6.5" fill="#0B0614"/></g>\n<g class="sn-eye"><circle cx="158" cy="64" r="13" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="159" data-y="65" cx="159" cy="65" r="5.8" fill="#0B0614"/></g>\n'
+
+def sn_logo(cls, size):
+    return (f'<a class="{cls} sn-logo" href="./" aria-label="Stratos Games home">'
+            f'<span class="sn-word"><span class="sn-row"><svg class="sn-mark" width="{size}" height="{size}" viewBox="0 0 200 200" aria-hidden="true">{SN_INNER}</svg>'
+            '<span class="sn-w1">tratos</span></span><span class="sn-w2">GAMES</span></span></a>')
+
+SN_ASSETS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap">'
+             '<style>' + '.sn-logo{display:flex;align-items:center;gap:8px;text-decoration:none}\n.sn-mark{overflow:visible;flex:none;transform-origin:50% 60%}\n.sn-mark *{transform-box:fill-box}\n.sn-word{display:flex;flex-direction:column;align-items:center;line-height:.86;font-family:Fredoka,sans-serif;font-weight:700}\n.sn-row{display:flex;align-items:flex-end;font-size:34px}\n.sn-row .sn-mark{width:.95em;height:.95em;margin:0 .02em .14em 0}\n.sn-w1{font-size:1em;line-height:1;color:#fff;letter-spacing:-.5px}\n.sn-w2{font-size:14px;color:#B6FF3B;letter-spacing:.3em;padding-left:.3em;margin-top:1px}\n.sn-box{flex-direction:column;gap:1px}\n.sn-box .sn-word{align-items:center}\n.sn-box .sn-row{font-size:21px}\n.sn-box .sn-w1{color:#14151F}\n.sn-box .sn-w2{color:#8B5CF6;font-size:8.5px}\n.sn-eye{transform-origin:center}\n.sn-blink .sn-eye{animation:snBlink .18s ease-in-out}\n@keyframes snBlink{50%{transform:scaleY(.1)}}\n.sn-tongue{transform-origin:top center;transform:scaleY(0)}\n.sn-on .sn-tongue{animation:snTongue .5s ease-out}\n@keyframes snTongue{30%,70%{transform:scaleY(1)}}\n.sn-on .sn-mark{animation:snWiggle .7s ease-in-out}\n@keyframes snWiggle{15%{transform:rotate(-9deg) scale(1.08,.94)}35%{transform:rotate(8deg) scale(.96,1.06)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}}\n.cg-logo.sn-logo .sn-word{display:flex!important}\n@media (max-width:1200px){.cg-logo.sn-logo .sn-row{font-size:28px}.cg-logo.sn-logo .sn-w2{font-size:11.5px}}\n@media (max-width:600px){.cg-logo.sn-logo .sn-row{font-size:23px}.cg-logo.sn-logo .sn-w2{font-size:9.5px}}\n@media (prefers-reduced-motion:reduce){.sn-on .sn-mark,.sn-on .sn-tongue,.sn-blink .sn-eye{animation:none}}' + '</style><script>' + "(function(){\n  var ctx=null;\n  function getCtx(){ try{ if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=null; } return ctx; }\n  function sound(a){\n    function t(f,t0,d,type,v,f2){var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v,s+.012);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g).connect(a.destination);o.start(s);o.stop(s+d+.02);}\n    t(180,0,.28,'sine',.3,720); t(720,.2,.25,'triangle',.15,360);\n  }\n  function boing(){\n    var a=getCtx(); if(!a) return;\n    if(a.state==='running'){ sound(a); return; }\n    a.resume().then(function(){ if(a.state==='running') sound(a); }).catch(function(){});\n  }\n  // the browser unlocks sound after the first click, tap or key press anywhere on the page\n  ['pointerdown','touchstart','keydown'].forEach(function(ev){\n    window.addEventListener(ev,function(){ var a=getCtx(); if(a&&a.state!=='running') a.resume(); },{passive:true});\n  });\n  function play(el,c,ms){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(function(){el.classList.remove(c);},ms);}\n  document.querySelectorAll('.sn-logo').forEach(function(el){\n    var last=0;\n    el.addEventListener('pointerenter',function(){var n=Date.now();if(n-last<600)return;last=n;play(el,'sn-on',750);play(el,'sn-blink',200);boing();});\n    (function loop(){setTimeout(function(){play(el,'sn-blink',200);loop();},2500+Math.random()*3000);})();\n  });\n  var pupils=document.querySelectorAll('.sn-pupil');\n  window.addEventListener('pointermove',function(e){\n    pupils.forEach(function(p){\n      var r=p.ownerSVGElement.getBoundingClientRect();if(!r.width)return;var k=r.width/200,bx=+p.dataset.x,by=+p.dataset.y;\n      var dx=e.clientX-(r.left+bx*k),dy=e.clientY-(r.top+by*k),len=Math.hypot(dx,dy)||1,m=Math.min(5,len/20);\n      p.setAttribute('cx',(bx-1+dx/len*m).toFixed(1));p.setAttribute('cy',(by-1+dy/len*m).toFixed(1));\n    });\n  });\n})();" + '</script>')
+
 def pz_nav():
-    return (f'<div class="pk-nav pz-nav"><a class="pz-logo" href="./" aria-label="Stratos Games home">Stratos<b>Games</b></a>'
+    return (f'<div class="pk-nav pz-nav">{sn_logo("pz-logo sn-box", 30)}'
             f'<div class="pz-btns"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>'
             f'<button class="pz-b" type="button" aria-label="Account">{icon("user", 24)}</button>'
             f'<button class="pz-b" type="button" aria-label="Search" onclick="document.body.classList.add(&quot;pz-find&quot;);document.getElementById(&quot;pkq&quot;).focus()">{icon("search", 24)}</button></div>'
             f'<label class="pk-search pz-search">{icon("search", 14)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games" '
-            f'onblur="if(!this.value)document.body.classList.remove(&quot;pz-find&quot;)"></label></div>')
+            f'onblur="if(!this.value)document.body.classList.remove(&quot;pz-find&quot;)"></label></div>{SN_ASSETS}')
 
 ICONS["ad"] = '<circle cx="12" cy="12" r="9"/><path d="M7.5 15l2-6 2 6M8.2 13h2.6M14 9v6h1.5a3 3 0 0 0 0-6z"/>'
 ICONS["users"] = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.8.2 5 2.6 5 5.8"/>'
@@ -391,7 +444,7 @@ def cg_top(new_count):
     dot = f'<span class="cg-dot">{new_count}</span>' if new_count else ""
     sync = "var p=document.getElementById(&quot;pkq&quot;);p.value=this.value;p.dispatchEvent(new Event(&quot;input&quot;))"
     return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
-            f'<a class="cg-logo" href="./" aria-label="Stratos Games home"><span class="lm">S</span><span class="cg-wm">STRATOS<b>GAMES</b></span></a>'
+            f'{sn_logo("cg-logo", 46)}'
             f'<label class="cg-search"><input type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories" oninput="{sync}">{icon("search", 20)}</label>'
             f'<div class="cg-acts"><button class="cg-noads" type="button">{icon("ad", 18)}<span>No ads</span></button>'
             f'<button class="cg-ib" type="button" title="Friends" aria-label="Friends">{icon("users", 18)}</button>'
@@ -409,7 +462,14 @@ def build_home_cards(fam):
     jsonld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Organization", "@id": SITE["url"] + "/#org", "name": "Stratos Games", "url": SITE["url"] + "/", "email": SITE["contact"], "logo": SITE["url"] + "/assets/favicon.svg"},
         {"@type": "WebSite", "@id": SITE["url"] + "/#site", "url": SITE["url"] + "/", "name": "Stratos Games", "publisher": {"@id": SITE["url"] + "/#org"}}]}
-    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))))
+    counts = {}
+    for g in fam:
+        if not g.get("soon"): counts[g["category"]] = counts.get(g["category"], 0) + 1
+    counts["studio"] = len(SITE.get("studio_games", []))
+    cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
+                   for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
+    about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
+    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
@@ -441,7 +501,11 @@ def build_category(cid, items, fam, studio):
     if CLEAN:
         n = len(pool)
         headcard = f'<div class="pk-head"><h1>{c.get("emoji", "")} {esc(c["label"])}</h1><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>'
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid)
+        names = [f'{g["title"]} by {g["maker"]}' for g in pool if not g.get("soon")]
+        listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
+        about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
+                        pk_paras(c.get("intro")), listing)
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid, after=about)
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
@@ -449,6 +513,55 @@ def build_category(cid, items, fam, studio):
             f'{wall(pool, base, bigs=1, title=c["label"], sub=f"{c.get('mood', '')} · {len(pool)} game{'s' if len(pool) != 1 else ''}") if pool else f"<section class=\"row\"><div class=\"rh\"><h2>{esc(c['label'])}</h2></div><div class=\"wall\"><div class=\"empty\">Nothing here yet. Be the first.</div>{cta_tile()}</div></section>"}'
             f'{row("From the studio", studio, base, cat_id="studio") if cid != "studio" and not CLEAN else ""}{footer(base)}</main></div>{JS}</body></html>')
     write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
+
+# Play page: one framed block under the tiles, laid out like Poki's game pages (Nov 2026):
+# cover + breadcrumb + title + description (Show more), a row of quick facts, then an "About this game" table.
+# It lines up with the tiles (not the game: on phones the game runs edge to edge).
+ICONS["phone"] = '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>'
+ICONS["joystick"] = ICONS.get("joystick") or '<circle cx="12" cy="6" r="3"/><path d="M12 9v6M5 15h14v5H5z"/>'
+
+def pk_date(s):
+    try:
+        d = datetime.date.fromisoformat(str(s)); return f"{d.day} {d.strftime('%b %Y')}"
+    except Exception:
+        return str(s or "")
+
+def pk_detail(g, base):
+    c = CATS[g["category"]]; cat_href = f'{base}c/{g["category"]}/'
+    paras = pk_paras(g.get("description")) or ([g["one_line"]] if g.get("one_line") else [])
+    soon = f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else ""
+    desc = soon + "".join(f"<p>{esc(p)}</p>" for p in paras)
+    dev = esc(g["maker"]) + (f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else "")
+    def fact(ic, hue, label, val):
+        return f'<div class="pd-fact"><span class="pd-fi" style="--h:{hue}">{ic}</span><span><small>{label}</small><b>{val}</b></span></div>'
+    facts = (fact(f'<span class="em">{c.get("emoji", "")}</span>', 30, "Category", f'<a href="{cat_href}">{esc(c["label"])}</a>') +
+             fact(icon("clock", 20), 340, "Added", esc(pk_date(g.get("added")))) +
+             fact(icon("phone", 20), 190, "Plays on", "Phone &amp; computer") +
+             fact(icon("sparkle", 20), 270, "Price", "Free"))
+    def row(ic, label, val):
+        return f'<div class="pd-row"><dt>{icon(ic, 19)}{label}</dt><dd>{val}</dd></div>' if val else ""
+    story = "".join(f"<p>{esc(p)}</p>" for p in pk_paras(g.get("story")))
+    rows = (row("info", "How to play", f'<p>{esc(g["how_to_play"])}</p>' if g.get("how_to_play") else "") +
+            row("joystick", "Controls", pk_list(g.get("controls"))) +
+            row("star", "Tips", pk_list(g.get("tips"))) +
+            row("user", "From the maker", story) +
+            row("phone", "Supported devices", "Phone, tablet and computer, right in the browser. No download.") +
+            row("github", "Developer", dev) +
+            row("clock", "Released", esc(pk_date(g.get("added")))))
+    return (f'<section class="pk-detail"><div class="pd-head">'
+            f'<img class="pd-cover" src="{esc(base + g["thumb"])}" alt="{esc(g["title"])} cover" width="800" height="500" loading="lazy">'
+            f'<div class="pd-main"><nav class="pd-crumb" aria-label="Breadcrumb"><a href="{base}">Games</a>{icon("chev", 14)}<a href="{cat_href}">{esc(c["label"])} games</a></nav>'
+            f'<h1>{esc(g["title"])}</h1><p class="pd-by">by {esc(g["maker"])}</p>'
+            f'<div class="pd-desc" id="pd-desc">{desc}</div>'
+            f'<button class="pd-more" id="pd-more" type="button" aria-expanded="false" hidden><span>Show more</span>{icon("plus", 15)}</button></div></div>'
+            f'<div class="pd-facts">{facts}</div>'
+            f'<h2>About this game</h2><dl class="pd-table">{rows}</dl></section>'
+            '<script>(function(){var D=document,d=D.getElementById("pd-desc"),b=D.getElementById("pd-more"),g=D.querySelector(".pk-grid"),s=D.querySelector(".pk-detail");'
+            'function fit(){if(!g||!s)return;var l=1e9,r=-1e9;[].forEach.call(g.children,function(c){var b=c.getBoundingClientRect();if(!b.width||c.hidden||c.classList.contains(\"pk-stage\"))return;l=Math.min(l,b.left);r=Math.max(r,b.right)});'
+            'if(r<=l)return;var B=D.body,o=B.getBoundingClientRect().left+parseFloat(getComputedStyle(B).paddingLeft);s.style.width=(r-l)+"px";s.style.marginLeft=(l-o)+"px"}'
+            'fit();addEventListener("resize",fit);addEventListener("load",fit);'
+            'if(!d||!b)return;d.classList.add("clamp");if(d.scrollHeight<=d.clientHeight+4){d.classList.remove("clamp");return}b.hidden=false;'
+            'b.onclick=function(){var c=d.classList.toggle("clamp");b.firstChild.textContent=c?"Show more":"Show less";b.classList.toggle("open",!c);b.setAttribute("aria-expanded",String(!c))}})()</script>')
 
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
@@ -458,7 +571,13 @@ def build_play(g, fam, studio):
               "author": {"@type": "Person", "name": g["maker"]}, "publisher": {"@id": SITE["url"] + "/#org"}, "isAccessibleForFree": True, "datePublished": g["added"]}
     gh = f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else ""
     howto = f'<h2>How to play</h2><p>{esc(g["how_to_play"])}</p>' if g.get("how_to_play") else ""
-    about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") else "")
+    about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") and not CLEAN else "")
+    # game.json, all optional: "description" (paragraphs, blank line between), "controls" and "tips" (a line or a list),
+    # "story" (why and how the maker made it, in their own words)
+    more = (pk_list(g.get("controls")) and f'<h3>Controls</h3>{pk_list(g.get("controls"))}') + \
+           (pk_list(g.get("tips")) and f'<h3>Tips</h3>{pk_list(g.get("tips"))}') + \
+           (f'<h3>From the maker</h3>' + "".join(f"<p>{esc(p)}</p>" for p in pk_paras(g.get("story"))) if pk_paras(g.get("story")) else "")
+    words = pk_detail(g, base)
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
     if CLEAN:
         stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
@@ -470,16 +589,25 @@ def build_play(g, fam, studio):
                  f'function paint(){{var v=rd()[s]||0;b.forEach(function(x){{var o=+x.dataset.v===v;x.classList.toggle("on",o);x.setAttribute("aria-pressed",o)}})}}'
                  f'b.forEach(function(x){{x.onclick=function(){{var m=rd(),v=+x.dataset.v;if(m[s]===v)delete m[s];else m[s]=v;try{{localStorage.setItem(k,JSON.stringify(m))}}catch(e){{}}paint()}}}});paint()}})()</script>'
                  f'<button class="pk-ib pk-like" id="pk-like" type="button" title="Add to favourites" aria-label="Favourite" aria-pressed="false">{icon("heart", 18)}</button>'
-                 f'<button class="pk-ib" type="button" title="Share" aria-label="Share" onclick="var b=this;(navigator.share?navigator.share({{title:document.title,url:location.href}}):navigator.clipboard.writeText(location.href).then(function(){{b.title=\'Link copied\'}}))">{icon("share", 18)}</button>'
-                 f'<a class="pk-ib" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'
-                 f'<button class="pk-ib" type="button" title="Fullscreen" aria-label="Fullscreen" onclick="var f=document.getElementById(\'game\');(f.requestFullscreen||f.webkitRequestFullscreen).call(f)">{icon("full", 18)}</button></div></div>')
-        info = (f'<section class="pk-info"><h1>{esc(g["title"])}</h1><p class="lead">{esc(g.get("one_line"))}</p>{about}{howto}'
-                f'<p class="meta">{esc(CATS[g["category"]]["label"])} · Made by {esc(g["maker"])}{gh} · Added {esc(g["added"])} · Free, no install, works on a phone</p></section>')
+                 f'<button class="pk-ib pk-share" type="button" title="Share" aria-label="Share" onclick="var b=this;(navigator.share?navigator.share({{title:document.title,url:location.href}}):navigator.clipboard.writeText(location.href).then(function(){{b.title=\'Link copied\'}}))">{icon("share", 18)}</button>'
+                 f'<a class="pk-ib pk-flag" href="{report}" title="Report a problem" aria-label="Report a problem">{icon("flag", 18)}</a>'
+                 f'<button class="pk-ib pk-full" type="button" title="Fullscreen" aria-label="Fullscreen" onclick="var f=document.getElementById(\'game\');(f.requestFullscreen||f.webkitRequestFullscreen).call(f)">{icon("full", 18)}</button></div></div>')
         others = [x for x in fam if x["slug"] != g["slug"] and not x.get("soon")]
-        others.sort(key=lambda x: x["category"] != g["category"])   # similar games (same category) first
+        # the maker's other games first (matched by GitHub name: display names vary, e.g. "Nikhat" / "Nikhat Sultana"),
+        # then similar games (same category), then the rest. Kids game pages keep kids games first (the maker's kids
+        # games lead), so a child is never steered to a maker's shooter or card game right under a kids game.
+        owner = lambda x: (x.get("github") or x["maker"]).strip().lower()
+        if g["category"] == "kids":
+            others.sort(key=lambda x: (x["category"] != "kids", x["category"] == "kids" and owner(x) != owner(g)))
+        else:
+            others.sort(key=lambda x: (owner(x) != owner(g), x["category"] != g["category"]))
         gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
-        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False) + info + pk_cta() + pk_cats(base),
-                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"])
+        # Phones: only the first few similar games sit between the game and its details, the rest come after the details.
+        # The .pk-later tiles hide on phones and show again in the .pk-more grid, which only phones see (assets/site.css).
+        near = 4
+        rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cta()}{pk_cats(base)}</section>'
+        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cta() + pk_cats(base),
+                       attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words + rest)
         write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'

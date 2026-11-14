@@ -5,5 +5,16 @@
   "category": "party",
   "github": "im-mohua-liza",
   "how_to_play": "Tap a glowing card that matches the top card's color, number or symbol. No match? Tap the deck to draw. Hit LAST CARD! when you are down to one.",
-  "description": "Match the top card by color, number or symbol and be the first to empty your hand. Freeze skips the next player, Flip reverses the turn order, +2 makes them draw, and Prism cards let you pick the new color (Prism +4 hits them with four more). Stack draw cards to pile the pain onto the next player, and don't forget to shout LAST CARD! in time. Play against cheeky bots, pass one phone around with friends, or open an online room and share the code so friends anywhere can join. Up to 6 players, neon table, disco floor and a funky soundtrack."
+  "description": "Chroma Clash is a bright 3D card game for friends and family. Everyone gets a hand of cards, and the first to play them all wins.\n\nOn your turn, play a card that matches the top card's colour, number or symbol. No match? Tap the deck to draw. Freeze skips the next player, Flip reverses the order, +2 makes the next player draw two, and Prism cards let you pick the new colour. Prism +4 makes them draw four. Draw cards can be stacked, so a +2 can be answered with another +2 and the pile keeps growing. When you are down to one card, hit LAST CARD! in time.\n\nPlay against cheeky bots, pass one phone around with friends, or open an online room and share the code so friends anywhere can join, up to six players, with chat and reactions. The neon table, disco floor and funky music make it feel like a party. It is for anyone who grew up playing card games at home and wants that same fun on a phone.",
+  "controls": [
+    "Tap a glowing card to play it",
+    "No match? Tap the deck to draw",
+    "Tap LAST CARD! when you have one card left"
+  ],
+  "tips": [
+    "Save your Prism cards for when you are stuck.",
+    "Answer a +2 with your own +2 to pass the pile along.",
+    "Change the colour to one your rivals seem to be missing."
+  ],
+  "story": "Card games like this are what we play at home, and I wanted one I could play on my phone with friends anywhere. I asked Claude for something offline, online, 3D and funky, then we fixed the online rooms together until friends on other networks could join."
 }

@@ -5,5 +5,17 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Phone: drag left side to move, right side to look, hold FIRE, tap AIM and USE. Computer: WASD to move, mouse or arrow keys to look, click to fire, right-click to aim, E to interact.",
-  "description": "Elias has to reach Mara, who is hiding in a warehouse in an abandoned mill town held by the Ravel militia. Lead her out, search houses for supplies, use the radio tower to call for extraction, then hold the landing zone against enemy waves until the helicopter lands. Mara follows you, takes cover by herself and warns you about flankers. Enemies patrol, investigate noises, use cover and flank. Three difficulty levels, checkpoints after each objective, and a Watch demo mode on the title screen. Characters: AvatarSDK and Avaturn sample avatars (non-commercial licence) and the three.js Soldier model."
+  "description": "Ashgrove Extraction is a third-person survival shooter set in a rainy mill town. The Ravel militia hold the whole town, and they have locked Mara in a warehouse. You play Elias, and your job is to get her out alive.\n\nReach Mara and lead her out. Search houses for ammo and medkits, use the radio tower to call for help, then hold the landing zone until the helicopter comes down. Mara follows you, takes cover by herself and warns you when enemies try to flank. The militia patrol, hear your gunfire, use cover and come around the sides, so rushing in is a bad idea. Sneak up behind a guard and your knife takes him down without a sound. A short tutorial teaches the controls as you play, checkpoints save after each objective, and there are three difficulty levels.\n\nThe fun is in the tension: you are not only looking after yourself, you are looking after Mara too. It plays best on a computer with a keyboard and mouse, and also works on a phone turned sideways. It is for teens and adults who like action games with a story. Characters: AvatarSDK and Avaturn sample avatars (non-commercial licence) and the three.js Soldier model.",
+  "controls": [
+    "Computer: WASD to move, mouse or arrow keys to look, Shift to sprint, C to crouch",
+    "Left click to fire, right click to aim, R to reload, 1 and 2 to swap guns, Q for the knife",
+    "E to use, F to tell Mara to wait or follow, H for a medkit, Tab for your bag",
+    "Phone (sideways): drag left to move, drag right to look, hold FIRE, tap AIM, KNIFE and USE"
+  ],
+  "tips": [
+    "Crouch behind low walls, cars and crates to stay out of sight.",
+    "Gunfire brings enemies running. Sneak up behind a guard and use the knife instead.",
+    "Keep Mara close. If she dies, the mission fails."
+  ],
+  "story": "I wanted to try something big: a story action game where you protect someone, not just shoot. I built it with Claude, step by step, from the town and the characters to the opening scene and the controls."
 }

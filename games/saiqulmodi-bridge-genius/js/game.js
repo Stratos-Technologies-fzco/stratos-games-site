@@ -26,7 +26,7 @@
                       "Timber": "Timber beam", "Concrete": "Concrete beam" };
   const matName = m => t(MAT_SHORT[m] || m);
 
-  let LV = [], NAMES = {}, CAT = null, HANDBOOK = null;
+  let LV = [], NAMES = {}, CAT = null, HANDBOOK = null, BOOKS = null;
   const QCACHE = {};
   let S = null;                        // saved progress
   const designs = {};                  // level (or weekly key) -> Design
@@ -41,9 +41,19 @@
              streak: 0, lastDaily: "", dailyDate: "", dailyCount: 0, answered: 0, badges: {}, weekly: { week: -1, best: null, build: [] },
              preview: {}, done: {}, doneN: {} };
   }
+  // 08-Nov-2026: Classes 1-7 removed (index of "my class" moves down 7) and each of Classes 8-12 got its own
+  // bridge project; a saved build of a class whose project changed no longer fits, so only that build is cleared
+  const MOVED_PROJECT = [8, 10, 11, 12, 13, 15];
+  function migrate(s) {
+    if (s.v8 === 1) return s;
+    if (s.start >= 0) s.start = Math.max(0, s.start - 7);
+    for (const l of MOVED_PROJECT) { delete s.builds[l]; delete s.parts[l]; delete s.bestParts[l]; }
+    s.v8 = 1;
+    return s;
+  }
   function load() {
-    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") return Object.assign(fresh(), s); } catch (e) {}
-    return fresh();
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") return migrate(Object.assign(fresh(), s)); } catch (e) {}
+    return Object.assign(fresh(), { v8: 1 });
   }
   function save() {
     if (cur && !cur.weekly) { S.builds[cur.level] = cur.design.members; S.parts[cur.level] = cur.design.parts; }
@@ -172,8 +182,8 @@
     ["first", "🎯", "First Answer", s => s.answered >= 1],
     ["bridge1", "👷", "Junior Engineer: first bridge", s => nDone(s) >= 1],
     ["bridge5", "🦺", "Site Engineer: 5 bridges", s => nDone(s) >= 5],
-    ["bridge10", "🏗️", "Chief Engineer: 10 bridges", s => nDone(s) >= 10],
-    ["bridge16", "🏛️", "Expert Engineer: all 16 bridges", s => nDone(s) >= 16],
+    ["bridge10", "🏗️", "Chief Engineer: 7 bridges", s => nDone(s) >= 7],
+    ["bridge16", "🏛️", "Expert Engineer: all 9 bridges", s => LV.length > 0 && nDone(s) >= LV.length],
     ["q100", "📚", "Quiz Ace: 100 right answers", s => totalCorrect(s) >= 100],
     ["q1000", "🎓", "Scholar: 1,000 right answers", s => totalCorrect(s) >= 1000],
     ["streak3", "🔥", "3-day streak", s => s.streak >= 3],
@@ -183,10 +193,10 @@
     ["thrifty", "🪙", "Thrifty builder: pass within par parts", s => LV.some(l => s.complete[l.l] && s.bestParts[l.l] <= CAT.projects[l.project - 1].par_parts)],
     ["weekly", "🥇", "Weekly champion: pass a weekly challenge", s => s.weekly.best !== null],
   ];
-  const nDone = s => Object.values(s.complete).filter(Boolean).length;
+  const nDone = s => LV.filter(l => s.complete[l.l]).length;
   const totalCorrect = s => Object.values(s.correct).reduce((a, b) => a + b, 0);
   function title() {
-    const x = [[16, "Expert Engineer"], [10, "Chief Engineer"], [5, "Site Engineer"], [1, "Junior Engineer"]].find(([n]) => nDone(S) >= n);
+    const x = [[LV.length || 99, "Expert Engineer"], [7, "Chief Engineer"], [5, "Site Engineer"], [1, "Junior Engineer"]].find(([n]) => nDone(S) >= n);
     return t(x ? x[1] : "Trainee");
   }
   function checkBadges() {
@@ -473,6 +483,12 @@
       if (s === "bridge") b.classList.add("bridge");
       if (s === cur.subject) b.classList.add("on");
       b.onclick = () => setSubject(s);
+      c.appendChild(b);
+    }
+    if (BOOKS && BOOKS.levels[cur.level]) {     // one more tab: the class's NCERT books
+      const b = document.createElement("button");
+      b.textContent = "📚"; b.title = "NCERT"; b.classList.add("books");
+      b.onclick = () => openBooks(cur.level);
       c.appendChild(b);
     }
   }
@@ -933,6 +949,18 @@
     f.style.display = buttons.length ? "flex" : "none";
     $("modal").classList.add("show");
   }
+  // 08-Nov-2026: the class's NCERT books (game subjects only, no Biology book). Each chapter opens NCERT's own
+  // free PDF on ncert.nic.in in a new tab; nothing is copied into the game.
+  function openBooks(level) {
+    const list = BOOKS && BOOKS.levels[level];
+    if (!list) return;
+    const html = list.map(b => `<div style="margin:0 0 10px"><b>${esc(b.t)}</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">` +
+      Array.from({ length: b.n }, (_, k) => `<a href="${BOOKS.base}${b.c}${String(k + 1).padStart(2, "0")}.pdf" target="_blank" rel="noopener" ` +
+        `style="min-width:34px;text-align:center;padding:6px 8px;border-radius:8px;background:#1e3a5f;color:#fff;text-decoration:none">${k + 1}</a>`).join("") +
+      `</div></div>`).join("");
+    modal("📚 NCERT", `<p style="opacity:.8;margin:0 0 10px">📖 ncert.nic.in</p>${html}`);
+    track("books_open", { level: level });
+  }
   function closeModal() { $("modal").classList.remove("show"); $("modal").classList.remove("report"); modalKeys = null; }
   $("m-close").onclick = closeModal;
   $("modal").addEventListener("pointerdown", e => { if (e.target === $("modal")) closeModal(); });
@@ -1033,7 +1061,7 @@
     const done = nDone(S), stars = LV.reduce((a, l) => a + starsOf(l.l), 0);
     const badges = BADGES.map(([k, ic, name]) => `<div class="badge ${S.badges[k] ? "got" : ""}"><span class="ic">${S.badges[k] ? ic : "🔒"}</span>${esc(t(name))}</div>`).join("");
     const startSel = LV.map((l, k) => `<option value="${k}" ${k === S.start ? "selected" : ""}>${esc(lname(l))}</option>`).join("");
-    modal(`🏅 ${esc(title())}`, `<p>${esc(t("{a} of 16 bridges built · {b} of 48 stars · {c} right answers · best score {d} · 🔥 {e}-day streak",
+    modal(`🏅 ${esc(title())}`, `<p>${esc(t("{a} of 9 bridges built · {b} of 27 stars · {c} right answers · best score {d} · 🔥 {e}-day streak",
         { a: done, b: stars, c: totalCorrect(S).toLocaleString("en-IN"), d: S.best, e: S.streak }))}</p><div class="badges">${badges}</div>
       <p style="margin-top:14px">${t("My class:")} <select id="pf-start" style="font:inherit;padding:6px;border-radius:6px">${startSel}</select>
       <small> ${t("- buildings up to your class are open.")}</small></p>
@@ -1052,11 +1080,11 @@
     const rows = reportRows(), date = new Date().toLocaleDateString(getLang() === "bn" ? "bn-IN" : "en-IN");
     const head = [t("Building"), t("Stars"), t("Bridge"), t("Right answers"), t("Covered"), t("Bridge quiz"), t("Best parts")];
     const html = `<p><b>${t("Title")}:</b> ${esc(title())} · <b>${t("Streak")}:</b> ${S.streak} · <b>${t("Total right answers")}:</b> ${totalCorrect(S)} ·
-      <b>${t("Bridges built")}:</b> ${nDone(S)}/16 · <b>${t("Score")}:</b> ${S.score}</p>
+      <b>${t("Bridges built")}:</b> ${nDone(S)}/${LV.length} · <b>${t("Score")}:</b> ${S.score}</p>
       <table class="report"><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="stars">${starText(r.stars)}</td>
       <td>${r.bridge}</td><td>${r.right}</td><td>${r.mastery}</td><td>${r.quiz}/${BRIDGE_STAR_GOAL}</td><td>${r.parts}</td></tr>`).join("")}</table>`;
     modal(esc(t("📄 Report card - {d}", { d: date })), html, [[t("🖨 Print / Save PDF"), () => window.print()], [t("📋 Copy text"), () => {
-      const txt = [`BridgeWorks Campus - ${date}`, `${t("Title")}: ${title()} | ${t("Streak")}: ${S.streak} | ${t("Total right answers")}: ${totalCorrect(S)} | ${t("Bridges built")}: ${nDone(S)}/16`,
+      const txt = [`BridgeWorks Campus - ${date}`, `${t("Title")}: ${title()} | ${t("Streak")}: ${S.streak} | ${t("Total right answers")}: ${totalCorrect(S)} | ${t("Bridges built")}: ${nDone(S)}/${LV.length}`,
         head.join("\t")].concat(rows.map(r => [r.name, starText(r.stars), r.bridge, r.right, r.mastery, `${r.quiz}/${BRIDGE_STAR_GOAL}`, r.parts].join("\t"))).join("\n");
       try { navigator.clipboard.writeText(txt).then(() => toast(t("Copied")), () => {}); } catch (e) {}
     }]]);
@@ -1114,6 +1142,7 @@
     S = load();
     const [lv, cat] = await Promise.all([fetch("data/levels.json").then(r => r.json()), fetch("data/projects.json").then(r => r.json())]);
     LV = lv.levels; NAMES = lv.subject_names; CAT = cat;
+    fetch("data/books.json").then(r => r.json()).then(j => { BOOKS = j; }).catch(() => {});
     world.layout();
     $("loading").remove(); $("app").hidden = false;
     applyLang();

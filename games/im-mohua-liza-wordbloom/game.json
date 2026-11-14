@@ -5,5 +5,16 @@
   "category": "puzzle",
   "github": "im-mohua-liza",
   "how_to_play": "Swipe across the letters in the circle to spell a word, then let go (or type it and press Enter). Words that fit the crossword grid fly into place; fill every square to clear the level. Real words that are not in the grid are bonus words: ten fill the jar for 30 coins. Find words quickly for a combo. Stuck? Shuffle is free, Hint shows a letter, Spark shows the square you tap, Bloom shows 5 letters. Clear a level with no hints for 3 stars.",
-  "description": "A relaxing, clever word puzzle journey. Spell words from a ring of letters to fill a crossword grid, then travel on through 8 animated worlds: Blossom Valley, Golden Dunes, Coral Lagoon, Lantern Harbor, Aurora Fjord, Jade Peaks, Firefly Forest and Starfall Nebula. 200 hand-checked levels grow from 3-letter warmups to 7-letter brain teasers. Catch bonus words for coins, chain quick finds into combos, earn up to 3 stars per level, and keep your streak alive with a new Daily Puzzle every day."
+  "description": "Wordbloom is a relaxing word puzzle journey. You spell words from a ring of letters, and the ones that fit drop into a small crossword grid.\n\nSwipe across the letters in the circle to spell a word, then let go. On a keyboard, just type it and press Enter. Fill every square to clear the level. Real words that are not in the grid count as bonus words, and ten of them fill the jar for 30 coins. Find words quickly one after another for a combo. If you get stuck, Shuffle is free, Hint shows a letter, Spark shows the letter in the square you tap and Bloom shows five letters. Clear a level with no help for three stars.\n\nThere are 200 hand-checked levels across 8 animated worlds, from Blossom Valley to Starfall Nebula, growing from 3-letter warmups to 7-letter brain teasers. A new Daily Puzzle opens at midnight to keep your streak going. It is for word lovers of every age who want a calm, clever break.",
+  "controls": [
+    "Swipe across the letters to spell a word, then let go",
+    "On a keyboard, type the word and press Enter",
+    "Shuffle mixes the letters; Hint, Spark and Bloom show letters"
+  ],
+  "tips": [
+    "Shuffle often. A new order helps you see new words.",
+    "Start with short words. They often unlock the long ones.",
+    "Try endings like -s, -ed and -ing to catch bonus words."
+  ],
+  "story": "I love crossword word games, and I wanted a better, prettier one with dreamy worlds to travel through. I made it with Claude and checked the word lists carefully so every level uses clean, everyday words."
 }

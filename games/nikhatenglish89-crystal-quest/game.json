@@ -1,0 +1,21 @@
+{
+  "title": "CRYSTAL QUEST – THE LOST KINGDOM",
+  "maker": "Nikhat Sultana",
+  "one_line": "A Match-3 fantasy adventure: restore the Lost Kingdom with a short, satisfying daily session.",
+  "description": "Crystal Quest is a match-3 fantasy game. The Crystal Heart of the Lost Kingdom is broken, and you help put it back together. You swap two neighbouring crystals to line up three or more of the same colour. Reach the goal before your moves run out.\n\nEvery level is a little different. Sometimes you collect crystals, break wooden boxes, free caged crystals, light up a glowing path, heal a forest or race a clock. At the end of each world you meet a boss. Line up four crystals to make a bolt crystal, and five to make a Rainbow. Boosters like the Hammer and Shuffle help when you are stuck.\n\nWhat I like most is that the kingdom comes back to life as you win. You get a daily reward and a new daily puzzle, so one short play a day is enough. It is for anyone who likes calm, colourful puzzle games, on a phone or a computer.",
+  "category": "puzzle",
+  "github": "nikhatenglish89",
+  "how_to_play": "Swap two neighbouring crystals to match 3 or more. Reach the goal before your moves run out.",
+  "controls": [
+    "Swipe a crystal towards its neighbour to swap them (or tap one, then tap the next)",
+    "Line up 3 or more of the same colour to clear them",
+    "Tap a booster under the board, then tap a crystal if it asks you to",
+    "Tap the pause button to restart or leave a level"
+  ],
+  "tips": [
+    "Line up 4 for a bolt crystal that clears a whole row or column. 5 in a row makes a Rainbow.",
+    "Stuck? Wait a moment and a hint glows. You earn boosters by winning, 3 stars and the daily reward.",
+    "Read the goal first. Clearing crystals next to a box or cage breaks it."
+  ],
+  "story": "I wanted to combine addictive Match-3 gameplay with a fantasy adventure: magical crystals, boss battles and a kingdom that comes back to life. I made it for casual gamers, families and anyone who enjoys relaxing puzzles and colourful graphics. My goal was a game that is easy to learn but has enough variety to keep players coming back."
+}

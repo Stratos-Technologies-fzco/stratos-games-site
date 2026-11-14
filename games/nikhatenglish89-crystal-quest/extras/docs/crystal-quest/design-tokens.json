@@ -1,0 +1,16 @@
+{
+  "color": {
+    "ink": "#1B1033", "violet": "#3B2A86", "violetBright": "#7B5CFF", "mint": "#1FBF6A", "mintButton": "#0F8A46",
+    "gold": "#F5A31A", "goldLight": "#FFE27A", "sky": "#2F7BFF", "ruby": "#E5324B", "cyan": "#7DF3EC", "white": "#FFFFFF", "textSoft": "#E6DEFB"
+  },
+  "gradient": {
+    "screen": ["#2F1F78", "#1B1033"], "panel": ["#5A3FB8", "#2F1F78"], "primary": ["#35CF7C", "#0F8A46"],
+    "secondary": ["#5B9BFF", "#1F5FD8"], "gold": ["#FFE27A", "#F5A31A"], "danger": ["#F26A7F", "#C4213A"], "icon": ["#7B5CFF", "#4A2FC0"]
+  },
+  "font": { "display": "'Lilita One', 'Nunito', sans-serif", "body": "'Nunito', system-ui, sans-serif", "minSizePx": 12 },
+  "radius": { "panel": 28, "button": 999, "iconButton": 16, "cell": 12, "board": 30 },
+  "border": { "panel": 5, "button": 4, "board": 5 },
+  "touchTargetMinPx": 44,
+  "board": { "columns": 8, "rows": 8, "cellPxPortrait": 40, "cellPxDesktop": 60 },
+  "design": { "portrait": [390, 844], "desktop": [1280, 800] }
+}

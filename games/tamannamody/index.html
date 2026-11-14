@@ -49,6 +49,7 @@
   #progFill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 6px; background: var(--good); }
   #progRaft { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; left: 0;
     border-radius: 50%; background: #fff4e6; border: 4px solid var(--accent); }
+  #progCheck { position: absolute; top: -4px; width: 4px; height: 18px; margin-left: -2px; border-radius: 2px; background: #ffb703; }
   #progress::after { content: ""; position: absolute; right: -4px; top: -5px; width: 10px; height: 20px;
     background: repeating-linear-gradient(0deg, #1f2a44 0 5px, #fff 5px 10px); border-radius: 2px; }
 
@@ -77,7 +78,12 @@
   .rider .arrow { width: 26px; height: 26px; display: grid; place-items: center; }
   .rider .arrow svg { width: 26px; height: 26px; }
   .rider .nm { font-size: 13px; }
-  .rider .gas { display: flex; gap: 3px; width: 70%; }
+  .rider .gas { display: flex; gap: 3px; width: 80%; }
+  #pad { grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr; --c: #8fb4ff; --cd: #3b6fd6; }
+  .rider.dir { justify-content: center; }
+  .rider.dir .arrow, .rider.dir .arrow svg { width: 30px; height: 30px; }
+  .rider.me { justify-content: center; gap: 8px; }
+  #pad.empty .rider.me { filter: saturate(.35) brightness(.95); }
   .rider .gas i { flex: 1; height: 6px; border-radius: 3px; background: rgba(31,42,68,.18); overflow: hidden; position: relative; }
   .rider .gas i b { position: absolute; inset: 0; width: 0; background: #b5f23b; border-radius: 3px; }
 
@@ -112,8 +118,14 @@
   .stats .total { font-weight: 900; font-size: 18px; }
   .stars { font-size: 34px; color: #ffb703; letter-spacing: 4px; margin: 4px 0; }
   .stars .off { color: rgba(31,42,68,.15); }
+  .goals { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; font-weight: 800; color: rgba(31,42,68,.4); margin-bottom: 2px; }
+  .goals .got { color: var(--ink); }
+  .goals .got::first-letter { color: #ffb703; }
+  .lvl .st { display: block; color: #ffb703; font-size: 15px; letter-spacing: 2px; line-height: 1.1; }
+  .lvl .st .off { color: rgba(31,42,68,.15); }
+  .unlock small { font-weight: 700; opacity: .7; }
   .btn small { display: block; font-size: 12px; font-weight: 700; opacity: .7; }
-  .pigs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 4px; }
+  .pigs { display: grid; grid-template-columns: 120px; justify-content: center; gap: 8px; margin: 10px 0 4px; }
   .pig { border: 0; border-radius: 14px; padding: 8px 2px 6px; background: #fff; box-shadow: 0 4px 0 rgba(31,42,68,.18);
     font-weight: 800; font-size: 13px; }
   .pig.on { background: var(--c); box-shadow: 0 4px 0 var(--cd); }
@@ -130,6 +142,9 @@
   /* Play with friends */
   .link { background: #fff; border-radius: 12px; padding: 10px 12px; font: 700 13px ui-monospace, Menlo, monospace; word-break: break-all;
     -webkit-user-select: text; user-select: text; text-align: left; }
+  #menuNameBox { margin: 4px 0 2px; min-width: 0; }
+  #scrMenu .card, #scrMenu .logo { min-width: 0; max-width: 100%; }
+  #menuNameBox input { padding: 7px 12px; }
   .namebox { display: flex; align-items: center; gap: 10px; margin: 14px 0 0; font-weight: 900; font-size: 14px; text-align: left; white-space: nowrap; }
   .namebox input { flex: 1; min-width: 0; border: 3px solid rgba(31,42,68,.15); border-radius: 12px; padding: 9px 12px;
     font: inherit; font-size: 16px; font-weight: 800; color: var(--ink); background: #fff; -webkit-user-select: text; user-select: text; touch-action: auto; }
@@ -148,17 +163,22 @@
 
   @media (max-height: 560px) {
     .rider { height: 58px; }
-    .rider .nm { display: none; }
+    .rider:not(.me) .nm { display: none; }
     #hint { bottom: calc(env(safe-area-inset-bottom) + 84px); }
     h1 { font-size: 34px; }
   }
   /* Menu: the logo sits in the sky, the river shows in the middle, the buttons sit at the bottom */
-  #scrMenu { background: none; grid-template-rows: auto 1fr; place-items: stretch; padding: 14px 12px calc(env(safe-area-inset-bottom) + 14px); gap: 8px; }
+  #scrMenu { background: none; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr); place-items: stretch; padding: 14px 12px calc(env(safe-area-inset-bottom) + 14px); gap: 8px; }
   #scrMenu .logo { text-align: center; padding-top: env(safe-area-inset-top); }
   #scrMenu h1 { font-size: clamp(44px, 14vw, 72px); font-weight: 900; color: #fff; -webkit-text-stroke: 8px #ff6b5a; paint-order: stroke fill; text-shadow: 0 5px 0 #c8383f; }
   #scrMenu .tag { display: table; margin: 8px auto 0; padding: 3px 12px; border-radius: 12px; background: rgba(255,250,240,.92); color: #1f2a44; opacity: 1; font-weight: 800; font-size: 14px; }
   #scrMenu .card { align-self: end; margin: 0 auto; padding: 8px 14px 12px; border-radius: 22px; }
-  #scrMenu .levels { margin-top: 12px; }
+  #scrMenu .levels { margin-top: 10px; gap: 6px; }
+  /* compact menu so it fits a phone even with wider fonts (Linux, Android) */
+  #scrMenu .btn { padding: 11px; margin-top: 8px; }
+  #scrMenu .lvl { padding: 6px 4px; }
+  #scrMenu .lvl b { font-size: 13px; }
+  #menuNameBox input { padding: 6px 12px; }
   .howto { margin-top: 10px; font-size: 14px; }
   .howto summary { font-weight: 800; opacity: .7; cursor: pointer; padding: 2px; }
   .howto .how { margin: 8px 0; }
@@ -173,9 +193,21 @@
   @media (max-height: 560px) {
     #scrMenu h1 { font-size: 38px; -webkit-text-stroke-width: 6px; }
     #scrMenu .tag { display: none; }
+    #menuNameBox input { padding: 4px 10px; }
     #scrMenu .btn { padding: 10px; }
-    #scrMenu .lvl { padding: 6px 4px; }
-    #scrMenu .levels { margin-top: 10px; }
+    #scrMenu .lvl { padding: 5px 4px; }
+    #scrMenu .lvl b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #btnFriends small { display: none; }
+    #scrMenu .levels { margin-top: 10px; gap: 6px; }
+    #scrMenu .howto { margin-top: 6px; }
+  }
+  /* six rivers: short screens drop the best score line on each river */
+  @media (max-height: 620px) { #scrMenu .lvl .sub { display: none; } }
+  /* short and wide (phone on its side): rivers sit beside the buttons */
+  @media (max-height: 560px) and (min-aspect-ratio: 1/1) {
+    #scrMenu .card { width: min(680px, calc(100vw - 24px)); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: 12px; align-items: start; }
+    #scrMenu .card > * { grid-column: 1; }
+    #scrMenu .card > .levels { grid-column: 2; grid-row: 1 / span 4; margin-top: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>
 </head>
@@ -199,7 +231,7 @@
       </button>
     </div>
   </div>
-  <div id="progress"><div id="progFill"></div><div id="progRaft"></div></div>
+  <div id="progress"><div id="progFill"></div><div id="progCheck"></div><div id="progRaft"></div></div>
 </div>
 
 <div id="flash" class="hidden"></div>
@@ -210,9 +242,10 @@
 <section id="scrMenu" class="screen">
   <div class="logo">
     <h1>Toot Raft</h1>
-    <div class="tag">Four friends. One raft. Zero shame.</div>
+    <div class="tag">One pig. One raft. Zero shame.</div>
   </div>
   <div class="card">
+    <label class="namebox" id="menuNameBox">Your name <input id="menuName" maxlength="14" placeholder="Name your pig" autocomplete="nickname" enterkeyhint="done"></label>
     <button class="btn" id="btnStart">Start</button>
     <button class="btn alt" id="btnFriends">Play with friends<small>Share a link · up to 4 players</small></button>
     <div class="row">
@@ -223,15 +256,18 @@
     <details class="howto">
       <summary>How to play</summary>
       <div class="how">
-        <p>Every rider's <b>toot pushes the raft the other way</b>.</p>
-        <p>The raft keeps <b>spinning</b>, so watch who is at the back.</p>
+        <p>Your pig's <b>toot pushes the raft the other way</b>.</p>
+        <p>Pick a way to go and your pig <b>runs round the raft</b> to the far side, then toots.</p>
         <p><b>Spikes pop a heart.</b> Soft green walls are safe to bump.</p>
         <p>Grab <b>beans</b> to refill gas. Reach the finish fast.</p>
-        <p>Toot the <b>same pig 3 times fast</b> for a ROCKET TOOT.</p>
+        <p>Toot <b>3 times fast from the same spot</b> for a ROCKET TOOT.</p>
+        <p><b>3 stars</b>: finish, lose no hearts, beat par. Stars open rivers 4 to 6.</p>
+        <p>Pop after the <b>halfway checkpoint</b>? Continue from there once.</p>
+        <p>Finish the <b>Daily river</b> every day for a streak and bonus beans.</p>
       </div>
       <div class="keys">
-        Tap a rider or the buttons · <kbd>1</kbd>–<kbd>4</kbd> toot that rider<br>
-        <kbd>Arrows</kbd>/<kbd>WASD</kbd> or tap the water: best rider toots that way<br>
+        <kbd>Arrows</kbd>/<kbd>WASD</kbd>, the arrow buttons or tap the water: push that way<br>
+        Tap your pig or <kbd>Space</kbd>: toot on the spot<br>
         <kbd>P</kbd> pause · <kbd>R</kbd> restart
       </div>
     </details>
@@ -242,6 +278,7 @@
   <div class="card">
     <h2>Wardrobe</h2>
     <div class="tag" id="wardBeans"></div>
+    <label class="namebox">Your name <input id="wardName" maxlength="14" placeholder="Name your pig" autocomplete="nickname" enterkeyhint="done"></label>
     <div class="pigs" id="wardPigs"></div>
     <div class="wlabel">Hats</div>
     <div class="opts" id="wardHats"></div>
@@ -265,6 +302,7 @@
       <div class="wlabel">Pick a river to start</div>
       <div class="levels" id="onLevels"></div>
     </div>
+    <button class="btn hidden" id="btnRetry">Try again</button>
     <button class="btn alt" id="btnLeave">Leave</button>
   </div>
 </section>
@@ -4169,8 +4207,10 @@ const TOOT_IMPULSE = 140;     // velocity change per toot
 const WATER_DRAG = 0.85;      // how fast the raft settles to the current
 const CURRENT = 22;           // gentle downstream push
 const MAX_SPEED = 420;
-const GAS_MAX = 3;            // toots stored per rider
-const GAS_RECHARGE = 1.0;     // seconds to regain one toot
+const GAS_MAX = 6;            // toots stored per pig (one pig per player)
+const GAS_RECHARGE = 0.4;     // seconds to regain one toot
+const RUN_SPEED = 7.5;        // how fast a pig runs round the raft edge (radians a second)
+const TOOT_REACH = 0.3;       // a pig this close to the right spot toots straight away
 const MAX_HEARTS = 3;
 const INVULN = 1.4;
 const START_WALL = -90;       // dock behind the start line
@@ -4178,13 +4218,15 @@ const SPIKE_IN = 16;          // spiked walls reach further into the water
 const BUMP_IN = 7;
 const STEP = 1 / 120;         // fixed physics step
 
+// One pig per player: player 1 rides the blue pig, friends get red, yellow and teal.
+// color/dark = team colour (buttons, badges); fur/furDark = skin in the sprites
 const RIDERS = [
-  // color/dark = team colour (buttons, badges); fur/furDark = skin in the sprites
-  { name: 'Pip', animal: 'pig', color: '#8fb4ff', dark: '#3b6fd6', fur: '#ffa8c2', furDark: '#d9668c', key: '1' },
-  { name: 'Ham', animal: 'pig', color: '#ff8a8f', dark: '#c8383f', fur: '#f59bb5', furDark: '#cc5a80', key: '2' },
-  { name: 'Bun', animal: 'pig', color: '#ffd54a', dark: '#d99a12', fur: '#ffb9a8', furDark: '#d9786a', key: '3' },
-  { name: 'Lou', animal: 'pig', color: '#5fe0d3', dark: '#1f9a8f', fur: '#f0a6c8', furDark: '#c0628f', key: '4' },
+  { colour: 'blue', animal: 'pig', color: '#8fb4ff', dark: '#3b6fd6', fur: '#ffa8c2', furDark: '#d9668c' },
+  { colour: 'red', animal: 'pig', color: '#ff8a8f', dark: '#c8383f', fur: '#f59bb5', furDark: '#cc5a80' },
+  { colour: 'yellow', animal: 'pig', color: '#ffd54a', dark: '#d99a12', fur: '#ffb9a8', furDark: '#d9786a' },
+  { colour: 'teal', animal: 'pig', color: '#5fe0d3', dark: '#1f9a8f', fur: '#f0a6c8', furDark: '#c0628f' },
 ];
+const pigCount = () => (online() ? Net.n : 1);
 
 const LEVELS = [
   { name: 'Lazy Creek',   length: 3200, seed: 11, amp: 110, width: [150, 180], spikeFrac: 0.3,
@@ -4193,6 +4235,16 @@ const LEVELS = [
     spacing: 360, weights: { log: 3, gate: 3, mine: 3, whirl: 2 }, par: 55 },
   { name: 'Gas Gauntlet', length: 5400, seed: 73, amp: 175, width: [112, 138], spikeFrac: 0.8,
     spacing: 315, weights: { log: 3, gate: 4, mine: 3, whirl: 2 }, par: 70 },
+  // rivers 4 to 6 also need stars: finish the river before AND hold this many stars in total
+  { name: 'Whirlpool Bay', length: 5000, seed: 97, amp: 190, width: [128, 162], spikeFrac: 0.5,
+    spacing: 330, weights: { log: 2, gate: 2, mine: 1, whirl: 5 }, par: 68, needStars: 5,
+    hint: 'Whirlpool Bay: whirlpools spin the raft. Toot out early.' },
+  { name: 'Mine Sweep',    length: 5600, seed: 131, amp: 160, width: [118, 148], spikeFrac: 0.65,
+    spacing: 300, weights: { log: 2, gate: 2, mine: 6, whirl: 1 }, par: 74, needStars: 8,
+    hint: 'Mine Sweep: spiky mines roll side to side. Wait for a gap.' },
+  { name: 'The Big Stink', length: 6400, seed: 211, amp: 185, width: [106, 132], spikeFrac: 0.9,
+    spacing: 290, weights: { log: 3, gate: 4, mine: 4, whirl: 3 }, par: 84, needStars: 11,
+    hint: 'The Big Stink: everything at once. Good luck.' },
 ];
 
 /* Wardrobe: unlocked by lifetime beans collected (nothing is spent) */
@@ -4219,7 +4271,9 @@ const OUTFIT_SKINS = [
 /* Daily river: a fresh course generated from today's date */
 const DAILY = 'daily';
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-function todayKey() { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function dayKey(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function todayKey() { return dayKey(new Date()); }
+function dayBefore(key) { const d = new Date(Math.floor(key / 10000), Math.floor(key / 100) % 100 - 1, key % 100); d.setDate(d.getDate() - 1); return dayKey(d); }
 function fmtDay(key) { return MONTHS[Math.floor(key / 100) % 100 - 1] + ' ' + (key % 100); }
 function dailyDef(key) {
   const r = mulberry32(key);
@@ -4252,9 +4306,21 @@ function fmtTime(t) {
    Save data (best-effort; game works without storage)
    ========================================================= */
 const SAVE_KEY = 'tootraft.v1';
-let save = { unlocked: 1, best: {}, muted: false, beanBank: 0, looks: null, daily: null };
+let save = { unlocked: 1, best: {}, stars: {}, muted: false, beanBank: 0, looks: null, daily: null, streak: null };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s) save = Object.assign(save, s); } catch (e) {}
 function writeSave() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+
+/* Daily streak: finish the Daily river on days in a row. The streak is alive if the last finish was today or yesterday. */
+const STREAK_BONUS = 5, STREAK_BONUS_MAX = 25;
+function streakAlive() {
+  const s = save.streak, t = todayKey();
+  return s && (s.last === t || s.last === dayBefore(t)) ? s.count : 0;
+}
+function totalStars() { let n = 0; for (const k in save.stars || {}) n += save.stars[k]; return n; }
+function riverOpen(i) { return i < save.unlocked && totalStars() >= (LEVELS[i].needStars || 0); }
+// players who beat the old last river before rivers 4 to 6 existed still get the next one
+for (const k in save.best) save.unlocked = Math.max(save.unlocked, Math.min(LEVELS.length, (k | 0) + 2));
+function starRow(n) { let h = ''; for (let i = 0; i < 3; i++) h += i < n ? '★' : '<span class="off">★</span>'; return h; }
 
 /* =========================================================
    Sound (procedural Web Audio, no files)
@@ -4412,7 +4478,7 @@ const Sound = {
     return true;
   },
   toot(i) {
-    // each rider has their own pitch: Pip deep, Lou squeaky
+    // each pig has their own pitch: blue deep, teal squeaky
     const rate = [0.82, 1, 1.15, 1.32][i] * (0.94 + Math.random() * 0.12);
     if (!this.playClip(this.clips && this.clips.toot, rate, 0.9, 0.9)) this.synthToot(i);
     this.freshen();
@@ -4581,7 +4647,7 @@ const G = {
   parts: [], rings: [], ringTimer: 0, shake: 0, loc: null,
   runTotal: 0, lastResult: null,
   quip: null, quipCd: 0, flash: null, flashCd: 0, recent: [], prevD: 0,
-  def: null, combo: { rider: -1, n: 0, t: -9 },
+  def: null, combo: { rider: -1, n: 0, t: -9, pos: 0 },
 };
 
 /* =========================================================
@@ -4616,12 +4682,15 @@ function say(text, rider, force) {
 }
 function flash(text) { G.flash = { text, life: 1.7 }; emit('f', text); }
 
+const TAU4 = Math.PI / 2;
+const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
 function newRaft(T) {
   return {
     x: T.cx(40), y: -40, vx: 0, vy: 0,
-    ang: Math.PI / 2,   // rider 1 (Pip) starts at the back
+    ang: Math.PI / 2,   // the first pig starts at the back
     w: 0, scale: 1,
-    riders: RIDERS.map(() => ({ gas: GAS_MAX, anim: 0, fizz: 0 })),
+    // pos: where the pig stands on the raft edge (angle on the raft); goal: the spot it is running to (angle on the river)
+    riders: RIDERS.map((_, i) => ({ gas: GAS_MAX, anim: 0, fizz: 0, pos: i * TAU4 * 4 / Math.max(1, pigCount()), goal: null, dir: 0 })),
   };
 }
 
@@ -4635,7 +4704,8 @@ function loadLevel(i, dailyKey) {
   G.t = 0; G.simTime = 0; G.started = false; G.hearts = MAX_HEARTS; G.beans = 0;
   G.invuln = 0; G.ending = null; G.toots = 0; G.parts.length = 0; G.rings.length = 0; G.shake = 0;
   G.quip = null; G.quipCd = 0; G.flash = null; G.flashCd = 0; G.recent.length = 0; G.prevD = G.loc.d;
-  G.combo = { rider: -1, n: 0, t: -9 };
+  G.combo = { rider: -1, n: 0, t: -9, pos: 0 };
+  G.continued = false; G.passedCheck = false;
   G.track.hazards.forEach(h => (h.inside = false));
   R3D.buildLevel(G.track);
 }
@@ -4655,9 +4725,9 @@ function startLevel(i, freshRun) {
 function showHint() {
   const i = G.level;
   UI.hint.textContent = online() && Net.n > 1 ? onlineHint()
-    : i === 0 ? 'Pip is at the back. Press 1 or tap Pip to toot forward.'
+    : i === 0 ? 'Tap the water ahead or press ↑. Your pig runs to the back and toots you forward.'
     : i === DAILY ? 'Daily river for ' + fmtDay(G.def.daily) + '. Same course for everyone today.'
-    : G.def.name + ': watch the spin and time the gates.';
+    : G.def.hint || G.def.name + ': watch the spin and time the gates.';
   UI.hint.classList.remove('hidden');
   UI.hint.style.opacity = 1;
 }
@@ -4665,7 +4735,7 @@ function showHint() {
 /* =========================================================
    Actions
    ========================================================= */
-function riderAngle(i) { return G.raft.ang + i * Math.PI / 2; }
+function riderAngle(i) { return G.raft.ang + G.raft.riders[i].pos; }
 
 function toot(i) {
   if (G.state !== 'playing' || G.ending) return false;
@@ -4673,10 +4743,11 @@ function toot(i) {
   // every press farts: a rider out of gas squeezes out a weak little squeaker instead
   const weak = rd.gas < 1;
   if (!weak) rd.gas -= 1;
-  // the same pig three times in quick succession = ROCKET TOOT
-  if (!weak && G.combo.rider === i && G.simTime - G.combo.t < 0.9) G.combo.n++;
+  rd.goal = null;
+  // three toots in quick succession from the same spot = ROCKET TOOT
+  if (!weak && G.combo.rider === i && G.simTime - G.combo.t < 0.9 && Math.abs(wrapA(rd.pos - G.combo.pos)) < 0.6) G.combo.n++;
   else G.combo.n = weak ? 0 : 1;
-  G.combo.rider = i; G.combo.t = G.simTime;
+  G.combo.rider = i; G.combo.t = G.simTime; G.combo.pos = rd.pos;
   const rocket = G.combo.n >= 3;
   if (rocket) G.combo.n = 0;
   // now and then a toot comes out as a MEGA TOOT: bigger push, bigger cloud, longer sound
@@ -4731,22 +4802,24 @@ function tootFx(i, kind) {
   flashPad(i);
 }
 
-// Toot whichever rider pushes closest to the wanted direction.
-// Online, only the pigs of player p (default: this device's player) can answer.
-function autoToot(dx, dy, p) {
-  if (G.state !== 'playing' || G.ending) return;
+// Push the raft towards (dx, dy): pig p runs round the raft edge to the far side, then toots.
+function sendPig(p, dx, dy) {
+  if (G.state !== 'playing' || G.ending || p < 0 || p >= pigCount()) return;
   const len = Math.hypot(dx, dy); if (len < 1e-6) return;
-  dx /= len; dy /= len;
-  // prefer a well-aimed rider with gas; otherwise the best-aimed one does a weak squeaker
-  let best = -1, bestDot = -2, full = -1, fullDot = 0.3;
-  if (p === undefined) p = Net.me;
-  for (let i = 0; i < 4; i++) {
-    if (online() && owner(i) !== p) continue;
-    const a = riderAngle(i), dot = -(Math.cos(a) * dx + Math.sin(a) * dy);
-    if (dot > bestDot) { bestDot = dot; best = i; }
-    if (G.raft.riders[i].gas >= 1 && dot > fullDot) { fullDot = dot; full = i; }
-  }
-  if (full >= 0 || best >= 0) toot(full >= 0 ? full : best);
+  const rd = G.raft.riders[p];
+  rd.goal = Math.atan2(-dy / len, -dx / len);   // a toot pushes away from the pig's side
+  rd.dir = 0;
+  runPig(p, 0);
+}
+function autoToot(dx, dy, p) { sendPig(p === undefined ? Net.me : p, dx, dy); }
+function runPig(i, dt) {
+  const rd = G.raft.riders[i];
+  if (rd.goal === null) return;
+  const diff = wrapA(rd.goal - riderAngle(i));
+  if (Math.abs(diff) <= TOOT_REACH) { toot(i); return; }
+  // pick the short way round once, so a half-turn does not flip back and forth as the raft spins
+  if (!rd.dir || Math.abs(diff) < Math.PI - 0.4) rd.dir = Math.sign(diff);
+  rd.pos = wrapA(rd.pos + rd.dir * Math.min(Math.abs(diff), RUN_SPEED * dt));
 }
 
 function hurt(nx, ny) {
@@ -4758,7 +4831,7 @@ function hurt(nx, ny) {
   if (G.hearts <= 0) {
     G.ending = { type: 'pop', t: 0 };
     sfx('pop'); flash('TOO MUCH PRESSURE!'); G.quip = null;
-  } else { sfx('hurt'); say(pick(QUIPS.hurt), Math.floor(Math.random() * 4), true); }
+  } else { sfx('hurt'); say(pick(QUIPS.hurt), Math.floor(Math.random() * pigCount()), true); }
 }
 
 function hit(nx, ny, harmful, e) {
@@ -4866,10 +4939,10 @@ function collectBeans() {
     const dx = r.x - b.x, dy = r.y - b.y;
     if (dx * dx + dy * dy < (RAFT_R + 12) * (RAFT_R + 12)) {
       b.got = true; G.beans++; emit('g', j);
-      r.riders.forEach(rd => (rd.gas = Math.min(GAS_MAX, rd.gas + 1)));
+      r.riders.forEach(rd => (rd.gas = Math.min(GAS_MAX, rd.gas + 2)));
       burst(b.x, b.y, 8, ['#ffb347', '#ffd54a', '#ffffff']);
       sfx('bean');
-      if (Math.random() < 0.35) say(pick(QUIPS.bean), Math.floor(Math.random() * 4));
+      if (Math.random() < 0.35) say(pick(QUIPS.bean), Math.floor(Math.random() * pigCount()));
     }
   });
 }
@@ -4884,6 +4957,7 @@ function step(dt) {
   }
   if (G.started && !G.ending) G.t += dt;
   if (G.invuln > 0) G.invuln -= dt;
+  if (!G.ending) for (let i = 0; i < pigCount(); i++) runPig(i, dt);
 
   // water: drag towards the current
   const f = G.loc.f, k = 1 - Math.exp(-WATER_DRAG * dt);
@@ -4919,6 +4993,11 @@ function step(dt) {
     }
   }
   G.prevD = G.loc.d;
+
+  if (!G.passedCheck && G.loc.d >= checkpointD()) {
+    G.passedCheck = true;
+    if (!online()) { flash('CHECKPOINT!'); sfx('bean'); }
+  }
 
   if (G.loc.d >= T.L) {
     G.ending = { type: 'win', t: 0 };
@@ -4972,21 +5051,65 @@ function splash(x, y, n) {
 }
 
 /* =========================================================
+   Checkpoint: popping after halfway can continue from there (once per river, solo only)
+   ========================================================= */
+// Stratos rewarded ads are not live yet: the reward is free for now (see stratos-games-site CLAUDE.md)
+function offerReward(onDone) { onDone(); }
+// halfway, nudged back so the raft never lands on a hazard
+function checkpointD() {
+  const T = G.track;
+  if (T.check === undefined) {
+    let d = T.L / 2;
+    while (d > 400 && T.hazards.some(h => Math.abs(h.d - d) < 130)) d -= 30;
+    T.check = d;
+  }
+  return T.check;
+}
+function canContinue() { return !online() && !G.continued && G.passedCheck; }
+function continueRun() {
+  if (!canContinue()) return;
+  offerReward(() => {
+    const d = checkpointD(), p = G.track.point(d, 0), f = G.track.frame(d), r = G.raft;
+    r.x = p.x; r.y = p.y; r.vx = f.fx * CURRENT; r.vy = f.fy * CURRENT; r.w = 0; r.scale = 1; r.ang = Math.PI / 2;
+    r.riders.forEach(rd => { rd.gas = GAS_MAX; rd.anim = 0; rd.fizz = 0; rd.goal = null; });
+    G.loc = G.track.toLocal(r.x, r.y); G.prevD = G.loc.d;
+    G.hearts = MAX_HEARTS; G.invuln = 2; G.ending = null; G.continued = true; G.shake = 0;
+    G.parts.length = 0; G.rings.length = 0; G.quip = null;
+    G.track.hazards.forEach(h => (h.inside = false));
+    track('continue_used', riverInfo({ time: Math.round(G.t) }));
+    setState('playing');
+    flash('BACK ON THE RAFT!');
+  });
+}
+
+/* =========================================================
    Results
    ========================================================= */
 function finishLevel(won) {
   const def = G.def;
-  const res = { won, level: G.level, time: G.t, beans: G.beans, hearts: G.hearts };
+  const res = { won, level: G.level, time: G.t, beans: G.beans, hearts: G.hearts, bonus: 0 };
+  // first Daily finish of the day grows the streak and pays bonus beans
+  if (won && G.level === DAILY) {
+    const s = save.streak, k = def.daily;
+    if (!s || s.last !== k) {
+      const count = s && s.last === dayBefore(k) ? s.count + 1 : 1;
+      save.streak = { count, last: k, best: Math.max(count, (s && s.best) || 0) };
+      res.streak = count;
+      res.bonus = Math.min(count * STREAK_BONUS, STREAK_BONUS_MAX);
+    }
+  }
   // every bean ever collected counts towards wardrobe unlocks
   const bankBefore = save.beanBank || 0;
-  save.beanBank = bankBefore + G.beans;
+  save.beanBank = bankBefore + G.beans + res.bonus;
   res.unlocked = HATS.concat(OUTFIT_SKINS).filter(o => o.cost > bankBefore && o.cost <= save.beanBank).map(o => o.name);
   if (won) {
     res.beanPts = G.beans * 100;
-    res.heartPts = G.hearts * 500;
+    res.continued = G.continued;
+    res.heartPts = G.continued ? 0 : G.hearts * 500;
     res.timePts = Math.max(0, Math.round((def.par - G.t) * 20));
     res.score = res.beanPts + res.heartPts + res.timePts;
-    res.stars = 1 + (G.hearts === MAX_HEARTS ? 1 : 0) + (G.t <= def.par ? 1 : 0);
+    res.goals = [true, !G.continued && G.hearts === MAX_HEARTS, G.t <= def.par];
+    res.stars = res.goals.filter(Boolean).length;
     if (G.level === DAILY) {
       const prev = save.daily && save.daily.key === def.daily ? save.daily : null;
       res.newBest = !prev || res.score > prev.score;
@@ -4998,13 +5121,15 @@ function finishLevel(won) {
       if (res.newBest) save.best[G.level] = { score: res.score, time: G.t };
       else if (G.t < prev.time) prev.time = G.t;
       save.unlocked = Math.max(save.unlocked, Math.min(LEVELS.length, G.level + 2));
+      if (!save.stars) save.stars = {};
+      save.stars[G.level] = Math.max(save.stars[G.level] || 0, res.stars);
       G.runTotal += res.score;
     }
   }
   writeSave();
   track(won ? 'level_complete' : 'game_over', riverInfo(won
-    ? { time: Math.round(G.t), beans: G.beans, hearts: G.hearts, score: res.score, stars: res.stars }
-    : { time: Math.round(G.t), beans: G.beans }));
+    ? Object.assign({ time: Math.round(G.t), beans: G.beans, hearts: G.hearts, score: res.score, stars: res.stars }, res.streak ? { streak: res.streak } : null)
+    : { time: Math.round(G.t), beans: G.beans, progress: Math.round(clamp(G.loc.d / G.track.L, 0, 1) * 100), can_continue: canContinue() }));
   G.lastResult = res;
   setState('result');
   hostResult(res);
@@ -5017,12 +5142,16 @@ function finishLevel(won) {
    ========================================================= */
 const canvas = document.getElementById('c');
 const OUTFITS = [
-  { shirt: '#ffffff', pants: '#3b6fd6', shoe: '#6b4226' }, // Pip: overalls
-  { shirt: '#e5484d', pants: '#e5484d', shoe: '#ffffff' }, // Ham: tracksuit
-  { shirt: '#ffd54a', pants: '#23395d', shoe: '#ff6b5a' }, // Bun: tee and shorts
-  { shirt: '#2ec4b6', pants: '#3a3a4a', shoe: '#f2efe6' }, // Lou: hoodie
+  { shirt: '#ffffff', pants: '#3b6fd6', shoe: '#6b4226' }, // blue pig: overalls
+  { shirt: '#e5484d', pants: '#e5484d', shoe: '#ffffff' }, // red pig: tracksuit
+  { shirt: '#ffd54a', pants: '#23395d', shoe: '#ff6b5a' }, // yellow pig: tee and shorts
+  { shirt: '#2ec4b6', pants: '#3a3a4a', shoe: '#f2efe6' }, // teal pig: hoodie
 ];
-function lookOf(i) { return (save.looks && save.looks[i]) || { hat: 'none', outfit: 'classic' }; }
+// Who sits where online: my seat, and the looks friends picked in their own wardrobes
+const seat = { me: 0, looks: [] };
+const PLAIN_LOOK = { hat: 'none', outfit: 'classic' };
+function myLook() { return (save.looks && save.looks[0]) || PLAIN_LOOK; }
+function lookOf(i) { return i === seat.me ? myLook() : seat.looks[i] || PLAIN_LOOK; }
 function outfitColors(i, id) {
   const skin = OUTFIT_SKINS.find(o => o.id === id);
   return skin && skin.c ? Object.assign({}, OUTFITS[i], skin.c) : OUTFITS[i];
@@ -5512,7 +5641,6 @@ const R3D = (() => {
     return canvasTex(64, 64, g => {
       g.fillStyle = RIDERS[i].dark; g.beginPath(); g.arc(32, 32, 30, 0, TAU); g.fill();
       g.fillStyle = RIDERS[i].color; g.beginPath(); g.arc(32, 32, 25, 0, TAU); g.fill();
-      g.fillStyle = '#1f2a44'; g.font = '900 38px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(RIDERS[i].key, 32, 34);
     });
   }
   const badgeTex = RIDERS.map((_, i) => badgeTexture(i));
@@ -5527,21 +5655,20 @@ const R3D = (() => {
       const pill = (x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); g.fill(); };
       g.fillStyle = RIDERS[i].dark; pill(0, 2, W, H - 4, (H - 4) / 2);
       g.fillStyle = '#fffaf0'; pill(4, 6, W - 8, H - 12, (H - 12) / 2);
-      g.fillStyle = RIDERS[i].color; g.beginPath(); g.arc(32, 32, 24, 0, TAU); g.fill();
+      g.fillStyle = RIDERS[i].color; g.beginPath(); g.arc(32, 32, 20, 0, TAU); g.fill();
       g.fillStyle = '#1f2a44'; g.textBaseline = 'middle';
-      g.font = '900 32px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(RIDERS[i].key, 32, 34);
       g.font = font; g.textAlign = 'left'; g.fillText(name, H + 2, 34, W - H - 14);
     });
     tex.aspect = W / H;
     return tex;
   }
-  let badgeKey = '', named = false;
+  let badgeKey = '', named = false, tagsOn = true;   // tagsOn: off only for cover shots
   const tagPos = new THREE.Vector3();
   // Name tags are wide, so stack them: the further a pig is from the camera, the higher its tag
   function stackTags() {
     if (!named) return;
     const d = badgeSprites.map((sp, i) => { sp.getWorldPosition(tagPos); return { i, d: tagPos.distanceToSquared(camera.position) }; });
-    d.sort((a, b) => a.d - b.d).forEach((e, rank) => { badgeSprites[e.i].position.y = 56 + rank * 13; });
+    d.filter(e => badgeSprites[e.i].visible).sort((a, b) => a.d - b.d).forEach((e, rank) => { badgeSprites[e.i].position.y = 56 + rank * 13; });
   }
   function setBadges(labels) {
     const key = JSON.stringify(labels || []);
@@ -5569,13 +5696,11 @@ const R3D = (() => {
     }
     raft.add(m.mesh());
     RIDERS.forEach((R, i) => {
-      const holder = new THREE.Group(), a = i * Math.PI / 2;
-      holder.position.set(Math.cos(a) * RIDER_DIST, 3.5, Math.sin(a) * RIDER_DIST);
-      holder.rotation.y = Math.atan2(-Math.cos(a), -Math.sin(a));   // bottom out, face in
-      const badge = new THREE.Sprite(badges[i]); badge.scale.set(19, 19, 1); badge.position.set(Math.cos(a) * RIDER_DIST, 56, Math.sin(a) * RIDER_DIST); badge.renderOrder = 20;
+      const holder = new THREE.Group();
+      const badge = new THREE.Sprite(badges[i]); badge.scale.set(19, 19, 1); badge.renderOrder = 20;
       badgeSprites[i] = badge;
       raft.add(holder, badge);
-      riderViews[i] = { holder, pig: null };
+      riderViews[i] = { holder, pig: null, last: null, run: 0 };
     });
   })();
   function refreshLooks() {
@@ -5724,13 +5849,24 @@ const R3D = (() => {
     raft.scale.setScalar(sc);
     raft.visible = !(G.invuln > 0 && !G.ending && Math.sin(t * 34) > 0.2);
     shadow.position.set(r.x, surfY(d, L.u) + 0.8, r.y); shadow.scale.setScalar(sc); shadow.visible = sc > 0.05;
+    const n = pigCount();
     r.riders.forEach((rd, i) => {
-      const p = riderViews[i].pig; if (!p) return;
+      const v = riderViews[i], p = v.pig, on = i < n;
+      v.holder.visible = on; badgeSprites[i].visible = on && tagsOn;
+      if (!p || !on) return;
+      // stand on the raft edge, bottom out, face in; hop while running round
+      const pa = rd.pos || 0, cx = Math.cos(pa), cz = Math.sin(pa);
+      v.run = v.last !== null && Math.abs(Math.atan2(Math.sin(pa - v.last), Math.cos(pa - v.last))) > 1e-3 ? 0.18 : Math.max(0, v.run - 1 / 60);
+      v.last = pa;
+      v.holder.position.set(cx * RIDER_DIST, 3.5, cz * RIDER_DIST);
+      v.holder.rotation.y = Math.atan2(-cx, -cz);
+      badgeSprites[i].position.x = cx * RIDER_DIST; badgeSprites[i].position.z = cz * RIDER_DIST;
       const a = clamp(rd.anim, 0, 1);
       p.rotation.x = a * 0.5;                                    // lean forward, bottom out
+      p.rotation.z = v.run > 0 ? Math.sin(t * 22) * 0.18 : 0;   // waddle while running
       p.scale.set(1.08 + a * 0.1, 1.14 * (1 - a * 0.12), 1.08 + a * 0.1);
       p.position.x = rd.fizz > 0 ? Math.sin(t * 60) * 0.8 : 0;
-      p.position.y = Math.sin(t * 3 + i * 1.7) * 0.4;
+      p.position.y = v.run > 0 ? Math.abs(Math.sin(t * 22)) * 3 : Math.sin(t * 3 + i * 1.7) * 0.4;
     });
   }
   function updateChunks(d) {
@@ -5750,7 +5886,7 @@ const R3D = (() => {
     const a = riderAngleSafe(i);
     return riderWorld.set(raftPos.x + Math.cos(a) * RIDER_DIST, raftPos.y + y, raftPos.z + Math.sin(a) * RIDER_DIST);
   }
-  function riderAngleSafe(i) { return G.raft.ang + i * Math.PI / 2; }
+  function riderAngleSafe(i) { return G.raft.ang + (G.raft.riders[i].pos || 0); }
   function updateOverlays() {
     const inRound = G.state === 'playing';
     const fl = inRound && G.flash ? G.flash.text : null;
@@ -5797,7 +5933,7 @@ const R3D = (() => {
   /* ---------- Input helpers: all relative to the camera ---------- */
   function pick(cx, cy) {
     let best = -1, bd = 40;
-    if (G.raft) for (let i = 0; i < 4; i++) {
+    if (G.raft) for (let i = 0; i < pigCount(); i++) {
       const s = project(riderPoint(i, 22)), dd = Math.hypot(s.x - cx, s.y - cy);
       if (dd < bd) { bd = dd; best = i; }
     }
@@ -5814,7 +5950,7 @@ const R3D = (() => {
   }
 
   function riderScreen(i) { return project(riderPoint(i, 22)); }
-  return { setBadges, riderScreen, buildLevel, render, resize, pick, keyDir, pushScreenAngle, pigPreview, refreshLooks, get quality() { return quality; }, get info() { return renderer ? renderer.info.render : null; } };
+  return { setBadges, setTags: on => { tagsOn = !!on; }, riderScreen, buildLevel, render, resize, pick, keyDir, pushScreenAngle, pigPreview, refreshLooks, get quality() { return quality; }, get info() { return renderer ? renderer.info.render : null; } };
 })();
 
 
@@ -5829,20 +5965,39 @@ const UI = {
   levels: $('levels'), mute: $('btnMute'),
 };
 const ARROW_SVG = '<svg viewBox="0 0 26 26"><path d="M13 3 L21 13 H16 V23 H10 V13 H5 Z" fill="#1f2a44"/></svg>';
-const padBtns = RIDERS.map((R, i) => {
+// The pad: your pig's name and gas tank (tap it to toot on the spot), and four arrows that push the raft that way
+const PAD_DIRS = [['Left', -1, 0, -90], ['Forward', 0, -1, 0], ['Back', 0, 1, 180], ['Right', 1, 0, 90]];
+const padGas = (() => {
   const b = document.createElement('button');
-  b.className = 'rider';
-  b.style.setProperty('--c', R.color); b.style.setProperty('--cd', R.dark);
-  b.setAttribute('aria-label', 'Toot ' + R.name);
-  b.innerHTML = '<div class="top"><span class="num">' + R.key + '</span><span class="arrow">' + ARROW_SVG +
-    '</span></div><span class="nm">' + R.name + '</span><span class="gas"><i><b></b></i><i><b></b></i><i><b></b></i></span>';
-  b.addEventListener('pointerdown', e => { e.preventDefault(); Sound.unlock(); requestToot(i); });
+  b.className = 'rider me';
+  b.setAttribute('aria-label', 'Toot on the spot');
+  b.innerHTML = '<span class="nm"></span><span class="gas">' + '<i><b></b></i>'.repeat(GAS_MAX) + '</span>';
+  b.addEventListener('pointerdown', e => { e.preventDefault(); Sound.unlock(); requestToot(Net.me); });
+  return { el: b, nm: b.querySelector('.nm'), gas: [...b.querySelectorAll('.gas b')] };
+})();
+const padBtns = PAD_DIRS.map(([label, kx, ky, deg], j) => {
+  const b = document.createElement('button');
+  b.className = 'rider dir';
+  b.setAttribute('aria-label', 'Push ' + label.toLowerCase());
+  b.innerHTML = '<span class="arrow" style="transform:rotate(' + deg + 'deg)">' + ARROW_SVG + '</span>';
+  b.addEventListener('pointerdown', e => {
+    e.preventDefault(); Sound.unlock();
+    const v = R3D.keyDir(kx, ky); requestDir(v.x, v.y);
+    b.classList.add('pressed'); setTimeout(() => b.classList.remove('pressed'), 90);
+  });
+  if (j === 2) UI.pad.appendChild(padGas.el);
   UI.pad.appendChild(b);
-  return { el: b, nm: b.querySelector('.nm'), arrow: b.querySelector('.arrow'), gas: [...b.querySelectorAll('.gas b')] };
+  return { el: b };
 });
 function flashPad(i) {
-  const el = padBtns[i].el; el.classList.add('pressed');
+  if (i !== Net.me) return;
+  const el = padGas.el; el.classList.add('pressed');
   setTimeout(() => el.classList.remove('pressed'), 90);
+}
+function padColours() {
+  const R = RIDERS[Net.me] || RIDERS[0];
+  UI.pad.style.setProperty('--c', R.color); UI.pad.style.setProperty('--cd', R.dark);
+  padGas.nm.textContent = badgeName(Net.me);
 }
 
 function setMuteIcon() {
@@ -5857,47 +6012,49 @@ function buildLevelButtons() {
     const b = document.createElement('button');
     b.className = 'lvl';
     const best = save.best[i];
-    const locked = i >= save.unlocked;
+    const locked = !riverOpen(i);
     b.disabled = locked;
     b.innerHTML = '<b>' + (i + 1) + '. ' + L.name + '</b>' +
-      (locked ? 'Locked' : best ? 'Best ' + best.score + '<br>' + fmtTime(best.time) : 'Not played');
+      (locked ? '<span class="lock">' + (i < save.unlocked ? 'Needs ' + L.needStars + ' ★' : 'Locked') + '</span>'
+        : '<span class="st">' + starRow((save.stars || {})[i] || 0) + '</span><span class="sub">' + (best ? 'Best ' + best.score : 'Not played') + '</span>');
     b.addEventListener('click', () => { Sound.unlock(); startLevel(i, i === 0); });
     UI.levels.appendChild(b);
   });
   const today = todayKey(), d = save.daily && save.daily.key === today ? save.daily : null;
-  $('btnDaily').innerHTML = 'Daily river<small>' + fmtDay(today) + (d ? ' · best ' + fmtTime(d.time) : ' · new course') + '</small>';
+  const streak = streakAlive();
+  $('btnDaily').innerHTML = 'Daily river<small>' + (d
+    ? (streak > 1 ? 'Streak ' + streak : 'Done') + ' · best ' + fmtTime(d.time)
+    : streak ? 'Streak ' + streak + ' · play today' : fmtDay(today) + ' · new course') + '</small>';
   $('btnWardrobe').innerHTML = 'Wardrobe<small>' + (save.beanBank || 0) + ' beans</small>';
 }
 
-let wardPig = 0;
+// Your wardrobe dresses your pig (kept in save.looks[0]); online, friends see it too
 function setLook(i, key, value) {
-  if (!save.looks) save.looks = RIDERS.map((_, j) => lookOf(j));
-  save.looks[i] = Object.assign({}, lookOf(i), { [key]: value });
+  if (!save.looks) save.looks = [];
+  save.looks[0] = Object.assign({}, myLook(), { [key]: value });
   writeSave();
   R3D.refreshLooks();
+  lookChanged();
 }
 function buildWardrobe() {
   const bank = save.beanBank || 0;
   $('wardBeans').textContent = 'Beans collected: ' + bank + '. Collect more to unlock more.';
   const pigs = $('wardPigs');
   pigs.innerHTML = '';
-  RIDERS.forEach((R, i) => {
-    const b = document.createElement('button');
-    b.className = 'pig' + (i === wardPig ? ' on' : '');
-    b.style.setProperty('--c', R.color); b.style.setProperty('--cd', R.dark);
-    b.appendChild(R3D.pigPreview(i));
-    b.appendChild(document.createTextNode(R.key + ' · ' + R.name));
-    b.addEventListener('click', () => { wardPig = i; buildWardrobe(); });
-    pigs.appendChild(b);
-  });
+  const b = document.createElement('div');
+  b.className = 'pig on';
+  b.style.setProperty('--c', RIDERS[0].color); b.style.setProperty('--cd', RIDERS[0].dark);
+  b.appendChild(R3D.pigPreview(0));
+  b.appendChild(document.createTextNode(myName() || 'Your pig'));
+  pigs.appendChild(b);
   const options = (el, list, key) => {
     el.innerHTML = '';
     list.forEach(o => {
       const b = document.createElement('button'), locked = bank < o.cost;
-      b.className = 'opt' + (lookOf(wardPig)[key] === o.id ? ' on' : '');
+      b.className = 'opt' + (myLook()[key] === o.id ? ' on' : '');
       b.disabled = locked;
       b.innerHTML = o.name + '<small>' + (locked ? 'Needs ' + o.cost + ' beans' : o.cost ? 'Unlocked' : 'Free') + '</small>';
-      b.addEventListener('click', () => { setLook(wardPig, key, o.id); buildWardrobe(); });
+      b.addEventListener('click', () => { setLook(0, key, o.id); buildWardrobe(); });
       el.appendChild(b);
     });
   };
@@ -5907,6 +6064,9 @@ function buildWardrobe() {
 
 function showResult() {
   const r = G.lastResult, def = G.def, daily = r.level === DAILY, last = r.level === LEVELS.length - 1;
+  const nextL = !daily && !last ? LEVELS[r.level + 1] : null, nextShut = nextL && !riverOpen(r.level + 1);
+  const needNote = r.won && nextShut && !online()
+    ? '<div class="unlock">' + nextL.name + ' opens at ' + nextL.needStars + ' ★ · you have ' + totalStars() + '<br><small>Replay rivers for more stars</small></div>' : '';
   const unlocks = r.unlocked.length
     ? '<div class="unlock">Unlocked in the wardrobe: ' + r.unlocked.join(', ') + '</div>' : '';
   let html;
@@ -5916,29 +6076,36 @@ function showResult() {
       '<div class="stats"><div><span>Time</span><b>' + fmtTime(r.time) + '</b></div>' +
       '<div><span>Beans</span><b>' + r.beans + '</b></div></div>' + unlocks +
       (online() ? onlineButtons(r)
-        : '<button class="btn" data-act="retry">Try again</button>' +
-          '<button class="btn alt" data-act="menu">Menu</button>');
+        : canContinue()
+          ? '<button class="btn" data-act="continue">Continue from halfway<small>Full hearts · the clock keeps running</small></button>' +
+            '<div class="row"><button class="btn alt" data-act="retry">Start over</button><button class="btn alt" data-act="menu">Menu</button></div>'
+          : '<button class="btn" data-act="retry">Try again</button>' +
+            '<button class="btn alt" data-act="menu">Menu</button>');
   } else {
-    let stars = '';
-    for (let s = 0; s < 3; s++) stars += s < r.stars ? '★' : '<span class="off">★</span>';
+    const stars = starRow(r.stars);
+    const goals = r.goals ? '<div class="goals">' + ['Finish', 'No hits', 'Par ' + fmtTime(def.par)]
+      .map((g, i) => '<span' + (r.goals[i] ? ' class="got"' : '') + '>★ ' + g + '</span>').join('') + '</div>' : '';
+    const streakNote = r.streak ? '<div class="unlock">' + (r.streak > 1 ? r.streak + ' day streak' : 'Streak started') +
+      ' · +' + r.bonus + ' bonus beans<br><small>Come back tomorrow for +' + Math.min((r.streak + 1) * STREAK_BONUS, STREAK_BONUS_MAX) + '</small></div>' : '';
     html = '<h2>' + (daily ? 'Daily done' : last ? 'River conquered' : 'Finished') + '</h2>' +
       '<div class="quip">' + pick(QUIPS.winLine) + '</div>' +
       '<div class="tag">' + (daily ? 'Daily · ' + fmtDay(def.daily) : def.name) + (r.newBest ? ' · <span class="newbest">New best</span>' : '') + '</div>' +
-      '<div class="stars">' + stars + '</div>' +
+      '<div class="stars">' + stars + '</div>' + goals +
       '<div class="stats">' +
       '<div><span>Time ' + fmtTime(r.time) + ' (par ' + fmtTime(def.par) + ')</span><b>+' + r.timePts + '</b></div>' +
       '<div><span>Beans × ' + r.beans + '</span><b>+' + r.beanPts + '</b></div>' +
-      '<div><span>Hearts left × ' + r.hearts + '</span><b>+' + r.heartPts + '</b></div>' +
+      '<div><span>' + (r.continued ? 'Hearts (continued)' : 'Hearts left × ' + r.hearts) + '</span><b>+' + r.heartPts + '</b></div>' +
       '<div class="total"><span>Score</span><span>' + r.score + '</span></div>' +
       (last && !online() ? '<div class="total"><span>Run total</span><span>' + G.runTotal + '</span></div>' : '') +
       (daily && !online() ? '<div class="total"><span>Today\'s best</span><span>' + save.daily.score + '</span></div>' : '') +
-      '</div>' + unlocks +
+      '</div>' + streakNote + needNote + unlocks +
       (online() ? onlineButtons(r) : daily
         ? '<button class="btn" data-act="retry">Try again</button><button class="btn alt" data-act="menu">Menu</button>'
         : (last
           ? '<button class="btn" data-act="again">Play again</button>'
+          : nextShut ? '<button class="btn" data-act="retry">Replay for stars</button>'
           : '<button class="btn" data-act="next">Next river</button>') +
-          '<div class="row"><button class="btn alt" data-act="retry">Replay</button>' +
+          (nextShut ? '<div class="row">' : '<div class="row"><button class="btn alt" data-act="retry">Replay</button>') +
           '<button class="btn alt" data-act="menu">Menu</button></div>');
   }
   UI.resultCard.innerHTML = html;
@@ -5962,6 +6129,7 @@ function resultAction(a) {
   if (a === 'retry') startLevel(lvl, lvl === 0);
   else if (a === 'next') startLevel(lvl + 1, false);
   else if (a === 'again') startLevel(0, true);
+  else if (a === 'continue') continueRun();
   else if (a === 'menu') setState('menu');
   else if (a === 'lobby') toLobby();
   else if (a === 'leave') leaveRoom();
@@ -5982,6 +6150,7 @@ function setState(s) {
   const inGame = s === 'playing' || s === 'paused';
   UI.hud.classList.toggle('hidden', !inGame);
   UI.pad.classList.toggle('hidden', s !== 'playing');
+  if (s === 'playing' || s === 'menu') padOwners();
   if (s !== 'playing') UI.hint.classList.add('hidden');
   if (s === 'menu') buildLevelButtons();
   if ((s === 'menu' || s === 'lobby') && !G.track) loadLevel(0);
@@ -6000,23 +6169,22 @@ function updateHud() {
   });
   set('beans', G.beans, v => (UI.beans.textContent = 'Beans ' + v));
   set('lvl', G.level, v => (UI.lvlname.textContent = v === DAILY ? 'Daily · ' + fmtDay(G.def.daily) : (v + 1) + ' · ' + G.def.name));
+  set('check', G.track.L + ':' + online(), () => {
+    $('progCheck').style.left = (checkpointD() / G.track.L * 100) + '%';
+    $('progCheck').style.display = online() ? 'none' : '';
+  });
   set('time', fmtTime(G.t), v => (UI.timer.textContent = v));
   const p = clamp(G.loc.d / G.track.L, 0, 1);
   set('prog', Math.round(p * 400), () => {
     UI.progFill.style.width = (p * 100) + '%';
     UI.progRaft.style.left = (p * 100) + '%';
   });
-  for (let i = 0; i < 4; i++) {
-    const rd = G.raft.riders[i], pb = padBtns[i];
-    // arrow shows which way this rider would push the raft right now
-    const deg = R3D.pushScreenAngle(riderAngle(i));
-    pb.arrow.style.transform = 'rotate(' + deg.toFixed(1) + 'deg)';
-    for (let s = 0; s < GAS_MAX; s++) {
-      const v = Math.round(clamp(rd.gas - s, 0, 1) * 20);
-      set('g' + i + s, v, () => (pb.gas[s].style.width = (v * 5) + '%'));
-    }
-    set('e' + i, rd.gas < 1, v => pb.el.classList.toggle('empty', v));
+  const rd = G.raft.riders[Net.me] || G.raft.riders[0];
+  for (let s = 0; s < GAS_MAX; s++) {
+    const v = Math.round(clamp(rd.gas - s, 0, 1) * 20);
+    set('g' + s, v, () => (padGas.gas[s].style.width = (v * 5) + '%'));
   }
+  set('e', rd.gas < 1, v => UI.pad.classList.toggle('empty', v));
 }
 
 // Online, a pause stops the raft for everyone, and anyone can resume it.
@@ -6033,7 +6201,7 @@ function resumeGame() {
 /* =========================================================
    Play with friends
    One player hosts and shares a link; up to three friends open it and join the same raft.
-   Each player toots only their own pigs. The host's game runs the river and sends the raft
+   Each player has one pig and toots only that pig. The host's game runs the river and sends the raft
    to everyone 30 times a second; friends send their toots to the host.
    Browsers talk to each other directly (WebRTC through PeerJS). The free PeerJS server is
    used only to introduce them. Solo play never touches the network.
@@ -6051,19 +6219,29 @@ const Net = {
   joined: false,
   me: 0, n: 1,      // my player number, players on the raft
   names: [],        // player names, by player number
+  looks: [],        // each player's wardrobe look, by player number
   code: '', out: [], snapAcc: 0, lastSeen: 0,
   status: '', err: '',
 };
 
 const online = () => Net.mode !== 'solo';
-const owner = i => i % Net.n;
-const mine = i => !online() || owner(i) === Net.me;
+const owner = i => i;                 // pig i belongs to player i
+const mine = i => i === Net.me;
 // The host records what happens so friends can replay the same sounds, clouds and jokes.
 function emit(...a) { if (Net.mode === 'host') Net.out.push(a); }
 function sfx(name, arg) { Sound[name](arg); emit('s', name, arg); }
 
 function cleanName(v) { return String(v || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14); }
 function myName() { return cleanName(save.name); }
+// a look sent by another player: only known hats and outfits get through
+function cleanLook(l) {
+  l = l && typeof l === 'object' ? l : {};
+  return { hat: HATS.some(h => h.id === l.hat) ? l.hat : 'none', outfit: OUTFIT_SKINS.some(o => o.id === l.outfit) ? l.outfit : 'classic' };
+}
+function seatChanged() {
+  seat.me = Net.me; seat.looks = Net.looks.slice();
+  R3D.refreshLooks();
+}
 function roomCode() {
   const A = 'abcdefghjkmnpqrstuvwxyz23456789';
   let s = ''; for (let i = 0; i < 6; i++) s += A[Math.floor(Math.random() * A.length)];
@@ -6094,11 +6272,14 @@ function netReset() {
   if (Net.mode === 'host') broadcast({ k: 'bye' });
   const peer = Net.peer;
   Net.peer = null; Net.host = null; Net.conns = []; Net.joined = false;
-  Net.mode = 'solo'; Net.me = 0; Net.n = 1; Net.names = []; Net.out = []; Net.snapAcc = 0; Net.err = ''; Net.status = '';
+  Net.mode = 'solo'; Net.me = 0; Net.n = 1; Net.names = []; Net.looks = []; Net.out = []; Net.snapAcc = 0; Net.err = ''; Net.status = '';
   if (peer) setTimeout(() => { try { peer.destroy(); } catch (e) {} }, 150);   // let the goodbye go out first
   padOwners();
+  seatChanged();
 }
+let retryCode = '';   // a friend whose join failed can try the same link again
 function netFail(msg) {
+  retryCode = Net.mode === 'guest' ? Net.code : '';
   netReset();
   Net.err = msg;
   setState('lobby');
@@ -6120,7 +6301,7 @@ function hostRoom() {
   Net.peer = peer;
   peer.on('open', () => {
     if (Net.peer !== peer) return;
-    Net.status = 'Send this link to up to 3 friends. Everyone gets their own pigs.';
+    Net.status = 'Send this link to up to 3 friends. Everyone gets their own pig.';
     lobbyRender();
     track('online_host');
   });
@@ -6138,6 +6319,7 @@ function hostAccept(c) {
     if (Net.conns.length >= MAX_PLAYERS - 1) { safeSend(c, { k: 'full' }); setTimeout(() => c.close(), 500); return; }
     c.seen = performance.now();
     c.name = cleanName(c.metadata && c.metadata.name);
+    c.look = cleanLook(c.metadata && c.metadata.look);
     Net.conns.push(c);
     rosterChanged(1, c.name);
     // a river is already going: bring them straight onto the raft
@@ -6160,8 +6342,10 @@ function dropGuest(c) {
 function rosterChanged(delta, who) {
   Net.n = 1 + Net.conns.length;
   Net.names = [myName()].concat(Net.conns.map(c => c.name || ''));
-  Net.conns.forEach((c, j) => safeSend(c, { k: 'roster', you: j + 1, n: Net.n, names: Net.names }));
+  Net.looks = [myLook()].concat(Net.conns.map(c => c.look || PLAIN_LOOK));
+  Net.conns.forEach((c, j) => safeSend(c, { k: 'roster', you: j + 1, n: Net.n, names: Net.names, looks: Net.looks }));
   padOwners();
+  seatChanged();
   lobbyRender();
   if (delta && G.state === 'playing') flash((who || 'A friend').toUpperCase() + (delta > 0 ? ' HOPPED ON!' : ' HOPPED OFF'));
 }
@@ -6169,18 +6353,20 @@ function hostData(c, d) {
   c.seen = performance.now();
   const p = Net.conns.indexOf(c) + 1;
   if (p < 1 || !d || typeof d !== 'object') return;
-  if (d.k === 'toot') { const i = d.i | 0; if (i >= 0 && i < 4 && owner(i) === p) toot(i); }
-  else if (d.k === 'dir') { if (isFinite(d.x) && isFinite(d.y)) autoToot(+d.x, +d.y, p); }
+  if (d.k === 'toot') { if (G.state === 'playing' && !G.ending) toot(p); }
+  else if (d.k === 'dir') { if (isFinite(d.x) && isFinite(d.y)) sendPig(p, +d.x, +d.y); }
   else if (d.k === 'pause') pauseGame();
   else if (d.k === 'resume') resumeGame();
-  else if (d.k === 'name') { c.name = cleanName(d.name); rosterChanged(0); }
+  else if (d.k === 'name') { c.name = cleanName(d.name); if (d.look) c.look = cleanLook(d.look); rosterChanged(0); }
 }
 function packState() {
   const r = G.raft, q = v => Math.round(v * 100) / 100;
   return [q(r.x), q(r.y), q(r.vx), q(r.vy), Math.round(r.ang * 1000) / 1000, q(r.w), q(r.scale),
     q(r.riders[0].gas), q(r.riders[1].gas), q(r.riders[2].gas), q(r.riders[3].gas),
     G.hearts, G.beans, q(G.invuln), q(G.t), q(G.simTime), G.started ? 1 : 0,
-    G.ending ? (G.ending.type === 'win' ? 1 : 2) : 0, G.ending ? q(G.ending.t) : 0, q(G.shake)];
+    G.ending ? (G.ending.type === 'win' ? 1 : 2) : 0, G.ending ? q(G.ending.t) : 0, q(G.shake),
+    Math.round(r.riders[0].pos * 1000) / 1000, Math.round(r.riders[1].pos * 1000) / 1000,
+    Math.round(r.riders[2].pos * 1000) / 1000, Math.round(r.riders[3].pos * 1000) / 1000];
 }
 function startMsg() {
   const got = [];
@@ -6203,7 +6389,7 @@ function hostResult(res) {
   if (Net.mode !== 'host') return;
   flushSnap();
   broadcast({ k: 'result', res: { won: res.won, level: res.level, time: res.time, beans: res.beans, hearts: res.hearts,
-    beanPts: res.beanPts, heartPts: res.heartPts, timePts: res.timePts, score: res.score, stars: res.stars } });
+    beanPts: res.beanPts, heartPts: res.heartPts, timePts: res.timePts, score: res.score, stars: res.stars, goals: res.goals } });
 }
 function toLobby() {
   if (Net.mode !== 'host') return;
@@ -6221,10 +6407,10 @@ function joinRoom(code) {
   try { peer = makePeer(); } catch (e) { return netFail('Online play does not work in this browser.'); }
   Net.peer = peer;
   const lost = 'Could not find that raft. It may have closed. Ask your friend for a fresh link.';
-  const timer = setTimeout(() => { if (Net.peer === peer && !Net.joined) netFail(lost); }, 15000);
+  const timer = setTimeout(() => { if (Net.peer === peer && !Net.joined) netFail(lost); }, 25000);
   peer.on('open', () => {
     if (Net.peer !== peer) return;
-    const c = peer.connect(ROOM_PREFIX + code, { reliable: true, serialization: 'json', metadata: { name: myName() } });
+    const c = peer.connect(ROOM_PREFIX + code, { reliable: true, serialization: 'json', metadata: { name: myName(), look: myLook() } });
     Net.host = c;
     c.on('open', () => {
       if (Net.host !== c) return;
@@ -6248,7 +6434,8 @@ function guestData(d) {
   if (d.k === 'roster') {
     Net.me = d.you | 0; Net.n = clamp(d.n | 0, 2, MAX_PLAYERS);
     Net.names = (Array.isArray(d.names) ? d.names : []).slice(0, MAX_PLAYERS).map(cleanName);
-    padOwners(); lobbyRender();
+    Net.looks = (Array.isArray(d.looks) ? d.looks : []).slice(0, MAX_PLAYERS).map(cleanLook);
+    padOwners(); seatChanged(); lobbyRender();
   }
   else if (d.k === 's') { if (G.state === 'playing' || G.state === 'paused') { applyState(d.s); (d.e || []).forEach(replay); } }
   else if (d.k === 'start') guestStart(d);
@@ -6287,7 +6474,11 @@ function applyState(s, hard) {
   if (hard || ex * ex + ey * ey > 90 * 90) { r.x = s[0]; r.y = s[1]; } else { r.x += ex * 0.35; r.y += ey * 0.35; }
   if (hard || Math.abs(ea) > 1.2) r.ang = s[4]; else r.ang += ea * 0.35;
   r.vx = s[2]; r.vy = s[3]; r.w = s[5]; r.scale = s[6];
-  for (let i = 0; i < 4; i++) r.riders[i].gas = s[7 + i];
+  for (let i = 0; i < 4; i++) {
+    const rd = r.riders[i], pos = s[20 + i];
+    rd.gas = s[7 + i];
+    if (isFinite(pos)) { const e = wrapA(pos - rd.pos); rd.pos = hard || Math.abs(e) > 1.5 ? pos : wrapA(rd.pos + e * 0.5); }
+  }
   G.hearts = s[11]; G.beans = s[12]; G.invuln = s[13]; G.t = s[14];
   G.simTime = hard || Math.abs(s[15] - G.simTime) > 0.3 ? s[15] : G.simTime + (s[15] - G.simTime) * 0.3;
   G.started = !!s[16];
@@ -6297,7 +6488,7 @@ function applyState(s, hard) {
 }
 function replay(e) {
   const k = e[0];
-  if (k === 't') { G.started = true; G.toots++; tootFx(e[1] & 3, e[2] & 3); }
+  if (k === 't') { G.started = true; G.toots++; tootFx(e[1] & 3, e[2] & 3); }   // pig number, toot kind
   else if (k === 's') { if (SOUND_EVENTS.indexOf(e[1]) >= 0) Sound[e[1]](e[2]); }
   else if (k === 'q') G.quip = { text: String(e[1]), rider: e[2] | 0, life: 1.9 };
   else if (k === 'f') flash(String(e[1]));
@@ -6327,15 +6518,15 @@ function guestStep(dt) {
 function requestToot(i) {
   if (G.state !== 'playing') return;
   if (!mine(i)) { nudgePad(i); return; }
-  if (Net.mode === 'guest') { if (!G.ending) { netSend({ k: 'toot', i }); flashPad(i); } return; }
-  toot(i);
+  if (Net.mode === 'guest') { if (!G.ending) { netSend({ k: 'toot' }); flashPad(i); } return; }
+  if (!G.ending) toot(i);
 }
 function requestDir(x, y) {
   if (Net.mode === 'guest') {
     if (G.state === 'playing' && !G.ending) netSend({ k: 'dir', x: Math.round(x * 1000) / 1000, y: Math.round(y * 1000) / 1000 });
     return;
   }
-  autoToot(x, y, Net.me);
+  sendPig(Net.me, x, y);
 }
 
 /* ---------- Keep-alive ---------- */
@@ -6359,7 +6550,6 @@ function playerName(p) {
   if (p !== Net.me) return nameOf(p);
   return myName() ? myName() + ' (you)' : 'You';
 }
-function myPigs() { return RIDERS.filter((R, i) => mine(i)); }
 function lobbyRender() {
   if (G.state !== 'lobby') return;
   const err = !!Net.err, ready = Net.mode === 'host' ? !!(Net.peer && Net.peer.open) : Net.joined;
@@ -6375,8 +6565,8 @@ function lobbyRender() {
     for (let p = 0; p < MAX_PLAYERS; p++) {
       const row = document.createElement('div');
       if (p < Net.n) {
-        row.innerHTML = '<b></b><span>' + RIDERS.map((R, i) => owner(i) === p
-          ? '<i class="dot" style="--c:' + R.color + ';--cd:' + R.dark + '">' + R.key + ' ' + R.name + '</i>' : '').join('') + '</span>';
+        const R = RIDERS[p];
+        row.innerHTML = '<b></b><span><i class="dot" style="--c:' + R.color + ';--cd:' + R.dark + '">' + R.colour + ' pig</i></span>';
         row.firstChild.textContent = playerName(p);   // names are typed by players: never treat them as HTML
       } else {
         row.className = 'wait';
@@ -6396,44 +6586,50 @@ function lobbyRender() {
       b.addEventListener('click', () => { Sound.unlock(); fn(); });
       box.appendChild(b);
     };
-    LEVELS.forEach((L, i) => { if (i < save.unlocked) add((i + 1) + '. ' + L.name, 'Start', () => startLevel(i, i === 0)); });
+    LEVELS.forEach((L, i) => { if (riverOpen(i)) add((i + 1) + '. ' + L.name, 'Start', () => startLevel(i, i === 0)); });
     add('Daily river', fmtDay(todayKey()), () => startLevel(DAILY, false));
   }
   $('btnLeave').textContent = err || Net.mode === 'solo' ? 'Back to menu' : 'Leave';
+  $('btnRetry').classList.toggle('hidden', !(err && retryCode));
 }
-// Friends' pigs are dimmed and show whose they are
+// Name tags over every pig on the raft, and your name on the pad
 function padOwners() {
   if (typeof padBtns === 'undefined') return;
-  padBtns.forEach((pb, i) => {
-    pb.el.classList.toggle('theirs', !mine(i));
-    pb.nm.textContent = mine(i) ? RIDERS[i].name : RIDERS[i].name + ' · ' + nameOf(owner(i));
-  });
-  // name tags over the pigs once friends are on board
-  if (R3D.setBadges) R3D.setBadges(online() && Net.n > 1 ? RIDERS.map((R, i) => badgeName(owner(i))) : null);
+  padColours();
+  if (R3D.setBadges) R3D.setBadges(RIDERS.map((R, i) => (i < pigCount() ? badgeName(i) : '')));
 }
 function badgeName(p) {
   const n = p === Net.me && !myName() ? 'You' : nameOf(p);
   return n.length > 10 ? n.slice(0, 9) + '…' : n;
 }
 function nudgePad(i) {
-  const el = padBtns[i].el;
-  el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope');
   if (G.quipCd <= 0) { G.quip = { text: 'That is ' + nameOf(owner(i)) + '\'s pig!', rider: i, life: 1.2 }; G.quipCd = 1.2; }
 }
 function onlineHint() {
-  const pigs = myPigs();
-  return 'You toot ' + pigs.map(R => R.name + ' (' + R.key + ')').join(' and ') + '. Tap them or tap the water.';
+  return 'You are the ' + RIDERS[Net.me].colour + ' pig. Tap the water or the arrows to push, tap your pig to toot.';
+}
+// A new name or outfit reaches everyone on the raft
+function lookChanged() {
+  if (Net.mode === 'host') rosterChanged(0);
+  else if (Net.mode === 'guest') netSend({ k: 'name', name: myName(), look: myLook() });
 }
 
 $('btnFriends').addEventListener('click', () => { Sound.unlock(); hostRoom(); });
 $('btnLeave').addEventListener('click', leaveRoom);
-$('onName').addEventListener('input', e => {
-  save.name = cleanName(e.target.value); writeSave();
-  if (Net.mode === 'host') rosterChanged(0);
-  else if (Net.mode === 'guest') { netSend({ k: 'name', name: myName() }); padOwners(); lobbyRender(); }
+$('btnRetry').addEventListener('click', () => { if (retryCode) joinRoom(retryCode); });
+['onName', 'menuName', 'wardName'].forEach(id => {
+  const box = $(id);
+  box.value = myName();
+  box.addEventListener('input', e => {
+    save.name = cleanName(e.target.value); writeSave();
+    if (Net.mode === 'host') rosterChanged(0);
+    else if (Net.mode === 'guest') { lookChanged(); lobbyRender(); }
+    padOwners();
+    if (G.state === 'wardrobe') buildWardrobe();
+  });
+  box.addEventListener('change', e => { e.target.value = myName(); ['onName', 'menuName', 'wardName'].forEach(o => { if (o !== id) $(o).value = myName(); }); });
+  box.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') e.target.blur(); });
 });
-$('onName').addEventListener('change', e => { e.target.value = myName(); });
-$('onName').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
 $('btnShare').addEventListener('click', async () => {
   Sound.unlock();
   const url = shareUrl(), btn = $('btnShare');
@@ -6472,9 +6668,7 @@ window.addEventListener('keydown', e => {
   const code = e.code;
   if (G.state === 'playing') {
     if (e.repeat) return;
-    const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(code);
-    const np = ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4'].indexOf(code);
-    if (n >= 0 || np >= 0) { requestToot(n >= 0 ? n : np); e.preventDefault(); return; }
+    if (code === 'Space') { requestToot(Net.me); e.preventDefault(); return; }   // toot on the spot
     if (DIRS[code]) { const v = R3D.keyDir(DIRS[code][0], DIRS[code][1]); requestDir(v.x, v.y); e.preventDefault(); return; }
     if (code === 'KeyP' || code === 'Escape') { pauseGame(); return; }
     if (code === 'KeyR' && Net.mode !== 'guest') { startLevel(G.level, G.level === 0); return; }
@@ -6498,7 +6692,7 @@ canvas.addEventListener('pointerdown', e => {
   Sound.unlock();
   if (G.state !== 'playing') return;
   const hit = R3D.pick(e.clientX, e.clientY);
-  if (hit.rider >= 0) requestToot(hit.rider);   // tapped on a pig: that pig toots
+  if (hit.rider >= 0) requestToot(hit.rider);   // tapped your pig: it toots on the spot
   else requestDir(hit.x, hit.y);               // tapped open water: push towards it
 });
 
@@ -6539,7 +6733,7 @@ requestAnimationFrame(frame);
 if (roomFromUrl() && $('btnFriends').className.indexOf('hidden') < 0) joinRoom(roomFromUrl());
 
 // Hooks for automated testing
-window.TootRaft = { G, Net, hostRoom, joinRoom, leaveRoom, requestToot, requestDir, LEVELS, RIDERS, QUIPS, DAILY, HATS, OUTFIT_SKINS, save: () => save, setLook, todayKey, toot, autoToot, step, startLevel, setState, riderAngle, resultAction, buildTrack, gateOpen, R3D, Sound };
+window.TootRaft = { G, Net, hostRoom, joinRoom, leaveRoom, requestToot, requestDir, sendPig, pigCount, LEVELS, RIDERS, QUIPS, DAILY, HATS, OUTFIT_SKINS, save: () => save, setLook, todayKey, toot, autoToot, step, startLevel, setState, riderAngle, resultAction, buildTrack, gateOpen, R3D, Sound };
 </script>
 </body>
 </html>

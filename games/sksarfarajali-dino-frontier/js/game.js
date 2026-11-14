@@ -1250,7 +1250,7 @@ window.DF = window.DF || {};
      Sheets that are not loaded are skipped, so those dinosaurs keep their still image. Steps are starting values to tune in play. */
   var WALK = {
     starter: { key: 'walk-starter', n: 6, w: 480, h: 300, cols: 6, rw: 480, feet: 0.96, step: 32, bw: 128, gait: 'sprinter' },
-    ironhide: { key: 'walk-ironhide', n: 9, w: 576, h: 320, cols: 9, rw: 480, feet: 0.96, step: 36, bw: 156, gait: 'tank' },
+    ironhide: { key: 'walk-ironhide', n: 12, w: 576, h: 352, cols: 4, rw: 480, feet: 0.96, step: 24.9, bw: 156, gait: 'tank' }, // rigged by tools/make_ironhide_walk.py: the step is what that script prints, so planted feet slide with the ground
     swiftclaw: { key: 'walk-swiftclaw', n: 12, w: 500, h: 420, cols: 4, rw: 400, feet: 0.92, step: 33.5, bw: 134, gait: 'sprinter' },
     wildspark: { key: 'walk-wildspark', n: 12, w: 560, h: 420, cols: 4, rw: 450, feet: 0.92, step: 34.6, bw: 150, gait: 'stalker' },
     raider: { key: 'walk-raider', n: 12, w: 450, h: 300, cols: 4, rw: 360, feet: 0.92, step: 25.8, bw: 120, gait: 'stalker' },
@@ -1272,7 +1272,7 @@ window.DF = window.DF || {};
   }
   function walkFrame(wk, gait) { var c = gait / 2; c -= Math.floor(c); return Math.floor(c * wk.n) % wk.n; }
   /* standing still: the legs finish to the nearest contact pose over about 120 ms instead of snapping */
-  function settleGait(e, dt) { var g = e.gait || 0, t = Math.round(g); e.gait = Math.abs(t - g) < 0.02 ? t : g + (t - g) * Math.min(1, dt / 120); }
+  function settleGait(e, dt) { var g = e.gait || 0, t = Math.round(g); e.gait = Math.abs(t - g) < 0.02 ? t : g + (t - g) * Math.min(1, dt / (e === S.P && S.stats.path === 'ironhide' ? 220 : 120)); } // a heavy animal takes a little longer to come to rest
   /* enemies and bosses: gait from the distance they actually moved, only while they walk (not in a lunge, charge, knock-back or stun) */
   function trackGait(e, dt) {
     var boss = e.kind === 'boss', wk = walkOf(boss ? S.bossDef.id : e.type), step = (wk ? wk.step : boss ? 55 : 40) * S.formScale;
@@ -1290,7 +1290,8 @@ window.DF = window.DF || {};
     var face = isP ? P.face : e.face || 1, spd = isP ? Math.sqrt(P.ivx * P.ivx + P.ivy * P.ivy) : 90;
     if (boss && e.phase === 2 && S.bossDef.id === 'colossus' && !reduced() && S.parts.length < 140) ring(e.x, e.y, 90, '#4FD1C5');
     dust(e.x - face * (boss ? 30 : 10), e.y + 3, boss ? 3 : tank ? 3 : isP ? 2 : 1, boss ? 10 : 6, -face);
-    if (isP ? spd > 90 : boss) shake(boss ? 1.4 : tank ? 1.1 : 0.7);
+    if (isP && tank) DF.Audio.sfx('thud'); // Ironhide: a puff of dust and a light thud on each plant, no screen shake (it plants about five times a second)
+    else if (isP ? spd > 90 : boss) shake(boss ? 1.4 : 0.7);
     if (!reduced() && S.parts.length < 150) S.parts.push({ fx: 'print', x: e.x - face * 6, y: e.y + 4 + e.gside * 4, ang: isP ? Math.atan2(P.ivy * 0.5, P.ivx || P.face) : 0, t: 0, life: 2400, big: boss ? 2 : 1 });
   }
   /* one cell of a walking sheet: the standing body is scaled to width w and pinned to the feet line */
@@ -1373,7 +1374,10 @@ window.DF = window.DF || {};
     if (P.fxA && sheetReady(P.fxA.k)) drawSheet(P, w);
     else if (P.atkA && sheetReady(P.atkA.k)) { var aan = ANIM[P.atkA.k], afi = Math.min(aan.hit + BASIC_POST, aan.hit - BASIC_PRE + Math.floor(P.atkA.t * BASIC_FPS / 1000)); drawAnim(P.atkA.k, afi, P.x, P.y, w, P.face > 0, { alpha: o.alpha, tint: o.tint, tintA: o.tintA, sx: pf, sy: pf }); } // the owner's attack frames: lunge, bite or claw, recover
     else if (!dfl && walkReady(st.path)) { // the owner's walking sheets: the frame follows the gait, so every foot plant is a real leg pose; the art carries the bob, so ours is cut to 40%
-      var wk = walkOf(st.path), atkPose = P.atkT > 0 && st.path; if (!atkPose) { o.rot *= 0.4; o.sy = 1 + (o.sy - 1) * 0.4; } o.skew = 0; drawWalk(wk, atkPose ? 0 : walkFrame(wk, P.gait), P.x + lunge * P.face, P.y + bob * 0.4, w, !o.flip, o);
+      var wk = walkOf(st.path), atkPose = P.atkT > 0 && st.path, heavy = st.path === 'ironhide' && !atkPose && P.hurt <= 0 && P.dashT <= 0 && !S.onIce && !G.legacyWalk, dip = 0; // (G.legacyWalk is a dev switch for before/after comparisons)
+      if (heavy) { o.rot = 0; o.sy = pf; dip = P.plant * 1.2; } // Ironhide walks at a steady pace: the sheet carries the body dip, so no extra bob, tilt or squash; only a small settle on each footfall
+      else if (!atkPose) { o.rot *= 0.4; o.sy = 1 + (o.sy - 1) * 0.4; }
+      o.skew = 0; drawWalk(wk, atkPose ? 0 : walkFrame(wk, P.gait), P.x + lunge * P.face, P.y + (heavy ? dip : bob * 0.4), w, !o.flip, o);
     } else draw(st.sprite, w, P.x + lunge * P.face, y, o);
   }
   /* one frame of a sheet at a world spot: the resting body is scaled to width w and pinned to the feet; right = the dinosaur faces right */

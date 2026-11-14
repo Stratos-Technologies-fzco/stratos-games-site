@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stratos Drop Zone: animation lab</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e0b1a; color: #e8e4ff; font: 13px system-ui, sans-serif; overflow: hidden; }
+  canvas { display: block; }
+  #ui { position: fixed; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; pointer-events: none; }
+  #ui > * { pointer-events: auto; }
+  select, button { background: #1d1733; color: #e8e4ff; border: 1px solid #4b3f78; border-radius: 6px; padding: 4px 8px; font: inherit; }
+  button.on { background: #7c3aed; border-color: #a78bfa; }
+  #stats { position: fixed; right: 8px; bottom: 8px; background: rgba(14,11,26,.82); padding: 6px 10px; border-radius: 8px; font: 12px ui-monospace, Consolas, monospace; white-space: pre; }
+  #hint { position: fixed; left: 8px; top: 44px; opacity: .65; font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="ui"></div>
+<div id="hint">drag = orbit · wheel = zoom · F9 = debug panel</div>
+<div id="stats"></div>
+<script type="module" src="/src/lab/lab.ts"></script>
+</body>
+</html>

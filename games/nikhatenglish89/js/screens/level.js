@@ -86,12 +86,14 @@ export async function render({ id }) {
 
   // ---------- Exploration ----------
   function explore() {
+    // fixed spots (left %, top %) so the items never sit on top of each other or the clue
+    const SPOTS = [[7, 8], [43, 5], [78, 8], [6, 62], [78, 62], [42, 76]];
     const scenery = world.scenery.map((emoji, i) =>
       h(
         'button.scene-item',
         {
           type: 'button',
-          style: { left: 8 + ((i * 37) % 80) + '%', top: 12 + ((i * 53) % 60) + '%' },
+          style: { left: SPOTS[i % SPOTS.length][0] + '%', top: SPOTS[i % SPOTS.length][1] + '%' },
           'aria-label': emoji,
           onclick: (e) => {
             sfx('pop');

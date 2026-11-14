@@ -1,0 +1,22 @@
+{
+  "title": "Stratos 29 Card Game",
+  "maker": "Sk Sarfaraj Ali",
+  "one_line": "The classic 29 trick-taking card game: bid, pick a trump and win points with your partner against three AI opponents.",
+  "category": "party",
+  "github": "sksarfarajali",
+  "how_to_play": "Tap a card to select it, tap again or press Play card. Bid how many of the 29 points your team will win, pick the trump suit, and follow the led suit.",
+  "description": "Stratos 29 is the classic Indian trick-taking card game, played in your browser. You sit across from your partner Meera, and together you take on two AI opponents, Kabir and Arjun. Everyone is dealt four cards, then the bidding starts. Bid how many of the 29 points your team can win, or pass. The top bidder picks the trump suit. You can even keep trump hidden until someone asks for it.\n\nThen you play eight tricks. You have to follow the suit that was led. If you can't, you can cut with a trump card. Jacks are worth 3 points, nines 2, and aces and tens 1 each. Win the last trick for a bonus point. Make your bid and you score. Miss it and you lose a point. The first team to +6 wins the match.\n\nIt's fun because every bid is a small gamble. You can also declare a pair (King and Queen of trump), double the stakes, or re-double. There are four AI levels from Easy to Expert, and a Daily Deal that gives everyone the same cards each day, with a streak to keep going. New players can open the Learn to Play tutorial or watch the demo round. You can also play online: create a room, share the 5-letter code, and up to four friends can join, with the computer filling any empty seat. It's free, needs no sign-up, and is for anyone who likes card games.",
+  "controls": [
+    "Tap a card to pick it, then tap it again (or press Play card) to play it",
+    "Use the bid buttons to raise your bid, or press Pass",
+    "After you win the bid, tap a suit to choose trump",
+    "If you have no card of the led suit, you can ask for the trump to be shown",
+    "To play friends, tap Play with Friends and share the room code"
+  ],
+  "tips": [
+    "Count the Jacks and Nines. Bid high only when you hold a Jack and a Nine of one suit.",
+    "When your partner is winning a trick, add a Ten or an Ace to it. Don't spend trump on tricks with no points in them.",
+    "Try Practice mode first. It shows hints and a bidding guide, and it doesn't count in your stats."
+  ],
+  "story": "STRATOS 29 is a digital version of the classic Indian 29 card game, inspired by the games I played with friends in college. A clever bid, a surprise trump card or a last-minute win made every round something to remember. I built this game to bring those memories back and let anyone play them again."
+}

@@ -10,7 +10,7 @@ import { unlockAudio, stopVoice } from '../audio.js';
 export function render() {
   const p = state.profile;
   const lines = tList('kiki.tutorial');
-  const icons = ['🦜', '🗺️', '💡', '⭐', '🏖️'];
+  const icons = ['🏝️', '🗺️', '💡', '⭐', '🏖️'];
   let i = 0;
   const bird = kiki(lines[0].replace('{name}', p.nickname), { key: 'tutorial-0', size: 'big' });
   const icon = h('div.tutorial-icon', { 'aria-hidden': 'true' }, icons[0]);
@@ -31,7 +31,7 @@ export function render() {
       return;
     }
     bird.setText(lines[i].replace('{name}', p.nickname), 'tutorial-' + i);
-    icon.textContent = icons[i] || '🦜';
+    icon.textContent = icons[i] || '🏝️';
     if (i === lines.length - 1) nextBtn.textContent = t('ui.tutorial.go');
   }
 

@@ -1,0 +1,98 @@
+{
+  "set_02_frozen_shards": {
+    "name": "Frozen Shards",
+    "world": "Frozen Mountains",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_02_frozen_shards/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_02_frozen_shards/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_02_frozen_shards/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_02_frozen_shards/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_02_frozen_shards/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_02_frozen_shards/crystal_06_diamond.svg"
+    }
+  },
+  "set_03_forest_leaves": {
+    "name": "Forest Leaves",
+    "world": "Enchanted Forest",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_03_forest_leaves/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_03_forest_leaves/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_03_forest_leaves/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_03_forest_leaves/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_03_forest_leaves/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_03_forest_leaves/crystal_06_diamond.svg"
+    }
+  },
+  "set_04_desert_relics": {
+    "name": "Desert Relics",
+    "world": "Lost Desert",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_04_desert_relics/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_04_desert_relics/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_04_desert_relics/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_04_desert_relics/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_04_desert_relics/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_04_desert_relics/crystal_06_diamond.svg"
+    }
+  },
+  "set_05_dragon_scales": {
+    "name": "Dragon Scales",
+    "world": "Dragon Kingdom",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_05_dragon_scales/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_05_dragon_scales/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_05_dragon_scales/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_05_dragon_scales/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_05_dragon_scales/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_05_dragon_scales/crystal_06_diamond.svg"
+    }
+  },
+  "set_06_ocean_pearls": {
+    "name": "Ocean Pearls",
+    "world": "Ocean Kingdom (coming soon)",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_06_ocean_pearls/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_06_ocean_pearls/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_06_ocean_pearls/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_06_ocean_pearls/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_06_ocean_pearls/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_06_ocean_pearls/crystal_06_diamond.svg"
+    }
+  },
+  "set_07_sky_feathers": {
+    "name": "Sky Feathers",
+    "world": "Sky Kingdom (coming soon)",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_07_sky_feathers/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_07_sky_feathers/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_07_sky_feathers/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_07_sky_feathers/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_07_sky_feathers/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_07_sky_feathers/crystal_06_diamond.svg"
+    }
+  },
+  "set_08_dark_obsidian": {
+    "name": "Dark Obsidian",
+    "world": "Dark Kingdom (coming soon)",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_08_dark_obsidian/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_08_dark_obsidian/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_08_dark_obsidian/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_08_dark_obsidian/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_08_dark_obsidian/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_08_dark_obsidian/crystal_06_diamond.svg"
+    }
+  },
+  "set_09_celestial_stars": {
+    "name": "Celestial Stars",
+    "world": "Celestial Kingdom (coming soon)",
+    "crystals": {
+      "ruby": "assets/crystal_sets/set_09_celestial_stars/crystal_01_ruby.svg",
+      "sapphire": "assets/crystal_sets/set_09_celestial_stars/crystal_02_sapphire.svg",
+      "emerald": "assets/crystal_sets/set_09_celestial_stars/crystal_03_emerald.svg",
+      "topaz": "assets/crystal_sets/set_09_celestial_stars/crystal_04_topaz.svg",
+      "amethyst": "assets/crystal_sets/set_09_celestial_stars/crystal_05_amethyst.svg",
+      "diamond": "assets/crystal_sets/set_09_celestial_stars/crystal_06_diamond.svg"
+    }
+  }
+}

@@ -1,0 +1,234 @@
+// Bots: a small state machine plus A* over a 5 m grid. They send the same commands a player does.
+import B from '../balance.json';
+import type { Colliders } from '../core/collision';
+import { CELL, GRID, HALF, POIS, coastDist, type Terrain, type Tier } from '../core/world';
+import type { Actor, GroundItem } from './types';
+import type { ZoneState } from '../core/rules';
+import { BOT_NAMES } from './names';
+const W_MAG = (id: string) => (B.weapons as Record<string, { mag: number }>)[id].mag;
+
+export type BotState = 'drop' | 'loot' | 'rotate' | 'engage' | 'heal' | 'flee' | 'patrol' | 'cover';
+export interface Cmd { dx: number; dz: number; sprint: boolean; crouch: boolean; jump: boolean; yaw: number; pitch: number; fire: boolean; reload: boolean; heal: boolean; barrier: boolean; slot: number; interact: GroundItem | null; leavePlane: boolean }
+
+export interface BotEnv {
+  time: number; actors: Actor[]; colliders: Colliders; terrain: Terrain; zone: ZoneState | null; items: GroundItem[]; shots: { x: number; z: number; t: number; id?: number }[]; rand: () => number;
+  seeThrough: (from: Actor, to: Actor) => boolean;
+}
+
+/** Walkable grid built once from collider data. */
+export class NavGrid {
+  blocked = new Uint8Array((GRID - 1) * (GRID - 1)); n = GRID - 1;
+  /** Cells with a little wall or tower in them: not blocked, but the planner avoids them so paths do not squeeze through gaps too narrow for a character. */
+  risky = new Uint8Array((GRID - 1) * (GRID - 1));
+  constructor(colliders: Colliders, terrain: Terrain) {
+    for (let iz = 0; iz < this.n; iz++) for (let ix = 0; ix < this.n; ix++) {
+      const x = (ix + 0.5) * CELL - HALF, z = (iz + 0.5) * CELL - HALF, h = terrain.height(x, z);
+      if (coastDist(x, z) < 1.5 || terrain.slope(x, z) > 1.1) { this.blocked[iz * this.n + ix] = 1; continue; }
+      let cover = 0; const x0 = x - CELL / 2, x1 = x + CELL / 2, z0 = z - CELL / 2, z1 = z + CELL / 2;
+      colliders.near(x0, z0, x1, z1, (b) => { if (b.y1 < h + 0.6 || b.y0 > h + 1.8) return; const w = Math.min(x1, b.x1) - Math.max(x0, b.x0), d = Math.min(z1, b.z1) - Math.max(z0, b.z0); if (w > 0 && d > 0) cover += w * d; });
+      if (cover > CELL * CELL * 0.55) this.blocked[iz * this.n + ix] = 1; else if (cover > CELL * CELL * 0.08) this.risky[iz * this.n + ix] = 1;
+    }
+  }
+  cell(x: number, z: number): [number, number] { return [Math.max(0, Math.min(this.n - 1, Math.floor((x + HALF) / CELL))), Math.max(0, Math.min(this.n - 1, Math.floor((z + HALF) / CELL)))]; }
+  /** A* with an expansion cap. Returns world waypoints (cell centres), or null. */
+  path(sx: number, sz: number, gx: number, gz: number): [number, number][] | null {
+    const n = this.n; const [sxi, szi] = this.cell(sx, sz); let [gxi, gzi] = this.cell(gx, gz);
+    if (this.blocked[gzi * n + gxi]) { // nearest free neighbour of the goal
+      let found = false; for (let r = 1; r < 4 && !found; r++) for (let dz = -r; dz <= r && !found; dz++) for (let dx = -r; dx <= r; dx++) { const a = gxi + dx, b = gzi + dz; if (a >= 0 && b >= 0 && a < n && b < n && !this.blocked[b * n + a]) { gxi = a; gzi = b; found = true; break; } }
+    }
+    const open: number[] = [szi * n + sxi]; const g = new Map<number, number>([[open[0], 0]]); const f = new Map<number, number>([[open[0], 0]]); const from = new Map<number, number>(); const closed = new Set<number>();
+    const goal = gzi * n + gxi; let exp = 0;
+    const hfn = (i: number) => { const dx = Math.abs((i % n) - gxi), dz = Math.abs(Math.floor(i / n) - gzi); return Math.max(dx, dz) + 0.414 * Math.min(dx, dz); };
+    while (open.length && exp++ < 3500) {
+      let bi = 0; for (let i = 1; i < open.length; i++) if ((f.get(open[i]) ?? 1e9) < (f.get(open[bi]) ?? 1e9)) bi = i;
+      const cur = open.splice(bi, 1)[0]; if (cur === goal) { const out: [number, number][] = []; let c = cur; while (c !== undefined) { out.push([(c % n + 0.5) * CELL - HALF, (Math.floor(c / n) + 0.5) * CELL - HALF]); c = from.get(c)!; } return out.reverse(); }
+      closed.add(cur); const cx = cur % n, cz = Math.floor(cur / n);
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dz) continue; const nx = cx + dx, nz = cz + dz; if (nx < 0 || nz < 0 || nx >= n || nz >= n) continue; const ni = nz * n + nx;
+        if (this.blocked[ni] || closed.has(ni)) continue; if (dx && dz && (this.blocked[cz * n + nx] || this.blocked[nz * n + cx])) continue;
+        const ng = (g.get(cur) ?? 0) + (dx && dz ? 1.414 : 1) * (this.risky[ni] ? 4 : 1); if (ng < (g.get(ni) ?? 1e9)) { g.set(ni, ng); f.set(ni, ng + hfn(ni)); from.set(ni, cur); if (!open.includes(ni)) open.push(ni); }
+      }
+    }
+    return null;
+  }
+}
+
+const TIER_W: Record<Tier, number> = { low: 3, mid: 2.5, high: 1.5, top: 1 };
+export class BotBrain {
+  state: BotState = 'drop'; stateT = 0; target: Actor | null = null; seenT = 0; react = 0.5; pathPts: [number, number][] = []; pathAt = -9; goal: [number, number] = [0, 0];
+  strafe = 1; strafeT = 0; lootGoal: GroundItem | null = null; dropPoi = 0; jumpAt = 0; landedAt = 0; difficulty: 'easy' | 'normal' | 'hard'; aimT = 0; barrierT = 0; stuckT = 0; lx = 0; lz = 0; name: string;
+  lastCmd: Cmd | null = null; bad = new Map<number, number>(); lt = 0; nudge = 1; escUntil = 0; escAng = 0; escIdx = 0; invPt: [number, number] | null = null; invUntil = 0; invAt = -99; slotLock = 0; coverUntil = 0; coverPt: [number, number] | null = null; patrolGoal: [number, number] | null = null; patrolAt = -99; tactic = '';
+  constructor(rand: () => number, difficulty: 'easy' | 'normal' | 'hard', public nav: NavGrid) {
+    this.difficulty = difficulty; this.name = BOT_NAMES[Math.floor(rand() * BOT_NAMES.length)];
+    let tot = 0; const ws = POIS.map((p) => (tot += TIER_W[p.tier])); const r = rand() * tot; this.dropPoi = ws.findIndex((w) => r < w); this.jumpAt = 4 + rand() * 20;
+    const [a, b] = B.bots.difficulty[difficulty].react; this.react = a + rand() * (b - a);
+  }
+  private go(a: Actor, env: BotEnv, gx: number, gz: number, cmd: Cmd, sprint: boolean) {
+    const far = Math.hypot(gx - a.body.x, gz - a.body.z);
+    if (far > 6 && (env.time - this.pathAt > 0.5 || Math.hypot(this.goal[0] - gx, this.goal[1] - gz) > 12)) { this.pathAt = env.time; this.goal = [gx, gz]; this.pathPts = this.nav.path(a.body.x, a.body.z, gx, gz) ?? []; }
+    while (this.pathPts.length > 1 && Math.hypot(this.pathPts[0][0] - a.body.x, this.pathPts[0][1] - a.body.z) < 3) this.pathPts.shift();
+    const [tx, tz] = far <= 14 || !this.pathPts.length ? [gx, gz] : this.pathPts[0];
+    const dx = tx - a.body.x, dz = tz - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.sprint = sprint && this.difficulty !== 'easy';
+    // stuck detection: jump and nudge sideways
+    // blocked? Judged over 1 s windows so jitter against a wall still counts. Each time we are stuck we try a new escape direction for 1.5 s.
+    if (env.time - this.lt > 1.0) {
+      const moved = Math.hypot(a.body.x - this.lx, a.body.z - this.lz), escaping = env.time < this.escUntil + 0.2;
+      if (moved < 1.0 && (cmd.dx || cmd.dz) && !escaping) { this.stuckT += 1; this.escAng = Math.atan2(cmd.dx, cmd.dz) + ++this.escIdx * 0.8; this.escUntil = env.time + 2.2; if (this.stuckT >= 3) { if (this.lootGoal) this.bad.set(this.lootGoal.id, env.time + 40); this.pathPts = []; this.pathAt = -9; this.lootGoal = null; this.patrolGoal = null; } if (this.stuckT >= 7) { this.rescue(a, env); this.stuckT = 0; this.escIdx = 0; } }
+      else if (moved >= 1.0 && !escaping) { this.stuckT = 0; this.escIdx = 0; } else if (escaping && moved >= 2.0) { this.pathAt = -9; this.stuckT = 0; }
+      this.lx = a.body.x; this.lz = a.body.z; this.lt = env.time;
+    }
+    if (env.time < this.escUntil) { cmd.jump = Math.floor(env.time * 2) % 2 === 0; cmd.dx = Math.sin(this.escAng); cmd.dz = Math.cos(this.escAng); }
+  }
+  /** Behind-a-wall spot near us that the threat cannot see (cheap sampling of nearby boxes). */
+  private findCover(a: Actor, threat: Actor, env: BotEnv): [number, number] | null {
+    let best: [number, number] | null = null, bd = 1e9; const ty = threat.body.y + 1.5;
+    env.colliders.near(a.body.x - 25, a.body.z - 25, a.body.x + 25, a.body.z + 25, (b) => {
+      const h = b.y1 - b.y0, w = b.x1 - b.x0, d = b.z1 - b.z0; if (h < 1.1 || Math.max(w, d) < 0.8 || b.y0 > env.terrain.height((b.x0 + b.x1) / 2, (b.z0 + b.z1) / 2) + 1) return;
+      const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2, dx = cx - threat.body.x, dz = cz - threat.body.z, l = Math.hypot(dx, dz) || 1, r = Math.max(w, d) / 2 + 1.3; const px = cx + (dx / l) * r, pz = cz + (dz / l) * r;
+      if (coastDist(px, pz) < 3) return; const d2 = Math.hypot(px - a.body.x, pz - a.body.z); if (d2 >= bd || d2 > 24) return;
+      const gy = env.terrain.height(px, pz) + 1.5, ox = px - threat.body.x, oy = gy - ty, oz = pz - threat.body.z, dist = Math.hypot(ox, oy, oz) || 1;
+      if (env.colliders.raycast(threat.body.x, ty, threat.body.z, ox / dist, oy / dist, oz / dist, dist) < dist - 0.5) { bd = d2; best = [px, pz]; }
+    });
+    return best;
+  }
+  /** Best weapon for this distance: shotguns and SMGs close, rifles in the middle, snipers far. Holds a choice for 1.5 s so it does not flicker. */
+  private pickSlot(a: Actor, dist: number, env: BotEnv): number {
+    if (env.time < this.slotLock) return a.slot;
+    const cands: [number, { id: string; mag: number } | null][] = [[0, a.inv.main[0]], [1, a.inv.main[1]], [2, a.inv.pistol]]; let best = 3, bs = dist < 3 ? 0 : -1;
+    for (const [i, g] of cands) {
+      if (!g) continue; const w = (B.weapons as Record<string, { range: number; ammo: string | null }>)[g.id]; if (!(g.mag > 0 || (w.ammo && a.inv.count(w.ammo) > 0))) continue;
+      const s = 3 - (Math.abs(dist - w.range * 0.55) / w.range) * 3 + (g.mag > 0 ? 0.5 : 0); if (s > bs) { bs = s; best = i; }
+    }
+    if (best !== a.slot) this.slotLock = env.time + 1.5; return best;
+  }
+  private patrol(a: Actor, env: BotEnv, cmd: Cmd) {
+    const z = env.zone; const near = this.patrolGoal ? Math.hypot(this.patrolGoal[0] - a.body.x, this.patrolGoal[1] - a.body.z) : 0;
+    if (!this.patrolGoal || env.time - this.patrolAt > 25 || near < 8) {
+      const pool = POIS.filter((p) => !z || Math.hypot(p.x - z.nextCx, p.z - z.nextCz) < z.nextRadius + 20); const P = (pool.length ? pool : POIS)[Math.floor(env.rand() * (pool.length || POIS.length))];
+      this.patrolGoal = [P.x + (env.rand() - 0.5) * 50, P.z + (env.rand() - 0.5) * 50]; this.patrolAt = env.time;
+    }
+    this.go(a, env, this.patrolGoal[0], this.patrolGoal[1], cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); this.tactic = 'patrol';
+  }
+  /** Last resort for a bot enclosed by building colliders: put it on the nearest open ground outside. */
+  private rescue(a: Actor, env: BotEnv) {
+    let best: [number, number, number] | null = null, bd = 1e9;
+    for (let r = 5; r <= 18; r += 2) for (let k = 0; k < 20; k++) {
+      const ang = (k / 20) * Math.PI * 2, x = a.body.x + Math.sin(ang) * r, z = a.body.z + Math.cos(ang) * r; if (coastDist(x, z) < 4) continue;
+      const y = env.colliders.surfaceBelow(x, z, env.terrain.height(x, z) + 1.5); if (y === null || env.colliders.blocked(x, z, y) || Math.abs(y - env.terrain.height(x, z)) > 1.2) continue;
+      if (r < bd) { bd = r; best = [x, y, z]; }
+    }
+    if (best) { a.body.x = best[0]; a.body.y = best[1]; a.body.z = best[2]; a.body.vy = 0; a.vx = 0; a.vz = 0; }
+  }
+  private set(s: BotState) { if (this.state !== s) { this.state = s; this.stateT = 0; this.pathAt = -9; } }
+
+  think(a: Actor, env: BotEnv, dt: number): Cmd {
+    const cmd: Cmd = { dx: 0, dz: 0, sprint: false, crouch: false, jump: false, yaw: a.yaw, pitch: 0, fire: false, reload: false, heal: false, barrier: false, slot: -1, interact: null, leavePlane: false };
+    this.stateT += dt; const d = B.bots.difficulty[this.difficulty];
+    if (a.mode === 'plane') { cmd.leavePlane = env.time >= this.jumpAt; return cmd; }
+    if (a.mode === 'skydive' || a.mode === 'glide') {
+      const P = POIS[this.dropPoi], dx = P.x - a.body.x, dz = P.z - a.body.z, l = Math.hypot(dx, dz) || 1; cmd.dx = dx / l; cmd.dz = dz / l; cmd.yaw = Math.atan2(dx, dz); return cmd;
+    }
+    if (this.state === 'drop') { this.set('loot'); this.landedAt = env.time; }
+
+    // ---- perception ----
+    let best: Actor | null = null, bd = B.bots.sightRange, bestScore = -1e9;
+    for (const o of env.actors) {
+      if (o === a || !o.alive || o.mode !== 'ground') continue; const dist = Math.hypot(o.body.x - a.body.x, o.body.z - a.body.z); if (dist > B.bots.sightRange) continue;
+      if (o.hidden && dist > B.player.bushHideRange) continue; if (!env.seeThrough(a, o)) continue;
+      // who to fight: close, wounded, shooting at us, and the one we are already on
+      const score = 100 - dist + (o.hp < 40 ? 18 : 0) + (a.lastHitBy === o && env.time - a.lastHitAt < 6 ? 40 : 0) + (this.target === o ? 12 : 0) - (o.hidden ? 25 : 0);
+      if (score > bestScore) { bestScore = score; best = o; bd = dist; }
+    }
+    if (best) { if (this.target === best) this.seenT += dt; else { this.target = best; this.seenT = 0; this.aimT = 0; } } else { this.seenT = 0; if (this.target && !this.target.alive) this.target = null; this.aimT = Math.max(0, this.aimT - dt); if (!best && this.state === 'engage' && this.stateT > 1.5) this.set('loot'); }
+    const lowHp = a.hp < B.bots.healBelow, canHeal = a.inv.count('medkit') > 0 || a.inv.count('bandage') > 0;
+    const z = env.zone; const outside = z ? Math.hypot(a.body.x - z.cx, a.body.z - z.cz) > z.radius - 4 : false;
+    const outNext = z ? Math.hypot(a.body.x - z.nextCx, a.body.z - z.nextCz) > z.nextRadius * (this.difficulty === 'hard' ? 0.75 : this.difficulty === 'easy' ? 1.0 : 0.9) : false;
+
+    const armed = !!(a.inv.main[0] || a.inv.main[1] || a.inv.pistol) && (a.inv.count('light') + a.inv.count('heavy') + a.inv.count('shells') > 0 || a.inv.main.some((g) => g && g.mag > 0));
+    // hearing: armed bots (not Easy) go and look where they heard shooting
+    if (!best && armed && this.difficulty !== 'easy' && env.time - this.invAt > 5) {
+      let sd = 70, sp: { x: number; z: number } | null = null;
+      for (const s of env.shots) { if (s.id === a.id || s.t < 1.2) continue; const d = Math.hypot(s.x - a.body.x, s.z - a.body.z); if (d < sd && d > 12) { sd = d; sp = s; } }
+      if (sp) { this.invPt = [sp.x, sp.z]; this.invUntil = env.time + 8; this.invAt = env.time; }
+    }
+    if (outside && this.state !== 'flee') this.set('flee');
+    else if (this.state === 'flee' && !outside) this.set('rotate');
+    if (this.state !== 'flee') {
+      if (best && this.seenT > this.react && armed) this.set('engage');
+      else if (lowHp && canHeal && !best) this.set('heal');
+      else if (this.state === 'heal' && !lowHp) this.set('loot');
+      else if ((this.state === 'loot' && outNext && z && z.stage !== 'done' && (armed || env.time - this.landedAt > 45)) || (this.state === 'rotate' && !outNext && this.stateT > 6)) this.set(outNext ? 'rotate' : 'loot');
+    }
+
+    switch (this.state) {
+      case 'flee': case 'rotate': {
+        const jx = Math.sin(a.id * 7.1) * (z ? z.nextRadius * 0.4 : 0), jz = Math.cos(a.id * 3.3) * (z ? z.nextRadius * 0.4 : 0);
+        this.go(a, env, (z?.nextCx ?? 0) + jx, (z?.nextCz ?? 0) + jz, cmd, true); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); break;
+      }
+      case 'heal': {
+        cmd.heal = true; cmd.crouch = true; cmd.dx = cmd.dz = 0; break;
+      }
+      case 'engage': {
+        const t = this.target; if (!t || !t.alive) { this.set('loot'); break; }
+        const dx = t.body.x - a.body.x, dz = t.body.z - a.body.z, dist = Math.hypot(dx, dz) || 1;
+        this.aimT += dt; const err = d.aimErr * (1 + 3 * Math.max(0, 1 - this.aimT / d.aimTime));
+        const ty = t.body.y + 1.3 - (a.body.y + 1.6);
+        cmd.yaw = Math.atan2(dx, dz) + (Math.random() - 0.5) * err * 2; cmd.pitch = Math.atan2(ty, dist) + (Math.random() - 0.5) * err * 2;
+        this.strafeT -= dt; if (this.strafeT < 0) { this.strafe = Math.random() < 0.5 ? -1 : 1; this.strafeT = 0.8 + Math.random() * 1.4; cmd.crouch = Math.random() < 0.3; }
+        const gun = a.inv.main[Math.max(0, a.slot)] ?? a.inv.main[0] ?? a.inv.main[1] ?? a.inv.pistol; const want = gun ? B.weapons[gun.id].range : 2;
+        const wantDist = Math.min(want * 0.7, 45);
+        // tactics (not on Easy): fall back to cover to reload or heal when hurt
+        const need = !!gun && gun.mag <= Math.max(1, W_MAG(gun.id) * 0.15);
+        if (this.difficulty !== 'easy' && env.time > this.coverUntil + 4 && (a.hp < 50 || need) && dist > 6) { const cp = this.findCover(a, t, env); if (cp) { this.coverPt = cp; this.coverUntil = env.time + 3 + Math.random() * 2; this.tactic = a.hp < 50 ? 'retreat' : 'reload in cover'; } }
+        if (env.time < this.coverUntil && this.coverPt) {
+          const dd = Math.hypot(this.coverPt[0] - a.body.x, this.coverPt[1] - a.body.z); cmd.yaw = Math.atan2(dx, dz);
+          if (dd > 1.2) { cmd.dx = (this.coverPt[0] - a.body.x) / dd; cmd.dz = (this.coverPt[1] - a.body.z) / dd; cmd.sprint = true; } else { cmd.crouch = true; cmd.reload = need || (!!gun && gun.mag < W_MAG(gun.id)); cmd.heal = a.hp < 70 && canHeal; if (this.difficulty === 'hard' && Math.sin(env.time * 3) > 0.6 && gun && gun.mag > 0) cmd.fire = true; }
+          break;
+        }
+        if (dist > wantDist + 6) { cmd.dx = dx / dist; cmd.dz = dz / dist; cmd.sprint = false; } else if (dist < wantDist * 0.4) { cmd.dx = -dx / dist; cmd.dz = -dz / dist; }
+        const lat = this.difficulty === 'hard' && dist > wantDist ? 1.3 : 0.8; if (this.difficulty === 'hard' && dist > wantDist) this.tactic = 'flank'; cmd.dx += (-dz / dist) * this.strafe * lat; cmd.dz += (dx / dist) * this.strafe * lat;
+        cmd.fire = dist < Math.min(want * 1.05, 110) && this.aimT > 0.35 && Math.sin(env.time * 4 + a.id) > -0.35; cmd.slot = this.pickSlot(a, dist, env);
+        if (gun && gun.mag === 0) cmd.reload = true;
+        this.barrierT -= dt; if (a.hp < 60 && a.inv.barriers > 0 && this.barrierT < 0 && dist > 8) { cmd.barrier = true; this.barrierT = 20; }
+        break;
+      }
+      default: { // loot
+        if (this.invPt && env.time < this.invUntil && armed && this.difficulty !== 'easy' && !this.lootGoal) { this.go(a, env, this.invPt[0], this.invPt[1], cmd, false); cmd.yaw = Math.atan2(cmd.dx, cmd.dz); this.tactic = 'investigate'; break; }
+        if (!this.lootGoal || this.lootGoal.taken || Math.hypot(this.lootGoal.x - a.body.x, this.lootGoal.z - a.body.z) > 150) this.lootGoal = this.chooseLoot(a, env);
+        const g = this.lootGoal;
+        if (g) {
+          this.go(a, env, g.x, g.z, cmd, true); cmd.yaw = Math.atan2(cmd.dx, cmd.dz);
+          if (Math.hypot(g.x - a.body.x, g.z - a.body.z) < 2.1 && Math.abs(g.y - a.body.y) < 2.5) { cmd.interact = g; this.lootGoal = null; }
+        } else { this.patrol(a, env, cmd); }
+      }
+    }
+    if (!cmd.fire && this.state !== 'engage') cmd.pitch = 0;
+    return cmd;
+  }
+  /** Looting with a plan: wanted upgrades first, ammo that fits our guns, healing and armour only when useful, nothing far outside the next safe zone. */
+  private chooseLoot(a: Actor, env: BotEnv): GroundItem | null {
+    const WV: Record<string, number> = { monsoon_ar: 8, ridgeline_dmr: 7, hornet_smg: 6, longwatch: 6, scatter12: 5, kestrel_p9: 2 };
+    const W = B.weapons as Record<string, { ammo: string | null }>;
+    const mains = a.inv.main.filter(Boolean) as { id: string; rarity: number }[]; const worst = mains.length < 2 ? -1 : Math.min(...mains.map((g) => (WV[g.id] ?? 3) + g.rarity * 1.5));
+    const owns = new Set<string>([...mains.map((g) => W[g.id].ammo ?? ''), a.inv.pistol ? 'light' : '']);
+    const z = env.zone; let best: GroundItem | null = null, bs = -1e9;
+    for (const it of env.items) {
+      if (it.taken) continue; const dist = Math.hypot(it.x - a.body.x, it.z - a.body.z); if (dist > 120) continue;
+      if ((this.bad.get(it.id) ?? 0) > env.time) continue; // could not reach it a moment ago
+      if (!it.crate && it.y - env.terrain.height(it.x, it.z) > 2.2) continue; // rooftop loot: bots cannot climb the outside stairs
+      if (z && env.time - this.landedAt > 20 && Math.hypot(it.x - z.nextCx, it.z - z.nextCz) > z.nextRadius + 25) continue;
+      let w = 0;
+      for (const x of it.items) {
+        if (x.kind === 'weapon') { const val = (WV[x.id] ?? 3) + x.rarity * 1.5; w += val - worst > 0 ? 6 + (val - worst) * 2 + (mains.length < 2 ? 8 : 0) : 0.2; }
+        else if (x.kind === 'ammo') w += owns.has(x.id) ? (a.inv.count(x.id) < 60 ? 7 : 2) : 0.3;
+        else if (x.kind === 'heal') w += a.hp < 80 || a.inv.count(x.id) < 3 ? 5 : 1.5;
+        else if (x.kind === 'vest') w += Number(x.id.slice(-1)) > a.armour.vestLv ? 6 : 0.2;
+        else if (x.kind === 'helmet') w += Number(x.id.slice(-1)) > a.armour.helmetLv ? 5 : 0.2;
+        else if (x.kind === 'backpack') w += Number(x.id.slice(-1)) > a.inv.backpackLv ? 3 : 0.1;
+        else w += 2;
+      }
+      w += it.rarity * 2 + (it.crate ? 8 : 0); const sc = w * 18 - dist; if (sc > bs) { bs = sc; best = it; }
+    }
+    return best && bs > -60 ? best : null;
+  }
+}

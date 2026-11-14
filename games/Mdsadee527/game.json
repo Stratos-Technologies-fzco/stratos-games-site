@@ -6,5 +6,17 @@
   "github": "Mdsadee527",
   "added": "2026-09-29",
   "how_to_play": "Steer left and right to dodge traffic and stay on the road. Arrow keys on desktop, on-screen left/right buttons on mobile.",
-  "description": "A lane-dodging car racer, one file, no libraries. Traffic gets faster the longer you survive, with a live score, high score, and a mute toggle."
+  "description": "Racing Mania drops you into a real 3D car on a three-lane road, chased from just behind your own bumper. Traffic comes at you in sedans, compacts, and wide trucks, and the only job is to steer left and right and not hit anything. Hold a direction to ease into a lane — the car has real momentum, so it leans into the turn and settles back to center when you let go, instead of snapping instantly.\n\nThe longer you survive, the harder it gets. The game climbs through ten levels, and the world actually changes as you go: green countryside gives way to desert, then a city, then snow, then a glowing night skyline, each one a little faster and busier than the last. Crash and you get a real impact — the screen shakes, sparks fly, then it's game over. Beat your best score and you unlock new paint jobs for your sports car, from the starting red up through blue, yellow, purple, and green.\n\nIt's built for quick sessions: pick it up, see how far you get, put it down, come back and try to beat yourself. No sign-up, no waiting — just the road and whatever's coming at you next.",
+  "controls": [
+    "← → arrow keys to steer (hold to build speed into the turn, let go to settle back to center)",
+    "On-screen ◀ ▶ buttons for touch",
+    "Space bar to pause and resume",
+    "Tap \"Sound\" to mute or unmute the engine and effects"
+  ],
+  "tips": [
+    "Ease into lane changes instead of snapping — the car has momentum, so a held direction gets you across faster than tapping",
+    "Watch for the wide trucks in traffic — they take up more of the lane than cars and compacts do",
+    "Keep pushing past level 3, 5, 7, and 9 to see the scenery change and unlock new car colors as your best score grows"
+  ],
+  "story": "I started this as a simple one-file traffic dodger, but it felt too basic next to the other games on the site, so I rebuilt it as a real 3D game with levels, changing scenery, and a proper sports car instead of a flat sprite. Getting the chase camera and car physics to actually feel right took the most work."
 }

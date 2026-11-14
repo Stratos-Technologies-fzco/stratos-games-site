@@ -13,7 +13,7 @@ window.DF = window.DF || {};
   PATHS['dino-starter'] = 'assets/sprites/player.png'; PATHS['evo-swiftclaw'] = 'assets/sprites/swiftclaw.png'; PATHS['evo-ironhide'] = 'assets/sprites/ironhide.png'; PATHS['evo-wildspark'] = 'assets/sprites/wildspark.png';
   PATHS['prop-berry-bush'] = 'assets/sprites/food.png'; PATHS['icon-food'] = 'assets/sprites/food-icon.png'; // food: the owner's glowing mushroom art (cut out)
   PATHS['walk-starter'] = 'assets/sprites/walk-starter.png'; // the owner's 6-frame walking sheet for the starter dinosaur
-  PATHS['walk-ironhide'] = 'assets/sprites/walk-ironhide.png'; // the owner's 9-frame walking sheet for Ironhide
+  PATHS['walk-ironhide'] = 'assets/sprites/walk-ironhide.webp'; // Ironhide walking sheet: 12 frames rigged from the owner's art (legs swing from the hip, feet stay planted)
   ['swiftclaw', 'wildspark', 'raider', 'skimmer', 'spitter', 'thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (n) { PATHS['walk-' + n] = 'assets/sprites/walk-' + n + '.webp'; }); // the other walking sheets (12 frames, or 16 for bosses; 4 columns)
   /* Boss walking sheets are in LAZY below, so they only load when needed. A dinosaur with no sheet keeps its still image. */
   PATHS['path-strip'] = 'assets/sprites/path-strip.png';
@@ -25,7 +25,7 @@ window.DF = window.DF || {};
   ['thornback', 'cinderjaw', 'whitetitan', 'mirequeen', 'colossus'].forEach(function (b) { SHEETS.push(b + '-charge', b + '-stomp'); LAZY.push('anim-' + b + '-charge', 'anim-' + b + '-stomp', 'walk-' + b); });
   SHEETS.forEach(function (n) { PATHS['anim-' + n] = 'assets/anim/' + n + '_attack.webp'; });
   /* Version tag on every file URL so returning players pick up swapped art instead of a cached copy. Bump it when art changes. */
-  var V = '20261107a';
+  var V = '20261107c';
   Object.keys(PATHS).forEach(function (n) { if (PATHS[n].indexOf('data:') !== 0) PATHS[n] += '?v=' + V; });
   /* Needed before the first screen can play. The rest is requested in the background. */
   var CRITICAL = ['verdant_valley', 'path-strip', 'canyon_styracosaur', 'other_9', 'raptor_nursery_sanctuary', 'dino-starter', 'enemy-raider', 'prop-berry-bush', 'egg', 'egg-glade', 'dna', 'icon-token', 'evo-swiftclaw', 'evo-ironhide', 'evo-wildspark', 'enemy-spitter', 'enemy-skimmer', 'boss-thornback', 'prop-genesis-crystal'];

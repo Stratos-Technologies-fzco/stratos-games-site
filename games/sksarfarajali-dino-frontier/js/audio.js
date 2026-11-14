@@ -138,6 +138,7 @@ window.DF = window.DF || {};
     roar: function () { tone('sawtooth', 110, 55, 0.5, 0.35); burst(0.45, 0.25, 'lowpass', 700, 120); },
     windup: function () { tone('triangle', 900, 1100, 0.07, 0.16); },
     spit: function () { tone('sine', 400, 180, 0.12, 0.25); },
+    thud: function () { tone('sine', 105, 48, 0.1, 0.2); }, // a heavy footfall: soft and low
     slam: function () { tone('sine', 90, 35, 0.45, 0.6); burst(0.4, 0.5, 'lowpass', 900, 90); },
     levelup: function () { tone('triangle', 523, 523, 0.14, 0.3); tone('triangle', 659, 659, 0.14, 0.3, 0.12); tone('triangle', 784, 784, 0.3, 0.3, 0.24); },
     crystal: function () { tone('sine', 880, 1760, 0.6, 0.25); tone('sine', 660, 1320, 0.6, 0.2, 0.1); },

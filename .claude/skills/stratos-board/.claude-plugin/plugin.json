@@ -1,0 +1,6 @@
+{
+  "name": "stratos-board",
+  "version": "0.1.0",
+  "description": "A pane beside the chat that shows how stratos.games is growing: players, money, live games, makers, admin work and objectives. Refreshes itself every 10 minutes.",
+  "types": "./types/index.d.ts"
+}

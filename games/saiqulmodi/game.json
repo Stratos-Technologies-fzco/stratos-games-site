@@ -1,8 +1,24 @@
 {
-  "title": "Fight for Right",
+  "title": "Fighter",
   "maker": "Md. Saiqul Haque Modi",
-  "one_line": "Fly a fighter squadron at 35,000 ft over a whole country while SAM bases and hidden launchers fire missiles at you.",
+  "one_line": "Defend a fictional homeland in one versatile fighter jet: guard the sky, strike hidden launchers and outfly the missiles.",
   "category": "arcade",
   "github": "saiqulmodi",
-  "description": "A whole country seen from 35,000 ft: coast, mountains, desert, rivers, 12 cities and the border war zone. You fly one of ten fighters (VIPER-1 to OMEGA-10) while the other nine patrol in four flights. 50 SAM bases and 150 mobile launchers, most of them camouflaged, fire guided and unguided missiles at you; a guided missile follows you, an unguided one flies to where you were heading, so drop flares, jam with ECM or turn hard out of its path. Bomb and strike the launchers, shoot down the drones, fly lower to spot hidden launchers and see trees, traffic and boats. Lose a jet and the pilot ejects under a seven-colour parachute while you take over the next one. Day and night views, 100 levels of speed, and a two-player mode where a friend commands the launchers."
+  "description": "Fighter is a fictional air-defence game. Your homeland, an imagined country of coast, mountains, desert, rivers and 12 cities, is under threat along its border, where enemy forces have set up 50 SAM (surface-to-air missile) bases and 150 mobile launchers, most of them hidden under camouflage. You fly one of ten fighters, VIPER-1 to OMEGA-10, while the other nine patrol in four flights. Your job is to keep the sky and the cities safe.\n\nA fighter jet is built to do many jobs, and so are you. Guard the sky: shoot down enemy drones with air-to-air missiles. Strike: bomb the launchers and hit the SAM bases with air-to-ground missiles, flying lower to find the ones hidden among trees, traffic and boats. Survive: a guided missile follows you and an unguided one flies to where you were heading, so drop flares, release chaff, switch on the ECM jammer or turn hard out of its path. If a jet is lost, the pilot ejects under a seven-colour parachute and you take over the next one.\n\nFly by day or night through 100 speed levels, practise first against a single missile battery, or play with a friend who commands the launchers. It plays with a keyboard, a PS5 or Xbox controller, or touch buttons on a phone. Every place, force and event in the game is made up.",
+  "how_to_play": "Press Enter or tap to start. Fly with W/S and A/D or the touch stick, set power with R/F, and when a missile comes drop flares (C), jam it (X) or turn hard. Bomb launchers with B and fire missiles with G and Z.",
+  "controls": [
+    "Climb / dive: S / W or Down / Up, left stick, or the touch stick",
+    "Roll: A / D or Left / Right; rudder: Q / E",
+    "Power: R / F (RT / LT, THR+ / THR-); afterburner: hold Space (AB)",
+    "Defend: C flares, K chaff, X ECM jammer",
+    "Attack: B bomb, G air-to-ground missile, Z air-to-air missile",
+    "T day / night, N / P level, Tab next jet, 2 two players, Enter start or restart"
+  ],
+  "tips": [
+    "A guided missile follows you: drop flares and turn hard. An unguided one flies to where you were heading, so change direction.",
+    "Fly lower to find camouflaged launchers, then climb away before the missile sites aim at you.",
+    "Press M to practise against a single battery before the war zone.",
+    "Save the ECM jammer for when several missiles come at once."
+  ],
+  "story": "I wanted to show how versatile a fighter jet is: one aircraft that can guard the sky, strike a threat on the ground and protect itself from missiles. The country, the enemy and every mission are made up; what is real is the skill of flying, with flares, jamming and a hard turn at the right moment. In two-player mode a friend takes the launchers and tries to stop me."
 }

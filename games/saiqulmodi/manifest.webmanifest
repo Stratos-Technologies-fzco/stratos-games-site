@@ -1,6 +1,6 @@
 {
-  "name": "Jet vs Missile",
-  "short_name": "Jet vs Missile",
+  "name": "Fighter",
+  "short_name": "Fighter",
   "description": "Fly a fighter jet over a defended country: dodge SAMs with flares, chaff, ECM and skill.",
   "start_url": "./",
   "scope": "./",

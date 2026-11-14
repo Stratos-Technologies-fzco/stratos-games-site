@@ -1,6 +1,6 @@
 /* BrainRush Daily service worker: app shell + puzzle packs work offline after a first visit.
    Every URL is resolved against the worker's own scope, so the game works from any folder. */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL = `brd-shell-${VERSION}`;
 const PACKS = `brd-packs-${VERSION}`;
 const BASE = self.registration.scope; // always ends with "/"
