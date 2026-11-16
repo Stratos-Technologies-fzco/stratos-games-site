@@ -70,6 +70,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Opens and plays on a phone in portrait, thumb-reachable controls, no pinch or zoom needed.
 - **Fits the screen, no scrolling (Sahil 2026-11-07):** on a phone the game goes full screen by itself; on a computer it fits whatever window it gets. No scrollbars, ever. Use screens (screen 1, screen 2) instead of long scrolling pages.
 - First tap to fun in under 10 seconds. No long intro, no sign-up.
+- **Stratos splash (#68):** every game opens with the same Stratos Games splash and loading screen: the snake S draws itself in, the letters come together, then a LOADING bar under the game's cover (about 5 seconds, tap to skip). The play page adds it by itself, so makers add nothing and never build their own Stratos intro: start straight on your game's home screen.
 - Loads fast: small images, first screen in under 3 seconds on a normal phone. No folder size cap (Sahil 2026-11-07), but no single file over 100 MB (GitHub's limit).
 - Unity and Godot are welcome (Sahil 2026-11-07): export the Web build into your folder. Unity: compression "Gzip" with "Decompression Fallback" on, or compression off. Godot 4.3+: Web export with "Thread Support" off.
 - No errors in the browser console. Test it: open the page, play a full round, lose once, restart.

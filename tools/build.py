@@ -599,6 +599,63 @@ def pk_detail(g, base):
             'if(!d||!b)return;d.classList.add("clamp");if(d.scrollHeight<=d.clientHeight+4){d.classList.remove("clamp");return}b.hidden=false;'
             'b.onclick=function(){var c=d.classList.toggle("clamp");b.firstChild.textContent=c?"Show more":"Show less";b.classList.toggle("open",!c);b.setAttribute("aria-expanded",String(!c))}})()</script>')
 
+def pk_splash(g, base):
+    """#68: every game opens with the same Stratos Games splash, then a loading screen, shown by the play page over
+    the game frame (no maker adds anything). Modelled on Arrow Rush's old splash (a comet draws the S over a night sky
+    with a glowing horizon, then STRATOS / GAMES, then a LOADING screen), with the brand's snake as the S:
+      1. a big snake S draws itself in from its tail, standing on the horizon, a glowing comet at the tip; its eyes
+         pop open, it blinks and flicks its tongue
+      2. it shrinks into its place in the logo while the letters "tratos" fly in and come together; GAMES slides in
+      3. the logo gives way to the loading screen: the game's cover and a LOADING bar (fills when the game has loaded)
+      4. the game opens
+    About 5.3 s when the game is ready (everything 25% slower than the first cut, the snake drawing and the LOADING bar
+    50% slower), longer only while it is still loading (15 s at most). A tap or any key skips
+    it. Silent. Players who ask for less motion get it without the movement."""
+    mark = (SN_INNER.replace('<path d="M142 62', '<path mask="url(#ss-m)" d="M142 62')
+            .replace('<path d="M118 44', '<path mask="url(#ss-m)" d="M118 44')
+            .replace('<path d="M74 92', '<path mask="url(#ss-m)" d="M74 92')
+            .replace('<g class="sn-eye">', '<g class="sn-eye ss-eye">'))
+    fly = [("-1.1em", "-.9em", "-50deg"), ("-.4em", "1.1em", "40deg"), (".5em", "-1.2em", "-30deg"),
+           ("1.2em", ".9em", "55deg"), ("1.9em", "-.7em", "-45deg"), ("2.6em", "1em", "35deg")]
+    letters = "".join(f'<i style="--x:{x};--y:{y};--r:{r};--d:{k * 75}ms">{c}</i>' for k, (c, (x, y, r)) in enumerate(zip("tratos", fly)))
+    svg = ('<svg class="sn-mark ss-mark" viewBox="0 0 200 200" aria-hidden="true"><defs>'
+           '<mask id="ss-m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="340" height="340">'
+           '<path id="ss-p" d="M56 146 C64 176 142 178 142 136 C142 96 60 110 60 72 C60 30 136 32 142 62" fill="none" stroke="#fff" stroke-width="66" stroke-linecap="round"/></mask>'
+           '<radialGradient id="ss-g"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#e2ffb0" stop-opacity=".9"/><stop offset="1" stop-color="#B6FF3B" stop-opacity="0"/></radialGradient>'
+           f'</defs>{mark}<g class="ss-comet" transform="translate(56 146)" style="opacity:0"><circle r="24" fill="url(#ss-g)"/><circle r="7" fill="#fff"/></g></svg>')
+    return (f'<div class="pk-splash" id="pk-splash" aria-hidden="true"><div class="ss-sky"></div>'
+            f'<div class="ss-logo"><span class="sn-word"><span class="sn-row">{svg}<span class="sn-w1">{letters}</span></span><span class="sn-w2">GAMES</span></span><span class="ss-horizon"></span></div>'
+            f'<div class="ss-loading"><img class="ss-cover" src="{esc(base + g["thumb"])}" alt=""><div class="ss-bar"><i></i></div><small>LOADING</small></div></div>'
+            '<script>(function(){var s=document.getElementById("pk-splash"),f=document.getElementById("game");if(!s||!f)return;'
+            'var p=document.getElementById("ss-p"),cm=s.querySelector(".ss-comet"),lg=s.querySelector(".ss-logo"),bar=s.querySelector(".ss-bar i"),mk=s.querySelector(".ss-mark"),hz=s.querySelector(".ss-horizon"),'
+            't0=Date.now(),loaded=0,gone=0,lo=0,v=0,vs=0,vt=0,done=0,did={},L=0,'
+            'still=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);'
+            'try{L=p.getTotalLength()}catch(e){still=true}var M=L+60;'
+            'if(!still){p.style.strokeDasharray=L+" "+(L+200);p.style.strokeDashoffset=M}'
+            'var T=still?{letters:0,eyes:0,settle:0,games:0,load:875}:{eyes:1380,tongue:1570,settle:1780,letters:1840,games:2405,load:3405};'
+            'function place(){if(still||did.settle)return;try{mk.style.transform="none";var r=mk.getBoundingClientRect(),sr=s.getBoundingClientRect(),hr=hz.getBoundingClientRect();mk.style.transform="";'
+            'var k=Math.min(sr.height*.36,sr.width*.42,230)/r.height;if(!(k>1))return;'
+            'mk.style.setProperty("--ssx",(sr.left+sr.width/2-r.left-r.width/2).toFixed(1)+"px");'
+            'mk.style.setProperty("--ssy",(hr.top-r.height*k/2-6-r.top-r.height/2).toFixed(1)+"px");mk.style.setProperty("--sss",k.toFixed(3))}catch(e){}}'
+            'place();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(place);'
+            'f.addEventListener("load",function(){loaded=1});'
+            'function cls(c){s.classList.add(c)}'
+            'function at(t,k,fn){if(!did[k]&&T[k]!=null&&t>=T[k]){did[k]=1;fn()}}'
+            'function hide(){if(gone)return;gone=1;s.classList.add("out");setTimeout(function(){s.remove()},580)}'
+            'function ease(x){x=x<0?0:x>1?1:x;return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}'
+            'cls("ss-run");'
+            'function tick(){if(gone)return;var t=Date.now()-t0;'
+            'if(!still){var q=ease((t-125)/1275),d=M*q-60;p.style.strokeDashoffset=M*(1-q);'
+            'if(d>0){var pt=p.getPointAtLength(Math.min(d,L));cm.setAttribute("transform","translate("+pt.x.toFixed(1)+" "+pt.y.toFixed(1)+")")}'
+            'cm.style.opacity=d>0&&q<1?1:0}'
+            'at(t,"letters",function(){cls("ss-letters")});at(t,"eyes",function(){cls("ss-eyes")});'
+            'at(t,"tongue",function(){cls("ss-tongue");lg.classList.add("sn-blink");setTimeout(function(){lg.classList.remove("sn-blink")},220)});at(t,"settle",function(){cls("ss-settle")});'
+            'at(t,"games",function(){cls("ss-games")});at(t,"load",function(){cls("ss-load");lo=t});'
+            'if(lo){var u=t-lo-250;if(u>0){if(loaded){if(!vt){vt=t;vs=v}v=vs+(1-vs)*Math.min(1,(t-vt)/825)}else v=.9*(1-Math.exp(-u/2250));'
+            'bar.style.width=(v*100).toFixed(1)+"%";if(v>=1&&!done)done=t;if(done&&t-done>200){hide();return}}}'
+            'if(t>15000){hide();return}requestAnimationFrame(tick)}'
+            'requestAnimationFrame(tick);s.addEventListener("pointerdown",hide);addEventListener("keydown",hide,{once:true})})()</script>')
+
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
     desc = g.get("description") or g.get("one_line") or f"{g['title']} by {g['maker']}, free to play on Stratos Games."
@@ -616,7 +673,7 @@ def build_play(g, fam, studio):
     words = pk_detail(g, base)
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
     if CLEAN:
-        stage = (f'<div class="pk-stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
+        stage = (f'<div class="pk-stage"><div class="pk-frame"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>{pk_splash(g, base)}</div>'
                  f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
                  f'<button class="pk-ib pk-vote up" type="button" data-v="1" title="I like this game" aria-label="Like" aria-pressed="false">{icon("thumbup", 19)}</button>'
                  f'<button class="pk-ib pk-vote down" type="button" data-v="-1" title="I don\'t like this game" aria-label="Dislike" aria-pressed="false">{icon("thumbdown", 19)}</button>'
