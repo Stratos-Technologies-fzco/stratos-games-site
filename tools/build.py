@@ -244,9 +244,18 @@ var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),gm=d.quer
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
 if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var live=/(^|\.)stratos\.games$/.test(location.hostname);   /* staging and test copies: nothing is counted, track() shows in the console instead */
-if(!live)C={};
-var S=w.Stratos={config:C,game:game,live:live,
- track:function(n,x){if(!live){try{console.info("Stratos track (not counted off the live site):",n,x||"")}catch(e){}}if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
+var builder=false;   /* builders and testers are not players (#66): once per browser open stratos.games/?builder=1 (?builder=0 undoes it); that browser's visits are not counted */
+try{var bq=new URLSearchParams(location.search).get("builder");
+ if(bq==="1"||bq==="0"){if(bq==="1")localStorage.setItem("sg_builder","1");else localStorage.removeItem("sg_builder");
+  var bu=new URL(location.href);bu.searchParams.delete("builder");w.history.replaceState(w.history.state,"",bu.pathname+bu.search+bu.hash);   /* w.history: the coins code has its own "history" in this file */
+  var bn=function(){var b=d.createElement("div");b.setAttribute("role","status");b.textContent=bq==="1"?"Builder mode on: visits from this browser are not counted. To undo, open stratos.games/?builder=0":"Builder mode off: this browser counts as a player again.";
+   b.style.cssText="position:fixed;left:16px;right:16px;top:12px;margin:0 auto;max-width:520px;z-index:2147483647;background:#14151F;color:#fff;font:600 14px/1.35 system-ui,sans-serif;padding:10px 14px;border-radius:12px;box-shadow:0 0 0 2px #B6FF3B;text-align:center";
+   (d.body||d.documentElement).appendChild(b);setTimeout(function(){b.remove()},7000)};
+  if(d.body)bn();else d.addEventListener("DOMContentLoaded",bn)}
+ builder=localStorage.getItem("sg_builder")==="1"}catch(e){}
+if(!live||builder)C={};
+var S=w.Stratos={config:C,game:game,live:live,builder:builder,
+ track:function(n,x){if(!live||builder){try{console.info("Stratos track (not counted"+(builder?": builder mode":" off the live site")+"):",n,x||"")}catch(e){}}if(!C.measurementId)return;try{var p={};for(var k in x||{})p[k]=x[k];if(game&&!p.game)p.game=game;gtag("event",String(n).slice(0,40),p)}catch(e){}},
  offerReward:function(done){S.track("reward_offered");S.track("reward_taken");if(typeof done=="function")done()}};
 if(C.measurementId){
  gtag("consent","default",{ad_storage:"denied",ad_user_data:"denied",ad_personalization:"denied",analytics_storage:"granted"});
