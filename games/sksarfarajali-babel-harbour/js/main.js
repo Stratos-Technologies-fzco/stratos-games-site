@@ -3,6 +3,7 @@ import { LANGS, BUILDINGS, STAMP_ROUNDS, REWARD, wordCount, loadLang, dockLabel 
 import * as G from './game.js';
 import { Sound } from './audio.js';
 import { icon, ship, sailboat, wave, gull, lighthouseLogo, building, buildingScene, harbourScene, stamp, leaveShip, sparkle } from './art.js';
+const stratosCoins = () => { try { const P = window.Stratos || parent.Stratos; return P && P.coins && P.coins.offer && P.coins.enabled() && P.coins.price('hint') !== null ? P.coins : null; } catch (e) { return null; } };
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -693,7 +694,19 @@ const act = {
   hint() {
     if (!R || R.busy) return;
     const d = G.useHint(R);
-    if (!d) return toast('No hints left today');
+    if (!d) {
+      const C = stratosCoins();
+      if (C && S.progress.hints.left <= 0 && G.hintOptions(R).length) {   // out of free hints: one more for Stratos Coins
+        return C.offer('hint', () => {
+          S.progress.hints.left += 1;
+          if (!G.useHint(R)) { S.progress.hints.left -= 1; return; }
+          Sound.play('hint');
+          flash = { msg: 'Hint used: one wrong dock is dimmed.', info: true };
+          G.persistRound(R); render();
+        });
+      }
+      return toast('No hints left today');
+    }
     Sound.play('hint');
     flash = { msg: 'Hint used: one wrong dock is dimmed.', info: true };
     G.persistRound(R); render();

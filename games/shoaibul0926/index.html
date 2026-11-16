@@ -261,7 +261,7 @@ function saveBestScore(){
 
 // Stratos hooks: do nothing yet. Sahil switches them on later.
 function track(name,details){ try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
-function offerReward(onDone){ onDone(); /* later: rewarded ad first */ }
+function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', onDone); return; } } catch (e) {} onDone(); } /* a rewarded ad can slot in here later */
 
 var usedSecondChance=false;
 var reviveMessageTimer=0;

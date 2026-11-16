@@ -928,7 +928,7 @@ function ribbonGeometry(rawPts, { halfW = 1.7, thick = 0.32, lift = 0.04, uLen =
 let world = null, level = null, levelIdx = 0;
 const levelGroup = new THREE.Group(); scene.add(levelGroup);
 let chassis = null, wheelBodies = [], joints = [];
-let strokes = [], curStroke = null, pen = 'road', inkUsed = 0;
+let strokes = [], curStroke = null, pen = 'road', inkUsed = 0, inkBonus = 0, inkAsked = false;   // inkBonus: extra ink bought with Stratos Coins this level
 let coins = [], crates = [], spinners = [];
 let state = 'title'; // title | levels | garage | plan | drive | won | failed
 let timer = 0, nitro = 100, stunts = 0, coinsGot = 0;
@@ -1062,7 +1062,7 @@ function loadLevel(idx, keepStrokes = false) {
   const sx = g0[0][0] + 6;
   spawnCar(sx, heightAt(g0, sx) + 0.12);
 
-  strokes = []; curStroke = null; inkUsed = 0;
+  strokes = []; curStroke = null; inkUsed = 0; inkAsked = false; if (!keepStrokes) inkBonus = 0;
   for (const s of keep) { const ns = newStroke(s.type); ns.pts = s.pts; inkUsed += strokeLen(ns.pts) * (s.type === 'turbo' ? 2 : 1); refreshStroke(ns); }
 
   applyEnv();
@@ -1156,7 +1156,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (d < 0.38) return;
   if (nearCar(x, y)) { endStroke(); return; }
   const cost = d * (pen === 'turbo' ? 2 : 1);
-  if (inkUsed + cost > level.ink) { hint('Out of ink! Undo (Z) a stroke to get some back', 3); endStroke(); return; }
+  if (inkUsed + cost > level.ink + inkBonus) { hint('Out of ink! Undo (Z) a stroke to get some back', 3); endStroke(); askInk(); return; }
   // split long jumps so every segment stays smooth
   const steps = Math.ceil(d / 0.6);
   for (let k = 1; k <= steps; k++) curStroke.pts.push([lerp(last[0], x, k / steps), lerp(last[1], y, k / steps)]);
@@ -1241,6 +1241,15 @@ function fail(title, sub) {
   }, 1100);
 }
 
+// Out of ink: offer 30% more for Stratos Coins, once per attempt (never when coins are not around).
+function askInk() {
+  if (inkAsked) return; inkAsked = true;
+  try {
+    const S = window.Stratos || parent.Stratos;
+    if (S && S.coins && S.coins.offer && S.coins.enabled() && S.coins.price('boost') !== null)
+      S.coins.offer('boost', () => { inkBonus += Math.ceil(level.ink * 0.3); updateHUD(); hint('+30% ink. Keep drawing!', 3); }, { title: 'Get more ink?', what: 'More ink' });
+  } catch (e) {}
+}
 let hintTimer = 0;
 function hint(t, secs = 4) { const h = $('hint'); h.textContent = t; h.style.opacity = 1; hintTimer = secs; }
 function toast(t, color = '#fff') {
@@ -1249,9 +1258,9 @@ function toast(t, color = '#fff') {
 }
 function updateHUD() {
   if (!level) return;
-  const left = clamp(1 - inkUsed / level.ink, 0, 1);
+  const left = clamp(1 - inkUsed / (level.ink + inkBonus), 0, 1);
   $('inkBar').firstElementChild.style.width = (left * 100) + '%';
-  $('inkBar').lastElementChild.style.left = ((1 - level.par / level.ink) * 100) + '%';
+  $('inkBar').lastElementChild.style.left = ((1 - level.par / (level.ink + inkBonus)) * 100) + '%';
   $('coinsTxt').textContent = `◉ ${coinsGot}/${coins.length}`;
 }
 

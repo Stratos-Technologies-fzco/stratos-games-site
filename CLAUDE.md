@@ -78,6 +78,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Works offline once loaded: everything it needs is inside the folder.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
+- Plugs into Stratos Coins (see "Stratos Coins" below): at least one way to earn and one thing to spend them on.
 
 **What keeps players coming back (from our store games' numbers):**
 - Give a reason to come back from day one: a daily challenge, a streak, or levels that unlock. Games without one lose almost everyone after day one, and it is very hard to add later.
@@ -110,7 +111,7 @@ Lifetime value = money per player x how long they stay. Retention is the multipl
 - A reason to return from launch: daily streak (with one forgiven missed day), daily challenge, Day 7/14/30 milestone rewards with a visible countdown.
 - Rewarded ads the player chooses: second chance at the moment of loss, a hint, double coins. Rewarded ads pay roughly 2 to 4 times more than forced ones.
 - 3 to 4 rewarded moments per session, each offering something the player actually wants.
-- Coins with something visible to spend them on (skins, power-ups, continues).
+- Coins with something visible to spend them on (skins, power-ups, continues). The site-wide coin is Stratos Coins (see "Stratos Coins" below); a coin of your own game's is fine too, kept separate.
 - Competition: a best score, a leaderboard, something to share.
 
 **Loses money:**
@@ -146,11 +147,52 @@ No game goes live without Stratos analytics. The site build checks every new gam
 - Never add your own Firebase, Google Analytics, or any other tracking. Stratos analytics is the only one.
 - Before you say "publish", play one full round on the play page and check there are no console errors.
 
+## Stratos Coins: how every game plugs into the economy (2026-11-16)
+
+Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any game and spends them in any game. The wallet lives in `assets/stratos.js` as `Stratos.coins`; the numbers (what pays, what costs) live in `assets/coins-config.json`. The full design is in `research/STRATOS_COINS_ARCHITECTURE.md`. Working examples to copy: `games/sksarfarajali-domino-classic/` and `games/sksarfarajali-stratos-29-card-game/` (search them for `SC()`, `earnWin`, `askBuy`).
+
+**Two kinds of coins, never mixed:**
+- **Stratos Coins**: the shared wallet. Always go through `Stratos.coins`.
+- **Your game's own coin** (optional: skins, upgrades, continues). It stays inside your game, in your game's own storage. It is never swapped for Stratos Coins, never pays for Stratos items, and never shares a name with them. Call it something else (gems, stars, bolts) and show it apart from Stratos Coins.
+
+**Rules for Stratos Coins:**
+- Never store Stratos Coins, their unlocks or their prices in your game. Never read or write browser storage keys that start with `stratos.`.
+- **Most of it is automatic.** Events you already send pay coins with no extra code: `level_start` pays first play; `level_complete` with a `level`, `stage`, `round` or `depot` number pays that level once (a repeat or a missing number pays a small capped replay); `game_over` with `won: true` pays a win. So send those events, with a real level number. The site's daily challenge pays on top when it is your game.
+- Earn yourself only for something the events cannot say. Earn with a rule ID, never a raw number. Rules today: `game_first_play`, `level_complete` (pass `level`), `level_replay`, `match_win` (pass `level` 1 easy to 4 expert), `daily_challenge`. Example: `Stratos.coins.earn('level_complete', { game: '<your-folder-name>', level: n })`.
+- Spend with an item ID. Items today: `hint` (10), `undo` (5), `continue` (15, a second chance) and `boost` (20, a bigger one-use help), plus the unlock items in the config. Example: `Stratos.coins.spend('hint', { game: '<your-folder-name>' })`. Check `can()` and `has()` before showing a button.
+- The `game` value is your folder name under `games/` (for example `sksarfarajali-moto-rush`).
+- Pass a stable `ref` so a repeat pays once (a level number, a date, or a fresh id per match: never the same `ref` for different wins).
+- **For a hint, undo or second chance, do not build your own sheet.** Where your game used to hand out a free reward, call `Stratos.coins.offer('hint', onDone)` (or `'continue'`, `'undo'`). The site shows the price and the balance, one tap spends, and `onDone` runs only after the player has paid. If coins are not around it runs `onDone` straight away, like the old free reward. Copy the `offerReward` stub in `games/im-mohua-liza-plot-twist/` or `games/sksarfarajali-moto-rush/`. `offer` also takes `{ title, what, onCancel }` so the prompt can read "Get more ink?". In a game with its own coin, Stratos Coins pay for one-use help only (a hint, a power-up, a second chance); the game's own coin, skins, upgrades and any "free coins" gift stay as they are. If a reward is a deliberate free gift, leave it free.
+- Use the shared helper pattern for anything else, so the game still works when Stratos is not around it (opened on its own, or an old page):
+
+  ```js
+  function SC() { try { var S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
+  ```
+
+  If `SC()` is `null`, skip the coin code and play as normal.
+- `ok:false` is normal: when it says `capped` or `already_earned`, show nothing. When the player is short of coins, show the price and their balance and say how to earn more.
+- Show what they earned ("+12 Stratos Coins") and what a spend costs, with one tap to confirm, before you spend.
+- Keep the HUD fresh with `Stratos.coins.onChange(function (i) { ... i.balance ... })`.
+- No coins for online or friends-only games unless Sahil or Sahariar say so (two friends can farm them).
+- Kids-section games get Stratos Coins too (owner decision, 2026-11-16). Analytics stay off there, so never add tracking to a kids game for coins. Sahil or Sahariar can switch kids coins off with `"kidsCoins": false` in the config.
+- A game that earns and spends fully by itself (like Domino Classic) tells Sahil or Sahariar so its folder name is added to `auto.exclude` in the config; otherwise it would be paid twice.
+- A new rule or item (a premium game, level unlocks, a new price) goes in `assets/coins-config.json`. That is a shared file: tell the maker to ask Sahil or Sahariar to add it, with the game folder name, the rule or item, and the amount they have in mind. Until then use the rules and items that already exist. Never hard-code an amount or price in the game.
+- Games that already have their own coin keep it. Do not rip it out.
+
+**Economy checklist (every new game, before "publish"):**
+1. Earn: where does the player earn Stratos Coins? (first play, wins, levels, daily challenge). Name the rule IDs.
+2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sahil or Sahariar if the item is new.
+3. Own coin: does the game have its own coin? If yes, it has a different name and is never exchanged.
+4. The game plays normally when `SC()` is `null`.
+5. Repeat calls pay once (stable `ref`), and a capped or empty-handed player sees no error.
+6. The player sees "+N Stratos Coins" after earning and the price and balance before spending.
+7. Test: earn in this game, open another game, and check the same balance is there.
+
 ## How to help a maker
 
 - Ask what game they want in one question, then build a first playable version fast, then improve it with them.
 - Keep the whole game in `games/<their-username>/`. One file if you can.
-- Before they say "publish", run the quality bar above and tell them in three short lines what passed and what to fix.
+- Before they say "publish", run the quality bar above and the economy checklist, and tell them in three short lines what passed and what to fix.
 - Then commit only their folder. That's it: publishing is automatic (see "Syncing is automatic" below).
 
 ## Syncing is automatic (Sahil 2026-10-31)

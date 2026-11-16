@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Stratos Coins test</title>
+<script async src="assets/stratos.js"></script>
+<style>
+ body{font:15px/1.4 system-ui,sans-serif;margin:0;padding:16px;background:#101522;color:#e8ecf5;max-width:760px}
+ h1{font-size:20px;margin:0 0 4px} .sub{color:#9aa6c0;margin:0 0 14px}
+ .bal{font-size:34px;font-weight:700;margin:8px 0}
+ fieldset{border:1px solid #2a3350;border-radius:8px;margin:0 0 12px;padding:10px 12px}
+ legend{color:#9aa6c0;padding:0 6px}
+ label{display:inline-block;margin:2px 8px 2px 0}
+ input,select{background:#1a2238;color:#e8ecf5;border:1px solid #2a3350;border-radius:6px;padding:6px 8px;font:inherit}
+ input[type=number]{width:70px} input.wide{width:210px}
+ button{background:#3b6cff;color:#fff;border:0;border-radius:6px;padding:8px 12px;font:inherit;cursor:pointer;margin:3px 4px 3px 0;min-height:36px}
+ button.alt{background:#2a3350} button.danger{background:#a83b3b}
+ pre{background:#0a0e18;border:1px solid #2a3350;border-radius:8px;padding:10px;overflow:auto;max-height:340px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+ #res{min-height:20px;color:#8be0a4} .bad{color:#ff9b9b}
+</style>
+</head>
+<body>
+<h1>Stratos Coins test</h1>
+<p class="sub">Developer page, not linked from the site. Works on localhost and staging; reset and date tools are off on stratos.games.</p>
+<div class="bal">Balance: <span id="bal" aria-live="polite">0</span> <small id="persist"></small></div>
+<div id="res" aria-live="polite"></div>
+
+<fieldset><legend>Earn</legend>
+ <label>Game <input id="game" class="wide" value="sksarfarajali-moto-rush"></label>
+ <label>Rule <select id="rule"></select></label>
+ <label>Level <input id="level" type="number" min="1" value="1"></label>
+ <label>Ref <input id="ref" placeholder="optional"></label>
+ <div><button id="earn">Earn</button> <button id="next" class="alt">Earn next level</button></div>
+</fieldset>
+
+<fieldset><legend>Spend</legend>
+ <label>Item <input id="item" class="wide" value="hint" list="items"></label><datalist id="items"></datalist>
+ <div><button id="can" class="alt">Can?</button> <button id="spend">Spend</button></div>
+</fieldset>
+
+<fieldset><legend>Tools</legend>
+ <label>Pretend today is <input id="day" placeholder="YYYY-MM-DD"></label> <button id="setday" class="alt">Set date</button> <button id="clearday" class="alt">Real date</button>
+ <div>
+  <button id="dump" class="alt">Dump wallet + ledger</button>
+  <button id="reinit" class="alt">Reload from storage (reconcile)</button>
+  <button id="zero" class="alt">Zero stored balance</button>
+  <button id="dropledger" class="alt">Delete stored ledger</button>
+  <button id="reset" class="danger">Reset everything</button>
+ </div>
+</fieldset>
+
+<pre id="out">Press "Dump wallet + ledger".</pre>
+
+<script>
+(function(){
+ var $=function(i){return document.getElementById(i)},out=$("out"),res=$("res");
+ function show(v,bad){res.className=bad?"bad":"";res.textContent=typeof v=="string"?v:JSON.stringify(v)}
+ function wait(n){var t=setInterval(function(){if(window.Stratos&&Stratos.coins){clearInterval(t);start()}else if(--n<0){clearInterval(t);show("stratos.js did not load",1)}},50)}
+ function start(){
+  var C=Stratos.coins,T=C._test;
+  function paint(){$("bal").textContent=C.balance();$("persist").textContent=C.persistent?"":"(storage blocked: memory only)"}
+  var rules=C.rules();Object.keys(rules).forEach(function(k){var o=document.createElement("option");o.value=o.textContent=k;$("rule").appendChild(o)});
+  var cat=C.catalogue();Object.keys(cat).forEach(function(k){var o=document.createElement("option");o.value=k.replace(/\*$/,"1");$("items").appendChild(o)});
+  function ctx(){var c={game:$("game").value.trim()},l=parseInt($("level").value,10),r=$("ref").value.trim();if(l)c.level=l;if(r)c.ref=r;return c}
+  $("earn").onclick=function(){var r=C.earn($("rule").value,ctx());show(r,!r.ok)};
+  $("next").onclick=function(){$("rule").value="level_complete";var l=parseInt($("level").value,10)||0;$("level").value=l+1;var r=C.earn("level_complete",{game:$("game").value.trim(),level:l+1});show(r,!r.ok)};
+  $("spend").onclick=function(){var r=C.spend($("item").value.trim(),{game:$("game").value.trim()});show(r,!r.ok)};
+  $("can").onclick=function(){var id=$("item").value.trim();show({can:C.can(id),has:C.has(id),price:C.price(id)})};
+  $("dump").onclick=function(){out.textContent=JSON.stringify(T?T.dump():{balance:C.balance(),stats:C.stats(),history:C.history(20),unlocks:C.unlocks(),dailyChallenge:C.dailyChallenge()},null,1)};
+  if(T){
+   $("setday").onclick=function(){T.setDay($("day").value.trim());show("Date set to "+($("day").value||"real date"))};
+   $("clearday").onclick=function(){T.setDay("");show("Using the real date")};
+   $("reinit").onclick=function(){T.reinit();show("Reloaded from storage")};
+   $("zero").onclick=function(){try{var w=JSON.parse(localStorage.getItem("stratos.wallet.v1"));w.balance=0;localStorage.setItem("stratos.wallet.v1",JSON.stringify(w));show("Stored balance set to 0. Now press Reload from storage (or refresh).")}catch(e){show("Could not edit storage",1)}};
+   $("dropledger").onclick=function(){try{localStorage.removeItem("stratos.ledger.v1");show("Ledger deleted. Now press Reload from storage (or refresh).")}catch(e){show("Could not edit storage",1)}};
+   $("reset").onclick=function(){T.reset();show("Everything reset")};
+  }else{["setday","clearday","reinit","zero","dropledger","reset"].forEach(function(i){$(i).disabled=true})}
+  C.onChange(function(i){paint();if(i&&i.type=="sync")show("Synced from another tab: balance "+i.balance)});
+  paint();
+ }
+ wait(60);
+})();
+</script>
+</body>
+</html>

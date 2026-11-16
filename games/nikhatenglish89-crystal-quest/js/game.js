@@ -7,8 +7,15 @@
   /* ---------- Stratos analytics and rewarded moments ---------- */
   function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
   /* A rewarded moment the player chooses. Ads are not live yet, so the reward is free for now (CLAUDE.md: offerReward). */
+  function stratosOn(k) { try { var S = window.Stratos || parent.Stratos; return !!(S && S.coins && S.coins.offer && S.coins.enabled() && S.coins.price(k) !== null); } catch (e) { return false; } }
   function offerReward(onDone, why) {
-    try { var S = window.Stratos || parent.Stratos; if (S && S.offerReward) { S.offerReward(onDone); return; } } catch (e) {}
+    /* one-use help (a second chance, a booster) costs Stratos Coins; currency gifts such as +100 coins stay a free slot */
+    var kind = /^second_chance/.test(why || '') ? 'continue' : /^booster_/.test(why || '') ? 'boost' : null;
+    try {
+      var S = window.Stratos || parent.Stratos;
+      if (kind && stratosOn(kind)) { track('reward_offered', { why: why }); S.coins.offer(kind, function () { track('reward_taken', { why: why }); onDone(); }); return; }
+      if (S && S.offerReward) { S.offerReward(onDone); return; }
+    } catch (e) {}
     track('reward_offered', { why: why }); track('reward_taken', { why: why }); onDone();
   }
 
@@ -557,7 +564,7 @@
   function getBooster(k) {
     var x = boost(k), price = x[4];
     var c = openModal('<h2>' + x[2] + '</h2><div class="center">' + im(x[1], 'big') + '</div><div class="small-text center">' + esc(x[5]) + '</div><div class="small-text center">You have none left. Get one:</div>' +
-      '<div class="btns"><button class="btn gold" id="mWatch">' + ic('play') + 'Free: watch a short video</button><button class="btn blue" id="mBuy" ' + (save.coins < price ? 'disabled' : '') + '>' + ic('coin') + 'Buy for ' + price + ' coins</button><button class="btn ghost small" id="mX">Not now</button></div>');
+      '<div class="btns"><button class="btn gold" id="mWatch">' + ic('play') + (stratosOn('boost') ? 'Get with Stratos Coins' : 'Free: watch a short video') + '</button><button class="btn blue" id="mBuy" ' + (save.coins < price ? 'disabled' : '') + '>' + ic('coin') + 'Buy for ' + price + ' coins</button><button class="btn ghost small" id="mX">Not now</button></div>');
     click($('#mWatch', c), function () { offerReward(function () { save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); toast('Got 1 ' + x[2] + '!'); A.sfx('reward'); }, 'booster_' + k); });
     click($('#mBuy', c), function () { if (save.coins >= price) { save.coins -= price; save.boosters[k] = (save.boosters[k] || 0) + 1; persist(); closeModal(); drawBoosters(); A.sfx('reward'); track('shop_buy', { booster: k, where: 'level' }); } });
     click($('#mX', c), closeModal);

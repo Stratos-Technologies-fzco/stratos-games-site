@@ -34,7 +34,7 @@ export class Game {
   rand = mulberry32(1); plane!: THREE.Object3D; planeStart = V(); planeDir = V(); planeSpeed = 0; kiosks: { x: number; z: number; y: number; last: { lastAt: number } }[] = [];
   hud: Hud; feed: FeedRow[] = []; private fx!: { tracers: THREE.Line[]; flashes: THREE.Mesh[]; puffs: THREE.Mesh[] }; private ghost: THREE.Object3D | null = null; placing = false;
   private raf = 0; private last = 0; private hudT = 0; private lootT = 0; private botT = 0; private bushT = 0; private fpsAcc = 0; private fpsN = 0; fps = 60; private lowFpsT = 0; private res = 1;
-  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; animMs = 0; private animMsAcc = 0; elimRes: Result | null = null; deadT = 0; diedMatchT = 0; specYaw = 0; specPitch = 0; landInfo: { x: number; z: number; secs: number; dist: number } | null = null; private landMark!: THREE.Group; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
+  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; animMs = 0; private animMsAcc = 0; elimRes: Result | null = null; revived = false; shieldT = 0; deadT = 0; diedMatchT = 0; specYaw = 0; specPitch = 0; landInfo: { x: number; z: number; secs: number; dist: number } | null = null; private landMark!: THREE.Group; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number; id?: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
   private canopies: { x: number; y: number; z: number; r: number }[] = []; private canopyCells = new Map<number, number[]>(); private camDist = 3.2;
@@ -102,7 +102,7 @@ export class Game {
   async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean } = {}) {
     this.demo = !!opts.demo; this.demoStep = 0; this.demoFlags = { reloaded: false, healed: false }; if (this.demo) track('demo_start');
     this.cleanup(); this.mode = mode; this.survivor = survivor; this.rand = mulberry32((Math.random() * 1e9) | 0); this.difficulty = opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots;
-    this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
+    this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.revived = false; this.shieldT = 0; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
     this.zonePlan = planZone(this.rand); this.zone = null; this.env.zone = null;
     this.player = await this.makeActor(settings ? 'You' : 'You', false, true, survivor);
     const bots = mode === 'solo' ? B.match.players - 1 : opts.bots ? B.bots.trainingCount : 0;
@@ -265,6 +265,7 @@ export class Game {
     this.bushT += dt; if (this.bushT > 0.3) { this.bushT = 0; for (const a of this.actors) a.hidden = a.alive && a.body.crouch && this.bushes.some((b) => Math.abs(b.x - a.body.x) < 1.4 && Math.abs(b.z - a.body.z) < 1.4); }
     this.lootT += dt; if (this.lootT > 0.25) { this.lootT = 0; this.updateLootVisibility(); }
     if (this.phase === 'flight' && this.plane.visible) audio.setEngine(this.player.mode === 'plane' ? 1 : Math.max(0, 1 - this.camera.position.distanceTo(this.plane.position) / 500)); else audio.stopEngine();
+    if (this.shieldT > 0) this.shieldT -= dt;
     // ---- win / end checks
     if (this.mode === 'solo' && (this.phase === 'playing' || this.phase === 'flight')) { // a player can be eliminated while the last bots are still gliding down
       const alive = this.actors.filter((a) => a.alive);
@@ -530,7 +531,7 @@ export class Game {
 
   // ------------------------------------------------------------------ damage, kills
   hurt(v: Actor, by: Actor | null, raw: number, head: boolean, source: string, ignoreArmour = false) {
-    if (!v.alive || v.mode !== 'ground' && v.mode !== 'plane' && false) return; if (this.phase === 'ended') return;
+    if (!v.alive || v.mode !== 'ground' && v.mode !== 'plane' && false) return; if (this.phase === 'ended') return; if (v.isPlayer && this.shieldT > 0) return;   // protection after a Stratos Coins revive
     let hp = raw; if (!ignoreArmour) { const r = applyArmour(raw, head, v.armour); hp = r.hp; v.armour.vestDur = Math.max(0, v.armour.vestDur - r.vestDamage); if (v.armour.vestDur <= 0) v.armour.vestLv = v.armour.vestDur > 0 ? v.armour.vestLv : v.armour.vestLv; }
     v.hp -= hp; v.hitFlash = 1; v.anim.hit = 1; if (by && by !== v) v.anim.hitFrom = Math.atan2(by.body.x - v.body.x, by.body.z - v.body.z); v.char.flash(0.12); if (by && by !== v) { v.lastHitBy = by; v.lastHitAt = this.time; } if (by && by !== v) { by.damage += hp; if (head) by.headshots++; }
     if (v.isPlayer && by) { const a = Math.atan2(by.body.x - v.body.x, by.body.z - v.body.z) - v.yaw; this.dmgArcs.push({ a, t: 1.2 }); this.shake = Math.max(this.shake, 0.25); }
@@ -563,6 +564,14 @@ export class Game {
   private respawnTraining(v: Actor) { v.alive = true; v.hp = 100; v.anim.dead = 0; v.char.resetDeath(); const f = POIS[4]; this.placeActor(v, f.x, f.z + 27); }
   /** The player's result. Stats are recorded here, once, so Lobby / Play Again while spectating still count the match. */
   private buildResult(win: boolean): Result { const p = this.player; const placement = win ? 1 : p.placement || this.actors.filter((a) => a.alive).length + 1; const res: Result = { win, placement, total: B.match.players, kills: p.kills, damage: Math.round(p.damage), time: Math.round(p.alive ? this.matchT : this.diedMatchT), headshots: p.headshots, tokens: p.tokensEarned, xp: xpFor(p.kills, p.damage, placement), killer: p.killer }; res.outcome = recordMatch(res); return res; }
+  /** Second chance (Stratos Coins): once per solo match, on the spot, half health and 3 s of protection. The death crate with the old loot is at your feet. */
+  reviveCan(): boolean { return this.mode === 'solo' && !this.revived && !this.player.alive && !!this.elimRes && (this.phase === 'playing' || this.phase === 'flight') && this.actors.some((a) => a.alive && !a.isPlayer); }
+  revive() {
+    if (!this.reviveCan()) return; const v = this.player; this.revived = true;
+    v.alive = true; v.hp = 50; v.healT = 0; v.anim.dead = 0; v.char.resetDeath(); v.placement = 0; v.killer = '';
+    this.elimRes = null; this.hud.eliminated = null; this.deadT = 0; this.spectateTarget = null; this.shieldT = 3;
+    this.addFeed('You are back in the fight', true); track('revive_used', { placement: this.actors.filter((a) => a.alive).length }); this.onChange();
+  }
   skipToResults() { if ((this.phase === 'playing' || this.phase === 'flight') && !this.player.alive) this.finish(null); }
   private buildLandMark() { const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(2.4, 3.3, 28), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 60, 6, 1, true), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.35, depthWrite: false })); beam.position.y = 30; g.add(ring, beam); g.visible = false; this.view.scene.add(g); this.landMark = g; }
   private finish(winner: Actor | null) {

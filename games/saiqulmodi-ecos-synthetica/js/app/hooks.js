@@ -1,7 +1,7 @@
 // hooks.js - the stratos.games moments, ready for the day the site turns on
 // its own (Stratos-run) numbers and rewarded ads. Until then:
 //   track()        hands start/end (with seconds played) to the Stratos analytics only
-//   offerReward()  gives the reward straight away, free
+//   offerReward()  offers the reward for Stratos Coins (free when no coins are around)
 // Moments used: level_start, level_complete, game_over, reward_offered, reward_taken.
 // Rules from the makers' guide: rewarded only (never forced), never in the
 // first session, at most one second chance per level.
@@ -29,11 +29,11 @@ const used = new Set();
 // level: a key for "one per level"; returns false when the second chance was already used.
 export function offerReward(onDone, level = 'any') {
   if (used.has(level)) return false;
-  used.add(level);
   track('reward_offered', { level });
-  // Later: show a rewarded ad first (never in the first session). For now the player gets it free.
-  track('reward_taken', { level });
-  onDone();
+  // The player now pays Stratos Coins (one tap, price and balance shown); a rewarded ad can slot in here later.
+  const go = () => { used.add(level); track('reward_taken', { level }); onDone(); };
+  try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', go); return true; } } catch (e) {}
+  go();
   return true;
 }
 export const rewardUsed = (level) => used.has(level);

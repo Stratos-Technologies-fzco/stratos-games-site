@@ -366,7 +366,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
 <h3>Winning the game</h3><p>Reach the target score (100, 150 or 200) first.</p></div>
    <div class="hp"><h3>Daily challenge</h3><p>One hard match a day with the same deal for everyone. Play on back-to-back days to build your streak (one missed day is forgiven).</p>
 <h3>Play a friend online</h3><p>Tap PLAY A FRIEND ONLINE, then CREATE A ROOM and send the invite link or the 5-letter code. Your friend taps JOIN. The room creator's device runs the game, so keep that page open. In a 4-player room, empty seats are played by the computer and are marked CPU. If someone drops out, a computer takes their seat. Hints and undo are switched off online.</p>
-<h3>Hints</h3><p>You get 3 hints per game. A hint shows the move the computer would make.</p></div>
+<h3>Hints</h3><p>You get 3 hints and 2 undos per game. A hint shows the move the computer would make. Out of them? Spend Stratos Coins for more. Win matches to earn coins.</p></div>
    <div class="hnav"><button class="btn" id="hPrev">‹ BACK</button><span class="hdots" id="hDots"></span><button class="btn sec" id="hNext">NEXT ›</button></div>
   </div></div>
  </section>
@@ -433,6 +433,13 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
    <button class="btn pri" id="tipsOk" style="font-size:16px;padding:15px">LET'S PLAY</button>
   </div></div></div>
 
+ <div class="modal" id="mBuy"><div class="sheet">
+  <h2 id="buyH">GET ANOTHER HINT?</h2><div class="sub" id="buySub"></div>
+  <div class="stack">
+   <button class="btn pri" id="buyYes" style="font-size:16px;padding:15px">SPEND COINS</button>
+   <button class="btn line" id="buyNo">NO THANKS</button>
+  </div>
+ </div></div>
  <div class="modal" id="mResult"><div class="conf" id="conf"></div><div class="sheet" id="resSheet"></div></div>
 </div>
 
@@ -601,6 +608,41 @@ function $(id){return document.getElementById(id);}
 function track(name,details){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);if(S)S.track(name,details);}catch(e){}}
 /* Ads are not live yet: the reward is given straight away. Later this will show a rewarded ad first. */
 function offerReward(kind,onDone){track('reward_offered',{kind:kind});onDone();track('reward_taken',{kind:kind});}
+/* ---------- Stratos Coins: the shared site wallet (earn by winning, spend on extra hints and undos) ----------
+   This game keeps no Stratos Coins of its own. Opened on its own (no Stratos page around it) it plays exactly as before. */
+var GAME_ID='sksarfarajali-domino-classic',firstTried=false;
+function SC(){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);return S&&S.coins?S.coins:null;}catch(e){return null;}}
+function earnFirstPlay(){
+ if(firstTried||AUTO||DEMO)return;firstTried=true;var C=SC();if(!C)return;
+ var r=C.earn('game_first_play',{game:GAME_ID});if(r&&r.ok)toast('+'+r.amount+' Stratos Coins: welcome!',2200);
+}
+function earnMatchWin(){   /* called once when the player wins a whole match against the computer; returns coins paid */
+ var C=SC();if(!C||AUTO||DEMO||G.online)return 0;
+ var paid=0,r=C.earn('match_win',{game:GAME_ID,level:({easy:1,medium:2,hard:3})[G.cfg.ai]||1,ref:G.mid});
+ if(r&&r.ok)paid+=r.amount;
+ var dc=C.dailyChallenge();   /* the site picks one game a day: winning here that day also completes it */
+ if(dc&&dc.game===GAME_ID&&!dc.done){r=C.earn('daily_challenge',{game:GAME_ID,ref:dc.ref});if(r&&r.ok)paid+=r.amount;}
+ return paid;
+}
+function coinLine(){
+ var C=SC();if(!C||!G.coinGain)return'';
+ return'<div class="sub" style="color:var(--gold);font-weight:700">+'+G.coinGain+' Stratos Coins · you have '+C.balance()+'</div>';
+}
+/* Out of free hints/undos: spend Stratos Coins (price and balance shown, one tap to confirm). */
+function askBuy(kind,noun,onDone){
+ var C=SC();
+ if(!C||C.price(kind)===null){offerReward(kind,onDone);return;}   /* no coins around the game: the old free reward */
+ var p=C.price(kind),bal=C.balance(),yes=$('buyYes');
+ $('buyH').textContent='GET ANOTHER '+noun.toUpperCase()+'?';
+ $('buySub').textContent=bal>=p?'One '+noun+' costs '+p+' Stratos Coins. You have '+bal+'.':'One '+noun+' costs '+p+' Stratos Coins. You have '+bal+'. Win games to earn more.';
+ yes.textContent=bal>=p?'SPEND '+p+' COINS':'NEED '+(p-bal)+' MORE COINS';yes.disabled=bal<p;
+ yes.onclick=function(){
+  var r=C.spend(kind,{game:GAME_ID,ref:'round'+G.round});modal('mBuy',false);
+  if(r&&r.ok)onDone();else toast('Could not spend coins');
+ };
+ $('buyNo').onclick=function(){modal('mBuy',false);};
+ modal('mBuy',true);
+}
 var Q=new URLSearchParams(location.search),AUTO=Q.has('auto'),DEMO=Q.has('demo');
 
 /* ---------- storage ---------- */
@@ -772,9 +814,9 @@ function teamName(t){
 }
 function startMatch(c,daily){
  var keepOn=!!(G.online&&G.online.keep);if(!keepOn)G.online=null;
- G.epoch++;G.cfg=Object.assign({},c);G.daily=!!daily;G.scores=G.cfg.players===4?[0,0]:[0,0];G.round=0;G.hints=3;G.undos=2;G.snap=null;G.paused=false;G.over=false;G.myPts=0;
+ G.epoch++;G.cfg=Object.assign({},c);G.daily=!!daily;G.scores=G.cfg.players===4?[0,0]:[0,0];G.round=0;G.hints=3;G.undos=2;G.snap=null;G.paused=false;G.over=false;G.myPts=0;G.coinGain=0;G.mid=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
  if(!daily&&!AUTO&&!G.online){lastCfg=Object.assign({},c);save('sdc_cfg',lastCfg);}
- show('game');setupTable();
+ show('game');setupTable();earnFirstPlay();
  if(G.online&&G.online.role==='host')Net.sendStart();
  if(!settings.tipsSeen&&!AUTO&&!DEMO&&!G.online){openTips(function(){settings.tipsSeen=true;save('sdc_settings',settings);startRound();});}else startRound();
 }
@@ -1091,7 +1133,7 @@ $('bHint').onclick=function(){
   G.hints--;G.sel=m.tile.id;G.hintId=m.tile.id;G.hintEnd=m.end;sfx('select');renderRack();showGhosts();updateControls();
   setStatus('Hint: play the highlighted tile on the '+(m.end==='L'?'left':'right')+' end ('+(m.end==='L'?S.chain[0].a:S.chain[S.chain.length-1].b)+').');
  };
- if(G.hints>0)run();else offerReward('hint',function(){G.hints=1;run();});
+ if(G.hints>0)run();else askBuy('hint','hint',function(){G.hints=1;run();});
 };
 function doUndo(){
  if(!G.snap)return;
@@ -1101,7 +1143,7 @@ function doUndo(){
 }
 $('bUndo').onclick=function(){
  if(G.busy||!G.snap||G.S.turn!==0)return;
- if(G.undos>0)doUndo();else offerReward('undo',function(){G.undos=1;doUndo();});
+ if(G.undos>0)doUndo();else askBuy('undo','undo',function(){G.undos=1;doUndo();});
 };
 
 /* ---------- round / match end ---------- */
@@ -1132,6 +1174,8 @@ function showResult(r,win,draw,matchOver,mw){
  html+='<div class="sub">Round '+G.round+' · '+(G.cfg.mode==='draw'?'Draw':'Block')+' · '+G.cfg.players+' players · '+G.cfg.ai+' level</div>';
  if(matchOver){
   updateMatchStats(mw===0);
+  if(mw===0)G.coinGain=earnMatchWin();
+  html+=coinLine();
   html+='<div class="stack" style="margin-top:14px">'+(onGuest()?'<div class="sub">Waiting for the host to play again…</div>':'<button class="btn pri" id="rAgain" style="font-size:16px;padding:15px">PLAY AGAIN</button>')+'<button class="btn sec" id="rShare">SHARE RESULT</button>'+(G.online?'<button class="btn line" id="rMenu">LEAVE ROOM</button>':'<div class="row2"><button class="btn" id="rNew">NEW GAME</button><button class="btn" id="rMenu">MAIN MENU</button></div>')+'</div>';
  }else{
   html+='<div class="stack" style="margin-top:14px">'+(onGuest()?'<div class="sub">Waiting for the host to start the next round…</div>':'<button class="btn pri" id="rNext" style="font-size:16px;padding:15px">NEXT ROUND</button>')+'<button class="btn line" id="rMenu">'+(G.online?'LEAVE ROOM':'MAIN MENU')+'</button></div>';

@@ -228,7 +228,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 'use strict';
 /* ================= Stratos hooks (ads + analytics switch on later) ================= */
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
-function offerReward(onDone) { track('reward_offered'); onDone(); track('reward_taken'); }
+function offerRewardAs(kind, onDone) { track('reward_offered'); var go = function () { onDone(); track('reward_taken'); }; try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer(kind, go); return; } } catch (e) {} go(); }
+function offerReward(onDone) { offerRewardAs('hint', onDone); }
 
 /* ================= helpers ================= */
 const $ = s => document.querySelector(s);
@@ -1189,7 +1190,7 @@ $('#hintBtn').onclick = () => {
     SFX.hint(); G.combo = 0;
   };
   if (S.hints > 0) { if (S.hints === 3) S.hintAt = Date.now(); S.hints--; save(); refreshHints(); useHint(); }
-  else offerReward(() => { toast('Free hint!'); useHint(); });
+  else offerRewardAs('hint', () => { toast('Hint!'); useHint(); });
 };
 
 /* ----- end of an episode ----- */
@@ -1233,7 +1234,7 @@ function lose() {
   $('#loseCap').textContent = G.diffs.filter(d => !d.found).length + ' differences still hiding. The drama isn\'t over yet.';
   setTimeout(() => ov('lose', true), 500);
 }
-$('#loseSave').onclick = () => offerReward(() => { G.saved = true; G.hearts = 2; drawHearts(); ov('lose', false); G.playing = true; G.t0 = performance.now() - G.t * 1000; clearInterval(tick); tick = setInterval(onTick, 250); });
+$('#loseSave').onclick = () => offerRewardAs('continue', () => { G.saved = true; G.hearts = 2; drawHearts(); ov('lose', false); G.playing = true; G.t0 = performance.now() - G.t * 1000; clearInterval(tick); tick = setInterval(onTick, 250); });
 $('#loseRetry').onclick = () => { ov('lose', false); startLevel(G.cfg); };
 $('#loseMenu').onclick = () => { ov('lose', false); goHome(); };
 $('#winNext').onclick = () => { ov('win', false); if (G.cfg.daily) startLevel(levelCfg(S.unlocked)); else startLevel(levelCfg(G.cfg.n + 1)); };

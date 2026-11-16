@@ -885,8 +885,24 @@ window.DF = window.DF || {};
   }
 
   /* ---------- end of run ---------- */
+  /* Stratos Coins second chance: once per expedition, when the player is defeated. The run waits while the prompt is open;
+     "No thanks" (or no coins around) gives the normal defeat summary, so the game plays exactly as before without Stratos. */
+  function askRevive() {
+    try {
+      var P = window.Stratos || parent.Stratos, C = P && P.coins;
+      if (!(C && C.offer && C.enabled() && C.price('continue') !== null)) return false;
+      paused = true; S.revived = true;
+      C.offer('continue', function () {
+        var p = S.P; p.hp = Math.round(p.maxHp * 0.5); p.inv = 2000; p.hurt = 0; S.ending = 0; S.endOutcome = null; S.ended = false;
+        toast('Back on your feet!', 'info'); G.resume();
+      }, { title: 'Keep exploring?', what: 'Another chance', onCancel: function () { finish('defeat'); } });
+      return true;
+    } catch (e) { return false; }
+  }
   function finish(outcome) {
-    if (S.ended) return; S.ended = true;
+    if (S.ended) return;
+    if (outcome === 'defeat' && !S.revived && !S.tut && !S.demo && askRevive()) return;
+    S.ended = true;
     var res = { outcome: outcome, objectiveId: S.objId, tutorial: S.tut != null, runId: S.runId, gained: { food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, xp: S.gained.xp }, kills: S.kills, dodges: S.dodges, berries: S.berries, abilities: S.abilitiesUsed, newEggs: S.newEggs.slice(), seen: Object.keys(S.seen), bossDown: !!S.bossDown, bossId: S.bossDef ? S.bossDef.id : '', timeToFirst: S.timeToFirst, duration: S.t };
     running = true; paused = true;
     if (G.onEnd) G.onEnd(res);

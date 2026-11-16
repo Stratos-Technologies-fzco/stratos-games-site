@@ -252,6 +252,8 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stro
 // ---------- Stratos hooks (site-wide ads + analytics plug in here later) ----------
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) { } }
 function offerReward(onDone) { track('reward_offered'); onDone(); track('reward_taken'); }
+function stratosPrice(k) { try { var S = window.Stratos || parent.Stratos; return S && S.coins && S.coins.offer && S.coins.enabled() ? S.coins.price(k) : null; } catch (e) { return null; } }
+function offerRewardAs(kind, onDone) { track('reward_offered'); var go = function () { onDone(); track('reward_taken'); }; try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer(kind, go); return; } } catch (e) {} go(); }
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -758,10 +760,11 @@ function smartHintCell() {
   return best && best.k;
 }
 function reveal(k, anim = 'pop') { const c = P.cells.get(k); if (!c || c.on) return; c.on = true; c.hint = true; paintCell(k, anim); const r = c.el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 10, ['#ffd23f', '#fff'], .4, .3); }
-function pay(cost, fn, label) {
+function pay(cost, fn, label, kind = 'hint') {
   if (busy) return; audio();
   if (S.coins >= cost) { S.coins -= cost; updCoins(); P.hints++; S.stats.hints++; fn(); sfx.hint(); afterChange(); save(); return; }
-  modal('Need more coins', `<p>${label} costs <b>${cost}</b> <i class="coin"></i>. You have ${S.coins}.</p><p class="sub">Watch a short ad to use it for free.</p>`, [['Not now'], ['Watch ad', () => offerReward(() => { P.hints++; fn(); sfx.hint(); afterChange(); }), 'big']]);
+  const sp = stratosPrice(kind);
+  modal('Need more coins', `<p>${label} costs <b>${cost}</b> <i class="coin"></i>. You have ${S.coins}.</p><p class="sub">${sp ? 'Or use ' + sp + ' Stratos Coins.' : 'Watch a short ad to use it for free.'}</p>`, [['Not now'], [sp ? 'Use Stratos Coins' : 'Watch ad', () => offerRewardAs(kind, () => { P.hints++; fn(); sfx.hint(); afterChange(); }), 'big']]);
 }
 $('#bHint').onclick = () => { const k = smartHintCell(); if (!k) return; pay(COST.hint, () => reveal(k), 'A hint'); resetIdle(); };
 $('#bBloom').onclick = () => {
@@ -771,7 +774,7 @@ $('#bBloom').onclick = () => {
     const picks = [], open = P.words.filter(w => !w.found);
     for (let round = 0; picks.length < 5 && round < 6; round++) for (const W of open.sort(() => Math.random() - .5)) { const h = W.cells.filter(k => !P.cells.get(k).on && !picks.includes(k)); if (h.length && picks.length < 5) picks.push(h[Math.floor(Math.random() * h.length)]); }
     busy = true; picks.forEach((k, i) => setTimeout(() => { reveal(k); if (i === picks.length - 1) { busy = false; afterChange(); } }, i * 140));
-  }, 'Bloom');
+  }, 'Bloom', 'boost');
 };
 $('#bSpark').onclick = () => { audio(); if (busy) return; if (sparkArmed) { setArmed(false); return; } if (!hidden().length) return; setArmed(true); toast('Tap any empty square to reveal it'); };
 function setArmed(on) { sparkArmed = on; $('#bSpark').classList.toggle('armed', on); markAim(on); }
