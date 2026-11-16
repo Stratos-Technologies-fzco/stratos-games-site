@@ -475,3 +475,5 @@ body.poki.side-open .pk-side .lb{opacity:1}
 @media (prefers-reduced-motion:reduce){.ss-logo,.ss-loading,.ss-logo .sn-w1 i,.ss-logo .sn-w2,.ss-eye,.ss-horizon,.ss-comet,.ss-logo .ss-mark{transition:none}.pk-splash.ss-run .ss-sky{animation:none}}
 /* #70 the Q&A under "About this game": a wider question column on computers */
 @media (min-width:861px){.pd-faq .pd-row{grid-template-columns:320px 1fr}}
+/* #71 hover clips on every page with tiles: a purple ring while a clip plays (the home page also grows the tile) */
+@media (hover:hover){body:not(.poki) .pk-t.pv{box-shadow:0 0 0 3px #7b5cff,0 0 22px rgba(123,92,255,.5)}}

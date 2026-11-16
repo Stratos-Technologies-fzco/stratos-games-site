@@ -322,12 +322,19 @@ def tile_name(title, size):
         if cut in title and title.split(cut)[0].strip(): return title.split(cut)[0].strip()
     return title
 
+def clip_of(g):
+    """#71: the game's hover clip: the maker's own games/<folder>/preview.mp4 (tools/make_clip.py makes it),
+    else the site's assets/previews/<folder>.mp4. Empty when the game has none yet."""
+    for p in (f'games/{g["slug"]}/preview.mp4', f'assets/previews/{g["slug"]}.mp4'):
+        if os.path.exists(os.path.join(ROOT, p)): return p
+    return ""
+
 def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
     q = f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
-    # home page only: hover preview clip (assets/previews/<slug>.mp4) + category chip, CrazyGames style
-    clip = f'assets/previews/{g["slug"]}.mp4'
-    pva = f' data-pv="{esc(clip)}"' if pv and os.path.exists(os.path.join(ROOT, clip)) else ""
+    # hover preview clip on every page with tiles (#71, see clip_of); the category chip only on the home page (pv)
+    clip = clip_of(g)
+    pva = f' data-pv="{esc(clip)}"' if clip and not g.get("soon") else ""
     meta = f'<span class="pk-meta"><i>{esc(CATS[g["category"]]["label"])}</i></span>' if pv else ""
     return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
             f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(tile_name(g["title"], size))}{meta}</span></a>')
@@ -407,7 +414,7 @@ var slot=D.getElementById('pk-mine');
 if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘','Continue playing']].forEach(function(z){
  var l=rd(z[0]).filter(function(x){return x&&x.s&&x.s!==me&&x.u&&x.th}).slice(0,6);if(!l.length)return;
  out+='<div class="pk-label" id="'+(z[0]==='sg_likes'?'favs':'recent')+'"><span class="em">'+z[1]+'</span>'+z[2]+'</div>';
- l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'" data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
+ l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
  slot.insertAdjacentHTML('afterend',out);slot.remove();
  if(location.hash){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}}
 /* featured banner */
@@ -417,7 +424,7 @@ var hero=D.querySelector('.pk-hero');if(hero){var sl=[].slice.call(hero.querySel
  var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  function start(){clearInterval(tm);if(!rm&&sl.length>1)tm=setInterval(function(){go(i+1)},5000)}
  hero.addEventListener('mouseenter',function(){clearInterval(tm)});hero.addEventListener('mouseleave',start);start()}
-/* home page: play a short preview clip while the mouse rests on a game */
+/* every page with tiles: play a short preview clip while the mouse rests on a game (#71); phones and "less motion" keep the cover */
 if(window.matchMedia&&matchMedia('(hover: hover)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
  [].slice.call(D.querySelectorAll('.pk-t[data-pv]')).forEach(function(t){var tm,v;
   t.addEventListener('mouseenter',function(){tm=setTimeout(function(){
@@ -734,7 +741,7 @@ def build_play(g, fam, studio):
             others.sort(key=lambda x: (x["category"] != "kids", x["category"] == "kids" and owner(x) != owner(g)))
         else:
             others.sort(key=lambda x: (owner(x) != owner(g), x["category"] != g["category"]))
-        gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"]}, ensure_ascii=False)
+        gi = json.dumps({"s": g["slug"], "t": g["title"], "u": g["url"], "th": g["thumb"], **({"pv": clip_of(g)} if clip_of(g) else {})}, ensure_ascii=False)
         # Phones: only the first few similar games sit between the game and its details, the rest come after the details.
         # The .pk-later tiles hide on phones and show again in the .pk-more grid, which only phones see (assets/site.css).
         near = 4

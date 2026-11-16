@@ -8,6 +8,7 @@ Writes checks.json, checks.md and screenshots to $CHECKS_OUT (default: the temp 
 
 Checks (Sahil, 7 Nov 2026):
   cover       a real thumbnail.png / .jpg / .webp, not a plain name card
+  clip        a 6-second hover clip of real play: games/<folder>/preview.mp4 or assets/previews/<folder>.mp4 (#71)
   analytics   Stratos track() with level_start and level_complete or game_over (kids games are exempt)
   details     game.json has a title, a how_to_play line, a description of 150+ words, controls and tips
               (#70: a full page for Google, AI answers and AdSense; a thin page waits)
@@ -88,6 +89,9 @@ def static_checks(slug):
     thumb = next((f for f in ("thumbnail.png", "thumbnail.jpg", "thumbnail.webp") if os.path.exists(os.path.join(folder, f))), None)
     c["cover"] = bool(thumb)
     if not thumb: r["notes"].append("no cover: add thumbnail.png (800 x 500, a picture from the game)")
+    clip = next((p for p in (os.path.join(folder, "preview.mp4"), os.path.join(ROOT, "assets", "previews", slug + ".mp4")) if os.path.exists(p)), None)
+    c["clip"] = bool(clip)
+    if not clip: r["notes"].append("no hover clip: make a 6-second clip of real play with tools/make_clip.py (CLAUDE.md: Hover clip)")
     if g.get("category") == "kids":
         c["analytics"] = None; r["notes"].append("kids game: no analytics needed")
     else:
@@ -192,7 +196,7 @@ def verdict(r):
 
 def table(results):
     mark = {True: "✅", False: "❌", None: "–", "warn": "⚠️"}
-    cols = ["cover", "analytics", "details", "files", "coins", "phone", "computer"]
+    cols = ["cover", "clip", "analytics", "details", "files", "coins", "phone", "computer"]
     rows = ["| Game | Maker | Ready? | " + " | ".join(cols) + " | What to fix |", "|" + "---|" * (len(cols) + 4)]
     for r in sorted(results, key=lambda r: (verdict(r) != "fix", r.get("title", r["slug"]).lower())):
         v = verdict(r)

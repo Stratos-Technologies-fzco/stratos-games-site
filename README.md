@@ -44,6 +44,8 @@ Say "publish" when you are happy. About a minute later it is on staging (https:/
                         made it, in your own words), "faq" (your own questions: [{"q": "...", "a": "..."}]). Google needs this
                         writing before it will show ads on the site: a game without 150+ words, controls and tips waits on staging.
         thumbnail.png   a picture of it, 16:10, about 800 by 500 (if you skip it, the site makes a cover from the title)
+        preview.mp4     6 seconds of real play, silent, 480 by 300: plays when a mouse rests on the tile. Make it with
+                        python3 tools/make_clip.py <your-folder> --steps "click:PLAY; wait:1500; mark; hold:ArrowUp:6000"
 
 Categories: arcade, puzzle, word, party, sports, kids.
 
