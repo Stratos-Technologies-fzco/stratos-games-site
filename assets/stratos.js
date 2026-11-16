@@ -2,7 +2,7 @@
 (function(w,d){
 if(w.Stratos)return;
 try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
-var C={"apiKey": "AIzaSyAtSE-_XuCMwgmFUIpp__Ue3Sui2kq3sjI", "authDomain": "stratos-analytics-497908.firebaseapp.com", "projectId": "stratos-analytics-497908", "storageBucket": "stratos-analytics-497908.firebasestorage.app", "messagingSenderId": "960886305896", "appId": "1:960886305896:web:c34f68575c9328cfb277dd", "measurementId": "G-VD9H9GF5XJ"},m=location.pathname.match(/\/(?:play|games)\/([^\/]+)\//),game=m?m[1]:"";
+var C={"apiKey": "AIzaSyAtSE-_XuCMwgmFUIpp__Ue3Sui2kq3sjI", "authDomain": "stratos-analytics-497908.firebaseapp.com", "projectId": "stratos-analytics-497908", "storageBucket": "stratos-analytics-497908.firebasestorage.app", "messagingSenderId": "960886305896", "appId": "1:960886305896:web:c34f68575c9328cfb277dd", "measurementId": "G-VD9H9GF5XJ"},m=location.pathname.match(/\/(?:play|games)\/([^\/]+)\//),gm=d.querySelector('meta[name="stratos-game"]'),game=gm&&gm.content?gm.content:(m?m[1]:"");
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
 if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var live=/(^|\.)stratos\.games$/.test(location.hostname);   /* staging and test copies: nothing is counted, track() shows in the console instead */
