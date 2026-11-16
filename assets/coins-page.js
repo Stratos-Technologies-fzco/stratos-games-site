@@ -22,7 +22,7 @@ function reasonLabel(e){
 
 function earnText(r){
  var a=r.amount,t="";
- if(Array.isArray(a)){var lo=a[0].coins,hi=a[a.length-1].coins;t=(lo==hi?lo:lo+" to "+hi)+" coins per new level"}
+ if(Array.isArray(a)){var lo=a[0].coins,hi=a[a.length-1].coins;t=(lo==hi?lo:lo+" to "+hi)+" coins"+(r.unit?" "+r.unit:"")}
  else if(a=="dynamic")t="Up to "+(r.max||0)+" coins";
  else if(typeof a=="number")t=plural(a,"coin");
  else if(r.perDay&&r.max)t="Up to "+r.max+" coins a day ("+r.perDay+" for each day in a row)";

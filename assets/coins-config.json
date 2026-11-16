@@ -5,7 +5,15 @@
     "level_complete": {
       "label": "Finish a new level",
       "amount": [ { "maxLevel": 10, "coins": 10 }, { "maxLevel": 30, "coins": 15 }, { "maxLevel": 9999, "coins": 20 } ],
+      "unit": "per new level",
       "once": "game+level",
+      "enabled": true
+    },
+    "match_win": {
+      "label": "Win a match (harder computer pays more)",
+      "amount": [ { "maxLevel": 1, "coins": 5 }, { "maxLevel": 2, "coins": 8 }, { "maxLevel": 3, "coins": 12 } ],
+      "unit": "per win",
+      "perGamePerDay": 5,
       "enabled": true
     },
     "level_replay": { "label": "Replay a level", "amount": 2, "perGamePerDay": 5, "enabled": true },
@@ -16,6 +24,7 @@
   },
   "catalogue": {
     "hint": { "type": "consumable", "price": 10, "label": "Hint" },
+    "undo": { "type": "consumable", "price": 5, "label": "Undo" },
     "sksarfarajali-moto-rush:level:*": { "type": "unlock", "price": 50, "freeUpTo": 5, "label": "Moto Rush level" }
   },
   "dailyChallenges": [
