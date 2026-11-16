@@ -245,19 +245,6 @@ body.pk{--rail:76px;padding-left:calc(var(--rail) + 16px)}
 @media (prefers-reduced-motion:reduce){.pk-side,.pk-si .lb{transition:none}}
 /* ===== home page only (body.poki): Poki look ===== */
 body.poki{background:#000}
-.poki .pz-nav{grid-column:span 1;padding:9px 6px 6px;justify-content:space-between}
-.pz-logo{display:flex;flex-direction:column;align-items:center;font-size:18px;font-weight:900;line-height:.95;color:var(--ink);letter-spacing:-.02em}
-.pz-logo b{color:var(--blue);font-weight:900}
-.pz-btns{display:flex;justify-content:space-around;align-items:center}
-.pz-b{display:grid;place-items:center;width:36px;height:34px;padding:0;border:0;border-radius:10px;background:none;color:var(--blue);cursor:pointer}
-.pz-b svg{stroke-width:2.6}
-.pz-b:hover{background:var(--soft)}
-.pz-btns .pk-menu{width:26px;height:26px;background:none;color:var(--blue)}
-.pz-search{display:none;height:30px;padding:0 7px}
-.pz-search svg{flex:none}
-.pz-find .pz-btns{display:none}
-.pz-find .pz-search{display:flex}
-@media (max-width:620px){.pz-logo{font-size:14px}.pz-b{width:26px;height:28px}.pz-b svg{width:20px;height:20px}}
 /* ===== home page only: CrazyGames-style bar on top ===== */
 body.poki{--topbar:60px;padding-top:calc(var(--topbar) + 16px)}
 body.poki .pk-side{top:var(--topbar)}
