@@ -5,6 +5,11 @@ const $ = id => document.getElementById(id);
 // Stratos analytics hook
 function track(name, details) { try { var St = window.Stratos || parent.Stratos; if (St) St.track(name, details); } catch (e) { } }
 const TEST = new URLSearchParams(location.search).has('test');
+// phones and tablets get on-screen controls (?touch forces them on, for testing)
+const TOUCH = new URLSearchParams(location.search).has('touch') || matchMedia('(hover: none) and (pointer: coarse)').matches;
+const touchMove = { x: 0, y: 0 };
+let touchCrouch = false;
+if (TOUCH) document.body.classList.add('touch');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -38,7 +43,7 @@ const KILL_TARGET = 25, MATCH_TIME = 360, RESPAWN = 3.2;
 // ---------------------------------------------------------------- renderer
 const canvas = $('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio, TOUCH ? 1.25 : 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -410,9 +415,13 @@ function buildViewmodel() {
 // ---------------------------------------------------------------- bodies
 const R = 0.45, G = 22, STEP = 0.55, STAND_H = 1.45, CROUCH_H = 1.05;
 let bodies = [], player = null, time = 0, matchT = 0, state = 'menu', feedId = 0;
+// online: one shared arena. DI is the bot skill for this match (online bots are always Normal).
+let online = false, DI = S.diff, curRound = -1;
 class Body {
   constructor(isPlayer, name, fruit, primary) {
     Object.assign(this, { isPlayer, name, fruit, primary, nextPrimary: primary });
+    // id: who this fruit is on the network. remote: steered by another device. human: a real person, not a bot.
+    this.id = ''; this.remote = false; this.human = isPlayer; this.shots = [];
     this.pos = new THREE.Vector3(); this.vel = new THREE.Vector3();
     this.yaw = 0; this.pitch = 0; this.kills = 0; this.deaths = 0; this.streak = 0;
     this.h = STAND_H; this.eye = 1.2; this.crouch = false; this.grounded = false;
@@ -493,6 +502,7 @@ function fire(b, origin, aim, muzzle) {
   b.bloom = Math.min(b.bloom + w.recoil * 0.9, 0.08);
   const spread = spreadOf(b);
   let hitBody = null;
+  const netHits = new Map();
   for (let i = 0; i < w.pellets; i++) {
     perturb(aim, spread, _dir);
     let best = rayScene(origin, _dir, w.range * 3), who = null;
@@ -503,17 +513,26 @@ function fire(b, origin, aim, muzzle) {
     }
     _hit.copy(origin).addScaledVector(_dir, best);
     if (b.isPlayer && w.scope && aimT > 0.9) { /* no tracer from the scope view */ } else tracer(muzzle, _hit, w.pellets > 1 ? 0.7 : 1);
+    if (online && i === 0 && b.shots.length < 6) b.shots.push([muzzle.x, muzzle.y, muzzle.z, _hit.x, _hit.y, _hit.z].map(n => +n.toFixed(2)));
     if (who) {
       const head = _hit.y > who.center(_cen).y + 0.24;
       const dist = best, fall = dist > w.range ? Math.max(0.35, w.range / dist) : 1;
       let dmg = w.dmg * fall * (head ? w.head : 1);
-      if (!b.isPlayer && who.isPlayer) dmg *= [0.5, 0.75, 0.95][S.diff];
+      if (!b.human && who.human) dmg *= [0.5, 0.75, 0.95][DI];
       burst(_hit, FRUITS[who.fruit].juice, head ? 12 : 7, 4, 0.5);
-      damage(who, dmg, b, head, w.name);
+      if (who.remote) {
+        // the other device owns that fruit: tell it, and it takes the damage
+        const h = netHits.get(who) || { dmg: 0, head: false }; h.dmg += dmg; h.head = h.head || head; netHits.set(who, h);
+      } else damage(who, dmg, b, head, w.name);
       hitBody = who;
     } else if (best < w.range * 3 - 0.01) {
       burst(_hit, 0xd8ccb5, 4, 2.5, 0.35, 8);
     }
+  }
+  for (const [who, h] of netHits) {
+    if (who.protect > 0) continue;
+    Net.send({ t: 'hit', to: who.id, by: b.id, dm: Math.round(h.dmg), hd: h.head ? 1 : 0, w: w.name }, 1);
+    if (b.isPlayer) { showHit(h.head, false); h.head ? SND.head() : SND.hit(); }
   }
   if (b.isPlayer) {
     SND.shot(b.wkey, 1, 0);
@@ -539,7 +558,9 @@ function damage(v, amt, src, head, wname) {
   if (src && src.isPlayer && v !== src) { showHit(head, v.hp <= 0); if (v.hp > 0) head ? SND.head() : SND.hit(); }
   if (v.hp <= 0) kill(v, src, head, wname);
 }
-function kill(v, src, head, wname) {
+function kill(v, src, head, wname, fromNet) {
+  if (online && !fromNet && !v.remote) Net.send({ t: 'kill', v: v.id, by: src ? src.id : '', hd: head ? 1 : 0, w: wname }, 1);
+  if (v.remote) v.deadUntil = time + 1;
   v.alive = false; v.hp = 0; v.deaths++; v.streak = 0; v.respawnT = RESPAWN; v.killer = src; v.killedWith = wname;
   v.center(_cen);
   const juice = FRUITS[v.fruit].juice;
@@ -547,10 +568,10 @@ function kill(v, src, head, wname) {
   splat(v.pos, juice, 2.2);
   const [vol, pan] = spatial(v.pos); SND.squish(vol, pan);
   if (v.model) v.model.visible = false;
-  if (src && src !== v) {
+  if (src && src !== v && !src.remote) {
     src.kills++; src.streak++;
     if (src.isPlayer) {
-      SND.kill();
+      SND.kill(); showHit(head, true);
       if (time - (src.lastKillT || -99) < 4) src.multi = (src.multi || 1) + 1; else src.multi = 1;
       src.lastKillT = time;
       const m = src.multi >= 4 ? 'Juice Storm!' : src.multi === 3 ? 'Triple Squeeze!' : src.multi === 2 ? 'Double Squeeze!' : src.streak === 5 ? '5 in a row: Juice Rampage!' : src.streak === 10 ? '10 in a row: Unpeelable!' : head ? 'Zest shot!' : '';
@@ -563,7 +584,7 @@ function kill(v, src, head, wname) {
     $('dsub').textContent = src && src !== v ? `${wname}${head ? ' (zest shot)' : ''}. They have ${src.hp > 0 ? Math.ceil(src.hp) : 0} health left.` : 'Careful with juice bombs.';
     renderPicks(); $('death').classList.remove('hide'); aimT = 0;
   }
-  if (src && src.kills >= KILL_TARGET) endMatch();
+  if (!online && src && src.kills >= KILL_TARGET) endMatch();
 }
 function respawn(b) {
   let best = null, bd = -1;
@@ -583,10 +604,15 @@ const nadeGeo = new THREE.SphereGeometry(0.13, 12, 10), nadeMat = new THREE.Mesh
 const nades = [];
 function throwNade(b, dir) {
   if (b.nades <= 0) return; b.nades--;
-  const m = new THREE.Mesh(nadeGeo, nadeMat); m.castShadow = true; scene.add(m);
   const p = b.eyePos(new THREE.Vector3()).addScaledVector(dir, 0.6);
-  nades.push({ m, p, v: dir.clone().multiplyScalar(17).add(new THREE.Vector3(0, 4, 0)).add(b.vel.clone().multiplyScalar(.5)), t: 1.8, owner: b });
+  const v = dir.clone().multiplyScalar(17).add(new THREE.Vector3(0, 4, 0)).add(b.vel.clone().multiplyScalar(.5));
+  spawnNade(p, v, b);
+  if (online) Net.send({ t: 'nade', by: b.id, p: p.toArray().map(n => +n.toFixed(2)), v: v.toArray().map(n => +n.toFixed(2)) }, 1);
   if (b.isPlayer) SND.swap();
+}
+function spawnNade(p, v, owner) {
+  const m = new THREE.Mesh(nadeGeo, nadeMat); m.castShadow = true; scene.add(m);
+  nades.push({ m, p, v, t: 1.8, owner });
 }
 function updateNades(dt) {
   for (let i = nades.length - 1; i >= 0; i--) {
@@ -609,12 +635,13 @@ function explode(p, owner) {
   splat(new THREE.Vector3(p.x, 0, p.z), 0x9be15d, 3.5);
   const [v, pan] = spatial(p); SND.boom(v * 1.3, pan);
   for (const o of bodies) {
-    if (!o.alive) continue;
+    // each device only hurts its own fruits; the others work it out from the same bomb
+    if (!o.alive || o.remote) continue;
     o.center(_cen); const d = _cen.distanceTo(p); if (d > 6) continue;
     _o.copy(p).y += 0.2; _d.subVectors(_cen, _o); const dl = _d.length(); _d.divideScalar(dl);
     if (rayScene(_o, _d, dl) < dl - 0.1) continue;
     let dmg = 120 * (1 - d / 6); if (o === owner) dmg *= 0.5;
-    if (!owner.isPlayer && o.isPlayer) dmg *= [0.5, 0.75, 0.95][S.diff];
+    if (!owner.human && o.human) dmg *= [0.5, 0.75, 0.95][DI];
     o.vel.addScaledVector(_d, 9 * (1 - d / 6)); o.vel.y += 4 * (1 - d / 6);
     damage(o, dmg, owner, false, 'Juice Bomb');
   }
@@ -633,11 +660,11 @@ function botUpdate(b, dt) {
     for (const o of bodies) {
       if (o === b || !o.alive) continue;
       _v.subVectors(o.pos, b.pos); const d = _v.length(); _v.y = 0; _v.normalize();
-      const inView = _v.dot(_w) > DIFF.fov[S.diff] || d < 7 || o === ai.target;
-      const score = d * (o.isPlayer ? 0.9 : 1) - (o === ai.target ? 6 : 0);
+      const inView = _v.dot(_w) > DIFF.fov[DI] || d < 7 || o === ai.target;
+      const score = d * (o.human ? 0.9 : 1) - (o === ai.target ? 6 : 0);
       if (inView && score < bd && canSee(b, o)) { bd = score; best = o; }
     }
-    if (best && best !== ai.target) ai.react = DIFF.react[S.diff] * rand(.8, 1.3);
+    if (best && best !== ai.target) ai.react = DIFF.react[DI] * rand(.8, 1.3);
     if (!best && ai.target && ai.target.alive) { ai.seenPos = ai.target.pos.clone(); ai.seenT = time; }
     ai.target = best;
     // stuck check
@@ -655,7 +682,7 @@ function botUpdate(b, dt) {
     const pref = w.pref, fwd = d > pref * 1.3 ? 1 : d < pref * 0.6 ? -0.8 : 0;
     wish.addScaledVector(_v, fwd).addScaledVector(perp, ai.strafe * (w.scope ? .5 : 1));
     ai.aiming = d > 12 || w.scope;
-    if (S.diff > 0 && b.grounded && Math.random() < dt * 0.25) ai.jumpT = 0.1;
+    if (DI > 0 && b.grounded && Math.random() < dt * 0.25) ai.jumpT = 0.1;
     ai.crouchT = (ai.crouchT || 0) - dt; if (w.scope && Math.random() < dt * .3) ai.crouchT = rand(.6, 1.5);
   } else {
     ai.aiming = false;
@@ -684,10 +711,10 @@ function botUpdate(b, dt) {
   if (t) {
     b.eyePos(_o); t.center(_v);
     const lead = Math.min(0.25, _o.distanceTo(_v) / 120);
-    _v.addScaledVector(t.vel, lead * (S.diff === 2 ? 1 : 0.5));
+    _v.addScaledVector(t.vel, lead * (DI === 2 ? 1 : 0.5));
     _d.subVectors(_v, _o);
     const ty = Math.atan2(-_d.x, -_d.z), tp = Math.atan2(_d.y, Math.hypot(_d.x, _d.z));
-    const turn = DIFF.turn[S.diff] * dt;
+    const turn = DIFF.turn[DI] * dt;
     b.yaw += clamp(angDiff(b.yaw, ty), -turn, turn); b.pitch += clamp(tp - b.pitch, -turn, turn);
     ai.react -= dt;
     const err = Math.abs(angDiff(b.yaw, ty)) + Math.abs(tp - b.pitch);
@@ -695,16 +722,16 @@ function botUpdate(b, dt) {
     const wantFire = ai.react <= 0 && err < 0.12 && ai.pauseT <= 0 && t.protect <= 0;
     if (wantFire && b.fireT <= 0 && b.reloadT <= 0 && b.swapT <= 0 && b.mag[b.wkey] > 0) {
       const d = _o.distanceTo(_v);
-      const e = DIFF.err[S.diff] * (0.6 + d * 0.012) * (w.scope ? 0.5 : 1) * (t.crouch ? 1.1 : 1) + Math.hypot(t.vel.x, t.vel.z) * 0.004;
+      const e = DIFF.err[DI] * (0.6 + d * 0.012) * (w.scope ? 0.5 : 1) * (t.crouch ? 1.1 : 1) + Math.hypot(t.vel.x, t.vel.z) * 0.004;
       b.dir(_dir); perturb(_dir, e, _d);
       const mz = b.model.userData.gun.localToWorld(_mz.copy(b.model.userData.gun.userData.muzzle));
       fire(b, _o, _d, mz);
-      b.fireT = w.rate * [1.7, 1.3, 1.08][S.diff];
+      b.fireT = w.rate * [1.7, 1.3, 1.08][DI];
       if (w.auto) { ai.burst++; if (ai.burst > rand(4, 9)) { ai.burst = 0; ai.pauseT = rand(.25, .6); } }
     }
     ai.nadeT -= dt;
     const dd = b.pos.distanceTo(t.pos);
-    if (ai.nadeT <= 0 && b.nades > 0 && dd > 8 && dd < 20 && S.diff > 0) { ai.nadeT = rand(8, 16); b.dir(_dir); _dir.y += 0.15; throwNade(b, _dir.normalize()); }
+    if (ai.nadeT <= 0 && b.nades > 0 && dd > 8 && dd < 20 && DI > 0) { ai.nadeT = rand(8, 16); b.dir(_dir); _dir.y += 0.15; throwNade(b, _dir.normalize()); }
   } else {
     const sp = Math.hypot(b.vel.x, b.vel.z);
     if (sp > 0.5) { const ty = Math.atan2(-b.vel.x, -b.vel.z); b.yaw += clamp(angDiff(b.yaw, ty), -4 * dt, 4 * dt); }
@@ -726,7 +753,7 @@ function updateModel(b, dt) {
   if (b.flashT > 0) { b.flashT -= dt; if (b.flashT <= 0) ud.gun.userData.flash.visible = false; }
   ud.mat.transparent = b.protect > 0; ud.mat.opacity = b.protect > 0 ? 0.55 + Math.sin(time * 20) * 0.2 : 1;
   // scope glint so a sniper aiming at you can be spotted
-  ud.glint.visible = b.w.scope && b.ai.target === player && b.ai.aiming && b.alive;
+  ud.glint.visible = b.w.scope && b.alive && (b.remote ? b.netAim : b.ai.target === player && b.ai.aiming);
   if (ud.glint.visible) { const s = 1.2 + Math.sin(time * 9) * .4; ud.glint.scale.set(s, s, 1); }
 }
 
@@ -751,12 +778,14 @@ function startReload(b) { if (b.reloadT > 0 || b.mag[b.wkey] >= b.w.mag) return;
 function playerUpdate(dt) {
   const p = player, w = p.w;
   const wantAim = mouseR && p.reloadT <= 0 && p.swapT <= 0;
-  const sprint = keys.ShiftLeft && !wantAim && keys.KeyW && !p.crouch;
+  // phone: the thumb stick gives a smooth direction; pushed far forward it runs
+  const tm = touchMove, tmag = Math.hypot(tm.x, tm.y);
+  const sprint = !wantAim && !p.crouch && ((keys.ShiftLeft && keys.KeyW) || (tmag > 0.92 && tm.y < -0.6));
   // move
-  const f = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0), s = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+  const f = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0) - tm.y, s = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + tm.x;
   const sy = Math.sin(p.yaw), cy = Math.cos(p.yaw);
-  let wx = -sy * f + cy * s, wz = -cy * f - sy * s; const wl = Math.hypot(wx, wz); if (wl > 0) { wx /= wl; wz /= wl; }
-  setCrouch(p, keys.KeyC || keys.ControlLeft, dt);
+  let wx = -sy * f + cy * s, wz = -cy * f - sy * s; const wl = Math.hypot(wx, wz); if (wl > 1) { wx /= wl; wz /= wl; }
+  setCrouch(p, keys.KeyC || keys.ControlLeft || touchCrouch, dt);
   const speed = 6.4 * w.speed * (p.crouch ? .5 : sprint ? 1.45 : 1) * (1 - aimT * .4);
   const k = 1 - Math.exp(-(p.grounded ? 12 : 2.5) * dt);
   p.vel.x += (wx * speed - p.vel.x) * k; p.vel.z += (wz * speed - p.vel.z) * k;
@@ -800,7 +829,7 @@ function updateCamera(dt) {
   const scoped = p.alive && p.w.scope && aimT > 0.9;
   swayT += dt;
   if (scoped) {
-    const amp = (breathHold ? 0.08 : 1) * 0.0045 * (p.crouch ? 0.6 : 1) * (1 + Math.hypot(p.vel.x, p.vel.z) * 0.4);
+    const amp = (breathHold ? 0.08 : 1) * (TOUCH ? 0.35 : 1) * 0.0045 * (p.crouch ? 0.6 : 1) * (1 + Math.hypot(p.vel.x, p.vel.z) * 0.4);
     ex = (Math.sin(swayT * 1.1) + Math.sin(swayT * 2.3) * 0.4) * amp; ey = (Math.sin(swayT * 1.7) * 0.8 + Math.cos(swayT * 0.9) * 0.4) * amp;
   }
   kick *= Math.exp(-dt * 10);
@@ -865,11 +894,11 @@ function showWeapon() {
   hud.slots.innerHTML = p.slots.map((k, i) => `<span style="color:${i === p.cur ? '#ffd23a' : ''}">${i + 1} ${WEAPONS[k].name}</span>`).join(' &nbsp; ');
   zoomIdx = Math.min(zoomIdx, p.w.zooms.length - 1); if (p.w.zooms.length > 1 && zoomIdx < 1) zoomIdx = 1;
   zoomCur = curZoomTarget(); renderZoomSteps();
-  hud.hint.textContent = p.w.scope ? 'Right click to scope. Scroll or Z / X to zoom 2x to 12x.' : '';
+  hud.hint.textContent = p.w.scope ? (TOUCH ? 'Tap SCOPE, then + and − to zoom 2x to 12x.' : 'Right click to scope. Scroll or Z / X to zoom 2x to 12x.') : '';
   clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 4000);
 }
 function renderPicks() {
-  $('picks').innerHTML = PRIMARIES.map((k, i) => `<div class="${player.nextPrimary === k ? 'on' : ''}">${i + 1} ${WEAPONS[k].name}</div>`).join('') + '<div style="border:0;background:none;color:#a9b0bd">press 1-4 to change gun</div>';
+  $('picks').innerHTML = PRIMARIES.map((k, i) => `<div data-k="${k}" class="${player.nextPrimary === k ? 'on' : ''}">${TOUCH ? '' : i + 1 + ' '}${WEAPONS[k].name}</div>`).join('') + `<div style="border:0;background:none;color:#a9b0bd">${TOUCH ? 'tap a gun to change' : 'press 1-4 to change gun'}</div>`;
 }
 function updateHUD(dt) {
   const p = player, w = p.w;
@@ -916,7 +945,7 @@ function updateHUD(dt) {
   hud.timer.textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
   const sorted = [...bodies].sort((a, b) => b.kills - a.kills);
   const lead = sorted[0];
-  hud.score.innerHTML = `You <b style="color:#ffd23a">${p.kills}</b> &nbsp;&middot;&nbsp; ${lead === p ? 'You lead' : 'Leader ' + esc(lead.name) + ' <b>' + lead.kills + '</b>'} &nbsp;&middot;&nbsp; first to ${KILL_TARGET}`;
+  hud.score.innerHTML = `You <b style="color:#ffd23a">${p.kills}</b> &nbsp;&middot;&nbsp; ${lead === p ? 'You lead' : 'Leader ' + esc(lead.name) + ' <b>' + lead.kills + '</b>'} &nbsp;&middot;&nbsp; ${online ? `${Net.humans()} online` : 'first to ' + KILL_TARGET}`;
   if (!$('death').classList.contains('hide')) $('dsub').dataset.t = Math.ceil(p.respawnT);
   if (!p.alive) $('dtitle').dataset.n = 1, $('death').querySelector('p').textContent = $('dsub').textContent.replace(/ Back in \d+\.\.\.$/, '') + ` Back in ${Math.ceil(p.respawnT)}...`;
   if (!$('board').classList.contains('hide')) renderBoard();
@@ -940,30 +969,51 @@ function drawMini() {
 }
 function renderBoard() {
   const sorted = [...bodies].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
-  $('boardb').innerHTML = sorted.map(b => `<tr class="${b === player ? 'me' : ''}"><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
+  $('boardb').innerHTML = sorted.map(b => `<tr class="${b === player ? 'me' : ''}"><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}${botTag(b)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
 }
 
 // ---------------------------------------------------------------- match flow
-function startMatch() {
+function clearArena() {
   for (const b of bodies) if (b.model) scene.remove(b.model);
   for (const n of nades) scene.remove(n.m); nades.length = 0;
+  bodies = []; byId.clear();
+}
+function addBody(b) { bodies.push(b); if (b.id) byId.set(b.id, b); return b; }
+function removeBody(b) {
+  if (b.model) scene.remove(b.model);
+  const i = bodies.indexOf(b); if (i >= 0) bodies.splice(i, 1);
+  if (byId.get(b.id) === b) byId.delete(b.id);
+}
+function startMatch(isOnline) {
+  online = !!isOnline; DI = online ? 1 : S.diff;
+  clearArena();
   parts.length = 0;
   buildViewmodel();
-  bodies = [];
-  player = new Body(true, S.name || 'You', S.fruit, S.weapon); bodies.push(player);
-  const names = [...BOT_NAMES].sort(() => Math.random() - .5);
-  for (let i = 0; i < S.bots; i++) {
-    let fi = (S.fruit + 1 + i) % FRUITS.length;
-    bodies.push(new Body(false, names[i], fi, pick(PRIMARIES)));
+  // online, nobody is called "You": pick a fruity nickname if the player kept the default
+  if (online && (!S.name || S.name === 'You')) { S.name = FRUITS[S.fruit].name.split(' ').pop() + ' ' + (10 + Math.floor(Math.random() * 90)); save(); $('name').value = S.name; }
+  player = new Body(true, S.name || 'You', S.fruit, S.weapon); player.id = Net.me; addBody(player);
+  if (!online) {
+    const names = [...BOT_NAMES].sort(() => Math.random() - .5);
+    for (let i = 0; i < S.bots; i++) {
+      let fi = (S.fruit + 1 + i) % FRUITS.length;
+      addBody(new Body(false, names[i], fi, pick(PRIMARIES)));
+    }
   }
   bodies.forEach(b => respawn(b));
   matchT = 0; aimT = 0; zoomIdx = 1; $('feed').innerHTML = '';
   $('pname').textContent = player.name;
   $('death').classList.add('hide');
   state = 'play'; showWeapon();
-  track('level_start', { gun: S.weapon, bots: S.bots, skill: ['easy', 'normal', 'hard'][S.diff] });
+  if (online) {
+    Net.joinedAt = Net.joinedAt || Date.now(); Net.botSeq = 0;
+    const c = roundClock(); curRound = c.r; matchT = c.t;
+    Net.tick(); // say hello right away, so nobody waits to see us
+  }
+  track('level_start', online ? { mode: 'online', gun: S.weapon, players: Net.humans() } : { mode: 'practice', gun: S.weapon, bots: S.bots, skill: ['easy', 'normal', 'hard'][S.diff] });
   ['menu', 'pause', 'end'].forEach(id => $(id).classList.add('hide'));
   $('hud').classList.remove('hide');
+  $('board').classList.add('hide');
+  showHelp();
   lock();
 }
 function endMatch() {
@@ -971,16 +1021,193 @@ function endMatch() {
   state = 'end'; document.exitPointerLock?.();
   const sorted = [...bodies].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
   const place = sorted.indexOf(player) + 1;
-  track(place === 1 ? 'level_complete' : 'game_over', { place, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT) });
+  track(place === 1 ? 'level_complete' : 'game_over', { mode: online ? 'online' : 'practice', place, won: place === 1, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT), players: online ? Net.humans() : 1 });
   $('etitle').textContent = place === 1 ? 'YOU WIN!' : 'MATCH OVER';
   $('esub').textContent = place === 1 ? `Freshest fruit in the arena. ${player.kills} squeezes.` : `${sorted[0].name} won. You came ${place}${['st', 'nd', 'rd'][place - 1] || 'th'} with ${player.kills} squeezes.`;
-  $('endb').innerHTML = sorted.map((b, i) => `<tr class="${b === player ? 'me' : ''}"><td>${i + 1}</td><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
-  $('end').classList.remove('hide'); $('death').classList.add('hide'); $('board').classList.add('hide');
+  $('endb').innerHTML = sorted.map((b, i) => `<tr class="${b === player ? 'me' : ''}"><td>${i + 1}</td><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}${botTag(b)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
+  $('again').classList.toggle('hide', online); $('nextin').classList.toggle('hide', !online);
+  ['end'].forEach(id => $(id).classList.remove('hide'));
+  ['death', 'board', 'pause'].forEach(id => $(id).classList.add('hide'));
 }
-function lock() { if (TEST) { locked = true; return; } try { const r = canvas.requestPointerLock({ unadjustedMovement: true }); if (r && r.catch) r.catch(() => canvas.requestPointerLock()); } catch (e) { canvas.requestPointerLock(); } }
+const botTag = b => b.human ? '' : ' <em class="bot">bot</em>';
+
+// ---------------------------------------------------------------- online arena
+// Everyone who presses PLAY ONLINE lands in the same arena. There are no rooms: all
+// players talk on one topic of a free public relay (MQTT over WebSocket, the same relay
+// Momo Run and Chroma Clash use). Each device steers its own fruit and decides the
+// damage its own fruit takes. Matches run on the wall clock, so every device agrees
+// when a match starts and ends without anyone in charge. The player who joined first
+// runs the bots that fill the empty seats; if they leave, the next one takes over.
+const BREAK = 15, ROUND = MATCH_TIME + BREAK, ARENA_SIZE = 6, PEER_TIMEOUT = 4000;
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const TOPIC = 'zeststrike/v1/arena';
+const byId = new Map();
+function roundClock() { const s = Date.now() / 1000; return { r: Math.floor(s / ROUND), t: s % ROUND }; }
+const cleanName = n => String(n || '').replace(/[<>&"]/g, '').trim().slice(0, 14) || 'Fruit';
+const Net = {
+  c: null, connecting: false, me: Math.random().toString(36).slice(2, 10), joinedAt: 0, botSeq: 0,
+  peers: new Map(), host: false, sendAcc: 0,
+  start() {
+    // pressing PLAY while still connecting waits for the same connection
+    if (!this.c && !this.connecting) this.connecting = this.open().finally(() => { this.connecting = false; });
+    return this.connecting || Promise.resolve();
+  },
+  async open() {
+    if (!window.mqtt) { setNetStatus('Online play could not load. Check your internet and reload.'); return; }
+    setNetStatus('Connecting to the arena…');
+    for (const url of BROKERS) {
+      try { this.c = await this.connect(url); break; } catch (e) { }
+    }
+    if (!this.c) { setNetStatus('Could not reach the arena. Check your internet, or practise with bots.'); return; }
+    showOnlineCount();
+  },
+  connect(url) {
+    return new Promise((res, rej) => {
+      const c = mqtt.connect(url, { clientId: 'zs_' + this.me + Math.random().toString(36).slice(2, 6), connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 20, clean: true });
+      let done = false;
+      c.on('connect', () => { c.subscribe(TOPIC, { qos: 0 }); if (!done) { done = true; res(c); } });
+      c.on('message', (topic, payload) => { let d; try { d = JSON.parse(payload.toString()); } catch (e) { return; } if (d && typeof d === 'object' && d.from !== this.me) this.onMsg(d); });
+      c.on('error', () => { });
+      setTimeout(() => { if (!done) { done = true; try { c.end(true); } catch (e) { } rej(new Error('timeout')); } }, 9000);
+    });
+  },
+  send(o, qos = 0) {
+    if (!online || !this.c || !this.c.connected) return;
+    o.from = this.me; try { this.c.publish(TOPIC, JSON.stringify(o), { qos }); } catch (e) { }
+  },
+  humans() { let n = online ? 1 : 0; for (const p of this.peers.values()) if (performance.now() - p.seen < PEER_TIMEOUT) n++; return n; },
+  onMsg(d) {
+    if (typeof d.from !== 'string') return;
+    if (d.t === 'bye') { this.dropPeer(d.from); return; }
+    if (d.t === 's') {
+      const p = this.peers.get(d.from) || {}; p.seen = performance.now(); p.j = +d.j || Date.now(); p.n = cleanName(d.n); this.peers.set(d.from, p);
+      if (online && player && Array.isArray(d.b)) applyStates(d.from, d.r, d.b);
+      return;
+    }
+    if (!online || !player) return;
+    if (d.t === 'hit') {
+      const v = byId.get(d.to); if (!v || v.remote) return;
+      const src = byId.get(d.by) || null;
+      damage(v, clamp(+d.dm || 0, 0, 250), src, !!d.hd, String(d.w || '').slice(0, 20));
+    } else if (d.t === 'kill') {
+      const v = byId.get(d.v); if (!v || !v.remote || !v.alive) return;
+      kill(v, byId.get(d.by) || null, !!d.hd, String(d.w || '').slice(0, 20), true);
+    } else if (d.t === 'nade') {
+      const o = byId.get(d.by); if (!o || !o.remote || !Array.isArray(d.p) || !Array.isArray(d.v)) return;
+      spawnNade(new THREE.Vector3().fromArray(d.p.map(Number)), new THREE.Vector3().fromArray(d.v.map(Number)), o);
+    }
+  },
+  dropPeer(id) {
+    this.peers.delete(id);
+    for (const b of [...bodies]) if (b.remote && b.owner === id) removeBody(b);
+  },
+  // runs about 10 times a second while you are in the arena
+  tick() {
+    const now = performance.now();
+    for (const [id, p] of this.peers) if (now - p.seen > PEER_TIMEOUT) this.dropPeer(id);
+    // the earliest arrival runs the bots
+    let host = true;
+    for (const [id, p] of this.peers) if (p.j < this.joinedAt || (p.j === this.joinedAt && id < this.me)) { host = false; break; }
+    this.host = host;
+    const mine = bodies.filter(b => !b.remote && !b.isPlayer);
+    const want = host ? Math.max(0, ARENA_SIZE - this.humans()) : 0;
+    for (let i = mine.length; i < want; i++) {
+      const used = new Set(bodies.map(b => b.name));
+      const name = BOT_NAMES.find(n => !used.has(n)) || pick(BOT_NAMES);
+      const b = new Body(false, name, (S.fruit + 1 + i) % FRUITS.length, pick(PRIMARIES));
+      b.id = this.me + '-b' + (this.botSeq++); addBody(b); respawn(b);
+    }
+    for (let i = mine.length - 1; i >= want; i--) removeBody(mine[i]);
+    const local = bodies.filter(b => !b.remote);
+    this.send({ t: 's', n: player.name, j: this.joinedAt, r: curRound, b: local.map(packBody) });
+  },
+  leave() { if (online) this.send({ t: 'bye' }); },
+};
+function packBody(b) {
+  const f = n => +n.toFixed(2);
+  const o = { i: b.id, n: b.name, f: b.fruit, w: b.wkey, h: b.human ? 1 : 0, x: f(b.pos.x), y: f(b.pos.y), z: f(b.pos.z), vx: f(b.vel.x), vz: f(b.vel.z), yw: +b.yaw.toFixed(3), pt: +b.pitch.toFixed(3), c: b.crouch ? 1 : 0, a: b.alive ? 1 : 0, hp: Math.round(b.hp), k: b.kills, d: b.deaths, pr: b.protect > 0 ? 1 : 0, am: (b.isPlayer ? aimT > 0.5 : b.ai.aiming) ? 1 : 0 };
+  if (b.shots.length) o.sh = b.shots.splice(0);
+  return o;
+}
+function applyStates(owner, r, list) {
+  const seen = new Set();
+  for (const s of list.slice(0, 12)) {
+    if (!s || typeof s.i !== 'string' || !s.i.startsWith(owner)) continue; // a device may only speak for its own fruits
+    seen.add(s.i);
+    let b = byId.get(s.i);
+    const fruit = clamp(Math.floor(+s.f) || 0, 0, FRUITS.length - 1), wkey = WEAPONS[s.w] ? s.w : 'pulper';
+    if (!b) {
+      b = new Body(false, cleanName(s.n), fruit, wkey === 'peeler' ? 'pulper' : wkey);
+      Object.assign(b, { id: s.i, remote: true, owner, human: !!s.h });
+      b.np = new THREE.Vector3(+s.x || 0, +s.y || 0, +s.z || 0); b.pos.copy(b.np);
+      addBody(b);
+    }
+    if (b.remote !== true) continue;
+    if (wkey !== 'peeler' && wkey !== b.primary) b.equip(wkey);
+    b.cur = wkey === 'peeler' ? 1 : 0;
+    b.np.set(+s.x || 0, +s.y || 0, +s.z || 0); b.vel.set(+s.vx || 0, 0, +s.vz || 0); b.netT = performance.now();
+    b.nyaw = +s.yw || 0; b.npitch = +s.pt || 0;
+    b.crouch = !!s.c; b.h = b.crouch ? CROUCH_H : STAND_H; b.hp = clamp(+s.hp || 0, 0, 100);
+    b.protect = s.pr ? 0.3 : 0; b.netAim = !!s.am; b.grounded = true;
+    // kills from an older or newer match do not count in this one
+    b.kills = r === curRound ? Math.max(0, Math.floor(+s.k) || 0) : 0; b.deaths = r === curRound ? Math.max(0, Math.floor(+s.d) || 0) : 0;
+    if (s.a && !b.alive && !(b.deadUntil > time)) { b.alive = true; b.pos.copy(b.np); b.model.visible = true; }
+    else if (!s.a && b.alive) { b.alive = false; b.model.visible = false; }
+    if (Array.isArray(s.sh)) for (const sh of s.sh.slice(0, 6)) {
+      if (!Array.isArray(sh) || sh.length !== 6) continue;
+      const a = new THREE.Vector3(+sh[0], +sh[1], +sh[2]), e = new THREE.Vector3(+sh[3], +sh[4], +sh[5]);
+      tracer(a, e, 1); b.lastShot = time;
+      const [v, pan] = spatial(b.pos); SND.shot(b.wkey, v * 0.8, pan);
+      const fl = b.model.userData.gun.userData.flash; fl.visible = true; b.flashT = 0.05;
+    }
+  }
+  for (const b of [...bodies]) if (b.remote && b.owner === owner && !seen.has(b.id)) removeBody(b);
+}
+// remote fruits glide to where their device last said they were
+function updateRemote(b, dt) {
+  if (!b.np) return;
+  const age = Math.min(0.25, (performance.now() - b.netT) / 1000);
+  _v.set(b.np.x + b.vel.x * age, b.np.y, b.np.z + b.vel.z * age);
+  if (b.pos.distanceTo(_v) > 4) b.pos.copy(_v); else b.pos.lerp(_v, Math.min(1, dt * 14));
+  b.yaw += angDiff(b.yaw, b.nyaw) * Math.min(1, dt * 14);
+  b.pitch += (b.npitch - b.pitch) * Math.min(1, dt * 14);
+}
+function newRound(r) {
+  curRound = r;
+  for (const b of bodies) if (!b.remote) { b.kills = 0; b.deaths = 0; b.streak = 0; respawn(b); }
+  else { b.kills = 0; b.deaths = 0; }
+  $('feed').innerHTML = '';
+  if (state === 'end') {
+    $('end').classList.add('hide');
+    state = 'paused'; $('pause').classList.remove('hide'); setPauseText(true);
+  }
+  track('level_start', { mode: 'online', gun: S.weapon, players: Net.humans() });
+}
+function setPauseText(fresh) {
+  $('ptitle').textContent = fresh ? 'NEW MATCH!' : 'PAUSED';
+  $('resume').textContent = online ? 'JUMP IN' : 'RESUME';
+  $('pnote').textContent = online ? (fresh ? 'A new 6 minute match just started. Click to jump in.' : 'The match keeps going while you are paused. You are see-through and safe until you jump back in.') : 'Settings are on the menu screen.';
+}
+function setNetStatus(t) { $('netstatus').textContent = t; }
+function showOnlineCount() {
+  if (!Net.c) return;
+  const n = [...Net.peers.values()].filter(p => performance.now() - p.seen < PEER_TIMEOUT).length;
+  setNetStatus(n === 0 ? 'Nobody else is in the arena right now. Jump in: bots keep you company until friends arrive.' : n === 1 ? '1 player is in the arena right now.' : `${n} players are in the arena right now.`);
+}
+setInterval(() => { if (state === 'menu') showOnlineCount(); }, 1000);
+addEventListener('pagehide', () => Net.leave());
+document.addEventListener('visibilitychange', () => { if (document.hidden) Net.leave(); });
+// first match only: a short reminder of what to do
+function showHelp() {
+  if (S.seenHelp) return;
+  S.seenHelp = 1; save();
+  hud.hint.textContent = TOUCH ? 'Left thumb moves, right thumb looks. Hold FIRE to squeeze!' : online ? 'Squeeze as many fruits as you can. Most squeezes when the timer ends wins!' : 'Squeeze the other fruits. First to 25 wins!';
+  clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 6000);
+}
+function lock() { if (TEST || TOUCH) { locked = true; return; } try { const r = canvas.requestPointerLock({ unadjustedMovement: true }); if (r && r.catch) r.catch(() => canvas.requestPointerLock()); } catch (e) { canvas.requestPointerLock(); } }
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === canvas;
-  if (!locked && state === 'play') { state = 'paused'; $('pause').classList.remove('hide'); mouseL = mouseR = false; for (const k in keys) keys[k] = false; }
+  if (!locked && state === 'play') { state = 'paused'; setPauseText(false); $('pause').classList.remove('hide'); mouseL = mouseR = false; for (const k in keys) keys[k] = false; }
 });
 
 // ---------------------------------------------------------------- input
@@ -1020,14 +1247,137 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Tab') $('board').classList.add('hide'); });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseL = mouseR = false; });
 
+// ---------------------------------------------------------------- phone controls
+// Left side of the screen: a thumb stick that appears where the thumb lands.
+// Right side: drag to look. Buttons: FIRE (hold, and drag it to look too), AIM, JUMP and more.
+const touchLayer = $('touch'), stickEl = $('stick'), knob = stickEl.firstElementChild, STICK_R = 50;
+const tps = new Map();
+function lookBy(dx, dy) {
+  if (!player || !player.alive) return;
+  const z = player.w.scope && aimT > 0.9 ? zoomCur : 1 + (zoomCur - 1) * aimT;
+  const k = 0.0055 * S.sens * (z > 1.01 ? S.scopeSens / z : 1);
+  player.yaw -= dx * k; player.pitch = clamp(player.pitch - dy * k, -1.5, 1.5);
+}
+function pressBtn(id, down) {
+  const p = player, live = state === 'play' && p && p.alive;
+  if (id === 'tFire') { mouseL = down && live; return; }
+  if (id === 'tJump') { keys.Space = down && live; return; }
+  if (!down) return;
+  if (id === 'tPause') { if (state === 'play') { state = 'paused'; setPauseText(false); $('pause').classList.remove('hide'); mouseL = mouseR = false; touchMove.x = touchMove.y = 0; } return; }
+  if (id === 'tBoard') { const b = $('board'); if (b.classList.toggle('hide') === false) renderBoard(); return; }
+  if (!live) return;
+  if (id === 'tAim') mouseR = !mouseR;
+  else if (id === 'tReload') startReload(p);
+  else if (id === 'tSwap') swapTo(1 - p.cur);
+  else if (id === 'tNade') { camera.getWorldDirection(_dir); throwNade(p, _dir.clone()); }
+  else if (id === 'tCrouch') touchCrouch = !touchCrouch;
+  else if (id === 'tZin') changeZoom(1);
+  else if (id === 'tZout') changeZoom(-1);
+}
+touchLayer.addEventListener('pointerdown', e => {
+  e.preventDefault(); audio();
+  try { touchLayer.setPointerCapture(e.pointerId); } catch (er) { }
+  const btn = e.target.closest('.tb');
+  if (btn) { tps.set(e.pointerId, { role: btn.id, el: btn, x: e.clientX, y: e.clientY }); btn.dataset.down = 1; pressBtn(btn.id, true); }
+  else if (e.clientX < innerWidth * 0.42) {
+    tps.set(e.pointerId, { role: 'stick', sx: e.clientX, sy: e.clientY });
+    stickEl.style.left = e.clientX + 'px'; stickEl.style.top = e.clientY + 'px'; stickEl.classList.add('on'); knob.style.transform = '';
+    $('sticktip').style.display = 'none';
+  } else tps.set(e.pointerId, { role: 'look', x: e.clientX, y: e.clientY });
+}, { passive: false });
+touchLayer.addEventListener('pointermove', e => {
+  const t = tps.get(e.pointerId); if (!t) return;
+  e.preventDefault();
+  if (t.role === 'stick') {
+    let dx = e.clientX - t.sx, dy = e.clientY - t.sy; const d = Math.hypot(dx, dy);
+    if (d > STICK_R) { dx *= STICK_R / d; dy *= STICK_R / d; }
+    knob.style.transform = `translate(${dx}px,${dy}px)`;
+    const m = Math.min(1, d / STICK_R), dead = 0.12;
+    const k = m < dead ? 0 : (m - dead) / (1 - dead) / Math.max(m, 1e-4);
+    touchMove.x = dx / STICK_R * k; touchMove.y = dy / STICK_R * k;
+  } else if (t.role === 'look' || t.role === 'tFire') {
+    if (state === 'play') lookBy(e.clientX - t.x, e.clientY - t.y);
+    t.x = e.clientX; t.y = e.clientY;
+  }
+}, { passive: false });
+function touchEnd(e) {
+  const t = tps.get(e.pointerId); if (!t) return;
+  tps.delete(e.pointerId);
+  if (t.role === 'stick') { touchMove.x = touchMove.y = 0; stickEl.classList.remove('on'); }
+  else if (t.el) { delete t.el.dataset.down; pressBtn(t.role, false); }
+}
+touchLayer.addEventListener('pointerup', touchEnd);
+touchLayer.addEventListener('pointercancel', touchEnd);
+touchLayer.addEventListener('contextmenu', e => e.preventDefault());
+// tap a gun on the death screen to switch to it
+$('picks').addEventListener('click', e => {
+  const d = e.target.closest('[data-k]'); if (!d || !player || player.alive) return;
+  player.nextPrimary = d.dataset.k; S.weapon = d.dataset.k; save(); renderPicks();
+});
+// keep the buttons in step with the game (lit when on, zoom only in the scope)
+function updateTouchUI() {
+  const show = TOUCH && state === 'play' && !!player;
+  if (touchLayer.classList.contains('hide') === show) touchLayer.classList.toggle('hide', !show);
+  if (!show) { if (tps.size) { tps.clear(); touchMove.x = touchMove.y = 0; mouseL = false; keys.Space = false; stickEl.classList.remove('on'); } return; }
+  const p = player, scoped = p.alive && p.w.scope && aimT > 0.9;
+  $('tAim').classList.toggle('on', mouseR); $('tCrouch').classList.toggle('on', touchCrouch);
+  $('tFire').classList.toggle('on', mouseL);
+  $('tAim').textContent = p.w.scope ? 'SCOPE' : 'AIM';
+  $('tZin').classList.toggle('hide', !scoped); $('tZout').classList.toggle('hide', !scoped);
+  $('tNade').textContent = `BOMB ${p.nades}`;
+}
+// gentle aim help on phones: when a fruit is right next to the crosshair, the view drifts onto it
+function aimAssist(dt) {
+  if (!TOUCH || !player || !player.alive || !(mouseL || aimT > 0.5)) return;
+  player.eyePos(_o); let best = null, ba = 0.07;
+  for (const o of bodies) {
+    if (o === player || !o.alive) continue;
+    o.center(_v); _d.subVectors(_v, _o);
+    const ty = Math.atan2(-_d.x, -_d.z), tp = Math.atan2(_d.y, Math.hypot(_d.x, _d.z));
+    const a = Math.hypot(angDiff(player.yaw, ty), tp - player.pitch);
+    if (a < ba && canSee(player, o)) { ba = a; best = [ty, tp]; }
+  }
+  if (best) { const k = Math.min(1, dt * 3); player.yaw += angDiff(player.yaw, best[0]) * k; player.pitch += (best[1] - player.pitch) * k; }
+}
+// phones: go full screen and sideways on the first PLAY tap (Android; iPhone ignores it)
+function goFull() {
+  if (!TOUCH) return;
+  try {
+    const el = document.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (rq && !document.fullscreenElement) { const r = rq.call(el); if (r && r.then) r.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => { })).catch(() => { }); }
+  } catch (e) { }
+}
+// slow phone: switch off shadows first, then draw fewer pixels, instead of stuttering
+const perf = { t: 0, n: 0, level: 0 };
+function watchPerf(dt) {
+  if (state !== 'play' || perf.level >= 2) return;
+  perf.t += dt; perf.n++;
+  if (perf.t < 3) return;
+  const avg = perf.t / perf.n; perf.t = 0; perf.n = 0;
+  if (avg > 1 / 40) {
+    perf.level++;
+    if (perf.level === 1) { sun.castShadow = false; }
+    else { renderer.setPixelRatio(Math.min(devicePixelRatio, 0.75)); resize(); }
+  }
+}
+
 // ---------------------------------------------------------------- main loop
 let last = performance.now();
 function step(dt) {
   time += dt; matchT += dt;
-  if (matchT >= MATCH_TIME) { endMatch(); return; }
+  if (online) {
+    const c = roundClock();
+    if (c.r !== curRound) newRound(c.r);
+    matchT = c.t;
+    Net.sendAcc += dt; if (Net.sendAcc >= 0.1) { Net.sendAcc = 0; Net.tick(); }
+    for (const b of bodies) if (b.remote) updateRemote(b, dt);
+    if (matchT >= MATCH_TIME) { endMatch(); $('nextin').textContent = `Next match starts in ${Math.ceil(ROUND - matchT)}s. Stay here and you are in.`; return; }
+    if (state === 'paused' && player.alive) player.protect = Math.max(player.protect, 0.3);
+  } else if (matchT >= MATCH_TIME) { endMatch(); return; }
   for (const b of bodies) {
+    if (b.remote) continue;
     if (!b.alive) { b.respawnT -= dt; if (b.respawnT <= 0) respawn(b); continue; }
-    if (b.isPlayer) playerUpdate(dt);
+    if (b.isPlayer) { if (state === 'play') aimAssist(dt); playerUpdate(dt); }
     else {
       botUpdate(b, dt); moveBody(b, dt);
       if (b.reloadT > 0) { b.reloadT -= dt; if (b.reloadT <= 0) b.mag[b.wkey] = b.w.mag; }
@@ -1040,14 +1390,16 @@ function step(dt) {
   for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
     const a = bodies[i], b = bodies[j]; if (!a.alive || !b.alive || Math.abs(a.pos.y - b.pos.y) > 1.2) continue;
     const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z, d = Math.hypot(dx, dz);
-    if (d < 0.9 && d > 1e-4) { const push = (0.9 - d) / 2 / d; a.pos.x -= dx * push; a.pos.z -= dz * push; b.pos.x += dx * push; b.pos.z += dz * push; }
+    // only push fruits this device steers; remote ones are pushed by their own device
+    if (d < 0.9 && d > 1e-4) { const push = (0.9 - d) / 2 / d; if (!a.remote) { a.pos.x -= dx * push; a.pos.z -= dz * push; } if (!b.remote) { b.pos.x += dx * push; b.pos.z += dz * push; } }
   }
   updateNades(dt);
 }
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (state === 'play') step(dt);
+  if (state === 'play' || (online && (state === 'paused' || state === 'end'))) step(dt);
+  updateTouchUI(); watchPerf(dt);
   if (player) {
     for (const b of bodies) if (b.model && b.alive) updateModel(b, dt);
     updateCamera(dt); updateViewmodel(dt);
@@ -1082,13 +1434,21 @@ function initMenu() {
   $('diff').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.v === S.diff); b.onclick = () => { S.diff = +b.dataset.v; save(); initMenu(); }; });
 }
 initMenu();
-$('play').onclick = () => { audio(); startMatch(); };
-$('again').onclick = () => { audio(); startMatch(); };
-$('resume').onclick = () => { audio(); state = 'play'; $('pause').classList.add('hide'); lock(); };
-$('quit').onclick = $('tomenu').onclick = () => {
-  state = 'menu'; for (const b of bodies) if (b.model) scene.remove(b.model); bodies = []; player = null;
-  ['pause', 'end', 'death'].forEach(id => $(id).classList.add('hide')); $('hud').classList.add('hide'); $('menu').classList.remove('hide'); initMenu();
+$('play').onclick = async () => {
+  audio(); goFull();
+  if (!Net.c) { $('play').disabled = true; await Net.start(); $('play').disabled = false; }
+  if (Net.c) startMatch(true);
 };
+$('practice').onclick = () => { audio(); goFull(); startMatch(false); };
+$('again').onclick = () => { audio(); startMatch(false); };
+$('resume').onclick = () => { audio(); state = 'play'; $('pause').classList.add('hide'); if (player && player.alive) player.protect = Math.min(player.protect, 0.3); lock(); };
+$('quit').onclick = $('tomenu').onclick = () => {
+  Net.leave(); online = false;
+  state = 'menu'; clearArena(); player = null;
+  ['pause', 'end', 'death'].forEach(id => $(id).classList.add('hide')); $('hud').classList.add('hide'); $('menu').classList.remove('hide'); initMenu();
+  showOnlineCount();
+};
+Net.start(); // listen early, so the menu can say how many are playing
 // mil dots on the reticle
 $('mils').innerHTML = [-40, -32, -24, -16, -8, 8, 16, 24, 32, 40].map(v => `<circle cx="${v}" cy="0" r=".9"/><circle cx="0" cy="${v}" r=".9"/>`).join('');
 // phones and small touch screens: the game needs a keyboard and mouse
@@ -1096,8 +1456,8 @@ const isPhone = () => (matchMedia('(pointer: coarse)').matches && !matchMedia('(
 // screens never scroll: shrink a panel to fit the window instead
 function fitPanels() {
   const show = (id, on) => { if ($(id).classList.contains('hide') === on) $(id).classList.toggle('hide', !on); };
-  if (isPhone()) { show('menu', false); show('touchnote', true); }
-  else if (state === 'menu') { show('touchnote', false); show('menu', true); }
+  // phones play sideways: while held upright in a match, ask to turn the phone
+  show('rotate', TOUCH && innerHeight > innerWidth && state !== 'menu');
   for (const p of document.querySelectorAll('.screen .panel')) {
     p.style.transform = '';
     const k = Math.min(1, (innerHeight - 24) / p.offsetHeight, (innerWidth - 24) / p.offsetWidth);
@@ -1110,5 +1470,5 @@ for (const el of document.querySelectorAll('.screen')) panelWatch.observe(el, { 
 fitPanels();
 
 // test hooks
-window.__zs = { get player() { return player; }, get bodies() { return bodies; }, get state() { return state; }, rayScene, raySphere, colliders, burst, tracer, splat, set state(v) { state = v; }, startMatch, step(dt) { step(dt); if (player) updateCamera(dt); }, keys, setMouse(l, r) { mouseL = l; mouseR = r; }, changeZoom, get aimT() { return aimT; }, get zoomCur() { return zoomCur; }, camera, S };
-if (TEST) setTimeout(() => startMatch(), 50);
+window.__zs = { get player() { return player; }, get bodies() { return bodies; }, get state() { return state; }, rayScene, raySphere, colliders, burst, tracer, splat, set state(v) { state = v; }, startMatch, step(dt) { step(dt); if (player) updateCamera(dt); }, keys, setMouse(l, r) { mouseL = l; mouseR = r; }, changeZoom, get aimT() { return aimT; }, get zoomCur() { return zoomCur; }, camera, S, Net, byId, get online() { return online; }, startOnline: async () => { await Net.start(); if (Net.c) startMatch(true); } };
+if (TEST) setTimeout(() => new URLSearchParams(location.search).has('online') ? window.__zs.startOnline() : startMatch(), 50);
