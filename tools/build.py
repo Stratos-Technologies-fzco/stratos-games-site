@@ -703,6 +703,11 @@ def main():
     build_coins_page(fam)
     write("assets/stratos.js", STRATOS_JS)
     print(f"built: home, {len(fam)} play page(s), {len(SITE['categories'])} category pages, sitemap, robots, llms.txt, 404")
+    try:   # coin rules: print problems as warnings (never stops the build; the staging report shows them too)
+        import check_coins_config
+        for e in check_coins_config.load_and_check(): print("  COINS CONFIG WARNING:", e)
+    except Exception as e:
+        print("  coins config not checked:", e.__class__.__name__)
     for p in problems: print("  skipped:", p)
 
 if __name__ == "__main__":

@@ -6,6 +6,22 @@ var WK="stratos.wallet.v1",LK="stratos.ledger.v1",MAXE=500,MAXAMT=10000,
  cfgUrl=cur&&cur.src?cur.src.replace(/stratos\.js.*$/,"coins-config.json"):"/assets/coins-config.json";
 var KIDS=!!d.querySelector('meta[name="stratos-kids"]'),inPlay=!!(game&&/\/play\//.test(location.pathname));   /* Kids section: coins follow cfg.kidsCoins; analytics are already off there, so no coin events leave the device */
 function off(){return KIDS&&cfg.kidsCoins===false}
+/* Per-game rules: the config "games" section puts one game's settings on top of the global ones. A game that is not listed there uses the global rules unchanged. */
+function gcfg(g){var o=cfg.games;return o&&g&&o[g]&&typeof o[g]=="object"?o[g]:null}
+function goff(g){var o=gcfg(g);return!!(o&&o.coins===false)}   /* "coins": false switches Stratos Coins off for this game */
+function rule(id,g){   /* the global rule with this game's override: a number = a new amount, false = off for this game, an object = fields that replace the rule's */
+ var r=cfg.rules&&cfg.rules[id],o=gcfg(g),v=o&&o.earn&&o.earn[id];
+ if(!r||v===undefined||v===null)return r;
+ if(v===false)return Object.assign({},r,{enabled:false});
+ if(typeof v=="number")return Object.assign({},r,{amount:v});
+ if(typeof v=="object")return Object.assign({},r,v);
+ return r}
+function gcap(g){var o=gcfg(g);return o&&isAmt(o.dailyCap)?o.dailyCap:(cfg.caps||{}).daily_per_game}
+function item(id,g){   /* the catalogue item as this game sees it: its price override on top, or null when this game has the item switched off */
+ var f=look(id);if(!f)return null;var o=gcfg(g),v=o&&o.items&&o.items[id];
+ if(v===false)return null;
+ if(isAmt(v))f={key:f.key,item:Object.assign({},f.item,{price:v}),id:f.id,rest:f.rest};
+ return f}
 try{w.localStorage.setItem("stratos.t","1");w.localStorage.removeItem("stratos.t")}catch(e){persistent=false}
 
 /* ---- small helpers ---- */
@@ -98,9 +114,9 @@ function blockE(g,id,why){trk("coin_earn_blocked",{game:g,rule:id,reason:why});r
 function earn(id,x){
  try{
   x=x||{};id=str(id);var g=str(x.game);
-  if(off())return{ok:false,reason:"not_available",balance:0};
+  if(off()||goff(g))return{ok:false,reason:"not_available",balance:0};
   if(!g)return blockE(g,id,"no_game");
-  var r=cfg.rules&&cfg.rules[id];
+  var r=rule(id,g);
   if(!r)return blockE(g,id,"unknown_rule");
   if(r.enabled===false)return blockE(g,id,"disabled");
   refresh();
@@ -117,15 +133,15 @@ function earn(id,x){
   if(r.perGamePerDay&&(c.gr[g+"|"+id]||0)>=r.perGamePerDay)return blockE(g,id,"capped");
   var amt=amountOf(r,x,lv);
   if(!amt)return blockE(g,id,"bad_amount");
-  var cp=cfg.caps||{},left=Math.min(cp.daily_total?cp.daily_total-c.total:MAXAMT,cp.daily_per_game?cp.daily_per_game-(c.byGame[g]||0):MAXAMT);
+  var cp=cfg.caps||{},gc=gcap(g),left=Math.min(cp.daily_total?cp.daily_total-c.total:MAXAMT,gc?gc-(c.byGame[g]||0):MAXAMT);
   if(left<=0)return blockE(g,id,"capped");
   amt=Math.min(amt,left);
   var first=c.total===0,st=W.streak;
   if(st.lastDay!==dy){st.count=st.lastDay===yday(dy)?st.count+1:1;st.lastDay=dy}
   add("earn",amt,g,id,ref);bump(c,g,id,amt);if(ok)W.onceKeys[ok]=1;
-  var bonus=0,b=cfg.rules.streak_bonus;
+  var bonus=0,b=rule("streak_bonus",g);
   if(first&&b&&b.enabled!==false&&id!="streak_bonus"&&st.count>=(b.minStreak||2)){
-   bonus=Math.min((b.perDay||5)*st.count,b.max||25,cp.daily_total?cp.daily_total-c.total:MAXAMT,cp.daily_per_game?cp.daily_per_game-(c.byGame[g]||0):MAXAMT);
+   bonus=Math.min((b.perDay||5)*st.count,b.max||25,cp.daily_total?cp.daily_total-c.total:MAXAMT,gc?gc-(c.byGame[g]||0):MAXAMT);
    if(bonus>0){add("earn",bonus,g,"streak_bonus",dy);bump(c,g,"streak_bonus",bonus)}else bonus=0}
   save();
   trk("coin_earn",{game:g,rule:id,amount:amt,balance:W.balance-bonus,streak:st.count});
@@ -134,14 +150,14 @@ function earn(id,x){
   return{ok:true,amount:amt+bonus,bonus:bonus,balance:W.balance,rule:id}
  }catch(e){return{ok:false,reason:"error",balance:bal()}}}
 function has(id){try{id=str(id,80);if(W&&W.unlocks[id])return true;return freeLevel(look(id))}catch(e){return false}}
-function price(id){try{var f=look(str(id,80));return f&&isAmt(f.item.price)?f.item.price:null}catch(e){return null}}
+function price(id,g){try{var f=item(str(id,80),g||game);return f&&isAmt(f.item.price)?f.item.price:null}catch(e){return null}}
 function can(id){
  try{id=str(id,80);var f=look(id),p=price(id),o=has(id);
   return{affordable:p!==null&&!o&&bal()>=p,owned:o,price:p}}catch(e){return{affordable:false,owned:false,price:null}}}
 function spend(id,x){
  try{
-  x=x||{};id=str(id,80);var g=str(x.game),f=look(id),p=price(id);
-  if(off())return{ok:false,reason:"not_available",balance:0};
+  x=x||{};id=str(id,80);var g=str(x.game),f=item(id,g),p=price(id,g);
+  if(off()||goff(g))return{ok:false,reason:"not_available",balance:0};
   function no(why){trk("coin_spend_blocked",{game:g,item:id,price:p||0,balance:bal(),reason:why});return{ok:false,reason:why,balance:bal(),price:p}}
   if(!g)return no("no_game");
   if(!f||p===null)return no("unknown_item");
@@ -174,7 +190,7 @@ function ready(){return rdy||{then:function(f){try{f&&f()}catch(e){}return this}
 
 var K=S.coins={persistent:persistent,balance:bal,earn:earn,spend:spend,can:can,has:has,price:price,onChange:onChange,
  rules:function(){return clone(cfg.rules)},catalogue:function(){return clone(cfg.catalogue)},history:history,ready:ready,
- stats:stats,unlocks:unlocks,dailyChallenge:dailyChallenge,enabled:function(){return!off()}};
+ stats:stats,unlocks:unlocks,dailyChallenge:dailyChallenge,enabled:function(){return!off()&&!goff(game)},rulesFor:function(g){var o={},k;for(k in cfg.rules)o[k]=clone(rule(k,g));return o}};
 init();
 rdy=w.Promise?new Promise(function(res){fetchCfg(res)}):null;
 w.addEventListener("storage",function(e){   /* another tab changed the wallet */
@@ -205,7 +221,7 @@ function numLevel(x){var k=["level","stage","round","depot","lvl"];for(var i=0;i
 var autoSeq=0,fpDone=false;
 function uniq(){return"a"+Date.now().toString(36)+(++autoSeq)}
 function autoEvent(n,x){
- var a=cfg.auto;if(!a||a.enabled===false||off()||!inPlay||(a.exclude||[]).indexOf(game)>=0)return;
+ var a=cfg.auto;if(!a||a.enabled===false||off()||goff(game)||!inPlay||(a.exclude||[]).indexOf(game)>=0)return;
  x=x||{};var R=a.rules||{},paid=0,r;
  function go(rule,ctx){if(!rule)return null;ctx.game=game;var q=earn(rule,ctx);if(q&&q.ok)paid+=q.amount;return q}
  function daily(){var dc=dailyChallenge();if(dc&&dc.game==game&&!dc.done)go("daily_challenge",{ref:dc.ref})}
@@ -245,8 +261,8 @@ var sheetFn=sheet;
 function offer(kind,onDone,o){
  try{
   o=o||{};kind=str(kind,80);var p=price(kind),done=function(){if(typeof onDone=="function")onDone()};
-  if(off()||!inPlay||p===null){done();return}
-  var label=o.label||(look(kind).item.label)||kind,lc=label.toLowerCase(),title=o.title||("Get a "+lc+"?"),what=o.what||("A "+lc);refresh();var bal=W.balance,ok=bal>=p;
+  if(off()||goff(game)||!inPlay||p===null){done();return}
+  var label=o.label||(item(kind,game).item.label)||kind,lc=label.toLowerCase(),title=o.title||("Get a "+lc+"?"),what=o.what||("A "+lc);refresh();var bal=W.balance,ok=bal>=p;
   if(!ok)trk("coin_spend_blocked",{game:game,item:kind,price:p,balance:bal,reason:"insufficient"});
   sheetFn({ok:ok,title:title,text:what+" costs "+p+" Stratos Coins. You have "+bal+"."+(ok?"":" Play and win to earn more."),yes:ok?"Spend "+p+" coins":"Need "+(p-bal)+" more",
    yes_:function(){var r=spend(kind,{game:game,ref:str(o.ref)});if(r&&r.ok)done();else flash("Could not spend coins")},

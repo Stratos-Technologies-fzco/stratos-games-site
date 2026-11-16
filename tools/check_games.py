@@ -11,12 +11,14 @@ Checks (Sahil, 7 Nov 2026):
   analytics   Stratos track() with level_start and level_complete or game_over (kids games are exempt)
   details     game.json has a title and a how_to_play line
   files       no single file over 100 MB, no mobile app ad IDs (ca-app-pub-)
+  coins       a way to spend Stratos Coins (Stratos.coins.offer / spend). A WARNING only, it never keeps a game off live.
+              A game with nothing to spend on purpose says so in game.json: "coins": {"spend": false, "why": "..."}
   phone       opens on a phone screen with no scrolling and no crash
   computer    opens on a computer screen with no scrolling and no crash
 The phone and computer checks need Playwright (pip install playwright; playwright install chromium).
 If Playwright is missing they are skipped, not failed.
 """
-import json, os, subprocess, sys, tempfile, threading, functools, http.server
+import json, os, re, subprocess, sys, tempfile, threading, functools, http.server
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -45,6 +47,11 @@ def read_text(folder):
                 except OSError:
                     pass
     return "\n".join(buf)
+
+
+def spends_coins(text):
+    """True when the game's code asks the site's wallet to spend Stratos Coins (works on minified builds too: it looks for .coins and .offer( / .spend()."""
+    return bool(re.search(r"\.coins\b", text)) and bool(re.search(r"\.(offer|spend)\(", text))
 
 
 def static_checks(slug):
@@ -79,6 +86,16 @@ def static_checks(slug):
         ok = "level_start" in t and ("level_complete" in t or "game_over" in t) and "Stratos" in t
         c["analytics"] = ok
         if not ok: r["notes"].append("Stratos analytics missing: track('level_start') and track('level_complete') or track('game_over')")
+    # Stratos Coins: does the game offer a way to spend them? A warning, not a block (see "Stratos Coins" in CLAUDE.md).
+    cn = g.get("coins") if isinstance(g.get("coins"), dict) else {}
+    if cn.get("spend") is False:
+        c["coins"] = None
+        r["notes"].append("coins: nothing to spend on, on purpose (" + (cn.get("why") or "add a why to game.json coins") + ")")
+    elif spends_coins(read_text(folder)):
+        c["coins"] = True
+    else:
+        c["coins"] = "warn"
+        r["notes"].append("coins (does not block): no way to spend Stratos Coins yet. Add one (CLAUDE.md, section Stratos Coins) or set game.json \"coins\": {\"spend\": false, \"why\": \"...\"}")
     big, adid, total = [], False, 0
     for dp, _, fs in os.walk(folder):
         for f in fs:
@@ -147,14 +164,26 @@ def screen_checks(results):
     srv.shutdown()
 
 
+def coins_config_line():
+    """One line for the report: is assets/coins-config.json valid? (tools/check_coins_config.py)"""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import check_coins_config
+        errs = check_coins_config.load_and_check()
+    except Exception as e:
+        return f"**Coins config:** could not be checked ({e.__class__.__name__})"
+    if not errs: return "**Coins config:** ✅ valid"
+    return "**Coins config:** ❌ " + str(len(errs)) + " problem(s) in assets/coins-config.json: " + "; ".join(errs[:5])
+
+
 def verdict(r):
     if r.get("soon"): return "soon"
     return "ready" if all(v is not False for v in r["checks"].values()) else "fix"
 
 
 def table(results):
-    mark = {True: "✅", False: "❌", None: "–"}
-    cols = ["cover", "analytics", "details", "files", "phone", "computer"]
+    mark = {True: "✅", False: "❌", None: "–", "warn": "⚠️"}
+    cols = ["cover", "analytics", "details", "files", "coins", "phone", "computer"]
     rows = ["| Game | Maker | Ready? | " + " | ".join(cols) + " | What to fix |", "|" + "---|" * (len(cols) + 4)]
     for r in sorted(results, key=lambda r: (verdict(r) != "fix", r.get("title", r["slug"]).lower())):
         v = verdict(r)
@@ -177,6 +206,7 @@ def main(argv):
     os.makedirs(OUT, exist_ok=True)
     json.dump(results, open(os.path.join(OUT, "checks.json"), "w"), indent=1)
     md = table(results) if any(r["verdict"] != "soon" for r in results) else "No game changes waiting on staging."
+    md += "\n\n" + coins_config_line()
     open(os.path.join(OUT, "checks.md"), "w").write(md + "\n")
     print(md)
 

@@ -65,4 +65,8 @@ Games with their own coin (Wordbloom, Crystal Quest, Moto Rush, Cargo Climb, Isl
 | Mystery Island (Kids) | Its hint button is a free, unlimited learning aid for children by design. |
 | Echo Island (Kids), Domino Wonder Dash (Kids), Fighter, Arrow Rush | Compiled or Python-in-browser builds with no editable source in the repo. They earn automatically. |
 
+**Counts (checked by `tools/check_games.py`, 2026-11-16):** all 33 playable games earn; 22 can spend; 11 have no spend moment yet (5 waiting on their makers, 3 compiled or Python builds with no source, 3 free on purpose and marked in `game.json`). An earlier note said 23; that was one too many.
+
+**Per-game rules:** an admin can give one game its own earn amounts, daily cap and item prices, or switch coins off for it, in the `games` section of `assets/coins-config.json`. See `research/COINS_ADMIN_GUIDE.md`.
+
 **Next steps (not done in this phase):** add `level_complete` events to games that send none (they currently earn only first play); design spend moments for the games listed above (the makers know their games best); decide premium games and prices (none yet); add the chip to the hand-written About/Press/Terms pages.

@@ -3,7 +3,7 @@ name: build the site
 on:
   push:
     branches: [main, staging]
-    paths: ["games/**", "tools/**", "templates/**", "site.json"]
+    paths: ["games/**", "tools/**", "templates/**", "site.json", "assets/coins-config.json"]
   workflow_dispatch:
 permissions:
   contents: write

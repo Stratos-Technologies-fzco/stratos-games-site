@@ -181,7 +181,7 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 
 **Economy checklist (every new game, before "publish"):**
 1. Earn: where does the player earn Stratos Coins? (first play, wins, levels, daily challenge). Name the rule IDs.
-2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sahil or Sahariar if the item is new.
+2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sahil or Sahariar if the item is new. The staging check (issue #33) shows a ⚠️ in the "coins" column for a game with no way to spend. It never keeps the game off live. If a game has nothing to spend on purpose (a kids learning aid, a server game), add this to its `game.json` so the warning goes away: `"coins": { "spend": false, "why": "one short reason" }`.
 3. Own coin: does the game have its own coin? If yes, it has a different name and is never exchanged.
 4. The game plays normally when `SC()` is `null`.
 5. Repeat calls pay once (stable `ref`), and a capped or empty-handed player sees no error.

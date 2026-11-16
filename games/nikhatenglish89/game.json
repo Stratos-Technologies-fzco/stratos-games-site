@@ -17,5 +17,6 @@
     "Replay a level to earn more stars and coins, then spend them at your camp.",
     "Collect all four map pieces to unlock Treasure Island."
   ],
-  "story": "I wanted to turn early learning into a treasure hunt, with colourful islands, a parrot guide called Kiki and torn map pieces to collect. I made it for young children, parents and teachers who want screen time that is playful and gentle rather than stressful. My goal was a game simple enough for a child to start alone, with enough surprises to make them want to come back for the next island."
+  "story": "I wanted to turn early learning into a treasure hunt, with colourful islands, a parrot guide called Kiki and torn map pieces to collect. I made it for young children, parents and teachers who want screen time that is playful and gentle rather than stressful. My goal was a game simple enough for a child to start alone, with enough surprises to make them want to come back for the next island.",
+  "coins": { "spend": false, "why": "Kids game: the hint button is a free, unlimited learning aid by design." }
 }
