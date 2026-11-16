@@ -1525,3 +1525,85 @@ if (!LOGO_ONLY) renderer.setAnimationLoop(() => {
   renderer.render(scene, camera);
 });
 if (PARAMS.has('test')) window.__town = { houses, camera, THREE, get view() { return view; }, get level() { return level; }, get journey() { return journey; }, get flight() { return flight; }, get blocks() { return blocks; }, get hop() { return hop; } };
+
+// ------------------------------------------------------------------ home screen, pointing hand, stars (Stratos #39)
+// Pictures only, no words (owner's rule for children's games). On the logo a big Play button does what a tap did,
+// with a picture strip of the goal (trace the dots -> dominoes -> the real picture -> a star). A pointing hand shows
+// the first tap at each step (Play, a class house, a subject block) until the child has made it once. Every picture
+// finished adds a star; every 10th star gives a sticker. Nothing is saved (the Stratos box saves nothing).
+(function homeLayer() {
+  const css = document.createElement('style');
+  css.textContent = `
+#dgHome{position:fixed;left:0;right:0;bottom:calc(max(16px,4vh) + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;align-items:center;gap:12px;z-index:20;pointer-events:none}
+#dgPlay{pointer-events:auto;width:clamp(84px,18vmin,128px);height:clamp(84px,18vmin,128px);border-radius:50%;border:6px solid #fff;background:radial-gradient(circle at 35% 30%,#ffe066,#ff8c1a);box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;display:grid;place-items:center;padding:0;animation:dgPulse 1.6s ease-in-out infinite}
+#dgPlay svg{width:46%;height:46%;margin-left:8%}
+#dgGoal{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.9);border-radius:999px;padding:6px 16px;font-size:clamp(22px,5vmin,34px);line-height:1.2;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+#dgGoal .dots{display:inline-block;width:1.1em;height:1.1em;border:3px dotted #ff7a1a;border-radius:50%;box-sizing:border-box}
+#dgGoal i{font-style:normal;opacity:.5;font-size:.7em}
+#dgHand{position:fixed;z-index:21;font-size:clamp(40px,9vmin,64px);line-height:1;pointer-events:none;display:none;animation:dgTap 1s ease-in-out infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+#dgStars{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:20;background:rgba(255,255,255,.92);border-radius:999px;padding:4px 12px;font:800 clamp(18px,4vmin,26px) system-ui,sans-serif;color:#7a4b00;display:none;pointer-events:none}
+#dgSticker{position:fixed;inset:0;z-index:30;display:none;place-items:center;font-size:min(40vmin,220px);pointer-events:none;animation:dgPop .6s ease-out}
+@keyframes dgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes dgTap{0%,100%{transform:translate(-25%,0)}50%{transform:translate(-25%,14px)}}
+@keyframes dgPop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#dgPlay,#dgHand,#dgSticker{animation:none}}`;
+  document.head.appendChild(css);
+  const home = document.createElement('div');
+  home.id = 'dgHome';
+  home.innerHTML = '<button id="dgPlay" type="button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l16 9-16 9z" fill="#fff"/></svg></button>'
+    + '<div id="dgGoal" aria-hidden="true"><span class="dots"></span><i>➜</i>🁫<i>➜</i>🖼️<i>➜</i>⭐</div>';
+  document.body.appendChild(home);
+  const play = home.querySelector('#dgPlay');
+  const hand = document.createElement('div'); hand.id = 'dgHand'; hand.textContent = '👆'; hand.setAttribute('aria-hidden', 'true'); document.body.appendChild(hand);
+  const starsEl = document.createElement('div'); starsEl.id = 'dgStars'; starsEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(starsEl);
+  const sticker = document.createElement('div'); sticker.id = 'dgSticker'; sticker.setAttribute('aria-hidden', 'true'); document.body.appendChild(sticker);
+
+  play.addEventListener('click', () => { audio(); if (view === 'logo' && !flight && !chooser) openChooser({ kind: 'start' }); });
+
+  let stars = 0;
+  window.addEventListener('domino-picture-done', () => {
+    stars += 1;
+    starsEl.textContent = '⭐ ' + stars;
+    if (stars % 10 === 0) {
+      sticker.textContent = ['🏅', '🎖️', '🏆', '🌟'][(stars / 10 - 1) % 4];
+      sticker.style.display = 'grid';
+      setTimeout(() => { sticker.style.display = 'none'; }, 2200);
+    }
+  });
+
+  const learnt = { play: false, house: false, block: false };
+  const v = new THREE.Vector3();
+  function pointAt(world) {
+    v.copy(world).project(camera);
+    if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) return false;
+    hand.style.left = ((v.x + 1) / 2 * innerWidth) + 'px';
+    hand.style.top = ((1 - v.y) / 2 * innerHeight) + 'px';
+    return true;
+  }
+  function tick() {
+    requestAnimationFrame(tick);
+    if (view !== 'logo') learnt.play = true;
+    if (view === 'house') learnt.house = true;
+    if (inStage || hop) learnt.block = true;
+    const busy = !!(flight || journey || hop || inStage || chooser);
+    home.style.display = view === 'logo' && !busy ? 'flex' : 'none';
+    starsEl.style.display = stars > 0 && !inStage ? 'block' : 'none';
+    let show = false;
+    if (!busy) {
+      if (view === 'logo' && !learnt.play) {
+        const r = play.getBoundingClientRect();
+        hand.style.left = (r.left + r.width * 0.6) + 'px';
+        hand.style.top = (r.top + r.height * 0.6) + 'px';
+        show = r.width > 0;
+      } else if (view === 'island' && !learnt.house) {
+        const first = houses.filter((h) => h.n).sort((a, b) => a.n - b.n)[0] || houses[0];
+        if (first) show = pointAt(first.pos.clone().setY(SIGN_Y.cls - 10));
+      } else if (view === 'house' && !learnt.block && blocks[0]) {
+        show = pointAt(blocks[0].position);
+      }
+    }
+    hand.style.display = show ? 'block' : 'none';
+  }
+  if (new URLSearchParams(location.search).has('test')) window.__dgState = () => ({ view, flight: !!flight, journey: !!journey, hop: !!hop, inStage, chooser: !!chooser, learnt, houses: houses.length, blocks: blocks.length });
+  tick();
+})();

@@ -18,7 +18,7 @@
 .ex-step p.hint { color: var(--ex-red); }
 .ex-wrap { position: absolute; z-index: 4; inset: 0; display: grid; place-items: center; background: rgba(20, 40, 20, 0.35); padding: calc(70px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); overflow: auto; }
 @media (max-width: 640px) { .ex-wrap { padding-top: calc(120px + env(safe-area-inset-top, 0px)); } }
-.ex-panel { background: var(--ex-bg); border-radius: 26px; border: 3px solid var(--ex-line); width: min(760px, 100%); max-height: 100%; overflow: auto; padding: 18px 20px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
+.ex-panel { background: var(--ex-bg); border-radius: 26px; border: 3px solid var(--ex-line); width: min(760px, 100%); box-sizing: border-box; max-height: 100%; overflow: auto; overflow-x: hidden; padding: 18px 20px 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
 .ex-h { font: 800 clamp(26px, 5vw, 34px)/1.1 var(--display); margin: 0 0 4px; color: var(--ex-green); }
 .ex-prompt { font: 700 19px/1.35 var(--display); margin: 0 0 12px; }
 .ex-band { margin-top: 12px; }

@@ -50,6 +50,7 @@ class ProfessionalGame {
     document.body.appendChild(this.root);
     this.$ = (id) => this.root.querySelector('#' + id);
     this.$('proBack').onclick = () => this.back();
+    window.addEventListener('resize', () => this.fit());   // phone turned, window resized: fit again
     this.$('proLang').onclick = () => {
       const keys = Object.keys(LANGS);
       setLang(keys[(keys.indexOf(getLang()) + 1) % keys.length]);
@@ -83,6 +84,17 @@ class ProfessionalGame {
     else if (v.name === 'track') this.showTrack(v.track);
     else if (v.name === 'case') this.showCase(v.id);
     else if (v.name === 'screen') TRACK_SCREENS[v.track].render(this.$('proMain'), this);
+    this.fit();
+  }
+
+  // Stratos (#40): a screen a little taller than the window is shrunk just enough to fit (never below 70%),
+  // so there is no scrolling; one that is far taller keeps 70% and scrolls only for the rest.
+  fit() {
+    const m = this.$('proMain');
+    if (!m) return;
+    m.style.zoom = '';
+    const room = this.root.clientHeight - m.offsetTop - 12, need = m.scrollHeight;   // 12 px: rounding and bottom padding
+    if (room > 0 && need > room + 2) m.style.zoom = String(Math.max(0.7, room / need));
   }
 
   go(view) { this.view = view; this.choiceFor = null; this.redraw(); window.scrollTo(0, 0); this.root.scrollTop = 0; }
@@ -143,19 +155,31 @@ class ProfessionalGame {
       this.choice = Object.fromEntries(decisions.map((d) => [d.id, d.options[0].id]));
       this.choiceFor = id;
       this.result = null;
+      this.step = 0;
     }
     const main = this.$('proMain');
     const optLabel = (o) => (o.labelKey ? tr(o.labelKey) : L(o.label));
+    // Stratos (#40): one case = five short screens instead of one long page: brief, data, decide, outcome, debrief.
+    const steps = [tr('pro.brief'), tr('pro.data'), tr('pro.decide'), tr('pro.outcome'), tr('pro.debrief')];
+    const next = (n) => `<div class="sheet-actions"><button class="btn primary" data-next="${n}" aria-label="${esc(steps[n])}">→ ${esc(steps[n])}</button></div>`;
     main.innerHTML = `<p class="eyebrow">${esc(L(this.tracks.find((t) => t.id === c.track).title))}</p><h2>${esc(L(c.title))}</h2>
+      <nav class="pro-steps">${steps.map((s, i) => `<button class="tab" data-step="${i}">${i + 1}. ${esc(s)}</button>`).join('')}</nav>
+      <div class="pro-step" data-s="0">
       <section class="pro-sec nature"><h3>🌿 ${esc(tr('pro.nature'))}</h3><p>${esc(L(c.nature))}</p></section>
       <section class="pro-sec"><h3>${esc(tr('pro.brief'))}</h3><p>${esc(L(c.brief))}</p></section>
+      ${next(1)}</div>
+      <div class="pro-step" data-s="1">
       <section class="pro-sec"><h3>${esc(tr('pro.data'))}</h3>${this.dataHTML(c)}</section>
+      ${next(2)}</div>
+      <div class="pro-step" data-s="2">
       <section class="pro-sec"><h3>${esc(tr('pro.decide'))}</h3>
         ${decisions.map((d) => `<fieldset class="pro-dec"><legend>${esc(d.qKey ? tr(d.qKey) : L(d.q))}</legend>${d.options.map((o) => `<label class="pro-opt"><input type="radio" name="d_${d.id}" value="${o.id}" ${this.choice[d.id] === o.id ? 'checked' : ''}> <span>${esc(optLabel(o))}</span></label>`).join('')}</fieldset>`).join('')}
         <p class="pro-budget" id="proBudget"></p>
         <button class="btn primary" id="proRun">${esc(tr(this.result ? 'pro.again' : 'pro.run'))}</button>
-      </section>
-      <div id="proOut"></div>`;
+      </section></div>
+      <div class="pro-step" data-s="3"><div id="proOut"></div>${next(4)}</div>
+      <div class="pro-step" data-s="4"><div id="proDeb"></div></div>`;
+    main.querySelectorAll('[data-step], [data-next]').forEach((b) => { b.onclick = () => this.setStep(Number(b.dataset.step ?? b.dataset.next)); });
     const budget = () => decisions.reduce((s, d) => s + ((d.options.find((o) => o.id === this.choice[d.id]) || {}).cost || 0), 0);
     const showBudget = () => {
       if (!c.budget) { this.$('proBudget').hidden = true; return true; }
@@ -170,11 +194,29 @@ class ProfessionalGame {
     showBudget();
     this.$('proRun').onclick = () => { if (showBudget()) this.run(c, decisions); };
     if (this.result) this.outcome(c, decisions);
+    this.setStep(this.step || 0);
+  }
+
+  // shows one step of the case; the outcome and debrief steps open only after the model has run
+  setStep(n) {
+    if (n >= 3 && !this.result) n = 2;
+    this.step = n;
+    const main = this.$('proMain');
+    main.querySelectorAll('.pro-step').forEach((el) => { el.hidden = Number(el.dataset.s) !== n; });
+    main.querySelectorAll('[data-step]').forEach((b) => {
+      const i = Number(b.dataset.step);
+      b.classList.toggle('on', i === n);
+      b.disabled = i >= 3 && !this.result;
+    });
+    this.root.scrollTop = 0;
+    this.fit();
   }
 
   run(c, decisions) {
     this.result = CASES[c.model].run(c, this.choice);
-    track('level_complete', { tier: 'professional', case: c.id, score: Math.round(this.result.score * 100) });
+    // Stratos Coins: a case with at least one star sends its number (41+) so it pays once as a new level.
+    const ci = this.cases.indexOf(c);
+    track('level_complete', Object.assign({ tier: 'professional', case: c.id, score: Math.round(this.result.score * 100) }, ci >= 0 && starsFor(this.result.score) > 0 ? { level: 41 + ci } : {}));
     const st = this.pr.cases[c.id] || {};
     const stars = starsFor(this.result.score);
     this.pr.cases[c.id] = {
@@ -186,7 +228,7 @@ class ProfessionalGame {
     this.top();
     this.$('proRun').textContent = tr('pro.again');
     this.outcome(c, decisions);
-    this.$('proOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.setStep(3);
   }
 
   outcome(c, decisions) {
@@ -198,8 +240,8 @@ class ProfessionalGame {
       <p class="pro-score">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)} <b>${esc(tr('pro.score', { s }))}</b></p>
       <table class="pro-table"><thead><tr><th>${esc(tr('pro.metric'))}</th><th>${esc(tr('pro.planCol'))}</th>${hasBase ? `<th>${esc(tr('pro.baseCol'))}</th>` : ''}</tr></thead>
       <tbody>${r.metrics.map((m) => `<tr><td>${esc(m[0])}</td><td><b>${esc(m[1])}</b></td>${hasBase ? `<td>${esc(m[2])}</td>` : ''}</tr>`).join('')}</tbody></table>
-      ${r.charts.map((h) => `<div class="pro-chart">${h}</div>`).join('')}</section>
-      <section class="pro-sec"><h3>${esc(tr('pro.debrief'))}</h3><p>${esc(L(c.debrief))}</p>
+      ${r.charts.map((h) => `<div class="pro-chart">${h}</div>`).join('')}</section>`;
+    this.$('proDeb').innerHTML = `<section class="pro-sec"><h3>${esc(tr('pro.debrief'))}</h3><p>${esc(L(c.debrief))}</p>
       <h4>${esc(tr('pro.sources'))}</h4><ul class="pro-src">${c.sources.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></section>
       ${c.concepts && c.concepts.length ? `<section class="pro-sec"><h3>${esc(tr('pro.ask'))}</h3><div class="t-topics" id="proConcepts"></div><div id="proAnswer"></div></section>` : ''}
       <div class="sheet-actions"><button class="btn primary" id="proReport">${esc(tr('pro.report'))}</button><button class="btn" id="proPrint">${esc(tr('pro.print'))}</button></div>`;

@@ -293,7 +293,9 @@ class ExplorerGame {
     const prev = (this.pr.modules[id] || {}).stars || 0;
     const wasDone = explorerDone(this.p);
     const r = completeModule(id, check.score / check.n, wrong, this.p);
-    track('level_complete', { tier: 'explorer', module: id, stars: r.stars });
+    // Stratos Coins: a finished module sends its number (1-7, the Explorer map 8) so it pays once as a new level.
+    const mi = EXPLORER_MODULES.indexOf(id);
+    track('level_complete', Object.assign({ tier: 'explorer', module: id, stars: r.stars }, r.status === 'done' ? { level: mi >= 0 ? mi + 1 : EXPLORER_MODULES.length + 1 } : {}));
     const gained = r.status === 'done' ? Math.max(0, r.stars - prev) * 5 + 2 : 0;
     this.pr.seeds = (this.pr.seeds || 0) + gained;
     const badge = r.status === 'done' && award(id, this.p);
