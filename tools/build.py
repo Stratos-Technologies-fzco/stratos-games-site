@@ -472,25 +472,18 @@ def sn_logo(cls, size, href="./"):
 SN_ASSETS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap">'
              '<style>' + '.sn-logo{display:flex;align-items:center;gap:8px;text-decoration:none}\n.sn-mark{overflow:visible;flex:none;transform-origin:50% 60%}\n.sn-mark *{transform-box:fill-box}\n.sn-word{display:flex;flex-direction:column;align-items:center;line-height:.86;font-family:Fredoka,sans-serif;font-weight:700}\n.sn-row{display:flex;align-items:flex-end;font-size:34px}\n.sn-row .sn-mark{width:.95em;height:.95em;margin:0 .02em .14em 0}\n.sn-w1{font-size:1em;line-height:1;color:#fff;letter-spacing:-.5px}\n.sn-w2{font-size:14px;color:#B6FF3B;letter-spacing:.3em;padding-left:.3em;margin-top:1px}\n.sn-box{flex-direction:column;gap:1px}\n.sn-box .sn-word{align-items:center}\n.sn-box .sn-row{font-size:21px}\n.sn-box .sn-w1{color:#14151F}\n.sn-box .sn-w2{color:#8B5CF6;font-size:8.5px}\n.sn-eye{transform-origin:center}\n.sn-blink .sn-eye{animation:snBlink .18s ease-in-out}\n@keyframes snBlink{50%{transform:scaleY(.1)}}\n.sn-tongue{transform-origin:top center;transform:scaleY(0)}\n.sn-on .sn-tongue{animation:snTongue .5s ease-out}\n@keyframes snTongue{30%,70%{transform:scaleY(1)}}\n.sn-on .sn-mark{animation:snWiggle .7s ease-in-out}\n@keyframes snWiggle{15%{transform:rotate(-9deg) scale(1.08,.94)}35%{transform:rotate(8deg) scale(.96,1.06)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}}\n.cg-logo.sn-logo .sn-word{display:flex!important}\n@media (max-width:1200px){.cg-logo.sn-logo .sn-row{font-size:28px}.cg-logo.sn-logo .sn-w2{font-size:11.5px}}\n@media (max-width:600px){.cg-logo.sn-logo .sn-row{font-size:23px}.cg-logo.sn-logo .sn-w2{font-size:9.5px}}\n@media (prefers-reduced-motion:reduce){.sn-on .sn-mark,.sn-on .sn-tongue,.sn-blink .sn-eye{animation:none}}' + '</style><script>' + "(function(){\n  // silent on purpose (#80): no sound on hover; the snake still wiggles, blinks and its eyes follow the pointer\n  function play(el,c,ms){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(function(){el.classList.remove(c);},ms);}\n  document.querySelectorAll('.sn-logo').forEach(function(el){\n    var last=0;\n    el.addEventListener('pointerenter',function(){var n=Date.now();if(n-last<600)return;last=n;play(el,'sn-on',750);play(el,'sn-blink',200);});\n    (function loop(){setTimeout(function(){play(el,'sn-blink',200);loop();},2500+Math.random()*3000);})();\n  });\n  var pupils=document.querySelectorAll('.sn-pupil');\n  window.addEventListener('pointermove',function(e){\n    pupils.forEach(function(p){\n      var r=p.ownerSVGElement.getBoundingClientRect();if(!r.width)return;var k=r.width/200,bx=+p.dataset.x,by=+p.dataset.y;\n      var dx=e.clientX-(r.left+bx*k),dy=e.clientY-(r.top+by*k),len=Math.hypot(dx,dy)||1,m=Math.min(5,len/20);\n      p.setAttribute('cx',(bx-1+dx/len*m).toFixed(1));p.setAttribute('cy',(by-1+dy/len*m).toFixed(1));\n    });\n  });\n})();" + '</script>')
 
-def pz_nav():
-    return (f'<div class="pk-nav pz-nav">{sn_logo("pz-logo sn-box", 30)}'
-            f'<div class="pz-btns"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>'
-                        f'<button class="pz-b" type="button" aria-label="Search" onclick="document.body.classList.add(&quot;pz-find&quot;);document.getElementById(&quot;pkq&quot;).focus()">{icon("search", 24)}</button></div>'
-            f'<label class="pk-search pz-search">{icon("search", 14)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games" '
-            f'onblur="if(!this.value)document.body.classList.remove(&quot;pz-find&quot;)"></label></div>{SN_ASSETS}')
-
 ICONS["ad"] = '<circle cx="12" cy="12" r="9"/><path d="M7.5 15l2-6 2 6M8.2 13h2.6M14 9v6h1.5a3 3 0 0 0 0-6z"/>'
 ICONS["users"] = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.8.2 5 2.6 5 5.8"/>'
 ICONS["bookmark"] = '<path d="M6 3h12v18l-6-4.5L6 21z"/>'
 ICONS["bell"] = '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>'
 
 def cg_top(new_count):
-    """CrazyGames-style bar across the top of the home page. Its search box drives the same search as the logo box."""
+    """CrazyGames-style bar across the top of the home page. Its search box is the page's search (#pkq, see PK_JS):
+    the home page has no logo + search tile in the grid any more (#91)."""
     dot = f'<span class="cg-dot">{new_count}</span>' if new_count else ""
-    sync = "var p=document.getElementById(&quot;pkq&quot;);p.value=this.value;p.dispatchEvent(new Event(&quot;input&quot;))"
     return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
             f'{sn_logo("cg-logo", 46)}'
-            f'<label class="cg-search"><input type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories" oninput="{sync}">{icon("search", 20)}</label>'
+            f'<label class="cg-search"><input id="pkq" type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories">{icon("search", 20)}</label>'
             f'<div class="cg-acts">{coin_chip()}'
             f'<a class="cg-ib" href="#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
             f'<a class="cg-ib" href="c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
@@ -513,7 +506,7 @@ def build_home_cards(fam):
     cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
                    for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
     about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
-    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
+    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cats(), active="home", nav=SN_ASSETS, cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
