@@ -424,3 +424,13 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .coins-table td{padding:7px 8px;border-bottom:1px solid #e1ebf5;color:#21405f;vertical-align:top}
 .coins-pos{font-weight:900;color:#0d5a30;white-space:nowrap}.coins-neg{font-weight:900;color:#8a2a0c;white-space:nowrap}
 @media (max-width:480px){.pk-text .coins-big{font-size:28px}.coins-wrap .coins-sec{padding:14px 14px}}
+/* ===== tiles: every game's name is always visible and never cut (#69) =====
+   Shown without hovering, on a dark band; wraps instead of cutting; the size follows the tile.
+   Small tiles show the short name (tile_name() in tools/build.py); the full name is in the tooltip. */
+.pk-name{opacity:1;transform:none;white-space:normal;overflow-wrap:anywhere;text-wrap:balance;
+  background:linear-gradient(180deg,rgba(0,20,45,0),rgba(0,20,45,.88) 48%);text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.s1 .pk-name{display:block;font-size:11.5px;line-height:1.1;padding:22px 5px 6px}
+.s2 .pk-name{font-size:16px}
+.s3 .pk-name{font-size:21px}
+@media (max-width:620px){.s1 .pk-name{display:block;font-size:10.5px;padding:18px 4px 5px}.s2 .pk-name{font-size:13.5px}.s3 .pk-name{font-size:17px}}
+@media (max-width:360px){.s1 .pk-name{font-size:9.5px;padding:10px 3px 4px}}

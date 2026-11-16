@@ -294,6 +294,13 @@ def pk_nav(base=""):
     return (f'<div class="pk-nav"><div class="pk-nr"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>{sn_logo("pk-logo sn-box", 26, base + "./")}</div>'
             f'<div class="pk-sr"><label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games"></label>{coin_chip(base)}</div></div>{SN_ASSETS}')
 
+def tile_name(title, size):
+    """The name on a tile: small (s1) tiles show the part before ":" or a dash, so it fits in two lines (#69)."""
+    if "s1" not in size.split(): return title
+    for cut in (":", " \u2013 ", " - "):
+        if cut in title and title.split(cut)[0].strip(): return title.split(cut)[0].strip()
+    return title
+
 def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
     q = f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
@@ -302,7 +309,7 @@ def pk_tile(g, base="", size="s1", pv=False):
     pva = f' data-pv="{esc(clip)}"' if pv and os.path.exists(os.path.join(ROOT, clip)) else ""
     meta = f'<span class="pk-meta"><i>{esc(CATS[g["category"]]["label"])}</i></span>' if pv else ""
     return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
-            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(g["title"])}{meta}</span></a>')
+            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(tile_name(g["title"], size))}{meta}</span></a>')
 
 def pk_tiles(items, base="", first_big=True, later_from=None):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
@@ -379,7 +386,7 @@ var slot=D.getElementById('pk-mine');
 if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘','Continue playing']].forEach(function(z){
  var l=rd(z[0]).filter(function(x){return x&&x.s&&x.s!==me&&x.u&&x.th}).slice(0,6);if(!l.length)return;
  out+='<div class="pk-label" id="'+(z[0]==='sg_likes'?'favs':'recent')+'"><span class="em">'+z[1]+'</span>'+z[2]+'</div>';
- l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'" data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(x.t)+'</span></a>'})});
+ l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'" data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
  slot.insertAdjacentHTML('afterend',out);slot.remove();
  if(location.hash){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}}
 /* featured banner */
