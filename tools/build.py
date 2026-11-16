@@ -414,7 +414,7 @@ var slot=D.getElementById('pk-mine');
 if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘','Continue playing']].forEach(function(z){
  var l=rd(z[0]).filter(function(x){return x&&x.s&&x.s!==me&&x.u&&x.th}).slice(0,6);if(!l.length)return;
  out+='<div class="pk-label" id="'+(z[0]==='sg_likes'?'favs':'recent')+'"><span class="em">'+z[1]+'</span>'+z[2]+'</div>';
- l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
+ l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'">'+(z[0]==='sg_recent'?'<span class="badge cont">▶ Continue</span>':'<span class="badge fav">♥</span>')+'<span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
  slot.insertAdjacentHTML('afterend',out);slot.remove();
  if(location.hash){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}}
 /* featured banner */
@@ -623,6 +623,8 @@ def pk_detail(g, base):
             row("star", "Tips", pk_list(g.get("tips"))) +
             row("user", "From the maker", story) +
             row("phone", "Supported devices", "Phone, tablet and computer, right in the browser. No download.") +
+            f'<div class="pd-row" id="pd-saves" hidden><dt>{icon("bookmark", 19)}Your progress</dt><dd><p>Saved on this device, in this browser. '
+            'No account needed. Clearing your browser data removes it.</p></dd></div>' +
             row("github", "Developer", dev) +
             row("clock", "Released", esc(pk_date(g.get("added")))))
     faq = "".join(f'<div class="pd-row"><dt>{icon("help", 19)}{esc(q)}</dt><dd><p>{esc(a)}</p></dd></div>' for q, a in pk_faq(g))
@@ -699,6 +701,24 @@ def pk_splash(g, base):
             'if(t>15000){hide();return}requestAnimationFrame(tick)}'
             'requestAnimationFrame(tick);s.addEventListener("pointerdown",hide);addEventListener("keydown",hide,{once:true})})()</script>')
 
+def pk_saves():
+    """#72: tell players their progress is saved. The play page watches the game save in the browser (localStorage, or the
+    IndexedDB saves of Unity and Godot builds), from outside the game, so every game gets this with no change by its maker:
+    a soft "Progress saved on this device" note (at most every 3 minutes, never in the first 12 seconds, never for settings
+    such as sound or language), and from then on the game's page says "Your progress is saved on this device" in this
+    browser (sg_saves). Only real saves count, so the page never claims it for a game that does not save."""
+    return ('<div class="pk-saved" id="pk-saved" role="status" aria-live="polite" hidden>✓ Progress saved on this device</div>'
+            '<script>(function(){var D=document,f=D.getElementById("game"),n=D.getElementById("pk-saved"),me=D.body.getAttribute("data-game"),t0=Date.now(),last=0,K="sg_saves";if(!f||!n||!me)return;'
+            'var SKIP=/^(stratos[.]|sg_|_)|sound|music|mute|volume|lang|locale|theme|tutorial|seen|intro|onboard|setting|pref|haptic|vibr|quality|graphic|consent|sfx|bgm|name|profile|lastload|cfg|config|debug|cache|session/i;'
+            'function known(){try{return !!JSON.parse(localStorage.getItem(K)||"{}")[me]}catch(e){return false}}'
+            'function row(){var r=D.getElementById("pd-saves");if(r)r.hidden=false}'
+            'function saved(k){if(SKIP.test(String(k)))return;var t=Date.now();if(t-t0<12000)return;'
+            'if(!known()){try{var m=JSON.parse(localStorage.getItem(K)||"{}");m[me]=1;localStorage.setItem(K,JSON.stringify(m))}catch(e){}}row();'
+            'if(t-last<180000)return;last=t;n.hidden=false;n.offsetWidth;n.classList.add("on");clearTimeout(n._t);n._t=setTimeout(function(){n.classList.remove("on");setTimeout(function(){n.hidden=true},400)},2600)}'
+            'function hook(){try{var w=f.contentWindow,P=w.Storage&&w.Storage.prototype;if(P&&!P.__sg){var o=P.setItem;P.setItem=function(k){var r=o.apply(this,arguments);try{if(this===w.localStorage)saved(k)}catch(e){}return r};P.__sg=1}'
+            'var I=w.IDBObjectStore&&w.IDBObjectStore.prototype;if(I&&!I.__sg){var op=I.put;I.put=function(){try{var db=this.transaction&&this.transaction.db&&this.transaction.db.name;if(/idbfs|userfs/i.test(db||""))saved("save")}catch(e){}return op.apply(this,arguments)};I.__sg=1}}catch(e){}}'
+            'f.addEventListener("load",hook);hook();if(known())D.addEventListener("DOMContentLoaded",row)})()</script>')
+
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
     desc = g.get("description") or g.get("one_line") or f"{g['title']} by {g['maker']}, free to play on Stratos Games."
@@ -720,7 +740,7 @@ def build_play(g, fam, studio):
     words = pk_detail(g, base)
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
     if CLEAN:
-        stage = (f'<div class="pk-stage"><div class="pk-frame"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>{pk_splash(g, base)}</div>'
+        stage = (f'<div class="pk-stage"><div class="pk-frame"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>{pk_splash(g, base)}{pk_saves()}</div>'
                  f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
                  f'<button class="pk-ib pk-vote up" type="button" data-v="1" title="I like this game" aria-label="Like" aria-pressed="false">{icon("thumbup", 19)}</button>'
                  f'<button class="pk-ib pk-vote down" type="button" data-v="-1" title="I don\'t like this game" aria-label="Dislike" aria-pressed="false">{icon("thumbdown", 19)}</button>'
