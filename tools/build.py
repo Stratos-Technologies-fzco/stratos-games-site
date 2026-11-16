@@ -608,7 +608,8 @@ def pk_splash(g, base):
       2. it shrinks into its place in the logo while the letters "tratos" fly in and come together; GAMES slides in
       3. the logo gives way to the loading screen: the game's cover and a LOADING bar (fills when the game has loaded)
       4. the game opens
-    About 3.9 s when the game is ready, longer only while it is still loading (12 s at most). A tap or any key skips
+    About 5.3 s when the game is ready (everything 25% slower than the first cut, the snake drawing and the LOADING bar
+    50% slower), longer only while it is still loading (15 s at most). A tap or any key skips
     it. Silent. Players who ask for less motion get it without the movement."""
     mark = (SN_INNER.replace('<path d="M142 62', '<path mask="url(#ss-m)" d="M142 62')
             .replace('<path d="M118 44', '<path mask="url(#ss-m)" d="M118 44')
@@ -616,7 +617,7 @@ def pk_splash(g, base):
             .replace('<g class="sn-eye">', '<g class="sn-eye ss-eye">'))
     fly = [("-1.1em", "-.9em", "-50deg"), ("-.4em", "1.1em", "40deg"), (".5em", "-1.2em", "-30deg"),
            ("1.2em", ".9em", "55deg"), ("1.9em", "-.7em", "-45deg"), ("2.6em", "1em", "35deg")]
-    letters = "".join(f'<i style="--x:{x};--y:{y};--r:{r};--d:{k * 60}ms">{c}</i>' for k, (c, (x, y, r)) in enumerate(zip("tratos", fly)))
+    letters = "".join(f'<i style="--x:{x};--y:{y};--r:{r};--d:{k * 75}ms">{c}</i>' for k, (c, (x, y, r)) in enumerate(zip("tratos", fly)))
     svg = ('<svg class="sn-mark ss-mark" viewBox="0 0 200 200" aria-hidden="true"><defs>'
            '<mask id="ss-m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="340" height="340">'
            '<path id="ss-p" d="M56 146 C64 176 142 178 142 136 C142 96 60 110 60 72 C60 30 136 32 142 62" fill="none" stroke="#fff" stroke-width="66" stroke-linecap="round"/></mask>'
@@ -631,7 +632,7 @@ def pk_splash(g, base):
             'still=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);'
             'try{L=p.getTotalLength()}catch(e){still=true}var M=L+60;'
             'if(!still){p.style.strokeDasharray=L+" "+(L+200);p.style.strokeDashoffset=M}'
-            'var T=still?{letters:0,eyes:0,settle:0,games:0,load:700}:{eyes:930,tongue:1080,settle:1250,letters:1300,games:1750,load:2550};'
+            'var T=still?{letters:0,eyes:0,settle:0,games:0,load:875}:{eyes:1380,tongue:1570,settle:1780,letters:1840,games:2405,load:3405};'
             'function place(){if(still||did.settle)return;try{mk.style.transform="none";var r=mk.getBoundingClientRect(),sr=s.getBoundingClientRect(),hr=hz.getBoundingClientRect();mk.style.transform="";'
             'var k=Math.min(sr.height*.36,sr.width*.42,230)/r.height;if(!(k>1))return;'
             'mk.style.setProperty("--ssx",(sr.left+sr.width/2-r.left-r.width/2).toFixed(1)+"px");'
@@ -640,19 +641,19 @@ def pk_splash(g, base):
             'f.addEventListener("load",function(){loaded=1});'
             'function cls(c){s.classList.add(c)}'
             'function at(t,k,fn){if(!did[k]&&T[k]!=null&&t>=T[k]){did[k]=1;fn()}}'
-            'function hide(){if(gone)return;gone=1;s.classList.add("out");setTimeout(function(){s.remove()},460)}'
+            'function hide(){if(gone)return;gone=1;s.classList.add("out");setTimeout(function(){s.remove()},580)}'
             'function ease(x){x=x<0?0:x>1?1:x;return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}'
             'cls("ss-run");'
             'function tick(){if(gone)return;var t=Date.now()-t0;'
-            'if(!still){var q=ease((t-100)/850),d=M*q-60;p.style.strokeDashoffset=M*(1-q);'
+            'if(!still){var q=ease((t-125)/1275),d=M*q-60;p.style.strokeDashoffset=M*(1-q);'
             'if(d>0){var pt=p.getPointAtLength(Math.min(d,L));cm.setAttribute("transform","translate("+pt.x.toFixed(1)+" "+pt.y.toFixed(1)+")")}'
             'cm.style.opacity=d>0&&q<1?1:0}'
             'at(t,"letters",function(){cls("ss-letters")});at(t,"eyes",function(){cls("ss-eyes")});'
             'at(t,"tongue",function(){cls("ss-tongue");lg.classList.add("sn-blink");setTimeout(function(){lg.classList.remove("sn-blink")},220)});at(t,"settle",function(){cls("ss-settle")});'
             'at(t,"games",function(){cls("ss-games")});at(t,"load",function(){cls("ss-load");lo=t});'
-            'if(lo){var u=t-lo-200;if(u>0){if(loaded){if(!vt){vt=t;vs=v}v=vs+(1-vs)*Math.min(1,(t-vt)/550)}else v=.9*(1-Math.exp(-u/1500));'
-            'bar.style.width=(v*100).toFixed(1)+"%";if(v>=1&&!done)done=t;if(done&&t-done>160){hide();return}}}'
-            'if(t>12000){hide();return}requestAnimationFrame(tick)}'
+            'if(lo){var u=t-lo-250;if(u>0){if(loaded){if(!vt){vt=t;vs=v}v=vs+(1-vs)*Math.min(1,(t-vt)/825)}else v=.9*(1-Math.exp(-u/2250));'
+            'bar.style.width=(v*100).toFixed(1)+"%";if(v>=1&&!done)done=t;if(done&&t-done>200){hide();return}}}'
+            'if(t>15000){hide();return}requestAnimationFrame(tick)}'
             'requestAnimationFrame(tick);s.addEventListener("pointerdown",hide);addEventListener("keydown",hide,{once:true})})()</script>')
 
 def build_play(g, fam, studio):
