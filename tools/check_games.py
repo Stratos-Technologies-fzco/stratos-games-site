@@ -9,7 +9,8 @@ Writes checks.json, checks.md and screenshots to $CHECKS_OUT (default: the temp 
 Checks (Sahil, 7 Nov 2026):
   cover       a real thumbnail.png / .jpg / .webp, not a plain name card
   analytics   Stratos track() with level_start and level_complete or game_over (kids games are exempt)
-  details     game.json has a title and a how_to_play line
+  details     game.json has a title, a how_to_play line, a description of 150+ words, controls and tips
+              (#70: a full page for Google, AI answers and AdSense; a thin page waits)
   files       no single file over 100 MB, no mobile app ad IDs (ca-app-pub-)
   coins       a way to spend Stratos Coins (Stratos.coins.offer / spend). A WARNING only, it never keeps a game off live.
               A game with nothing to spend on purpose says so in game.json: "coins": {"spend": false, "why": "..."}
@@ -76,6 +77,14 @@ def static_checks(slug):
         return r, g
     c["details"] = bool(g.get("title")) and bool(g.get("how_to_play"))
     if not c["details"]: r["notes"].append("game.json needs a title and a how_to_play line")
+    # #70: a full page for Google, AI answers and AdSense (they rejected a thin site once): 150+ words, controls, tips
+    d = g.get("description") or ""
+    words = len(re.findall(r"[A-Za-z0-9']+", " ".join(map(str, d)) if isinstance(d, list) else str(d)))
+    thin = ([f"a description of 150+ words (it has {words})"] if words < 150 else []) + \
+           ([] if g.get("controls") else ["controls"]) + ([] if g.get("tips") else ["tips"])
+    if thin:
+        c["details"] = False
+        r["notes"].append("page too thin for Google and AdSense: add " + ", ".join(thin) + " to game.json (CLAUDE.md: A full game page)")
     thumb = next((f for f in ("thumbnail.png", "thumbnail.jpg", "thumbnail.webp") if os.path.exists(os.path.join(folder, f))), None)
     c["cover"] = bool(thumb)
     if not thumb: r["notes"].append("no cover: add thumbnail.png (800 x 500, a picture from the game)")

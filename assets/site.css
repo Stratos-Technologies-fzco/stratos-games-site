@@ -473,3 +473,5 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .ss-bar i{display:block;width:0;height:100%;border-radius:3px;background:linear-gradient(90deg,#8B5CF6,#B6FF3B)}
 .ss-loading small{font:800 11px/1 Nunito,sans-serif;letter-spacing:.28em;padding-left:.28em;color:rgba(255,255,255,.62)}
 @media (prefers-reduced-motion:reduce){.ss-logo,.ss-loading,.ss-logo .sn-w1 i,.ss-logo .sn-w2,.ss-eye,.ss-horizon,.ss-comet,.ss-logo .ss-mark{transition:none}.pk-splash.ss-run .ss-sky{animation:none}}
+/* #70 the Q&A under "About this game": a wider question column on computers */
+@media (min-width:861px){.pd-faq .pd-row{grid-template-columns:320px 1fr}}

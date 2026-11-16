@@ -78,6 +78,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - **No sign-up forms (Sahil 2026-11-07):** no game asks for email, phone or a password. Player accounts will come from Stratos centrally, for every game at once.
 - **Teach while playing:** a short tutorial for the first level and for each new move or special case, plus a clear home screen with a goal. Nobody is dropped into the game without knowing what to do.
 - Works offline once loaded: everything it needs is inside the folder.
+- **A full game page (#70, SEO and AEO):** in `game.json` write a `description` of 150+ words (what the game is, how a round goes, what makes it special), `controls` and `tips`, and your `story` if you like. The site turns them into the page Google, AI assistants and AdSense read: its title and description, the share card with your cover, Google's game data and a short Q&A ("How do I play it? Is it free? Does it work on a phone?"). Add your own questions with `"faq": [{"q": "...", "a": "..."}]`. A thin page waits on staging.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
 - Plugs into Stratos Coins (see "Stratos Coins" below): at least one way to earn and one thing to spend them on.
