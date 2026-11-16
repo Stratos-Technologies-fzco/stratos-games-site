@@ -22,6 +22,14 @@
     'background:rgba(2,8,20,.78);border:1px solid rgba(120,190,255,.35);border-radius:14px;padding:12px 16px;color:#e6f1ff;' +
     'font:500 15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center;pointer-events:none}' +
     '.ms-card b{color:#ffd166}.ms-card small{display:block;margin-top:4px;color:#9fb6cf;font-size:13px}' +
+    '.ms-card .ms-title{display:block;font:900 26px/1.1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:6px;color:#fff;margin-bottom:6px}' +
+    // a big, clear Play button (Stratos #55): the reticle icon plus the word PLAY under it
+    '#start .intro-play{width:160px;height:96px}#start .intro-play::after{content:"PLAY";position:absolute;left:50%;top:100%;transform:translateX(-50%);' +
+    'margin-top:2px;font:900 20px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:4px;color:#00e6ff}' +
+    '@media (max-width:640px){#start .intro-play{width:112px;height:72px}}' +
+    '.ms-coach .ok{display:inline-block;margin-left:10px;padding:2px 10px;border-radius:999px;background:#ffd166;color:#06142a;font-weight:700}' +
+    '.touch-btn.ms-hi,.stick-base.ms-hi{box-shadow:0 0 0 4px #ffd166}' +
+    '#fps{display:none}' +
     '.ms-chip{position:fixed;left:50%;top:calc(6px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;pointer-events:none;' +
     'background:rgba(2,8,20,.7);border:1px solid rgba(255,209,102,.6);border-radius:999px;padding:3px 12px;color:#ffd166;' +
     'font:700 14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:none}' +
@@ -42,7 +50,9 @@
   var card = document.createElement('div');
   card.className = 'ms-card';
   function paintCard() {
-    card.innerHTML = '🎯 <b>Win the war:</b> destroy ' + GOAL + ' enemy launch sites. Dodge their missiles with flares and hard turns.' +
+    // the page's own name (Stratos: "Fighter"; GitHub Pages keeps "Jet vs Missile"), then the goal in one line
+    card.innerHTML = '<span class="ms-title">' + (document.title || '').toUpperCase() + '</span>' +
+      '🎯 <b>Defend your homeland:</b> destroy ' + GOAL + ' enemy launch sites and dodge their missiles.' +
       '<small>' + (best.sites ? 'Your best: ' + best.sites + ' / ' + GOAL + ' sites' + (best.fastest ? ' · fastest win ' + mmss(best.fastest) : '') : 'Tap the play button below to take off. The ? button shows every control.') + '</small>';
   }
   paintCard();
@@ -70,25 +80,84 @@
   function coach(id, text, warn) { if (seen[id]) return false; seen[id] = 1; save(COACH_KEY, seen); say(text, warn); return true; }
   function paintChip() { chip.textContent = '🎯 ' + kills + ' / ' + GOAL; chip.style.display = flying && !won ? 'block' : 'none'; }
 
-  var T = touch ? {
+  // touch wording when the game's touch buttons are on screen (Stratos #55: phones never see keyboard keys)
+  function touchOn() { var l = document.querySelector('.touch-layer'); return l ? l.style.display === 'block' : touch; }
+  var TT = {
     fly: 'Drag the stick (bottom left) to fly: pull down to climb, push up to dive, left / right to roll.',
+    fire: 'Now fire: tap BOMB to drop a bomb (AGM fires a missile at the ground).',
+    flare: 'Last one: tap FLARE. Flares pull enemy missiles away from you.',
     power: 'THR+ and THR- set your speed. Hold AB for the afterburner.',
     missile: 'Missile locked on you! Tap FLARE and turn hard. ECM jams radar missiles.',
-    hunt: 'Hunt the launch sites: find one on the map, fly lower to spot it, then tap BOMB or AGM.',
-  } : {
+    hunt: 'Enemies are coming! Find a launch site on the map, fly lower to spot it, then tap BOMB or AGM.',
+  };
+  var TK = {
     fly: 'Fly: S pulls up, W dives, A / D roll (or the arrow keys).',
+    fire: 'Now fire: press B to drop a bomb (G fires a missile at the ground).',
+    flare: 'Last one: press C for flares. Flares pull enemy missiles away from you.',
     power: 'R / F set your speed. Hold Space for the afterburner.',
     missile: 'Missile locked on you! Press C for flares and turn hard. X jams radar missiles.',
-    hunt: 'Hunt the launch sites: find one on the map, fly lower to spot it, then press B (bomb) or G (missile).',
+    hunt: 'Enemies are coming! Find a launch site on the map, fly lower to spot it, then press B (bomb) or G (missile).',
   };
+  function T(id) { return (touchOn() ? TT : TK)[id]; }
+
+  // ---- first flight on this device: no enemies for 20-30 s while one control at a time is taught (Stratos #55).
+  // Each hint stays until the player uses that control or taps the hint. Enemies hold fire through
+  // window.__fighterHold (read by the game's threat system); never in two-player mode.
+  var STEPS = [
+    { id: 'fly', keys: /^(Key[WASD]|Arrow)/, touch: '.stick-zone', mark: '.stick-base' },
+    { id: 'fire', keys: /^Key[BGZ]$/, touch: '.touch-btn.bomb,.touch-btn.agm,.touch-btn.aam', mark: '.touch-btn.bomb' },
+    { id: 'flare', keys: /^KeyC$/, touch: '.touch-btn.flare', mark: '.touch-btn.flare' },
+  ];
+  var HOLD_MIN = 20000, HOLD_MAX = 30000;
+  var step = -1, tutStart = 0, tutDone = false;
+  function mark(sel, on) { var el = sel && document.querySelector(sel); if (el) el.classList.toggle('ms-hi', on); }
+  function showStep() {
+    var s = STEPS[step];
+    coachEl.innerHTML = '';
+    coachEl.appendChild(document.createTextNode(T(s.id)));
+    var ok = document.createElement('span'); ok.className = 'ok'; ok.textContent = 'OK'; coachEl.appendChild(ok);
+    coachEl.classList.remove('warn');
+    coachEl.style.display = 'block';
+    hideAt = 0;
+    mark(s.mark, true);
+  }
+  function nextStep() {
+    if (step < 0 || step >= STEPS.length) return;
+    mark(STEPS[step].mark, false);
+    step += 1;
+    if (step < STEPS.length) { setTimeout(function () { if (step < STEPS.length) showStep(); }, 600); return; }
+    seen.tutorial = 1; save(COACH_KEY, seen);
+    coachEl.style.display = 'none';
+    var wait = Math.max(0, HOLD_MIN - (Date.now() - tutStart));
+    timers.push(setTimeout(endHold, wait));
+  }
+  function endHold() {
+    if (tutDone) return;
+    tutDone = true; window.__fighterHold = false;
+    seen.tutorial = 1; save(COACH_KEY, seen);
+    if (step >= 0 && step < STEPS.length) mark(STEPS[step].mark, false);
+    step = STEPS.length;
+    say(T('hunt'), false, 8000); seen.hunt = 1; save(COACH_KEY, seen);
+    timers.push(setTimeout(function () { coach('power', T('power')); }, 15000));
+  }
+  function used(ev, isKey) {
+    if (step < 0 || step >= STEPS.length) return;
+    var s = STEPS[step];
+    if (isKey ? s.keys.test(ev.code || '') : (ev.target && ev.target.closest && ev.target.closest(s.touch))) nextStep();
+  }
+  window.addEventListener('keydown', function (e) { used(e, true); }, true);
+  window.addEventListener('pointerdown', function (e) { used(e, false); }, true);
+  coachEl.addEventListener('click', function () { if (step >= 0 && step < STEPS.length) nextStep(); });
+  setInterval(function () { if (window.__fighterHold && window.__fighterTwo) endHold(); }, 500);
 
   function takeOff() {
     if (flying) return;
     flying = true; t0 = Date.now(); paintChip();
-    if (coach('fly', T.fly)) {
-      timers.push(setTimeout(function () { coach('power', T.power); }, 9000));
-      timers.push(setTimeout(function () { if (!kills) coach('hunt', T.hunt); }, 30000));
-    } else if (!seen.hunt) timers.push(setTimeout(function () { if (!kills) coach('hunt', T.hunt); }, 20000));
+    if (!seen.tutorial && !window.__fighterTwo) {
+      window.__fighterHold = true; tutStart = Date.now(); step = 0; showStep();
+      seen.fly = 1; save(COACH_KEY, seen);
+      timers.push(setTimeout(endHold, HOLD_MAX));
+    } else if (!seen.hunt) timers.push(setTimeout(function () { if (!kills) coach('hunt', T('hunt')); }, 20000));
   }
   if (start) {
     new MutationObserver(function () { if (getComputedStyle(start).display === 'none') takeOff(); }).observe(start, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -96,7 +165,7 @@
   window.addEventListener('fighter-say', function (e) { if (/YOU HAVE CONTROL/.test(e.detail || '')) takeOff(); });
 
   // a missile locked on you: the first time, teach the counter
-  setInterval(function () { if (flying && window.__fighterThreat) coach('missile', T.missile, true); }, 300);
+  setInterval(function () { if (flying && window.__fighterThreat) coach('missile', T('missile'), true); }, 300);
 
   // a jet lost: the next one takes over
   var down = document.getElementById('down'), wasDown = false;
