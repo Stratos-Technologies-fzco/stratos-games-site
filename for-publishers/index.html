@@ -59,25 +59,11 @@
 @media (max-width:1200px){.cg-logo.sn-logo .sn-row{font-size:28px}.cg-logo.sn-logo .sn-w2{font-size:11.5px}}
 @media (max-width:600px){.cg-logo.sn-logo .sn-row{font-size:23px}.cg-logo.sn-logo .sn-w2{font-size:9.5px}}
 @media (prefers-reduced-motion:reduce){.sn-on .sn-mark,.sn-on .sn-tongue,.sn-blink .sn-eye{animation:none}}</style><script>(function(){
-  var ctx=null;
-  function getCtx(){ try{ if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=null; } return ctx; }
-  function sound(a){
-    function t(f,t0,d,type,v,f2){var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t0;o.type=type;o.frequency.setValueAtTime(f,s);if(f2)o.frequency.exponentialRampToValueAtTime(f2,s+d);g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v,s+.012);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g).connect(a.destination);o.start(s);o.stop(s+d+.02);}
-    t(180,0,.28,'sine',.3,720); t(720,.2,.25,'triangle',.15,360);
-  }
-  function boing(){
-    var a=getCtx(); if(!a) return;
-    if(a.state==='running'){ sound(a); return; }
-    a.resume().then(function(){ if(a.state==='running') sound(a); }).catch(function(){});
-  }
-  // the browser unlocks sound after the first click, tap or key press anywhere on the page
-  ['pointerdown','touchstart','keydown'].forEach(function(ev){
-    window.addEventListener(ev,function(){ var a=getCtx(); if(a&&a.state!=='running') a.resume(); },{passive:true});
-  });
+  // silent on purpose (#80): no sound on hover; the snake still wiggles, blinks and its eyes follow the pointer
   function play(el,c,ms){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(function(){el.classList.remove(c);},ms);}
   document.querySelectorAll('.sn-logo').forEach(function(el){
     var last=0;
-    el.addEventListener('pointerenter',function(){var n=Date.now();if(n-last<600)return;last=n;play(el,'sn-on',750);play(el,'sn-blink',200);boing();});
+    el.addEventListener('pointerenter',function(){var n=Date.now();if(n-last<600)return;last=n;play(el,'sn-on',750);play(el,'sn-blink',200);});
     (function loop(){setTimeout(function(){play(el,'sn-blink',200);loop();},2500+Math.random()*3000);})();
   });
   var pupils=document.querySelectorAll('.sn-pupil');
