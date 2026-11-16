@@ -44,7 +44,7 @@ How to get back live:
 2. Fix it with Claude, say "publish"
 3. Check it on the staging link
 4. Wait for ✅ here: https://github.com/Stratos-Technologies-fzco/stratos-games-site/issues/33
-5. @Mohua tests it (she takes the game off `hidden_on_live` in `site.json` when it passes)
+5. @Mohua tests it (she takes the game off `hidden_on_live` in `site.json` when it passes). For a game that saves progress she also checks: finish a level, reload, and Continue takes you back
 6. Live at the Saturday release 🎉
 
 ## The setup in four lines
@@ -79,6 +79,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - **Teach while playing:** a short tutorial for the first level and for each new move or special case, plus a clear home screen with a goal. Nobody is dropped into the game without knowing what to do.
 - Works offline once loaded: everything it needs is inside the folder.
 - **A full game page (#70, SEO and AEO):** in `game.json` write a `description` of 150+ words (what the game is, how a round goes, what makes it special), `controls` and `tips`, and your `story` if you like. The site turns them into the page Google, AI assistants and AdSense read: its title and description, the share card with your cover, Google's game data and a short Q&A ("How do I play it? Is it free? Does it work on a phone?"). Add your own questions with `"faq": [{"q": "...", "a": "..."}]`. A thin page waits on staging.
+- **Saved progress (#72):** if your game saves progress (levels, best score, unlocks), its home screen shows **Continue**, which goes straight back to where the player was. Save with `localStorage.setItem` (Unity and Godot saves count too): the site then shows a soft "✓ Progress saved on this device" note when your game saves, and the game's page tells players their progress stays on this device. Don't add a note of your own.
 - **Hover clip (#71):** every game has a 6-second silent clip of real play that runs when a mouse rests on its tile, on every page. No clip, no launch (like the cover): the staging check holds a game without one. Make it with `python3 tools/make_clip.py <your-folder> --steps "click:PLAY; wait:1500; mark; hold:ArrowUp:6000"` (the steps get into real play; `mark` is where the clip starts), look at the frames it prints, and keep only real play: no menus, loading screens or "game over". It saves `games/<your-folder>/preview.mp4`.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
