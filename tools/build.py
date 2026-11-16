@@ -457,12 +457,9 @@ ICONS["user"] ='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3
 SN_INNER = '\n<g fill="none" stroke-linecap="round" stroke-linejoin="round">\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#2A1060" stroke-width="64" transform="translate(5 9)"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#0B0614" stroke-width="64"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#8B5CF6" stroke-width="44"/>\n<path d="M118 44 C102 36 76 42 72 66" stroke="#C4B0FF" stroke-width="10"/>\n<path d="M74 92 C96 106 128 104 132 120" stroke="#C4B0FF" stroke-width="10" opacity=".7"/>\n<path class="sn-tongue" d="M146 86 L146 100 M146 100 L140 108 M146 100 L152 108" stroke="#FF4D6D" stroke-width="4.5"/>\n</g>\n<g class="sn-eye"><circle cx="130" cy="58" r="15" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="132" data-y="59" cx="132" cy="59" r="6.5" fill="#0B0614"/></g>\n<g class="sn-eye"><circle cx="158" cy="64" r="13" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="159" data-y="65" cx="159" cy="65" r="5.8" fill="#0B0614"/></g>\n'
 
 def sn_logo(cls, size, href="./"):
-    """The Stratos Games logo (snake + wordmark). href=None draws it without a link (the game splash)."""
-    tag = "a" if href is not None else "span"
-    link = f' href="{href}" aria-label="Stratos Games home"' if href is not None else ""
-    return (f'<{tag} class="{cls} sn-logo"{link}>'
+    return (f'<a class="{cls} sn-logo" href="{href}" aria-label="Stratos Games home">'
             f'<span class="sn-word"><span class="sn-row"><svg class="sn-mark" width="{size}" height="{size}" viewBox="0 0 200 200" aria-hidden="true">{SN_INNER}</svg>'
-            f'<span class="sn-w1">tratos</span></span><span class="sn-w2">GAMES</span></span></{tag}>')
+            '<span class="sn-w1">tratos</span></span><span class="sn-w2">GAMES</span></span></a>')
 
 SN_ASSETS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap">'
              '<style>' + '.sn-logo{display:flex;align-items:center;gap:8px;text-decoration:none}\n.sn-mark{overflow:visible;flex:none;transform-origin:50% 60%}\n.sn-mark *{transform-box:fill-box}\n.sn-word{display:flex;flex-direction:column;align-items:center;line-height:.86;font-family:Fredoka,sans-serif;font-weight:700}\n.sn-row{display:flex;align-items:flex-end;font-size:34px}\n.sn-row .sn-mark{width:.95em;height:.95em;margin:0 .02em .14em 0}\n.sn-w1{font-size:1em;line-height:1;color:#fff;letter-spacing:-.5px}\n.sn-w2{font-size:14px;color:#B6FF3B;letter-spacing:.3em;padding-left:.3em;margin-top:1px}\n.sn-box{flex-direction:column;gap:1px}\n.sn-box .sn-word{align-items:center}\n.sn-box .sn-row{font-size:21px}\n.sn-box .sn-w1{color:#14151F}\n.sn-box .sn-w2{color:#8B5CF6;font-size:8.5px}\n.sn-eye{transform-origin:center}\n.sn-blink .sn-eye{animation:snBlink .18s ease-in-out}\n@keyframes snBlink{50%{transform:scaleY(.1)}}\n.sn-tongue{transform-origin:top center;transform:scaleY(0)}\n.sn-on .sn-tongue{animation:snTongue .5s ease-out}\n@keyframes snTongue{30%,70%{transform:scaleY(1)}}\n.sn-on .sn-mark{animation:snWiggle .7s ease-in-out}\n@keyframes snWiggle{15%{transform:rotate(-9deg) scale(1.08,.94)}35%{transform:rotate(8deg) scale(.96,1.06)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}}\n.cg-logo.sn-logo .sn-word{display:flex!important}\n@media (max-width:1200px){.cg-logo.sn-logo .sn-row{font-size:28px}.cg-logo.sn-logo .sn-w2{font-size:11.5px}}\n@media (max-width:600px){.cg-logo.sn-logo .sn-row{font-size:23px}.cg-logo.sn-logo .sn-w2{font-size:9.5px}}\n@media (prefers-reduced-motion:reduce){.sn-on .sn-mark,.sn-on .sn-tongue,.sn-blink .sn-eye{animation:none}}' + '</style><script>' + "(function(){\n  // silent on purpose (#80): no sound on hover; the snake still wiggles, blinks and its eyes follow the pointer\n  function play(el,c,ms){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(function(){el.classList.remove(c);},ms);}\n  document.querySelectorAll('.sn-logo').forEach(function(el){\n    var last=0;\n    el.addEventListener('pointerenter',function(){var n=Date.now();if(n-last<600)return;last=n;play(el,'sn-on',750);play(el,'sn-blink',200);});\n    (function loop(){setTimeout(function(){play(el,'sn-blink',200);loop();},2500+Math.random()*3000);})();\n  });\n  var pupils=document.querySelectorAll('.sn-pupil');\n  window.addEventListener('pointermove',function(e){\n    pupils.forEach(function(p){\n      var r=p.ownerSVGElement.getBoundingClientRect();if(!r.width)return;var k=r.width/200,bx=+p.dataset.x,by=+p.dataset.y;\n      var dx=e.clientX-(r.left+bx*k),dy=e.clientY-(r.top+by*k),len=Math.hypot(dx,dy)||1,m=Math.min(5,len/20);\n      p.setAttribute('cx',(bx-1+dx/len*m).toFixed(1));p.setAttribute('cy',(by-1+dy/len*m).toFixed(1));\n    });\n  });\n})();" + '</script>')
@@ -602,17 +599,61 @@ def pk_detail(g, base):
             'if(!d||!b)return;d.classList.add("clamp");if(d.scrollHeight<=d.clientHeight+4){d.classList.remove("clamp");return}b.hidden=false;'
             'b.onclick=function(){var c=d.classList.toggle("clamp");b.firstChild.textContent=c?"Show more":"Show less";b.classList.toggle("open",!c);b.setAttribute("aria-expanded",String(!c))}})()</script>')
 
-def pk_splash(g):
-    """#68: every game opens with the same short Stratos Games splash (snake logo, wordmark, the game's name).
-    The play page shows it over the game frame, so every game has it and no maker adds anything.
-    About 1.2 s; it waits a little longer only while the game is still loading (2.5 s at most).
-    A tap or any key skips it. Silent."""
-    return (f'<div class="pk-splash" id="pk-splash" aria-hidden="true">{sn_logo("pk-splash-logo", 64, None)}'
-            f'<b class="pk-splash-name">{esc(g["title"])}</b></div>'
-            '<script>(function(){var s=document.getElementById("pk-splash"),f=document.getElementById("game"),t=Date.now(),gone=0;if(!s||!f)return;'
-            'function hide(){if(gone)return;gone=1;s.classList.add("out");setTimeout(function(){s.remove()},450)}'
-            'f.addEventListener("load",function(){setTimeout(hide,Math.max(0,1200-(Date.now()-t)))});setTimeout(hide,2500);'
-            's.addEventListener("pointerdown",hide);addEventListener("keydown",hide,{once:true})})()</script>')
+def pk_splash(g, base):
+    """#68: every game opens with the same Stratos Games splash, then a loading screen, shown by the play page over
+    the game frame (no maker adds anything). Modelled on Arrow Rush's old splash (a comet draws the S over a night sky
+    with a glowing horizon, then STRATOS / GAMES, then a LOADING screen), with the brand's snake as the S:
+      1. a big snake S draws itself in from its tail, standing on the horizon, a glowing comet at the tip; its eyes
+         pop open, it blinks and flicks its tongue
+      2. it shrinks into its place in the logo while the letters "tratos" fly in and come together; GAMES slides in
+      3. the logo gives way to the loading screen: the game's cover and a LOADING bar (fills when the game has loaded)
+      4. the game opens
+    About 3.9 s when the game is ready, longer only while it is still loading (12 s at most). A tap or any key skips
+    it. Silent. Players who ask for less motion get it without the movement."""
+    mark = (SN_INNER.replace('<path d="M142 62', '<path mask="url(#ss-m)" d="M142 62')
+            .replace('<path d="M118 44', '<path mask="url(#ss-m)" d="M118 44')
+            .replace('<path d="M74 92', '<path mask="url(#ss-m)" d="M74 92')
+            .replace('<g class="sn-eye">', '<g class="sn-eye ss-eye">'))
+    fly = [("-1.1em", "-.9em", "-50deg"), ("-.4em", "1.1em", "40deg"), (".5em", "-1.2em", "-30deg"),
+           ("1.2em", ".9em", "55deg"), ("1.9em", "-.7em", "-45deg"), ("2.6em", "1em", "35deg")]
+    letters = "".join(f'<i style="--x:{x};--y:{y};--r:{r};--d:{k * 60}ms">{c}</i>' for k, (c, (x, y, r)) in enumerate(zip("tratos", fly)))
+    svg = ('<svg class="sn-mark ss-mark" viewBox="0 0 200 200" aria-hidden="true"><defs>'
+           '<mask id="ss-m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="340" height="340">'
+           '<path id="ss-p" d="M56 146 C64 176 142 178 142 136 C142 96 60 110 60 72 C60 30 136 32 142 62" fill="none" stroke="#fff" stroke-width="66" stroke-linecap="round"/></mask>'
+           '<radialGradient id="ss-g"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#e2ffb0" stop-opacity=".9"/><stop offset="1" stop-color="#B6FF3B" stop-opacity="0"/></radialGradient>'
+           f'</defs>{mark}<g class="ss-comet" transform="translate(56 146)" style="opacity:0"><circle r="24" fill="url(#ss-g)"/><circle r="7" fill="#fff"/></g></svg>')
+    return (f'<div class="pk-splash" id="pk-splash" aria-hidden="true"><div class="ss-sky"></div>'
+            f'<div class="ss-logo"><span class="sn-word"><span class="sn-row">{svg}<span class="sn-w1">{letters}</span></span><span class="sn-w2">GAMES</span></span><span class="ss-horizon"></span></div>'
+            f'<div class="ss-loading"><img class="ss-cover" src="{esc(base + g["thumb"])}" alt=""><div class="ss-bar"><i></i></div><small>LOADING</small></div></div>'
+            '<script>(function(){var s=document.getElementById("pk-splash"),f=document.getElementById("game");if(!s||!f)return;'
+            'var p=document.getElementById("ss-p"),cm=s.querySelector(".ss-comet"),lg=s.querySelector(".ss-logo"),bar=s.querySelector(".ss-bar i"),mk=s.querySelector(".ss-mark"),hz=s.querySelector(".ss-horizon"),'
+            't0=Date.now(),loaded=0,gone=0,lo=0,v=0,vs=0,vt=0,done=0,did={},L=0,'
+            'still=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);'
+            'try{L=p.getTotalLength()}catch(e){still=true}var M=L+60;'
+            'if(!still){p.style.strokeDasharray=L+" "+(L+200);p.style.strokeDashoffset=M}'
+            'var T=still?{letters:0,eyes:0,settle:0,games:0,load:700}:{eyes:930,tongue:1080,settle:1250,letters:1300,games:1750,load:2550};'
+            'function place(){if(still||did.settle)return;try{mk.style.transform="none";var r=mk.getBoundingClientRect(),sr=s.getBoundingClientRect(),hr=hz.getBoundingClientRect();mk.style.transform="";'
+            'var k=Math.min(sr.height*.36,sr.width*.42,230)/r.height;if(!(k>1))return;'
+            'mk.style.setProperty("--ssx",(sr.left+sr.width/2-r.left-r.width/2).toFixed(1)+"px");'
+            'mk.style.setProperty("--ssy",(hr.top-r.height*k/2-6-r.top-r.height/2).toFixed(1)+"px");mk.style.setProperty("--sss",k.toFixed(3))}catch(e){}}'
+            'place();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(place);'
+            'f.addEventListener("load",function(){loaded=1});'
+            'function cls(c){s.classList.add(c)}'
+            'function at(t,k,fn){if(!did[k]&&T[k]!=null&&t>=T[k]){did[k]=1;fn()}}'
+            'function hide(){if(gone)return;gone=1;s.classList.add("out");setTimeout(function(){s.remove()},460)}'
+            'function ease(x){x=x<0?0:x>1?1:x;return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}'
+            'cls("ss-run");'
+            'function tick(){if(gone)return;var t=Date.now()-t0;'
+            'if(!still){var q=ease((t-100)/850),d=M*q-60;p.style.strokeDashoffset=M*(1-q);'
+            'if(d>0){var pt=p.getPointAtLength(Math.min(d,L));cm.setAttribute("transform","translate("+pt.x.toFixed(1)+" "+pt.y.toFixed(1)+")")}'
+            'cm.style.opacity=d>0&&q<1?1:0}'
+            'at(t,"letters",function(){cls("ss-letters")});at(t,"eyes",function(){cls("ss-eyes")});'
+            'at(t,"tongue",function(){cls("ss-tongue");lg.classList.add("sn-blink");setTimeout(function(){lg.classList.remove("sn-blink")},220)});at(t,"settle",function(){cls("ss-settle")});'
+            'at(t,"games",function(){cls("ss-games")});at(t,"load",function(){cls("ss-load");lo=t});'
+            'if(lo){var u=t-lo-200;if(u>0){if(loaded){if(!vt){vt=t;vs=v}v=vs+(1-vs)*Math.min(1,(t-vt)/550)}else v=.9*(1-Math.exp(-u/1500));'
+            'bar.style.width=(v*100).toFixed(1)+"%";if(v>=1&&!done)done=t;if(done&&t-done>160){hide();return}}}'
+            'if(t>12000){hide();return}requestAnimationFrame(tick)}'
+            'requestAnimationFrame(tick);s.addEventListener("pointerdown",hide);addEventListener("keydown",hide,{once:true})})()</script>')
 
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
@@ -631,7 +672,7 @@ def build_play(g, fam, studio):
     words = pk_detail(g, base)
     report = f'mailto:{SITE["contact"]}?subject={esc("Problem with " + g["title"] + " on stratos.games")}'
     if CLEAN:
-        stage = (f'<div class="pk-stage"><div class="pk-frame"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>{pk_splash(g)}</div>'
+        stage = (f'<div class="pk-stage"><div class="pk-frame"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>{pk_splash(g, base)}</div>'
                  f'<div class="pk-bar"><img src="{esc(base + g["thumb"])}" alt=""><div class="pk-bt"><b>{esc(g["title"])}</b><small>by {esc(g["maker"])}</small></div>'
                  f'<button class="pk-ib pk-vote up" type="button" data-v="1" title="I like this game" aria-label="Like" aria-pressed="false">{icon("thumbup", 19)}</button>'
                  f'<button class="pk-ib pk-vote down" type="button" data-v="-1" title="I don\'t like this game" aria-label="Dislike" aria-pressed="false">{icon("thumbdown", 19)}</button>'
