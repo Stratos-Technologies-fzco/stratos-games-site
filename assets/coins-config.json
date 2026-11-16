@@ -32,6 +32,7 @@
     "hint": { "type": "consumable", "price": 10, "label": "Hint" },
     "undo": { "type": "consumable", "price": 5, "label": "Undo" },
     "continue": { "type": "consumable", "price": 15, "label": "Second chance" },
+    "boost": { "type": "consumable", "price": 20, "label": "Power-up" },
     "sksarfarajali-moto-rush:level:*": { "type": "unlock", "price": 50, "freeUpTo": 5, "label": "Moto Rush level" }
   },
   "dailyChallenges": [

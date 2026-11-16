@@ -98,6 +98,7 @@
     <p id="overLevel" style="font-size:18px;opacity:.9"></p>
     <p id="finalScore" style="font-size:26px;font-weight:700"></p>
     <p id="finalBest" style="opacity:.9"></p>
+    <button id="continueBtn" style="display:none">Keep going (Stratos Coins)</button>
     <button id="againBtn">Play again</button>
     <div class="keys">or press <kbd>Space</kbd></div>
   </div>
@@ -1102,7 +1103,8 @@ function burst(pos, colors, n, power, o = {}) {
    ========================================================= */
 let state = 'menu', paused = false, speed = 0, dist = 0, score = 0, bonus = 0, gemCount = 0, combo = 0, lastGem = -9;
 let level = 1, levelDist = 0, levelDone = false, finishSpawned = false, levelTimer = 0, breakT = 0, nextSpawn = 30;
-let shake = 0, duckHeld = false, canRestart = false, time = 0, overTimer = 0;
+let shake = 0, duckHeld = false, canRestart = false, time = 0, overTimer = 0, revived = false, reviveSafe = 0;
+const stratosCoins = () => { try { const P = window.Stratos || parent.Stratos; return P && P.coins && P.coins.offer && P.coins.enabled() && P.coins.price('continue') !== null ? P.coins : null; } catch (e) { return null; } };
 let best = 0;
 try { best = parseInt(localStorage.getItem('momoDashBest') || '0', 10) || 0; } catch (e) { best = 0; }
 $('best').textContent = 'HI ' + best;
@@ -1140,7 +1142,7 @@ function start() {
   if (race || Net.client) leaveRoom(true);
   setMomoColor(0xff5fa2); player.group.visible = true;
   clearWorld();
-  state = 'play'; paused = false; canRestart = false;
+  state = 'play'; paused = false; canRestart = false; revived = false; reviveSafe = 0; $('continueBtn').style.display = 'none';
   speed = 14; dist = 0; score = 0; bonus = 0; gemCount = 0; combo = 0;
   Object.assign(player, { x: 0, y: 0, vy: 0, lane: 1, onGround: true, duckTimer: 0, jumpBuffer: 0 });
   player.inner.rotation.set(0, 0, 0);
@@ -1163,10 +1165,23 @@ function crash() {
     $('overLevel').textContent = `Reached level ${level} · ${WEATHERS[(level - 1) % WEATHERS.length].icon} ${WEATHERS[(level - 1) % WEATHERS.length].name}`;
     $('finalScore').textContent = `Score ${score}  ·  💎 ${gemCount}`;
     $('finalBest').textContent = isBest ? 'New best score! 🎉' : `Best ${best}`;
+    $('continueBtn').style.display = (!revived && stratosCoins()) ? '' : 'none';
     $('over').classList.remove('hidden');
     if (isBest) SND.newBest();
     canRestart = true;
   }, 1400);
+}
+// Keep going: one more chance per run for Stratos Coins. Clears what is ahead and protects Momo for 2.5 s.
+function reviveRun() {
+  if (state !== 'over' || revived) return;
+  const C = stratosCoins(); if (!C) return;
+  C.offer('continue', () => {
+    revived = true; reviveSafe = 2.5; state = 'play'; canRestart = false;
+    $('over').classList.add('hidden'); $('continueBtn').style.display = 'none';
+    for (let i = obstacles.length - 1; i >= 0; i--) { const o = obstacles[i]; if (o.group.position.z > -60) { scene.remove(o.group); obstacles.splice(i, 1); } }
+    Object.assign(player, { y: 0, vy: 0, onGround: true, duckTimer: 0, jumpBuffer: 0 }); player.inner.rotation.set(0, 0, 0);
+    SND.play(WEATHERS[(level - 1) % WEATHERS.length].song);
+  }, { title: 'Keep going?', what: 'Another chance' });
 }
 function togglePause() {
   if (state !== 'play' || race) return;
@@ -1213,6 +1228,7 @@ addEventListener('touchend', e => {
 }, { passive: true });
 $('startBtn').addEventListener('click', start);
 $('againBtn').addEventListener('click', () => canRestart && start());
+$('continueBtn').addEventListener('click', reviveRun);
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play' && !paused) togglePause(); });
 
 /* =========================================================
@@ -1760,8 +1776,9 @@ function update(dt) {
       f.position.y = 0.16 + (P.onGround ? Math.max(0, Math.cos(ph)) * 0.1 : 0);
     });
     // collisions
+    if (reviveSafe > 0) reviveSafe -= dt;
     const py0 = P.y + 0.05, py1 = P.y + (I.scale.y < 0.75 ? 0.88 : 1.5);
-    if (!(race && race.safe > 0)) outer: for (const o of obstacles) {
+    if (!(race && race.safe > 0) && !(reviveSafe > 0)) outer: for (const o of obstacles) {
       const oz = o.group.position.z;
       for (const b of o.boxes) if (Math.abs(oz) < b.hd + 0.36 && Math.abs(P.x - b.x) < b.hw + 0.38 && py1 > b.y0 && py0 < b.y1) { crash(); break outer; }
     }

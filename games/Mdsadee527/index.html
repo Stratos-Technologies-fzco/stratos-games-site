@@ -1593,6 +1593,22 @@ function playLevelUp(){
    GAME LOOP
 ========================= */
 
+/* Another chance for Stratos Coins: once per run, clears the traffic and protects the car for about 2 seconds. */
+let revived = false, safeFrames = 0;
+function askRevive(){
+    if(revived){ return false; }
+    try {
+        const P = window.Stratos || parent.Stratos;
+        if(!(P && P.coins && P.coins.offer && P.coins.enabled() && P.coins.price("continue") !== null)){ return false; }
+        P.coins.offer("continue", function(){
+            revived = true; safeFrames = 120; crashing = false; crashTimer = 0;
+            crashFlashEl.style.opacity = 0; clearTraffic();
+            animationId = requestAnimationFrame(gameLoop);
+        }, { title: "Keep driving?", what: "Another chance", onCancel: function(){ gameOver(); } });
+        return true;
+    } catch(e){ return false; }
+}
+
 function gameLoop(){
 
     if(
@@ -1632,13 +1648,14 @@ function gameLoop(){
         if(crashTimer >= CRASH_DURATION){
 
             crashing = false;
+            if(askRevive()){ return; }   // the loop waits while the prompt is open
             gameOver();
 
         }
 
     } else {
 
-        checkCollision();
+        if(safeFrames > 0){ safeFrames--; } else { checkCollision(); }
         updateScore();
         updateLevel();
         updateSpeed();
@@ -1697,6 +1714,7 @@ function startGame(){
     spawnTimer = 0;
 
     crashing = false;
+    revived = false; safeFrames = 0;
 
     crashTimer = 0;
 

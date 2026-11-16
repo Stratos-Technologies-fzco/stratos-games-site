@@ -239,16 +239,16 @@ function sheet(o){   /* a small confirm sheet: title, text, a main button (maybe
  try{(o.ok?yes:no).focus()}catch(e){}
  return close}
 var sheetFn=sheet;
-/* Stratos.coins.offer('hint', onDone[, {label, onCancel, ref}]): the one call a game makes where it used to hand out a free reward.
+/* Stratos.coins.offer('hint', onDone[, {label, title, what, onCancel, ref}]): the one call a game makes where it used to hand out a free reward.
    Shows the price and the balance, one tap spends, onDone runs only after a paid spend. With no coins around (no price,
    not on a play page, coins switched off) it runs onDone at once, exactly like the old free reward. */
 function offer(kind,onDone,o){
  try{
   o=o||{};kind=str(kind,80);var p=price(kind),done=function(){if(typeof onDone=="function")onDone()};
   if(off()||!inPlay||p===null){done();return}
-  var label=o.label||(look(kind).item.label)||kind,lc=label.toLowerCase();refresh();var bal=W.balance,ok=bal>=p;
+  var label=o.label||(look(kind).item.label)||kind,lc=label.toLowerCase(),title=o.title||("Get a "+lc+"?"),what=o.what||("A "+lc);refresh();var bal=W.balance,ok=bal>=p;
   if(!ok)trk("coin_spend_blocked",{game:game,item:kind,price:p,balance:bal,reason:"insufficient"});
-  sheetFn({ok:ok,title:"Get a "+lc+"?",text:"A "+lc+" costs "+p+" Stratos Coins. You have "+bal+"."+(ok?"":" Play and win to earn more."),yes:ok?"Spend "+p+" coins":"Need "+(p-bal)+" more",
+  sheetFn({ok:ok,title:title,text:what+" costs "+p+" Stratos Coins. You have "+bal+"."+(ok?"":" Play and win to earn more."),yes:ok?"Spend "+p+" coins":"Need "+(p-bal)+" more",
    yes_:function(){var r=spend(kind,{game:game,ref:str(o.ref)});if(r&&r.ok)done();else flash("Could not spend coins")},
    no:function(){if(typeof o.onCancel=="function")try{o.onCancel()}catch(e){}}})
  }catch(e){try{if(typeof onDone=="function")onDone()}catch(x){}}}

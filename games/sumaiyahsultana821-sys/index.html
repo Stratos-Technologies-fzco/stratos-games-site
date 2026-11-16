@@ -495,6 +495,7 @@
   // Rewards: ads are not live yet, so the player gets the reward free for now.
   // Later Stratos will show a rewarded ad here first, then call onDone().
   function offerReward(onDone) { onDone(); }
+  function stratosOn(k){ try { var S = window.Stratos || parent.Stratos; return !!(S && S.coins && S.coins.offer && S.coins.enabled() && S.coins.price(k) !== null); } catch (e) { return false; } }
   function offerRewardAs(kind, onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer(kind, onDone); return; } } catch (e) {} onDone(); }
 
   var coverEl = document.getElementById("cover");
@@ -1230,8 +1231,13 @@
     var body = "You have 🪙 " + wallet.coins + ".\n" +
       (canBuy ? "Buy one for 🪙 " + def.price + (canFree ? ", or get one free." : ".")
               : (canFree ? "Get one free now, or" : "") + " earn coins by clearing islands and opening chests.");
-    if (canBuy) showModal(def.icon + " More " + def.name, body, "Buy for 🪙 " + def.price, buy, canFree ? "🎁 Get one free" : null, canFree ? free : null, resume);
+    var sOK = stratosOn("boost");
+    function viaStratos(){
+      offerRewardAs("boost", function(){ wallet.power[p] += 1; saveWallet(); renderPowers(); soundChest(); resume(); });
+    }
+    if (canBuy) showModal(def.icon + " More " + def.name, body, "Buy for 🪙 " + def.price, buy, canFree ? "🎁 Get one free" : (sOK ? "⭐ Stratos Coins" : null), canFree ? free : (sOK ? viaStratos : null), resume);
     else if (canFree) showModal(def.icon + " More " + def.name, body, "🎁 Get one free", free, null, null, resume);
+    else if (sOK) showModal(def.icon + " No " + def.name + " left", body, "⭐ Use Stratos Coins", viaStratos, "Keep playing", resume, resume);
     else showModal(def.icon + " No " + def.name + " left", body, "Keep playing", resume, null, null, resume);
   }
 
