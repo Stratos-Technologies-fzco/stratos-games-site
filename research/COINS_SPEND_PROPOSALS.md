@@ -117,6 +117,8 @@ Then add a Hint button (Stratos.coins.offer('hint', highlightNextArrow, { title:
 
 ## Sk Sarfaraj Ali (`sksarfarajali`)
 
+**Done (2026-11-16):** Drop Zone, Dino Frontier and BrainRush Daily now spend Stratos Coins (see COINS_ROLLOUT.md). Echo Island stays free (kids).
+
 ### Stratos Drop Zone (`sksarfarajali-stratos-drop-zone`)
 - **Moment:** after elimination, **"Drop back in" (`continue`, 15)**: land again with half health and a basic weapon, once per match.
 

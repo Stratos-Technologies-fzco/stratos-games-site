@@ -1,12 +1,14 @@
 import type { Game } from '../game/game';
 import type { Result } from '../game/types';
 import { isTouch } from '../input';
+import { stratosCoins } from '../coins';
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 /** Shown after the player is eliminated while the match carries on: spectator controls on top, the player's summary and exits at the bottom. */
 export function Elim({ g, res, spec, alive, onLobby, onAgain }: { g: Game; res: Result; spec: string | null; alive: number; onLobby: () => void; onAgain: () => void }) {
   const t = isTouch();
+  const C = stratosCoins(); const canRevive = !!C && g.reviveCan();   // once per match, paid with Stratos Coins
   return (
     <>
       <div class="spec-bar panel">
@@ -21,7 +23,7 @@ export function Elim({ g, res, spec, alive, onLobby, onAgain }: { g: Game; res: 
           <div><b>{res.kills}</b><span>ELIMINATIONS</span></div><div><b>{res.damage.toLocaleString('en-US')}</b><span>DAMAGE</span></div>
           <div><b>{mmss(res.time)}</b><span>SURVIVED</span></div><div><b>{res.tokens}</b><span>TOKENS</span></div>
         </div>
-        <div class="elim-btns"><button class="play sm" onClick={onAgain}>PLAY AGAIN</button><button class="pill" onClick={onLobby}><span>LOBBY</span></button><button class="pill" onClick={() => g.skipToResults()}><span>RESULTS</span></button></div>
+        <div class="elim-btns">{canRevive && <button class="play sm" onClick={() => C!.offer('continue', () => g.revive(), { title: 'Drop back in?', what: 'Another chance' })}>DROP BACK IN</button>}<button class="play sm" onClick={onAgain}>PLAY AGAIN</button><button class="pill" onClick={onLobby}><span>LOBBY</span></button><button class="pill" onClick={() => g.skipToResults()}><span>RESULTS</span></button></div>
         <div class="elim-hint">{t ? 'Drag to look around' : 'Q / E or ← → switch player · drag to orbit'}</div>
       </div>
     </>
