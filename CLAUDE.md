@@ -146,6 +146,7 @@ No game goes live without Stratos analytics. The site build checks every new gam
 - Required events: `level_start` and at least one of `level_complete` or `game_over`.
 - Also send these where they fit: `reward_offered` and `reward_taken` (second chance, hint), plus your own moments (`boss_beaten`, `skin_unlocked`). Keep names short, lowercase, with underscores.
 - Never add your own Firebase, Google Analytics, or any other tracking. Stratos analytics is the only one.
+- **Builders and testers are not players (#66):** open `https://stratos.games/?builder=1` once in every browser you test with, on phone and computer. That browser's visits stop counting in Firebase; `?builder=0` undoes it.
 - Before you say "publish", play one full round on the play page and check there are no console errors.
 
 ## Stratos Coins: how every game plugs into the economy (2026-11-16)
