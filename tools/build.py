@@ -261,6 +261,7 @@ _cfg = json.dumps(json.load(open(os.path.join(_here, "..", "assets", "coins-conf
 STRATOS_JS = STRATOS_JS.replace("/*__COINS__*/", _coins.replace("/*COINS_CONFIG*/{}", _cfg))
 ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher account (same as AdMob); site ownership tag only, no ads yet
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
+CSS_V = hashlib.sha1(open(os.path.join(ROOT, "assets", "site.css"), "rb").read()).hexdigest()[:8]   # ?v= on the stylesheet link: a changed file is fetched at once, not after the 1-day cache
 
 def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False):
     ga = ('<meta name="stratos-kids" content="1">' if kids else "") + f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
@@ -272,7 +273,7 @@ def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False):
             f'<link rel="icon" href="{base}assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="{base}assets/favicon.svg">'
             f'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             f'<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">'
-            f'<link rel="stylesheet" href="{base}assets/site.css">{ga}{ld}</head>')
+            f'<link rel="stylesheet" href="{base}assets/site.css?v={CSS_V}">{ga}{ld}</head>')
 
 JS = """<script>
 (function(){
@@ -341,7 +342,7 @@ ICONS["coin"] = '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>'
 
 def coin_chip(base=""):
     """Stratos Coins balance chip (STRATOS_COINS_ARCHITECTURE.md, section 9). assets/stratos.js fills in the number and keeps it live."""
-    return (f'<a class="coin-chip" href="{base}coins/" aria-label="Stratos Coins: see your balance and history">'
+    return (f'<a class="coin-chip" href="{base}coins/" style="background:#fff4cf;border:2px solid #f2c230;color:#5a3b00" aria-label="Stratos Coins: see your balance and history">'
             '<svg class="coin-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#ffc933" stroke="#d98a00" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#d98a00" stroke-width="1.6"/></svg>'
             '<span class="coin-n">0</span><span class="coin-sr" role="status" aria-live="polite"></span></a>')
 
