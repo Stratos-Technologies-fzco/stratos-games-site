@@ -11,7 +11,7 @@
     },
     "match_win": {
       "label": "Win a match (harder computer pays more)",
-      "amount": [ { "maxLevel": 1, "coins": 5 }, { "maxLevel": 2, "coins": 8 }, { "maxLevel": 3, "coins": 12 } ],
+      "amount": [ { "maxLevel": 1, "coins": 5 }, { "maxLevel": 2, "coins": 8 }, { "maxLevel": 3, "coins": 12 }, { "maxLevel": 99, "coins": 15 } ],
       "unit": "per win",
       "perGamePerDay": 5,
       "enabled": true
@@ -32,6 +32,7 @@
     { "game": "sksarfarajali-brainrush", "title": "Finish a Brain Rush round" },
     { "game": "sksarfarajali-dino-frontier", "title": "Survive a Dino Frontier run" },
     { "game": "sksarfarajali-domino-classic", "title": "Win a Domino Classic game" },
+    { "game": "sksarfarajali-stratos-29-card-game", "title": "Win a Stratos 29 match" },
     { "game": "sksarfarajali-babel-harbour", "title": "Solve a Babel Harbour word" },
     { "game": "im-mohua-liza-wordbloom", "title": "Grow a Wordbloom" },
     { "game": "im-mohua-liza-momo-run", "title": "Finish a Momo Run" }
