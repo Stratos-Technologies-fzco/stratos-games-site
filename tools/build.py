@@ -311,9 +311,6 @@ def pk_tiles(items, base="", first_big=True, later_from=None):
     out = [pk_tile(g, base, size(i)) for i, g in enumerate(real)]
     return "".join(out + [pk_tile(g, base, "s1") for g in soon])
 
-def pk_cta():
-    return (f'<a class="pk-t s2 pk-cta" href="{JOIN}" target="_blank" rel="noopener"><span class="plus">+</span>'
-            f'<b>Your game here</b><small>Build it with Claude, push it, it shows up</small></a>')
 
 def pk_cats(base=""):
     return "".join(f'<a class="pk-cat" href="{base}c/{c["id"]}/" style="--h:{c.get("hue", 220)}"><span class="em">{c.get("emoji", "🎮")}</span>'
@@ -357,7 +354,6 @@ def pk_side(base="", active=""):
     top += [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] in ("new", "studio")]
     cats = [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] not in ("new", "studio")]
     foot = [item(f'{base}{n["href"]}', "info", n["label"]) for n in SITE["nav"]]
-    foot += [item("https://github.com/Stratos-Technologies-fzco/stratos-games-site", "github", "GitHub", ext=True), item(JOIN, "plus", "Add your game", ext=True)]
     return (f'<nav class="pk-side" aria-label="Sections">{"".join(top)}<hr>{"".join(cats)}<hr>{"".join(foot)}</nav>'
             f'<div class="pk-scrim" onclick="document.body.classList.remove(\'side-open\')"></div>')
 
@@ -482,7 +478,7 @@ def build_home_cards(fam):
     cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
                    for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
     about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
-    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
+    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
@@ -518,7 +514,7 @@ def build_category(cid, items, fam, studio):
         listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
         about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
                         pk_paras(c.get("intro")), listing)
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cta() + pk_cats(base), active=cid, after=about)
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base), active=cid, after=about)
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
@@ -618,8 +614,8 @@ def build_play(g, fam, studio):
         # Phones: only the first few similar games sit between the game and its details, the rest come after the details.
         # The .pk-later tiles hide on phones and show again in the .pk-more grid, which only phones see (assets/site.css).
         near = 4
-        rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cta()}{pk_cats(base)}</section>'
-        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cta() + pk_cats(base),
+        rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cats(base)}</section>'
+        body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cats(base),
                        attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words + rest)
         write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
