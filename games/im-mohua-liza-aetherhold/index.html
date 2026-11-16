@@ -631,7 +631,7 @@ function summon(kind){
 
 /* ---------- Stratos hooks: no-ops until the site turns on analytics and rewarded ads ---------- */
 function track(name,details){try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {}}
-function offerReward(onDone){onDone()}
+function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', onDone); return; } } catch (e) {} onDone(); }
 let lastLost={};
 
 /* ---------- sound: everything is synthesized live with Web Audio ---------- */

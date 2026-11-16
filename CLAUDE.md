@@ -157,11 +157,13 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 
 **Rules for Stratos Coins:**
 - Never store Stratos Coins, their unlocks or their prices in your game. Never read or write browser storage keys that start with `stratos.`.
-- Earn with a rule ID, never a raw number. Rules today: `game_first_play`, `level_complete` (pass `level`), `level_replay`, `match_win` (pass `level` 1 easy to 4 expert), `daily_challenge`. Example: `Stratos.coins.earn('level_complete', { game: '<your-folder-name>', level: n })`.
-- Spend with an item ID. Items today: `hint` (10) and `undo` (5), plus the unlock items in the config. Example: `Stratos.coins.spend('hint', { game: '<your-folder-name>' })`. Check `can()` and `has()` before showing a button.
+- **Most of it is automatic.** Events you already send pay coins with no extra code: `level_start` pays first play; `level_complete` with a `level`, `stage`, `round` or `depot` number pays that level once (a repeat or a missing number pays a small capped replay); `game_over` with `won: true` pays a win. So send those events, with a real level number. The site's daily challenge pays on top when it is your game.
+- Earn yourself only for something the events cannot say. Earn with a rule ID, never a raw number. Rules today: `game_first_play`, `level_complete` (pass `level`), `level_replay`, `match_win` (pass `level` 1 easy to 4 expert), `daily_challenge`. Example: `Stratos.coins.earn('level_complete', { game: '<your-folder-name>', level: n })`.
+- Spend with an item ID. Items today: `hint` (10), `undo` (5) and `continue` (15, a second chance), plus the unlock items in the config. Example: `Stratos.coins.spend('hint', { game: '<your-folder-name>' })`. Check `can()` and `has()` before showing a button.
 - The `game` value is your folder name under `games/` (for example `sksarfarajali-moto-rush`).
 - Pass a stable `ref` so a repeat pays once (a level number, a date, or a fresh id per match: never the same `ref` for different wins).
-- Use the shared helper pattern, so the game still works when Stratos is not around it (opened on its own, or an old page):
+- **For a hint, undo or second chance, do not build your own sheet.** Where your game used to hand out a free reward, call `Stratos.coins.offer('hint', onDone)` (or `'continue'`, `'undo'`). The site shows the price and the balance, one tap spends, and `onDone` runs only after the player has paid. If coins are not around it runs `onDone` straight away, like the old free reward. Copy the `offerReward` stub in `games/im-mohua-liza-plot-twist/` or `games/sksarfarajali-moto-rush/`. If a reward is a deliberate free gift, or sits in a game with its own coin economy, leave it free.
+- Use the shared helper pattern for anything else, so the game still works when Stratos is not around it (opened on its own, or an old page):
 
   ```js
   function SC() { try { var S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
@@ -172,6 +174,8 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 - Show what they earned ("+12 Stratos Coins") and what a spend costs, with one tap to confirm, before you spend.
 - Keep the HUD fresh with `Stratos.coins.onChange(function (i) { ... i.balance ... })`.
 - No coins for online or friends-only games unless Sahil or Sahariar say so (two friends can farm them).
+- Kids-section games get Stratos Coins too (owner decision, 2026-11-16). Analytics stay off there, so never add tracking to a kids game for coins. Sahil or Sahariar can switch kids coins off with `"kidsCoins": false` in the config.
+- A game that earns and spends fully by itself (like Domino Classic) tells Sahil or Sahariar so its folder name is added to `auto.exclude` in the config; otherwise it would be paid twice.
 - A new rule or item (a premium game, level unlocks, a new price) goes in `assets/coins-config.json`. That is a shared file: tell the maker to ask Sahil or Sahariar to add it, with the game folder name, the rule or item, and the amount they have in mind. Until then use the rules and items that already exist. Never hard-code an amount or price in the game.
 - Games that already have their own coin keep it. Do not rip it out.
 

@@ -13,7 +13,7 @@
   // Stratos hooks: ads/analytics are not live; these stay empty / free.
   let startedAt = 0;  // level_start starts the clock; level_complete / game_over carry `seconds` played
   function track(name, details) { try { details = Object.assign({}, details); if (name === "level_start") startedAt = Date.now(); else if ((name === "level_complete" || name === "game_over") && startedAt && details.seconds == null) details.seconds = Math.round((Date.now() - startedAt) / 1000); var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
-  function offerReward(onDone) { onDone(); }
+  function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('hint', onDone); return; } } catch (e) {} onDone(); }
 
   const CORRECT_CASH = 10000, CORRECT_PTS = 4, WRONG_CASH = 1000, WRONG_PTS = 1, SUBSIDY_PER_POINT = 2500;
   const PREVIEW_QS = 5, PREVIEW_HOURS = 5;   // a locked building lets you try 5 questions every 5 hours

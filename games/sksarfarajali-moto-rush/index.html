@@ -488,7 +488,7 @@ body.racing #snd{top:calc(20px*var(--u) + 176px*var(--u) + env(safe-area-inset-t
 
 /* ---- Stratos hooks ---- */
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
-function offerReward(onDone) { onDone(); } /* later: show a rewarded ad first */
+function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', onDone); return; } } catch (e) {} onDone(); } /* a rewarded ad can slot in here later */
 
 /* ---- storage (safe) ---- */
 var store = {
