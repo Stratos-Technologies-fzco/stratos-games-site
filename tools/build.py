@@ -270,7 +270,7 @@ def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False):
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
             f'<title>{esc(title)}</title><meta name="description" content="{esc(desc)}"><link rel="canonical" href="{esc(canon)}">'
             f'<meta property="og:type" content="website"><meta property="og:site_name" content="Stratos Games"><meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{esc(canon)}">{og}'
-            f'<link rel="icon" href="{base}assets/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="{base}assets/favicon.svg">'
+            f'<link rel="icon" href="{base}assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{base}assets/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{base}assets/apple-touch-icon.png">'
             f'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             f'<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">'
             f'<link rel="stylesheet" href="{base}assets/site.css?v={CSS_V}">{ga}{ld}</head>')
@@ -291,8 +291,8 @@ arm();window.addEventListener('resize',arm);
 
 # --- Poki-style look: one packed grid of square tiles, logo box in the corner ---
 def pk_nav(base=""):
-    return (f'<div class="pk-nav"><div class="pk-nr"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button><a class="pk-logo" href="{base}./" aria-label="Stratos Games home"><span class="lm">S</span><span>Stratos<b>Games</b></span></a></div>'
-            f'<div class="pk-sr"><label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games"></label>{coin_chip(base)}</div></div>')
+    return (f'<div class="pk-nav"><div class="pk-nr"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>{sn_logo("pk-logo sn-box", 26, base + "./")}</div>'
+            f'<div class="pk-sr"><label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games"></label>{coin_chip(base)}</div></div>{SN_ASSETS}')
 
 def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
@@ -433,8 +433,8 @@ ICONS["user"] ='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3
 # --- S-Snake logo (purple snake S with googly eyes): eyes follow the cursor, blinks, wiggle + boing on hover ---
 SN_INNER = '\n<g fill="none" stroke-linecap="round" stroke-linejoin="round">\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#2A1060" stroke-width="64" transform="translate(5 9)"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#0B0614" stroke-width="64"/>\n<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#8B5CF6" stroke-width="44"/>\n<path d="M118 44 C102 36 76 42 72 66" stroke="#C4B0FF" stroke-width="10"/>\n<path d="M74 92 C96 106 128 104 132 120" stroke="#C4B0FF" stroke-width="10" opacity=".7"/>\n<path class="sn-tongue" d="M146 86 L146 100 M146 100 L140 108 M146 100 L152 108" stroke="#FF4D6D" stroke-width="4.5"/>\n</g>\n<g class="sn-eye"><circle cx="130" cy="58" r="15" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="132" data-y="59" cx="132" cy="59" r="6.5" fill="#0B0614"/></g>\n<g class="sn-eye"><circle cx="158" cy="64" r="13" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="159" data-y="65" cx="159" cy="65" r="5.8" fill="#0B0614"/></g>\n'
 
-def sn_logo(cls, size):
-    return (f'<a class="{cls} sn-logo" href="./" aria-label="Stratos Games home">'
+def sn_logo(cls, size, href="./"):
+    return (f'<a class="{cls} sn-logo" href="{href}" aria-label="Stratos Games home">'
             f'<span class="sn-word"><span class="sn-row"><svg class="sn-mark" width="{size}" height="{size}" viewBox="0 0 200 200" aria-hidden="true">{SN_INNER}</svg>'
             '<span class="sn-w1">tratos</span></span><span class="sn-w2">GAMES</span></span></a>')
 
@@ -485,7 +485,7 @@ def build_home_cards(fam):
                    for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
     about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
     body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cta() + pk_cats(), active="home", nav=pz_nav(), cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
-    write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
+    write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
     if CLEAN: return build_home_cards(fam)
@@ -508,7 +508,7 @@ def build_home(fam, studio):
             f'<section class="row" id="results" hidden><div class="rh"><h2></h2></div><div class="grid"></div></section>'
             f'{"".join(rows)}<section class="pitch"><div><h2>Make a game. Put it here.</h2><p>Every game on this page was built by a person and an AI in a few hours, then pushed to one shared folder. Yours can be next.</p>'
             f'<a class="btn" href="{JOIN}" target="_blank" rel="noopener">How to add your game</a></div><div class="pitch-art">🎮</div></section>{footer()}</main></div>{JS}</body></html>')
-    write("index.html", head("Stratos Games: free browser games, new every week", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.png", jsonld=jsonld) + body)
+    write("index.html", head("Stratos Games: free browser games, new every week", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
 def build_category(cid, items, fam, studio):
     c = CATS[cid]; base = "../../"
