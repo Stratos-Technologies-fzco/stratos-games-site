@@ -52,6 +52,7 @@ How to get back live:
 - **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
 - **Saturday release:** on the weekly call, Sahil, Sahariar or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
 - A maker's game lives in `games/<github-username>/` (`index.html`, `game.json`, `thumbnail.png`).
+- Its public link uses the game's name, not the folder: `stratos.games/play/arrow-rush/`. Each link is set once in `site.json` ("links"), so a title change never breaks it; a new game gets one from its name. Old folder links redirect. The folder name stays the game's identity for analytics and Stratos Coins.
 - A GitHub Action runs `tools/build.py` and rebuilds the front page, play pages and sitemap. Nobody runs it by hand.
 - These are WEB games that run in a phone browser. Not Android or iOS apps. Mobile app tools (Capacitor, AdMob SDK, Play Console) do not apply here.
 
