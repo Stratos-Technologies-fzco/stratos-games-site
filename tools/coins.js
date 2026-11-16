@@ -180,3 +180,18 @@ if(!live){   /* test helpers for coins-test.html; not on stratos.games */
   reset:function(){try{w.localStorage.removeItem(WK);w.localStorage.removeItem(LK)}catch(e){}mem={};W=newW();L=newL(W.deviceId);save();notify({balance:0,delta:0,type:"sync"})},
   reinit:function(){init();notify({balance:bal(),delta:0,type:"sync"})},
   setDay:function(s){mockDay=str(s)}}}
+
+/* ---- site chip: the balance in the page header (markup from tools/build.py coin_chip), live, with a count-up and a +N toast ---- */
+var shown=null,raf=0,anim=!(w.matchMedia&&w.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function fmt(n){return n<1000?String(n):n<999950?(Math.round(n/100)/10)+"K":(Math.round(n/1e5)/10)+"M"}   /* 1234 -> 1.2K; the coins page shows the full number */
+function chipEls(){try{return d.querySelectorAll(".coin-chip")||[]}catch(e){return[]}}
+function paintN(v,say){var c=chipEls();for(var i=0;i<c.length;i++){var n=c[i].querySelector(".coin-n"),r=c[i].querySelector(".coin-sr");if(n)n.textContent=fmt(v);if(say&&r)r.textContent=v+" coins"}}
+function setBal(v,from){
+ if(raf&&w.cancelAnimationFrame)w.cancelAnimationFrame(raf);raf=0;
+ if(!anim||from==null||v<=from||!w.requestAnimationFrame){paintN(v,1);shown=v;return}
+ var t0=0;function step(t){if(!t0)t0=t;var k=Math.min(1,(t-t0)/500);paintN(Math.round(from+(v-from)*k),k>=1);if(k<1)raf=w.requestAnimationFrame(step);else{raf=0;shown=v}}
+ raf=w.requestAnimationFrame(step)}
+function toast(n){var c=chipEls();for(var i=0;i<c.length;i++){var e=d.createElement("span");e.className="coin-toast";e.setAttribute("aria-hidden","true");e.textContent="+"+n;c[i].appendChild(e);(function(x){setTimeout(function(){if(x.parentNode)x.parentNode.removeChild(x)},1700)})(e)}}
+onChange(function(i){try{if(i.type=="earn"&&i.delta>0){setBal(bal(),shown==null?bal()-i.delta:shown);toast(i.delta)}else setBal(bal(),null)}catch(e){}});
+function wire(){shown=bal();paintN(shown,1)}
+if(d.readyState=="loading")d.addEventListener("DOMContentLoaded",wire);else wire();

@@ -379,3 +379,53 @@ body.poki.side-open .pk-side .lb{opacity:1}
   body.pk-searching[data-game] main.pk-grid .pk-later{display:block}
   body.pk-searching .pk-grid.pk-more{display:none!important}
 }
+/* ===== Stratos Coins: header chip, +N toast, /coins page (STRATOS_COINS_ARCHITECTURE.md, section 9) ===== */
+.coin-chip{position:relative;display:inline-flex;align-items:center;gap:6px;flex:none;min-height:44px;padding:0 13px 0 9px;border-radius:999px;background:#fff4cf;border:2px solid #f2c230;color:#5a3b00;font:inherit;font-size:15px;font-weight:900;line-height:1;text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums;cursor:pointer}
+.coin-chip:hover{background:#ffeaa6}
+.coin-chip:focus-visible{outline:3px solid #009cff;outline-offset:2px}
+.coin-chip .coin-ic{flex:none}
+.coin-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.coin-toast{position:absolute;left:50%;top:100%;z-index:70;transform:translateX(-50%);margin-top:4px;padding:3px 9px;border-radius:999px;background:#137a41;color:#fff;font-size:13px;font-weight:900;pointer-events:none;animation:coinup 1.6s ease-out forwards}
+@keyframes coinup{0%{opacity:0;transform:translate(-50%,-6px)}15%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
+@media (prefers-reduced-motion:reduce){.coin-toast{animation:none}}
+/* inside the logo + search card: smaller so the card keeps its height; ::after keeps a 44px tap area */
+.pk-sr{display:flex;align-items:center;gap:6px}
+.pk-sr .pk-search{flex:1;min-width:0}
+.pk-sr .coin-chip{min-height:32px;padding:0 9px 0 6px;gap:4px;font-size:14px;border-width:2px}
+.pk-sr .coin-chip .coin-ic{width:18px;height:18px}
+.pk-sr .coin-chip::after{content:"";position:absolute;inset:-6px -4px}
+.cg-acts .coin-chip{min-height:44px}
+.top .coin-chip{margin-left:auto}
+@media (max-width:760px){.pk-sr .coin-chip{min-height:28px}}
+@media (max-width:480px){.cg-login{display:none}.cg-acts .coin-chip{padding:0 10px 0 7px}}
+/* /coins page */
+.coins-wrap{max-width:900px;margin:0 auto;padding-bottom:4px}
+.coins-wrap .coins-sec{margin:16px auto 0;max-width:none}
+.pk-text .coins-big{margin:0 0 6px;font-size:34px;font-weight:900;color:var(--ink);line-height:1.2}
+.coins-big span{font-variant-numeric:tabular-nums}
+.coins-stats{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 10px}
+.coins-stats div{flex:1 1 130px;background:var(--soft);border-radius:12px;padding:10px 14px}
+.coins-stats dt{font-size:13px;font-weight:800;color:var(--ink2)}
+.coins-stats dd{margin:2px 0 0;font-size:20px;font-weight:900;color:var(--ink)}
+.coins-note{margin:6px 0;font-size:14px;color:var(--ink2)}
+.coins-line{margin:4px 0 8px}
+.coins-bar{height:14px;border-radius:999px;background:var(--soft);overflow:hidden;margin:4px 0 8px;border:1px solid #c7d8ea}
+.coins-fill{height:100%;background:#137a41;border-radius:999px;transition:width .4s ease}
+.coins-card{background:var(--soft);border-radius:12px;padding:12px 14px;margin:10px 0}
+.coins-card>b{display:block;margin-bottom:4px;font-size:16px}
+.coins-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:6px 0;font-size:14.5px;color:#21405f}
+.coins-act{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+.coins-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--blue);color:#fff;font:inherit;font-size:14.5px;font-weight:900;text-decoration:none;cursor:pointer}
+.coins-btn.alt{background:#fff;color:var(--ink);border:2px solid #c7d8ea}
+.pk-text a.coins-btn{color:#fff}.pk-text a.coins-btn.alt{color:var(--ink)}
+.coins-btn:disabled{background:#9db3c8;cursor:not-allowed}
+.coins-btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.coins-tag{padding:4px 10px;border-radius:999px;background:#d9f2e3;color:#0d5a30;font-size:13px;font-weight:900}
+.pk-text .coins-msg{margin:6px 0 0;font-weight:800;color:#0d5a30}
+.coins-list{margin:0 0 8px 20px;padding:0}
+.coins-scroll{overflow-x:auto}
+.coins-table{width:100%;border-collapse:collapse;font-size:14px}
+.coins-table th{text-align:left;padding:6px 8px;border-bottom:2px solid #c7d8ea;color:var(--ink2);font-weight:900;white-space:nowrap}
+.coins-table td{padding:7px 8px;border-bottom:1px solid #e1ebf5;color:#21405f;vertical-align:top}
+.coins-pos{font-weight:900;color:#0d5a30;white-space:nowrap}.coins-neg{font-weight:900;color:#8a2a0c;white-space:nowrap}
+@media (max-width:480px){.pk-text .coins-big{font-size:28px}.coins-wrap .coins-sec{padding:14px 14px}}

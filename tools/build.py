@@ -213,7 +213,7 @@ def topbar(base=""):
     return (f'<header class="top"><button class="menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(\'nav-open\')">{icon("menu", 22)}</button>'
             f'<a class="logo" href="{base}./"><span class="lm">S</span><span class="ln">STRATOS <b>GAMES</b></span></a>'
             f'<label class="search">{icon("search")}<input id="q" type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search"></label>'
-            f'<a class="add" href="{JOIN}" target="_blank" rel="noopener">+ Add your game</a></header>')
+            f'{coin_chip(base)}<a class="add" href="{JOIN}" target="_blank" rel="noopener">+ Add your game</a></header>')
 
 def footer(base=""):
     links = "".join(f'<a href="{base}{esc(f["href"])}">{esc(f["label"])}</a>' for f in SITE["footer"])
@@ -291,7 +291,7 @@ arm();window.addEventListener('resize',arm);
 # --- Poki-style look: one packed grid of square tiles, logo box in the corner ---
 def pk_nav(base=""):
     return (f'<div class="pk-nav"><div class="pk-nr"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button><a class="pk-logo" href="{base}./" aria-label="Stratos Games home"><span class="lm">S</span><span>Stratos<b>Games</b></span></a></div>'
-            f'<label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games"></label></div>')
+            f'<div class="pk-sr"><label class="pk-search">{icon("search", 16)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games"></label>{coin_chip(base)}</div></div>')
 
 def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
@@ -337,6 +337,13 @@ def pk_hero(items, base=""):
 ICONS["clock"] = '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
 ICONS["plus"] = '<path d="M12 5v14M5 12h14"/>'
 ICONS["info"] = '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'
+ICONS["coin"] = '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/>'
+
+def coin_chip(base=""):
+    """Stratos Coins balance chip (STRATOS_COINS_ARCHITECTURE.md, section 9). assets/stratos.js fills in the number and keeps it live."""
+    return (f'<a class="coin-chip" href="{base}coins/" aria-label="Stratos Coins: see your balance and history">'
+            '<svg class="coin-ic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#ffc933" stroke="#d98a00" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#d98a00" stroke-width="1.6"/></svg>'
+            '<span class="coin-n">0</span><span class="coin-sr" role="status" aria-live="polite"></span></a>')
 
 def pk_side(base="", active=""):
     """CrazyGames-style left rail: icons only, opens on hover to show the names."""
@@ -345,7 +352,7 @@ def pk_side(base="", active=""):
         tgt = ' target="_blank" rel="noopener"' if ext else ""
         return f'<a class="pk-si{on}" href="{esc(href)}"{tgt} title="{esc(label)}"><span class="ic">{icon(ic, 22)}</span><span class="lb">{esc(label)}</span></a>'
     top = [item(f"{base}./", "home", "Home", "home"), item(f"{base}./#recent", "clock", "Recently played"),
-           item(f"{base}./#favs", "heart", "Favourites")]
+           item(f"{base}./#favs", "heart", "Favourites"), item(f"{base}coins/", "coin", "Stratos Coins", "coins")]
     top += [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] in ("new", "studio")]
     cats = [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] not in ("new", "studio")]
     foot = [item(f'{base}{n["href"]}', "info", n["label"]) for n in SITE["nav"]]
@@ -453,7 +460,7 @@ def cg_top(new_count):
     return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
             f'{sn_logo("cg-logo", 46)}'
             f'<label class="cg-search"><input type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories" oninput="{sync}">{icon("search", 20)}</label>'
-            f'<div class="cg-acts"><button class="cg-noads" type="button">{icon("ad", 18)}<span>No ads</span></button>'
+            f'<div class="cg-acts">{coin_chip()}<button class="cg-noads" type="button">{icon("ad", 18)}<span>No ads</span></button>'
             f'<button class="cg-ib" type="button" title="Friends" aria-label="Friends">{icon("users", 18)}</button>'
             f'<a class="cg-ib" href="#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
             f'<a class="cg-ib" href="c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
@@ -628,6 +635,28 @@ def build_play(g, fam, studio):
             f'<aside class="play-side"{" hidden" if CLEAN and not more else ""}><h3>More games</h3><div class="tiles">{"".join(tile(x, base) for x in more)}{"" if CLEAN else cta_tile()}</div></aside></div>{footer(base)}</main></div>{JS}</body></html>')
     write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
 
+def build_coins_page(fam):
+    """/coins/: the player's coin balance, today's progress, ways to earn, spend, unlocked and history. Filled in the browser by assets/coins-page.js."""
+    games = {g["slug"]: {"t": g["title"]} for g in fam if not g.get("soon")}
+    gj = json.dumps(games, ensure_ascii=False).replace("</", "<\/")
+    def sec(h, body, i=""): return f'<section class="pk-text coins-sec"{(" id=" + chr(34) + i + chr(34)) if i else ""}><h2>{h}</h2>{body}</section>'
+    inner = '<div class="pk-head wide"><h1>Stratos Coins</h1><small>Earn coins in any game. Spend them in any game.</small></div>'
+    after = ('<div class="coins-wrap">'
+        '<section class="pk-text coins-sec" aria-labelledby="c-h-bal"><h2 id="c-h-bal">Your balance</h2>'
+        '<p class="coins-big"><span id="c-bal" aria-live="polite">0</span> coins</p>'
+        '<p id="c-empty" class="coins-note" hidden>Play a game to earn your first coins.</p>'
+        '<p id="c-nostore" class="coins-note" hidden>Your browser is blocking storage, so these coins will not be saved after you close this page.</p>'
+        '<dl class="coins-stats"><div><dt>Earned so far</dt><dd id="c-earned">0</dd></div><div><dt>Spent so far</dt><dd id="c-spent">0</dd></div><div><dt>Streak</dt><dd id="c-streak">None yet</dd></div></dl>'
+        '<p class="coins-note">Coins are only for use inside Stratos games and have no cash value. They are saved in this browser on this device; clearing your browser data removes them.</p></section>'
+        + sec("Today", '<div id="c-today-body"></div>')
+        + sec("Ways to earn", '<ul id="c-earn-list" class="coins-list"></ul>')
+        + sec("Spend your coins", '<div id="c-spend-body"></div>')
+        + sec("Unlocked", '<ul id="c-unlocked-list" class="coins-list"></ul>')
+        + sec("History", '<div id="c-history-body"></div>')
+        + '<noscript><p class="coins-note">Turn on JavaScript to see your coins.</p></noscript></div>'
+        + f'<script>window.STRATOS_GAMES={gj};</script><script src="../assets/coins-page.js?v={hashlib.sha1(open(os.path.join(ROOT, "assets", "coins-page.js"), "rb").read()).hexdigest()[:8]}" defer></script>')
+    write("coins/index.html", head("Stratos Coins: your balance, rewards and history | Stratos Games", "See your Stratos Coins, what you can earn today, what you can spend them on, and your history. One wallet for every Stratos game.", SITE["url"] + "/coins/", base="../") + pk_body("../", inner, active="coins", after=after))
+
 def build_extras(fam, studio):
     real = [g for g in fam if not g.get("soon")]; soon = [g for g in fam if g.get("soon")]
     urls = [SITE["url"] + "/"] + [f"{SITE['url']}/play/{g['slug']}/" for g in real] + [f"{SITE['url']}/c/{c['id']}/" for c in SITE["categories"]]
@@ -670,6 +699,7 @@ def main():
     for c in SITE["categories"]: build_category(c["id"], by_cat.get(c["id"], []), fam, studio)
     for g in fam: build_play(g, fam, studio)
     build_extras(fam, studio)
+    build_coins_page(fam)
     write("assets/stratos.js", STRATOS_JS)
     print(f"built: home, {len(fam)} play page(s), {len(SITE['categories'])} category pages, sitemap, robots, llms.txt, 404")
     for p in problems: print("  skipped:", p)
