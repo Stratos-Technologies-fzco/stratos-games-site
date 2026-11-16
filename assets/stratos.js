@@ -27,8 +27,10 @@ if(game&&/\/play\//.test(location.pathname)){
    Design: STRATOS_COINS_ARCHITECTURE.md. Only this code reads or writes the stratos.wallet / stratos.ledger storage keys.
    Runs inside stratos.js's wrapper, so w, d, S (Stratos), game and live are in scope. */
 var WK="stratos.wallet.v1",LK="stratos.ledger.v1",MAXE=500,MAXAMT=10000,
- DEF={"version":1,"caps":{"daily_total":200,"daily_per_game":100},"rules":{"level_complete":{"label":"Finish a new level","amount":[{"maxLevel":10,"coins":10},{"maxLevel":30,"coins":15},{"maxLevel":9999,"coins":20}],"unit":"per new level","once":"game+level","enabled":true},"match_win":{"label":"Win a match (harder computer pays more)","amount":[{"maxLevel":1,"coins":5},{"maxLevel":2,"coins":8},{"maxLevel":3,"coins":12},{"maxLevel":99,"coins":15}],"unit":"per win","perGamePerDay":5,"enabled":true},"level_replay":{"label":"Replay a level","amount":2,"perGamePerDay":5,"enabled":true},"daily_challenge":{"label":"Complete the daily challenge","amount":30,"once":"day","enabled":true},"streak_bonus":{"label":"Play on a streak","perDay":5,"max":25,"minStreak":2,"enabled":true},"game_first_play":{"label":"Try a new game","amount":20,"once":"game","enabled":true},"rewarded_ad":{"label":"Watch an ad","amount":15,"perDay":3,"enabled":false}},"catalogue":{"hint":{"type":"consumable","price":10,"label":"Hint"},"undo":{"type":"consumable","price":5,"label":"Undo"},"sksarfarajali-moto-rush:level:*":{"type":"unlock","price":50,"freeUpTo":5,"label":"Moto Rush level"}},"dailyChallenges":[{"game":"sksarfarajali-moto-rush","title":"Beat a Moto Rush level"},{"game":"sksarfarajali-brainrush","title":"Finish a Brain Rush round"},{"game":"sksarfarajali-dino-frontier","title":"Survive a Dino Frontier run"},{"game":"sksarfarajali-domino-classic","title":"Win a Domino Classic game"},{"game":"sksarfarajali-stratos-29-card-game","title":"Win a Stratos 29 match"},{"game":"sksarfarajali-babel-harbour","title":"Solve a Babel Harbour word"},{"game":"im-mohua-liza-wordbloom","title":"Grow a Wordbloom"},{"game":"im-mohua-liza-momo-run","title":"Finish a Momo Run"}]},cfg=DEF,subs=[],mem={},persistent=true,mockDay="",W=null,L=null,cur=d.currentScript,
+ DEF={"version":1,"caps":{"daily_total":200,"daily_per_game":100},"kidsCoins":true,"auto":{"enabled":true,"exclude":["sksarfarajali-domino-classic","sksarfarajali-stratos-29-card-game"],"rules":{"first":"game_first_play","level":"level_complete","repeat":"level_replay","win":"match_win"}},"rules":{"level_complete":{"label":"Finish a new level","amount":[{"maxLevel":10,"coins":10},{"maxLevel":30,"coins":15},{"maxLevel":9999,"coins":20}],"unit":"per new level","once":"game+level","enabled":true},"match_win":{"label":"Win a match (harder computer pays more)","amount":[{"maxLevel":1,"coins":5},{"maxLevel":2,"coins":8},{"maxLevel":3,"coins":12},{"maxLevel":99,"coins":15}],"unit":"per win","perGamePerDay":5,"enabled":true},"level_replay":{"label":"Replay a level","amount":2,"perGamePerDay":5,"enabled":true},"daily_challenge":{"label":"Complete the daily challenge","amount":30,"once":"day","enabled":true},"streak_bonus":{"label":"Play on a streak","perDay":5,"max":25,"minStreak":2,"enabled":true},"game_first_play":{"label":"Try a new game","amount":20,"once":"game","enabled":true},"rewarded_ad":{"label":"Watch an ad","amount":15,"perDay":3,"enabled":false}},"catalogue":{"hint":{"type":"consumable","price":10,"label":"Hint"},"undo":{"type":"consumable","price":5,"label":"Undo"},"continue":{"type":"consumable","price":15,"label":"Second chance"},"sksarfarajali-moto-rush:level:*":{"type":"unlock","price":50,"freeUpTo":5,"label":"Moto Rush level"}},"dailyChallenges":[{"game":"sksarfarajali-moto-rush","title":"Beat a Moto Rush level"},{"game":"sksarfarajali-brainrush","title":"Finish a Brain Rush round"},{"game":"sksarfarajali-dino-frontier","title":"Survive a Dino Frontier run"},{"game":"sksarfarajali-domino-classic","title":"Win a Domino Classic game"},{"game":"sksarfarajali-stratos-29-card-game","title":"Win a Stratos 29 match"},{"game":"sksarfarajali-babel-harbour","title":"Solve a Babel Harbour word"},{"game":"im-mohua-liza-wordbloom","title":"Grow a Wordbloom"},{"game":"im-mohua-liza-momo-run","title":"Finish a Momo Run"}]},cfg=DEF,subs=[],mem={},persistent=true,mockDay="",W=null,L=null,cur=d.currentScript,
  cfgUrl=cur&&cur.src?cur.src.replace(/stratos\.js.*$/,"coins-config.json"):"/assets/coins-config.json";
+var KIDS=!!d.querySelector('meta[name="stratos-kids"]'),inPlay=!!(game&&/\/play\//.test(location.pathname));   /* Kids section: coins follow cfg.kidsCoins; analytics are already off there, so no coin events leave the device */
+function off(){return KIDS&&cfg.kidsCoins===false}
 try{w.localStorage.setItem("stratos.t","1");w.localStorage.removeItem("stratos.t")}catch(e){persistent=false}
 
 /* ---- small helpers ---- */
@@ -121,6 +123,7 @@ function blockE(g,id,why){trk("coin_earn_blocked",{game:g,rule:id,reason:why});r
 function earn(id,x){
  try{
   x=x||{};id=str(id);var g=str(x.game);
+  if(off())return{ok:false,reason:"not_available",balance:0};
   if(!g)return blockE(g,id,"no_game");
   var r=cfg.rules&&cfg.rules[id];
   if(!r)return blockE(g,id,"unknown_rule");
@@ -163,6 +166,7 @@ function can(id){
 function spend(id,x){
  try{
   x=x||{};id=str(id,80);var g=str(x.game),f=look(id),p=price(id);
+  if(off())return{ok:false,reason:"not_available",balance:0};
   function no(why){trk("coin_spend_blocked",{game:g,item:id,price:p||0,balance:bal(),reason:why});return{ok:false,reason:why,balance:bal(),price:p}}
   if(!g)return no("no_game");
   if(!f||p===null)return no("unknown_item");
@@ -195,7 +199,7 @@ function ready(){return rdy||{then:function(f){try{f&&f()}catch(e){}return this}
 
 var K=S.coins={persistent:persistent,balance:bal,earn:earn,spend:spend,can:can,has:has,price:price,onChange:onChange,
  rules:function(){return clone(cfg.rules)},catalogue:function(){return clone(cfg.catalogue)},history:history,ready:ready,
- stats:stats,unlocks:unlocks,dailyChallenge:dailyChallenge};
+ stats:stats,unlocks:unlocks,dailyChallenge:dailyChallenge,enabled:function(){return!off()}};
 init();
 rdy=w.Promise?new Promise(function(res){fetchCfg(res)}):null;
 w.addEventListener("storage",function(e){   /* another tab changed the wallet */
@@ -204,7 +208,7 @@ if(!live){   /* test helpers for coins-test.html; not on stratos.games */
  K._test={dump:function(){return{wallet:clone(W),ledger:clone(L),persistent:persistent}},
   reset:function(){try{w.localStorage.removeItem(WK);w.localStorage.removeItem(LK)}catch(e){}mem={};W=newW();L=newL(W.deviceId);save();notify({balance:0,delta:0,type:"sync"})},
   reinit:function(){init();notify({balance:bal(),delta:0,type:"sync"})},
-  setDay:function(s){mockDay=str(s)}}}
+  setDay:function(s){mockDay=str(s)},setSheet:function(f){sheetFn=f||sheet},fireEvent:function(n,x){autoEvent(n,x)}}}
 
 /* ---- site chip: the balance in the page header (markup from tools/build.py coin_chip), live, with a count-up and a +N toast ---- */
 var shown=null,raf=0,anim=!(w.matchMedia&&w.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -220,5 +224,59 @@ function toast(n){var c=chipEls();for(var i=0;i<c.length;i++){var e=d.createElem
 onChange(function(i){try{if(i.type=="earn"&&i.delta>0){setBal(bal(),shown==null?bal()-i.delta:shown);toast(i.delta)}else setBal(bal(),null)}catch(e){}});
 function wire(){shown=bal();paintN(shown,1)}
 if(d.readyState=="loading")d.addEventListener("DOMContentLoaded",wire);else wire();
+
+/* ---- every game: coins from the events a game already reports, a spend prompt (offer) and a "+N" flash ---- */
+function numLevel(x){var k=["level","stage","round","depot","lvl"];for(var i=0;i<k.length;i++){var n=x[k[i]]==null?0:parseInt(x[k[i]],10);if(n>=1&&n<=9999)return n}return 0}
+var autoSeq=0,fpDone=false;
+function uniq(){return"a"+Date.now().toString(36)+(++autoSeq)}
+function autoEvent(n,x){
+ var a=cfg.auto;if(!a||a.enabled===false||off()||!inPlay||(a.exclude||[]).indexOf(game)>=0)return;
+ x=x||{};var R=a.rules||{},paid=0,r;
+ function go(rule,ctx){if(!rule)return null;ctx.game=game;var q=earn(rule,ctx);if(q&&q.ok)paid+=q.amount;return q}
+ function daily(){var dc=dailyChallenge();if(dc&&dc.game==game&&!dc.done)go("daily_challenge",{ref:dc.ref})}
+ if(n=="level_start"||n=="game_start"){if(fpDone)return;fpDone=true;go(R.first,{})}
+ else if(n=="level_complete"){var lv=numLevel(x);r=lv?go(R.level,{level:lv}):null;
+  if(!r||r.reason=="already_earned")r=go(R.repeat,{ref:uniq()});   /* a replay, or a finish with no level number */
+  if(r&&r.ok)daily()}
+ else if(n=="game_over"&&(x.won===true||x.win===true)){r=go(R.win,{level:1,ref:uniq()});if(r&&r.ok)daily()}
+ else return;
+ if(paid)flash("+"+paid+" Stratos Coins")}
+var t0=S.track;S.track=function(n,x){t0(n,x);try{autoEvent(n,x)}catch(e){}};
+if(inPlay)setTimeout(function(){if(!fpDone&&d.visibilityState!="hidden")autoEvent("game_start",{})},15000);   /* games that report no start event still earn first-play coins */
+
+/* Where to draw: the page, or the game frame itself while the game is fullscreen (a fullscreen frame hides everything around it). */
+function surface(){try{var f=d.getElementById("game");if(d.fullscreenElement&&f&&f.contentDocument&&f.contentDocument.body)return f.contentDocument}catch(e){}return d}
+var SHEET_CSS=":host{all:initial}.bg{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.62);font:600 16px/1.4 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}.card{width:min(380px,100%);box-sizing:border-box;padding:20px 18px;border-radius:18px;background:#fff;color:#002b50;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5)}h2{margin:0 0 6px;font-size:21px;font-weight:900}p{margin:0 0 14px;color:#21405f}.row{display:flex;gap:10px}button{flex:1;min-height:48px;border:0;border-radius:999px;font:inherit;font-weight:900;cursor:pointer}.yes{background:#ffc933;color:#4a3000}.yes[disabled]{background:#cdd6df;color:#5b6b7b;cursor:not-allowed}.no{background:#e8eff7;color:#002b50}a{display:inline-block;margin-top:12px;color:#006fc0;font-size:14px}button:focus-visible,a:focus-visible{outline:3px solid #002b50;outline-offset:2px}.fl{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:999px;background:#137a41;color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.4);pointer-events:none;animation:fl 2.4s ease-out forwards}@keyframes fl{0%{opacity:0;top:0}12%{opacity:1;top:12px}85%{opacity:1}100%{opacity:0}}@media (prefers-reduced-motion:reduce){.fl{animation:none}}";
+function mount(html){
+ var D=surface(),h=D.createElement("div");h.setAttribute("data-stratos-coins","1");h.style.cssText="all:initial;position:fixed;inset:0;z-index:2147483647;pointer-events:none";
+ var r=h.attachShadow?h.attachShadow({mode:"open"}):h;r.innerHTML="<style>"+SHEET_CSS+"</style>"+html;(D.body||D.documentElement).appendChild(h);return{host:h,root:r,doc:D}}
+function flash(t){try{
+ var m=mount('<div class="fl" role="status" aria-live="polite"></div>');m.root.querySelector(".fl").textContent=t;
+ setTimeout(function(){if(m.host.parentNode)m.host.parentNode.removeChild(m.host)},2600)}catch(e){}}
+function sheet(o){   /* a small confirm sheet: title, text, a main button (maybe disabled) and "No thanks" */
+ var m=mount('<div class="bg" style="pointer-events:auto"><div class="card" role="dialog" aria-modal="true" aria-labelledby="t"><h2 id="t"></h2><p></p><div class="row"><button class="no" type="button">No thanks</button><button class="yes" type="button"></button></div><a target="_blank" rel="noopener">How to earn coins</a></div></div>');
+ var r=m.root,yes=r.querySelector(".yes"),no=r.querySelector(".no"),more=r.querySelector("a"),prev=null;try{prev=m.doc.activeElement}catch(e){}
+ r.querySelector("h2").textContent=o.title;r.querySelector("p").textContent=o.text;yes.textContent=o.yes;yes.disabled=!o.ok;more.href=cfgUrl.replace(/assets\/coins-config\.json.*$/,"coins/");
+ function close(){if(m.host.parentNode)m.host.parentNode.removeChild(m.host);try{if(prev&&prev.focus)prev.focus()}catch(e){}}
+ ["pointerdown","pointerup","mousedown","mouseup","touchstart","touchend","click","keyup","wheel"].forEach(function(n){m.host.addEventListener(n,function(e){e.stopPropagation()})});
+ m.host.addEventListener("keydown",function(e){e.stopPropagation();if(e.key=="Escape"){close();if(o.no)o.no()}});
+ no.onclick=function(){close();if(o.no)o.no()};yes.onclick=function(){if(!o.ok)return;close();o.yes_()};
+ try{(o.ok?yes:no).focus()}catch(e){}
+ return close}
+var sheetFn=sheet;
+/* Stratos.coins.offer('hint', onDone[, {label, onCancel, ref}]): the one call a game makes where it used to hand out a free reward.
+   Shows the price and the balance, one tap spends, onDone runs only after a paid spend. With no coins around (no price,
+   not on a play page, coins switched off) it runs onDone at once, exactly like the old free reward. */
+function offer(kind,onDone,o){
+ try{
+  o=o||{};kind=str(kind,80);var p=price(kind),done=function(){if(typeof onDone=="function")onDone()};
+  if(off()||!inPlay||p===null){done();return}
+  var label=o.label||(look(kind).item.label)||kind,lc=label.toLowerCase();refresh();var bal=W.balance,ok=bal>=p;
+  if(!ok)trk("coin_spend_blocked",{game:game,item:kind,price:p,balance:bal,reason:"insufficient"});
+  sheetFn({ok:ok,title:"Get a "+lc+"?",text:"A "+lc+" costs "+p+" Stratos Coins. You have "+bal+"."+(ok?"":" Play and win to earn more."),yes:ok?"Spend "+p+" coins":"Need "+(p-bal)+" more",
+   yes_:function(){var r=spend(kind,{game:game,ref:str(o.ref)});if(r&&r.ok)done();else flash("Could not spend coins")},
+   no:function(){if(typeof o.onCancel=="function")try{o.onCancel()}catch(e){}}})
+ }catch(e){try{if(typeof onDone=="function")onDone()}catch(x){}}}
+K.offer=offer;
 
 })(window,document);
