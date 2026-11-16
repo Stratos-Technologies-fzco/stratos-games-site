@@ -650,7 +650,7 @@ def build_play(g, fam, studio):
 
 def build_coins_page(fam):
     """/coins/: the player's coin balance, today's progress, ways to earn, spend, unlocked and history. Filled in the browser by assets/coins-page.js."""
-    games = {g["slug"]: {"t": g["title"]} for g in fam if not g.get("soon")}
+    games = {g["slug"]: {"t": g["title"], "u": g["url"]} for g in fam if not g.get("soon")}   # "u": the game's link (#67)
     gj = json.dumps(games, ensure_ascii=False).replace("</", "<\/")
     def sec(h, body, i=""): return f'<section class="pk-text coins-sec"{(" id=" + chr(34) + i + chr(34)) if i else ""}><h2>{h}</h2>{body}</section>'
     inner = '<div class="pk-head wide"><h1>Stratos Coins</h1><small>Earn coins in any game. Spend them in any game.</small></div>'
