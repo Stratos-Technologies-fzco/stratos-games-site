@@ -1,6 +1,12 @@
 {
   "version": 1,
   "caps": { "daily_total": 200, "daily_per_game": 100 },
+  "kidsCoins": true,
+  "auto": {
+    "enabled": true,
+    "exclude": [ "sksarfarajali-domino-classic", "sksarfarajali-stratos-29-card-game" ],
+    "rules": { "first": "game_first_play", "level": "level_complete", "repeat": "level_replay", "win": "match_win" }
+  },
   "rules": {
     "level_complete": {
       "label": "Finish a new level",
@@ -25,6 +31,7 @@
   "catalogue": {
     "hint": { "type": "consumable", "price": 10, "label": "Hint" },
     "undo": { "type": "consumable", "price": 5, "label": "Undo" },
+    "continue": { "type": "consumable", "price": 15, "label": "Second chance" },
     "sksarfarajali-moto-rush:level:*": { "type": "unlock", "price": 50, "freeUpTo": 5, "label": "Moto Rush level" }
   },
   "dailyChallenges": [
