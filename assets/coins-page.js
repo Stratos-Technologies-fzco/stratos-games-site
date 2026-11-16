@@ -56,7 +56,7 @@ function renderToday(){
  if(dc){
   var card=el("div","coins-card"),h=el("b",null,"Today's challenge: "+dc.title);card.appendChild(h);
   card.appendChild(el("p","coins-line",dc.done?"Done today. You earned "+dc.coins+" coins.":"Finish it for "+dc.coins+" coins."));
-  if(G[dc.game]&&!dc.done){var a=el("a","coins-btn","Play "+gname(dc.game));a.href=BASE+"play/"+dc.game+"/";card.appendChild(a)}
+  if(G[dc.game]&&!dc.done){var a=el("a","coins-btn","Play "+gname(dc.game));a.href=BASE+(G[dc.game].u||"play/"+dc.game+"/");card.appendChild(a)}
   box.appendChild(card)}}
 
 function renderEarn(){
