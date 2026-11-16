@@ -279,23 +279,18 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .cg-search input::placeholder{color:#a8abc9;opacity:1}
 .cg-search:focus-within{box-shadow:0 0 0 2px #7b5cff}
 .cg-acts{display:flex;align-items:center;gap:10px;flex:none}
-.cg-noads{display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 13px;border:2px solid #ffd21f;border-radius:999px;background:none;color:#ffd21f;font:inherit;font-size:15px;font-weight:900;cursor:pointer;white-space:nowrap}
-.cg-noads:hover{background:rgba(255,210,31,.1)}
 .cg-ib{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#2e3041;color:#fff;cursor:pointer}
 .cg-ib:hover{background:#3b3e54}
 .cg-ib svg{fill:currentColor}
 .cg-dot{position:absolute;top:-6px;right:-4px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#ff1f3d;color:#fff;font-size:12px;font-weight:900;line-height:22px;text-align:center}
-.cg-login{height:44px;padding:0 18px;border:0;border-radius:999px;background:#b8ff3c;color:#0b0c11;font:inherit;font-size:16px;font-weight:900;cursor:pointer;white-space:nowrap}
-.cg-login:hover{filter:brightness(1.07)}
-@media (max-width:1200px){.cg-noads span,.cg-wm{display:none}.cg-noads{width:44px;padding:0;justify-content:center}}
+@media (max-width:1200px){.cg-wm{display:none}}
 @media (max-width:760px){
   body.poki{--topbar:56px;padding-top:calc(var(--topbar) + 12px)}
   .cg-top{gap:8px;padding:0 10px}
   .cg-menu{width:40px;height:40px}
   .cg-logo .lm{width:36px;height:36px;font-size:20px}
   .cg-search{height:40px;padding:0 14px 0 16px}.cg-search input{font-size:15px}
-  .cg-noads,.cg-acts .cg-ib{display:none}
-  .cg-login{height:40px;padding:0 14px;font-size:15px}
+  .cg-acts .cg-ib{display:none}
 }
 /* ===== game pages: like / dislike under the game ===== */
 .pk-vote.up.on{background:var(--blue);color:#fff}
@@ -401,7 +396,7 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .cg-acts .coin-chip{min-height:44px}
 .top .coin-chip{margin-left:auto}
 @media (max-width:760px){.pk-sr .coin-chip{min-height:28px}}
-@media (max-width:480px){.cg-login{display:none}.cg-acts .coin-chip{padding:0 10px 0 7px}}
+@media (max-width:480px){.cg-acts .coin-chip{padding:0 10px 0 7px}}
 /* /coins page */
 .coins-wrap{max-width:900px;margin:0 auto;padding-bottom:4px}
 .coins-wrap .coins-sec{margin:16px auto 0;max-width:none}

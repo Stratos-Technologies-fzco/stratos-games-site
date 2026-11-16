@@ -444,8 +444,7 @@ SN_ASSETS = ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?fam
 def pz_nav():
     return (f'<div class="pk-nav pz-nav">{sn_logo("pz-logo sn-box", 30)}'
             f'<div class="pz-btns"><button class="pk-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 20)}</button>'
-            f'<button class="pz-b" type="button" aria-label="Account">{icon("user", 24)}</button>'
-            f'<button class="pz-b" type="button" aria-label="Search" onclick="document.body.classList.add(&quot;pz-find&quot;);document.getElementById(&quot;pkq&quot;).focus()">{icon("search", 24)}</button></div>'
+                        f'<button class="pz-b" type="button" aria-label="Search" onclick="document.body.classList.add(&quot;pz-find&quot;);document.getElementById(&quot;pkq&quot;).focus()">{icon("search", 24)}</button></div>'
             f'<label class="pk-search pz-search">{icon("search", 14)}<input id="pkq" type="search" placeholder="Search" autocomplete="off" aria-label="Search games" '
             f'onblur="if(!this.value)document.body.classList.remove(&quot;pz-find&quot;)"></label></div>{SN_ASSETS}')
 
@@ -461,11 +460,10 @@ def cg_top(new_count):
     return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
             f'{sn_logo("cg-logo", 46)}'
             f'<label class="cg-search"><input type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories" oninput="{sync}">{icon("search", 20)}</label>'
-            f'<div class="cg-acts">{coin_chip()}<button class="cg-noads" type="button">{icon("ad", 18)}<span>No ads</span></button>'
-            f'<button class="cg-ib" type="button" title="Friends" aria-label="Friends">{icon("users", 18)}</button>'
+            f'<div class="cg-acts">{coin_chip()}'
             f'<a class="cg-ib" href="#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
             f'<a class="cg-ib" href="c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
-            f'<button class="cg-login" type="button">Log in</button></div></header>')
+            f'</div></header>')
 
 PZ_SIZES = ["s3", "s2", "s2", "s1", "s1", "s2", "s3", "s1", "s2", "s1", "s2", "s1"]   # big, medium, small, repeating
 
