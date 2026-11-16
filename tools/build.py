@@ -11,7 +11,7 @@ Reads site.json and games/*/game.json, writes:
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
-import json, os, re, html, datetime, hashlib, subprocess
+import json, os, re, html, datetime, hashlib, subprocess, unicodedata
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -20,6 +20,9 @@ SITE = json.load(open(os.path.join(ROOT, "site.json"), encoding="utf-8"))
 # so the maker can keep fixing them. Mohua (tester) takes a game off the list once it passes her check.
 SITE_MODE = os.environ.get("STRATOS_SITE", "live")
 HIDDEN_ON_LIVE = SITE.get("hidden_on_live", {})
+# Public game links use the game's name (#67): site.json "links" maps a folder to its link, set once so a later
+# title change never breaks a link. A new game without an entry gets one from its short name.
+LINKS = SITE.get("links", {})
 CATS = {c["id"]: c for c in SITE["categories"]}
 YEAR = str(datetime.date.today().year)
 TODAY = datetime.date.today().isoformat()
@@ -109,6 +112,13 @@ def first_added():
             days[box(f[2])] = days.get(box(f[1]), day)                              # a renamed box keeps its first day
     return days
 
+def link_from(title):
+    """A link from a game's name: the short name (before ":" or a dash), lowercase, words joined by dashes."""
+    for cut in (":", " \u2013 ", " - "):
+        if cut in title and title.split(cut)[0].strip(): title = title.split(cut)[0].strip(); break
+    title = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", title).strip("-")
+
 def load_games():
     games, problems = [], []
     firsts = first_added()
@@ -135,7 +145,8 @@ def load_games():
             write(f"assets/covers/generated/{slug}.svg", cover_svg(g["title"], slug, f"{g['maker']} is building this" if g["soon"] else ""))
             g["thumb"] = f"assets/covers/generated/{slug}.svg"
         g["game_url"] = f"games/{slug}/index.html"
-        g["url"] = f"play/{slug}/"
+        g["link"] = LINKS.get(slug) or link_from(g["title"]) or slug
+        g["url"] = f"play/{g['link']}/"
         g["added"] = g.get("added") or firsts.get(slug) or datetime.date.fromtimestamp(os.path.getmtime(meta)).isoformat()
         g["kind"] = "family"
         games.append(g)
@@ -229,7 +240,7 @@ STRATOS_JS = """/* stratos.js: shared Stratos analytics and rewards for every pa
 (function(w,d){
 if(w.Stratos)return;
 try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
-var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),game=m?m[1]:"";
+var C=%s,m=location.pathname.match(/\\/(?:play|games)\\/([^\\/]+)\\//),gm=d.querySelector('meta[name="stratos-game"]'),game=gm&&gm.content?gm.content:(m?m[1]:"");
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
 if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var live=/(^|\.)stratos\.games$/.test(location.hostname);   /* staging and test copies: nothing is counted, track() shows in the console instead */
@@ -263,8 +274,8 @@ ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher acco
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
 CSS_V = hashlib.sha1(open(os.path.join(ROOT, "assets", "site.css"), "rb").read()).hexdigest()[:8]   # ?v= on the stylesheet link: a changed file is fetched at once, not after the 1-day cache
 
-def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False):
-    ga = ('<meta name="stratos-kids" content="1">' if kids else "") + f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
+def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False, game=""):
+    ga = ('<meta name="stratos-kids" content="1">' if kids else "") + (f'<meta name="stratos-game" content="{esc(game)}">' if game else "") + f'<meta name="google-adsense-account" content="{ADSENSE}"><script async src="{base}assets/stratos.js?v={STRATOS_V}"></script>'
     ld = f'<script type="application/ld+json">{json.dumps(jsonld, ensure_ascii=False)}</script>' if jsonld else ""
     og = f'<meta property="og:image" content="{esc(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
@@ -582,7 +593,7 @@ def pk_detail(g, base):
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
     desc = g.get("description") or g.get("one_line") or f"{g['title']} by {g['maker']}, free to play on Stratos Games."
-    jsonld = {"@context": "https://schema.org", "@type": "VideoGame", "name": g["title"], "url": f"{SITE['url']}/play/{g['slug']}/", "image": f"{SITE['url']}/{g['thumb']}",
+    jsonld = {"@context": "https://schema.org", "@type": "VideoGame", "name": g["title"], "url": f"{SITE['url']}/{g['url']}", "image": f"{SITE['url']}/{g['thumb']}",
               "description": desc, "genre": CATS[g["category"]]["label"], "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any",
               "author": {"@type": "Person", "name": g["maker"]}, "publisher": {"@id": SITE["url"] + "/#org"}, "isAccessibleForFree": True, "datePublished": g["added"]}
     gh = f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else ""
@@ -624,7 +635,7 @@ def build_play(g, fam, studio):
         rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cats(base)}</section>'
         body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cats(base),
                        attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words + rest)
-        write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
+        write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'
             f'<div class="stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
@@ -635,7 +646,7 @@ def build_play(g, fam, studio):
             f'<section class="about-game"><h1>{esc(g["title"])}</h1><p class="lead">{esc(g.get("one_line"))}</p>{about}{howto}'
             f'<p class="meta">{esc(CATS[g["category"]]["label"])} · Made by {esc(g["maker"])}{gh} · Added {esc(g["added"])} · Free, no install, works on a phone</p></section></div>'
             f'<aside class="play-side"{" hidden" if CLEAN and not more else ""}><h3>More games</h3><div class="tiles">{"".join(tile(x, base) for x in more)}{"" if CLEAN else cta_tile()}</div></aside></div>{footer(base)}</main></div>{JS}</body></html>')
-    write(f"play/{g['slug']}/index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/play/{g['slug']}/", base=base, og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
+    write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
 
 def build_coins_page(fam):
     """/coins/: the player's coin balance, today's progress, ways to earn, spend, unlocked and history. Filled in the browser by assets/coins-page.js."""
@@ -661,12 +672,12 @@ def build_coins_page(fam):
 
 def build_extras(fam, studio):
     real = [g for g in fam if not g.get("soon")]; soon = [g for g in fam if g.get("soon")]
-    urls = [SITE["url"] + "/"] + [f"{SITE['url']}/play/{g['slug']}/" for g in real] + [f"{SITE['url']}/c/{c['id']}/" for c in SITE["categories"]]
+    urls = [SITE["url"] + "/"] + [f"{SITE['url']}/{g['url']}" for g in real] + [f"{SITE['url']}/c/{c['id']}/" for c in SITE["categories"]]
     for slug in ("about", "press", "for-publishers", "games-bloxplode", "games-arrow-puzzle", "games-house-mafia", "games-word-quest", "privacy-policy", "terms-of-use"):
         if os.path.exists(os.path.join(ROOT, slug, "index.html")): urls.append(f"{SITE['url']}/{slug}/")
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "".join(f"  <url><loc>{esc(u)}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in urls) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {SITE['url']}/sitemap.xml\n")
-    lines = [f"# Stratos Games", "", SITE["description"], "", "## Play (free browser games)"] + [f"- [{g['title']}]({SITE['url']}/play/{g['slug']}/): {g.get('one_line','')} Made by {g['maker']}." for g in real] + ["", "## Coming soon (claimed by family makers)"] + [f"- {g['title']} by {g['maker']}: {g.get('one_line','')}" for g in soon] + ["", "## Studio titles"] + [f"- [{s['title']}]({SITE['url']}/{s['page']}): {s['one_line']}" for s in studio] + ["", "## Pages", f"- About: {SITE['url']}/about/", f"- For publishers: {SITE['url']}/for-publishers/", f"- Press kit: {SITE['url']}/press/", f"- Contact: {SITE['contact']}"]
+    lines = [f"# Stratos Games", "", SITE["description"], "", "## Play (free browser games)"] + [f"- [{g['title']}]({SITE['url']}/{g['url']}): {g.get('one_line','')} Made by {g['maker']}." for g in real] + ["", "## Coming soon (claimed by family makers)"] + [f"- {g['title']} by {g['maker']}: {g.get('one_line','')}" for g in soon] + ["", "## Studio titles"] + [f"- [{s['title']}]({SITE['url']}/{s['page']}): {s['one_line']}" for s in studio] + ["", "## Pages", f"- About: {SITE['url']}/about/", f"- For publishers: {SITE['url']}/for-publishers/", f"- Press kit: {SITE['url']}/press/", f"- Contact: {SITE['contact']}"]
     write("llms.txt", "\n".join(lines) + "\n")
     if CLEAN:
         write("404.html", head("Page not found | Stratos Games", "That page is not here.", SITE["url"] + "/404.html") + pk_body("/", '<div class="pk-head wide"><h1>🕹️ 404. That page is not here.</h1><small>Try the games instead.</small></div>' + pk_tiles(real, "/", first_big=False) + pk_cats("/")))
@@ -676,7 +687,7 @@ def build_extras(fam, studio):
 
 import shutil
 def prune(fam):
-    keep = {g["slug"] for g in fam}
+    keep = {g["link"] for g in fam}   # play pages live at the game's link (#67); old folder-named pages go
     for d in ("play",):
         base = os.path.join(ROOT, d)
         for slug in (os.listdir(base) if os.path.isdir(base) else []):
