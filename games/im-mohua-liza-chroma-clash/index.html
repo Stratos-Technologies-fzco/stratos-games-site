@@ -289,7 +289,7 @@ input.txt:focus{border-color:var(--wave)}
   <section class="screen active" id="scr-menu"><div class="panel">
     <h1 class="logo"><span>CHROMA</span><span>CLASH</span></h1>
     <p class="tag">Match colors. Drop bombs. Empty your hand first.</p>
-    <div class="wallet"><span id="walletCoins">🪙 0</span><span class="st hidden" id="walletStreak">🔥 0</span></div>
+    <div class="wallet"><span id="walletCoins">💎 0</span><span class="st hidden" id="walletStreak">🔥 0</span></div>
     <label class="field"><span>Your name</span><input class="txt" id="nameIn" maxlength="14" placeholder="Player"></label>
     <div class="menu-btns">
       <button class="btn big c-pop" data-go="scr-bots">🤖 Play vs Bots</button>
@@ -378,6 +378,7 @@ input.txt:focus{border-color:var(--wave)}
   <ol id="standings"></ol>
   <p class="sub hidden" id="winWait" style="margin-top:12px">Waiting for the host to deal again…</p>
   <div class="row"><button class="btn ghost" id="winMenu">Menu</button><button class="btn c-pop" id="winAgain">Play again</button></div>
+  <button class="btn ghost hidden" id="winPower" style="margin-top:10px;width:100%">⚡ Power start: next round with 2 fewer cards</button>
 </div></div>
 
 <script type="module">
@@ -389,6 +390,9 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* ================= Stratos hooks (no-ops until site-wide analytics is switched on) ================= */
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+// Stratos Coins (the shared wallet, apart from this game's own Gems). Only against bots: no coins in online or pass-and-play rounds.
+function SC() { try { var S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
+function coinsFor(kind) { const C = SC(); try { return !!(C && C.offer && C.price && C.price(kind) != null); } catch (e) { return false; } }
 
 /* ================= utils ================= */
 const $ = s => document.querySelector(s);
@@ -439,6 +443,8 @@ class Host {
     const deck = shuffle(CARDS.map(c => c.id));
     const players = this.seats.map(s => ({ name: s.name, type: s.type, hand: [], saidLast: false }));
     for (let r = 0; r < 7; r++) for (const p of players) p.hand.push(deck.pop());
+    // Power start (paid with Stratos Coins): this player begins the round with 2 fewer cards
+    if (this.powerSeat != null && players[this.powerSeat]) { for (let k = 0; k < 2; k++) deck.unshift(players[this.powerSeat].hand.pop()); this.powerSeat = null; }
     let top;
     for (; ;) { top = deck.pop(); if (CARDS[top].kind === 'num') break; deck.unshift(top); }
     this.s = { players, deck, discard: [top], color: CARDS[top].color, turn: rnd(players.length), dir: 1, pending: 0, pendingKind: null, drawn: null, winner: null, round: this.round };
@@ -635,7 +641,7 @@ const Wallet = {
   save() { store.set('cc-coins', this.coins); store.set('cc-streak', this.streak); store.set('cc-best', this.best); this.paint(); },
   paint() {
     const c = document.getElementById('walletCoins'), st = document.getElementById('walletStreak');
-    if (c) c.textContent = '🪙 ' + this.coins.toLocaleString();
+    if (c) c.textContent = '💎 ' + this.coins.toLocaleString();
     if (st) { st.textContent = '🔥 ' + this.streak + ' win streak'; st.classList.toggle('hidden', this.streak < 2); }
   },
 };
@@ -1297,12 +1303,15 @@ const UI = {
       case 'last': SFX.last(); this.toast(`${nm(e.seat)}: LAST CARD!`, { big: true, color: '#ff2e88' }); break;
       case 'penalty': SFX.bad(); this.toast(`${you(e.seat) ? 'You' : nm(e.seat)} forgot LAST CARD! +2`, { color: '#ffae1a' }); break;
       case 'shuffle': this.toast('Reshuffling the pile'); break;
-      case 'win': if (e.seat === view.me) track('level_complete', { mode: App.mode, players: view.players.length }); else track('game_over', { mode: App.mode, players: view.players.length }); SFX.win(); R.burst(null, 0, 500, { rain: true }); R.shake(.3); setTimeout(() => this.showWin(), 1100); break;
+      case 'win': { const info = { mode: App.mode, players: view.players.length }, solo = App.mode === 'offline' && !App.multiLocal;
+        if (!solo) track('game_over', Object.assign(info, { top: e.seat === view.me }));
+        else if (e.seat === view.me) track('level_complete', Object.assign(info, { level: view.round || 1 })); else track('game_over', info); } SFX.win(); R.burst(null, 0, 500, { rain: true }); R.shake(.3); setTimeout(() => this.showWin(), 1100); break;
     }
   },
   showWin() {
     const v = this.view; if (!v || v.winner == null) return;
     const w = v.winner;
+    $('#winPower').classList.toggle('hidden', !App.powerOK());
     $('#winTitle').textContent = (w === v.me && !App.multiLocal) ? 'YOU WIN!' : `${v.players[w].name} WINS!`;
     const ol = $('#standings'); ol.innerHTML = '';
     v.players.map((p, i) => ({ p, i })).sort((a, b) => a.p.count - b.p.count).forEach(({ p }, k) => {
@@ -1357,15 +1366,15 @@ const UI = {
 
     const box = $('#rewards'); box.innerHTML = '';
     rows.forEach(([label, n], i) => { const r = document.createElement('div'); r.className = 'rw'; r.style.animationDelay = (.8 + i * .25) + 's'; r.innerHTML = '<span></span><b></b>'; r.firstChild.textContent = label; r.lastChild.textContent = '+' + n; box.append(r); });
-    const tot = document.createElement('div'); tot.className = 'tot'; tot.innerHTML = '<span>Coins earned</span><b>🪙 0</b>'; box.append(tot);
-    const wl = document.createElement('p'); wl.className = 'wallet-line'; wl.textContent = 'Wallet: 🪙 ' + before.toLocaleString(); box.append(wl);
+    const tot = document.createElement('div'); tot.className = 'tot'; tot.innerHTML = '<span>Gems earned</span><b>💎 0</b>'; box.append(tot);
+    const wl = document.createElement('p'); wl.className = 'wallet-line'; wl.textContent = 'Wallet: 💎 ' + before.toLocaleString(); box.append(wl);
     const tb = tot.lastChild, start = .8 + rows.length * .25 + .2;
     clearInterval(this.coinTimer);
     setTimeout(() => {
       let shown = 0; const stepN = Math.max(1, Math.ceil(total / 22));
       this.coinTimer = setInterval(() => {
-        shown = Math.min(total, shown + stepN); tb.textContent = '🪙 +' + shown; tb.classList.remove('tick'); void tb.offsetWidth; tb.classList.add('tick'); SFX.coin();
-        wl.textContent = 'Wallet: 🪙 ' + (before + shown).toLocaleString();
+        shown = Math.min(total, shown + stepN); tb.textContent = '💎 +' + shown; tb.classList.remove('tick'); void tb.offsetWidth; tb.classList.add('tick'); SFX.coin();
+        wl.textContent = 'Wallet: 💎 ' + (before + shown).toLocaleString();
         if (shown >= total) { clearInterval(this.coinTimer); this.flyCoins(tb); }
       }, 55);
     }, start * 1000);
@@ -1382,7 +1391,7 @@ const UI = {
   flyCoins(from) {
     const r = from.getBoundingClientRect();
     for (let i = 0; i < 10; i++) {
-      const c = document.createElement('div'); c.className = 'coin-fly'; c.textContent = '🪙'; document.body.append(c);
+      const c = document.createElement('div'); c.className = 'coin-fly'; c.textContent = '💎'; document.body.append(c);
       const x0 = r.left + r.width / 2, y0 = r.top, dx = (Math.random() - .5) * 220, dy = -90 - Math.random() * 120;
       c.animate([{ transform: `translate(${x0}px,${y0}px) scale(.6)`, opacity: 1 }, { transform: `translate(${x0 + dx}px,${y0 + dy}px) scale(1.2)`, opacity: 1, offset: .55 }, { transform: `translate(${x0 + dx * 1.2}px,${y0 + dy + 140}px) scale(.8)`, opacity: 0 }],
         { duration: 900 + Math.random() * 300, delay: i * 40, easing: 'cubic-bezier(.2,.8,.4,1)' }).onfinish = () => c.remove();
@@ -1786,6 +1795,7 @@ const App = {
   },
   reset() { if (this.host) this.host.destroy(); this.host = null; clearTimeout(this.curT); this.waitingFor = null; this.multiLocal = false; UI.hideCurtain(); },
   toMenu() { this.reset(); Net.close(); this.mode = null; UI.exitGame(); Chat.reset(); FX.stop(); Wallet.paint(); UI.show('scr-menu'); },
+  powerOK() { return this.mode === 'offline' && !this.multiLocal && !!this.host && coinsFor('boost'); },
   rematch() { if (this.host && this.mode !== 'online-client') { $('#win').classList.add('hidden'); FX.stop(); this.host.start(); } },
 };
 
@@ -2054,6 +2064,12 @@ function wire() {
   $('#cancelPick').onclick = () => $('#colorPick').classList.add('hidden');
   $('#curtainGo').onclick = () => { SFX.click(); App.confirmCurtain(); };
   $('#winAgain').onclick = () => App.rematch();
+  $('#winPower').onclick = () => {
+    if (!App.powerOK()) return;
+    track('reward_offered', { item: 'boost' });
+    SC().offer('boost', () => { track('reward_taken', { item: 'boost' }); App.host.powerSeat = App.viewSeat; App.rematch(); UI.toast('Power start! You begin with 2 fewer cards', { color: '#ffd65a' }); },
+      { title: 'Power start?', what: 'Starting the next round with 2 fewer cards' });
+  };
   $('#winMenu').onclick = () => App.toMenu();
   const sb = $('#soundBtn'), mb = $('#musicBtn');
   const paint = () => { sb.classList.toggle('off', !SFX.on); sb.textContent = SFX.on ? '🔊' : '🔈'; mb.classList.toggle('off', !Music.on); };

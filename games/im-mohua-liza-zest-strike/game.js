@@ -4,6 +4,9 @@ import * as THREE from './vendor/three.module.js';
 const $ = id => document.getElementById(id);
 // Stratos analytics hook
 function track(name, details) { try { var St = window.Stratos || parent.Stratos; if (St) St.track(name, details); } catch (e) { } }
+// Stratos Coins (shared wallet). Practice mode only: no coins in the online arena (CLAUDE.md rule).
+function SC() { try { var St = window.Stratos || parent.Stratos; return St && St.coins ? St.coins : null; } catch (e) { return null; } }
+function coinsFor(kind) { const C = SC(); try { return !!(C && C.offer && C.price && C.price(kind) != null); } catch (e) { return false; } }
 const TEST = new URLSearchParams(location.search).has('test');
 // phones and tablets get on-screen controls (?touch forces them on, for testing)
 const TOUCH = new URLSearchParams(location.search).has('touch') || matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -582,7 +585,8 @@ function kill(v, src, head, wname, fromNet) {
   if (v.isPlayer) {
     $('dtitle').textContent = src && src !== v ? `Squeezed by ${src.name}` : 'You squeezed yourself';
     $('dsub').textContent = src && src !== v ? `${wname}${head ? ' (zest shot)' : ''}. They have ${src.hp > 0 ? Math.ceil(src.hp) : 0} health left.` : 'Careful with juice bombs.';
-    renderPicks(); $('death').classList.remove('hide'); aimT = 0;
+    renderPicks(); $('death').classList.remove('hide'); aimT = 0; mouseL = false;
+    $('revive').classList.toggle('hide', !reviveReady());
   }
   if (!online && src && src.kills >= KILL_TARGET) endMatch();
 }
@@ -596,7 +600,7 @@ function respawn(b) {
   b.yaw = Math.atan2(best[0], best[1]); b.pitch = 0;
   b.equip(b.nextPrimary); b.alive = true; b.protect = 1.5; b.crouch = false; b.h = STAND_H;
   if (b.model) { b.model.visible = true; b.ai.target = null; b.ai.wp = null; }
-  if (b.isPlayer) { $('death').classList.add('hide'); showWeapon(); }
+  if (b.isPlayer) { $('death').classList.add('hide'); $('revive').classList.add('hide'); showWeapon(); }
 }
 
 // juice bombs
@@ -1000,7 +1004,7 @@ function startMatch(isOnline) {
     }
   }
   bodies.forEach(b => respawn(b));
-  matchT = 0; aimT = 0; zoomIdx = 1; $('feed').innerHTML = '';
+  matchT = 0; aimT = 0; zoomIdx = 1; $('feed').innerHTML = ''; reviveUsed = false;
   $('pname').textContent = player.name;
   $('death').classList.add('hide');
   state = 'play'; showWeapon();
@@ -1021,7 +1025,13 @@ function endMatch() {
   state = 'end'; document.exitPointerLock?.();
   const sorted = [...bodies].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
   const place = sorted.indexOf(player) + 1;
-  track(place === 1 ? 'level_complete' : 'game_over', { mode: online ? 'online' : 'practice', place, won: place === 1, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT), players: online ? Net.humans() : 1 });
+  const info = { mode: online ? 'online' : 'practice', place, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT), players: online ? Net.humans() : 1 };
+  if (online) track('game_over', Object.assign(info, { top: place === 1 })); // online pays no coins: no level number, no "won"
+  else {
+    S.matches = (S.matches || 0) + 1; save();
+    track('level_complete', Object.assign({ level: S.matches }, info));
+    track('game_over', Object.assign({ won: place === 1 }, info));
+  }
   $('etitle').textContent = place === 1 ? 'YOU WIN!' : 'MATCH OVER';
   $('esub').textContent = place === 1 ? `Freshest fruit in the arena. ${player.kills} squeezes.` : `${sorted[0].name} won. You came ${place}${['st', 'nd', 'rd'][place - 1] || 'th'} with ${player.kills} squeezes.`;
   $('endb').innerHTML = sorted.map((b, i) => `<tr class="${b === player ? 'me' : ''}"><td>${i + 1}</td><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}${botTag(b)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
@@ -1204,7 +1214,7 @@ function showHelp() {
   hud.hint.textContent = TOUCH ? 'Left thumb moves, right thumb looks. Hold FIRE to squeeze!' : online ? 'Squeeze as many fruits as you can. Most squeezes when the timer ends wins!' : 'Squeeze the other fruits. First to 25 wins!';
   clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 6000);
 }
-function lock() { if (TEST || TOUCH) { locked = true; return; } try { const r = canvas.requestPointerLock({ unadjustedMovement: true }); if (r && r.catch) r.catch(() => canvas.requestPointerLock()); } catch (e) { canvas.requestPointerLock(); } }
+function lock() { if (TEST || TOUCH) { locked = true; return; } try { const r = canvas.requestPointerLock({ unadjustedMovement: true }); if (r && r.catch) r.catch(() => { try { const r2 = canvas.requestPointerLock(); if (r2 && r2.catch) r2.catch(() => { }); } catch (e2) { } }); } catch (e) { try { canvas.requestPointerLock(); } catch (e2) { } } }
 document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === canvas;
   if (!locked && state === 'play') { state = 'paused'; setPauseText(false); $('pause').classList.remove('hide'); mouseL = mouseR = false; for (const k in keys) keys[k] = false; }
@@ -1220,6 +1230,7 @@ addEventListener('mousemove', e => {
 canvas.addEventListener('mousedown', e => {
   audio();
   if (state === 'play' && !locked) { lock(); return; }
+  if (state === 'play' && player && !player.alive && e.button === 0 && reviveReady()) { askRevive(); return; }
   if (e.button === 0) mouseL = true; if (e.button === 2) mouseR = true;
 });
 addEventListener('mouseup', e => { if (e.button === 0) mouseL = false; if (e.button === 2) mouseR = false; });
@@ -1236,6 +1247,7 @@ addEventListener('keydown', e => {
   if (state !== 'play') return;
   keys[e.code] = true;
   const p = player;
+  if (!p.alive && e.code === 'KeyE' && reviveReady()) { askRevive(); return; }
   if (!p.alive) { const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code); if (n >= 0) { p.nextPrimary = PRIMARIES[n]; S.weapon = PRIMARIES[n]; save(); renderPicks(); } return; }
   if (e.code === 'KeyR') startReload(p);
   if (e.code === 'KeyQ') swapTo(1 - p.cur);
@@ -1246,6 +1258,24 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Tab') $('board').classList.add('hide'); });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; mouseL = mouseR = false; });
+
+// ---------------------------------------------------------------- another go (Stratos Coins)
+// Practice only, once per match: when you are squeezed, spend coins to jump straight back in
+// with full health and 3 seconds of safety instead of waiting. The game waits while you choose.
+let reviveUsed = false;
+const reviveReady = () => !online && !reviveUsed && state === 'play' && player && !player.alive && coinsFor('continue');
+function askRevive() {
+  state = 'offer'; mouseL = mouseR = false;
+  if (document.pointerLockElement) document.exitPointerLock();
+  track('reward_offered', { item: 'continue' });
+  const back = () => { if (state === 'offer') state = 'play'; if (!TOUCH && !locked) { hud.hint.textContent = 'Click to jump back in'; clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 3000); } };
+  SC().offer('continue', () => {
+    reviveUsed = true; track('reward_taken', { item: 'continue' });
+    respawn(player); player.hp = 100; player.protect = 3;
+    showMsg('Back in the juice!'); back();
+  }, { title: 'Another go?', what: 'Jumping straight back in with full health', onCancel: () => { $('revive').classList.toggle('hide', !reviveReady()); back(); } });
+}
+$('revive').addEventListener('click', e => { e.stopPropagation(); if (reviveReady()) askRevive(); });
 
 // ---------------------------------------------------------------- phone controls
 // Left side of the screen: a thumb stick that appears where the thumb lands.

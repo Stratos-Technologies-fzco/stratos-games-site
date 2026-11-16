@@ -100,6 +100,8 @@ em.bot{font-style:normal;font-size:11px;color:var(--dim);border:1px solid var(--
 #death h2{font-family:Bungee;font-size:36px;margin:0;color:#ffb37a;text-shadow:0 3px 0 #000}
 #death p{margin:6px 0 14px;font-size:16px}
 #picks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}#picks div{background:rgba(10,13,20,.75);border:2px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px}#picks div.on{border-color:var(--acc)}
+#revive{pointer-events:auto;margin:0 0 14px;padding:10px 22px;border:0;border-radius:14px;color:#1a1006;background:linear-gradient(180deg,#ffd23a,#ff8a1f);box-shadow:0 4px 0 #b65a0c;font-size:16px;text-align:center}
+#revive span{font-size:13px}#revive small{display:block;font-size:12px;opacity:.8;margin-top:2px}
 #board{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;min-width:min(440px,92vw)}
 table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:7px 10px;text-align:left}th{color:var(--dim);font-weight:400;font-size:12px;text-transform:uppercase;letter-spacing:1px}
 tr.me td{color:var(--acc2);font-weight:700}tbody tr:nth-child(odd){background:rgba(255,255,255,.04)}
@@ -191,7 +193,7 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
   <button class="tb" id="tPause">II</button>
 </div>
 <div id="rotate" class="screen hide"><div class="panel"><div class="ph">&#128241;</div><h1 class="logo" style="font-size:30px;margin-top:10px">TURN SIDEWAYS</h1><p class="tag" style="margin:10px 0 0">Zest Strike plays with your phone held sideways.</p></div></div>
-<div id="death" class="hide"><h2 id="dtitle">Squeezed!</h2><p id="dsub"></p><div id="picks"></div></div>
+<div id="death" class="hide"><h2 id="dtitle">Squeezed!</h2><p id="dsub"></p><button id="revive" class="hide"><b>Another go</b><span class="deskonly"> &middot; press E or click</span><small>Back right now with full health, once per match</small></button><div id="picks"></div></div>
 <div id="board" class="panel hide"><table><thead><tr><th>Fruit</th><th class="n">Kills</th><th class="n">Deaths</th></tr></thead><tbody id="boardb"></tbody></table></div>
 
 <!-- MENU -->
