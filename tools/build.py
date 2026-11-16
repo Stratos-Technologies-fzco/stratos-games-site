@@ -35,6 +35,7 @@ def write(p, s):
     open(full, "w", encoding="utf-8").write(s)
 
 ICONS = {
+ "help": '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
  "sparkle": '<path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.9 2.6L22.5 18.5l-2.6.9L19 22l-.9-2.6L15.5 18.5l2.6-.9z"/>',
  "joystick": '<circle cx="12" cy="6" r="3"/><path d="M12 9v6"/><rect x="4" y="15" width="16" height="6" rx="2"/>',
  "puzzle": '<path d="M10 3h4v3a2 2 0 1 0 4 0h3v4h-3a2 2 0 1 0 0 4h3v4h-4v-3a2 2 0 1 0-4 0v3H6v-4H3v-4h3a2 2 0 1 0 0-4H3V6h3v3a2 2 0 1 0 4 0z"/>',
@@ -289,7 +290,7 @@ def head(title, desc, canon, base="", og_image="", jsonld=None, kids=False, game
     og = f'<meta property="og:image" content="{esc(og_image)}"><meta name="twitter:card" content="summary_large_image">' if og_image else ""
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d0f16">'
             f'<title>{esc(title)}</title><meta name="description" content="{esc(desc)}"><link rel="canonical" href="{esc(canon)}">'
-            f'<meta property="og:type" content="website"><meta property="og:site_name" content="Stratos Games"><meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{esc(canon)}">{og}'
+            f'<meta property="og:type" content="website"><meta property="og:url" content="{esc(canon)}"><meta property="og:site_name" content="Stratos Games"><meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{esc(canon)}">{og}'
             f'<link rel="icon" href="{base}assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{base}assets/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{base}assets/apple-touch-icon.png">'
             f'<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
             f'<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">'
@@ -562,6 +563,39 @@ def pk_date(s):
     except Exception:
         return str(s or "")
 
+def pk_faq(g):
+    """#70 AEO: the questions people ask about a game (and ask AI assistants), answered from game.json. Shown on the
+    play page and given to Google and AI assistants as FAQ data. A maker can add more in game.json:
+    "faq": [{"q": "...", "a": "..."}]."""
+    t, maker = g["title"], g["maker"]
+    kind = {"arcade": "an arcade game", "puzzle": "a puzzle game", "word": "a word game", "party": "a party game",
+            "sports": "a sports game", "kids": "a game for kids"}.get(g["category"], f'a {CATS[g["category"]]["label"].lower()} game')
+    ctr = [str(x).strip().rstrip(".") for x in ([g["controls"]] if isinstance(g.get("controls"), str) else g.get("controls") or []) if str(x).strip()]
+    qa = []
+    how = (g.get("how_to_play") or "").strip()
+    if how or ctr:
+        qa.append((f"How do I play {t}?", " ".join(x for x in (how, ("Controls: " + "; ".join(ctr) + ".") if ctr else "") if x)))
+    qa.append((f"Is {t} free to play?", f"Yes. {t} is free to play in your web browser on Stratos Games. There is nothing to download or install."))
+    qa.append((f"Does {t} work on a phone?", f"Yes. {t} runs in the web browser on phones, tablets and computers, so you can play it anywhere."))
+    qa.append((f"What kind of game is {t}?", f"{t} is {kind}." + (f" {g['one_line'].strip()}" if g.get("one_line") else "")))
+    qa.append((f"Who made {t}?", f"{maker} made {t}. It was added to Stratos Games on {pk_date(g.get('added'))}."))
+    for x in g.get("faq") or []:
+        if isinstance(x, dict) and str(x.get("q") or "").strip() and str(x.get("a") or "").strip():
+            qa.append((str(x["q"]).strip(), str(x["a"]).strip()))
+    return qa
+
+def pk_meta(g):
+    """#70: the meta description Google shows under the link: the one-line pitch (or the start of the description),
+    with 'free to play' when there is room, at most about 160 characters."""
+    one = " ".join(str(g.get("one_line") or "").split())
+    base = one if len(one) >= 50 else " ".join(" ".join(pk_paras(g.get("description"))).split()) or one or f"{g['title']} by {g['maker']}."
+    if base and base[-1] not in ".!?": base += "."
+    tail = " Free to play in your browser on Stratos Games."
+    if len(base) + len(tail) <= 160: return base + tail
+    if len(base) <= 160: return base
+    cut = base[:157].rsplit(" ", 1)[0].rstrip(",;:-")
+    return cut + "…"
+
 def pk_detail(g, base):
     c = CATS[g["category"]]; cat_href = f'{base}c/{g["category"]}/'
     paras = pk_paras(g.get("description")) or ([g["one_line"]] if g.get("one_line") else [])
@@ -584,6 +618,7 @@ def pk_detail(g, base):
             row("phone", "Supported devices", "Phone, tablet and computer, right in the browser. No download.") +
             row("github", "Developer", dev) +
             row("clock", "Released", esc(pk_date(g.get("added")))))
+    faq = "".join(f'<div class="pd-row"><dt>{icon("help", 19)}{esc(q)}</dt><dd><p>{esc(a)}</p></dd></div>' for q, a in pk_faq(g))
     return (f'<section class="pk-detail"><div class="pd-head">'
             f'<img class="pd-cover" src="{esc(base + g["thumb"])}" alt="{esc(g["title"])} cover" width="800" height="500" loading="lazy">'
             f'<div class="pd-main"><nav class="pd-crumb" aria-label="Breadcrumb"><a href="{base}">Games</a>{icon("chev", 14)}<a href="{cat_href}">{esc(c["label"])} games</a></nav>'
@@ -591,7 +626,8 @@ def pk_detail(g, base):
             f'<div class="pd-desc" id="pd-desc">{desc}</div>'
             f'<button class="pd-more" id="pd-more" type="button" aria-expanded="false" hidden><span>Show more</span>{icon("plus", 15)}</button></div></div>'
             f'<div class="pd-facts">{facts}</div>'
-            f'<h2>About this game</h2><dl class="pd-table">{rows}</dl></section>'
+            f'<h2>About this game</h2><dl class="pd-table">{rows}</dl>'
+            f'<h2 id="faq">Questions and answers</h2><dl class="pd-table pd-faq">{faq}</dl></section>'
             '<script>(function(){var D=document,d=D.getElementById("pd-desc"),b=D.getElementById("pd-more"),g=D.querySelector(".pk-grid"),s=D.querySelector(".pk-detail");'
             'function fit(){if(!g||!s)return;var l=1e9,r=-1e9;[].forEach.call(g.children,function(c){var b=c.getBoundingClientRect();if(!b.width||c.hidden||c.classList.contains(\"pk-stage\"))return;l=Math.min(l,b.left);r=Math.max(r,b.right)});'
             'if(r<=l)return;var B=D.body,o=B.getBoundingClientRect().left+parseFloat(getComputedStyle(B).paddingLeft);s.style.width=(r-l)+"px";s.style.marginLeft=(l-o)+"px"}'
@@ -659,9 +695,13 @@ def pk_splash(g, base):
 def build_play(g, fam, studio):
     base = "../../"; more = [x for x in (fam if CLEAN else fam + studio) if x["slug"] != g["slug"] and not x.get("soon")][:8]
     desc = g.get("description") or g.get("one_line") or f"{g['title']} by {g['maker']}, free to play on Stratos Games."
-    jsonld = {"@context": "https://schema.org", "@type": "VideoGame", "name": g["title"], "url": f"{SITE['url']}/{g['url']}", "image": f"{SITE['url']}/{g['thumb']}",
-              "description": desc, "genre": CATS[g["category"]]["label"], "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any",
-              "author": {"@type": "Person", "name": g["maker"]}, "publisher": {"@id": SITE["url"] + "/#org"}, "isAccessibleForFree": True, "datePublished": g["added"]}
+    page_url = f"{SITE['url']}/{g['url']}"
+    game_ld = {"@type": "VideoGame", "@id": page_url + "#game", "name": g["title"], "url": page_url, "image": f"{SITE['url']}/{g['thumb']}",
+               "description": desc, "genre": CATS[g["category"]]["label"], "gamePlatform": "Web browser", "applicationCategory": "Game", "operatingSystem": "Any",
+               "author": {"@type": "Person", "name": g["maker"]}, "publisher": {"@id": SITE["url"] + "/#org"}, "isAccessibleForFree": True, "datePublished": g["added"]}
+    # #70 AEO: the questions on the page, as FAQ data for Google and AI assistants
+    faq_ld = {"@type": "FAQPage", "@id": page_url + "#faq", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in pk_faq(g)]}
+    jsonld = {"@context": "https://schema.org", "@graph": [game_ld, faq_ld]}
     gh = f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else ""
     howto = f'<h2>How to play</h2><p>{esc(g["how_to_play"])}</p>' if g.get("how_to_play") else ""
     about = (f'<p class="soon-note">Coming soon. {esc(g["maker"])} is building this one. The box is claimed, the game lands here when it is ready.</p>' if g.get("soon") else "") + (f'<p>{esc(g["description"])}</p>' if g.get("description") and not CLEAN else "")
@@ -701,7 +741,7 @@ def build_play(g, fam, studio):
         rest = f'<section class="pk-grid pk-more" aria-label="More games">{pk_tiles(others[near:], base, first_big=False)}{pk_cats(base)}</section>'
         body = pk_body(base, stage + PK_MINE + pk_tiles(others, base, first_big=False, later_from=near) + pk_cats(base),
                        attrs=f' data-game="{esc(g["slug"])}" data-gi="{esc(gi)}"', active=g["category"], after=words + rest)
-        write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
+        write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", pk_meta(g), f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, g["category"])}<main class="main play"><div class="play-grid{" solo" if CLEAN and not more else ""}"><div class="stage-col">'
             f'<div class="stage"><iframe id="game" src="{base}{esc(g["game_url"])}" title="{esc(g["title"])}" allow="fullscreen; autoplay; gamepad" allowfullscreen loading="eager"></iframe>'
@@ -712,7 +752,7 @@ def build_play(g, fam, studio):
             f'<section class="about-game"><h1>{esc(g["title"])}</h1><p class="lead">{esc(g.get("one_line"))}</p>{about}{howto}'
             f'<p class="meta">{esc(CATS[g["category"]]["label"])} · Made by {esc(g["maker"])}{gh} · Added {esc(g["added"])} · Free, no install, works on a phone</p></section></div>'
             f'<aside class="play-side"{" hidden" if CLEAN and not more else ""}><h3>More games</h3><div class="tiles">{"".join(tile(x, base) for x in more)}{"" if CLEAN else cta_tile()}</div></aside></div>{footer(base)}</main></div>{JS}</body></html>')
-    write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", desc, f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
+    write(f"{g['url']}index.html", head(f"{g['title']} by {g['maker']} | Play free on Stratos Games", pk_meta(g), f"{SITE['url']}/{g['url']}", base=base, game=g["slug"], og_image=f"{SITE['url']}/{g['thumb']}", jsonld=jsonld, kids=g["category"] == "kids") + body)
 
 def build_coins_page(fam):
     """/coins/: the player's coin balance, today's progress, ways to earn, spend, unlocked and history. Filled in the browser by assets/coins-page.js."""
