@@ -7,7 +7,7 @@ Reads site.json and games/*/game.json, writes:
   c/<category>/index.html    one page per category (a wall of that category)
   games.json                 the catalog (search, future apps)
   sitemap.xml, robots.txt, llms.txt, 404.html
-  assets/stratos.js          shared Stratos analytics (Firebase settings from the FIREBASE_* secrets)
+  assets/stratos.js          shared Stratos analytics + coins (Firebase settings from the FIREBASE_* secrets; coins from tools/coins.js)
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
@@ -250,8 +250,15 @@ if(game&&/\\/play\\//.test(location.pathname)){
  d.addEventListener("visibilitychange",function(){if(d.visibilityState=="hidden")flush();else from=Date.now()});
  w.addEventListener("pagehide",flush);
 }
+/*__COINS__*/
 })(window,document);
 """ % (json.dumps(FIREBASE), json.dumps(EEA))
+# Stratos Coins (see STRATOS_COINS_ARCHITECTURE.md): the module lives in tools/coins.js, its rules and prices in
+# assets/coins-config.json; the config is also baked in as the offline default so earning never breaks.
+_here = os.path.dirname(os.path.abspath(__file__))
+_coins = open(os.path.join(_here, "coins.js"), encoding="utf-8").read()
+_cfg = json.dumps(json.load(open(os.path.join(_here, "..", "assets", "coins-config.json"), encoding="utf-8")), separators=(",", ":"))
+STRATOS_JS = STRATOS_JS.replace("/*__COINS__*/", _coins.replace("/*COINS_CONFIG*/{}", _cfg))
 ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher account (same as AdMob); site ownership tag only, no ads yet
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
 

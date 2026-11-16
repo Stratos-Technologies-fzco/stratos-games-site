@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "caps": { "daily_total": 200, "daily_per_game": 100 },
+  "rules": {
+    "level_complete": {
+      "label": "Finish a new level",
+      "amount": [ { "maxLevel": 10, "coins": 10 }, { "maxLevel": 30, "coins": 15 }, { "maxLevel": 9999, "coins": 20 } ],
+      "once": "game+level",
+      "enabled": true
+    },
+    "level_replay": { "label": "Replay a level", "amount": 2, "perGamePerDay": 5, "enabled": true },
+    "daily_challenge": { "label": "Complete the daily challenge", "amount": 30, "once": "day", "enabled": true },
+    "streak_bonus": { "label": "Play on a streak", "perDay": 5, "max": 25, "minStreak": 2, "enabled": true },
+    "game_first_play": { "label": "Try a new game", "amount": 20, "once": "game", "enabled": true },
+    "rewarded_ad": { "label": "Watch an ad", "amount": 15, "perDay": 3, "enabled": false }
+  },
+  "catalogue": {
+    "hint": { "type": "consumable", "price": 10, "label": "Hint" },
+    "sksarfarajali-moto-rush:level:*": { "type": "unlock", "price": 50, "freeUpTo": 5, "label": "Moto Rush level" }
+  },
+  "dailyChallenges": [
+    { "game": "sksarfarajali-moto-rush", "title": "Beat a Moto Rush level" },
+    { "game": "sksarfarajali-brainrush", "title": "Finish a Brain Rush round" },
+    { "game": "sksarfarajali-dino-frontier", "title": "Survive a Dino Frontier run" },
+    { "game": "sksarfarajali-domino-classic", "title": "Win a Domino Classic game" },
+    { "game": "sksarfarajali-babel-harbour", "title": "Solve a Babel Harbour word" },
+    { "game": "im-mohua-liza-wordbloom", "title": "Grow a Wordbloom" },
+    { "game": "im-mohua-liza-momo-run", "title": "Finish a Momo Run" }
+  ]
+}
