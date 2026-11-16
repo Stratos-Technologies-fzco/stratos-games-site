@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Arrow Rush</title>
+  <!-- stratos.games web only (#68): inside a Stratos play page the site shows the shared Stratos Games
+       splash, so skip this game's own launch splash and boot layer, exactly like ?skip-splash.
+       Opened on its own, nothing changes. -->
+  <script id="sg-stratos-splash">
+    (function () {
+      try {
+        if (window.parent === window || /[?&]skip-splash/.test(location.search)) return;
+        if (!parent.document.querySelector('meta[name="stratos-game"]')) return;
+        var u = new URL(location.href); u.searchParams.set('skip-splash', '1');
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+    })();
+  </script>
   <!-- Inter — the Stratos Games launch splash (#229; STRATOS wordmark weight
        600, GAMES weight 800) + the in-game HUD title / difficulty badge
        (#413, weight 800). Same import as BX. -->

@@ -434,3 +434,14 @@ body.poki.side-open .pk-side .lb{opacity:1}
 .s3 .pk-name{font-size:21px}
 @media (max-width:620px){.s1 .pk-name{display:block;font-size:10.5px;padding:18px 4px 5px}.s2 .pk-name{font-size:13.5px}.s3 .pk-name{font-size:17px}}
 @media (max-width:360px){.s1 .pk-name{font-size:9.5px;padding:10px 3px 4px}}
+/* #68 every game opens with the same short Stratos Games splash, over the game frame (tools/build.py pk_splash) */
+.pk-frame{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.pk-splash{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;
+  background:radial-gradient(120% 90% at 50% 42%,#262a48 0%,#14151F 62%);cursor:pointer;transition:opacity .4s ease}
+.pk-splash.out{opacity:0;pointer-events:none}
+.pk-splash .sn-logo{animation:pkSplashIn .55s cubic-bezier(.2,.8,.3,1.15) both}
+.pk-splash .sn-row{font-size:clamp(40px,8vmin,64px)}
+.pk-splash .sn-w2{font-size:clamp(15px,3vmin,23px);margin-top:4px}
+.pk-splash-name{max-width:86%;font:800 clamp(14px,2.4vmin,19px)/1.25 Nunito,sans-serif;color:rgba(255,255,255,.72);text-align:center;text-wrap:balance;animation:pkSplashIn .55s .18s ease both}
+@keyframes pkSplashIn{from{opacity:0;transform:translateY(8px) scale(.95)}}
+@media (prefers-reduced-motion:reduce){.pk-splash .sn-logo,.pk-splash-name{animation:none}.pk-splash{transition-duration:.15s}}
