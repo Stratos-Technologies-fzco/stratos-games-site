@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrow Rush: Get the game</title>
+<meta name="description" content="Arrow Rush: Maze Puzzle Escape. Free on iPhone, Android and in your browser.">
+<meta property="og:title" content="Arrow Rush: Maze Puzzle Escape">
+<meta property="og:description" content="Free on iPhone, Android and in your browser. Clear every arrow off the board without a collision.">
+<meta property="og:image" content="https://stratos.games/games/mody-sahariar1/thumbnail.png">
+<meta property="og:url" content="https://stratos.games/arrow-rush/">
+<link rel="canonical" href="https://stratos.games/arrow-rush/">
+<script>
+  // Smart link: send each phone straight to its own store. Computers stay on this page.
+  (function () {
+    var IOS = 'https://apps.apple.com/app/id6770751918';
+    var ANDROID = 'https://play.google.com/store/apps/details?id=com.stratosgames.arrowpuzzle';
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(ua);
+    var stay = /[?&]stay\b/.test(location.search);
+    if (!stay && isIOS) location.replace(IOS);
+    else if (!stay && isAndroid) location.replace(ANDROID);
+  })();
+</script>
+<style>
+  :root { --bg:#0f1430; --card:#1a2150; --txt:#f4f6ff; --dim:#b6bde0; --accent:#ff4d6d; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--txt);
+    background:radial-gradient(circle at 20% 10%,#3b2a8a 0,transparent 45%),radial-gradient(circle at 90% 90%,#8a2a5c 0,transparent 40%),var(--bg) }
+  .card { width:100%; max-width:440px; background:var(--card); border-radius:24px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.45); text-align:center }
+  .card img { display:block; width:100%; aspect-ratio:8/5; object-fit:cover }
+  .body { padding:22px 22px 26px }
+  h1 { font-size:26px; line-height:1.15 }
+  p { color:var(--dim); margin:8px 0 20px; font-size:16px; line-height:1.4 }
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:15px 18px; margin-top:10px;
+    border-radius:14px; font-weight:700; font-size:17px; text-decoration:none; color:#fff; background:#000; border:1px solid rgba(255,255,255,.18) }
+  .btn svg { width:24px; height:24px; flex:none }
+  .btn.play { background:var(--accent); border-color:transparent }
+  .btn:hover { filter:brightness(1.15) }
+  .small { font-size:13px; color:var(--dim); margin-top:18px }
+  .small a { color:var(--dim) }
+</style>
+</head>
+<body>
+  <main class="card">
+    <img src="/games/mody-sahariar1/thumbnail.png" alt="Arrow Rush">
+    <div class="body">
+      <h1>Arrow Rush</h1>
+      <p>Clear every arrow off the board without a collision. Free on iPhone, Android and in your browser.</p>
+      <a class="btn" href="https://apps.apple.com/app/id6770751918">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.8-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.8 0-3.4 1-4.3 2.6-1.8 3.2-.5 7.9 1.3 10.5.9 1.3 1.9 2.7 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.5 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.6 1-1.5 1.4-2.9 1.4-3-.1 0-2.5-1-2.5-4.2zM13.9 4.8c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z"/></svg>
+        Download on the App Store
+      </a>
+      <a class="btn" href="https://play.google.com/store/apps/details?id=com.stratosgames.arrowpuzzle">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#34a853" d="M3.6 2.3 13.4 12 3.6 21.7c-.3-.2-.5-.6-.5-1V3.3c0-.4.2-.8.5-1z"/><path fill="#fbbc04" d="m16.6 15.2-3.2-3.2 3.2-3.2 3.7 2.1c1 .6 1 1.6 0 2.2z"/><path fill="#ea4335" d="M13.4 12 3.6 21.7c.3.3.9.3 1.4 0l11.6-6.5z"/><path fill="#4285f4" d="M13.4 12 16.6 8.8 5 2.3c-.5-.3-1.1-.3-1.4 0z"/></svg>
+        Get it on Google Play
+      </a>
+      <a class="btn play" href="https://stratos.games/play/mody-sahariar1/">▶ Play free in your browser</a>
+      <div class="small">A Stratos Games puzzle · <a href="https://stratos.games/">stratos.games</a></div>
+    </div>
+  </main>
+</body>
+</html>
