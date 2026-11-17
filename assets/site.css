@@ -590,4 +590,43 @@ body.pk-searching .hm>:not(.h-res):not(.hm-grid){display:none!important}
   .h-cats{gap:10px}.h-cats .pk-cat{min-height:84px}.h-arrow{display:none}
   .hm-grid,.h-res{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 @media (prefers-reduced-motion:reduce){.h-card,.h-ocard{transition:none}.h-card:hover,.h-ocard:hover{transform:none}}
+/* ===== #93 written text in the Stratos look: dark navy cards, light text, purple and lime accents, our fonts.
+   No plain white boxes: the About texts, the footer, the game details, the bar under a game, the logo tile,
+   the 404 and coins page cards, and the info pages (About, Press kit, For publishers, Privacy, Terms) ===== */
+body.pk{--card:#161827;--ink:#eef0fa;--ink2:#a3a6c2;--soft:#22253b;--blue:#B6FF3B;--sh:0 8px 22px rgba(0,0,0,.35)}
+.pk-text,.pk-foot,.pk-detail,.pk-head:not(.cat),.pk-nav,.pk-info,footer.foot{border:1px solid #2a2d45}
+.pk-text,.pk-detail{background:linear-gradient(180deg,#1a1d31 0%,#151726 100%)}
+.pk-text h2,.pk-detail h2,article.doc h2{font-family:Fredoka,Nunito,sans-serif;font-weight:700;color:#fff;letter-spacing:.2px}
+.pk-text h2::before,.pk-detail h2::before,article.doc h2::before{content:"";display:inline-block;width:6px;height:.85em;margin-right:10px;border-radius:3px;vertical-align:-.06em;
+  background:linear-gradient(180deg,#8B5CF6,#B6FF3B)}
+.pk-text h3,article.doc h3,.pd-row dt{color:#fff}
+.pk-text p,.pk-text li,.pd-desc p,.pd-row dd,.coins-row,article.doc p,article.doc li{color:#d2d5ea}
+.pk-text li::marker,.pd-row dd li::marker,article.doc li::marker{color:#8B5CF6}
+.pk-text a,.pd-row dd a,article.doc a{color:#B6FF3B;text-decoration:underline;text-decoration-color:rgba(182,255,59,.35);text-underline-offset:3px}
+.pk-text a:hover,.pd-row dd a:hover,article.doc a:hover{text-decoration-color:#B6FF3B}
+.pk-detail h1,article.doc h1{font-family:Fredoka,Nunito,sans-serif;font-weight:700;color:#fff}
+.pd-facts,.pd-row{border-color:#2a2d45}
+.pd-row dt svg{color:#8B5CF6}
+.pk-ib:hover,.pk-vote.up.on{color:#14151F}
+.pk-nav .sn-box .sn-w1{color:#fff}.pk-nav .sn-box .sn-w2{color:#B6FF3B}
+.pk-foot a,footer.foot a{color:#d2d5ea}.pk-foot a:hover,footer.foot a:hover{color:#B6FF3B}
+/* the coins page on dark */
+.coins-bar{border-color:#2a2d45}
+.coins-btn,.pk-text a.coins-btn{color:#14151F;text-decoration:none}
+.coins-btn.alt,.pk-text a.coins-btn.alt{background:transparent;color:#eef0fa;border-color:#3a3e5c}
+.coins-btn:disabled{background:#33364f;color:#9a9cb5}
+.coins-tag{background:rgba(51,221,136,.16);color:#7af0b3}
+.pk-text .coins-msg,.coins-pos{color:#7af0b3}
+.coins-neg{color:#ff8a6b}
+.coins-table th{border-bottom-color:#2a2d45}
+.coins-table td{border-bottom-color:#24273c;color:#d2d5ea}
+/* the info pages: the article as a text card, the footer as a card, the site's side menu below their header */
+article.doc{max-width:860px;box-sizing:border-box;margin-top:6px;padding:26px 32px 24px;border-radius:20px;border:1px solid #2a2d45;
+  background:linear-gradient(180deg,#1a1d31 0%,#151726 100%);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+footer.foot{max-width:860px;box-sizing:border-box;margin-top:24px;padding:14px 20px;border-radius:16px;background:#161827}
+.shell>.pk-side{top:var(--top);width:76px}
+.shell>.pk-side:hover,.shell>.pk-side:focus-within{width:250px}
+@media (min-width:761px){.shell>.main{margin-left:76px}}
+@media (max-width:760px){.shell>.pk-side,.shell>.pk-side:hover{width:250px}}
+@media (max-width:620px){article.doc{padding:18px 16px}}
 
