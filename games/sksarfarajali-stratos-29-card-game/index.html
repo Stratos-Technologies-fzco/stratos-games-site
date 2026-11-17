@@ -1201,6 +1201,35 @@ function dayNum(k) { var p = k.split('-'); return Math.floor(Date.UTC(+p[0], +p[
 function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function ruleSet() { return { hiddenTrump: !!S.hidden, doubling: !!S.dbl, pair: !!S.pair }; }
 
+/* ---------- Resume (Stratos.resume): the match in progress, saved at every deal and offered when the game opens. Offline matches against the computer only. ---------- */
+function SR() { try { var P = window.Stratos || parent.Stratos; return P && P.resume ? P.resume : null; } catch (e) { return null; } }
+function resumeClear29() { var R = SR(); if (R) R.clear(); }
+function saveMatch29() {
+  var R = SR(); if (!R || (A.mode !== 'play' && A.mode !== 'practice') || !A.G || A.G.phase !== 'bidding') return;
+  R.save({ mode: A.mode, aiLevel: A.aiLevel, M: A.M, G: A.G, mid: A.mid },
+    { ver: 1, label: (A.mode === 'practice' ? 'Practice game' : 'Game against the computer') + ', round ' + (A.M.round + 1) + ', ' + A.M.scores[0] + ' to ' + A.M.scores[1] });
+}
+function resumeOk29(sv) {
+  return !!(sv && (sv.mode === 'play' || sv.mode === 'practice') && E.LEVELS.indexOf(sv.aiLevel) >= 0 && sv.M && sv.M.rules && typeof sv.M.round === 'number' &&
+    Array.isArray(sv.M.scores) && sv.M.scores.length === 2 && typeof sv.M.dealer === 'number' && sv.G && sv.G.phase === 'bidding' && Array.isArray(sv.G.hands) && sv.G.hands.length === 4);
+}
+function resumeMatch29(sv) {
+  if (!resumeOk29(sv)) return false;
+  clearTimers(); ac();
+  A.mode = sv.mode; A.screen = 'table'; A.M = sv.M; A.aiLevel = sv.aiLevel; A.rng = E.secureRng();
+  A.mid = sv.mid || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)); A.coinGain = 0; A.cache = {};
+  A.G = sv.G; A.G.gid = (A.gidc = (A.gidc || 0) + 1);
+  A.ui = { hintsLeft: A.mode === 'practice' ? -1 : 1, dealt: dealMap(A.G.hands[0], []), tags: {} };
+  sfx('deal'); coachMaybe('bid'); render(); sched(step, 700);
+  toast('Welcome back. Your game continues.', 1800);
+  return true;
+}
+function resumeOffer29(tries) {
+  tries = tries || 0; var R = SR();
+  if (!R) { if (tries < 40) setTimeout(function () { resumeOffer29(tries + 1); }, 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || A.screen !== 'lobby' || A.G) return;   // nothing saved, or a game was already started
+  R.offer(function (sv) { if (!resumeMatch29(sv)) resumeClear29(); }, function () { }, { ver: 1 });
+}
 function startGame(mode) {
   clearTimers(); ac();
   A.mode = mode; A.screen = 'table'; A.ui = { hintsLeft: mode === 'practice' ? -1 : 1 };
@@ -1221,6 +1250,7 @@ function newRound(replayDaily) {
   A.G = E.newRound(opts); A.G.gid = (A.gidc = (A.gidc || 0) + 1);
   A.ui = { hintsLeft: A.mode === 'practice' ? -1 : 1, dealt: dealMap(A.G.hands[0], []), tags: {} };
   track('level_start', { mode: A.mode, round: M.round + 1, ai: A.aiLevel });
+  saveMatch29();
   sfx('deal'); coachMaybe('bid');
   render(); sched(step, 700);
 }
@@ -1373,6 +1403,7 @@ function finishRound() {
     track('game_over', { mode: 'daily', won: dw, my_points: myTeamPts });
     if (dw && first) A.coinGain = earnWin(3, 'daily-' + k);
   } else if (over) {
+    resumeClear29();
     sfx(won ? 'win' : 'lose');
     if (A.mode === 'play') {
       ST.played++; won ? (ST.wins++, ST.byMode.play.w++) : (ST.losses++, ST.byMode.play.l++);
@@ -1497,6 +1528,7 @@ window.addEventListener('orientationchange', fit);
 $stage.className = 'd'; fit(); render();
 if (S.music) document.addEventListener('pointerdown', function once() { musicOn(true); document.removeEventListener('pointerdown', once); });
 try { Net.pending = loadNet(); var rq = new URLSearchParams(location.search).get('room'); if (rq) { Net.codeText = String(rq).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); A.ui.modal = 'online'; render(); } else if (Net.pending) { A.ui.modal = 'online'; render(); } } catch (e) {}
+try { if (!new URLSearchParams(location.search).get('room') && !Net.pending) resumeOffer29(); } catch (e) {}
 window.__S29 = { A: A, E: E, Net: Net, TURN: TURN }; // for automated checks
 })();
 </script>
