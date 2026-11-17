@@ -379,9 +379,11 @@ def cat_count(cid):
     if not n: return ""
     return f"{n} new" if cid == "new" else f"{n} game" + ("s" if n != 1 else "")
 
-def pk_cats(base=""):
+def pk_cats(base="", skip=""):
+    """The category cards. skip: a category page leaves out its own card (its header already says where you are)."""
     out = []
     for c in SITE["categories"]:
+        if c["id"] == skip: continue
         n = cat_count(c["id"]); st = " studio" if c["id"] == "studio" else ""
         chip = f'<span class="cn">{n}</span>' if n else ""
         line = f'<i>{n}</i>' if n else ""   # phones show the count under the name instead of the chip
@@ -586,7 +588,7 @@ def build_category(cid, items, fam, studio):
         listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
         about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
                         pk_paras(c.get("intro")), listing)
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base), active=cid, after=about)
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base, skip=cid), active=cid, after=about)
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
