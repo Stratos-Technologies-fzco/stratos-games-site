@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 37,
+ "count": 35,
  "games": [
   {
    "slug": "sksarfarajali-stratos-drop-zone",
@@ -432,6 +432,19 @@
    "soon": false
   },
   {
+   "slug": "arrow-rush",
+   "title": "Arrow Rush",
+   "maker": "Stratos Games",
+   "one_line": "Clear every arrow off the board without a collision. 100 classic levels and 10 adventure worlds.",
+   "category": "puzzle",
+   "url": "play/arrow-rush/",
+   "thumb": "games/mody-sahariar1/thumbnail.png",
+   "added": null,
+   "github": null,
+   "kind": "studio",
+   "soon": null
+  },
+  {
    "slug": "bloxplode",
    "title": "BLOXPLODE",
    "maker": "Stratos Games",
@@ -439,45 +452,6 @@
    "category": "puzzle",
    "url": "games-bloxplode/",
    "thumb": "assets/covers/bloxplode.png",
-   "added": null,
-   "github": null,
-   "kind": "studio",
-   "soon": null
-  },
-  {
-   "slug": "arrow-puzzle",
-   "title": "Arrow Puzzle",
-   "maker": "Stratos Games",
-   "one_line": "Every arrow points somewhere. Clear the board without a collision.",
-   "category": "puzzle",
-   "url": "games-arrow-puzzle/",
-   "thumb": "assets/covers/arrow-puzzle.svg",
-   "added": null,
-   "github": null,
-   "kind": "studio",
-   "soon": null
-  },
-  {
-   "slug": "house-mafia",
-   "title": "House Mafia",
-   "maker": "Stratos Games",
-   "one_line": "Mafia and Werewolf, set at a house party. 4 to 8 players, 3 to 5 minute rounds.",
-   "category": "party",
-   "url": "games-house-mafia/",
-   "thumb": "assets/covers/house-mafia.svg",
-   "added": null,
-   "github": null,
-   "kind": "studio",
-   "soon": null
-  },
-  {
-   "slug": "word-quest",
-   "title": "Word Quest",
-   "maker": "Stratos Games",
-   "one_line": "Drag across the grid, find the words, win the minute.",
-   "category": "word",
-   "url": "games-word-quest/",
-   "thumb": "assets/covers/word-quest.svg",
    "added": null,
    "github": null,
    "kind": "studio",
