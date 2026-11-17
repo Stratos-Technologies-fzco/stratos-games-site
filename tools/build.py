@@ -618,6 +618,11 @@ if(window.matchMedia&&matchMedia('(hover: hover)').matches&&!matchMedia('(prefer
     v.src=B+t.dataset.pv;t.insertBefore(v,t.querySelector('.pk-name,.h-name,.h-over'))}
    v.currentTime=0;var p=v.play();if(p&&p.catch)p.catch(function(){});t.classList.add('pv')},250)});
   t.addEventListener('mouseleave',function(){clearTimeout(tm);t.classList.remove('pv');if(v)v.pause()})});
+/* #94 About cards: the first lines show, "Learn more" opens the rest in place (the whole text is in the page) */
+[].slice.call(D.querySelectorAll('.ab-body')).forEach(function(d){var b=d.parentNode.querySelector('.ab-btn'),open=false;if(!b)return;
+ function check(){if(open)return;d.classList.add('fold');var long=d.scrollHeight>d.clientHeight+4;d.classList.toggle('fold',long);b.hidden=!long}   /* again once the fonts are in: a short text shows whole, no button */
+ check();addEventListener('load',check);addEventListener('resize',check);if(D.fonts&&D.fonts.ready)D.fonts.ready.then(check);
+ b.onclick=function(){open=!open;d.classList.toggle('fold',!open);b.firstChild.textContent=open?'Show less':'Learn more';b.classList.toggle('open',open);b.setAttribute('aria-expanded',String(open))}});
 /* search */
 var q=D.getElementById('pkq'),none=D.getElementById('pk-none');if(!q)return;
 q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,seen={};
@@ -637,6 +642,15 @@ def pk_paras(text):
 def pk_list(items):
     items = [items] if isinstance(items, str) else list(items or [])
     return "<ul>" + "".join(f"<li>{esc(x)}</li>" for x in items if str(x).strip()) + "</ul>" if items else ""
+
+def pk_about(title, paras=(), extra="", ident="ab", lead=""):
+    """#94: a short About card. The title and the first few lines show; "Learn more" opens the rest in place (PK_JS).
+    The whole text stays in the page, so Google and AdSense read all of it. lead: the snake mark or a category badge."""
+    if not paras and not extra: return ""
+    body = "".join(f"<p>{esc(p)}</p>" for p in paras) + extra
+    return (f'<section class="pk-text pk-about" aria-labelledby="{ident}-t"><div class="ab-head">{lead}<h2 id="{ident}-t">{esc(title)}</h2></div>'
+            f'<div class="ab-body" id="{ident}-b">{body}</div>'
+            f'<button class="ab-btn" type="button" aria-expanded="false" aria-controls="{ident}-b" hidden><span>Learn more</span>{icon("plus", 15)}</button></section>')
 
 def pk_text(title, paras=(), extra=""):
     if not paras and not extra: return ""
@@ -685,7 +699,10 @@ def build_home_cards(fam, studio=()):
     counts["studio"] = len(SITE.get("studio_games", []))
     cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
                    for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
-    about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
+    mark = f'<svg class="ab-mark sn-mark" viewBox="0 0 200 200" aria-hidden="true">{SN_INNER}</svg>'
+    more = '<p class="ab-link"><a href="about/">More about the Stratos studio ›</a></p>'
+    about = pk_about("About Stratos Games", SITE.get("about_home", []), (f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "") + more,
+                     ident="ab-home", lead=mark)
     body = pk_body("", home_sections(fam, studio), active="home", nav=SN_ASSETS, cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about, main_cls="hm")
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
@@ -723,8 +740,8 @@ def build_category(cid, items, fam, studio):
                     f'<small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>{cat_svg(c, "wm")}</div>')
         names = [f'{g["title"]} by {g["maker"]}' for g in pool if not g.get("soon")]
         listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
-        about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
-                        pk_paras(c.get("intro")), listing)
+        title = {"new": "About new games", "studio": "About Stratos studio titles"}.get(cid, f'About {c["label"].lower()} games')
+        about = pk_about(title, pk_paras(c.get("intro")), listing, ident=f"ab-{cid}", lead=cat_badge(c, "md"))
         grid = f'<div class="hm-grid">{"".join(h_card(g, base, q=True) for g in pool)}</div>' if pool else ""
         more = f'<section class="h-sec h-catsec">{h_title("More categories")}<div class="h-cats">{pk_cats(base, skip=cid)}</div></section>'
         body = pk_body(base, headcard + grid + more, active=cid, after=about, nav=SN_ASSETS, cls=" poki",
