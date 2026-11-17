@@ -42,6 +42,8 @@
   button.alt{background:linear-gradient(90deg,#7afcff,#b69bff);color:#1d0b2e;box-shadow:0 6px 0 #5a3aa8,0 10px 30px rgba(120,160,255,.3)}
   button.alt:active{box-shadow:0 3px 0 #5a3aa8}
   button.small{font-size:17px;padding:9px 24px;margin-top:12px}
+  button.wa{background:linear-gradient(90deg,#25d366,#5be37d);color:#06301a;box-shadow:0 6px 0 #128c4a,0 10px 30px rgba(37,211,102,.3)}
+  button.wa:active{box-shadow:0 3px 0 #128c4a}
   button.ghost{background:rgba(255,255,255,.16);color:#fff;box-shadow:none}
   button:disabled{opacity:.45;cursor:default}
   .txt{font:inherit;font-size:20px;padding:10px 16px;border-radius:14px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;text-align:center;width:min(260px,70vw);outline:none;margin-top:12px}
@@ -121,7 +123,7 @@
   <div class="card">
     <h2>Room <span class="code" id="roomCode"></span></h2>
     <p id="lobbySub" style="opacity:.9"></p>
-    <button class="small alt" id="copyLink">Copy invite link</button>
+    <div class="btnrow"><button class="small wa" id="waInvite">&#128242; Invite on WhatsApp</button><button class="small alt" id="copyLink">Copy link</button></div>
     <ul class="plist" id="plist"></ul>
     <div class="btnrow"><button class="small ghost" id="leaveLobby">Leave</button><button class="small" id="startRace">Start race</button></div>
   </div>
@@ -1602,8 +1604,19 @@ $('joinRoom').addEventListener('click', () => {
   Net.join(code, myName());
 });
 $('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinRoom').click(); });
+// invite links open the Stratos play page (not the bare game file), so friends get the whole site
+function inviteLink() {
+  let base = location.origin + location.pathname;
+  try { if (parent !== window && parent.location.pathname) base = parent.location.origin + parent.location.pathname; } catch (e) { }
+  return base + '?room=' + Net.code;
+}
+$('waInvite').addEventListener('click', () => {
+  const text = 'Race me in Momo Run! 🏃 Room ' + Net.code + ': ' + inviteLink();
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  track('invite_sent', { via: 'whatsapp' });
+});
 $('copyLink').addEventListener('click', () => {
-  const link = location.origin + location.pathname + '?room=' + Net.code;
+  const link = inviteLink(); track('invite_sent', { via: 'copy' });
   const done = () => toastMsg('Invite link copied! Send it to your friends.');
   if (navigator.clipboard) navigator.clipboard.writeText(link).then(done, () => toastMsg(link)); else toastMsg(link);
 });
@@ -1858,7 +1871,8 @@ const camLook = new THREE.Vector3(0, 1, 0), tmpLook = new THREE.Vector3();
    ========================================================= */
 camera.position.set(0, 1.7, 4.4);
 try {
-  const room = new URLSearchParams(location.search).get('room');
+  let room = new URLSearchParams(location.search).get('room');
+  try { if (!room && parent !== window) room = new URLSearchParams(parent.location.search).get('room'); } catch (e) { }
   if (room) { openOnline(); $('codeIn').value = room.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); Net.status('Type your name, then tap Join.'); }
 } catch (e) { }
 applyWeather(0);

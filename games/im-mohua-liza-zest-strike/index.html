@@ -48,6 +48,7 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:5px;backgrou
 .online{margin-top:10px;font-size:15px;color:var(--acc2);text-align:center}
 em.bot{font-style:normal;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:0 5px;margin-left:6px}
 .big:disabled{opacity:.6}
+.ghost.wa{background:#25d366;color:#06301a;border-color:#25d366;font-weight:700}
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:5}
 #cross{position:absolute;left:50%;top:50%}
@@ -234,7 +235,7 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
     </div>
     <button class="big" id="play">PLAY ONLINE</button>
     <div class="online" id="netstatus">Connecting to the arena…</div>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="ghost" id="practice">Practice with bots</button></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="ghost" id="practice">Practice with bots</button><button class="ghost wa" id="waInvite">📲 Invite friends</button></div>
     <div class="note">Online: one big arena for everyone, no room code. Most squeezes when the 6 minute timer ends wins, then a new match starts. Practice: first to 25 squeezes wins.</div>
   </div>
 </div>

@@ -1470,6 +1470,13 @@ $('play').onclick = async () => {
   if (Net.c) startMatch(true);
 };
 $('practice').onclick = () => { audio(); goFull(); startMatch(false); };
+// invite friends to the arena on WhatsApp, with the Stratos play page link (no room code needed)
+$('waInvite').onclick = () => {
+  let link = location.origin + location.pathname;
+  try { if (parent !== window && parent.location.pathname) link = parent.location.origin + parent.location.pathname; } catch (e) { }
+  window.open('https://wa.me/?text=' + encodeURIComponent('Jump into Zest Strike with me! 🍊🔫 One live arena, no room code: ' + link), '_blank', 'noopener');
+  track('invite_sent', { via: 'whatsapp' });
+};
 $('again').onclick = () => { audio(); startMatch(false); };
 $('resume').onclick = () => { audio(); state = 'play'; $('pause').classList.add('hide'); if (player && player.alive) player.protect = Math.min(player.protect, 0.3); lock(); };
 $('quit').onclick = $('tomenu').onclick = () => {

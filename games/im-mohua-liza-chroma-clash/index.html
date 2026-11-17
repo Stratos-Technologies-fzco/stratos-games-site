@@ -70,6 +70,7 @@ input.txt:focus{border-color:var(--wave)}
 #lobbyList .x{width:30px;height:30px;border-radius:10px;border:0;background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
 #roomCode{font-family:Bungee;letter-spacing:.12em;background:linear-gradient(90deg,var(--zest),var(--wave));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sharerow{display:flex;gap:8px;flex-wrap:wrap}
+.btn.wa{--c:#25d366;--d:#128c4a;font-family:Outfit;font-weight:800;text-shadow:none}
 .howto li{margin:0 0 10px 18px;line-height:1.45;color:#eee}
 .howto b{color:#fff}
 .k{display:inline-block;padding:0 7px;border-radius:6px;font-family:Bungee;font-size:12px;color:#fff;vertical-align:1px}
@@ -329,7 +330,7 @@ input.txt:focus{border-color:var(--wave)}
   <section class="screen" id="scr-lobby"><div class="panel">
     <h2>Room <span id="roomCode"></span></h2>
     <p class="sub" id="lobbySub">Share this code with friends. They tap Play Online → Join.</p>
-    <div class="sharerow"><button class="btn small ghost" id="copyCode">Copy code</button><button class="btn small ghost" id="copyLink">Copy invite link</button><button class="btn small ghost" id="lobbyChat">💬 Chat</button></div>
+    <div class="sharerow"><button class="btn small wa" id="waInvite">📲 WhatsApp</button><button class="btn small ghost" id="copyCode">Copy code</button><button class="btn small ghost" id="copyLink">Copy invite link</button><button class="btn small ghost" id="lobbyChat">💬 Chat</button></div>
     <ul id="lobbyList"></ul>
     <div id="hostCtl"><button class="btn small ghost" id="addBot">+ Add bot</button></div>
     <label class="toggle"><input type="checkbox" id="stackOnline" checked><span>Stack +2 / +4 cards</span></label>
@@ -2082,7 +2083,10 @@ function wire() {
   $('#leaveLobby').onclick = () => App.toMenu();
   const copy = txt => { try { navigator.clipboard.writeText(txt).then(() => UI.toast('Copied!'), () => UI.toast(txt)); } catch (e) { UI.toast(txt); } };
   $('#copyCode').onclick = () => copy(Net.code);
-  $('#copyLink').onclick = () => copy(location.origin + location.pathname + '?room=' + Net.code);
+  // invite links open the Stratos play page (not the bare game file), so friends get the whole site
+  const inviteLink = () => { let base = location.origin + location.pathname; try { if (parent !== window && parent.location.pathname) base = parent.location.origin + parent.location.pathname; } catch (e) {} return base + '?room=' + Net.code; };
+  $('#copyLink').onclick = () => { copy(inviteLink()); track('invite_sent', { via: 'copy' }); };
+  $('#waInvite').onclick = () => { window.open('https://wa.me/?text=' + encodeURIComponent('Play Chroma Clash with me! 🃏 Room ' + Net.code + ': ' + inviteLink()), '_blank', 'noopener'); track('invite_sent', { via: 'whatsapp' }); };
   // in-game
   $('#leaveBtn').onclick = () => App.toMenu();
   $('#helpBtn').onclick = () => { SFX.click(); Manual.open(); };
@@ -2108,7 +2112,8 @@ function wire() {
   paint();
   addEventListener('pointerdown', () => { SFX.init(); Music.start(); }, { once: true });
   // invite link
-  const room = new URLSearchParams(location.search).get('room');
+  let room = new URLSearchParams(location.search).get('room');
+  try { if (!room && parent !== window) room = new URLSearchParams(parent.location.search).get('room'); } catch (e) {}
   if (room) { $('#codeIn').value = room.toUpperCase().slice(0, 5); UI.show('scr-online'); Net.status('Enter your name on the menu if you like, then tap Join.'); }
 }
 
