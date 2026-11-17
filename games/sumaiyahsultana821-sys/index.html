@@ -993,7 +993,37 @@
     return shuffle(island.icons.concat(island.icons));
   }
 
-  function startIsland(index){
+  /* ---------- Resume (Stratos.resume): the island in progress (card order, matched cards, moves, time, score), saved after every pair ---------- */
+  function SR(){ try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+  function resumeClear(){ var R = SR(); if (R) R.clear(); }
+  function resumeSave(){
+    var R = SR(); if (!R || !state.totalPairs || !boardEl.children.length) return;
+    var deck = [], matched = [];
+    [].forEach.call(boardEl.children, function(c, i){ deck.push(c.dataset.icon); if (c.classList.contains("matched")) matched.push(i); });
+    if (!matched.length && !state.moves) return;   // nothing to lose yet
+    R.save({ island: state.islandIndex, deck: deck, matched: matched, moves: state.moves, seconds: state.seconds, matchedPairs: state.matchedPairs, usedSecondChance: !!state.usedSecondChance, totalScore: state.totalScore, scoreAtStart: state.scoreAtStart },
+      { ver: 1, label: "Island " + (state.islandIndex + 1) + ", " + state.matchedPairs + " of " + state.totalPairs + " pairs found" });
+  }
+  function resumeOk(sv){
+    if (!sv || typeof sv.island !== "number" || !ISLANDS[sv.island] || sv.island > progress.unlocked - 1) return false;
+    var icons = ISLANDS[sv.island].icons, want = icons.concat(icons).slice().sort().join("|");
+    return Array.isArray(sv.deck) && sv.deck.length === icons.length * 2 && sv.deck.slice().sort().join("|") === want && Array.isArray(sv.matched) &&
+      sv.matched.every(function(i){ return i >= 0 && i < sv.deck.length; }) && typeof sv.moves === "number" && typeof sv.totalScore === "number" && typeof sv.scoreAtStart === "number";
+  }
+  function resumeIsland(sv){
+    if (!resumeOk(sv)) return false;
+    soundStarted = true; startWaves(); coverEl.hidden = true; gameEl.hidden = false;
+    stopTimer(); state.totalScore = sv.scoreAtStart; startIsland(sv.island, sv);
+    return true;
+  }
+  function resumeOffer(tries){
+    tries = tries || 0; var R = SR();
+    if (!R){ if (tries < 40) setTimeout(function(){ resumeOffer(tries + 1); }, 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+    if (!R.has({ ver: 1 }) || coverEl.hidden) return;   // nothing saved, or the player already started
+    R.offer(function(sv){ if (!resumeIsland(sv)) resumeClear(); }, function(){}, { ver: 1 });
+  }
+
+  function startIsland(index, restore){
     state.runId++;
     state.islandIndex = index;
     state.scoreAtStart = state.totalScore;
@@ -1012,7 +1042,7 @@
     state.freePowerUsed = false;
     boardEl.classList.remove("aiming");
 
-    var deck = buildDeck(island);
+    var deck = restore ? restore.deck.slice() : buildDeck(island);
     boardEl.innerHTML = "";
 
     deck.forEach(function(icon, i){
@@ -1031,9 +1061,14 @@
       boardEl.appendChild(card);
     });
 
+    if (restore){
+      restore.matched.forEach(function(i){ var c = boardEl.children[i]; if (c){ c.classList.add("flipped", "matched"); c.setAttribute("aria-label", "Matched " + c.dataset.icon); } });
+      state.moves = restore.moves; state.seconds = restore.seconds || 0; state.matchedPairs = restore.matched.length / 2; state.usedSecondChance = !!restore.usedSecondChance; state.totalScore = restore.totalScore;
+    }
     renderIslandLabel();
     applyTheme(index);
     updateHud();
+    renderMoves();
     tut.active = false;
     hintEl.hidden = true;
     if (index === 0 && !tutDone && !progress.stars[0]) startTutorial();
@@ -1073,6 +1108,7 @@
           state.busy = false;
           tutOnPair(true);
           powerHintTick();
+          resumeSave();
           afterMatch();
         }, 350);
       } else {
@@ -1084,6 +1120,7 @@
           state.busy = false;
           tutOnPair(false);
           powerHintTick();
+          resumeSave();
           checkOutOfMoves();
         }, 800);
       }
@@ -1105,6 +1142,7 @@
     updateHud();
   }
   function afterMatch(){
+    resumeSave();
     if (state.matchedPairs === state.totalPairs) onIslandComplete();
     else checkOutOfMoves();
   }
@@ -1272,7 +1310,7 @@
   }
 
   function gameOver(){
-    stopTimer();
+    stopTimer(); resumeClear();
     var best = saveBestIfHigher(state.totalScore);
     coverBestEl.textContent = best;
     track("game_over", { level: state.islandIndex + 1, score: state.totalScore, pairs_left: state.totalPairs - state.matchedPairs });
@@ -1296,7 +1334,7 @@
   }
 
   function onIslandComplete(){
-    stopTimer();
+    stopTimer(); resumeClear();
     var bonus = islandBonus(state.totalPairs, state.moves, state.seconds);
     state.totalScore += bonus;
     updateHud();
@@ -1423,7 +1461,7 @@
   homeBtn.addEventListener("click", function(){ soundTap(); showCover(); });
   restartBtn.addEventListener("click", function(){ soundTap(); hideOverlay(); restartIsland(); });
 
-  showCover();
+  showCover(); resumeOffer();
 })();
 </script>
 </body>

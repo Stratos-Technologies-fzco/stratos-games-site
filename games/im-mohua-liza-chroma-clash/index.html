@@ -1758,6 +1758,35 @@ const Reacts = {
 };
 
 /* ================= app / modes ================= */
+/* ---------- Resume (Stratos.resume): a round against the bots, saved at every move, offered when the game opens. Online rooms and pass-and-play are not resumed. ---------- */
+function SR() { try { const X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+function resumeClear() { const R = SR(); if (R) R.clear(); }
+function resumeSave() {
+  const R = SR(), h = App.host; if (!R || !h || !h.s || App.mode !== 'offline' || App.multiLocal) return;
+  if (h.s.winner != null) { resumeClear(); return; }
+  R.save({ seats: h.seats, settings: h.settings, round: h.round, s: h.s },
+    { ver: 1, label: 'Round ' + h.round + ' against ' + (h.seats.length - 1) + (h.seats.length === 2 ? ' bot' : ' bots') + ', ' + h.s.players[0].hand.length + ' cards in your hand' });
+}
+function resumeOk(sv) {
+  const s = sv && sv.s;
+  return !!(s && Array.isArray(sv.seats) && sv.seats.length >= 2 && sv.seats.every(x => x && (x.type === 'local' || x.type === 'bot')) && sv.seats.filter(x => x.type === 'local').length === 1 &&
+    Array.isArray(s.players) && s.players.length === sv.seats.length && s.players.every(p => Array.isArray(p.hand)) && Array.isArray(s.deck) && Array.isArray(s.discard) && s.discard.length &&
+    typeof s.turn === 'number' && s.turn >= 0 && s.turn < s.players.length && s.winner == null && [].concat(s.deck, s.discard, ...s.players.map(p => p.hand)).every(id => CARDS[id]));
+}
+function resumeRound(sv) {
+  if (!resumeOk(sv)) return false;
+  App.reset(); App.mode = 'offline'; App.multiLocal = false; App.viewSeat = sv.seats.findIndex(x => x.type === 'local');
+  App.host = new Host(sv.seats, sv.settings || {}, ev => App.onHost(ev));
+  App.host.round = sv.round || 1; App.host.s = sv.s;
+  UI.enterGame(); App.host.emit([{ t: 'start' }]);
+  return true;
+}
+function resumeOffer(tries = 0) {
+  const R = SR();
+  if (!R) { if (tries < 40) setTimeout(() => resumeOffer(tries + 1), 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || App.mode || App.host) return;   // nothing saved, or the player already started something
+  R.offer(sv => { if (!resumeRound(sv)) resumeClear(); }, () => { }, { ver: 1 });
+}
 const App = {
   mode: null, host: null, viewSeat: 0, multiLocal: false, waitingFor: null, curT: null,
   send(a, seat) {
@@ -1774,6 +1803,7 @@ const App = {
   onHost(ev) {
     const h = this.host, s = h.s;
     if (this.mode === 'offline') {
+      resumeSave();
       let want = this.viewSeat;
       if (s.winner == null && s.players[s.turn].type === 'local') want = s.turn;
       if (this.multiLocal && ev.some(e => e.t === 'start')) {
@@ -2089,7 +2119,7 @@ function wire() {
   R.setAttract(true);
   wire();
   const l = $('#loading'); l.style.opacity = 0; setTimeout(() => l.remove(), 500);
-  Wallet.paint();
+  Wallet.paint(); resumeOffer();
   window.__cc = { App, UI, R, Net, Chat, Reacts, Wallet, FX }; // handy for debugging in the console
 })();
 </script>

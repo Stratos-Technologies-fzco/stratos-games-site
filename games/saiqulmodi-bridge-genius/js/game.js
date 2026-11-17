@@ -231,6 +231,7 @@
   }
 
   function show(name) {
+    if (view === "class" && name !== "class") resumeClear();   // the player left the class on purpose: nothing to continue
     view = name;
     for (const s of ["start", "world", "class"]) $("screen-" + s).classList.toggle("show", s === name);
     if (name !== "class") stopSpeech();
@@ -434,6 +435,23 @@
     return Object.assign({ sel: null, del: false, forces: false, fj: null, fr: null, test: null, guide: false, hint: 0, msg: "", msgClass: "",
                            subject: null, weekly: false }, extra);
   }
+  /* ---------- Resume (Stratos.resume): the class the player was in. The bridge itself is already saved in S.builds, so going back in restores it. ---------- */
+  function SR() { try { const X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+  function resumeClear() { const R = SR(); if (R) R.clear(); }
+  function resumeSave() {
+    const R = SR(); if (!R || !cur || cur.preview || cur.weekly || !cur.info) return;
+    R.save({ level: cur.level }, { ver: 1, label: lname(cur.info) + ", " + cur.project.name });
+  }
+  function resumeOffer(tries = 0) {
+    const R = SR();
+    if (!R) { if (tries < 40) setTimeout(() => resumeOffer(tries + 1), 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+    if (!R.has({ ver: 1 }) || view === "class") return;   // nothing saved, or the player is already in a class
+    R.offer(sv => {
+      const i = sv && idxOf(sv.level);
+      if (!(i >= 0) || i > unlockedUpTo()) { resumeClear(); return; }
+      enterLevel(sv.level).catch(() => resumeClear());
+    }, () => { }, { ver: 1 });
+  }
   async function enterLevel(level, preview = false) {
     const info = LV[idxOf(level)], project = CAT.projects[info.project - 1];
     if (!designs[level]) {
@@ -448,6 +466,7 @@
     $("card").innerHTML = `<div class="q">${esc(t("Loading {name} questions…", { name: lname(info) }))}</div>`;
     show("class");
     renderClassbar(); renderChips(); renderToolbar(); renderInfo();
+    resumeSave();
     if (preview) setMsg(previewLine(level));
     track("level_start", { level, preview });
     cur.all = await loadLevel(level);
@@ -1175,7 +1194,7 @@
       click: (k, n) => tone(260 + k * 45, 0.05, "square", 0.05 * (1 - k / (n + 4))),
       freezeAt: new URLSearchParams(location.search).has("introAt") ? +new URLSearchParams(location.search).get("introAt") : null,
       onDone: () => {
-        if (S.start < 0) show("start"); else { show("world"); world.focus(LV[unlockedUpTo()].l); }
+        if (S.start < 0) show("start"); else { show("world"); world.focus(LV[unlockedUpTo()].l); resumeOffer(); }
         requestAnimationFrame(frame);
       },
     });
