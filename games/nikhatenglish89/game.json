@@ -18,5 +18,6 @@
     "Collect all four map pieces to unlock Treasure Island."
   ],
   "story": "I wanted to turn early learning into a treasure hunt, with colourful islands, a parrot guide called Kiki and torn map pieces to collect. I made it for young children, parents and teachers who want screen time that is playful and gentle rather than stressful. My goal was a game simple enough for a child to start alone, with enough surprises to make them want to come back for the next island.",
-  "coins": { "spend": false, "why": "Kids game: the hint button is a free, unlimited learning aid by design." }
+  "coins": { "spend": false, "why": "Kids game: the hint button is a free, unlimited learning aid by design." },
+  "resume": {"native": true, "how": "a checkpoint is saved after every round and the level asks \"Resume?\" when the player comes back"}
 }

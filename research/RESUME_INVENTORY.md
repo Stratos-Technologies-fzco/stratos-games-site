@@ -42,3 +42,13 @@ The shared layer is `Stratos.resume` (see `research/RESUME_DESIGN.md`). "Aim" is
 **Summary.** 5 games already resume mid-play, verified in their code (Wordbloom, Babel Harbour, Ashgrove, Aetherhold, BrainRush), and 2 more look like it (Echo Island, Mystery Island). About 10 are good candidates for a board or match resume, 5 are endless runs where it is not meaningful, and a few need their source or a closer look first.
 
 **Pilots done (2026-11-17):** Domino Classic (a match) and Wordbloom (a board that already saved). **Suggested order for the rest.** (1) The board games that save progress today. (2) Checkpoint games. (3) Source-less builds when the source arrives.
+
+## Rollout status (2026-11-17, every game looked at)
+
+**Resume added with the shared prompt, tested in a real browser (10 games):** Domino Classic, Wordbloom, Stratos 29 Card Game, Plot Twist, Ink Velocity, Crystal Quest, Chroma Clash, Island Match Quest, BridgeWorks Campus, Failspan.
+
+**Continue on their own, recorded in game.json as `"resume": {"native": true}` (8):** Babel Harbour, Ashgrove Extraction, Aetherhold, BrainRush Daily, Mystery Island, Ecos-Synthetica, Dino Frontier, Echo Island. The shared prompt would only duplicate their own Continue.
+
+**Not meaningful, recorded as `"supported": false` with a reason (11):** Moto Rush, Cargo Climb, Momo Run, Zest Strike, Racing Mania, Skyfall Armada, SkyForge, Mega Ramp, Stratos Drop Zone, Stratos Poker Arena, The Missing Minute (a coming-soon page).
+
+**Cannot be done without the source (5):** Magic Shot and Toot Raft (minified), Fighter (compiled), Arrow Rush (compiled), Domino Game (zipped build). These stay unmarked; the check shows a dash for them. When the makers share the source, the pattern in `CLAUDE.md` applies.

@@ -19,5 +19,6 @@
     "Build boost by drifting and landing clean, then save it for the next big ramp instead of burning it right away",
     "Earn 3 stars per level in Time Trial to unlock faster, higher-jumping cars in the Garage"
   ],
-  "story": "I wanted a mega-ramp stunt racer with real physics instead of scripted jumps, so the suspension and air control are simulated, not faked. Getting the stunt scoring to reward a clean landing over a wild crash — and building four cars with real speed and handling tradeoffs — was the part I cared about getting right."
+  "story": "I wanted a mega-ramp stunt racer with real physics instead of scripted jumps, so the suspension and air control are simulated, not faked. Getting the stunt scoring to reward a clean landing over a wild crash — and building four cars with real speed and handling tradeoffs — was the part I cared about getting right.",
+  "resume": {"supported": false, "why": "each level is one short physics run: a half-finished run restarts anyway, stars and best times are kept"}
 }

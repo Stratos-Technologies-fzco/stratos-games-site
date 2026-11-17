@@ -218,6 +218,7 @@ R && R.save(getState(), { ver: 1, label: 'Level ' + level });
 R && R.clear();
 ```
 
+- A game that already continues by itself (its own Continue button, a world that always carries on) records that in `game.json`: `"resume": {"native": true, "how": "..."}`. The check then counts it as done.
 - Working examples to copy: `games/sksarfarajali-domino-classic/` (a whole match, search for `saveMatch` and `resumeMatch`) and `games/im-mohua-liza-wordbloom/` (a board the game already saves; search for `resumeNote` and `resumeOffer`).
 - Save **small plain data** (numbers, text, lists, objects), under 100 KB. No functions, no DOM, no images. The snapshot is a copy.
 - You decide what "resume" means: the whole match (cards, dominoes), the board (puzzles), or the level start or last checkpoint (platform and shooter games). Never fake it for an endless run or an online game.

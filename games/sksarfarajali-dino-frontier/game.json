@@ -17,5 +17,6 @@
     "Enemies flash before they strike. Dodge on the flash, then hit back.",
     "Berries restore a little health, so gather them between fights.",
     "Dash costs energy, but your normal attack is free."
-  ]
+  ],
+  "resume": {"native": true, "how": "the title screen has Continue for the saved campaign; one expedition is a single run"}
 }
