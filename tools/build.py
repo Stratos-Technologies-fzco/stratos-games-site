@@ -11,7 +11,7 @@ Reads site.json and games/*/game.json, writes:
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
-import json, os, re, html, datetime, hashlib, subprocess, unicodedata
+import json, os, re, html, datetime, hashlib, subprocess, unicodedata, struct, functools
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
@@ -338,6 +338,126 @@ def clip_of(g):
         if os.path.exists(os.path.join(ROOT, p)): return p
     return ""
 
+@functools.lru_cache(maxsize=None)
+def img_size(path):
+    """(width, height) of a png, jpg, webp or svg file, read from its header; None when unknown."""
+    try:
+        with open(os.path.join(ROOT, path), "rb") as f: b = f.read(65536)
+    except OSError:
+        return None
+    if b[:8] == b"\x89PNG\r\n\x1a\n": return struct.unpack(">II", b[16:24])
+    if b[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(b):
+            if b[i] != 0xFF: i += 1; continue
+            if b[i + 1] in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                h, w = struct.unpack(">HH", b[i + 5:i + 9]); return (w, h)
+            i += 2 + struct.unpack(">H", b[i + 2:i + 4])[0]
+        return None
+    if b[:4] == b"RIFF" and b[8:12] == b"WEBP":
+        if b[12:16] == b"VP8X": return (1 + int.from_bytes(b[24:27], "little"), 1 + int.from_bytes(b[27:30], "little"))
+        if b[12:16] == b"VP8 ": return (struct.unpack("<H", b[26:28])[0] & 0x3FFF, struct.unpack("<H", b[28:30])[0] & 0x3FFF)
+        if b[12:16] == b"VP8L":
+            v = int.from_bytes(b[21:25], "little"); return ((v & 0x3FFF) + 1, ((v >> 14) & 0x3FFF) + 1)
+        return None
+    m = re.search(r'viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)', b.decode("utf-8", "ignore"))
+    return (float(m[1]), float(m[2])) if m else None
+
+def cover_ratio(g):
+    s = img_size(g.get("thumb") or "")
+    return s[0] / s[1] if s and s[1] else 1.6   # covers are 800 x 500 by the rule; unknown counts as that
+
+def qtext(g):
+    return f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
+
+# #95 / #98: an even card in the cover's own 16:10 shape, so the whole cover shows; a cover of another shape is fitted
+# in whole, with a soft blurred copy of itself around it. The name is always on the card (#69): the full name on
+# computers, the short one on phones; the NEW / Soon / Studio pill sits in the name strip, never on the cover's title.
+def h_card(g, base="", q=False):
+    href, ext = href_of(g, base); clip = clip_of(g); wide = abs(cover_ratio(g) - 1.6) < 0.08
+    pv = f' data-pv="{esc(clip)}"' if clip and not g.get("soon") else ""
+    dq = f' data-q="{esc(qtext(g))}"' if q else ""
+    pill = ('<span class="h-pill new">New</span>' if is_new(g) else
+            '<span class="h-pill soon">Soon</span>' if g.get("soon") or g.get("cta") == "Coming soon" else
+            '<span class="h-pill studio">Studio</span>' if g.get("kind") == "studio" else "")
+    src = esc(base + g["thumb"])
+    bg = "" if wide else f'<img class="h-bg" src="{src}" alt="" aria-hidden="true" loading="lazy">'
+    return (f'<a class="h-card{"" if wide else " fit"}" href="{esc(href)}"{ext}{pv}{dq} title="{esc(g["title"])}">{bg}'
+            f'<img class="h-img" src="{src}" alt="{esc(g["title"])}" loading="lazy">'
+            f'<span class="h-name">{pill}<span class="nf">{esc(g["title"])}</span><span class="ns">{esc(tile_name(g["title"], "s1"))}</span></span></a>')
+
+def h_row(cards, cls=""):
+    """A row that scrolls sideways: arrows on a computer (PK_JS), swipe on a phone."""
+    return (f'<div class="h-rowwrap"><button class="h-arrow prev" type="button" aria-label="Back" hidden>{icon("left", 20)}</button>'
+            f'<div class="h-row{(" " + cls) if cls else ""}">{"".join(cards)}</div>'
+            f'<button class="h-arrow next" type="button" aria-label="More" hidden>{icon("right", 20)}</button></div>')
+
+def h_title(title, sub="", href="", lead="", hid=""):
+    i = f' id="{hid}"' if hid else ""
+    return (f'<div class="h-title"{i}>{lead}<b>{esc(title)}</b>' + (f'<small>{esc(sub)}</small>' if sub else "") +
+            (f'<a class="all" href="{esc(href)}">See all ›</a>' if href else "") + '</div>')
+
+def h_band(c, games, base=""):
+    """One category in its colour (#92): its badge, name, line and count, then its games in a row."""
+    n = len(games); st = " studio" if c["id"] == "studio" else ""
+    return (f'<section class="h-band{st}" style="--c:{cat_color(c)}"><div class="h-title">{cat_badge(c, "md")}'
+            f'<span class="h-bt"><b>{esc(c["label"])} games</b><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></span>'
+            f'<a class="all" href="{base}c/{c["id"]}/">See all ›</a></div>{h_row([h_card(g, base) for g in games])}</section>')
+
+def h_featured(games, base=""):
+    """Featured: one big game with a slim strip (name, pitch, Play now) that never covers the cover's own title, and four beside it."""
+    hero = games[0]; href, ext = href_of(hero, base); clip = clip_of(hero); wide = abs(cover_ratio(hero) - 1.6) < 0.08
+    pv = f' data-pv="{esc(clip)}"' if clip else ""; src = esc(base + hero["thumb"])
+    bg = "" if wide else f'<img class="h-bg" src="{src}" alt="" aria-hidden="true">'
+    return (f'<a class="h-card hero{"" if wide else " fit"}" href="{esc(href)}"{ext}{pv} title="{esc(hero["title"])}">{bg}<img class="h-img" src="{src}" alt="{esc(hero["title"])}">'
+            f'<span class="h-over"><span class="h-ot"><span class="h-l1"><span class="h-pill feat">Featured</span><b class="h-ht">{esc(hero["title"])}</b></span>'
+            f'<span class="h-hp">{esc(hero.get("one_line") or "")}</span></span><span class="h-play">▶ Play now</span></span></a>'
+            + "".join(h_card(g, base) for g in games[1:5]))
+
+def h_originals(studio, base=""):
+    """Stratos originals: the studio's own games as two feature cards (#100)."""
+    c = CATS["studio"]; cards = []
+    for s in studio:
+        href, ext = href_of(s, base); wide = abs(cover_ratio(s) - 1.6) < 0.08; src = esc(base + s["thumb"])
+        cta = "▶ Play now" if str(s["url"]).startswith("play/") else (f'On {s["cta"]} ›' if s.get("cta") and s["cta"] != "Coming soon" else "See the game ›")
+        bg = "" if wide else f'<img class="h-bg" src="{src}" alt="" aria-hidden="true" loading="lazy">'
+        name = s["title"].title() if s["title"].isupper() else s["title"]
+        cards.append(f'<a class="h-ocard" href="{esc(href)}"{ext}><span class="h-card{"" if wide else " fit"}">{bg}<img class="h-img" src="{src}" alt="{esc(s["title"])}" loading="lazy"></span>'
+                     f'<span class="h-otx"><small>{esc(s.get("kicker") or CATS[s["category"]]["label"])}</small><b>{esc(name)}</b>'
+                     f'<span class="h-ol">{esc(s.get("one_line") or "")}</span><span class="h-octa">{cta}</span></span></a>')
+    return (f'<section class="h-band h-orig studio" style="--c:{cat_color(c)}"><div class="h-title">{cat_badge(c, "md")}'
+            f'<span class="h-bt"><b>Stratos originals</b><small>Made by the Stratos studio</small></span></div><div class="h-orig2">{"".join(cards)}</div></section>')
+
+def h_mine():
+    """#97: "Recently played" and "Your favourites", the player's own rows, filled in the browser from this device
+    (PK_JS); a first visit shows neither. The side menu's links jump to them (#recent, #favs)."""
+    def sec(key, hid, ic, title, sub):
+        return (f'<section class="h-sec h-mine" data-mine="{key}" hidden>{h_title(title, sub, lead=f"<span class={chr(34)}h-ic{chr(34)}>{icon(ic, 22)}</span>", hid=hid)}'
+                f'{h_row([], "small")}</section>')
+    return (sec("sg_recent", "recent", "clock", "Recently played", "games you opened on this device") +
+            sec("sg_likes", "favs", "heart", "Your favourites", "games you liked on this device"))
+
+def home_sections(fam, studio, base=""):
+    """#95: the home page in titled sections of even cards (mocked and reviewed with Ripon, 17 Nov 2026)."""
+    real = sorted([g for g in fam if not g.get("soon")], key=lambda g: g.get("added") or "", reverse=True)
+    pick = [g for s in SITE.get("featured", []) for g in real if g["slug"] == s]   # site.json "featured": folder names, in order
+    feat = (pick + [g for g in real if g not in pick])[:5]
+    out = [f'<section class="h-feat">{h_featured(feat, base)}</section>'] if feat else []
+    out.append(h_mine())
+    new = [g for g in real if is_new(g)]
+    if new:
+        out.append(f'<section class="h-sec">{h_title("New games", "added in the last two weeks", base + "c/new/")}{h_row([h_card(g, base) for g in new])}</section>')
+    cats = [(c, [g for g in real if g["category"] == c["id"]]) for c in SITE["categories"] if c["id"] not in ("new", "studio")]
+    cats = sorted([x for x in cats if x[1]], key=lambda x: -len(x[1]))
+    out += [h_band(c, gs, base) for c, gs in cats if len(gs) >= 5]
+    small = [h_band(c, gs, base) for c, gs in cats if len(gs) < 5]
+    if small: out.append(f'<div class="h-smalls">{"".join(small)}</div>')
+    if studio: out.append(h_originals(studio, base))
+    out.append(f'<section class="h-sec h-catsec">{h_title("Browse by category")}<div class="h-cats">{pk_cats(base)}</div></section>')
+    res = real + [s for s in studio if not s.get("family")]
+    out.append(f'<section class="h-res" aria-label="Search results">{"".join(h_card(g, base, q=True) for g in res)}</section>')
+    return "".join(out)
+
 def pk_tile(g, base="", size="s1", pv=False):
     href, ext = href_of(g, base)
     q = f'{g["title"]} {g["maker"]} {CATS[g["category"]]["label"]}'.lower()
@@ -345,8 +465,10 @@ def pk_tile(g, base="", size="s1", pv=False):
     clip = clip_of(g)
     pva = f' data-pv="{esc(clip)}"' if clip and not g.get("soon") else ""
     meta = f'<span class="pk-meta"><i>{esc(CATS[g["category"]]["label"])}</i></span>' if pv else ""
-    return (f'<a class="pk-t {size}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">'
-            f'<img src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(tile_name(g["title"], size))}{meta}</span></a>')
+    sq = abs(cover_ratio(g) - 1) < 0.08   # a square cover fills a square tile; any other shape is fitted in whole (#98)
+    bg = "" if sq else f'<img class="pk-bg" src="{esc(base + g["thumb"])}" alt="" aria-hidden="true" loading="lazy">'
+    return (f'<a class="pk-t {size}{"" if sq else " fit"}" href="{esc(href)}"{ext} data-q="{esc(q)}"{pva} title="{esc(g["title"])}">{bg}'
+            f'<img class="pk-img" src="{esc(base + g["thumb"])}" alt="{esc(g["title"])}" loading="lazy">{badge(g)}<span class="pk-name">{esc(tile_name(g["title"], size))}{meta}</span></a>')
 
 def pk_tiles(items, base="", first_big=True, later_from=None):
     real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
@@ -463,12 +585,24 @@ if(me){var gi;try{gi=JSON.parse(body.getAttribute('data-gi'))}catch(x){}
    h.onclick=function(){var l=rd('sg_likes').filter(function(x){return x.s!==me});if(!on())l.unshift(gi);wr('sg_likes',l);paint()}}}}
 /* favourites + continue playing tiles */
 var slot=D.getElementById('pk-mine');
-if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘','Continue playing']].forEach(function(z){
+if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘','Recently played']].forEach(function(z){
  var l=rd(z[0]).filter(function(x){return x&&x.s&&x.s!==me&&x.u&&x.th}).slice(0,6);if(!l.length)return;
  out+='<div class="pk-label" id="'+(z[0]==='sg_likes'?'favs':'recent')+'"><span class="em">'+z[1]+'</span>'+z[2]+'</div>';
- l.forEach(function(x){out+='<a class="pk-t s1 mine" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img src="'+e(B+x.th)+'" alt="'+e(x.t)+'">'+(z[0]==='sg_recent'?'<span class="badge cont">▶ Continue</span>':'<span class="badge fav">♥</span>')+'<span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
+ l.forEach(function(x){out+='<a class="pk-t s1 mine fit" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' data-q="'+e(String(x.t).toLowerCase())+'" title="'+e(x.t)+'"><img class="pk-bg" src="'+e(B+x.th)+'" alt="" aria-hidden="true"><img class="pk-img" src="'+e(B+x.th)+'" alt="'+e(x.t)+'"><span class="pk-name">'+e(String(x.t).split(/: | \u2013 | - /)[0])+'</span></a>'})});
  slot.insertAdjacentHTML('afterend',out);slot.remove();
  if(location.hash){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}}
+/* home: the player's own rows, "Recently played" and "Your favourites" (#97), from this device */
+[].slice.call(D.querySelectorAll('[data-mine]')).forEach(function(sec){
+ var l=rd(sec.getAttribute('data-mine')).filter(function(x){return x&&x.s&&x.u&&x.th}).slice(0,12);if(!l.length)return;var out='';
+ l.forEach(function(x){var t=String(x.t);out+='<a class="h-card" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' title="'+e(t)+'"><img class="h-img" src="'+e(B+x.th)+'" alt="'+e(t)+'" loading="lazy"><span class="h-name"><span class="nf">'+e(t)+'</span><span class="ns">'+e(t.split(/: | \u2013 | - /)[0])+'</span></span></a>'});
+ sec.querySelector('.h-row').innerHTML=out;sec.hidden=false});
+if(location.hash&&D.querySelector('[data-mine]')){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}
+/* rows that scroll sideways (#95): arrows on a computer, hidden at each end */
+var wraps=[].slice.call(D.querySelectorAll('.h-rowwrap'));
+function rowsUpd(){wraps.forEach(function(w){var r=w.querySelector('.h-row'),m=r.scrollWidth-r.clientWidth;w.querySelector('.prev').hidden=r.scrollLeft<=4;w.querySelector('.next').hidden=r.scrollLeft>=m-4})}
+wraps.forEach(function(w){var r=w.querySelector('.h-row');w.querySelector('.prev').onclick=function(){r.scrollBy({left:-r.clientWidth*.9,behavior:'smooth'})};
+ w.querySelector('.next').onclick=function(){r.scrollBy({left:r.clientWidth*.9,behavior:'smooth'})};r.addEventListener('scroll',rowsUpd,{passive:true})});
+if(wraps.length){addEventListener('resize',rowsUpd);addEventListener('load',rowsUpd);rowsUpd()}
 /* featured banner */
 var hero=D.querySelector('.pk-hero');if(hero){var sl=[].slice.call(hero.querySelectorAll('.pk-slide')),ds=[].slice.call(hero.querySelectorAll('.pk-dot')),i=0,tm;
  function go(n){i=(n+sl.length)%sl.length;sl.forEach(function(s,k){s.classList.toggle('on',k===i)});ds.forEach(function(d,k){d.classList.toggle('on',k===i)})}
@@ -478,21 +612,21 @@ var hero=D.querySelector('.pk-hero');if(hero){var sl=[].slice.call(hero.querySel
  hero.addEventListener('mouseenter',function(){clearInterval(tm)});hero.addEventListener('mouseleave',start);start()}
 /* every page with tiles: play a short preview clip while the mouse rests on a game (#71); phones and "less motion" keep the cover */
 if(window.matchMedia&&matchMedia('(hover: hover)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches)
- [].slice.call(D.querySelectorAll('.pk-t[data-pv]')).forEach(function(t){var tm,v;
+ [].slice.call(D.querySelectorAll('[data-pv]')).forEach(function(t){var tm,v;
   t.addEventListener('mouseenter',function(){tm=setTimeout(function(){
    if(!v){v=D.createElement('video');v.className='pk-pv';v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('muted','');v.setAttribute('aria-hidden','true');
-    v.src=B+t.dataset.pv;t.insertBefore(v,t.querySelector('.pk-name'))}
+    v.src=B+t.dataset.pv;t.insertBefore(v,t.querySelector('.pk-name,.h-name,.h-over'))}
    v.currentTime=0;var p=v.play();if(p&&p.catch)p.catch(function(){});t.classList.add('pv')},250)});
   t.addEventListener('mouseleave',function(){clearTimeout(tm);t.classList.remove('pv');if(v)v.pause()})});
 /* search */
 var q=D.getElementById('pkq'),none=D.getElementById('pk-none');if(!q)return;
 q.addEventListener('input',function(){var v=q.value.trim().toLowerCase(),n=0,seen={};
- [].slice.call(D.querySelectorAll('.pk-t[data-q]')).forEach(function(t){var hit=!v||(t.dataset.q.indexOf(v)>-1&&!(v&&t.classList.contains('mine')));
+ [].slice.call(D.querySelectorAll('[data-q]')).forEach(function(t){var hit=!v||(t.dataset.q.indexOf(v)>-1&&!(v&&t.classList.contains('mine')));
   if(hit&&v){if(seen[t.href])hit=false;seen[t.href]=1}t.hidden=!hit;if(hit)n++});
  body.classList.toggle('pk-searching',!!v);if(none)none.hidden=!(v&&!n)})})();</script>"""
 
-def pk_body(base, inner, attrs="", active="", nav=None, cls="", top="", after=""):
-    return (f'<body class="pk{cls}" data-base="{esc(base)}"{attrs}>{top}{pk_side(base, active)}<main class="pk-grid">{pk_nav(base) if nav is None else nav}{inner}</main>'
+def pk_body(base, inner, attrs="", active="", nav=None, cls="", top="", after="", main_cls="pk-grid"):
+    return (f'<body class="pk{cls}" data-base="{esc(base)}"{attrs}>{top}{pk_side(base, active)}<main class="{main_cls}">{pk_nav(base) if nav is None else nav}{inner}</main>'
             f'<p id="pk-none" class="pk-none" hidden>No games match that. Try another word.</p>{after}{pk_foot(base)}{PK_JS}</body></html>')
 
 # Written text under the tiles (AdSense, Nov 2026: pages need words of their own, not only game tiles).
@@ -529,25 +663,19 @@ ICONS["users"] = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s
 ICONS["bookmark"] = '<path d="M6 3h12v18l-6-4.5L6 21z"/>'
 ICONS["bell"] = '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>'
 
-def cg_top(new_count):
+def cg_top(new_count, base=""):
     """CrazyGames-style bar across the top of the home page. Its search box is the page's search (#pkq, see PK_JS):
     the home page has no logo + search tile in the grid any more (#91)."""
     dot = f'<span class="cg-dot">{new_count}</span>' if new_count else ""
     return (f'<header class="cg-top"><button class="cg-menu" type="button" aria-label="Menu" onclick="document.body.classList.toggle(&quot;side-open&quot;)">{icon("menu", 24)}</button>'
-            f'{sn_logo("cg-logo", 46)}'
+            f'{sn_logo("cg-logo", 46, base + "./")}'
             f'<label class="cg-search"><input id="pkq" type="search" placeholder="Search games and categories" autocomplete="off" aria-label="Search games and categories">{icon("search", 20)}</label>'
-            f'<div class="cg-acts">{coin_chip()}'
-            f'<a class="cg-ib" href="#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
-            f'<a class="cg-ib" href="c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
+            f'<div class="cg-acts">{coin_chip(base)}'
+            f'<a class="cg-ib" href="{base}./#favs" title="Favourites" aria-label="Favourites">{icon("bookmark", 17)}</a>'
+            f'<a class="cg-ib" href="{base}c/new/" title="New games" aria-label="New games: {new_count}">{icon("bell", 18)}{dot}</a>'
             f'</div></header>')
 
-PZ_SIZES = ["s3", "s2", "s2", "s1", "s1", "s2", "s3", "s1", "s2", "s1", "s2", "s1"]   # big, medium, small, repeating
-
-def pz_tiles(items):
-    real = [g for g in items if not g.get("soon")]; soon = [g for g in items if g.get("soon")]
-    return "".join([pk_tile(g, "", PZ_SIZES[i % len(PZ_SIZES)], pv=True) for i, g in enumerate(real)] + [pk_tile(g, "", "s1") for g in soon])
-
-def build_home_cards(fam):
+def build_home_cards(fam, studio=()):
     jsonld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Organization", "@id": SITE["url"] + "/#org", "name": "Stratos Games", "url": SITE["url"] + "/", "email": SITE["contact"], "logo": SITE["url"] + "/assets/favicon.svg"},
         {"@type": "WebSite", "@id": SITE["url"] + "/#site", "url": SITE["url"] + "/", "name": "Stratos Games", "publisher": {"@id": SITE["url"] + "/#org"}}]}
@@ -558,11 +686,11 @@ def build_home_cards(fam):
     cats = "".join(f'<li><a href="c/{c["id"]}/">{esc(c["label"])}</a>: {esc(c.get("intro") or c.get("mood", ""))}</li>'
                    for c in SITE["categories"] if c["id"] != "new" and counts.get(c["id"]))
     about = pk_text("About Stratos Games", SITE.get("about_home", []), f'<h3>Play by category</h3><ul>{cats}</ul>' if cats else "")
-    body = pk_body("", PK_MINE + pz_tiles(fam) + pk_cats(), active="home", nav=SN_ASSETS, cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about)
+    body = pk_body("", home_sections(fam, studio), active="home", nav=SN_ASSETS, cls=" poki", top=cg_top(sum(1 for g in fam if is_new(g))), after=about, main_cls="hm")
     write("index.html", head("Stratos Games: free browser games, made by the family", SITE["description"], SITE["url"] + "/", og_image=SITE["url"] + "/assets/og.jpg", jsonld=jsonld) + body)
 
 def build_home(fam, studio):
-    if CLEAN: return build_home_cards(fam)
+    if CLEAN: return build_home_cards(fam, studio)
     real = [g for g in fam if not g.get("soon")]; soon = [g for g in fam if g.get("soon")]
     all_games = real + studio + soon
     by_cat = {}
@@ -597,7 +725,10 @@ def build_category(cid, items, fam, studio):
         listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
         about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
                         pk_paras(c.get("intro")), listing)
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base, skip=cid), active=cid, after=about)
+        grid = f'<div class="hm-grid">{"".join(h_card(g, base, q=True) for g in pool)}</div>' if pool else ""
+        more = f'<section class="h-sec h-catsec">{h_title("More categories")}<div class="h-cats">{pk_cats(base, skip=cid)}</div></section>'
+        body = pk_body(base, headcard + grid + more, active=cid, after=about, nav=SN_ASSETS, cls=" poki",
+                       top=cg_top(sum(1 for g in fam if is_new(g)), base), main_cls="hm")
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
