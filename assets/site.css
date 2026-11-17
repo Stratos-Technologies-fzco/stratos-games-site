@@ -629,4 +629,20 @@ footer.foot{max-width:860px;box-sizing:border-box;margin-top:24px;padding:14px 2
 @media (min-width:761px){.shell>.main{margin-left:76px}}
 @media (max-width:760px){.shell>.pk-side,.shell>.pk-side:hover{width:250px}}
 @media (max-width:620px){article.doc{padding:18px 16px}}
+/* ===== #94 the short About cards (home and category pages): the first lines show, "Learn more" opens the rest in place ===== */
+.pk-about{padding:20px 24px 14px}
+.ab-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.ab-head h2{margin:0}
+.pk-about .ab-head h2::before{display:none}
+.ab-mark{width:42px;height:42px;flex:none;overflow:visible}
+.ab-body.fold{max-height:108px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent)}
+.ab-btn{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:6px 0;border:0;background:none;color:#B6FF3B;font:900 13px/1 Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.ab-btn:hover{color:#d9ffa0}
+.ab-btn svg{transition:transform .2s}
+.ab-btn.open svg{transform:rotate(45deg)}
+.ab-btn[hidden]{display:none}
+.pk-about .ab-link{margin-top:12px}
+.pk-about .ab-link a{font-weight:800;text-decoration:none}
+@media (max-width:620px){.pk-about{padding:16px 16px 12px}.ab-mark{width:36px;height:36px}.ab-body.fold{max-height:118px}}
+@media (prefers-reduced-motion:reduce){.ab-btn svg{transition:none}}
 
