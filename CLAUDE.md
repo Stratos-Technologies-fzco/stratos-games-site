@@ -50,7 +50,7 @@ How to get back live:
 ## The setup in four lines
 
 - **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
-- **Saturday release:** on the weekly call, Sahil, Sahariar or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
+- **Saturday release:** on the weekly call, Sahil, Sahariar, Sarfaraj or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
 - A maker's game lives in `games/<github-username>/` (`index.html`, `game.json`, `thumbnail.png`).
 - Its public link uses the game's name, not the folder: `stratos.games/play/arrow-rush/`. Each link is set once in `site.json` ("links"), so a title change never breaks it; a new game gets one from its name. Old folder links redirect. The folder name stays the game's identity for analytics and Stratos Coins.
 - A GitHub Action runs `tools/build.py` and rebuilds the front page, play pages and sitemap. Nobody runs it by hand.
@@ -206,7 +206,7 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 This repo's `.claude/settings.json` runs these for every maker; nobody has to remember them:
 - **Get the latest:** at session start and before every message, Claude pulls the newest `staging` (unsaved work is kept). A computer still on `main` is switched to `staging` automatically.
 - **Publish:** when Claude finishes a turn, any saved commit is pushed to `staging`, retried up to 3 times if GitHub refuses, and checked on GitHub. After the "Published to staging" message, say "it's on staging" and give the staging link, never "it's live". It goes live at the Saturday release if issue #33 shows ✅ for the game; if it shows ❌, help the maker fix what it says. If publish failed, tell the maker plainly it is NOT on staging.
-- **Quick fix to the live site (Sahil and Sahariar only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
+- **Quick fix to the live site (Sahil, Sahariar and Sarfaraj only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
 - **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; the admins, Sahil, Sahariar and Sarfaraj, can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
 - Never change `.claude/` to switch these off.
 - If they ask how something works here (ads, analytics, store apps, the factory), answer from this file in plain words. If the answer is not here, say so and point them to Sahariar.
