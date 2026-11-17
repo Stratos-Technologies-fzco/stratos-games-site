@@ -347,10 +347,49 @@ def pk_tiles(items, base="", first_big=True, later_from=None):
     return "".join(out + [pk_tile(g, base, "s1") for g in soon])
 
 
-def pk_cats(base=""):
-    return "".join(f'<a class="pk-cat" href="{base}c/{c["id"]}/" style="--h:{c.get("hue", 220)}"><span class="em">{c.get("emoji", "🎮")}</span>'
-                   f'<span class="cl">{esc(c["label"])}<small>{esc(c.get("mood", ""))}</small></span></a>'
-                   for c in SITE["categories"])
+# Category cards (#92): our own sticker icons (drawn for Stratos in the snake logo's style: a dark outline and a little
+# shine), a colour per category from the logo's family (site.json "color"), our own lines ("mood") and a game count.
+# The same badge is used in the cards, the category page headers, the side menu and the game details.
+CAT_GLYPHS = {   # 24 x 24, round strokes
+    "new": '<path d="M12 3.5l1.7 4.8 4.8 1.7-4.8 1.7L12 16.5l-1.7-4.8L5.5 10l4.8-1.7z" fill="currentColor"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="currentColor"/>',
+    "arcade": '<path d="M5 20h14a1 1 0 0 0 1-1v-1.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 17.5V19a1 1 0 0 0 1 1z"/><path d="M12 15V9.5"/><circle cx="12" cy="6.5" r="3" fill="currentColor"/>',
+    "puzzle": '<path d="M10 4.5a2 2 0 0 1 4 0V6h3.5A1.5 1.5 0 0 1 19 7.5V11h-1.5a2 2 0 0 0 0 4H19v3.5a1.5 1.5 0 0 1-1.5 1.5H14v-1.5a2 2 0 0 0-4 0V20H6.5A1.5 1.5 0 0 1 5 18.5V15h1.5a2 2 0 0 0 0-4H5V7.5A1.5 1.5 0 0 1 6.5 6H10z"/>',
+    "word": '<path d="M3.5 18.5L8 6l4.5 12.5"/><path d="M5.2 14h5.6"/><path d="M15 6.5v12"/><path d="M15 13.2c.6-1.3 1.6-2 2.8-2 1.7 0 2.7 1.4 2.7 3.6s-1 3.7-2.7 3.7c-1.2 0-2.2-.7-2.8-2"/>',
+    "party": '<path d="M4 20l3.6-10.4 6.8 6.8z" fill="currentColor"/><path d="M13 4.5c.4 1.6-.4 2.8-1.6 3.2"/><path d="M19.5 10.5c-1.4-.6-2.8 0-3.4 1.2"/><path d="M16 3.5v.01M20 6.5v.01M17.5 14v.01M9.5 3v.01"/>',
+    "sports": '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c3.2 2.4 3.2 14.6 0 17"/><path d="M12 3.5c-3.2 2.4-3.2 14.6 0 17"/>',
+    "kids": '<circle cx="6.6" cy="6.6" r="2.4"/><circle cx="17.4" cy="6.6" r="2.4"/><circle cx="12" cy="13" r="7.2"/><path d="M9.6 12v.01M14.4 12v.01"/><path d="M9.8 15.6c1.3 1.1 3.1 1.1 4.4 0"/>',
+    "studio": '<path d="M16.8 7.2C16.2 4.2 8.2 4 8.2 8.4c0 4 8.6 2.6 8.6 7 0 4.6-8 4.8-9 1.6"/><circle cx="15.2" cy="6.4" r="1.1" fill="currentColor" stroke="none"/>',
+}
+CAT_COUNTS = {}   # filled in main(): games per category, counted like the category pages ("new": games marked NEW)
+
+def cat_color(c):
+    return c.get("color") or f'hsl({c.get("hue", 265)} 85% 62%)'
+
+def cat_svg(c, cls=""):
+    glyph = CAT_GLYPHS.get(c["id"]) or ICONS.get(c.get("icon"), ICONS["star"])
+    k = f' class="{cls}"' if cls else ""
+    return f'<svg{k} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{glyph}</svg>'
+
+def cat_badge(c, size=""):
+    cls = "cat-badge" + (" " + size if size else "") + (" studio" if c["id"] == "studio" else "")
+    return f'<span class="{cls}" style="--c:{cat_color(c)}">{cat_svg(c)}</span>'
+
+def cat_count(cid):
+    n = CAT_COUNTS.get(cid, 0)
+    if not n: return ""
+    return f"{n} new" if cid == "new" else f"{n} game" + ("s" if n != 1 else "")
+
+def pk_cats(base="", skip=""):
+    """The category cards. skip: a category page leaves out its own card (its header already says where you are)."""
+    out = []
+    for c in SITE["categories"]:
+        if c["id"] == skip: continue
+        n = cat_count(c["id"]); st = " studio" if c["id"] == "studio" else ""
+        chip = f'<span class="cn">{n}</span>' if n else ""
+        line = f'<i>{n}</i>' if n else ""   # phones show the count under the name instead of the chip
+        out.append(f'<a class="pk-cat{st}" href="{base}c/{c["id"]}/" style="--c:{cat_color(c)}">{cat_badge(c)}'
+                   f'<span class="cl"><b>{esc(c["label"])}</b><small>{esc(c.get("mood", ""))}</small>{line}</span>{chip}{cat_svg(c, "wm")}</a>')
+    return "".join(out)
 
 ICONS["heart"] = '<path d="M12 21s-7.5-4.6-9.5-9.2C1 8.4 3.2 4.5 7 4.5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.8 0 6 3.9 4.5 7.3C19.5 16.4 12 21 12 21z"/>'
 
@@ -386,8 +425,12 @@ def pk_side(base="", active=""):
         return f'<a class="pk-si{on}" href="{esc(href)}"{tgt} title="{esc(label)}"><span class="ic">{icon(ic, 22)}</span><span class="lb">{esc(label)}</span></a>'
     top = [item(f"{base}./", "home", "Home", "home"), item(f"{base}./#recent", "clock", "Recently played"),
            item(f"{base}./#favs", "heart", "Favourites"), item(f"{base}coins/", "coin", "Stratos Coins", "coins")]
-    top += [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] in ("new", "studio")]
-    cats = [item(f'{base}c/{c["id"]}/', c["icon"], c["label"], c["id"]) for c in SITE["categories"] if c["id"] not in ("new", "studio")]
+    def cat(c):   # categories show their sticker badge (#92)
+        on = " on" if c["id"] == active else ""
+        return (f'<a class="pk-si cat{on}" href="{esc(base)}c/{c["id"]}/" title="{esc(c["label"])}">'
+                f'<span class="ic">{cat_badge(c, "sm")}</span><span class="lb">{esc(c["label"])}</span></a>')
+    top += [cat(c) for c in SITE["categories"] if c["id"] in ("new", "studio")]
+    cats = [cat(c) for c in SITE["categories"] if c["id"] not in ("new", "studio")]
     foot = [item(f'{base}{n["href"]}', "info", n["label"]) for n in SITE["nav"]]
     return (f'<nav class="pk-side" aria-label="Sections">{"".join(top)}<hr>{"".join(cats)}<hr>{"".join(foot)}</nav>'
             f'<div class="pk-scrim" onclick="document.body.classList.remove(\'side-open\')"></div>')
@@ -537,12 +580,15 @@ def build_category(cid, items, fam, studio):
     pool = ([g for g in fam if not g.get("soon")] if cid == "new" else studio if cid == "studio" else items)
     if CLEAN:
         n = len(pool)
-        headcard = f'<div class="pk-head"><h1>{c.get("emoji", "")} {esc(c["label"])}</h1><small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>'
+        st = " studio" if cid == "studio" else ""
+        h1 = c["label"] if cid == "studio" else f'{c["label"]} games'
+        headcard = (f'<div class="pk-head cat{st}" style="--c:{cat_color(c)}">{cat_badge(c, "lg")}<div class="ht"><h1>{esc(h1)}</h1>'
+                    f'<small>{esc(c.get("mood", ""))} · {n} game{"s" if n != 1 else ""}</small></div>{cat_svg(c, "wm")}</div>')
         names = [f'{g["title"]} by {g["maker"]}' for g in pool if not g.get("soon")]
         listing = (f'<h3>Games in this section</h3>{pk_list(names)}' if names else "")
         about = pk_text(f'About {c["label"].lower()} games' if cid not in ("new", "studio") else f'About {c["label"].lower()}',
                         pk_paras(c.get("intro")), listing)
-        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base), active=cid, after=about)
+        body = pk_body(base, headcard + pk_tiles(pool, base) + pk_cats(base, skip=cid), active=cid, after=about)
         write(f"c/{cid}/index.html", head(f"{c['label']} games | Stratos Games", f"Free {c['label'].lower()} games to play in your browser on Stratos Games. {c.get('mood', '')}.", f"{SITE['url']}/c/{cid}/", base=base, kids=cid == "kids") + body)
         return
     body = (f'<body class="{"clean" if CLEAN else ""}">{topbar(base)}<div class="shell">{sidebar(base, cid)}<main class="main">'
@@ -604,7 +650,7 @@ def pk_detail(g, base):
     dev = esc(g["maker"]) + (f' · <a href="https://github.com/{esc(g["github"])}" target="_blank" rel="noopener">GitHub</a>' if g.get("github") else "")
     def fact(ic, hue, label, val):
         return f'<div class="pd-fact"><span class="pd-fi" style="--h:{hue}">{ic}</span><span><small>{label}</small><b>{val}</b></span></div>'
-    facts = (fact(f'<span class="em">{c.get("emoji", "")}</span>', 30, "Category", f'<a href="{cat_href}">{esc(c["label"])}</a>') +
+    facts = (f'<div class="pd-fact">{cat_badge(c, "md")}<span><small>Category</small><b><a href="{cat_href}">{esc(c["label"])}</a></b></span></div>' +
              fact(icon("clock", 20), 340, "Added", esc(pk_date(g.get("added")))) +
              fact(icon("phone", 20), 190, "Plays on", "Phone &amp; computer") +
              fact(icon("sparkle", 20), 270, "Price", "Free"))
@@ -831,10 +877,13 @@ def main():
     problems += [f"{g['slug']}: coming soon, not shown on the site yet" for g in fam if g["soon"]]
     fam = [g for g in fam if not g["soon"]]   # unfinished boxes stay off the public site
     prune(fam)
-    build_home(fam, studio)
     by_cat = {}
     for g in fam + studio:
         if not g.get("soon"): by_cat.setdefault(g["category"], []).append(g)
+    # game counts on the category cards (#92), counted like the category pages; "new" = how many games are marked NEW
+    CAT_COUNTS.update({c["id"]: len(by_cat.get(c["id"], [])) for c in SITE["categories"]})
+    CAT_COUNTS.update(new=sum(1 for g in fam if is_new(g)), studio=len(studio))
+    build_home(fam, studio)
     for c in SITE["categories"]: build_category(c["id"], by_cat.get(c["id"], []), fam, studio)
     for g in fam: build_play(g, fam, studio)
     build_extras(fam, studio)
