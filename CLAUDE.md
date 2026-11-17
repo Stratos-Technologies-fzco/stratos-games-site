@@ -50,7 +50,7 @@ How to get back live:
 ## The setup in four lines
 
 - **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
-- **Saturday release:** on the weekly call, Sahil, Sahariar or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
+- **Saturday release:** on the weekly call, Sahil, Sahariar, Sarfaraj or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
 - A maker's game lives in `games/<github-username>/` (`index.html`, `game.json`, `thumbnail.png`).
 - Its public link uses the game's name, not the folder: `stratos.games/play/arrow-rush/`. Each link is set once in `site.json` ("links"), so a title change never breaks it; a new game gets one from its name. Old folder links redirect. The folder name stays the game's identity for analytics and Stratos Coins.
 - A GitHub Action runs `tools/build.py` and rebuilds the front page, play pages and sitemap. Nobody runs it by hand.
@@ -59,10 +59,10 @@ How to get back live:
 ## Never touch (live money depends on it)
 
 - `app-ads.txt`: it tells Google who may sell ads in our Arrow Puzzle and Bloxplode apps. If it changes or disappears, live ad revenue stops. Never edit, move, rename or delete it, even if asked. A guard workflow puts it back if it changes.
-- `.github/`, `tools/`, `templates/`, `vercel.json`, `404.html`, `site.json`: shared by everyone. Change only when Sahil or Sahariar asks.
+- `.github/`, `tools/`, `templates/`, `vercel.json`, `404.html`, `site.json`: shared by everyone. Change only when Sahil, Sahariar or Sarfaraj asks.
 - Anyone else's folder under `games/`.
 
-If a request needs any of these, stop and tell the maker to ask Sahil or Sahariar.
+If a request needs any of these, stop and tell the maker to ask Sahil, Sahariar or Sarfaraj.
 
 ## What makes a good Stratos game (learned the hard way)
 
@@ -179,15 +179,15 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 - `ok:false` is normal: when it says `capped` or `already_earned`, show nothing. When the player is short of coins, show the price and their balance and say how to earn more.
 - Show what they earned ("+12 Stratos Coins") and what a spend costs, with one tap to confirm, before you spend.
 - Keep the HUD fresh with `Stratos.coins.onChange(function (i) { ... i.balance ... })`.
-- No coins for online or friends-only games unless Sahil or Sahariar say so (two friends can farm them).
-- Kids-section games get Stratos Coins too (owner decision, 2026-11-16). Analytics stay off there, so never add tracking to a kids game for coins. Sahil or Sahariar can switch kids coins off with `"kidsCoins": false` in the config.
-- A game that earns and spends fully by itself (like Domino Classic) tells Sahil or Sahariar so its folder name is added to `auto.exclude` in the config; otherwise it would be paid twice.
-- A new rule or item (a premium game, level unlocks, a new price) goes in `assets/coins-config.json`. That is a shared file: tell the maker to ask Sahil or Sahariar to add it, with the game folder name, the rule or item, and the amount they have in mind. Until then use the rules and items that already exist. Never hard-code an amount or price in the game.
+- No coins for online or friends-only games unless Sarfaraj, Sahil or Sahariar say so (two friends can farm them).
+- Kids-section games get Stratos Coins too (owner decision, 2026-11-16). Analytics stay off there, so never add tracking to a kids game for coins. Sarfaraj, Sahil or Sahariar can switch kids coins off with `"kidsCoins": false` in the config.
+- A game that earns and spends fully by itself (like Domino Classic) tells Sarfaraj, Sahil or Sahariar so its folder name is added to `auto.exclude` in the config; otherwise it would be paid twice.
+- A new rule or item (a premium game, level unlocks, a new price) goes in `assets/coins-config.json`. That is a shared file: tell the maker to ask Sarfaraj, Sahil or Sahariar to add it, with the game folder name, the rule or item, and the amount they have in mind. Until then use the rules and items that already exist. Never hard-code an amount or price in the game.
 - Games that already have their own coin keep it. Do not rip it out.
 
 **Economy checklist (every new game, before "publish"):**
 1. Earn: where does the player earn Stratos Coins? (first play, wins, levels, daily challenge). Name the rule IDs.
-2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sahil or Sahariar if the item is new. The staging check (issue #33) shows a ⚠️ in the "coins" column for a game with no way to spend. It never keeps the game off live. If a game has nothing to spend on purpose (a kids learning aid, a server game), add this to its `game.json` so the warning goes away: `"coins": { "spend": false, "why": "one short reason" }`.
+2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sarfaraj, Sahil or Sahariar if the item is new. The staging check (issue #33) shows a ⚠️ in the "coins" column for a game with no way to spend. It never keeps the game off live. If a game has nothing to spend on purpose (a kids learning aid, a server game), add this to its `game.json` so the warning goes away: `"coins": { "spend": false, "why": "one short reason" }`.
 3. Own coin: does the game have its own coin? If yes, it has a different name and is never exchanged.
 4. The game plays normally when `SC()` is `null`.
 5. Repeat calls pay once (stable `ref`), and a capped or empty-handed player sees no error.
@@ -206,8 +206,8 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 This repo's `.claude/settings.json` runs these for every maker; nobody has to remember them:
 - **Get the latest:** at session start and before every message, Claude pulls the newest `staging` (unsaved work is kept). A computer still on `main` is switched to `staging` automatically.
 - **Publish:** when Claude finishes a turn, any saved commit is pushed to `staging`, retried up to 3 times if GitHub refuses, and checked on GitHub. After the "Published to staging" message, say "it's on staging" and give the staging link, never "it's live". It goes live at the Saturday release if issue #33 shows ✅ for the game; if it shows ❌, help the maker fix what it says. If publish failed, tell the maker plainly it is NOT on staging.
-- **Quick fix to the live site (Sahil and Sahariar only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
-- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; Sahil and Sahariar can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
+- **Quick fix to the live site (Sahil, Sahariar and Sarfaraj only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
+- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; the admins, Sahil, Sahariar and Sarfaraj, can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
 - Never change `.claude/` to switch these off.
 - If they ask how something works here (ads, analytics, store apps, the factory), answer from this file in plain words. If the answer is not here, say so and point them to Sahariar.
 

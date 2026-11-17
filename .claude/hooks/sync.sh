@@ -3,7 +3,7 @@
 #   sync.sh pull     (session start, every message)  get the latest from staging, quietly
 #   sync.sh publish  (when Claude finishes a turn)    push any saved commits to staging, retry, confirm on GitHub
 # Everyone publishes to STAGING (https://stratos-family-staging.vercel.app). The live site (main) changes only at the
-# Saturday release (Actions: "release staging to live") or by a quick fix from Sahil/Sahariar on a branch called hotfix.
+# Saturday release (Actions: "release staging to live") or by a quick fix from Sahil/Sahariar/Sarfaraj on a branch called hotfix.
 # Needs only bash and git, so it works on Mac, Linux and Windows (Git Bash).
 BR=staging
 STAGING_URL="https://stratos-family-staging.vercel.app"
