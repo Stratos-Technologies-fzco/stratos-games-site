@@ -84,6 +84,7 @@
       "intro": "Games made by the Stratos studio: Bloxplode and Arrow Rush. AI writes the code, and a person plays every build on a real phone before it ships."
     }
   ],
+  "featured": ["sksarfarajali-stratos-drop-zone", "im-mohua-liza-momo-run", "im-mohua-liza-chroma-clash", "im-mohua-liza-plot-twist", "sksarfarajali-moto-rush"],
   "studio_games": [
     {
       "slug": "arrow-rush",
