@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # guard.sh: before Claude edits a file, check it belongs to this maker.
 # Makers may change games/<their-github-name>/ and games/<their-github-name>-*/ only.
-# Sahil and Sahariar may change anything except app-ads.txt (live ad money, never edited by Claude).
-ADMINS=" sahilmodi1965 mody-sahariar1 "
+# Admins (Sahil, Sahariar and Sarfaraj) may change anything except app-ads.txt (live ad money, never edited by Claude).
+ADMINS=" sahilmodi1965 mody-sahariar1 sksarfarajali "   # Sarfaraj added at Sahariar's request, 17 Nov 2026
 TESTERS=" im-mohua-liza "   # the tester may also edit site.json, to put a game back live after her pass (Sahil 2026-11-07)
 input=$(cat)
 file=$(printf '%s' "$input" | sed -nE 's/.*"(file_path|notebook_path)"[[:space:]]*:[[:space:]]*"([^"]*)".*/\2/p' | head -1 | sed 's/\\\\/\//g; s/\\/\//g')
@@ -29,5 +29,5 @@ case "$ADMINS" in *" $login "*) exit 0 ;; esac
 l=$(lc "$login"); r=$(lc "$rel")
 case "$TESTERS" in *" $login "*) [ "$r" = "site.json" ] && exit 0 ;; esac
 case "$r" in "games/$l/"*|"games/$l-"*) exit 0 ;; esac
-echo "Blocked: $rel is not in your game folder. You ($login) can change games/$login/ or games/$login-<game>/ only; shared files and other makers' games are off limits. If this change is really needed, tell the maker to ask Sahil or Sahariar." >&2
+echo "Blocked: $rel is not in your game folder. You ($login) can change games/$login/ or games/$login-<game>/ only; shared files and other makers' games are off limits. If this change is really needed, tell the maker to ask Sahil, Sahariar or Sarfaraj." >&2
 exit 2
