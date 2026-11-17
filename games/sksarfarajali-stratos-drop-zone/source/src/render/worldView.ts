@@ -1,7 +1,9 @@
 // Builds the island scene: coloured terrain, water, merged static chunks, sun, fog and the storm wall.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { settings } from '../input';
 import { modelGeometry, sharedMaterial } from './assets';
+import { makeWindMaterial, swayWeights, windUniforms } from './wind';
 import { CELL, GRID, HALF, MAP, RIVER, RIVER_WIDTH, coastDist, roadDist, type Placement, type WorldData, baseHeight } from '../core/world';
 
 const C = (hex: number) => new THREE.Color(hex);
@@ -74,7 +76,8 @@ function bankLevel(x: number, z: number) {
 
 const CHUNK = 80;
 const VEG = new Set(['palm_tree', 'broadleaf_tree', 'bush', 'grass_clump', 'rock_small', 'rock_medium']);
-export interface Chunk { mesh: THREE.Mesh; cx: number; cz: number; center: THREE.Vector3; hasTall: boolean }
+/** `mesh` holds buildings, rocks and props; `trees` (when the area has any) holds trees, bushes and grass, which sway in the wind. A tree-only area has just `mesh`, with userData.tree set. */
+export interface Chunk { mesh: THREE.Mesh; trees?: THREE.Mesh; cx: number; cz: number; center: THREE.Vector3; hasTall: boolean }
 
 /** Merge every static model into one mesh per 80 m cell: a handful of draw calls instead of thousands. */
 export async function buildStaticChunks(list: Placement[]): Promise<Chunk[]> {
@@ -83,19 +86,21 @@ export async function buildStaticChunks(list: Placement[]): Promise<Chunk[]> {
   const cells = new Map<string, Placement[]>();
   for (const p of list) { const k = `${Math.floor((p.x + HALF) / CHUNK)},${Math.floor((p.z + HALF) / CHUNK)}`; (cells.get(k) ?? cells.set(k, []).get(k)!).push(p); }
   const out: Chunk[] = []; const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+  const windMat = makeWindMaterial(sharedMaterial);
   for (const [k, ps] of cells) {
-    const parts: THREE.BufferGeometry[] = [];
+    const parts: THREE.BufferGeometry[] = [], plantParts: THREE.BufferGeometry[] = [];
     for (const p of ps) {
       const g = geos.get(p.model)!.clone(); const hsh = (Math.abs(Math.sin(p.x * 12.9898 + p.z * 78.233)) * 43758.5453) % 1, veg = VEG.has(p.model), sc = veg ? 0.85 + hsh * 0.4 : 1;
       q.setFromAxisAngle(up, p.yaw); m.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(sc, veg ? sc * (0.9 + ((hsh * 7) % 1) * 0.3) : 1, sc)); g.applyMatrix4(m);
       const col = g.getAttribute('color') as THREE.BufferAttribute, f = veg ? 0.82 + ((hsh * 13) % 1) * 0.36 : 0.9 + ((hsh * 13) % 1) * 0.2, tr = veg && p.model.includes('tree'), tn = tr ? [f * 0.95, f, f * 0.9] : [f, f, f];
       for (let i = 0; i < col.count; i++) col.setXYZ(i, Math.min(1, col.getX(i) * tn[0]), Math.min(1, col.getY(i) * tn[1]), Math.min(1, col.getZ(i) * tn[2]));
-      parts.push(g);
+      if (/tree|bush|grass/.test(p.model)) { const gp = g.getAttribute('position'); const ys = new Float32Array(gp.count); for (let i = 0; i < gp.count; i++) ys[i] = gp.getY(i); g.setAttribute('sway', new THREE.BufferAttribute(swayWeights(ys), 1)); plantParts.push(g); } else parts.push(g);
     }
-    const merged = mergeGeometries(parts, false); if (!merged) continue; merged.computeVertexNormals();
-    const mesh = new THREE.Mesh(merged, sharedMaterial); mesh.matrixAutoUpdate = false; mesh.frustumCulled = true; mesh.castShadow = false;
-    merged.computeBoundingSphere(); const [cx, cz] = k.split(',').map(Number);
-    out.push({ mesh, cx, cz, center: merged.boundingSphere!.center.clone(), hasTall: ps.some((p) => p.model.includes('tree')) });
+    const solid = parts.length ? mergeGeometries(parts, false) : null, plants = plantParts.length ? mergeGeometries(plantParts, false) : null; if (!solid && !plants) continue;
+    const make = (geo: THREE.BufferGeometry, mat: THREE.Material) => { geo.computeVertexNormals(); geo.computeBoundingSphere(); const me = new THREE.Mesh(geo, mat); me.matrixAutoUpdate = false; me.frustumCulled = true; me.castShadow = false; return me; };
+    const mesh = solid ? make(solid, sharedMaterial) : make(plants!, windMat); const trees = solid && plants ? make(plants, windMat) : undefined; if (!solid) mesh.userData.tree = true;
+    const [cx, cz] = k.split(',').map(Number);
+    out.push({ mesh, trees, cx, cz, center: (solid ?? plants)!.boundingSphere!.center.clone(), hasTall: ps.some((p) => p.model.includes('tree')) });
   }
   return out;
 }
@@ -115,7 +120,7 @@ export async function buildWorldView(w: WorldData): Promise<WorldView> {
   scene.add(buildTerrainMesh(w));
   const water = buildWater(); scene.add(water);
   const chunks = await buildStaticChunks([...w.placements, ...w.vegetation, ...w.lights]);
-  for (const c of chunks) scene.add(c.mesh);
+  for (const c of chunks) { scene.add(c.mesh); if (c.trees) scene.add(c.trees); }
 
   // storm wall: violet cylinder with a scrolling noise shader
   const stormMat = new THREE.ShaderMaterial({
@@ -144,7 +149,10 @@ export async function buildWorldView(w: WorldData): Promise<WorldView> {
       (storm.material as THREE.ShaderMaterial).uniforms.uTime.value = t;
       const d = Math.hypot(cam.x - storm.position.x, cam.z - storm.position.z); (storm.material as THREE.ShaderMaterial).uniforms.uInside.value = d < storm.scale.x ? 1 : 0;
       const far = low ? 260 : 420;
-      for (const c of chunks) c.mesh.visible = Math.hypot(c.center.x - cam.x, c.center.z - cam.z) < far + 60;
+      for (const c of chunks) { c.mesh.visible = Math.hypot(c.center.x - cam.x, c.center.z - cam.z) < far + 60; if (c.trees) c.trees.visible = c.mesh.visible; }
+      windUniforms.uTime.value = t; windUniforms.uWind.value = low || settings.reduceMotion ? 0 : 1; // still on Low quality and with Reduce motion
+      // the sun and its shadow follow the camera, so shadows work everywhere on the island, not just near the middle
+      { const sx = Math.round(cam.x * 4) / 4, sz = Math.round(cam.z * 4) / 4; sun.target.position.set(sx, 0, sz); sun.position.set(sx - 120, 140, sz - 80); }
       water.children[0].position.x = cam.x; water.children[0].position.z = cam.z;
       // atmosphere
       const dz = Math.hypot(cam.x - zone.cx, cam.z - zone.cz), wallOn = storm.visible && zone.r > 0; outK += ((wallOn && dz > zone.r ? 1 : 0) - outK) * 0.04;

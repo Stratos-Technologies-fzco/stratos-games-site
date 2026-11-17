@@ -47,7 +47,7 @@ export class Humanoid implements Avatar {
   private bones: THREE.Bone[] = []; private pelvisBone!: THREE.Bone; private meshes: THREE.SkinnedMesh[] = []; private mat!: THREE.MeshLambertMaterial;
   private handSock!: THREE.Object3D; private hold: Hold = 'none'; private recoil = 0; private muzzleLocal: THREE.Vector3 | null = null;
   private inp: AnimInput = defaultInput(); private acc = 0; private tDead = 0; private wantWing = false; private wingK = 0; private flashT = 0; private isFar = false; private distance = 0;
-  private static blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 });
+  static blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 });
   private blob: THREE.Mesh;
   constructor(public model: Survivor) {
     this.root.add(this.body); this.blob = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16).rotateX(-Math.PI / 2), Humanoid.blobMat); this.blob.position.y = 0.05; this.blob.renderOrder = 1; this.root.add(this.blob);

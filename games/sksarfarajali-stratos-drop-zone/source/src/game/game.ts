@@ -90,12 +90,17 @@ export class Game {
   effQuality: 'low' | 'medium' | 'high' | 'auto' = 'medium';
   /** Re-reads the graphics setting: resolution, and real shadows on High only. */
   applyQuality() {
-    this.autoQuality(); this.applyResolution(); const high = this.effQuality === 'high';
-    if (this.renderer.shadowMap.enabled !== high) { this.renderer.shadowMap.enabled = high; sharedMaterial.needsUpdate = true; }
-    if (!this.view) return; this.view.sun.castShadow = high;
-    if (high) { const s = this.view.sun.shadow, c = s.camera as THREE.OrthographicCamera; s.mapSize.set(1024, 1024); c.left = -45; c.right = 45; c.top = 45; c.bottom = -45; c.near = 1; c.far = 280; c.updateProjectionMatrix(); s.bias = -0.0006; }
-    for (const ch of this.view.chunks) { ch.mesh.castShadow = high; ch.mesh.receiveShadow = high; }
-    for (const a of this.actors) a.char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = high; });
+    this.autoQuality(); this.applyResolution(); const high = this.effQuality === 'high', shadows = high || this.effQuality === 'medium';
+    if (this.renderer.shadowMap.enabled !== shadows) { this.renderer.shadowMap.enabled = shadows; sharedMaterial.needsUpdate = true; }
+    Humanoid.blobMat.opacity = shadows ? 0.16 : 0.32; // the simple blob under each survivor fades when real shadows are on
+    if (!this.view) return; const sun = this.view.sun; sun.castShadow = shadows;
+    if (shadows) { // Medium: 1024 map over 64 m, casters are survivors and plants. High: 2048 map over 90 m, buildings cast too
+      const sh = sun.shadow, c = sh.camera as THREE.OrthographicCamera, size = high ? 2048 : 1024, half = high ? 45 : 32;
+      if (sh.mapSize.x !== size) { sh.mapSize.set(size, size); sh.map?.dispose(); sh.map = null; }
+      c.left = -half; c.right = half; c.top = half; c.bottom = -half; c.near = 1; c.far = 320; c.updateProjectionMatrix(); sh.bias = -0.0006; sh.normalBias = 0.03;
+    }
+    for (const ch of this.view.chunks) { ch.mesh.castShadow = high || (shadows && !!ch.mesh.userData.tree); ch.mesh.receiveShadow = shadows; if (ch.trees) { ch.trees.castShadow = shadows; ch.trees.receiveShadow = shadows; } }
+    for (const a of this.actors) a.char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = shadows; });
   }
 
   // ------------------------------------------------------------------ match lifecycle
@@ -136,7 +141,7 @@ export class Game {
       kills: 0, damage: 0, headshots: 0, slideT: 0, slideCd: 0, slideDx: 0, slideDz: 0, prevCrouch: false, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, lastHitBy: null, lastHitAt: -99, speedNow: 0, vx: 0, vz: 0, fireHeld: false, coyote: 0, jumpBuf: 0, fallStartY: 0, survivor, bot: brain,
     };
     if (isBot) { const names = this.actors.map((x) => x.name); while (names.filter((n) => n === a.name).length) a.name += 'x'; }
-    void char.setWeapon('tide_machete'); if (this.effQuality === 'high') char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = true; }); this.actors.push(a); return a;
+    void char.setWeapon('tide_machete'); if (this.effQuality !== 'low') char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = true; }); this.actors.push(a); return a;
   }
   private async spawnGroundLoot() {
     let n = 0;
