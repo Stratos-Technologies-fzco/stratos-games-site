@@ -16,5 +16,6 @@
     "Watch your fuel and grab every can you see.",
     "Bring all three crates to the depot for the full-load bonus."
   ],
-  "story": "I love hill-climb driving games, and I wanted my own one with a twist. So the truck carries loose crates that can fall off. I built it with Claude and played it over and over until the bumps, the flips and the crashes felt just right."
+  "story": "I love hill-climb driving games, and I wanted my own one with a twist. So the truck carries loose crates that can fall off. I built it with Claude and played it over and over until the bumps, the flips and the crashes felt just right.",
+  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
 }

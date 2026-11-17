@@ -15,6 +15,7 @@ Checks (Sahil, 7 Nov 2026):
   files       no single file over 100 MB, no mobile app ad IDs (ca-app-pub-)
   resume      continue where you left off (Stratos.resume.save / offer). A WARNING only, for games added from 2026-11-17 on.
               A game that cannot resume on purpose says so in game.json: "resume": {"supported": false, "why": "..."}
+              A game that already continues by itself (its own Continue button, or a world that always carries on) says: "resume": {"native": true, "how": "..."}
   coins       a way to spend Stratos Coins (Stratos.coins.offer / spend). A WARNING only, it never keeps a game off live.
               A game with nothing to spend on purpose says so in game.json: "coins": {"spend": false, "why": "..."}
   phone       opens on a phone screen with no scrolling and no crash
@@ -129,6 +130,9 @@ def static_checks(slug):
     if rs.get("supported") is False:
         c["resume"] = None
         r["notes"].append("resume: not supported on purpose (" + (rs.get("why") or "add a why to game.json resume") + ")")
+    elif rs.get("native") is True:
+        c["resume"] = True
+        r["notes"].append("resume: the game continues on its own (" + (rs.get("how") or "add a how to game.json resume") + ")")
     elif uses_resume(read_text(folder)):
         c["resume"] = True
     elif (added_dates().get(slug) or "") >= RESUME_FROM:

@@ -1018,7 +1018,31 @@ function spawnCar(x, y) {
   }
 }
 
+/* ---------- Resume (Stratos.resume): the level open and the road the player has drawn so far. ---------- */
+function SR() { try { const X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+let resumeReady = false, resumeRestoring = false;
+function resumeClear() { const R = SR(); if (R) R.clear(); }
+function resumeSave() {
+  const R = SR(); if (!R || !level) return;
+  if (!strokes.length) { resumeClear(); return; }
+  R.save({ idx: levelIdx, inkBonus, strokes: strokes.map((s) => ({ type: s.type, pts: s.pts.map((p) => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]) })) },
+    { ver: 1, label: 'Level ' + (levelIdx + 1) + ', ' + level.name + ', ' + strokes.length + (strokes.length === 1 ? ' piece of road drawn' : ' pieces of road drawn') });
+}
+function resumeLevel(sv) {
+  if (!sv || typeof sv.idx !== 'number' || !LEVELS[sv.idx] || !unlocked(sv.idx) || !Array.isArray(sv.strokes) || !sv.strokes.length) return false;
+  for (const s of sv.strokes) if (!s || (s.type !== 'road' && s.type !== 'turbo') || !Array.isArray(s.pts) || s.pts.length < 2 || s.pts.some((p) => !Array.isArray(p) || !isFinite(p[0]) || !isFinite(p[1]))) return false;
+  resumeRestoring = true;
+  try { strokes = sv.strokes.map((s) => ({ type: s.type, pts: s.pts })); inkBonus = +sv.inkBonus || 0; loadLevel(sv.idx, true); } finally { resumeRestoring = false; }
+  return true;
+}
+function resumeOffer(tries = 0) {
+  const R = SR();
+  if (!R) { if (tries < 40) setTimeout(() => resumeOffer(tries + 1), 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || state !== 'title') return;   // nothing saved, or the player already moved on
+  R.offer((sv) => { if (!resumeLevel(sv)) resumeClear(); }, () => { }, { ver: 1 });
+}
 function loadLevel(idx, keepStrokes = false) {
+  if (resumeReady && !keepStrokes && !resumeRestoring) resumeClear();   // a fresh level: the old half-drawn road no longer applies
   const keep = keepStrokes ? strokes.map((s) => ({ type: s.type, pts: s.pts })) : [];
   disposeGroup(levelGroup);
   smoke.clear(); glowFx.clear();
@@ -1169,7 +1193,7 @@ canvas.addEventListener('pointermove', (e) => {
 });
 function endStroke() {
   if (curStroke && curStroke.pts.length < 2) removeStroke(curStroke);
-  curStroke = null;
+  const had = !!curStroke; curStroke = null; if (had) resumeSave();
 }
 const pointerEnd = (e) => { if (e.pointerId !== pointerId) return; pointerId = null; endStroke(); };
 canvas.addEventListener('pointerup', pointerEnd);
@@ -1203,7 +1227,7 @@ function resetCar() {
   loadLevel(levelIdx, true);
 }
 function win() {
-  setState('won'); endT = 0;
+  setState('won'); endT = 0; resumeClear();
   track('level_complete', { level: levelIdx + 1, time: +timer.toFixed(2), ink: Math.round(inkUsed) });
   chassis.setLinearDamping(2.2); wheelBodies.forEach((w) => w.setAngularDamping(3));
   Sound.win();
@@ -1506,8 +1530,8 @@ function holdBtn(id, key) {
 }
 holdBtn('nitroBtn', 'nitro'); holdBtn('brakeBtn', 'brake'); holdBtn('tiltL', 'left'); holdBtn('tiltR', 'right');
 
-function undo() { const s = strokes[strokes.length - 1]; if (s) { removeStroke(s); Sound.click(); updateHUD(); } }
-function clearAll() { while (strokes.length) removeStroke(strokes[0]); inkUsed = 0; Sound.click(); updateHUD(); }
+function undo() { const s = strokes[strokes.length - 1]; if (s) { removeStroke(s); Sound.click(); updateHUD(); resumeSave(); } }
+function clearAll() { while (strokes.length) removeStroke(strokes[0]); inkUsed = 0; Sound.click(); updateHUD(); resumeSave(); }
 function setPen(p) { pen = p; document.querySelectorAll('[data-pen]').forEach((b) => b.classList.toggle('on', b.dataset.pen === p)); Sound.click(); }
 function toggleMute() { Sound.init(); Sound.setMuted(!save.muted); $('muteBtn').textContent = save.muted ? '🔇' : '🔊'; }
 $('muteBtn').textContent = save.muted ? '🔇' : '🔊';
@@ -1566,5 +1590,6 @@ document.querySelectorAll('[data-back]').forEach((b) => b.onclick = () => { Soun
 /* ------------------------------------------------------------------ boot */
 loadLevel(0);
 setState('title');
+resumeReady = true; resumeOffer();
 requestAnimationFrame(frame);
 window.__iv = { backdropCache, get state() { return state; }, get chassis() { return chassis; }, loadLevel, go, strokes: () => strokes, newStroke, refreshStroke, get inkUsed() { return inkUsed; }, set inkUsed(v) { inkUsed = v; }, keys, LEVELS };

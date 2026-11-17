@@ -17,5 +17,6 @@
     "Gunfire brings enemies running. Sneak up behind a guard and use the knife instead.",
     "Keep Mara close. If she dies, the mission fails."
   ],
-  "story": "I wanted to try something big: a story action game where you protect someone, not just shoot. I built it with Claude, step by step, from the town and the characters to the opening scene and the controls."
+  "story": "I wanted to try something big: a story action game where you protect someone, not just shoot. I built it with Claude, step by step, from the town and the characters to the opening scene and the controls.",
+  "resume": {"native": true, "how": "the run saves a checkpoint and the menu offers Continue"}
 }

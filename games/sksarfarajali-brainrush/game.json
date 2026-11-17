@@ -16,5 +16,6 @@
     "Do the three daily puzzles first. They change every day.",
     "In Gem Match, watch your moves left and plan ahead. A match of four makes a blaster, and five makes a bomb.",
     "Lost a level? Just try again. Every board is a little different."
-  ]
+  ],
+  "resume": {"native": true, "how": "a daily session keeps its answered puzzles and the game offers Resume"}
 }

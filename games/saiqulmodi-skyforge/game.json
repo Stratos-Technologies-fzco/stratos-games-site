@@ -21,5 +21,6 @@
     "Turn smoothly: pulling too hard pushes the jet past its limit.",
     "Follow the landing guide's glide path: a steady 3-degree descent gives the smoothest landings."
   ],
-  "story": "I wanted a flight game where the physics are real and the ground below is a place I know: South India's hills, coast and airports. Landing well is the real challenge, so the stars reward a smooth touchdown. I also wanted young people who dream of becoming pilots to practise the first lessons of flying for free."
+  "story": "I wanted a flight game where the physics are real and the ground below is a place I know: South India's hills, coast and airports. Landing well is the real challenge, so the stars reward a smooth touchdown. I also wanted young people who dream of becoming pilots to practise the first lessons of flying for free.",
+  "resume": {"supported": false, "why": "a single flight: a half-finished flight is not worth resuming, stars and missions are already kept"}
 }

@@ -19,5 +19,6 @@
     "Hold Shift before a long shot to calm the sway.",
     "Bots are marked on the scoreboard, so you always know who is a real player."
   ],
-  "story": "I wanted a fun shooter that is bright and silly, not dark, so the players are fruit. I made it with Claude and gave it a real sniper scope that zooms from 2x to 12x, because that was the part I wanted most."
+  "story": "I wanted a fun shooter that is bright and silly, not dark, so the players are fruit. I made it with Claude and gave it a real sniper scope that zooms from 2x to 12x, because that was the part I wanted most.",
+  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
 }

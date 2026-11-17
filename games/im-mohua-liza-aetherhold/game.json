@@ -17,5 +17,6 @@
     "You have two builders, so keep both of them busy.",
     "Lost a stage? Train more troops or raise a Watchtower, then try again. Cleared stages can be replayed for spoils."
   ],
-  "story": "I enjoy kingdom-building games, and I wanted one with a sky island floating above the clouds. I made it with Claude, with my own heroes, buildings and campaign, and tested every battle until winning and losing both felt fair."
+  "story": "I enjoy kingdom-building games, and I wanted one with a sky island floating above the clouds. I made it with Claude, with my own heroes, buildings and campaign, and tested every battle until winning and losing both felt fair.",
+  "resume": {"native": true, "how": "a persistent kingdom: every action is saved and the game opens exactly where the player stopped"}
 }

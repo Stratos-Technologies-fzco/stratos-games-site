@@ -205,6 +205,7 @@
   function toggleMuteAll() { var m = !allMuted(); save.music = !m; save.sfx = !m; A.set('music', save.music); A.set('sfx', save.sfx); persist(); toast(m ? 'Sound off' : 'Sound on'); return m; }
   function home() {
     leaveGame(); closeModal();
+    if (!resumeAsked) { resumeAsked = true; resumeOffer(); }
     var nid = nextLevelId(), w = worldOf(nid);
     setBg(LV.WORLDS[w].bg, worldFrac(w)); A.music('music_01_main_menu');
     var first = totalStars() === 0;
@@ -406,11 +407,43 @@
   }
   function centre(r, c) { return { x: c * cell + cell / 2, y: r * cell + cell / 2 }; }
 
+  /* ---------- Resume (Stratos.resume): the level in progress, saved after every move, offered on the home screen ---------- */
+  function SR() { try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+  function resumeClear() { var R = SR(); if (R) R.clear(); }
+  var RS_FIELDS = ['moves', 'moveCount', 'score', 'energy', 'itemsOut', 'shield', 'collected', 'broken', 'bossHp', 'timeLeft', 'nextId', 'stats'];
+  function resumeSave() {
+    var R = SR(); if (!R || !eng || !L || eng.state !== 'ready' || !eng.moveCount) return;
+    var st = { L: L, daily: !!isDailyRun, grid: eng.grid, hole: eng.hole, blk: eng.blk };
+    RS_FIELDS.forEach(function (k) { st[k] = eng[k]; });
+    R.save(st, { ver: 1, label: (isDailyRun ? 'Daily puzzle' : 'Level ' + (L.num || L.id)) + ', ' + eng.moveCount + (eng.moveCount === 1 ? ' move' : ' moves') + ' played, score ' + eng.score });
+  }
+  function resumeOk(sv) {
+    return !!(sv && sv.L && typeof sv.L.rows === 'number' && typeof sv.L.cols === 'number' && Array.isArray(sv.L.objectives) && typeof sv.L.world === 'number' && Array.isArray(sv.grid) && sv.grid.length === sv.L.rows &&
+      sv.grid.every(function (r) { return Array.isArray(r) && r.length === sv.L.cols; }) && Array.isArray(sv.hole) && Array.isArray(sv.blk) && typeof sv.moves === 'number' && typeof sv.score === 'number');
+  }
+  function resumeApply(e, sv) {
+    e.grid = sv.grid; e.hole = sv.hole; e.blk = sv.blk;
+    RS_FIELDS.forEach(function (k) { if (sv[k] !== undefined) e[k] = sv[k]; });
+    e.state = 'ready';
+  }
+  function resumeLevel(sv) {
+    if (!resumeOk(sv)) return false;
+    startLevel(sv.L, !!sv.daily, null, sv);
+    return true;
+  }
+  var resumeAsked = false;
+  function resumeOffer(tries) {
+    tries = tries || 0; var R = SR();
+    if (!R) { if (tries < 40) setTimeout(function () { resumeOffer(tries + 1); }, 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+    if (!R.has({ ver: 1 }) || eng) return;   // nothing saved, or a level is already open
+    R.offer(function (sv) { if (!resumeLevel(sv)) resumeClear(); }, function () { }, { ver: 1 });
+  }
+
   /* ---------- starting a level ---------- */
   /* the set is fixed for the whole level; if it is not loaded yet, wait a moment (never more than 2.5 s) */
-  function startLevel(level, daily, starters) {
+  function startLevel(level, daily, starters, restore) {
     var want = usableSet(level.crystalSet), started = false;
-    function go() { if (started) return; started = true; startLevelNow(level, daily, starters); }
+    function go() { if (started) return; started = true; startLevelNow(level, daily, starters, restore); }
     if (setReady(want)) return go();
     ensureSet(want).then(go); setTimeout(go, 2500);
   }
@@ -420,13 +453,13 @@
     save.sets[st.id] = 1; persist();
     if (st.id !== Sets.CLASSIC) setTimeout(function () { toast('New gem set: ' + st.name + '!'); }, 900);
   }
-  function startLevelNow(level, daily, starters) {
+  function startLevelNow(level, daily, starters, restore) {
     L = JSON.parse(JSON.stringify(level)); isDailyRun = !!daily; revived = false; lostSent = false; armed = null; sel = null; busy = false; attemptStart = Date.now();
     clearInterval(tickT); tickT = null;
     var W = LV.WORLDS[L.world - 1];
     curSet = usableSet(L.crystalSet); unlockWorldSet(L);
     eng = new E(L, daily ? L.seed : (Math.floor(Math.random() * 1e9) + 1));
-    if (starters && starters.length) eng.applyStarters(starters);
+    if (restore) resumeApply(eng, restore); else if (starters && starters.length) eng.applyStarters(starters);
     setBg(W.bg, worldFrac(L.world - 1));
     A.music(L.boss ? 'music_07_boss_battle' : W.music);
     track('level_start', { level: String(L.id), world: L.world, type: L.type, boss: !!L.boss, daily: !!daily, starters: (starters || []).length });
@@ -541,7 +574,7 @@
     if (!eng) return;
     sync(); setHud(eng.hud());
     busy = eng.state !== 'ready';
-    if (eng.state === 'ready') armHint();
+    if (eng.state === 'ready') { armHint(); resumeSave(); } else if (eng.state === 'win' || eng.state === 'lose') resumeClear();   // finished: nothing to continue, even if the page closes before the result screen
   }
 
   /* ---------- boosters in a level ---------- */
@@ -733,6 +766,7 @@
     }).join('') + '</div>';
   }
   function showWin(s) {
+    resumeClear();
     var stars = s.stars, id = L.id, lines = [], coinsGain = 20 + stars * 10, firstTime = false, oldStars = save.stars[id] || 0, hero = LV.WORLDS[L.world - 1].hero;
     if (isDailyRun) {
       var dc = save.dc; if (dc.date !== today()) save.dc = dc = { date: today(), best: 0, paid: false };
@@ -783,6 +817,7 @@
     celebrate(stars);
   }
   function showLose() {
+    resumeClear();
     if (!lostSent) { lostSent = true; track('game_over', { level: String(L.id), world: L.world, type: L.type, score: eng.score, seconds: Math.round((Date.now() - attemptStart) / 1000) }); }
     var stuck = eng.objectiveProgress().filter(function (o) { return !o.done; }).length, hero = LV.WORLDS[L.world - 1].hero;
     var c = openModal('<h2>' + (L.time ? 'Time is up!' : 'Out of moves') + '</h2>' + charCard(hero, 'Do not give up, Guardian! ' + stuck + ' goal' + (stuck === 1 ? '' : 's') + ' left. You were close.', { noNew: true }) +

@@ -17,5 +17,6 @@
     "Stay in the middle lane when you can, so you can dodge either way.",
     "Chain gems without a break to make them chime higher."
   ],
-  "story": "I wanted a happy runner game that anyone can pick up in a second. I made Momo with Claude, gave every level its own weather and music, and added online races so I can run against my friends."
+  "story": "I wanted a happy runner game that anyone can pick up in a second. I made Momo with Claude, gave every level its own weather and music, and added online races so I can run against my friends.",
+  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
 }

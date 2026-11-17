@@ -18,5 +18,6 @@
     "Watch for the wide trucks in traffic — they take up more of the lane than cars and compacts do",
     "Keep pushing past level 3, 5, 7, and 9 to see the scenery change and unlock new car colors as your best score grows"
   ],
-  "story": "I started this as a simple one-file traffic dodger, but it felt too basic next to the other games on the site, so I rebuilt it as a real 3D game with levels, changing scenery, and a proper sports car instead of a flat sprite. Getting the chase camera and car physics to actually feel right took the most work."
+  "story": "I started this as a simple one-file traffic dodger, but it felt too basic next to the other games on the site, so I rebuilt it as a real 3D game with levels, changing scenery, and a proper sports car instead of a flat sprite. Getting the chase camera and car physics to actually feel right took the most work.",
+  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
 }
