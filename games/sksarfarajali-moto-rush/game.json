@@ -15,6 +15,5 @@
     "Pass close to cars without touching them. You get bonus points and free nitro.",
     "Save your second chance for a good run, because you only get one each time.",
     "Do the Daily Run every day to keep your streak going."
-  ],
-  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
+  ]
 }

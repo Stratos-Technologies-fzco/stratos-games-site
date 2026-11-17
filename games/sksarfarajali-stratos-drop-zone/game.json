@@ -18,6 +18,5 @@
     "The storm does more damage every phase. Start moving toward the circle before it closes, and heal before a fight, not during it.",
     "Crouch inside a bush and anyone more than 15 metres away can't see you."
   ],
-  "story": "I enjoy survival and shooting games, and I wanted to bring that battle royale excitement to my own platform, STRATOS.GAMES. My goal is a fun, lightweight game that plays right in the browser, with no large app to download. I'm building it with Claude Code and TypeScript, using Three.js for the 3D, together with original low-poly models and my own game ideas and UI. Right now you play against bots, and online matches are something I want to add later.",
-  "resume": {"supported": false, "why": "an online live match: the player cannot pause it, and the server decides the match"}
+  "story": "I enjoy survival and shooting games, and I wanted to bring that battle royale excitement to my own platform, STRATOS.GAMES. My goal is a fun, lightweight game that plays right in the browser, with no large app to download. I'm building it with Claude Code and TypeScript, using Three.js for the 3D, together with original low-poly models and my own game ideas and UI. Right now you play against bots, and online matches are something I want to add later."
 }

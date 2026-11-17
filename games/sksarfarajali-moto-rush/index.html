@@ -657,9 +657,12 @@ function placeCar(c, minA, maxA) {
   c.active = false; return false;
 }
 
-function resetRun(m, trk) {
+var runSeed = 0;
+function resetRun(m, trk, seedOv) {
   mode = m; var seed; runTrack = (m === 'free' && trk >= 0) ? trk : -1;
   if (m === 'daily') seed = strSeed(todayStr()); else if (m === 'demo') seed = 2024; else seed = (Math.random() * 1e9) | 0;
+  if (seedOv != null && m !== 'daily' && m !== 'demo') seed = seedOv;   /* resuming a run: the same track */
+  runSeed = seed;
   buildTrack(seed, runTrack >= 0 ? TRACKS[runTrack].curves : 3); rand = rng(seed ^ 0x9e3779b9);
   trafK = runTrack >= 0 ? [0.7, 0.85, 1, 1.15, 1.3][TRACKS[runTrack].traffic - 1] : 1;
   pos = SEG * 4; speed = 0; playerX = 0; steerV = 0; nitro = 60; nitroOn = false; wheelT = 0; wheelAmt = 0; dist = 0; bonus = 0;
@@ -928,6 +931,7 @@ function stepSim(dt) {
 }
 
 function crash() {
+  resumeClear();
   state = 'crash'; crashT = 0; bikeRot = 0; bikeDX = playerX > 0 ? -0.2 : 0.2; shake = 1; nitroOn = false; chain = 0;
   for (var i = 0; i < 36; i++) sparks.push({ x: 0, y: 0, vx: (Math.random() - 0.5) * 700, vy: -Math.random() * 600, life: 0.5 + Math.random() * 0.6 });
   thump();
@@ -937,6 +941,7 @@ function crash() {
 var lastScore = 0;
 function curScore() { return Math.floor(dist + bonus); }
 function finishRun() {
+  resumeClear();
   state = 'over';
   var sc = curScore(); lastScore = sc;
   var coins = Math.floor(sc / 12), msg = [];
@@ -980,6 +985,40 @@ function finishRun() {
 var menuEl = document.getElementById('menu'), overEl = document.getElementById('over'), ctlEl = document.getElementById('ctl');
 function menuTraffic() { for (var i = 0; i < 9; i++) placeCar(cars[i], 3000, 22000); }
 function hideLayers() { ['menu', 'garage', 'missions', 'riders', 'tracks', 'over'].forEach(function (x) { document.getElementById(x).classList.remove('on'); }); document.body.classList.remove('sub'); }
+/* ---- Resume (Stratos.resume): the run in progress. The track is built from a seed, so a snapshot is the seed, how far you got, the score and the nitro. The traffic around you is fresh, you start from a standstill. ---- */
+function SR() { try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+function resumeClear() { var R = SR(); if (R) R.clear(); }
+var resumeT = 0;
+function resumeTick(dt) {
+  if (state !== 'play' || demo || PREVIEW || (mode !== 'free' && mode !== 'daily') || dist < 300) return;
+  resumeT += dt; if (resumeT < 1.5) return; resumeT = 0;
+  var R = SR(); if (!R) return;
+  R.save({ mode: mode, track: runTrack, seed: runSeed, pos: Math.round(pos), dist: Math.round(dist), bonus: Math.round(bonus), nitro: Math.round(nitro), day: todayStr() },
+    { ver: 1, label: (mode === 'daily' ? 'Daily ride' : runTrack >= 0 ? TRACKS[runTrack].name : 'World tour') + ', ' + (dist / 1000).toFixed(1) + ' km, score ' + curScore() });
+}
+function resumeOk(sv) {
+  return !!(sv && (sv.mode === 'free' || sv.mode === 'daily') && isFinite(sv.pos) && isFinite(sv.dist) && sv.dist >= 0 && isFinite(sv.bonus) && isFinite(sv.nitro) && isFinite(sv.seed) &&
+    (sv.mode === 'daily' ? sv.day === todayStr() : (sv.track === -1 || (sv.track >= 0 && sv.track < TRACKS.length))));
+}
+function resumeRun(sv) {
+  if (!resumeOk(sv)) return false;
+  demo = null; demoEl('demoUI').classList.remove('on'); perf = calcPerf(save.bike); runDone = []; ensureChal();
+  resetRun(sv.mode, sv.mode === 'free' ? sv.track : -1, sv.seed);
+  pos = sv.pos; dist = sv.dist; bonus = sv.bonus; nitro = clamp(sv.nitro, 0, 100); nextKm = (Math.floor(dist / 1000) + 1) * 1000;
+  themeIdx = runTrack >= 0 ? TRACKS[runTrack].theme : (startTheme + Math.floor(dist / 1500)) % 4;
+  var nt = copyTheme(THEMES[themeIdx]); for (var kk in nt) cur[kk] = nt[kk]; lampK.g = THEMES[themeIdx].lamp.glow; lampK.p = THEMES[themeIdx].lamp.pool;
+  state = 'play'; touches = {};
+  menuEl.classList.remove('on'); overEl.classList.remove('on'); ctlEl.classList.add('on'); hideLayers();
+  rs = { near: 0, wheelies: 0, nitro: 0, passed: 0, chain: 0, t0: time };
+  sndStart(); pop('Welcome back!', '#ffd24a');
+  return true;
+}
+function resumeOffer(tries) {
+  tries = tries || 0; var R = SR();
+  if (!R) { if (tries < 40) setTimeout(function () { resumeOffer(tries + 1); }, 100); return; }   /* the site script loads a moment after the game: wait up to 4 s */
+  if (!R.has({ ver: 1 }) || state !== 'menu') return;   /* nothing saved, or the player already started a run */
+  R.offer(function (sv) { if (!resumeRun(sv)) resumeClear(); }, function () { }, { ver: 1 });
+}
 function startRun(m) {
   demo = null; demoEl('demoUI').classList.remove('on'); perf = calcPerf(save.bike); runDone = []; ensureChal();
   resetRun(m, m === 'free' ? pickTrack : -1); state = 'play'; touches = {};
@@ -2038,6 +2077,7 @@ function frame(t) {
   var left = dt;
   while (left > 0) { var sdt = Math.min(left, 1 / 60); stepSim(sdt); left -= sdt; if (state === 'over') break; }
   mixTheme(THEMES[themeIdx], 1 - Math.exp(-dt * 1.6));
+  resumeTick(dt);
   render(dt);
 }
 
@@ -2054,7 +2094,7 @@ resize();
 glOK = init3D();
 if (!glOK) { document.getElementById('menu').insertAdjacentHTML('afterbegin', '<div class="hint" style="color:#ff8a70">This phone cannot show 3D graphics (WebGL is off).</div>'); }
 resize();
-resetRun('free'); state = 'menu'; speed = 0; menuTraffic(); renderMenu();
+resetRun('free'); state = 'menu'; speed = 0; menuTraffic(); renderMenu(); resumeOffer();
 /* test hook for the maker's checks */
 (function () {
   try {
