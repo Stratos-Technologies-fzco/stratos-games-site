@@ -7,7 +7,7 @@ Reads site.json and games/*/game.json, writes:
   c/<category>/index.html    one page per category (a wall of that category)
   games.json                 the catalog (search, future apps)
   sitemap.xml, robots.txt, llms.txt, 404.html
-  assets/stratos.js          shared Stratos analytics + coins (Firebase settings from the FIREBASE_* secrets; coins from tools/coins.js)
+  assets/stratos.js          shared Stratos analytics + coins + resume (Firebase settings from the FIREBASE_* secrets; tools/coins.js, tools/resume.js)
 Rules: a game shows only if games/<slug>/ has game.json AND index.html; broken JSON skips that
 folder and names it; the page always builds. Run: python3 tools/build.py (the Action runs it on push).
 """
@@ -287,7 +287,8 @@ if(game&&/\\/play\\//.test(location.pathname)){
 _here = os.path.dirname(os.path.abspath(__file__))
 _coins = open(os.path.join(_here, "coins.js"), encoding="utf-8").read()
 _cfg = json.dumps(json.load(open(os.path.join(_here, "..", "assets", "coins-config.json"), encoding="utf-8")), separators=(",", ":"))
-STRATOS_JS = STRATOS_JS.replace("/*__COINS__*/", _coins.replace("/*COINS_CONFIG*/{}", _cfg))
+_resume = open(os.path.join(_here, "resume.js"), encoding="utf-8").read()   # Stratos Resume: continue where you left off (research/RESUME_DESIGN.md)
+STRATOS_JS = STRATOS_JS.replace("/*__COINS__*/", _coins.replace("/*COINS_CONFIG*/{}", _cfg) + "\n" + _resume)
 ADSENSE = "ca-pub-8653076377863928"   # Stratos Technologies FZCO publisher account (same as AdMob); site ownership tag only, no ads yet
 STRATOS_V = hashlib.sha1(STRATOS_JS.encode()).hexdigest()[:8]
 CSS_V = hashlib.sha1(open(os.path.join(ROOT, "assets", "site.css"), "rb").read()).hexdigest()[:8]   # ?v= on the stylesheet link: a changed file is fetched at once, not after the 1-day cache

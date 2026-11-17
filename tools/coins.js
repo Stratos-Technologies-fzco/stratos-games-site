@@ -247,10 +247,10 @@ function flash(t){try{
 function sheet(o){   /* a small confirm sheet: title, text, a main button (maybe disabled) and "No thanks" */
  var m=mount('<div class="bg" style="pointer-events:auto"><div class="card" role="dialog" aria-modal="true" aria-labelledby="t"><h2 id="t"></h2><p></p><div class="row"><button class="no" type="button">No thanks</button><button class="yes" type="button"></button></div><a target="_blank" rel="noopener">How to earn coins</a></div></div>');
  var r=m.root,yes=r.querySelector(".yes"),no=r.querySelector(".no"),more=r.querySelector("a"),prev=null;try{prev=m.doc.activeElement}catch(e){}
- r.querySelector("h2").textContent=o.title;r.querySelector("p").textContent=o.text;yes.textContent=o.yes;yes.disabled=!o.ok;more.href=cfgUrl.replace(/assets\/coins-config\.json.*$/,"coins/");
+ r.querySelector("h2").textContent=o.title;r.querySelector("p").textContent=o.text;yes.textContent=o.yes;yes.disabled=!o.ok;if(o.noLabel)no.textContent=o.noLabel;if(o.noMore)more.style.display="none";more.href=cfgUrl.replace(/assets\/coins-config\.json.*$/,"coins/");
  function close(){if(m.host.parentNode)m.host.parentNode.removeChild(m.host);try{if(prev&&prev.focus)prev.focus()}catch(e){}}
  ["pointerdown","pointerup","mousedown","mouseup","touchstart","touchend","click","keyup","wheel"].forEach(function(n){m.host.addEventListener(n,function(e){e.stopPropagation()})});
- m.host.addEventListener("keydown",function(e){e.stopPropagation();if(e.key=="Escape"){close();if(o.no)o.no()}});
+ m.host.addEventListener("keydown",function(e){e.stopPropagation();if(e.key=="Escape"){close();if(o.escYes&&o.ok)o.yes_();else if(o.no)o.no()}});
  no.onclick=function(){close();if(o.no)o.no()};yes.onclick=function(){if(!o.ok)return;close();o.yes_()};
  try{(o.ok?yes:no).focus()}catch(e){}
  return close}

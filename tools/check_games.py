@@ -13,6 +13,8 @@ Checks (Sahil, 7 Nov 2026):
   details     game.json has a title, a how_to_play line, a description of 150+ words, controls and tips
               (#70: a full page for Google, AI answers and AdSense; a thin page waits)
   files       no single file over 100 MB, no mobile app ad IDs (ca-app-pub-)
+  resume      continue where you left off (Stratos.resume.save / offer). A WARNING only, for games added from 2026-11-17 on.
+              A game that cannot resume on purpose says so in game.json: "resume": {"supported": false, "why": "..."}
   coins       a way to spend Stratos Coins (Stratos.coins.offer / spend). A WARNING only, it never keeps a game off live.
               A game with nothing to spend on purpose says so in game.json: "coins": {"spend": false, "why": "..."}
   phone       opens on a phone screen with no scrolling and no crash
@@ -25,6 +27,7 @@ import json, os, re, subprocess, sys, tempfile, threading, functools, http.serve
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAMES = os.path.join(ROOT, "games")
 MAX_FILE = 100 * 1024 * 1024
+RESUME_FROM = "2026-11-17"   # games added on or after this day get a resume warning; older games show a dash until they are rolled out
 OUT = os.environ.get("CHECKS_OUT") or os.path.join(tempfile.gettempdir(), "stratos-checks")
 SIZES = {"phone": dict(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True, device_scale_factor=2),
          "computer": dict(viewport={"width": 1366, "height": 768})}
@@ -54,6 +57,18 @@ def read_text(folder):
 def spends_coins(text):
     """True when the game's code asks the site's wallet to spend Stratos Coins (works on minified builds too: it looks for .coins and .offer( / .spend()."""
     return bool(re.search(r"\.coins\b", text)) and bool(re.search(r"\.(offer|spend)\(", text))
+
+
+def uses_resume(text):
+    """True when the game's code calls the shared resume layer. Works on minified builds too (property names stay): .resume.save( / .resume?.offer( / .resume.load(."""
+    return bool(re.search(r"\.resume\s*\??\.\s*(?:save|offer|load)\(", text))
+
+
+def added_dates():
+    try:
+        return {x["slug"]: x.get("added", "") for x in json.load(open(os.path.join(ROOT, "games.json"), encoding="utf-8"))["games"]}
+    except Exception:
+        return {}
 
 
 def static_checks(slug):
@@ -109,6 +124,18 @@ def static_checks(slug):
     else:
         c["coins"] = "warn"
         r["notes"].append("coins (does not block): no way to spend Stratos Coins yet. Add one (CLAUDE.md, section Stratos Coins) or set game.json \"coins\": {\"spend\": false, \"why\": \"...\"}")
+    # Resume: can a player continue where they left off? A warning for new games only (see research/RESUME_DESIGN.md).
+    rs = g.get("resume") if isinstance(g.get("resume"), dict) else {}
+    if rs.get("supported") is False:
+        c["resume"] = None
+        r["notes"].append("resume: not supported on purpose (" + (rs.get("why") or "add a why to game.json resume") + ")")
+    elif uses_resume(read_text(folder)):
+        c["resume"] = True
+    elif (added_dates().get(slug) or "") >= RESUME_FROM:
+        c["resume"] = "warn"
+        r["notes"].append("resume (does not block): players cannot continue where they left off. Use Stratos.resume (CLAUDE.md, section Resume) or set game.json \"resume\": {\"supported\": false, \"why\": \"...\"}")
+    else:
+        c["resume"] = None
     big, adid, total = [], False, 0
     for dp, _, fs in os.walk(folder):
         for f in fs:
@@ -196,7 +223,7 @@ def verdict(r):
 
 def table(results):
     mark = {True: "✅", False: "❌", None: "–", "warn": "⚠️"}
-    cols = ["cover", "clip", "analytics", "details", "files", "coins", "phone", "computer"]
+    cols = ["cover", "clip", "analytics", "details", "files", "coins", "resume", "phone", "computer"]
     rows = ["| Game | Maker | Ready? | " + " | ".join(cols) + " | What to fix |", "|" + "---|" * (len(cols) + 4)]
     for r in sorted(results, key=lambda r: (verdict(r) != "fix", r.get("title", r["slug"]).lower())):
         v = verdict(r)

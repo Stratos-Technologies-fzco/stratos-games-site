@@ -194,6 +194,33 @@ Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any ga
 6. The player sees "+N Stratos Coins" after earning and the price and balance before spending.
 7. Test: earn in this game, open another game, and check the same balance is there.
 
+## Resume: let players continue where they left off (2026-11-17)
+
+A player who closes the game and comes back should see "Continue where you left off?". The site gives every game one shared way to do it: `Stratos.resume` in `assets/stratos.js`. Design: `research/RESUME_DESIGN.md`. What each game saves today: `research/RESUME_INVENTORY.md`.
+
+```js
+function SR() { try { var S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
+
+// when the game starts: ask, then restore or start new
+var R = SR();
+if (R) R.offer(function (saved) { restoreGame(saved); }, function () { startNewGame(); }, { ver: 1, label: 'Level ' + level });
+else startNewGame();
+
+// while playing: after each move, turn or level (it is cheap: writes are coalesced), and it is flushed when the page is hidden
+R && R.save(getState(), { ver: 1, label: 'Level ' + level });
+
+// when the game or level is finished, win or lose: forget it
+R && R.clear();
+```
+
+- Save **small plain data** (numbers, text, lists, objects), under 100 KB. No functions, no DOM, no images. The snapshot is a copy.
+- You decide what "resume" means: the whole match (cards, dominoes), the board (puzzles), or the level start or last checkpoint (platform and shooter games). Never fake it for an endless run or an online game.
+- Bump `ver` whenever the saved shape changes. Old saves are then dropped quietly and the game starts new.
+- Restoring must never pay coins again and must never call `Stratos.coins.earn()`. A resumed level pays when it is finished, as usual.
+- If restoring fails, do nothing special: the shared layer starts a new game for you.
+- Never read or write storage keys that start with `stratos.`. Snapshots live for 30 days. Kids games can resume too (on the device only).
+- A game that cannot resume on purpose says so in its `game.json`: `"resume": {"supported": false, "why": "one short reason"}`. The staging check (issue #33) shows a ⚠️ in the "resume" column for a new game with neither. It never keeps the game off live.
+
 ## How to help a maker
 
 - Ask what game they want in one question, then build a first playable version fast, then improve it with them.
