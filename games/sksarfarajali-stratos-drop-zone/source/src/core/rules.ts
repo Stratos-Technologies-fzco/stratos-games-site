@@ -60,6 +60,25 @@ export class Inventory {
   addBarrier(): boolean { if (this.barriers >= B.throwables.monsoon_barrier.carry) return false; this.barriers++; return true; }
 }
 
+/** Resume: an inventory as plain data (and back). The reader is strict: anything odd becomes a safe default, never an exception. */
+export interface InvJSON { main: (GunSlot | null)[]; pistol: GunSlot | null; stacks: [string, number][]; backpackLv: number; barriers: number; tokens: number }
+export function invToJSON(inv: Inventory): InvJSON {
+  return { main: inv.main.map((g) => (g ? { id: g.id, rarity: g.rarity, mag: g.mag } : null)), pistol: inv.pistol ? { id: inv.pistol.id, rarity: inv.pistol.rarity, mag: inv.pistol.mag } : null, stacks: [...inv.stacks], backpackLv: inv.backpackLv, barriers: inv.barriers, tokens: inv.tokens };
+}
+const num = (v: unknown, lo: number, hi: number, d: number) => (typeof v === 'number' && isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d);
+function gunFromJSON(g: unknown): GunSlot | null {
+  const o = g as { id?: unknown; rarity?: unknown; mag?: unknown } | null; if (!o || typeof o.id !== 'string' || !(o.id in B.weapons)) return null;
+  const id = o.id as WeaponId; return { id, rarity: num(o.rarity, 0, 3, 0) as Rarity, mag: Math.round(num(o.mag, 0, B.weapons[id].mag, B.weapons[id].mag)) };
+}
+export function invFromJSON(j: unknown): Inventory {
+  const inv = new Inventory(); const o = (j ?? {}) as Partial<InvJSON>;
+  if (Array.isArray(o.main)) inv.main = [gunFromJSON(o.main[0]), gunFromJSON(o.main[1])];
+  inv.pistol = gunFromJSON(o.pistol);
+  inv.backpackLv = Math.round(num(o.backpackLv, 0, 3, 0)); inv.barriers = Math.round(num(o.barriers, 0, B.throwables.monsoon_barrier.carry, 0)); inv.tokens = Math.round(num(o.tokens, 0, 99999, 0));
+  if (Array.isArray(o.stacks)) for (const s of o.stacks) { if (Array.isArray(s) && typeof s[0] === 'string' && inv.stacks.size < 24) { const n = Math.round(num(s[1], 1, STACK_CAP[s[0]] ?? 99, 0)); if (n > 0) inv.stacks.set(s[0], n); } }
+  return inv;
+}
+
 // ---------- kiosk ----------
 export interface KioskState { lastAt: number }
 export type PurchaseResult = { ok: true } | { ok: false; reason: 'cooldown' | 'tokens' | 'full' | 'unknown' };

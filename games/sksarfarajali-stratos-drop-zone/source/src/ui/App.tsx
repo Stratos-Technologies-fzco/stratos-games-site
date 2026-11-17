@@ -30,7 +30,7 @@ export function App() {
     g.onChange = () => tick((n) => n + 1);
     initInput(canvas.current!, () => g.kioskOpen || g.mapOpen || !!g.hud.result);
     setPauseHandler(() => { if (g.phase === 'playing' || g.phase === 'flight') { g.setPaused(true); setPause(true); } });
-    g.init(setProgress).then(() => { setScreen('lobby'); track('game_open'); }).catch((e) => { console.error(e); setErr(String(e?.message ?? e)); });
+    g.init(setProgress).then(() => { setScreen('lobby'); track('game_open'); g.offerResume(async (snap) => { localStorage.setItem('sdz-sv', snap.survivor); setScreen('match'); setPause(false); audio.unlock(); await g.start('solo', snap.survivor as Survivor, { difficulty: snap.difficulty, restore: snap }); g.setPaused(true); setPause(true); tick((n) => n + 1); }); }).catch((e) => { console.error(e); setErr(String(e?.message ?? e)); });
     const unlock = () => { audio.unlock(); audio.startMusic('lobby'); removeEventListener('pointerdown', unlock); };
     setupBackdrops(); addEventListener('pointerdown', unlock); document.documentElement.classList.toggle('reduce', settings.reduceMotion); document.documentElement.style.setProperty('--ui', String(settings.uiScale));
     return () => g.dispose();

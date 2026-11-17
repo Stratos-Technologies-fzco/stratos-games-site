@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import B from '../balance.json';
 import { Colliders, rayBox, stepBody, type Body } from '../core/collision';
-import { Inventory, BarrierState, applyArmour, baseDamage, fallDamage, fireInterval, grenadeDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime, type Armour, type GunSlot, type Item, type Rarity, type WeaponId, type ZonePlan, type ZoneState } from '../core/rules';
+import { Inventory, invFromJSON, invToJSON, type InvJSON, BarrierState, applyArmour, baseDamage, fallDamage, fireInterval, grenadeDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime, type Armour, type GunSlot, type Item, type Rarity, type WeaponId, type ZonePlan, type ZoneState } from '../core/rules';
 import { POIS, buildWorld, generateLoot, mulberry32, HALF, inRiver, coastDist, modelSize, type WorldData, type LootSpawn } from '../core/world';
 import { audio, type SoundId } from '../audio';
 import { clearLook, input, pollInput, settings, touch, exitPointerLock, spec } from '../input';
@@ -12,9 +12,10 @@ import { cloneModel, preload, MODEL_INFO, sharedMaterial } from '../render/asset
 import { buildWorldView, type WorldView } from '../render/worldView';
 import { BotBrain, NavGrid, type BotEnv, type Cmd } from './bots';
 import { crateContents, itemLabel, itemModel, rollItem } from './loot';
-import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, SmokeCloud } from './types';
+import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, ResumeSnap, SmokeCloud } from './types';
 import { track } from '../analytics';
 import { getStats, recordMatch } from '../progress';
+type ResumeApi = { save: (s: unknown, o: unknown) => void; clear: () => void; has: (o: unknown) => boolean; offer: (a: (s: unknown) => void, b: () => void, o: unknown) => void };
 const isTouchDevice = () => matchMedia('(pointer: coarse)').matches;
 
 const W = B.weapons as Record<string, { label: string; class: string; damage: number; pellets: number; headshot: number; rpm?: number; swing?: number; mag: number; range: number; ammo: string | null; reload: number; reloadPerShell?: boolean; spread: number; recoil: number; auto: boolean; scope: number; projectileSpeed?: number; drop?: number }>;
@@ -104,9 +105,9 @@ export class Game {
   }
 
   // ------------------------------------------------------------------ match lifecycle
-  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean } = {}) {
+  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean; restore?: ResumeSnap } = {}) {
     this.demo = !!opts.demo; this.demoStep = 0; this.demoFlags = { reloaded: false, healed: false }; if (this.demo) track('demo_start');
-    this.cleanup(); this.mode = mode; this.survivor = survivor; this.rand = mulberry32((Math.random() * 1e9) | 0); this.rookie = !opts.demo && mode === 'solo' && getStats().matches < 3; this.difficulty = this.rookie && (opts.difficulty ?? 'normal') === 'normal' ? 'easy' : opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots; this.tutT = 0; this.toasts = [];
+    this.cleanup(); this.mode = mode; this.survivor = survivor; this.matchSeed = opts.restore ? opts.restore.seed : (Math.random() * 1e9) | 0; this.rand = mulberry32(this.matchSeed); this.rookie = !opts.demo && mode === 'solo' && getStats().matches < 3; this.difficulty = this.rookie && (opts.difficulty ?? 'normal') === 'normal' ? 'easy' : opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots; this.tutT = 0; this.toasts = [];
     this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.revived = false; this.shieldT = 0; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
     this.zonePlan = planZone(this.rand); this.zone = null; this.env.zone = null;
     this.player = await this.makeActor(settings ? 'You' : 'You', false, true, survivor);
@@ -115,8 +116,8 @@ export class Game {
     for (let i = 0; i < bots; i++) await this.makeActor('', true, false, SURVIVORS[i % 4].id);
     for (const k of this.kiosks) k.last.lastAt = -99;
     await this.spawnGroundLoot();
-    if (mode === 'solo') this.beginFlight(); else this.beginTraining();
-    audio.startMusic('match'); track('level_start', { mode }); if (mode === 'training' && !this.demo) this.tutT = 14;
+    if (opts.restore && mode === 'solo') { this.applyResume(opts.restore); this.rookie = !!opts.restore.rookie; } else { this.resumeClear(); if (mode === 'solo') this.beginFlight(); else this.beginTraining(); }
+    audio.startMusic('match'); track('level_start', opts.restore ? { mode, resumed: true } : { mode }); if (mode === 'training' && !this.demo) this.tutT = 14;
     this.onChange();
   }
   private gen = 0;
@@ -127,6 +128,7 @@ export class Game {
     for (const d of this.dummies) scene.remove(d.mesh);
     for (const b of this.barriers) { scene.remove(b.mesh); this.colliders.remove(b.box); }
     for (const p of this.projectiles) scene.remove(p.mesh); for (const g of this.grenades) scene.remove(g.mesh); for (const s of this.smokes) scene.remove(s.mesh);
+    this.lootJson = []; this.lootCount = 0;
     this.actors.length = 0; this.items.length = 0; this.dummies.length = 0; this.barriers.length = 0; this.projectiles.length = 0; this.grenades.length = 0; this.smokes.length = 0;
     this.plane.visible = false; this.view.storm.visible = false; this.view.stormNext.visible = false;
   }
@@ -148,9 +150,9 @@ export class Game {
     for (const s of this.spawns) {
       if (this.mode === 'training') break;
       if (this.rand() > B.loot.tiers[s.tier].chance) continue;
-      const it = rollItem(s.tier, this.rand); this.addGroundItem(s.x, s.y, s.z, [it], it.rarity, false); n++;
+      const it = rollItem(s.tier, this.rand); const g = this.addGroundItem(s.x, s.y, s.z, [it], it.rarity, false); g.ix = n; this.lootJson[n] = JSON.stringify(g.items); n++;
     }
-    void n;
+    this.lootCount = n;
   }
   addGroundItem(x: number, y: number, z: number, items: Item[], rarity: Rarity, crate: boolean, model?: string): GroundItem {
     const g: GroundItem = { id: nextId++, x, y, z, items, rarity, mesh: new THREE.Group(), ring: null, crate, spin: this.rand() * 6, taken: false };
@@ -225,7 +227,7 @@ export class Game {
     pollInput(); if (!this.paused && this.phase !== 'menu') this.update(dt);
     // in the lobby the picture is drawn by HTML on top, so the 3D view is not rendered at all (saves battery)
     if (this.phase !== 'menu') { this.updateEffects(dt); this.render(dt); } clearLook();
-    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.onChange(); }
+    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.resumeTick(); this.onChange(); }
   };
   setPaused(p: boolean) { this.paused = p; if (p) audio.stopEngine(); if (p) exitPointerLock(); }
   private adaptResolution() {
@@ -772,7 +774,58 @@ export class Game {
   spectate(dir: 1 | -1) { const l = this.actors.filter((a) => a.alive && !a.isPlayer); if (!l.length) return; const i = l.indexOf(this.spectateTarget!); this.spectateTarget = l[i < 0 ? (dir > 0 ? 0 : l.length - 1) : (i + dir + l.length) % l.length]; this.specYaw = 0; this.specPitch = 0; }
   spectatePrev() { this.spectate(-1); }
   spectateNext() { this.spectate(1); }
-  toLobby() { this.cleanup(); this.phase = 'menu'; this.hud.result = null; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); audio.startMusic('lobby'); this.onChange(); }
+  toLobby() { this.resumeClear(); this.cleanup(); this.phase = 'menu'; this.hud.result = null; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); audio.startMusic('lobby'); this.onChange(); }
+  // ------------------------------------------------------------------ resume (Stratos.resume)
+  // A match in progress, saved every 2 s once everyone has landed. The island, the starting loot, the storm plan and the bots are all made from the match seed,
+  // so the snapshot only holds the seed and what has changed since: where everyone is, health, weapons, loot taken, the storm clock.
+  // Not saved (a small loss on purpose): grenades and smoke in the air, placed barriers, and the plane flight and skydive (a match left before everyone has landed starts new).
+  private matchSeed = 0; private lootJson: string[] = []; private lootCount = 0; private resumeLast = -99; private resumeHas = false;
+  private stratos(): { resume?: ResumeApi } | undefined {
+    try { const w = window as unknown as { Stratos?: { resume?: ResumeApi } }; return w.Stratos || (window.parent as unknown as typeof w)?.Stratos; } catch { return undefined; }
+  }
+  private resumeApi(): ResumeApi | null { return this.stratos()?.resume ?? null; }
+  private resumeClear() { if (!this.resumeHas) return; this.resumeHas = false; try { this.resumeApi()?.clear(); } catch { /* ignore */ } }
+  private resumeTick() {
+    const R = this.resumeApi(); if (!R || this.mode !== 'solo' || this.demo || !this.player) return;
+    if (this.phase === 'ended' || (this.phase === 'playing' && !this.player.alive)) { this.resumeClear(); return; }
+    if (this.phase !== 'playing' || this.time - this.resumeLast < 2) return; this.resumeLast = this.time;
+    const r2 = (n: number) => Math.round(n * 100) / 100;
+    const actors = this.actors.map((a) => ({ alive: a.alive, x: r2(a.body.x), y: r2(a.body.y), z: r2(a.body.z), crouch: a.body.crouch, yaw: r2(a.yaw), pitch: r2(a.pitch), hp: Math.round(a.hp), armour: { ...a.armour, vestDur: Math.round(a.armour.vestDur) }, inv: invToJSON(a.inv), slot: a.slot, kills: a.kills, damage: Math.round(a.damage), headshots: a.headshots, tokensEarned: a.tokensEarned, placement: a.placement, killer: a.killer, diedAt: r2(a.diedAt), dead: a.alive ? 0 : a.anim.dead || 1 }));
+    const present = new Map<number, GroundItem>(); const extra: ResumeSnap['extra'] = [];
+    for (const g of this.items) { if (g.ix !== undefined) present.set(g.ix, g); else if (!g.taken && extra.length < 80) extra.push({ x: r2(g.x), y: r2(g.y), z: r2(g.z), items: g.items, rarity: g.rarity, crate: g.crate, model: (g.mesh.userData as { model?: string }).model }); }
+    const taken: number[] = []; const left: [number, Item[]][] = [];
+    for (let i = 0; i < this.lootCount; i++) { const g = present.get(i); if (!g || g.taken) taken.push(i); else if (JSON.stringify(g.items) !== this.lootJson[i]) left.push([i, g.items]); }
+    const alive = this.actors.filter((a) => a.alive).length;
+    const snap: ResumeSnap = { seed: this.matchSeed, difficulty: this.difficulty, rookie: this.rookie, survivor: this.survivor, matchT: r2(this.matchT), time: r2(this.time), lastPhase: this.lastPhase, revived: this.revived, actors, taken, left, extra };
+    R.save(snap, { ver: 1, label: `Solo match, ${alive} of ${this.actors.length} survivors left, ${this.player.kills} ${this.player.kills === 1 ? 'elimination' : 'eliminations'}` }); this.resumeHas = true;
+  }
+  /** Only a snapshot that fits this game build is accepted: same player count, plausible numbers, known survivor. */
+  private resumeOk(s: ResumeSnap | null | undefined): s is ResumeSnap {
+    return !!s && typeof s.seed === 'number' && isFinite(s.seed) && Array.isArray(s.actors) && s.actors.length === B.match.players && s.actors.every((a) => a && isFinite(a.x) && isFinite(a.y) && isFinite(a.z) && isFinite(a.hp) && typeof a.alive === 'boolean') &&
+      s.actors[0].alive && Array.isArray(s.taken) && Array.isArray(s.left) && Array.isArray(s.extra) && isFinite(s.matchT) && isFinite(s.time) && ['easy', 'normal', 'hard'].includes(s.difficulty) && SURVIVORS.some((v) => v.id === s.survivor);
+  }
+  /** Ask "Continue where you left off?" (waits up to 4 s for the site script) and hand the snapshot to the lobby. */
+  offerResume(onResume: (s: ResumeSnap) => void, tries = 0) {
+    const R = this.resumeApi(); if (!R) { if (tries < 40) setTimeout(() => this.offerResume(onResume, tries + 1), 100); return; }
+    if (!R.has({ ver: 1 }) || this.phase !== 'menu') return; this.resumeHas = true;
+    this.stratos()?.resume?.offer((s) => { if (this.resumeOk(s as ResumeSnap)) onResume(s as ResumeSnap); else this.resumeClear(); }, () => { this.resumeHas = false; }, { ver: 1 });
+  }
+  private applyResume(s: ResumeSnap) {
+    this.matchT = s.matchT; this.time = s.time; this.lastPhase = s.lastPhase; this.revived = !!s.revived; this.flightT = B.match.flightSeconds;
+    for (const i of s.taken) { const g = this.items.find((q) => q.ix === i); if (g) { g.taken = true; this.view.scene.remove(g.mesh); } }
+    for (const [i, items] of s.left) { const g = this.items.find((q) => q.ix === i); if (g && Array.isArray(items) && items.length) g.items = items; }
+    for (const e of s.extra) this.addGroundItem(e.x, e.y, e.z, e.items, e.rarity, e.crate, e.model);
+    s.actors.forEach((d, i) => {
+      const a = this.actors[i]; if (!a) return;
+      a.body.x = d.x; a.body.y = d.y; a.body.z = d.z; a.body.vy = 0; a.body.onGround = true; a.body.crouch = !!d.crouch; a.yaw = d.yaw; a.pitch = d.pitch; a.mode = 'ground';
+      a.hp = Math.max(0, Math.min(B.player.hp, d.hp)); a.armour = { vestLv: Math.max(0, Math.min(3, d.armour?.vestLv | 0)), vestDur: Math.max(0, d.armour?.vestDur || 0), helmetLv: Math.max(0, Math.min(3, d.armour?.helmetLv | 0)) };
+      a.inv = invFromJSON(d.inv as InvJSON); a.slot = d.slot >= 0 && d.slot <= 3 ? d.slot : 3; if (a.slot === 2 && !a.inv.pistol) a.slot = 3; if (a.slot < 2 && !a.inv.main[a.slot]) { const f = a.inv.main.findIndex((m) => m); a.slot = f >= 0 ? f : 3; }
+      a.kills = d.kills | 0; a.damage = d.damage || 0; a.headshots = d.headshots | 0; a.tokensEarned = d.tokensEarned | 0; a.placement = d.placement | 0; a.killer = d.killer || ''; a.diedAt = d.diedAt || 0;
+      a.alive = !!d.alive; if (!a.alive) { a.hp = 0; a.anim.dead = d.dead === 2 ? 2 : 1; a.char.resetDeath(); }
+    });
+    this.phase = 'playing'; this.plane.visible = false; this.resumeLast = this.time; this.resumeHas = true;
+    this.showBanner('Welcome back. Your match continues.');
+  }
   dispose() { cancelAnimationFrame(this.raf); }
 }
 function a11() { /* placeholder to keep kill() readable */ }

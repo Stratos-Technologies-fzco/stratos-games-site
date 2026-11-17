@@ -21,6 +21,10 @@ Re-bake colliders after changing models: `node tools/bake-colliders.mjs`.
 - `src/ui/`: Preact menus and HUD. `src/audio.ts`: procedural Web Audio.
 - `public/models/`: the 82 low-poly models. `public/art/`: survivor portraits.
 
+## Resume
+
+A solo match in progress is saved every 2 s once everyone has landed (`Game.resumeTick`) and offered when the game opens (`Game.offerResume`, wired in `src/ui/App.tsx`): the island, starting loot, storm plan and bots are rebuilt from the match seed, then the saved player, bot, loot and storm-clock state is applied (`Game.applyResume`). Not saved: grenades and smoke in the air, placed barriers, and the plane flight and skydive. Inventory to and from plain data lives in `src/core/rules.ts` (`invToJSON`, `invFromJSON`, tested).
+
 ## What works
 
 Lobby, Solo (24 players) and Training, plane flight and jump, skydive and glide, island with 10 locations, loot with rarity, all 7 weapons, grenades, smoke, barriers, healing, armour, kiosks and tokens, bots (drop, loot, rotate, engage, heal, flee), the six-phase Monsoon Wall, supply crates, results screen with XP, settings, touch and keyboard controls, procedural sound and music.

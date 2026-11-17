@@ -45,10 +45,10 @@ The shared layer is `Stratos.resume` (see `research/RESUME_DESIGN.md`). "Aim" is
 
 ## Rollout status (2026-11-17, every game looked at)
 
-**Resume added with the shared prompt, tested in a real browser (10 games):** Domino Classic, Wordbloom, Stratos 29 Card Game, Plot Twist, Ink Velocity, Crystal Quest, Chroma Clash, Island Match Quest, BridgeWorks Campus, Failspan.
+**Resume added with the shared prompt, tested in a real browser (12 games):** Domino Classic, Wordbloom, Stratos 29 Card Game, Plot Twist, Ink Velocity, Crystal Quest, Chroma Clash, Island Match Quest, BridgeWorks Campus, Failspan, Moto Rush (the ride in progress, same road, standing start) and Stratos Drop Zone (the solo match after landing: island, loot and bots rebuilt from the seed, then positions, health, weapons, loot taken and storm clock applied; grenades, smoke and barriers in the air and the plane flight are not saved).
 
 **Continue on their own, recorded in game.json as `"resume": {"native": true}` (8):** Babel Harbour, Ashgrove Extraction, Aetherhold, BrainRush Daily, Mystery Island, Ecos-Synthetica, Dino Frontier, Echo Island. The shared prompt would only duplicate their own Continue.
 
-**Not meaningful, recorded as `"supported": false` with a reason (11):** Moto Rush, Cargo Climb, Momo Run, Zest Strike, Racing Mania, Skyfall Armada, SkyForge, Mega Ramp, Stratos Drop Zone, Stratos Poker Arena, The Missing Minute (a coming-soon page).
+**Not meaningful, recorded as `"supported": false` with a reason (9):** Cargo Climb, Momo Run, Zest Strike, Racing Mania, Skyfall Armada, SkyForge, Mega Ramp, Stratos Poker Arena, The Missing Minute (a coming-soon page). (Moto Rush and Stratos Drop Zone were on this list first, and moved to the shared prompt on the maker's request; Drop Zone's first reason, an online match, was wrong: it is an offline solo game.)
 
 **Cannot be done without the source (5):** Magic Shot and Toot Raft (minified), Fighter (compiled), Arrow Rush (compiled), Domino Game (zipped build). These stay unmarked; the check shows a dash for them. When the makers share the source, the pattern in `CLAUDE.md` applies.
