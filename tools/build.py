@@ -155,10 +155,18 @@ def load_games():
     games.sort(key=lambda g: g["soon"])  # real games first (newest first), then the claimed boxes
     return games, problems
 
-def studio_games():
-    out = []
+def studio_games(fam=()):
+    """The Stratos studio's own games (site.json "studio_games"). An entry with "family": "<folder>" is a studio game
+    that is also playable here (#100, Arrow Rush): it uses that game's page, cover, clip and pitch, and it is left out
+    when that game is not on the site."""
+    out = []; by_slug = {g["slug"]: g for g in fam}
     for s in SITE["studio_games"]:
-        s = dict(s); s["kind"] = "studio"; s["maker"] = "Stratos Games"; s["thumb"] = s.get("image") or ""
+        s = dict(s); s["kind"] = "studio"; s["maker"] = "Stratos Games"
+        if s.get("family"):
+            f = by_slug.get(s["family"])
+            if not f: continue
+            s.setdefault("title", f["title"]); s["one_line"] = s.get("one_line") or f.get("one_line", ""); s["image"] = f["thumb"]; s["play_url"] = f["url"]
+        s["thumb"] = s.get("image") or ""
         if s["thumb"].endswith(".svg") and not os.path.exists(os.path.join(ROOT, s["thumb"])):
             write(s["thumb"], cover_svg(s["title"], s["slug"]))
         s["url"] = s.get("play_url") or s.get("page")
@@ -325,7 +333,8 @@ def tile_name(title, size):
 def clip_of(g):
     """#71: the game's hover clip: the maker's own games/<folder>/preview.mp4 (tools/make_clip.py makes it),
     else the site's assets/previews/<folder>.mp4. Empty when the game has none yet."""
-    for p in (f'games/{g["slug"]}/preview.mp4', f'assets/previews/{g["slug"]}.mp4'):
+    slug = g.get("family") or g["slug"]   # a studio game that is also a family game uses that game's clip (#100)
+    for p in (f'games/{slug}/preview.mp4', f'assets/previews/{slug}.mp4'):
         if os.path.exists(os.path.join(ROOT, p)): return p
     return ""
 
@@ -845,11 +854,11 @@ def build_coins_page(fam):
 def build_extras(fam, studio):
     real = [g for g in fam if not g.get("soon")]; soon = [g for g in fam if g.get("soon")]
     urls = [SITE["url"] + "/"] + [f"{SITE['url']}/{g['url']}" for g in real] + [f"{SITE['url']}/c/{c['id']}/" for c in SITE["categories"]]
-    for slug in ("about", "press", "for-publishers", "games-bloxplode", "games-arrow-puzzle", "games-house-mafia", "games-word-quest", "privacy-policy", "terms-of-use"):
+    for slug in ("about", "press", "for-publishers", "games-bloxplode", "privacy-policy", "terms-of-use"):
         if os.path.exists(os.path.join(ROOT, slug, "index.html")): urls.append(f"{SITE['url']}/{slug}/")
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "".join(f"  <url><loc>{esc(u)}</loc><lastmod>{TODAY}</lastmod></url>\n" for u in urls) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {SITE['url']}/sitemap.xml\n")
-    lines = [f"# Stratos Games", "", SITE["description"], "", "## Play (free browser games)"] + [f"- [{g['title']}]({SITE['url']}/{g['url']}): {g.get('one_line','')} Made by {g['maker']}." for g in real] + ["", "## Coming soon (claimed by family makers)"] + [f"- {g['title']} by {g['maker']}: {g.get('one_line','')}" for g in soon] + ["", "## Studio titles"] + [f"- [{s['title']}]({SITE['url']}/{s['page']}): {s['one_line']}" for s in studio] + ["", "## Pages", f"- About: {SITE['url']}/about/", f"- For publishers: {SITE['url']}/for-publishers/", f"- Press kit: {SITE['url']}/press/", f"- Contact: {SITE['contact']}"]
+    lines = [f"# Stratos Games", "", SITE["description"], "", "## Play (free browser games)"] + [f"- [{g['title']}]({SITE['url']}/{g['url']}): {g.get('one_line','')} Made by {g['maker']}." for g in real] + ["", "## Coming soon (claimed by family makers)"] + [f"- {g['title']} by {g['maker']}: {g.get('one_line','')}" for g in soon] + ["", "## Studio titles"] + [f"- [{s['title']}]({SITE['url']}/{s.get('page') or s['url']}): {s['one_line']}" for s in studio] + ["", "## Pages", f"- About: {SITE['url']}/about/", f"- For publishers: {SITE['url']}/for-publishers/", f"- Press kit: {SITE['url']}/press/", f"- Contact: {SITE['contact']}"]
     write("llms.txt", "\n".join(lines) + "\n")
     if CLEAN:
         write("404.html", head("Page not found | Stratos Games", "That page is not here.", SITE["url"] + "/404.html") + pk_body("/", '<div class="pk-head wide"><h1>🕹️ 404. That page is not here.</h1><small>Try the games instead.</small></div>' + pk_tiles(real, "/", first_big=False) + pk_cats("/")))
@@ -873,12 +882,13 @@ def prune(fam):
         if f not in used: os.remove(os.path.join(gbase, f)); print("  pruned:", f"assets/covers/generated/{f}")
 
 def main():
-    fam, problems = load_games(); studio = studio_games()
+    fam, problems = load_games()
     problems += [f"{g['slug']}: coming soon, not shown on the site yet" for g in fam if g["soon"]]
     fam = [g for g in fam if not g["soon"]]   # unfinished boxes stay off the public site
+    studio = studio_games(fam)
     prune(fam)
     by_cat = {}
-    for g in fam + studio:
+    for g in fam + [s for s in studio if not s.get("family")]:   # a studio game that is also a family game counts once (#100)
         if not g.get("soon"): by_cat.setdefault(g["category"], []).append(g)
     # game counts on the category cards (#92), counted like the category pages; "new" = how many games are marked NEW
     CAT_COUNTS.update({c["id"]: len(by_cat.get(c["id"], [])) for c in SITE["categories"]})

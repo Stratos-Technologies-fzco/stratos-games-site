@@ -7,6 +7,9 @@
   "cleanUrls": false,
   "redirects": [
     { "source": "/:path*", "has": [ { "type": "host", "value": "www.stratos.games" } ], "destination": "https://stratos.games/:path*", "permanent": true },
+    { "source": "/games-arrow-puzzle/", "destination": "/play/arrow-rush/", "permanent": true },
+    { "source": "/games-house-mafia/", "destination": "/c/studio/", "permanent": true },
+    { "source": "/games-word-quest/", "destination": "/c/studio/", "permanent": true },
     { "source": "/play/Mdsadee527/", "destination": "/play/racing-mania/", "permanent": true },
     { "source": "/play/Mdsadee527-mega-ramp-stunt-racer/", "destination": "/play/mega-ramp-stunt-racer/", "permanent": true },
     { "source": "/play/im-mohua-liza/", "destination": "/play/magic-shot/", "permanent": true },
