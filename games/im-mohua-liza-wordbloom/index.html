@@ -606,7 +606,20 @@ function build(data, id) {
   buildWheel(); renderWord(); updSub(); updJar(); setArmed(false); resetIdle();
   requestAnimationFrame(() => { renderBoard(); layoutWheel(); });
 }
-function saveProg() { S.prog = { id: P.id, found: P.words.filter(w => w.found).map(w => w.w), rev: [...P.cells].filter(([, c]) => c.hint).map(([k]) => k), bonus: P.bonusFound, hints: P.hints }; save(); }
+/* Resume (Stratos.resume): the game saves the board itself (S.prog); the shared layer remembers WHICH level or daily puzzle was open, so coming back can offer to continue it. */
+function SR() { try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+function resumeNote() { const R = SR(); if (!R || !P) return; const n = P.words.filter(w => w.found).length; R.save({ mode, idx: curIdx, id: P.id }, { ver: 1, label: (mode === 'daily' ? 'Daily puzzle' : 'Level ' + (curIdx + 1)) + ', ' + n + ' of ' + P.words.length + ' words found' }); }
+function resumeOffer(tries = 0) {
+  const R = SR();
+  if (!R) { if (tries < 40) setTimeout(() => resumeOffer(tries + 1), 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || !$('#home').classList.contains('on')) return;   // nothing saved, or the player already started something
+  R.offer(st => {
+    if (st && st.mode === 'daily' && st.id === 'D' + today() && S.prog && S.prog.id === st.id) { audio(); startDaily(); }
+    else if (st && st.mode === 'level' && S.prog && S.prog.id === 'L' + st.idx) { audio(); startLevel(st.idx); }
+    else R.clear();   // that level is already done, or it was another day's puzzle
+  }, () => { S.prog = null; save(); }, { ver: 1 });   // Start new: forget the half-finished level too
+}
+function saveProg() { S.prog = { id: P.id, found: P.words.filter(w => w.found).map(w => w.w), rev: [...P.cells].filter(([, c]) => c.hint).map(([k]) => k), bonus: P.bonusFound, hints: P.hints }; save(); resumeNote(); }
 function updSub() { const n = P.words.filter(w => w.found).length; $('#gSub').textContent = (mode === 'daily' ? '🔥 ' + S.daily.streak + ' · ' : WORLDS[curWorld].name + ' · ') + n + ' / ' + P.words.length + ' words'; }
 
 // ---- layout ----
@@ -830,7 +843,7 @@ function win() {
     if ((curIdx + 1) % PER_WORLD === 0 && first) extra = '🎉 ' + WORLDS[worldOf(curIdx)].name + ' complete!' + (curIdx + 1 < LEVELS.length ? ' Next: ' + WORLDS[worldOf(curIdx + 1)].name : '');
   }
   if (P.bonusFound.length) extra += (extra ? ' · ' : '') + P.bonusFound.length + ' bonus word' + (P.bonusFound.length > 1 ? 's' : '');
-  S.coins += coins; S.prog = null; save(); updCoins();
+  S.coins += coins; S.prog = null; save(); updCoins(); { const R = SR(); if (R) R.clear(); }
   lastWin = { coins, doubled: false };
   track('level_complete', { level: mode === 'daily' ? 'daily' : curIdx + 1, stars });
   sfx.win(); vib([30, 60, 30]); rain(themeCols()); const r = $('#boardWrap').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 60, themeCols(), 1.2);
@@ -888,6 +901,7 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 
 bgResize(); setWorld(worldOf(Math.min(S.lvl, LEVELS.length - 1)), true); statics = {}; requestAnimationFrame(bgLoop);
 renderHome();
+resumeOffer();
 if (!S.lvl && !S.stats.words) track('game_open', { first: true });
 // test hook
 window.__wb = { S, get P() { return P; }, submitWord(w) { sel = []; for (const ch of w) { const L = letters.find(L => L.ch === ch && !sel.includes(L.i)); if (!L) return false; sel.push(L.i); } submit(); return true; }, startLevel, startDaily, setWorld, renderMap, win: () => win() };

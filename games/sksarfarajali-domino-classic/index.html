@@ -632,6 +632,39 @@ function offerReward(kind,onDone){track('reward_offered',{kind:kind});onDone();t
    This game keeps no Stratos Coins of its own. Opened on its own (no Stratos page around it) it plays exactly as before. */
 var GAME_ID='sksarfarajali-domino-classic',firstTried=false;
 function SC(){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);return S&&S.coins?S.coins:null;}catch(e){return null;}}
+/* ---------- Resume (Stratos.resume): the match in progress. Saved at the start of every turn, offered when the game opens. Offline matches only. ---------- */
+function SR(){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);return S&&S.resume?S.resume:null;}catch(e){return null;}}
+function resumeClear(){var R=SR();if(R)R.clear();}
+function saveMatch(phase){
+ var R=SR();if(!R||G.online||AUTO||DEMO||!G.cfg)return;
+ if(phase==='turn'&&!G.S)return;
+ R.save({phase:phase,cfg:G.cfg,daily:G.daily,day:today(),scores:G.scores,round:G.round,hints:G.hints,undos:G.undos,mid:G.mid,myPts:G.myPts,S:phase==='turn'?G.S:null},
+  {ver:1,label:(G.daily?'Daily challenge':(G.cfg.mode==='draw'?'Draw':'Block')+' game')+', round '+G.round+', '+G.scores[0]+' to '+G.scores[1]});
+}
+function matchOk(sv){
+ if(!sv||!sv.cfg||(sv.cfg.players!==2&&sv.cfg.players!==4)||(sv.cfg.mode!=='draw'&&sv.cfg.mode!=='block')||!sv.cfg.target)return false;
+ if(!Array.isArray(sv.scores)||sv.scores.length!==2||typeof sv.round!=='number')return false;
+ if(sv.daily&&sv.day!==today())return false;   /* yesterday's daily deal is not today's */
+ if(sv.phase==='between')return true;
+ var S=sv.S;return !!(S&&Array.isArray(S.hands)&&S.hands.length===sv.cfg.players&&Array.isArray(S.chain)&&typeof S.turn==='number'&&!S.over);
+}
+function resumeMatch(sv){
+ if(!matchOk(sv))return false;
+ G.online=null;G.epoch++;G.cfg=Object.assign({},sv.cfg);G.daily=!!sv.daily;G.scores=sv.scores.slice();G.round=sv.round;G.hints=sv.hints;G.undos=sv.undos;
+ if(typeof G.hints!=='number')G.hints=3;if(typeof G.undos!=='number')G.undos=2;
+ G.snap=null;G.paused=false;G.over=false;G.myPts=sv.myPts||0;G.coinGain=0;G.mid=sv.mid||Date.now().toString(36);G.sel=null;G.hintId=null;G.hintEnd=null;G.pend=null;G.lastMsg='';G.lastId=null;G.recent=[];G.fresh={};
+ show('game');setupTable();
+ if(sv.phase==='between'){startRound();return true;}   /* the round was over: deal the next one (G.round is the finished round, startRound adds one) */
+ G.S=sv.S;board.querySelectorAll('.tile').forEach(function(t){t.remove();});G.els={};
+ renderScores();renderSeats();renderRack();layoutBoard();updateControls();
+ toast('Welcome back. Your match continues.',1800);scheduleTurn();return true;
+}
+function resumeOffer(tries){
+ if(AUTO||DEMO)return;tries=tries||0;var R=SR();
+ if(!R){if(tries<40)setTimeout(function(){resumeOffer(tries+1);},100);return;}   /* the site script loads a moment after the game: wait up to 4 s */
+ if(!R.has({ver:1})||!$('menu').classList.contains('on')||G.S)return;   /* nothing saved, or a match was already started */
+ R.offer(function(sv){if(!resumeMatch(sv)){resumeClear();show('menu');}},function(){},{ver:1});
+}
 function earnFirstPlay(){
  if(firstTried||AUTO||DEMO)return;firstTried=true;var C=SC();if(!C)return;
  var r=C.earn('game_first_play',{game:GAME_ID});if(r&&r.ok)toast('+'+r.amount+' Stratos Coins: welcome!',2200);
@@ -1080,6 +1113,7 @@ function afterMove(){
 function scheduleTurn(){
  var S=G.S;if(!S)return;
  if(S.over){endRound();return;}
+ saveMatch('turn');
  setTurnUI();var seat=S.turn;
  if(isRemote(seat)){G.busy=true;updateControls();setStatus((G.lastMsg?G.lastMsg+' ':'')+seatName(seat)+' is thinking…');thinking(seat,true);return;}
  if(seat===0&&!AUTO){G.busy=false;humanTurn();return;}
@@ -1175,6 +1209,7 @@ function endRound(){
  if(onHost())Net.push({type:'over'});
  if(win){G.myPts+=r.points;stats.points+=r.points;}
  var mw=E.matchWinner(G.scores,G.cfg.target),matchOver=mw!==null;
+ if(!G.online){if(matchOver)resumeClear();else saveMatch('between');}
  setStatus(draw?'Blocked. Nobody scores.':(win?'You win the round!':teamName(r.winnerTeam)+' win the round'));
  if(win)track('level_complete',{round:G.round,points:r.points,mode:G.cfg.mode,daily:G.daily});
  later(function(){renderScores(r.winnerTeam);},400);
@@ -1716,6 +1751,7 @@ function boot(){
     show('menu');
     var rmq=Q.get('room');if(rmq&&!AUTO){openOnline();$('codeIn').value=rmq.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);Net.status('Type your name, then tap JOIN.');}
     if(AUTO)startMatch({mode:Q.get('mode')||'draw',players:+(Q.get('players')||2),ai:Q.get('ai')||'hard',target:+(Q.get('target')||100)},false);
+    else if(!rmq)resumeOffer();
    },200);return;}
   $('lmsg').textContent=steps[i][0];steps[i][1]();$('lbar').style.width=((i+1)*100/steps.length)+'%';i++;setTimeout(next,DEMO?10:260);
  })();

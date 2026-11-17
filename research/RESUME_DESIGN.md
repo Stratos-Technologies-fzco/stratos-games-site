@@ -20,6 +20,9 @@ A player who leaves a game (closes the tab, locks the phone, loses the connectio
 
 Rules: one snapshot per game; a snapshot lives 30 days; `ver` is the game's own save-format number (bump it when the state changes shape and old saves are quietly dropped); when storage is full the oldest other snapshots are dropped first; works the same in the Kids section (on the device only, nothing is sent anywhere). Events `resume_offered`, `resume_taken` and `resume_new` go through the normal analytics.
 
+## Start-up: wait for the site script
+A game runs in a frame inside the play page, and the page loads `stratos.js` asynchronously, so a game that asks at start-up can run **before** `Stratos.resume` exists. (Coins do not have this problem: they are asked for later, on events.) A game must therefore wait for the layer, for up to 4 seconds, before it gives up and starts normally, and only offer while the player has not started anything yet. Both pilots do this, and the pattern is in `CLAUDE.md`. Found in the pilot: without the wait, the prompt appeared on some page loads and not on others.
+
 ## What "resume" means by game type
 - **Match** (cards, dominoes): the match in progress.
 - **Board / level** (puzzle, word, match-3): the board where the player stopped.
@@ -33,4 +36,4 @@ Restoring a game must never pay coins twice. Coin rules already pay once per lev
 The staging report (issue #33) gets a **resume** column: a game added from 2026-11-17 on that neither uses `Stratos.resume` nor opts out in `game.json` gets a ⚠️. It never blocks going live, and existing games show – until they are rolled out.
 
 ## Rollout
-See `research/RESUME_INVENTORY.md`: what every game saves today and the suggested order. Phase 1 is the shared module and the check (done). Phase 2 is a pilot in two games. Phase 3 is the rest by game type, then cross-device sync with accounts.
+See `research/RESUME_INVENTORY.md`: what every game saves today and the suggested order. Phase 1 is the shared module and the check (done). Phase 2 is a pilot in two games (done: Domino Classic and Wordbloom, tested in a real browser: save, return, Continue, Start new, between rounds, match over). Phase 3 is the rest by game type, then cross-device sync with accounts.

@@ -11,9 +11,9 @@ The shared layer is `Stratos.resume` (see `research/RESUME_DESIGN.md`). "Aim" is
 
 | Game (folder) | Saves today | Resumes mid-play today? | Aim | Effort |
 | --- | --- | --- | --- | --- |
-| Domino Classic (`sksarfarajali-domino-classic`) | Name, stats, settings | No (online refresh drops the player) | Match: the engine state is plain data, a good pilot | Medium |
+| Domino Classic (`sksarfarajali-domino-classic`) | Name, stats, settings, **the match in progress** | **Yes, pilot 2026-11-17**: saved every turn and between rounds, offered when the game opens (offline matches only) | Match: done | Done |
 | Stratos 29 Card Game (`sksarfarajali-stratos-29-card-game`) | Settings, stats, daily deal, online reconnect info | No mid-match (online has a reconnect path) | Match | Medium |
-| Wordbloom (`im-mohua-liza-wordbloom`) | Whole progress, words found in the current level | **Yes (verified)**: found words and revealed cells per level | Board: already done, add the shared prompt | Small |
+| Wordbloom (`im-mohua-liza-wordbloom`) | Whole progress, words found in the current level, **which level is open** | **Yes, pilot 2026-11-17**: the game's own save keeps the board, the shared layer remembers the open level or daily puzzle and offers to continue | Board: done | Done |
 | Babel Harbour (`sksarfarajali-babel-harbour`) | Progress, round in progress | **Yes (verified)**: `persistRound` and `restoreRound` | Board: already done, add the shared prompt | Small |
 | Ashgrove Extraction (`im-mohua-liza-ashgrove-extraction`) | Checkpoint, tutorial | **Yes (verified)**: checkpoint and a "Continue" button | Checkpoint: already done | Small |
 | Aetherhold (`im-mohua-liza-aetherhold`) | The whole kingdom, saved on every action | **Yes (verified)**: the game state is the save | Match/board: already done | Small |
@@ -41,4 +41,4 @@ The shared layer is `Stratos.resume` (see `research/RESUME_DESIGN.md`). "Aim" is
 
 **Summary.** 5 games already resume mid-play, verified in their code (Wordbloom, Babel Harbour, Ashgrove, Aetherhold, BrainRush), and 2 more look like it (Echo Island, Mystery Island). About 10 are good candidates for a board or match resume, 5 are endless runs where it is not meaningful, and a few need their source or a closer look first.
 
-**Suggested order.** (1) Pilot on Domino Classic (a match) and Wordbloom (a board that already saves), to prove the shared prompt in both shapes. (2) The board games that save progress today. (3) Checkpoint games. (4) Source-less builds when the source arrives.
+**Pilots done (2026-11-17):** Domino Classic (a match) and Wordbloom (a board that already saved). **Suggested order for the rest.** (1) The board games that save progress today. (2) Checkpoint games. (3) Source-less builds when the source arrives.

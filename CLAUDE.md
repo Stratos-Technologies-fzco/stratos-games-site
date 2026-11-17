@@ -201,10 +201,15 @@ A player who closes the game and comes back should see "Continue where you left 
 ```js
 function SR() { try { var S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
 
-// when the game starts: ask, then restore or start new
-var R = SR();
-if (R) R.offer(function (saved) { restoreGame(saved); }, function () { startNewGame(); }, { ver: 1, label: 'Level ' + level });
-else startNewGame();
+// when the game opens (at its menu): ask, then restore. The site script loads a moment AFTER a game that runs in a frame,
+// so wait for it (up to 4 s) instead of asking once. Only offer while the player has not started anything yet.
+function offerResume(tries) {
+  var R = SR(); tries = tries || 0;
+  if (!R) { if (tries < 40) setTimeout(function () { offerResume(tries + 1); }, 100); return; }
+  if (!R.has({ ver: 1 }) || playerAlreadyStarted()) return;
+  R.offer(function (saved) { restoreGame(saved); }, function () { /* Start new: stay on the menu */ }, { ver: 1 });
+}
+offerResume();
 
 // while playing: after each move, turn or level (it is cheap: writes are coalesced), and it is flushed when the page is hidden
 R && R.save(getState(), { ver: 1, label: 'Level ' + level });
@@ -213,6 +218,7 @@ R && R.save(getState(), { ver: 1, label: 'Level ' + level });
 R && R.clear();
 ```
 
+- Working examples to copy: `games/sksarfarajali-domino-classic/` (a whole match, search for `saveMatch` and `resumeMatch`) and `games/im-mohua-liza-wordbloom/` (a board the game already saves; search for `resumeNote` and `resumeOffer`).
 - Save **small plain data** (numbers, text, lists, objects), under 100 KB. No functions, no DOM, no images. The snapshot is a copy.
 - You decide what "resume" means: the whole match (cards, dominoes), the board (puzzles), or the level start or last checkpoint (platform and shooter games). Never fake it for an endless run or an online game.
 - Bump `ver` whenever the saved shape changes. Old saves are then dropped quietly and the game starts new.
