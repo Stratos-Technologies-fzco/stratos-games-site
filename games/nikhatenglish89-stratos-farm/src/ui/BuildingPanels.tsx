@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPES } from '../services/data';
@@ -15,7 +15,31 @@ function Countdown({ to }: { to: number }) {
 }
 
 /** Shop: pick a habitat or factory, then place it on the farm. */
+/** Single click = pick it up and place it; double click = build it right now on the selected spot. */
+function useShopClick() {
+  const last = useRef<{ id: string; t: number } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  return (id: string) => {
+    const now = Date.now();
+    if (last.current && last.current.id === id && now - last.current.t < 300) {
+      if (timer.current) clearTimeout(timer.current);
+      last.current = null;
+      farm.placeAtSelected(id);
+      return;
+    }
+    last.current = { id, t: now };
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      last.current = null;
+      if (useFarm.getState().player.coins < (BUILDING_BY_ID.get(id)?.cost ?? 0)) useFarm.getState().showToast('Not enough coins');
+      else farm.startPlacing(id);
+    }, 310);
+  };
+}
+
 export function ShopPanel() {
+  const click = useShopClick();
+  const selected = useFarm((s) => s.selectedTile);
   const tab = useFarm((s) => s.shopTab);
   const level = useFarm((s) => s.player.level);
   const coins = useFarm((s) => s.player.coins);
@@ -28,6 +52,7 @@ export function ShopPanel() {
         <button className={tab === 'habitats' ? 'on' : ''} onClick={() => setTab('habitats')} data-testid="tab-habitats">Animal homes</button>
         <button className={tab === 'factories' ? 'on' : ''} onClick={() => setTab('factories')} data-testid="tab-factories">Factories</button>
       </div>
+      <p className="meta" data-testid="shop-hint">{selected ? `Selected spot: ${selected.gx}, ${selected.gy}. Double-click a building to put it there.` : 'Tip: tap a spot on the farm first, then double-click a building to put it there.'}</p>
       <ul className="rows">
         {list.map((b) => {
           const locked = b.unlockLevel > level;
@@ -36,7 +61,7 @@ export function ShopPanel() {
           return (
             <li key={b.id}>
               <button className={`row ${locked || coins < b.cost ? 'dim' : ''}`} disabled={locked} data-testid={`shop-${b.id}`}
-                onClick={() => (coins < b.cost ? useFarm.getState().showToast('Not enough coins') : farm.startPlacing(b.id))}>
+                onClick={() => click(b.id)}>
                 <Icon name={animal ? `item_${animal.product}` : recipeIcon(b.id)} size={40} />
                 <span className="grow">
                   <b>{b.name}</b>

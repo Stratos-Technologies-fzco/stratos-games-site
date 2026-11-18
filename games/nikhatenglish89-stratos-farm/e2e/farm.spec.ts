@@ -109,6 +109,7 @@ test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', 
   await expect(page.getByTestId('coins')).toContainText('98');
   await page.getByTestId('nav-inventory').click();
   await expect(page.getByTestId('inv-wheat')).toContainText('Wheat × 2');
+  await page.getByTestId('max-wheat').click();
   await page.getByTestId('sell-wheat').click();
   await expect(page.getByTestId('coins')).toContainText('104');
   await expect(page.getByTestId('inventory-empty')).toBeVisible();
@@ -144,6 +145,7 @@ test('animals and production: egg, wheat -> flour -> bread, and it all survives 
   // an invalid spot (on the farmhouse) cannot be confirmed
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible(); // placing starts a moment after the click (it waits to see if it is a double-click)
   const bad = await tilePos(page, 4, 2);
   await page.mouse.click(bad.x, bad.y);
   await expect(page.getByTestId('place-confirm')).toBeDisabled();
@@ -218,7 +220,7 @@ test('first session: the five tutorial steps, with a real order and a real sale'
   await page.getByTestId('nav-market').click();
   await expect(page.getByTestId('order-0')).toContainText('Old Joe');
   await page.getByTestId('tab-sell').click();
-  await page.getByTestId('sell1-wheat').click();
+  await page.getByTestId('sell-wheat').click(); // quantity starts at 1
   await page.getByTestId('tab-orders').click();
   await page.getByTestId('deliver-0').click();
   await page.getByTestId('market-panel-close').click();
@@ -227,6 +229,7 @@ test('first session: the five tutorial steps, with a real order and a real sale'
   // coop + chicken
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible(); // placing starts a moment after the click (it waits to see if it is a double-click)
   const spot = await tilePos(page, 0, 2);
   await page.mouse.click(spot.x, spot.y);
   await page.getByTestId('place-confirm').click();
@@ -260,6 +263,7 @@ test('expand land, build on it, move and remove a building, claim a quest', asyn
   // building on locked land is refused
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible(); // placing starts a moment after the click (it waits to see if it is a double-click)
   let p = await tilePos(page, 8, 8);
   await page.mouse.click(p.x, p.y);
   await expect(page.getByTestId('place-confirm')).toBeDisabled();
@@ -273,6 +277,7 @@ test('expand land, build on it, move and remove a building, claim a quest', asyn
   // now the same spot works
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible(); // placing starts a moment after the click (it waits to see if it is a double-click)
   p = await tilePos(page, 8, 8);
   await page.mouse.click(p.x, p.y);
   await expect(page.getByTestId('place-confirm')).toBeEnabled();
@@ -418,5 +423,106 @@ test('sound stays silent and undownloaded until the player turns it on, and the 
   await page.reload();
   await page.getByTestId('home-music').waitFor({ timeout: 30000 });
   await expect(page.getByTestId('home-music')).toHaveAttribute('aria-pressed', 'true'); // remembered
+  expect(errors).toEqual([]);
+});
+
+test('selling lets you choose the quantity (stepper, typing, Max) and sells exactly that many', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 100, gems: 5, xp: 0, level: 1, inventory: { wheat: 10, carrot: 4 },
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  await page.getByTestId('nav-inventory').click();
+  const sell = page.getByTestId('sell-wheat');
+  await expect(sell).toContainText('Sell 1');
+  await page.getByTestId('plus-wheat').click();
+  await page.getByTestId('plus-wheat').click();
+  await expect(sell).toContainText('Sell 3 · 9');           // 3 x 3 coins
+  await page.getByTestId('qty-wheat').fill('4');             // typing works too
+  await expect(sell).toContainText('Sell 4 · 12');
+  await page.getByTestId('qty-wheat').fill('99');            // more than owned is clamped on blur
+  await page.getByTestId('qty-wheat').blur();
+  await expect(page.getByTestId('qty-wheat')).toHaveValue('10');
+  await page.getByTestId('qty-wheat').fill('4');
+  await sell.click();
+  await expect(page.getByTestId('coins')).toContainText('112'); // 100 + 4 x 3
+  await expect(page.getByTestId('inv-wheat')).toContainText('Wheat × 6'); // exactly 4 sold, not all
+  await expect(page.getByTestId('qty-wheat')).toHaveValue('1'); // picker resets
+  await expect(page.getByTestId('minus-wheat')).toBeDisabled(); // cannot go below 1
+  await expect(page.getByTestId('qty-wheat')).toHaveValue('1');
+  await page.getByTestId('inventory-panel-close').click();
+  // same picker in the Market
+  await page.getByTestId('nav-market').click();
+  await page.getByTestId('tab-sell').click();
+  await page.getByTestId('max-carrot').click();
+  await expect(page.getByTestId('sell-carrot')).toContainText('Sell 4 · 24');
+  await page.getByTestId('minus-carrot').click();
+  await page.getByTestId('sell-carrot').click();            // sells 3 of 4
+  await expect(page.getByTestId('market-carrot')).toContainText('Carrot × 1');
+  await expect(page.getByTestId('coins')).toContainText('130'); // 112 + 3 x 6
+});
+
+test('shop: select a spot, then double-click a building to place it right there', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 2000, gems: 5, xp: 0, level: 4, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+
+  // no spot selected: a double-click explains what to do and builds nothing
+  await page.getByTestId('nav-animals').click();
+  await expect(page.getByTestId('shop-hint')).toContainText('tap a spot on the farm first');
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  await expect(page.getByTestId('toast')).toContainText('Tap a spot on the farm first');
+  await expect(page.getByTestId('coins')).toContainText('2000');
+  await page.getByTestId('shop-panel-close').click();
+
+  // a bad spot (the farmhouse) is refused
+  let p = await tilePos(page, 4, 2);
+  await page.mouse.click(p.x, p.y + 60);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  await expect(page.getByTestId('toast')).toContainText('cannot build there');
+  await expect(page.getByTestId('coins')).toContainText('2000');
+  await page.getByTestId('shop-panel-close').click();
+
+  // select a free spot, double-click: built at once, no placement bar
+  p = await tilePos(page, 0, 2);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await expect(page.getByTestId('shop-hint')).toContainText('Selected spot: 0, 2');
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('1940');
+  await expect(page.getByTestId('shop-panel')).toHaveCount(0);
+  await expect(page.getByTestId('placement-bar')).toHaveCount(0);
+  const body = await tilePos(page, 1, 3);
+  await page.mouse.click(body.x, body.y - 50);
+  await expect(page.getByTestId('building-panel')).toContainText('Chicken Coop');
+  await page.getByTestId('building-panel-close').click();
+
+  // a factory works the same way
+  p = await tilePos(page, 0, 5);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-shop').click();
+  await page.getByTestId('shop-flour_mill').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('1820');
+
+  // a single click still works the old way, and starts on the selected spot
+  p = await tilePos(page, 5, 8); // a free 2x2 spot
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible(); // placing starts a moment after the click (it waits to see if it is a double-click)
+  await expect(page.getByTestId('placement-bar')).toBeVisible();
+  await expect(page.getByTestId('place-confirm')).toBeEnabled(); // the ghost is already on the selected spot
+  await page.getByTestId('place-cancel').click();
   expect(errors).toEqual([]);
 });

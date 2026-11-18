@@ -11,6 +11,7 @@ import {
 } from '../services/quests';
 import { Icon } from './Icon';
 import { PanelShell } from './Panels';
+import { SellRow } from './SellRow';
 
 const useQuestView = (): QuestView => {
   const stats = useFarm((s) => s.stats);
@@ -106,12 +107,7 @@ function SellList({ inv }: { inv: Record<string, number> }) {
     <ul className="rows">
       {items.map((c) => (
         <li key={c.id}>
-          <div className="row" data-testid={`market-${c.id}`}>
-            <Icon name={`item_${c.id}`} size={36} />
-            <span className="grow"><b>{c.name} × {inv[c.id]}</b><small>{c.sellPrice} coins each</small></span>
-            <button className="btn small" onClick={() => farm.sell(c.id, 1)} data-testid={`sell1-${c.id}`}>Sell 1</button>
-            <button className="btn small" onClick={() => farm.sell(c.id, inv[c.id])}>All · {inv[c.id] * c.sellPrice}</button>
-          </div>
+          <SellRow item={c} have={inv[c.id]} testId={`market-${c.id}`} />
         </li>
       ))}
     </ul>

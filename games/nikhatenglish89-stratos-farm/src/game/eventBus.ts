@@ -9,7 +9,7 @@ export interface BusEvents {
   'farm:changed': { plotIds: string[] };
   'fx:feed': { habitatId: string };
   'building:tapped': { id: string };
-  'place:start': { type: string; moveId?: string };
+  'place:start': { type: string; moveId?: string; at?: { gx: number; gy: number } };
   'expansion:tapped': { id: string };
   'place:end': undefined;
   'place:moved': { gx: number; gy: number; valid: boolean };

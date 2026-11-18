@@ -162,7 +162,25 @@ class FarmController {
     st.setShopTab(null);
     st.setBuildingPanel(null);
     st.setPlacing({ type, moveId, gx: null, gy: null, valid: false });
-    bus.emit('place:start', { type, moveId });
+    const sel = moveId ? null : st.selectedTile; // a new building starts on the spot the player already selected
+    bus.emit('place:start', { type, moveId, at: sel ? { gx: sel.gx, gy: sel.gy } : undefined });
+  }
+
+  /** Double-click in the shop: build right on the selected spot, no extra steps. */
+  placeAtSelected(type: string) {
+    const st = useFarm.getState();
+    const t = st.selectedTile;
+    if (!t) {
+      st.showToast('Tap a spot on the farm first, then double-click the building');
+      playSfx('ui_error');
+      return;
+    }
+    return this.act(() => this.service.placeBuilding(type, t.gx, t.gy, newKey()), (r) => {
+      st.setShopTab(null);
+      this.apply(r.snapshot);
+      playSfx('build_complete');
+      st.showToast(`${BUILDING_BY_ID.get(type)!.name} built`);
+    });
   }
 
   startMove(buildingId: string) {

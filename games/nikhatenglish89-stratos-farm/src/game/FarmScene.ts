@@ -57,7 +57,11 @@ export class FarmScene extends Phaser.Scene {
     this.layer.sync();
     bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); });
     bus.on('fx:feed', ({ habitatId }) => this.layer.feed(habitatId));
-    bus.on('place:start', ({ type, moveId }) => { this.clearSelection(); this.layer.startPlacing(type, moveId); });
+    bus.on('place:start', ({ type, moveId, at }) => {
+      this.clearSelection();
+      this.layer.startPlacing(type, moveId);
+      if (at) this.layer.moveGhost(at.gx, at.gy); // a spot was already selected: the ghost starts there
+    });
     bus.on('place:end', () => this.layer.endPlacing());
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.layer.animate(this.time.now) });
     bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));

@@ -42,3 +42,12 @@
   .info-panel.center { max-height: 92%; }
   .info-panel.center .panel-body { max-height: 52vh; }
 }
+
+/* sell with a chosen quantity */
+.sell-row { flex-wrap: wrap; }
+.sell-row .grow { flex: 1 1 120px; }
+.qty { display: inline-flex; align-items: center; gap: 4px; }
+.qty-btn { min-width: 32px; height: 32px; padding: 0 8px; border-radius: 8px; font-weight: 900; background: #efe0b8; border: 2px solid #e0c98c; }
+.qty-btn:disabled { opacity: .45; }
+.qty-btn.max { font-size: 12px; }
+.qty-input { width: 48px; height: 32px; text-align: center; font: inherit; font-weight: 800; border-radius: 8px; border: 2px solid #e0c98c; background: #fff; color: var(--brown); user-select: text; -webkit-user-select: text; }

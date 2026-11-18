@@ -2,6 +2,7 @@ import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { CROPS, ITEMS } from '../services/data';
 import { Icon } from './Icon';
+import { SellRow } from './SellRow';
 
 export function PanelShell({ title, onClose, testId, children, center = false }: { title: string; onClose: () => void; testId: string; children: React.ReactNode; center?: boolean }) {
   return (
@@ -63,13 +64,7 @@ export function InventoryPanel() {
         <ul className="rows">
           {items.map((c) => (
             <li key={c.id}>
-              <div className="row" data-testid={`inv-${c.id}`}>
-                <Icon name={`item_${c.id}`} size={40} />
-                <span className="grow"><b>{c.name} × {inv[c.id]}</b><small>Sells for {c.sellPrice} each</small></span>
-                <button className="btn small" onClick={() => farm.sell(c.id, inv[c.id])} data-testid={`sell-${c.id}`}>
-                  Sell all · {inv[c.id] * c.sellPrice}
-                </button>
-              </div>
+              <SellRow item={c} have={inv[c.id]} testId={`inv-${c.id}`} />
             </li>
           ))}
         </ul>
