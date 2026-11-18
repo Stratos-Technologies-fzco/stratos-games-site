@@ -1,5 +1,5 @@
 import { LocalFarmService, SAVE_KEY, validateSave } from '../services/LocalFarmService';
-import { ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
+import { FEED_ITEM, ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
 import { animalStatus, cropStage, ErrorCode, FarmSnapshot } from '../services/types';
 import { useFarm } from '../state/store';
 import { bus } from './eventBus';
@@ -264,6 +264,11 @@ class FarmController {
   }
 
   feedAnimals(habitatId: string) {
+    if ((useFarm.getState().inventory[FEED_ITEM] ?? 0) < 1) {
+      useFarm.getState().showToast('No animal feed. Build a Feed Mill and make some from wheat.');
+      playSfx('ui_error');
+      return;
+    }
     return this.act(() => this.service.feedAnimals(habitatId, newKey()), (r) => {
       this.apply(r.snapshot);
       playSfx('feed_animal');

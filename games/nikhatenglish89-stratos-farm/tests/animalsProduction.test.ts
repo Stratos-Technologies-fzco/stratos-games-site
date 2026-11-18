@@ -60,9 +60,26 @@ describe('placing buildings', () => {
   });
 });
 
+describe('starter feed', () => {
+  it('your first animal comes with 3 animal feed, once', async () => {
+    const m = make({ coins: 1000 });
+    const coop = mustOk(await m.svc.placeBuilding('chicken_coop', 8, 4, k())).buildingId;
+    expect((await m.svc.load()).inventory.animal_feed).toBeUndefined();
+    const first = mustOk(await m.svc.buyAnimal(coop, k()));
+    expect(first.snapshot.inventory.animal_feed).toBe(3);
+    expect(m.svc.getLedger().some((l) => l.reason === 'starter_gift')).toBe(true);
+    const second = mustOk(await m.svc.buyAnimal(coop, k()));
+    expect(second.snapshot.inventory.animal_feed).toBe(3);   // no second gift
+    // and the first chicken can be fed straight away, giving the first egg
+    mustOk(await m.svc.feedAnimals(coop, k()));
+    expect((await m.svc.load()).inventory.animal_feed).toBe(1);
+  });
+});
+
 describe('animals: buy, feed, collect', () => {
   async function coop(inv: Record<string, number> = { animal_feed: 5 }) {
     const m = make({ coins: 1000, inventory: inv });
+    (m.svc as any).state.stats.animal_buy = 1; // not the first animal, so no starter feed muddies the counts below
     const id = mustOk(await m.svc.placeBuilding('chicken_coop', 8, 4, k())).buildingId;
     return { ...m, id };
   }

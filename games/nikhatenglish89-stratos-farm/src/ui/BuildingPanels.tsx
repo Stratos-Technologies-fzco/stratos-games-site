@@ -119,6 +119,11 @@ export function BuildingPanel() {
     return (
       <PanelShell title={`${def.name} · Lv ${b.level}`} testId="building-panel" onClose={() => setPanel(null)}>
         <p className="meta" data-testid="habitat-meta">{mine.length} / {cap} animals · Animal feed: {inv[FEED_ITEM] ?? 0}</p>
+        {hungry > 0 && (inv[FEED_ITEM] ?? 0) === 0 && (
+          <div className="hint-box" data-testid="no-feed">
+            <b>No animal feed.</b> Hungry animals need 1 animal feed each. Open the Shop, build a <b>Feed Mill</b> (Factories tab), start the recipe <b>Starter feed</b> (3 wheat) and collect it. Then come back and press Feed.
+          </div>
+        )}
         {mine.length === 0 && <p className="empty">No animals yet. Buy your first {animal.name.toLowerCase()}!</p>}
         <ul className="rows">
           {mine.map((a) => {
@@ -141,7 +146,7 @@ export function BuildingPanel() {
           })}
         </ul>
         <div className="actions-grid">
-          <button className="btn small" disabled={hungry === 0} onClick={() => farm.feedAnimals(b.id)} data-testid="feed">Feed ({hungry})</button>
+          <button className="btn small" disabled={hungry === 0} onClick={() => farm.feedAnimals(b.id)} data-testid="feed">Feed ({hungry}){(inv[FEED_ITEM] ?? 0) === 0 && hungry > 0 ? ' · no feed' : ''}</button>
           <button className="btn small" disabled={ready === 0} onClick={() => farm.collectAnimals(b.id)} data-testid="collect">Collect ({ready})</button>
           <button className="btn small" disabled={level < animal.unlockLevel} onClick={() => farm.buyAnimal(b.id)} data-testid="buy-animal">Buy {animal.name} · {animal.cost}</button>
           {upgradeBtn}

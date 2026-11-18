@@ -465,6 +465,7 @@ export class LocalFarmService implements FarmService {
       const id = this.newId('a');
       s.animals.push({ id, type: animal.id, buildingId: habitatId, readyAt: null, hungrySince: this.now(), happiness: 100 });
       this.spend(animal.cost, `animal:${id}:${animal.id}`, 'animal');
+      if (!s.stats.animal_buy) this.addItem(FEED_ITEM, 3, `starter:${id}`, 'starter_gift'); // your first animal comes with 3 animal feed
       this.bump('animal_buy');
       return { ok: true as const, animalId: id, cost: animal.cost, snapshot: this.snapshot() };
     });

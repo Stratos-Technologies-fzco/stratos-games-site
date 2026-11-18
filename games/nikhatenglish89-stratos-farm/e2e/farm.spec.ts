@@ -161,7 +161,7 @@ test('animals and production: egg, wheat -> flour -> bread, and it all survives 
   await page.getByTestId('buy-animal').click();
   await expect(page.getByTestId('habitat-meta')).toContainText('1 / 4');
   await page.getByTestId('feed').click();
-  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 2');
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 5'); // 3 seeded + 3 starter gift - 1
   await expect(page.getByTestId('collect')).toBeDisabled();
   await page.evaluate(() => (window as any).__farm.advance(601000));
   await expect(page.getByTestId('collect')).toBeEnabled({ timeout: 5000 });
@@ -684,5 +684,41 @@ test('placing: the selected tile can be any part of the building, and the ghost 
   await page.mouse.click(far.x, far.y);                      // only a tap moves it
   await expect.poll(ghost).toEqual({ gx: 1, gy: 9 });
   await page.getByTestId('place-cancel').click();
+  expect(errors).toEqual([]);
+});
+
+
+test('feeding: a new player gets starter feed, and with none the panel says exactly what to do', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 800, gems: 5, xp: 0, level: 1, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  let p = await tilePos(page, 0, 2);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  const body = await tilePos(page, 1, 3);
+  await page.mouse.click(body.x, body.y - 50);
+  await page.getByTestId('buy-animal').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 3');   // the first chicken brings 3
+  await expect(page.getByTestId('no-feed')).toHaveCount(0);
+  await page.getByTestId('feed').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 2');
+  // a second chicken is hungry; use up the feed, then the panel explains how to get more
+  await page.getByTestId('buy-animal').click();
+  await page.getByTestId('feed').click();
+  await page.getByTestId('buy-animal').click();
+  await page.getByTestId('feed').click();
+  await page.getByTestId('buy-animal').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 0');
+  await expect(page.getByTestId('no-feed')).toContainText('Feed Mill');
+  await expect(page.getByTestId('no-feed')).toContainText('3 wheat');
+  await page.getByTestId('feed').click();
+  await expect(page.getByTestId('toast')).toContainText('No animal feed');
   expect(errors).toEqual([]);
 });

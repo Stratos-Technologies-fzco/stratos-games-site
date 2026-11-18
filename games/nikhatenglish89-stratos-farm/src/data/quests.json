@@ -46,7 +46,7 @@
    "id": "t4",
    "type": "tutorial",
    "title": "Buy your first animal",
-   "desc": "Open Animals, build a Chicken Coop, then buy a chicken.",
+   "desc": "Open Animals, build a Chicken Coop, then buy a chicken. You get 3 free animal feed.",
    "stat": "animal_buy",
    "target": 1,
    "reward": {
