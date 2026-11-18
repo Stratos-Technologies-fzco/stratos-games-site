@@ -1,0 +1,1979 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#d97706" />
+<title>Chai &amp; Chakkar</title>
+<style>
+  :root {
+    --bg: #fdf6e9;
+    --bg2: #f4e6cc;
+    --card: #fffaf0;
+    --ink: #3b2314;
+    --muted: #7c5c43;
+    --accent: #d97706;
+    --accent2: #b45309;
+    --border: #d6b88d;
+  }
+  body.night {
+    --bg: #181310;
+    --bg2: #241c17;
+    --card: #2c221c;
+    --ink: #f8ede3;
+    --muted: #bfa894;
+    --accent: #f59e0b;
+    --accent2: #d97706;
+    --border: #5c4330;
+  }
+  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100dvh; overscroll-behavior: none;
+    background: radial-gradient(circle at top, var(--bg), var(--bg2));
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  #topbar {
+    width: min(420px, 96vw);
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; row-gap: 4px;
+    padding: 6px 4px; gap: 6px;
+  }
+  #title {
+    font-weight: 800; font-size: 1.06rem; letter-spacing: 0.3px;
+    color: var(--accent2); white-space: nowrap;
+  }
+  .pills { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; }
+  .pill {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 3px 7px; font-size: 0.72rem;
+    font-weight: 700; display: flex; align-items: center; gap: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  #menuBtn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 6px 11px; font-weight: 800;
+    font-size: 0.82rem; cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  #menuBtn:active { transform: scale(0.96); }
+  #lvBarWrap {
+    width: min(420px, 96vw); height: 6px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 99px;
+    overflow: hidden; margin-bottom: 5px;
+  }
+  #lvBar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #f59e0b, #10b981);
+    transition: width 0.25s ease;
+  }
+  #canvasWrap {
+    position: relative;
+    width: min(400px, 95vw);
+    height: min(600px, 80dvh);
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas#game {
+    width: 100%; height: 100%;
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+    touch-action: none;
+    cursor: crosshair;
+  }
+  #toast {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    background: rgba(30,20,12,0.88); color: #fff;
+    padding: 5px 12px; border-radius: 99px; font-size: 0.78rem;
+    font-weight: 700; pointer-events: none; opacity: 0;
+    transition: opacity 0.25s; white-space: nowrap; z-index: 5;
+  }
+  #peerBadge {
+    position: absolute; top: 44px; right: 10px;
+    background: rgba(16,185,129,0.92); color: #fff;
+    padding: 3px 8px; border-radius: 8px; font-size: 0.7rem;
+    font-weight: 800; display: none; z-index: 4;
+  }
+  #modalBackdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.52);
+    display: none; align-items: center; justify-content: center;
+    z-index: 20; padding: 12px;
+  }
+  #modal {
+    width: min(410px, 96vw); max-height: 86vh;
+    background: var(--card); color: var(--ink);
+    border: 2px solid var(--border); border-radius: 18px;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+  .modalHeader {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .tabs { display: flex; gap: 4px; padding: 8px 10px 0; border-bottom: 1px solid var(--border); }
+  .tab {
+    flex: 1; padding: 7px 4px; font-size: 0.75rem; font-weight: 800;
+    background: transparent; border: none; color: var(--muted);
+    border-bottom: 3px solid transparent; cursor: pointer;
+  }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+  .tabBody { padding: 12px 14px; overflow-y: auto; flex: 1; font-size: 0.84rem; }
+  .hidden { display: none !important; }
+  .btn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 8px 12px; font-weight: 700;
+    font-size: 0.8rem; cursor: pointer;
+  }
+  .btn.sec {
+    background: var(--bg2); color: var(--ink); border: 1px solid var(--border);
+  }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .packGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .packBtn {
+    padding: 8px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--ink); font-weight: 700;
+    font-size: 0.76rem; cursor: pointer; text-align: left;
+  }
+  .packBtn.active { border: 2px solid var(--accent); background: var(--card); }
+  .shelfGrid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    background: var(--bg2); padding: 8px; border-radius: 12px;
+    border: 1px solid var(--border); margin-top: 6px;
+  }
+  .shelfCell {
+    aspect-ratio: 1; border-radius: 8px; background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); position: relative;
+  }
+  .shelfCell.locked { opacity: 0.35; filter: grayscale(1); }
+  .shelfCell .crown { position: absolute; top: -4px; right: -2px; font-size: 0.62rem; }
+  .builderPool {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px;
+    max-height: 135px; overflow-y: auto; padding: 6px;
+    background: var(--bg2); border-radius: 10px;
+  }
+  .poolChip {
+    padding: 4px 7px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); font-size: 0.76rem; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .poolChip.picked { background: var(--accent); color: #fff; border-color: var(--accent2); }
+  input[type="text"], select {
+    width: 100%; padding: 7px 9px; border-radius: 9px;
+    border: 1px solid var(--border); background: var(--bg2);
+    color: var(--ink); font-size: 0.8rem;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  th, td { padding: 6px 4px; border-bottom: 1px solid var(--border); text-align: left; }
+  #gameOverOverlay {
+    position: absolute; inset: 0; background: rgba(24,16,10,0.84);
+    border-radius: 18px; display: none; flex-direction: column;
+    align-items: center; justify-content: center; color: #fff;
+    gap: 10px; padding: 18px; text-align: center; z-index: 10;
+  }
+    @keyframes peerPulse {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.75); }
+      50% { transform: scale(1.25); opacity: 0.9; box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+    }
+    #peerBadge.live {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 6px;
+    }
+    #peerBadge .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      animation: peerPulse 1.5s infinite ease-in-out;
+    }
+    #comboPill {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ec4899, #f59e0b);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 10px rgba(236, 72, 153, 0.45);
+      pointer-events: none;
+      transition: transform 0.08s linear;
+    }
+    #chakkarHudPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(180, 83, 9, 0.28);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fde68a;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    #chakkarHudPill.urgent {
+      background: rgba(245, 158, 11, 0.38);
+      border-color: #fbbf24;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.55);
+      transform: scale(1.05);
+    }
+    @keyframes nextPopIn {
+      0% { transform: scale(0.55); opacity: 0.45; }
+      65% { transform: scale(1.18); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .next-pop {
+      animation: nextPopIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes goldRecordGlow {
+      0%, 100% { box-shadow: 0 0 8px rgba(250, 204, 21, 0.55); transform: scale(1); }
+      50% { box-shadow: 0 0 16px rgba(250, 204, 21, 0.95); transform: scale(1.06); }
+    }
+    #bestHudPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(250, 204, 21, 0.14);
+      border: 1px solid rgba(250, 204, 21, 0.38);
+      color: #fde047;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    #bestHudPill.record {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.45), rgba(234, 179, 8, 0.45));
+      border-color: #fef08a;
+      color: #ffffff;
+      animation: goldRecordGlow 1.4s infinite ease-in-out;
+    }
+  </style>
+  <meta name="description" content="Drop and merge 14 Indian treats inside a tilting brass dabba! Instant mobile and desktop play, daily seeds, and live 2-player duels." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Chai & Chakkar" />
+  <meta property="og:title" content="Chai & Chakkar — 14-Tier Indian Snack Physics Merge Game" />
+  <meta property="og:description" content="Drop, merge, and survive the Chakkar gravity tilt! Play solo or challenge a friend live with a 4-letter 2P room link." />
+  <meta property="og:url" content="https://saiqulmodi.github.io/chai-and-chakkar/" />
+  <meta property="og:image" content="https://saiqulmodi.github.io/chai-and-chakkar/og-preview.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chai & Chakkar — 14-Tier Indian Snack Physics Merge Game" />
+  <meta name="twitter:description" content="Drop, merge, and survive the Chakkar gravity tilt! Play solo or challenge a friend live with a 4-letter 2P room link." />
+  <meta name="twitter:image" content="https://saiqulmodi.github.io/chai-and-chakkar/og-preview.png" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3CradialGradient id=%22bg%22 cx=%2250%25%22 cy=%2245%25%22 r=%2252%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%233b200e%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%231c1008%22/%3E%3C/radialGradient%3E%3ClinearGradient id=%22brass%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23fde68a%22/%3E%3Cstop offset=%2250%25%22 stop-color=%22%23f59e0b%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%23b45309%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22url(%23bg)%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2226%22 fill=%22none%22 stroke=%22url(%23brass)%22 stroke-width=%224%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2221%22 fill=%22none%22 stroke=%22%23fde68a%22 stroke-width=%221%22 stroke-dasharray=%224 3%22 opacity=%220.7%22/%3E%3Cpath d=%22M20 26h24l-3 21a4 4 0 0 1-4 3H27a4 4 0 0 1-4-3l-3-21z%22 fill=%22%23d97706%22 stroke=%22%23fef3c7%22 stroke-width=%222%22/%3E%3Cellipse cx=%2232%22 cy=%2226%22 rx=%2212%22 ry=%223.2%22 fill=%22%2378350f%22 stroke=%22%23fde68a%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M26 19c0-3 3-3 3-6M32 18c0-3 3-3 3-6M38 19c0-3 3-3 3-6%22 fill=%22none%22 stroke=%22%23fef3c7%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3CradialGradient id=%22bg%22 cx=%2250%25%22 cy=%2245%25%22 r=%2252%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%233b200e%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%231c1008%22/%3E%3C/radialGradient%3E%3ClinearGradient id=%22brass%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23fde68a%22/%3E%3Cstop offset=%2250%25%22 stop-color=%22%23f59e0b%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%23b45309%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22url(%23bg)%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2226%22 fill=%22none%22 stroke=%22url(%23brass)%22 stroke-width=%224%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%2221%22 fill=%22none%22 stroke=%22%23fde68a%22 stroke-width=%221%22 stroke-dasharray=%224 3%22 opacity=%220.7%22/%3E%3Cpath d=%22M20 26h24l-3 21a4 4 0 0 1-4 3H27a4 4 0 0 1-4-3l-3-21z%22 fill=%22%23d97706%22 stroke=%22%23fef3c7%22 stroke-width=%222%22/%3E%3Cellipse cx=%2232%22 cy=%2226%22 rx=%2212%22 ry=%223.2%22 fill=%22%2378350f%22 stroke=%22%23fde68a%22 stroke-width=%221.5%22/%3E%3Cpath d=%22M26 19c0-3 3-3 3-6M32 18c0-3 3-3 3-6M38 19c0-3 3-3 3-6%22 fill=%22none%22 stroke=%22%23fef3c7%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div id="topbar">
+    <div id="title">Chai &amp; Chakkar</div>
+    <div class="pills">
+      <div class="pill" id="lvPill">⭐ Lv 1</div>
+      <div class="pill" id="scorePill">0</div>
+      <div class="pill" id="chakkarPill">🔔 12</div><div class="pill" id="chaiPill" title="Drops until Cutting Chai Wildcard">☕ 12</div>
+      <div class="pill" id="nextPill">Next: <canvas id="nextMini" width="20" height="20"></canvas></div>
+    </div>
+    <span id="bestHudPill" title="All-Time Personal Best">👑 0</span><span id="chakkarHudPill" title="Drops until next Chakkar tilt">🔔 12</span><span id="comboPill">🔥 x2</span><button class="pill-btn" id="hudMuteBtn" title="Toggle Sound & Haptics" aria-label="Toggle Sound">🔊</button><button id="menuBtn">☰ Menu</button>
+  </div>
+  <div id="lvBarWrap"><div id="lvBar"></div></div>
+
+  <div id="canvasWrap">
+    <div id="toast"></div>
+    <div id="peerBadge">2P: 0</div>
+    <canvas id="game" width="400" height="600"></canvas>
+    <div id="gameOverOverlay">
+      <div style="font-size:1.35rem;font-weight:900;">Dabba Full!</div>
+      <div id="finalStats" style="font-size:0.9rem;opacity:0.92;"></div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;justify-content:center;"><button class="btn" id="restartBtn">↻ Play Again</button><button class="btn sec" id="shareChallengeBtn">⚔️ Share Challenge</button><button class="btn sec" id="shareTextScoreBtn">📋 Share Score</button></div>
+        <button class="btn sec" id="overShareBtn">📸 Share Card</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalBackdrop">
+    <div id="modal">
+      <div class="modalHeader">
+        <strong style="font-size:0.95rem;">☰ Menu</strong>
+        <button class="btn sec" id="closeMenuBtn" style="padding:4px 10px;">✕</button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="tabPlay">Play &amp; Lv</button>
+        <button class="tab" data-tab="tabItems">14 Items</button>
+        <button class="tab" data-tab="tab2P">2P &amp; Card</button>
+        <button class="tab" data-tab="tabRanks">Ranks</button>
+      </div>
+
+      <div class="tabBody" id="tabPlay">
+        <div class="row">
+          <span>Mode</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn" id="modeEndlessBtn">♾️ Endless</button>
+            <button class="btn sec" id="modeDailyBtn">📅 Daily</button>
+          </div>
+        </div>
+        <div class="row">
+          <span>Start Level (1 → ∞)</span>
+          <select id="startLvSelect" style="width:130px;"></select>
+        </div>
+        <div class="row">
+          <span>On-Demand Drop Hint</span>
+          <button class="btn sec" id="hintToggleBtn" disabled>🔒 500 pts</button>
+        </div>
+        <div class="row">
+          <span>Sound &amp; Theme</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn sec" id="soundBtn">🔊 Sound: ON</button>
+            <button class="btn sec" id="themeBtn">☀️ Day</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;gap:8px;">
+          <button class="btn sec" id="menuShareScoreBtn" style="flex:1;">📋 Share Score</button>
+          <button class="btn sec" id="resumeRunBtn" style="flex:1;display:none;">▶️ Resume</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" id="newGameBtn" style="width:100%;">🔄 Fresh Start (Reset Score)</button>
+        </div>
+      </div>
+
+      <div class="tabBody hidden" id="tabItems">
+        <div class="packGrid" id="packGrid"></div>
+        <div style="font-weight:800;font-size:0.78rem;margin-top:4px;">🏆 Sticker Collection Shelf</div>
+        <div class="shelfGrid" id="shelfGrid"></div>
+
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+          <div class="row" style="margin-bottom:4px;">
+            <strong style="font-size:0.8rem;">🎨 Custom 14-Item Builder</strong>
+            <span id="builderCount" style="font-size:0.75rem;font-weight:700;">0 / 14</span>
+          </div>
+          <div class="builderPool" id="builderPool"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn sec" id="builderClearBtn" style="flex:1;">Clear</button>
+            <button class="btn" id="builderSaveBtn" style="flex:2;" disabled>Use Custom Pack (14)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabBody hidden" id="tab2P">
+        <div style="font-weight:800;margin-bottom:6px;">⚔️ 2-Player Room Link</div>
+        <div class="row">
+          <input type="text" id="roomCodeInput" maxlength="10" placeholder="ROOM" style="width:92px;text-transform:uppercase;font-weight:800;" />
+          <button class="btn sec" id="joinRoomBtn" style="padding:8px 10px;">⚡ Join</button>
+          <button class="btn" id="copyRoomBtn" style="flex:1;">🔗 Share Link</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <input type="text" id="wsUrlInput" placeholder="WebSocket URL (e.g. wss://modi.tail3f4d21.ts.net/ws)" />
+        </div>
+        <div id="roomStatus" style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;">
+          Same-browser sync active. Add WebSocket URL for cross-device play.
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:10px;">
+          <div style="font-weight:800;margin-bottom:6px;">📸 Shareable PNG Score Card</div>
+          <button class="btn" id="downloadCardBtn" style="width:100%;">⬇ Download Score Card PNG</button>
+        </div>
+      </div>
+
+      <div class="tabBody hidden" id="tabRanks">
+        <table>
+          <thead><tr><th>#</th><th>Mode</th><th>Level</th><th>Score</th><th>Top Treat</th></tr></thead>
+          <tbody id="ranksBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Unregister any prior service workers so mobile browsers always load live builds
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations()
+      .then(regs => regs.forEach(r => r.unregister()))
+      .catch(() => {});
+  }
+
+  // Custom Vector Art Renderer for All Treats
+  function drawVectorArt(c, art, r) {
+    c.save();
+    switch (art) {
+      case "elaichi":
+        c.rotate(-0.45);
+        c.fillStyle = "#65a30d"; c.beginPath(); c.ellipse(0, 0, r * 0.68, r * 0.42, 0, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = "#ecfccb"; c.lineWidth = 1.4;
+        c.beginPath(); c.moveTo(-r * 0.5, 0); c.lineTo(r * 0.5, 0); c.stroke();
+        break;
+      case "rasgulla":
+        c.fillStyle = "#fffbeb"; c.beginPath(); c.arc(0, 0, r * 0.66, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "rgba(255,255,255,0.8)"; c.beginPath(); c.arc(-r * 0.22, -r * 0.22, r * 0.18, 0, Math.PI * 2); c.fill();
+        break;
+      case "kulfi":
+        c.fillStyle = "#fde68a"; c.fillRect(-r * 0.08, r * 0.25, r * 0.16, r * 0.45);
+        c.fillStyle = "#fef3c7"; c.beginPath(); c.moveTo(-r * 0.36, r * 0.28); c.lineTo(r * 0.36, r * 0.28); c.lineTo(r * 0.2, -r * 0.55); c.lineTo(-r * 0.2, -r * 0.55); c.closePath(); c.fill();
+        c.fillStyle = "#16a34a"; c.fillRect(-r * 0.15, -r * 0.3, r * 0.1, r * 0.1); c.fillRect(r * 0.06, -r * 0.1, r * 0.1, r * 0.1);
+        break;
+      case "panipuri":
+        c.fillStyle = "#f59e0b"; c.beginPath(); c.arc(0, r * 0.08, r * 0.62, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#15803d"; c.beginPath(); c.ellipse(0, -r * 0.05, r * 0.42, r * 0.24, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#fef08a"; c.beginPath(); c.arc(-r * 0.12, -r * 0.05, r * 0.1, 0, Math.PI * 2); c.fill();
+        break;
+      case "samosa":
+        c.fillStyle = "#f59e0b"; c.strokeStyle = "#78350f"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(0, -r * 0.62); c.lineTo(r * 0.62, r * 0.46); c.lineTo(-r * 0.62, r * 0.46); c.closePath();
+        c.fill(); c.stroke();
+        c.fillStyle = "#b45309"; c.beginPath(); c.arc(-r * 0.1, r * 0.15, r * 0.07, 0, Math.PI * 2); c.arc(r * 0.16, r * 0.22, r * 0.06, 0, Math.PI * 2); c.fill();
+        break;
+      case "coffee":
+        c.fillStyle = "#fef3c7"; c.beginPath(); c.moveTo(-r * 0.4, -r * 0.35); c.lineTo(r * 0.4, -r * 0.35); c.lineTo(r * 0.3, r * 0.58); c.lineTo(-r * 0.3, r * 0.58); c.closePath(); c.fill();
+        c.fillStyle = "#78350f"; c.beginPath(); c.moveTo(-r * 0.36, -r * 0.1); c.lineTo(r * 0.36, -r * 0.1); c.lineTo(r * 0.29, r * 0.55); c.lineTo(-r * 0.29, r * 0.55); c.closePath(); c.fill();
+        c.strokeStyle = "#dc2626"; c.lineWidth = 3; c.beginPath(); c.moveTo(r * 0.05, -r * 0.1); c.lineTo(r * 0.25, -r * 0.65); c.stroke();
+        break;
+      case "lassi":
+        c.fillStyle = "#fde047"; c.beginPath(); c.moveTo(-r * 0.42, -r * 0.32); c.lineTo(r * 0.42, -r * 0.32); c.lineTo(r * 0.32, r * 0.58); c.lineTo(-r * 0.32, r * 0.58); c.closePath(); c.fill();
+        c.fillStyle = "#fffbeb"; c.beginPath(); c.ellipse(0, -r * 0.32, r * 0.42, r * 0.14, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#ef4444"; c.beginPath(); c.arc(0, -r * 0.34, r * 0.1, 0, Math.PI * 2); c.fill();
+        break;
+      case "vadapav":
+        c.fillStyle = "#fcd34d"; c.beginPath(); c.arc(0, -r * 0.1, r * 0.55, Math.PI, 0); c.fill();
+        c.fillStyle = "#ea580c"; c.beginPath(); c.roundRect(-r * 0.56, -r * 0.08, r * 1.12, r * 0.26, 6); c.fill();
+        c.fillStyle = "#16a34a"; c.fillRect(-r * 0.48, -r * 0.14, r * 0.96, r * 0.08);
+        c.fillStyle = "#f59e0b"; c.beginPath(); c.roundRect(-r * 0.52, r * 0.2, r * 1.04, r * 0.24, 5); c.fill();
+        break;
+      case "jalebi":
+        c.strokeStyle = "#fb923c"; c.lineWidth = Math.max(3, r * 0.13); c.lineCap = "round";
+        c.beginPath();
+        for (let a = 0; a < Math.PI * 5; a += 0.2) {
+          const rad = (a / (Math.PI * 5)) * r * 0.65;
+          const x = Math.cos(a) * rad, y = Math.sin(a) * rad;
+          if (a === 0) c.moveTo(x, y); else c.lineTo(x, y);
+        }
+        c.stroke();
+        break;
+      case "chai":
+        c.fillStyle = "#b45309"; c.beginPath(); c.moveTo(-r * 0.46, -r * 0.28); c.lineTo(r * 0.46, -r * 0.28); c.lineTo(r * 0.35, r * 0.55); c.lineTo(-r * 0.35, r * 0.55); c.closePath(); c.fill();
+        c.fillStyle = "#f59e0b"; c.beginPath(); c.ellipse(0, -r * 0.28, r * 0.46, r * 0.13, 0, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = "#fffbeb"; c.lineWidth = 2.2;
+        c.beginPath(); c.moveTo(-r * 0.15, -r * 0.45); c.quadraticCurveTo(-r * 0.25, -r * 0.62, -r * 0.1, -r * 0.75); c.stroke();
+        c.beginPath(); c.moveTo(r * 0.15, -r * 0.45); c.quadraticCurveTo(r * 0.05, -r * 0.62, r * 0.2, -r * 0.75); c.stroke();
+        break;
+      case "sundae":
+        c.fillStyle = "#e0f2fe"; c.beginPath(); c.moveTo(-r * 0.48, r * 0.05); c.lineTo(r * 0.48, r * 0.05); c.lineTo(r * 0.22, r * 0.56); c.lineTo(-r * 0.22, r * 0.56); c.closePath(); c.fill();
+        c.fillStyle = "#f472b6"; c.beginPath(); c.arc(-r * 0.2, -r * 0.05, r * 0.28, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#fef08a"; c.beginPath(); c.arc(r * 0.2, -r * 0.05, r * 0.28, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#fff"; c.beginPath(); c.arc(0, -r * 0.28, r * 0.28, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#dc2626"; c.beginPath(); c.arc(0, -r * 0.56, r * 0.11, 0, Math.PI * 2); c.fill();
+        break;
+      case "paneer":
+        c.strokeStyle = "#fde68a"; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(-r * 0.6, r * 0.6); c.lineTo(r * 0.6, -r * 0.6); c.stroke();
+        c.fillStyle = "#f97316"; c.fillRect(-r * 0.36, r * 0.06, r * 0.3, r * 0.3);
+        c.fillStyle = "#16a34a"; c.fillRect(-r * 0.12, -r * 0.18, r * 0.26, r * 0.26);
+        c.fillStyle = "#ea580c"; c.fillRect(r * 0.08, -r * 0.38, r * 0.3, r * 0.3);
+        break;
+      case "dosa":
+        c.fillStyle = "#eab308"; c.strokeStyle = "#854d0e"; c.lineWidth = 2.5;
+        c.beginPath(); c.moveTo(-r * 0.65, r * 0.35); c.lineTo(r * 0.65, -r * 0.22); c.lineTo(r * 0.52, r * 0.42); c.closePath();
+        c.fill(); c.stroke();
+        c.fillStyle = "#fffbeb"; c.beginPath(); c.arc(-r * 0.35, -r * 0.25, r * 0.16, 0, Math.PI * 2); c.fill();
+        c.fillStyle = "#16a34a"; c.beginPath(); c.arc(0, -r * 0.32, r * 0.16, 0, Math.PI * 2); c.fill();
+        break;
+      case "thali":
+        c.fillStyle = "#fbbf24"; c.beginPath(); c.arc(0, 0, r * 0.76, 0, Math.PI * 2); c.fill();
+        c.strokeStyle = "#78350f"; c.lineWidth = 3; c.stroke();
+        const bowls = [[-0.32, -0.25, "#ef4444"], [0, -0.36, "#16a34a"], [0.32, -0.25, "#f97316"], [-0.34, 0.16, "#fffbeb"]];
+        for (const [bx, by, col] of bowls) {
+          c.fillStyle = col; c.beginPath(); c.arc(r * bx, r * by, r * 0.15, 0, Math.PI * 2); c.fill();
+        }
+        c.fillStyle = "#fef3c7"; c.beginPath(); c.arc(r * 0.15, r * 0.24, r * 0.25, 0, Math.PI * 2); c.fill();
+        break;
+      case "cuttingchai":
+        drawChaiWildcard(c, r);
+        break;
+      default:
+        c.font = `${Math.floor(r * 1.15)}px sans-serif`;
+        c.textAlign = "center"; c.textBaseline = "middle";
+        c.fillText(art, 0, 1);
+    }
+    c.restore();
+  }
+
+  // Cutting Chai Wildcard: fluted glass with tea, foam and rising steam
+  function drawChaiWildcard(c, r) {
+    const t = performance.now() / 1000;
+    const topW = r * 0.5, botW = r * 0.36, topY = -r * 0.42, botY = r * 0.6;
+    c.save();
+    // glass body
+    c.fillStyle = "rgba(255,255,255,0.35)";
+    c.strokeStyle = "#fffbeb"; c.lineWidth = Math.max(1.2, r * 0.07);
+    c.beginPath(); c.moveTo(-topW, topY); c.lineTo(topW, topY); c.lineTo(botW, botY); c.lineTo(-botW, botY); c.closePath();
+    c.fill();
+    // tea
+    const teaY = topY + r * 0.2;
+    const teaW = topW - (topW - botW) * ((teaY - topY) / (botY - topY));
+    c.fillStyle = "#b45309";
+    c.beginPath(); c.moveTo(-teaW, teaY); c.lineTo(teaW, teaY); c.lineTo(botW, botY); c.lineTo(-botW, botY); c.closePath(); c.fill();
+    // foam
+    c.fillStyle = "#fde68a";
+    c.beginPath(); c.ellipse(0, teaY, teaW, r * 0.08, 0, 0, Math.PI * 2); c.fill();
+    // flutes
+    c.strokeStyle = "rgba(255,251,235,0.75)"; c.lineWidth = Math.max(0.8, r * 0.035);
+    for (let i = -2; i <= 2; i++) {
+      c.beginPath(); c.moveTo(topW * i * 0.38, topY + r * 0.04); c.lineTo(botW * i * 0.38, botY - r * 0.04); c.stroke();
+    }
+    // outline
+    c.strokeStyle = "#fffbeb"; c.lineWidth = Math.max(1.2, r * 0.07);
+    c.beginPath(); c.moveTo(-topW, topY); c.lineTo(topW, topY); c.lineTo(botW, botY); c.lineTo(-botW, botY); c.closePath(); c.stroke();
+    // rising steam
+    c.strokeStyle = "rgba(255,255,255,0.85)"; c.lineWidth = Math.max(1, r * 0.06); c.lineCap = "round";
+    for (let k = -1; k <= 1; k++) {
+      const sway = Math.sin(t * 3 + k * 1.7) * r * 0.08;
+      const x0 = k * r * 0.2;
+      c.beginPath(); c.moveTo(x0, topY - r * 0.06);
+      c.quadraticCurveTo(x0 - r * 0.12 + sway, topY - r * 0.28, x0 + sway, topY - r * 0.5);
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  const CHAI_WILDCARD = { art: "cuttingchai", icon: "☕", label: "Cutting Chai", color: "#d97706", r: 22, wildcard: true };
+
+  const PACKS = {
+    veg: {
+      name: "🍛 14 Veg Food & Drinks",
+      items: [
+        { art: "elaichi", icon: "🌿", label: "Elaichi", color: "#365314", r: 15 },
+        { art: "rasgulla", icon: "⚪", label: "Rasgulla", color: "#92400e", r: 20 },
+        { art: "kulfi", icon: "🍡", label: "Kulfi Stick", color: "#b45309", r: 25 },
+        { art: "panipuri", icon: "🥟", label: "Pani Puri", color: "#78350f", r: 31 },
+        { art: "samosa", icon: "🔺", label: "Samosa", color: "#9a3412", r: 37 },
+        { art: "coffee", icon: "🧋", label: "Cold Coffee", color: "#451a03", r: 44 },
+        { art: "lassi", icon: "🥭", label: "Mango Lassi", color: "#854d0e", r: 51 },
+        { art: "vadapav", icon: "🍔", label: "Vada Pav", color: "#991b1b", r: 59 },
+        { art: "jalebi", icon: "🥨", label: "Jalebi Coil", color: "#7c2d12", r: 67 },
+        { art: "chai", icon: "☕", label: "Masala Chai", color: "#431407", r: 76 },
+        { art: "sundae", icon: "🍨", label: "Ice Sundae", color: "#831843", r: 85 },
+        { art: "paneer", icon: "🧀", label: "Paneer Tikka", color: "#881337", r: 95 },
+        { art: "dosa", icon: "🌮", label: "Masala Dosa", color: "#713f12", r: 106 },
+        { art: "thali", icon: "👑", label: "Royal Veg Thali", color: "#4c1d95", r: 118 }
+      ]
+    },
+    fruits: {
+      name: "🍓 Fruits & Smoothies",
+      items: [
+        { art: "🫐", icon: "🫐", label: "Blueberry", color: "#3b82f6", r: 15 },
+        { art: "🍒", icon: "🍒", label: "Cherry", color: "#dc2626", r: 20 },
+        { art: "🍓", icon: "🍓", label: "Strawberry", color: "#e11d48", r: 25 },
+        { art: "🥝", icon: "🥝", label: "Kiwi", color: "#65a30d", r: 31 },
+        { art: "🍊", icon: "🍊", label: "Orange", color: "#f97316", r: 37 },
+        { art: "🍎", icon: "🍎", label: "Apple", color: "#ef4444", r: 44 },
+        { art: "🥭", icon: "🥭", label: "Mango", color: "#eab308", r: 51 },
+        { art: "🍐", icon: "🍐", label: "Pear", color: "#84cc16", r: 59 },
+        { art: "🍑", icon: "🍑", label: "Peach", color: "#fb7185", r: 67 },
+        { art: "🥤", icon: "🥤", label: "Berry Shake", color: "#c026d3", r: 76 },
+        { art: "🥥", icon: "🥥", label: "Coconut", color: "#78716c", r: 85 },
+        { art: "🍍", icon: "🍍", label: "Pineapple", color: "#d97706", r: 95 },
+        { art: "🍈", icon: "🍈", label: "Melon", color: "#10b981", r: 106 },
+        { art: "🍉", icon: "🍉", label: "Watermelon", color: "#059669", r: 118 }
+      ]
+    },
+    sweets: {
+      name: "🍨 Sweets & Ice Creams",
+      items: [
+        { art: "🍬", icon: "🍬", label: "Candy", color: "#ec4899", r: 15 },
+        { art: "🍭", icon: "🍭", label: "Lollipop", color: "#f43f5e", r: 20 },
+        { art: "🍪", icon: "🍪", label: "Cookie", color: "#b45309", r: 25 },
+        { art: "🧁", icon: "🧁", label: "Cupcake", color: "#d946ef", r: 31 },
+        { art: "🍩", icon: "🍩", label: "Donut", color: "#ea580c", r: 37 },
+        { art: "🍧", icon: "🍧", label: "Shaved Ice", color: "#06b6d4", r: 44 },
+        { art: "🍦", icon: "🍦", label: "Soft Serve", color: "#f59e0b", r: 51 },
+        { art: "🍨", icon: "🍨", label: "Gelato Bowl", color: "#8b5cf6", r: 59 },
+        { art: "🍮", icon: "🍮", label: "Caramel Flan", color: "#ca8a04", r: 67 },
+        { art: "🍫", icon: "🍫", label: "Choco Bar", color: "#78350f", r: 76 },
+        { art: "🍰", icon: "🍰", label: "Pastry Slice", color: "#e11d48", r: 85 },
+        { art: "🥧", icon: "🥧", label: "Fruit Pie", color: "#d97706", r: 95 },
+        { art: "🎂", icon: "🎂", label: "Celebration Cake", color: "#db2777", r: 106 },
+        { art: "🏰", icon: "🏰", label: "Royal Mithai Box", color: "#7c3aed", r: 118 }
+      ]
+    },
+    cafe: {
+      name: "🥐 Cafe & Bakery",
+      items: [
+        { art: "🫘", icon: "🫘", label: "Coffee Bean", color: "#78350f", r: 15 },
+        { art: "🥨", icon: "🥨", label: "Mini Pretzel", color: "#b45309", r: 20 },
+        { art: "🥐", icon: "🥐", label: "Croissant", color: "#d97706", r: 25 },
+        { art: "🥯", icon: "🥯", label: "Bagel", color: "#ca8a04", r: 31 },
+        { art: "🧇", icon: "🧇", label: "Waffle", color: "#ea580c", r: 37 },
+        { art: "🥞", icon: "🥞", label: "Pancakes", color: "#f59e0b", r: 44 },
+        { art: "🥪", icon: "🥪", label: "Club Sandwich", color: "#16a34a", r: 51 },
+        { art: "☕", icon: "☕", label: "Cappuccino", color: "#92400e", r: 59 },
+        { art: "🧋", icon: "🧋", label: "Boba Tea", color: "#9333ea", r: 67 },
+        { art: "🍕", icon: "🍕", label: "Veg Pizza Slice", color: "#dc2626", r: 76 },
+        { art: "🍔", icon: "🍔", label: "Veggie Burger", color: "#15803d", r: 85 },
+        { art: "🍝", icon: "🍝", label: "Pesto Pasta", color: "#4d7c0f", r: 95 },
+        { art: "🫕", icon: "🫕", label: "Cheese Fondue", color: "#eab308", r: 106 },
+        { art: "🍽️", icon: "🍽️", label: "Grand Cafe Platter", color: "#4f46e5", r: 118 }
+      ]
+    }
+  };
+
+  const RADII = [15, 20, 25, 31, 37, 44, 51, 59, 67, 76, 85, 95, 106, 118];
+  const MASTER_POOL = Object.values(PACKS).flatMap(p => p.items)
+    .filter((v, i, a) => a.findIndex(x => x.label === v.label) === i);
+
+  const store = {
+    get: (k, d) => { try { const v = localStorage.getItem("cc_" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set: (k, v) => { try { localStorage.setItem("cc_" + k, JSON.stringify(v)); } catch {} }
+  };
+
+  let activePackKey = store.get("packKey", "veg");
+  let customIcons = store.get("customIcons", []);
+  let unlockedMap = store.get("unlockedMap", {});
+  let maxLevelUnlocked = store.get("maxLv", 1);
+  let leaderboard = store.get("ranks", []);
+  let soundOn = store.get("sound", true);
+  let nightMode = store.get("night", false);
+  if (nightMode) document.body.classList.add("night");
+
+  function getActiveTiers() {
+    if (activePackKey === "custom" && customIcons.length === 14) {
+      return customIcons.map((item, idx) => ({ ...item, r: RADII[idx] }));
+    }
+    return PACKS[activePackKey]?.items || PACKS.veg.items;
+  }
+  // Stratos analytics + coins (do nothing when the game is opened on its own)
+  function track(name, details) {
+    try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {}
+  }
+  function SC() { try { var S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
+  let runStartedAt = 0;
+  function runStart() {
+    runStartedAt = Date.now();
+    track("level_start", { level: level, mode: isDaily ? "daily" : "endless" });
+  }
+  function runEnd() {
+    const seconds = runStartedAt ? Math.round((Date.now() - runStartedAt) / 1000) : 0;
+    runStartedAt = 0;
+    track("game_over", { seconds, score, level });
+  }
+  function tierInfo(t) {
+    return t === -1 ? CHAI_WILDCARD : getActiveTiers()[t];
+  }
+  function buzz(pattern) {
+    if (!soundOn) return;
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {}
+  }
+
+  let audioCtx = null;
+  let comboCount = 0, lastMergeTime = 0;
+
+  function ensureAudio() {
+    if (!soundOn) return null;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+
+  function tone(freq, dur = 0.09, type = "sine", vol = 0.12, delay = 0) {
+    const ac = ensureAudio();
+    if (!ac) return;
+    try {
+      const t0 = ac.currentTime + delay;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t0); o.stop(t0 + dur + 0.01);
+    } catch {}
+  }
+
+  function playTablaMerge(tier, streak) {
+    const ac = ensureAudio();
+    if (!ac) return;
+    const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+    const root = scale[(tier + streak) % scale.length] * (streak > 3 ? 1.5 : 1);
+    // Warm tabla bayan pitch-glide thump
+    try {
+      const t0 = ac.currentTime;
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(145 + tier * 6, t0);
+      o.frequency.exponentialRampToValueAtTime(72, t0 + 0.14);
+      g.gain.setValueAtTime(0.16, t0);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.15);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t0); o.stop(t0 + 0.16);
+    } catch {}
+    // Bright harmonic chime + combo sparkle
+    tone(root, 0.16, "triangle", 0.13, 0);
+    if (streak >= 2) tone(root * 1.25, 0.18, "sine", 0.10, 0.045);
+    if (streak >= 3) tone(root * 1.5, 0.22, "triangle", 0.11, 0.09);
+  }
+
+  function playChakkarBell() {
+    tone(880, 0.42, "sine", 0.13, 0);
+    tone(1318.5, 0.36, "triangle", 0.09, 0.02);
+    tone(1760, 0.28, "sine", 0.06, 0.04);
+  }
+
+  function playLevelFanfare() {
+    [523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+      tone(f, 0.24, "triangle", 0.12, idx * 0.065);
+    });
+  }
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const nextMini = document.getElementById("nextMini").getContext("2d");
+  const W = 400, H = 600;
+  const WALL_L = 22, WALL_R = W - 22, FLOOR = H - 22, DANGER_Y = 105;
+
+  let bodies = [], particles = [], popups = [], confetti = []; let chainCount = 0, lastMergeAt = 0, shakeTime = 0, shakeMax = 0, shakeMag = 0;
+  function triggerShake(mag = 6, dur = 0.28) {
+    shakeMag = Math.max(shakeMag, mag);
+    shakeTime = Math.max(shakeTime, dur);
+    shakeMax = Math.max(shakeMax, dur);
+  } let peerScore = 0, peerLevel = 1, peerConnected = false;
+
+  // Mobile Screen Wake-Lock (keeps phone screen awake while playing)
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      if ("wakeLock" in navigator && document.visibilityState === "visible") {
+        wakeLock = await navigator.wakeLock.request("screen");
+      }
+    } catch {}
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") requestWakeLock();
+  });
+  window.addEventListener("pointerdown", () => { if (!wakeLock) requestWakeLock(); }, { once: true });
+  let score = 0, level = 1, dropsUntilChakkar = 12;
+  let dropCount = 0, maxComboRun = 1;
+  let tiltAngle = 0, tiltTimer = 0;
+  let aimX = W / 2, currentTier = 0, nextTier = 1; pulseNextPreview();
+  let dropCooldown = 0, overflowTimer = 0, gameOver = false;
+  let isDaily = false, rngState = Date.now() % 2147483647;
+  let hintEnabled = false, hintCharges = 0, nextHintThreshold = 500;
+
+  function seededRand() {
+    if (!isDaily) return Math.random();
+    rngState = (rngState * 48271) % 2147483647;
+    return rngState / 2147483647;
+  }
+  function pickSpawnTier() {
+    const r = seededRand();
+    if (r < 0.35) return 0;
+    if (r < 0.65) return 1;
+    if (r < 0.85) return 2;
+    if (r < 0.95) return 3;
+    return 4;
+  }
+  function levelThreshold(lv) { return Math.floor(450 * Math.pow(lv, 1.38)); }
+
+  function showToast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.style.opacity = "1";
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.opacity = "0"; }, 2200);
+  }
+
+  function unlockTier(idx) {
+    const k = activePackKey + "_" + idx;
+    if (!unlockedMap[k]) {
+      unlockedMap[k] = true;
+      store.set("unlockedMap", unlockedMap);
+    }
+  }
+
+  function resetGame(startLv = 1) {
+    bodies = []; particles = []; popups = []; confetti = []; chainCount = 0; lastMergeAt = 0; shakeTime = 0; shakeMax = 0; shakeMag = 0; beatRecordThisRun = false; syncBestHudPill(false); dropCount = 0; maxComboRun = 1; const cp = document.getElementById("comboPill"); if (cp) cp.style.display = "none";
+    level = Math.max(1, startLv);
+    score = level > 1 ? levelThreshold(level - 1) : 0;
+    dropsUntilChakkar = 12;
+    tiltAngle = 0; tiltTimer = 0;
+    overflowTimer = 0; gameOver = false;
+    hintEnabled = false; hintCharges = 0; nextHintThreshold = 500;
+    while (score >= nextHintThreshold) {
+      hintCharges = 5;
+      nextHintThreshold += 1000;
+    }
+    if (isDaily) {
+      const d = new Date();
+      rngState = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) % 2147483647;
+    }
+    currentTier = pickSpawnTier();
+    nextTier = pickSpawnTier(); pulseNextPreview();
+    unlockTier(currentTier);
+    const ov = document.getElementById("gameOverOverlay");
+    ov.firstElementChild.textContent = "Dabba Full!";
+    ov.style.display = "none";
+    updateHUD();
+    runStart();
+  }
+
+  function updateHUD() {
+    const tiers = getActiveTiers();
+    document.getElementById("lvPill").textContent = `⭐ Lv ${level}`;
+    document.getElementById("scorePill").textContent = score.toLocaleString();
+    document.getElementById("chakkarPill").textContent = `🔔 ${dropsUntilChakkar}`;
+    const chaiRem = 12 - (dropCount % 12);
+    const chaiEl = document.getElementById("chaiPill");
+    if (chaiEl) {
+      chaiEl.textContent = currentTier === -1 ? "☕ READY!" : `☕ ${chaiRem}`;
+      chaiEl.style.background = currentTier === -1 ? "#f59e0b" : "";
+      chaiEl.style.color = currentTier === -1 ? "#1c1008" : "";
+    }
+
+    nextMini.clearRect(0, 0, 20, 20);
+    nextMini.save();
+    nextMini.translate(10, 10);
+    const nextInfo = tierInfo(nextTier);
+    nextMini.fillStyle = nextInfo.color;
+    nextMini.beginPath(); nextMini.arc(0, 0, 9, 0, Math.PI * 2); nextMini.fill();
+    drawVectorArt(nextMini, nextInfo.art, 9);
+    nextMini.restore();
+
+    const prevT = level > 1 ? levelThreshold(level - 1) : 0;
+    const nextT = levelThreshold(level);
+    const pct = Math.min(100, Math.max(0, ((score - prevT) / (nextT - prevT)) * 100));
+    document.getElementById("lvBar").style.width = pct + "%";
+
+    const hintBtn = document.getElementById("hintToggleBtn");
+    if (hintCharges > 0) {
+      hintBtn.disabled = false;
+      hintBtn.textContent = `🎯 Hint: ${hintEnabled ? "ON" : "OFF"} (${hintCharges} left)`;
+    } else if (SC() && SC().offer && !peerConnected) {
+      hintBtn.disabled = false;
+      hintEnabled = false;
+      hintBtn.textContent = `🎯 5 Hints (Stratos Coins) or ${nextHintThreshold.toLocaleString()} pts`;
+    } else {
+      hintBtn.disabled = true;
+      hintEnabled = false;
+      hintBtn.textContent = `🔒 Hint (${nextHintThreshold.toLocaleString()} pts)`;
+    }
+  }
+
+  function checkProgression() {
+    while (score >= nextHintThreshold) {
+      hintCharges = 5;
+      nextHintThreshold += 1000;
+      showToast("🎯 5 Drop Hints Ready in Menu!");
+    }
+    while (score >= levelThreshold(level)) {
+      level++;
+      if (level > maxLevelUnlocked) {
+        maxLevelUnlocked = level;
+        store.set("maxLv", maxLevelUnlocked);
+      }
+      bodies = bodies.filter(b => b.tier >= 2);
+      if (!peerConnected) track("level_complete", { level: level - 1, score });
+      playLevelFanfare();
+      spawnConfetti();
+      showToast(`⭐ Level ${level} Reached!`);
+    }
+  }
+
+  function spawnParticles(x, y, color, count = 14) {
+    for (let i = 0; i < count; i++) {
+      const a = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const spd = 60 + Math.random() * 140;
+      particles.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, life: 0.45, color });
+    }
+  }
+
+  function spawnPopup(x, y, text, color = "#f59e0b", big = false) {
+    popups.push({ x, y, text, color, big, life: 0.95, maxLife: 0.95 });
+  }
+
+  function spawnConfetti() {
+    const colors = ["#f59e0b", "#10b981", "#ec4899", "#3b82f6", "#eab308", "#a855f7"];
+    for (let i = 0; i < 42; i++) {
+      confetti.push({
+        x: WALL_L + Math.random() * (WALL_R - WALL_L),
+        y: DANGER_Y - 10 - Math.random() * 40,
+        vx: (Math.random() - 0.5) * 140,
+        vy: -60 - Math.random() * 110,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 10,
+        w: 6 + Math.random() * 5,
+        h: 4 + Math.random() * 4,
+        color: colors[i % colors.length],
+        life: 1.8 + Math.random() * 0.7
+      });
+    }
+  }
+
+    function pulseNextPreview() {
+    const el = document.getElementById("nextCanvas")
+      || document.getElementById("nextBadge")
+      || document.getElementById("nextPreview")
+      || document.getElementById("nextItem");
+    if (!el) return;
+    el.classList.remove("next-pop");
+    void el.offsetWidth;
+    el.classList.add("next-pop");
+  }
+
+  function dropSnack() {
+    if (gameOver || dropCooldown > 0) return;
+    const r = tierInfo(currentTier).r;
+    const x = Math.min(WALL_R - r - 2, Math.max(WALL_L + r + 2, aimX));
+    bodies.push({ x, y: DANGER_Y - 12, vx: 0, vy: 40, tier: currentTier, r, age: 0, merged: false });
+    if (currentTier >= 0) unlockTier(currentTier);
+    dropCount++;
+    tone(190, 0.07, "sine", 0.1); buzz(12);
+    dropCooldown = 0.42;
+
+    if (hintEnabled && hintCharges > 0) {
+      hintCharges--;
+      if (hintCharges === 0) hintEnabled = false;
+    }
+
+    dropsUntilChakkar--;
+    if (dropsUntilChakkar <= 0) {
+      dropsUntilChakkar = 12;
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      tiltAngle = dir * Math.min(0.24, 0.14 + level * 0.008);
+      tiltTimer = 2.4;
+      playChakkarBell();
+      showToast("🔔 Chakkar Tilt!"); buzz([35, 30, 50]);
+      broadcast2P({ type: "chakkar", score });
+    }
+
+    currentTier = nextTier;
+    // Every 12th drop (dropCount % 12 === 0) is the Cutting Chai wildcard
+    nextTier = ((dropCount + 2) % 12 === 0) ? -1 : pickSpawnTier(); pulseNextPreview();
+    if (currentTier === -1) showToast("☕ Cutting Chai Wildcard READY!");
+    updateHUD();
+    saveRunState();
+  }
+
+  function computeBestDrop() {
+    const r = tierInfo(currentTier).r;
+    const isWild = currentTier === -1;
+    let bestX = W / 2, bestY = FLOOR - r, bestScore = -1e9, isMatch = false;
+    for (let x = WALL_L + r + 4; x <= WALL_R - r - 4; x += 12) {
+      let landingY = FLOOR - r;
+      let hitTier = -1;
+      for (const b of bodies) {
+        const dx = Math.abs(b.x - x);
+        const sumR = b.r + r;
+        if (dx < sumR) {
+          const yCand = b.y - Math.sqrt(sumR * sumR - dx * dx);
+          if (yCand < landingY) {
+            landingY = yCand;
+            hitTier = b.tier;
+          }
+        }
+      }
+      let evalScore = landingY * 1.4;
+      let match;
+      if (isWild) {
+        match = hitTier >= 0;
+        if (hitTier >= 0 && hitTier <= 12) evalScore += 300 + hitTier * 25;
+        else if (hitTier === 13) evalScore += 200;
+      } else {
+        match = hitTier === currentTier;
+        if (hitTier === currentTier) evalScore += 500;
+        else if (hitTier >= 0 && Math.abs(hitTier - currentTier) === 1) evalScore += 140;
+      }
+      if (evalScore > bestScore) {
+        bestScore = evalScore;
+        bestX = x;
+        bestY = landingY;
+        isMatch = match;
+      }
+    }
+    return { x: bestX, y: bestY, isMatch };
+  }
+
+  function step(dt) {
+    if (!gameOver && score > personalBest && score > 0) {
+      const hadPriorBest = personalBest > 0;
+      personalBest = score;
+      try { localStorage.setItem("chai_chakkar_best", String(personalBest)); } catch {}
+      if (!beatRecordThisRun) {
+        beatRecordThisRun = true;
+        if (hadPriorBest) {
+          showToast("👑 NEW PERSONAL BEST!");
+          tone(659.25, 0.1, "triangle", 0.14);
+          setTimeout(() => tone(880, 0.15, "sine", 0.16), 95);
+          buzz([25, 30, 45]);
+        }
+      }
+      syncBestHudPill(true);
+    }
+    const chakkarPillEl = document.getElementById("chakkarHudPill");
+    if (chakkarPillEl) {
+      const remDrops = Math.max(1, Math.min(12, (typeof dropsUntilChakkar === "number" ? dropsUntilChakkar : 12)));
+      const newLabel = `🔔 ${remDrops}`;
+      if (chakkarPillEl.textContent !== newLabel) chakkarPillEl.textContent = newLabel;
+      chakkarPillEl.classList.toggle("urgent", !gameOver && remDrops === 1);
+    }
+    const comboPillEl = document.getElementById("comboPill");
+    if (comboPillEl) {
+      const elapsed = performance.now() - lastMergeAt;
+      if (chainCount >= 2 && elapsed <= 1400 && !gameOver) {
+        const rem = Math.max(0, 1 - elapsed / 1400);
+        comboPillEl.style.display = "inline-flex";
+        comboPillEl.textContent = `🔥 x${chainCount}`;
+        comboPillEl.style.opacity = (0.35 + 0.65 * rem).toFixed(2);
+        comboPillEl.style.transform = `scale(${(0.92 + 0.14 * rem).toFixed(3)})`;
+      } else {
+        comboPillEl.style.display = "none";
+      }
+    }
+    if (!gameOver && (keysDown.left || keysDown.right)) {
+      const aimSpeed = 320;
+      if (keysDown.left) aimX -= aimSpeed * dt;
+      if (keysDown.right) aimX += aimSpeed * dt;
+      const curR = tierInfo(currentTier).r;
+      aimX = Math.min(WALL_R - curR - 2, Math.max(WALL_L + curR + 2, aimX));
+    }
+    if (shakeTime > 0) { shakeTime = Math.max(0, shakeTime - dt); if (shakeTime === 0) { shakeMag = 0; shakeMax = 0; } }
+    if (dropCooldown > 0) dropCooldown -= dt;
+    if (tiltTimer > 0) {
+      tiltTimer -= dt;
+      if (tiltTimer <= 0) tiltAngle = 0;
+    }
+
+    const tiers = getActiveTiers();
+    const g = 980;
+    const gx = Math.sin(tiltAngle) * g;
+    const gy = Math.cos(tiltAngle) * g;
+    const subSteps = 4;
+    const sdt = dt / subSteps;
+    let runChanged = false;
+
+    for (let s = 0; s < subSteps; s++) {
+      for (const b of bodies) {
+        b.age += sdt;
+        b.vx += gx * sdt;
+        b.vy += gy * sdt;
+        b.vx *= 0.995;
+        b.vy *= 0.995;
+        b.x += b.vx * sdt;
+        b.y += b.vy * sdt;
+
+        if (b.x - b.r < WALL_L) { b.x = WALL_L + b.r; b.vx = Math.abs(b.vx) * 0.22; }
+        if (b.x + b.r > WALL_R) { b.x = WALL_R - b.r; b.vx = -Math.abs(b.vx) * 0.22; }
+        if (b.y + b.r > FLOOR)  { b.y = FLOOR - b.r;  b.vy = -Math.abs(b.vy) * 0.2; b.vx *= 0.92; }
+      }
+
+      for (let i = 0; i < bodies.length; i++) {
+        for (let j = i + 1; j < bodies.length; j++) {
+          const a = bodies[i], b = bodies[j];
+          if (a.merged || b.merged) continue;
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy) || 0.001;
+          const minDist = a.r + b.r;
+          if (dist < minDist) {
+            if ((a.tier === -1) !== (b.tier === -1)) {
+              // Cutting Chai wildcard touched a snack
+              const w = a.tier === -1 ? a : b;
+              const s = a.tier === -1 ? b : a;
+              w.merged = true;
+              runChanged = true;
+              if (s.tier <= 12) {
+                s.merged = true;
+                const nt = s.tier + 1;
+                const pts = Math.pow(2, nt) * 10 * 2;
+                const nowMs = performance.now();
+                chainCount = (nowMs - lastMergeAt <= 1400) ? (chainCount + 1) : 1;
+                lastMergeAt = nowMs;
+                maxComboRun = Math.max(maxComboRun, chainCount);
+                const totalPts = Math.round(pts * (1 + (chainCount - 1) * 0.25));
+                score += totalPts;
+                spawnPopup(s.x, s.y, `☕ 2x +${totalPts.toLocaleString()}`, "#f59e0b", true);
+                if (chainCount >= 2) spawnPopup(s.x, s.y - 24, `🔥 x${chainCount} COMBO!`, "#ec4899", true);
+                bodies.push({ x: s.x, y: s.y, vx: 0, vy: -35, tier: nt, r: tiers[nt].r, age: 0, merged: false });
+                unlockTier(nt);
+                spawnParticles(s.x, s.y, "#fde68a", 18);
+                comboCount = (nowMs - lastMergeTime < 1400) ? comboCount + 1 : 1; lastMergeTime = nowMs; playTablaMerge(nt, comboCount);
+                buzz([15, 20, 25]);
+              } else {
+                // Tier 13: clear up to 4 lowest-tier crumbs (tier <= 1)
+                const crumbs = bodies.filter(o => !o.merged && o.tier >= 0 && o.tier <= 1).sort((p, q) => p.tier - q.tier).slice(0, 4);
+                for (const o of crumbs) { o.merged = true; spawnParticles(o.x, o.y, "#fde68a", 8); }
+                score += 2500;
+                spawnPopup(s.x, s.y, "☕ +2,500 CLEAN-UP!", "#fbbf24", true);
+                tone(740, 0.2, "triangle", 0.14); buzz([20, 25, 35]);
+              }
+              checkProgression();
+              updateHUD();
+              broadcast2P({ type: "score", score, level });
+            } else if (a.tier === b.tier && a.tier >= 0) {
+              runChanged = true;
+              a.merged = b.merged = true;
+              const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+              if (a.tier === 13) {
+                score += 50000; spawnPopup(mx, my, "+50,000!", "#fbbf24", true); spawnConfetti(); triggerShake(9, 0.45);
+                spawnParticles(mx, my, "#fbbf24", 32);
+                tone(980, 0.3, "triangle", 0.18);
+                showToast("👑 GRAND FEAST +50,000!"); buzz([60, 40, 80]);
+              } else {
+                const nt = a.tier + 1;
+                const pts = Math.pow(2, nt) * 10;
+                const nowMs = performance.now();
+          chainCount = (nowMs - lastMergeAt <= 1400) ? (chainCount + 1) : 1;
+          lastMergeAt = nowMs;
+          maxComboRun = Math.max(maxComboRun, chainCount);
+          const comboMult = 1 + (chainCount - 1) * 0.25;
+          const totalPts = Math.round(pts * comboMult);
+          const bonusPts = totalPts - pts;
+          score += totalPts;
+          spawnPopup(mx, my, `+${totalPts.toLocaleString()}`, nt >= 8 ? "#10b981" : "#f59e0b", nt >= 10 || chainCount >= 3);
+          if (chainCount >= 2) {
+            spawnPopup(mx, my - 24, `🔥 x${chainCount} COMBO! (+${bonusPts.toLocaleString()})`, "#ec4899", true);
+            tone(480 + Math.min(chainCount, 8) * 75, 0.11, "triangle", 0.13);
+            buzz([18, 20, 28]); if (chainCount >= 4) triggerShake(Math.min(8, 3 + chainCount * 0.6), 0.26);
+          }
+                bodies.push({ x: mx, y: my, vx: 0, vy: -35, tier: nt, r: tiers[nt].r, age: 0, merged: false });
+                unlockTier(nt);
+                spawnParticles(mx, my, tiers[nt].color, 14);
+                comboCount = (nowMs - lastMergeTime < 1400) ? comboCount + 1 : 1; lastMergeTime = nowMs; playTablaMerge(nt, comboCount);
+              }
+              checkProgression();
+              updateHUD();
+              broadcast2P({ type: "score", score, level });
+            } else {
+              const overlap = (minDist - dist) * 0.5;
+              const nx = dx / dist, ny = dy / dist;
+              a.x -= nx * overlap; a.y -= ny * overlap;
+              b.x += nx * overlap; b.y += ny * overlap;
+              const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+              const velN = rvx * nx + rvy * ny;
+              if (velN < 0) {
+                const imp = -(1 + 0.22) * velN * 0.5;
+                a.vx -= imp * nx; a.vy -= imp * ny;
+                b.vx += imp * nx; b.vy += imp * ny;
+              }
+            }
+          }
+        }
+      }
+      bodies = bodies.filter(b => !b.merged);
+    }
+    if (runChanged) saveRunState();
+
+    let danger = false;
+    for (const b of bodies) {
+      if (b.age > 1.0 && b.y - b.r < DANGER_Y && Math.hypot(b.vx, b.vy) < 35) {
+        danger = true; break;
+      }
+    }
+    if (danger) {
+      overflowTimer += dt;
+      if (overflowTimer >= 3.0 && !gameOver) {
+        gameOver = true;
+        clearSavedRun();
+        runEnd();
+        saveScoreRecord();
+        const ov = document.getElementById("gameOverOverlay");
+        if (peerConnected) {
+          broadcast2P({ type: "gameover", score, level });
+          const won = score > peerScore;
+          const tie = score === peerScore;
+          ov.firstElementChild.textContent = tie ? "🤝 2P Match Tied!" : (won ? "🏆 You Win! (Outscored Rival)" : "⚔️ Rival Wins! (Dabba Full)");
+          document.getElementById("finalStats").textContent =
+            `You: ${score.toLocaleString()} pts  vs  2P: ${peerScore.toLocaleString()} pts`;
+          if (won) { spawnConfetti(); playLevelFanfare(); }
+        } else {
+          ov.firstElementChild.textContent = "Dabba Full!";
+          document.getElementById("finalStats").textContent =
+            `Level ${level} • ${score.toLocaleString()} pts • ${getHighestLabel()}`;
+        }
+        ov.style.display = "flex";
+      }
+    } else {
+      overflowTimer = Math.max(0, overflowTimer - dt * 1.5);
+    }
+
+    for (const p of particles) {
+      p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    }
+    particles = particles.filter(p => p.life > 0);
+
+    for (const pop of popups) {
+      pop.y -= 42 * dt;
+      pop.life -= dt;
+    }
+    popups = popups.filter(pop => pop.life > 0);
+
+    for (const c of confetti) {
+      c.vy += 260 * dt;
+      c.x += c.vx * dt;
+      c.y += c.vy * dt;
+      c.rot += c.vrot * dt;
+      c.life -= dt;
+    }
+    confetti = confetti.filter(c => c.life > 0);
+  }
+
+  function getHighestLabel() {
+    const tiers = getActiveTiers();
+    let maxT = 0;
+    for (const b of bodies) if (b.tier > maxT) maxT = b.tier;
+    return tiers[maxT].label;
+  }
+
+      function localDayKey(offsetDays = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function renderDailyStreak(count) {
+    const badge = document.getElementById("dailyStreakBadge");
+    if (!badge) return;
+    const n = Math.max(1, Number(count) || 1);
+    badge.textContent = `🔥 ${n} Day${n === 1 ? "" : "s"} Streak`;
+  }
+
+  function updateDailyStreak() {
+    const today = localDayKey(0);
+    const yesterday = localDayKey(-1);
+    let data = { lastDate: "", count: 0 };
+    try {
+      const raw = localStorage.getItem("chai_chakkar_streak");
+      if (raw) data = JSON.parse(raw) || data;
+    } catch {}
+
+    if (data.lastDate === today) {
+      data.count = Math.max(1, Number(data.count) || 1);
+    } else if (data.lastDate === yesterday) {
+      data.count = (Number(data.count) || 0) + 1;
+      data.lastDate = today;
+    } else {
+      data.count = 1;
+      data.lastDate = today;
+    }
+
+    try { localStorage.setItem("chai_chakkar_streak", JSON.stringify(data)); } catch {}
+    renderDailyStreak(data.count);
+    return data.count;
+  }
+
+    let personalBest = 0, beatRecordThisRun = false;
+
+  function loadPersonalBest() {
+    try {
+      const top = getTopScores();
+      const topVal = top.length ? Number(top[0].score) || 0 : 0;
+      const savedBest = Number(localStorage.getItem("chai_chakkar_best")) || 0;
+      personalBest = Math.max(topVal, savedBest);
+    } catch { personalBest = 0; }
+    syncBestHudPill(false);
+  }
+
+  function syncBestHudPill(isNewRecord) {
+    const el = document.getElementById("bestHudPill");
+    if (!el) return;
+    const label = `👑 ${personalBest.toLocaleString()}`;
+    if (el.textContent !== label) el.textContent = label;
+    el.classList.toggle("record", !!isNewRecord);
+  }
+
+  function getTopScores() {
+    try {
+      const raw = localStorage.getItem("chai_chakkar_top5");
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+
+  function recordTopScore(pts, lvl, highest) {
+    if (!pts || pts <= 0) return;
+    const list = getTopScores();
+    const today = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    list.push({ score: pts, level: lvl, highest: highest || "", date: today });
+    list.sort((a, b) => b.score - a.score);
+    const trimmed = list.slice(0, 5);
+    try { localStorage.setItem("chai_chakkar_top5", JSON.stringify(trimmed)); } catch {}
+    renderTopScores();
+  }
+
+  function renderTopScores() {
+    const el = document.getElementById("topScoresList");
+    if (!el) return;
+    const list = getTopScores();
+    if (!list.length) {
+      el.innerHTML = `<div style="color:#9ca3af;font-style:italic;">No runs recorded yet — drop some treats!</div>`;
+      return;
+    }
+    const medals = ["🥇", "🥈", "🥉", "4.", "5."];
+    el.innerHTML = list.map((item, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,0.04);">
+        <span><strong>${medals[i]}</strong> ${Number(item.score).toLocaleString()} pts <span style="color:#a7f3d0;">(Lv ${item.level})</span></span>
+        <span style="color:#fde68a;font-size:11px;">${item.highest || ""} • ${item.date || ""}</span>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("clearScoresBtn")?.addEventListener("click", () => {
+    if (confirm("Clear your saved Top 5 high scores?")) {
+      try { localStorage.removeItem("chai_chakkar_top5"); localStorage.removeItem("chai_chakkar_best"); personalBest = 0; beatRecordThisRun = false; syncBestHudPill(false); } catch {}
+      renderTopScores();
+      showToast("🧹 High scores cleared");
+    }
+  });
+
+  function saveScoreRecord() {
+    loadPersonalBest();
+  updateDailyStreak();
+    recordTopScore(score, level, getHighestLabel());
+    leaderboard.push({
+      mode: isDaily ? "Daily" : "Endless",
+      level,
+      score,
+      top: getHighestLabel(),
+      date: new Date().toLocaleDateString()
+    });
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 15);
+    store.set("ranks", leaderboard);
+  }
+
+  function draw() {
+    ctx.save();
+    if (shakeTime > 0 && shakeMax > 0) {
+      const decay = shakeTime / shakeMax;
+      ctx.translate((Math.random() * 2 - 1) * shakeMag * decay, (Math.random() * 2 - 1) * shakeMag * decay);
+    }
+    const tiers = getActiveTiers();
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(tiltAngle * 0.45);
+    ctx.translate(-W / 2, -H / 2);
+
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, nightMode ? "#2a1f18" : "#fff7e6");
+    grad.addColorStop(1, nightMode ? "#1f1611" : "#f3dfb9");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(10, 10, W - 20, H - 20, 18);
+    ctx.fill();
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = nightMode ? "#8c6239" : "#c59249";
+    ctx.stroke();
+
+    ctx.save();
+    ctx.setLineDash([7, 6]);
+    ctx.strokeStyle = overflowTimer > 0 ? "#ef4444" : "rgba(217,119,6,0.45)";
+    ctx.lineWidth = overflowTimer > 0 ? 3 : 2;
+    ctx.beginPath();
+    ctx.moveTo(WALL_L, DANGER_Y);
+    ctx.lineTo(WALL_R, DANGER_Y);
+    ctx.stroke();
+    ctx.restore();
+
+    if (!gameOver && hintEnabled && hintCharges > 0) {
+      const hint = computeBestDrop();
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = hint.isMatch ? "#10b981" : "#f59e0b";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(hint.x, hint.y, tierInfo(currentTier).r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = hint.isMatch ? "#10b981" : "#f59e0b";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`★ BEST (${hintCharges})`, hint.x, 32);
+      ctx.restore();
+    }
+
+    if (!gameOver) {
+      const cur = tierInfo(currentTier);
+      const clampedX = Math.min(WALL_R - cur.r - 2, Math.max(WALL_L + cur.r + 2, aimX));
+      ctx.save();
+      ctx.setLineDash([3, 5]);
+      ctx.strokeStyle = "rgba(180,83,9,0.4)";
+      ctx.beginPath();
+      ctx.moveTo(clampedX, DANGER_Y - 12);
+      ctx.lineTo(clampedX, FLOOR);
+      ctx.stroke();
+      ctx.restore();
+      drawTreat(clampedX, DANGER_Y - 24, cur.r, cur);
+    }
+
+    for (const b of bodies) {
+      drawTreat(b.x, b.y, b.r, b.tier === -1 ? CHAI_WILDCARD : tiers[b.tier]);
+    }
+
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life * 2);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    for (const c of confetti) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, c.life);
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.rot);
+      ctx.fillStyle = c.color;
+      ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+      ctx.restore();
+    }
+
+    for (const pop of popups) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, pop.life / pop.maxLife);
+      ctx.font = pop.big ? "900 20px sans-serif" : "800 15px sans-serif";
+      ctx.textAlign = "center";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(28,16,8,0.85)";
+      ctx.strokeText(pop.text, pop.x, pop.y);
+      ctx.fillStyle = pop.color;
+      ctx.fillText(pop.text, pop.x, pop.y);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawTreat(x, y, r, tier) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fillStyle = tier.color;
+    if (tier.wildcard) { ctx.shadowColor = "#fbbf24"; ctx.shadowBlur = 14; }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = tier.wildcard ? "#fde68a" : "rgba(255,255,255,0.68)";
+    ctx.stroke();
+    drawVectorArt(ctx, tier.art, r);
+    ctx.restore();
+  }
+
+  function pointerX(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return ((clientX - rect.left) / rect.width) * W;
+  }
+  canvas.addEventListener("mousemove", e => { aimX = pointerX(e); });
+  canvas.addEventListener("click", e => { aimX = pointerX(e); dropSnack(); });
+  canvas.addEventListener("touchmove", e => { e.preventDefault(); aimX = pointerX(e); }, { passive: false });
+  canvas.addEventListener("touchend", e => { e.preventDefault(); dropSnack(); }, { passive: false });
+
+  // Desktop Keyboard Controls (Left/Right Arrows or A/D to aim, Space/Down/S/Enter to drop)
+  const keysDown = { left: false, right: false };
+  window.addEventListener("keydown", e => {
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    if (document.getElementById("modalBackdrop").style.display === "flex") return;
+
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+      e.preventDefault();
+      keysDown.left = true;
+    } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+      e.preventDefault();
+      keysDown.right = true;
+    } else if (e.key === " " || e.key === "ArrowDown" || e.key === "s" || e.key === "S" || e.key === "Enter") {
+      e.preventDefault();
+      if (!e.repeat) dropSnack();
+    }
+  });
+  window.addEventListener("keyup", e => {
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keysDown.left = false;
+    if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keysDown.right = false;
+  });
+  window.addEventListener("blur", () => { keysDown.left = false; keysDown.right = false; });
+
+  // 2P Sync (Defaulting to Tailscale Funnel endpoint)
+  const DEFAULT_WS = "wss://modi.tail3f4d21.ts.net/ws";
+  const urlParams = new URLSearchParams(location.search);
+  let roomCode = (urlParams.get("room") || Math.random().toString(36).substring(2, 6)).toUpperCase();
+  let wsBase = urlParams.get("ws") || store.get("wsUrl", DEFAULT_WS);
+  let bc = null, ws = null;
+
+  let wsWanted = urlParams.has("room");
+  function connectRoom() {
+    if (bc) bc.close();
+    try {
+      bc = new BroadcastChannel("cc_room_" + roomCode);
+      bc.onmessage = ev => handlePeerMsg(ev.data);
+    } catch {}
+
+    if (ws) { try { ws.close(); } catch {} ws = null; }
+    if (wsBase && wsWanted) {
+      try {
+        const clean = wsBase.replace(/\/$/, "");
+        ws = new WebSocket(`${clean}/${roomCode}`);
+        ws.onopen = () => {
+          document.getElementById("roomStatus").textContent = `Live WS Connected • Room ${roomCode}`;
+          broadcast2P({ type: "score", score, level });
+        };
+        ws.onerror = () => {
+          document.getElementById("roomStatus").textContent = `Local Sync Active (Start server.py for WS)`;
+        };
+        ws.onmessage = ev => { try { handlePeerMsg(JSON.parse(ev.data)); } catch {} };
+      } catch {}
+    }
+  }
+
+  function broadcast2P(payload) {
+    if (bc) { try { bc.postMessage(payload); } catch {} }
+    if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(payload)); } catch {} }
+  }
+
+  function renderPeerBadge() {
+    const badge = document.getElementById("peerBadge");
+    badge.classList.add("live");
+    badge.innerHTML = `<span class="live-dot"></span><span>2P Lv ${peerLevel} • ${peerScore.toLocaleString()}</span>`;
+  }
+
+  function handlePeerMsg(data) {
+    if (!data) return;
+    peerConnected = true;
+    if (typeof data.level === "number" && data.level >= 1) {
+      peerLevel = data.level;
+    }
+    if (typeof data.score === "number") {
+      peerScore = data.score;
+    }
+    renderPeerBadge();
+    if (data.type === "chakkar") {
+      tiltAngle = (Math.random() < 0.5 ? -1 : 1) * 0.16;
+      tiltTimer = 1.6;
+      showToast("⚔️ Rival Sent Chakkar Tilt!");
+    } else if (data.type === "gameover" && !gameOver) {
+      gameOver = true;
+      clearSavedRun();
+      runEnd();
+      saveScoreRecord();
+      const won = score >= peerScore;
+      const ov = document.getElementById("gameOverOverlay");
+      ov.firstElementChild.textContent = won ? "🏆 You Win! (Rival Dabba Full)" : "⚔️ Rival Wins on Points!";
+      document.getElementById("finalStats").textContent =
+        `You: ${score.toLocaleString()} pts  vs  2P: ${peerScore.toLocaleString()} pts`;
+      ov.style.display = "flex";
+      if (won) { spawnConfetti(); playLevelFanfare(); }
+    } else if (data.type === "rematch") {
+      peerScore = 0; peerLevel = 1; renderPeerBadge();
+      renderTopScores();
+  resetGame(1);
+      showToast("🔄 2P Rematch Started!");
+    }
+  }
+
+  function downloadScoreCard() {
+    const c = document.createElement("canvas");
+    c.width = 600; c.height = 340;
+    const g = c.getContext("2d");
+    g.fillStyle = "#2b190e";
+    g.fillRect(0, 0, 600, 340);
+    g.strokeStyle = "#f59e0b";
+    g.lineWidth = 8;
+    g.strokeRect(14, 14, 572, 312);
+
+    g.fillStyle = "#fbbf24";
+    g.font = "bold 32px sans-serif";
+    g.fillText("Chai & Chakkar", 38, 68);
+
+    g.fillStyle = "#fffaf0";
+    g.font = "bold 46px sans-serif";
+    g.fillText(`${score.toLocaleString()} pts`, 38, 145);
+
+    g.fillStyle = "#fcd34d";
+    g.font = "bold 22px sans-serif";
+    g.fillText(`⭐ Level ${level}   •   ${isDaily ? "📅 Daily Seed" : "♾️ Endless"}`, 38, 195);
+
+    g.fillStyle = "#e7e5e4";
+    g.font = "20px sans-serif";
+    g.fillText(`Top Treat: ${getHighestLabel()}`, 38, 240);
+    g.fillStyle = "#a8a29e";
+    g.font = "15px sans-serif";
+    g.fillText(new Date().toDateString(), 38, 292);
+
+    const a = document.createElement("a");
+    a.download = `chai-chakkar-lv${level}-${score}.png`;
+    a.href = c.toDataURL("image/png");
+    a.click();
+  }
+
+  const backdrop = document.getElementById("modalBackdrop");
+  document.getElementById("menuBtn").onclick = () => { renderMenuState(); backdrop.style.display = "flex"; };
+  document.getElementById("closeMenuBtn").onclick = () => { backdrop.style.display = "none"; };
+  backdrop.onclick = e => { if (e.target === backdrop) backdrop.style.display = "none"; };
+
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tabBody").forEach(b => b.classList.add("hidden"));
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.tab).classList.remove("hidden");
+    };
+  });
+
+  document.getElementById("modeEndlessBtn").onclick = () => { isDaily = false; renderTopScores();
+  resetGame(1); backdrop.style.display = "none"; };
+  document.getElementById("modeDailyBtn").onclick = () => { isDaily = true; renderTopScores();
+  resetGame(1); backdrop.style.display = "none"; };
+    document.getElementById("shareChallengeBtn").onclick = () => {
+    if (!roomCode) {
+      roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const rcInput = document.getElementById("roomCodeInput");
+      if (rcInput) rcInput.value = roomCode;
+      connectRoom();
+    }
+    const u = new URL(window.location.href);
+    u.searchParams.set("room", roomCode);
+    const challengeText = `☕ I scored ${score.toLocaleString()} pts (Level ${level} • ${getHighestLabel()}) in Chai & Chakkar! Join Room ${roomCode} to beat me:`;
+    if (navigator.share) {
+      navigator.share({ title: "Chai & Chakkar 2P Challenge", text: challengeText, url: u.toString() }).catch(() => {});
+    } else {
+      navigator.clipboard?.writeText(`${challengeText} ${u.toString()}`);
+      showToast(`📋 Challenge & Room ${roomCode} Copied!`);
+    }
+  };
+  document.getElementById("restartBtn").onclick = () => {
+    if (peerConnected) {
+      peerScore = 0; peerLevel = 1; renderPeerBadge();
+      broadcast2P({ type: "rematch", score: 0 });
+    }
+    renderTopScores();
+  resetGame(1);
+  };
+  document.getElementById("overShareBtn").onclick = downloadScoreCard;
+  document.getElementById("downloadCardBtn").onclick = downloadScoreCard;
+
+  document.getElementById("hintToggleBtn").onclick = () => {
+    if (hintCharges <= 0) {
+      // On Stratos: 5 drop hints for Stratos Coins (never in 2P play)
+      const c = SC();
+      if (!c || !c.offer || peerConnected || gameOver) return;
+      track("reward_offered", { item: "hint" });
+      c.offer("hint", () => {
+        hintCharges = 5; hintEnabled = true;
+        track("reward_taken", { item: "hint" });
+        showToast("🎯 5 Drop Hints ON!");
+        updateHUD();
+      });
+      return;
+    }
+    hintEnabled = !hintEnabled;
+    updateHUD();
+  };
+
+  function syncMuteBtn() {
+    const m = document.getElementById("hudMuteBtn");
+    if (m) m.textContent = soundOn ? "🔊" : "🔇";
+  }
+  document.getElementById("hudMuteBtn").onclick = () => {
+    soundOn = !soundOn; store.set("sound", soundOn); syncMuteBtn(); renderMenuState();
+  };
+  syncMuteBtn();
+
+  document.getElementById("soundBtn").onclick = () => {
+    soundOn = !soundOn; store.set("sound", soundOn); syncMuteBtn(); renderMenuState();
+  };
+  document.getElementById("themeBtn").onclick = () => {
+    nightMode = !nightMode; store.set("night", nightMode);
+    document.body.classList.toggle("night", nightMode);
+    renderMenuState();
+  };
+
+  document.getElementById("roomCodeInput").value = roomCode;
+  document.getElementById("wsUrlInput").value = wsBase;
+  document.getElementById("joinRoomBtn").onclick = () => {
+    roomCode = (document.getElementById("roomCodeInput").value || "CHAI").trim().toUpperCase();
+    wsBase = document.getElementById("wsUrlInput").value.trim();
+    store.set("wsUrl", wsBase);
+    wsWanted = true;
+    connectRoom();
+    backdrop.style.display = "none";
+    showToast(`⚔️ Joined Room ${roomCode}`);
+  };
+  document.getElementById("copyRoomBtn").onclick = () => {
+    roomCode = (document.getElementById("roomCodeInput").value || "CHAI").toUpperCase();
+    wsBase = document.getElementById("wsUrlInput").value.trim();
+    store.set("wsUrl", wsBase);
+    wsWanted = true;
+    connectRoom();
+    const u = new URL(location.href);
+    u.searchParams.set("room", roomCode);
+    if (wsBase) u.searchParams.set("ws", wsBase); else u.searchParams.delete("ws");
+    if (navigator.share) { navigator.share({ title: "Chai & Chakkar 2P", url: u.toString() }).catch(() => {}); } else { navigator.clipboard?.writeText(u.toString()); }
+    showToast(`🔗 Copied Room ${roomCode} Link!`);
+  };
+
+  function makeMiniCanvas(tier, size = 26) {
+    const mc = document.createElement("canvas");
+    mc.width = size; mc.height = size;
+    const g = mc.getContext("2d");
+    g.translate(size / 2, size / 2);
+    g.fillStyle = tier.color;
+    g.beginPath(); g.arc(0, 0, size * 0.44, 0, Math.PI * 2); g.fill();
+    drawVectorArt(g, tier.art, size * 0.44);
+    return mc;
+  }
+
+  function renderMenuState() {
+    const saved = store.get("savedRun", null);
+    const resBtn = document.getElementById("resumeRunBtn");
+    if (resBtn) {
+      if (saved && (saved.score > 0 || (saved.bodies && saved.bodies.length > 0))) {
+        resBtn.style.display = "inline-flex";
+        resBtn.textContent = `▶️ Resume (${(saved.score || 0).toLocaleString()})`;
+      } else {
+        resBtn.style.display = "none";
+      }
+    }
+    document.getElementById("modeEndlessBtn").className = isDaily ? "btn sec" : "btn";
+    document.getElementById("modeDailyBtn").className = isDaily ? "btn" : "btn sec";
+    document.getElementById("soundBtn").textContent = soundOn ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+    document.getElementById("themeBtn").textContent = nightMode ? "🌙 Night" : "☀️ Day";
+
+    const sel = document.getElementById("startLvSelect");
+    sel.innerHTML = "";
+    for (let l = 1; l <= maxLevelUnlocked; l++) {
+      const opt = document.createElement("option");
+      opt.value = l; opt.textContent = `Level ${l}`;
+      if (l === level) opt.selected = true;
+      sel.appendChild(opt);
+    }
+
+    const pg = document.getElementById("packGrid");
+    pg.innerHTML = "";
+    const entries = Object.entries(PACKS);
+    if (customIcons.length === 14) entries.push(["custom", { name: "🎨 My Custom 14" }]);
+    for (const [key, pack] of entries) {
+      const b = document.createElement("button");
+      b.className = "packBtn" + (activePackKey === key ? " active" : "");
+      b.textContent = pack.name;
+      b.onclick = () => {
+        activePackKey = key; store.set("packKey", key);
+        renderTopScores();
+  resetGame(1); renderMenuState();
+      };
+      pg.appendChild(b);
+    }
+
+    const sg = document.getElementById("shelfGrid");
+    sg.innerHTML = "";
+    getActiveTiers().forEach((t, idx) => {
+      const unlocked = !!unlockedMap[activePackKey + "_" + idx];
+      const cell = document.createElement("div");
+      cell.className = "shelfCell" + (unlocked ? "" : " locked");
+      cell.title = t.label;
+      if (unlocked) {
+        const cr = document.createElement("span");
+        cr.className = "crown"; cr.textContent = "👑";
+        cell.appendChild(cr);
+      }
+      cell.appendChild(makeMiniCanvas(t, 28));
+      sg.appendChild(cell);
+    });
+
+    const bp = document.getElementById("builderPool");
+    bp.innerHTML = "";
+    MASTER_POOL.forEach(item => {
+      const pickedIdx = customIcons.findIndex(x => x.label === item.label);
+      const chip = document.createElement("button");
+      chip.className = "poolChip" + (pickedIdx >= 0 ? " picked" : "");
+      chip.appendChild(makeMiniCanvas(item, 18));
+      chip.appendChild(document.createTextNode(item.label));
+      chip.onclick = () => {
+        if (pickedIdx >= 0) customIcons.splice(pickedIdx, 1);
+        else if (customIcons.length < 14) customIcons.push(item);
+        store.set("customIcons", customIcons);
+        renderMenuState();
+      };
+      bp.appendChild(chip);
+    });
+    document.getElementById("builderCount").textContent = `${customIcons.length} / 14`;
+    document.getElementById("builderSaveBtn").disabled = customIcons.length !== 14;
+
+    const rb = document.getElementById("ranksBody");
+    rb.innerHTML = leaderboard.length
+      ? leaderboard.map((r, i) => `<tr><td>${i + 1}</td><td>${r.mode}</td><td>Lv ${r.level}</td><td>${r.score.toLocaleString()}</td><td>${r.top}</td></tr>`).join("")
+      : `<tr><td colspan="5" style="text-align:center;color:var(--muted);">No scores recorded yet</td></tr>`;
+  }
+
+  document.getElementById("builderClearBtn").onclick = () => {
+    customIcons = []; store.set("customIcons", []); renderMenuState();
+  };
+  document.getElementById("builderSaveBtn").onclick = () => {
+    if (customIcons.length === 14) {
+      activePackKey = "custom"; store.set("packKey", "custom");
+      renderTopScores();
+  resetGame(1); backdrop.style.display = "none";
+      showToast("🎨 Custom 14-Item Pack Active!");
+    }
+  };
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    step(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function saveRunState() {
+    if (gameOver || isDaily) return;
+    if (score <= 0 && bodies.length === 0) return;
+    store.set("savedRun", {
+      score, level, dropCount, dropsUntilChakkar, maxComboRun,
+      currentTier, nextTier, activePackKey,
+      bodies: bodies.map(b => ({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, tier: b.tier, r: b.r, age: b.age }))
+    });
+  }
+  function clearSavedRun() {
+    try { localStorage.removeItem("cc_savedRun"); } catch {}
+  }
+  function restoreSavedRun() {
+    const saved = store.get("savedRun", null);
+    if (!saved || !Array.isArray(saved.bodies)) return false;
+    if (saved.activePackKey && (PACKS[saved.activePackKey] || (saved.activePackKey === "custom" && customIcons.length === 14))) {
+      activePackKey = saved.activePackKey;
+      store.set("packKey", activePackKey);
+    }
+    isDaily = false;
+    resetGame(1);
+    const validTier = t => typeof t === "number" && t >= -1 && t <= 13;
+    score = Number(saved.score) || 0;
+    level = Math.max(1, Number(saved.level) || 1);
+    dropCount = Number(saved.dropCount) || 0;
+    dropsUntilChakkar = Number(saved.dropsUntilChakkar) || 12;
+    maxComboRun = Number(saved.maxComboRun) || 1;
+    currentTier = validTier(saved.currentTier) ? saved.currentTier : pickSpawnTier();
+    nextTier = validTier(saved.nextTier) ? saved.nextTier : pickSpawnTier();
+    bodies = saved.bodies
+      .filter(b => validTier(b.tier) && isFinite(b.x) && isFinite(b.y))
+      .map(b => ({ x: b.x, y: b.y, vx: b.vx || 0, vy: b.vy || 0, tier: b.tier, r: tierInfo(b.tier).r, age: Math.max(1, b.age || 0), merged: false }));
+    while (score >= nextHintThreshold) { hintCharges = 5; nextHintThreshold += 1000; }
+    pulseNextPreview();
+    updateHUD();
+    showToast(`▶️ Resumed Run: ${score.toLocaleString()} pts`);
+    return true;
+  }
+
+  // Keep the latest settled positions when the tab is closed or backgrounded
+  window.addEventListener("pagehide", saveRunState);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveRunState(); });
+
+  // Wordle-style text share
+  function shareWordleScore() {
+    const tiers = getActiveTiers();
+    let topT = 0;
+    for (const b of bodies) if (b.tier > topT) topT = b.tier;
+    const packName = PACKS[activePackKey]?.name || (activePackKey === "custom" ? "🎨 My Custom 14" : PACKS.veg.name);
+    let streak = 1;
+    try { const s = JSON.parse(localStorage.getItem("chai_chakkar_streak") || "null"); if (s && s.count) streak = Math.max(1, Number(s.count) || 1); } catch {}
+    const ladder = tiers.map((_, i) => i <= topT ? "🟧" : "⬜").join("");
+    const lines = [
+      `☕ Chai & Chakkar ${isDaily ? "📅 Daily" : "♾️ Endless"}`,
+      `🏆 ${score.toLocaleString()} pts`,
+      `${packName}`,
+      `⭐ Level ${level}`,
+      `${ladder}`,
+      `👑 Top Treat: ${tiers[topT].label} (${topT + 1}/14)`,
+      `🔥 Max Combo: x${maxComboRun}`,
+      `📆 Daily Streak: ${streak} day${streak === 1 ? "" : "s"}`,
+      `https://saiqulmodi.github.io/chai-and-chakkar/`
+    ];
+    const text = lines.join("\n");
+    const isMobile = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (navigator.share && isMobile) {
+      navigator.share({ title: "Chai & Chakkar", text }).catch(() => {});
+      return;
+    }
+    const fallbackCopy = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+        showToast("📋 Score copied!");
+      } catch { showToast("⚠️ Copy failed"); }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast("📋 Score copied!"), fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+  const overTextShareBtn = document.getElementById("shareTextScoreBtn");
+  if (overTextShareBtn) overTextShareBtn.onclick = shareWordleScore;
+
+  const menuShareBtn = document.getElementById("menuShareScoreBtn");
+  if (menuShareBtn) menuShareBtn.onclick = shareWordleScore;
+
+  const resumeBtn = document.getElementById("resumeRunBtn");
+  if (resumeBtn) {
+    resumeBtn.onclick = () => {
+      if (restoreSavedRun()) backdrop.style.display = "none";
+    };
+  }
+  const freshBtn = document.getElementById("newGameBtn");
+  if (freshBtn) {
+    freshBtn.onclick = () => {
+      clearSavedRun();
+      const startLv = parseInt(document.getElementById("startLvSelect")?.value || "1", 10) || 1;
+      resetGame(startLv);
+      backdrop.style.display = "none";
+      showToast("🔄 Fresh Run Started!");
+    };
+  }
+
+  connectRoom();
+  renderTopScores();
+  if (!restoreSavedRun()) {
+    resetGame(1);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
