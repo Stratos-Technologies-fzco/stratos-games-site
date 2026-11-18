@@ -37,7 +37,8 @@ export interface WorldConfig {
   expansions?: ExpansionDef[];
 }
 
-const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
+export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
+const PREV_KEY = 'stratos_farm_save_prev_v1'; // the save before the latest one: a way back if the latest is damaged
 const VERSION = 3;
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
@@ -66,6 +67,21 @@ interface SavedState {
   idemOrder: string[];
 }
 
+/** Small, fast checksum (djb2). It catches damage and casual edits; it is not a security feature (the player owns the save). */
+export function checksum(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+/** Is this text a save this game can load? Used before an imported backup replaces the real save. */
+export function validateSave(text: string, world: WorldConfig): { ok: true } | { ok: false; error: string } {
+  if (text.length > 2_000_000) return { ok: false, error: 'That file is too big to be a farm save.' };
+  const probe = new LocalFarmService(world, new MemoryKV(), { now: () => Date.now() });
+  const r = probe.parse(text);
+  return r.ok || r.unsigned ? { ok: true } : { ok: false, error: 'That file is not a Stratos Farm save (or it is damaged).' };
+}
+
 type Fail = { ok: false; error: ErrorCode };
 const fail = (error: ErrorCode): Fail => ({ ok: false, error });
 const emptyPlot = (c: { gx: number; gy: number }): PlotState => ({ id: `${c.gx},${c.gy}`, gx: c.gx, gy: c.gy, cropId: null, plantedAt: null, readyAt: null });
@@ -80,7 +96,7 @@ export class LocalFarmService implements FarmService {
   private state: SavedState;
   private queue: Promise<unknown> = Promise.resolve();
   private skewMs = 0;
-  private notice?: 'save_reset';
+  private notice?: 'save_reset' | 'save_restored';
 
   constructor(
     private world: WorldConfig,
@@ -112,8 +128,27 @@ export class LocalFarmService implements FarmService {
   private read(): SavedState {
     const raw = this.kv.get(SAVE_KEY);
     if (!raw) return this.fresh();
+    const good = this.parse(raw);
+    if (good.ok) return good.state;
+    // the latest save does not match its checksum: try the one before it, otherwise keep playing what we have (never destroy a farm over a checksum)
+    const prev = this.kv.get(PREV_KEY);
+    const back = prev ? this.parse(prev) : null;
+    if (back && back.ok) { this.notice = 'save_restored'; return back.state; }
+    if (good.unsigned) return good.unsigned;
+    this.notice = 'save_reset';
+    return this.fresh();
+  }
+
+  /** Turn saved text into a state: checks the shape, the checksum, and upgrades old versions. */
+  parse(raw: string): { ok: true; state: SavedState } | { ok: false; unsigned?: SavedState } {
     try {
-      const s = JSON.parse(raw) as SavedState;
+      const s = JSON.parse(raw) as SavedState & { sig?: string };
+      let sigBad = false;
+      if (s.sig !== undefined) {
+        const { sig, ...rest } = s;
+        sigBad = sig !== checksum(JSON.stringify(rest));
+      }
+      delete s.sig;
       if (typeof s.coins !== 'number' || !Array.isArray(s.plots)) throw new Error('bad save');
       if (s.version === 1) { // Phase 2 saves gain empty buildings, animals and jobs
         s.buildings = []; s.animals = []; s.jobs = []; s.nextId = 1; s.version = 2;
@@ -124,10 +159,9 @@ export class LocalFarmService implements FarmService {
       if (s.version !== VERSION) throw new Error('unknown version');
       const byId = new Map(s.plots.map((p) => [p.id, p]));
       s.plots = this.world.plotCells.map((c) => byId.get(`${c.gx},${c.gy}`) ?? emptyPlot(c));
-      return s;
+      return sigBad ? { ok: false, unsigned: s } : { ok: true, state: s };
     } catch {
-      this.notice = 'save_reset';
-      return this.fresh();
+      return { ok: false };
     }
   }
 
@@ -139,7 +173,12 @@ export class LocalFarmService implements FarmService {
     };
   }
 
-  private save() { this.kv.set(SAVE_KEY, JSON.stringify(this.state)); }
+  private save() {
+    const before = this.kv.get(SAVE_KEY);
+    if (before) this.kv.set(PREV_KEY, before);
+    const body = JSON.stringify(this.state);
+    this.kv.set(SAVE_KEY, JSON.stringify({ ...this.state, sig: checksum(body) }));
+  }
 
   private snapshot(): FarmSnapshot {
     this.refresh();
@@ -536,7 +575,7 @@ export class LocalFarmService implements FarmService {
       const levelUp = this.addXp(order.xp, `order:${order.id}`, 'order');
       s.orders = s.orders.filter((o) => o.id !== orderId);
       s.orderCooldowns[order.slot] = this.now() + ORDERS.cooldownSeconds * 1000;
-      this.bump('order');
+      this.bump('order'); this.bump(`order:${order.npc}`);
       return { ok: true as const, orderId, coins: order.coins, xp: order.xp, levelUp, snapshot: this.snapshot() };
     });
   }

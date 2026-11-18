@@ -49,7 +49,7 @@ const NAV = [
   { id: 'animals', label: 'Animals', icon: 'nav_animals', ready: true },
   { id: 'market', label: 'Market', icon: 'nav_market', ready: true },
   { id: 'inventory', label: 'Items', icon: 'nav_inventory', ready: true },
-  { id: 'map', label: 'Map', icon: 'nav_map', ready: false },
+  { id: 'map', label: 'Map', icon: 'nav_map', ready: true },
 ];
 
 export function BottomNav() {
@@ -66,6 +66,7 @@ export function BottomNav() {
           onClick={() => {
             if (!n.ready) showToast(`${n.label} is coming soon`);
             else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
+            else if (n.id === 'map') useFarm.getState().setMapOpen(true);
             else if (n.id === 'market') useFarm.getState().setMarketTab('orders');
             else if (n.id === 'shop') useFarm.getState().setShopTab('factories');
             else if (n.id === 'animals') useFarm.getState().setShopTab('habitats');

@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN
 
-Status: **MVP built and the site-launch checklist done (2026-11-18). Waiting for the owner to say "publish" (push to staging).** Decisions approved: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, Farm Coins + Gems as the game's own currencies.
+Status: **All phases done as far as a static, single-player game allows (2026-11-18).** What needs a backend and Stratos accounts is listed under "Not built" below.
 
 ## Phase 1 — Foundation (DONE)  ~35 files, all under games/nikhatenglish89-stratos-farm/
 - Tooling: package.json, vite.config.ts, tsconfig, tailwind config, vitest + playwright config.
@@ -40,6 +40,15 @@ Status: **MVP built and the site-launch checklist done (2026-11-18). Waiting for
 | Server-authoritative rules | Met **locally only**: no real server (decision 1). A player can edit the save or set the device clock |
 | Registration / login | Dropped on purpose (site rule: no sign-up forms) |
 
+## Phases 5, 6, 7 (2026-11-18)
+**Phase 5 Social: built what works without a server, nothing fake.**
+- Map button is real: village map (tap a building to fly there and open it, tap locked land to clear it), village facts, six neighbours with friendship counted from delivered orders, "Share my village" (picture + text via the share sheet, or download).
+- `SocialService` contract + `OfflineSocial` (every call says `needs_accounts`); the Map says so in words. `docs/SOCIAL_API.md` lists what the server must do.
+- **Not built (needs backend + Stratos accounts):** friends, farm visits, gifts, leaderboards, groups.
+
+**Phase 6 Polish: done.** Sound wired and off by default; build-site animation with dust (`construction_2x2`); floating text no longer overlaps; automatic and manual "Reduce effects" (and `prefers-reduced-motion`); keyboard (arrows/WASD, + -, R, Esc); focus rings and bigger touch targets; separate cached Phaser/React files; balance simulation. PWA/service worker skipped on purpose (site rule: works offline once loaded, owned by the site).
+**Phase 7 Launch: the parts a static game can have.** Security review, performance budget test, migration notes, deployment/monitoring/backup guide, signed saves with previous-save recovery, save export/import, mock ad and purchase providers (never grant on their own). **Not built:** admin dashboard with audit trail, real monitoring (kids = no analytics), Docker/production config, real payments and ads, backend verification (all need a server or the site owners).
+
 ## Site launch checklist (CLAUDE.md of the site repo, checked 2026-11-18)
 | Rule | Status |
 |---|---|
@@ -72,7 +81,7 @@ Status: **MVP built and the site-launch checklist done (2026-11-18). Waiting for
 - Pinch zoom and touch were never tried on a real phone; hover sound and music were checked for loading, not by ear.
 
 ## Next steps (exact)
-1. Publish to `staging` when the owner says so; check https://stratos-family-staging.vercel.app and issue #33.
-2. Real-phone test (touch, pinch, portrait), listen to the sounds.
-3. Balance pass with real play numbers; polish animations; `construction_2x2` build animation.
-4. Later, needs a backend + Stratos central accounts: social, leaderboards, admin dashboard, real purchases.
+1. Push to `staging`, check the play page, wait for issue #33 and @Mohua's test.
+2. Real-phone test: touch, pinch, portrait, fps (look for the "Switched off some effects" message), sound by ear.
+3. Decide the category question (kids = no ads/analytics) with the site owners.
+4. When Stratos accounts and a backend exist: social features per `docs/SOCIAL_API.md`, server-side `FarmService`, admin dashboard, real payments.

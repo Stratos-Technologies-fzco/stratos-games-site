@@ -7,6 +7,7 @@ import { useFarm } from '../state/store';
 import { bus } from './eventBus';
 import { farm } from './controller';
 import { PlacementPreview } from './PlacementPreview';
+import { effectsOn } from './fx';
 
 const OBJECT_LAYER = 10;
 // where animals stand inside a 2x2 pen (fractions of a tile from the footprint's top corner)
@@ -26,6 +27,7 @@ export class BuildingsLayer {
   private ghost: Phaser.GameObjects.Image | null = null;
   private placingType: string | null = null;
   ghostCell: { gx: number; gy: number } | null = null;
+  private firstSync = true;
 
   constructor(private scene: Phaser.Scene, private occ: OccupancyMap, private isBuildable: (gx: number, gy: number) => boolean) {
     this.preview = new PlacementPreview(scene, occ, isBuildable, 1_000_000);
@@ -57,10 +59,9 @@ export class BuildingsLayer {
       const img = this.scene.add.image(p.x, p.y, def.atlas, def.frames[0]).setOriginFromFrame().setDepth(depth)
         .setInteractive({ pixelPerfect: true, alphaTolerance: 20, useHandCursor: true });
       const bubble = this.scene.add.image(p.x, p.y - img.displayOriginY + 40, 'atlas_ui_fx', 'ready_bubble').setOrigin(0.5, 1).setDepth(depth + 500).setVisible(false);
-      this.scene.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.scene.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', paused: !effectsOn() });
       this.buildings.set(b.id, { img, bubble, type: b.type, gx: b.gx, gy: b.gy, frameIdx: 0 });
-      // pop in
-      img.setScale(0.8); this.scene.tweens.add({ targets: img, scale: 1, duration: 280, ease: 'Back.easeOut' });
+      if (!this.firstSync && effectsOn()) this.construct(img, p, depth);
     }
     for (const a of st.animals) {
       if (this.animals.has(a.id)) continue;
@@ -73,7 +74,23 @@ export class BuildingsLayer {
       this.animals.set(a.id, s);
       this.placeAnimal(s);
     }
+    this.firstSync = false;
     this.refresh();
+  }
+
+  /** A new building: the building-site sprite with a few dust puffs, then the real building pops in. */
+  private construct(img: Phaser.GameObjects.Image, p: { x: number; y: number }, depth: number) {
+    const site = this.scene.add.image(p.x, p.y, 'atlas_buildings', 'construction_2x2').setOriginFromFrame().setDepth(depth);
+    img.setVisible(false);
+    for (let i = 0; i < 4; i++) {
+      const dust = this.scene.add.image(p.x + (i - 1.5) * 34, p.y + 34 + (i % 2) * 14, 'atlas_ui_fx', `dust_${i}`).setOriginFromFrame().setDepth(depth + 1).setAlpha(0);
+      this.scene.tweens.add({ targets: dust, alpha: { from: 0.9, to: 0 }, y: dust.y - 26, duration: 900, delay: i * 180, onComplete: () => dust.destroy() });
+    }
+    this.scene.time.delayedCall(1000, () => {
+      site.destroy();
+      img.setVisible(true).setScale(0.8);
+      this.scene.tweens.add({ targets: img, scale: 1, duration: 280, ease: 'Back.easeOut' });
+    });
   }
 
   /** A moved building: new tiles in the occupancy map, new screen position, its animals follow. */
@@ -115,7 +132,7 @@ export class BuildingsLayer {
       if (a.walking) { a.img.setFrame(`${a.type}_walk_${Math.floor(now / 300) % 2}`).setOriginFromFrame(); continue; }
       if (now < a.eatUntil) { a.img.setFrame(`${a.type}_eat`).setOriginFromFrame(); continue; }
       a.img.setFrame(`${a.type}_idle_${(Math.floor(now / 600) + a.slot) % 2}`).setOriginFromFrame();
-      if (now > a.nextWalk && animalStatus(state, farm.now()) !== 'ready') this.wander(a);
+      if (now > a.nextWalk && animalStatus(state, farm.now()) !== 'ready' && effectsOn()) this.wander(a);
     }
   }
 

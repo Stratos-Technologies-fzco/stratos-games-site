@@ -36,6 +36,7 @@ interface FarmState {
   placing: { type: string; moveId?: string; gx: number | null; gy: number | null; valid: boolean } | null;
   marketTab: 'orders' | 'sell' | null;
   questsOpen: boolean;
+  mapOpen: boolean;
   expansionPanel: string | null;
   screen: 'home' | 'game';
   infoPanel: 'how' | 'tips' | 'about' | 'settings' | null;
@@ -58,6 +59,7 @@ interface FarmState {
   setPlacing: (p: FarmState['placing']) => void;
   setMarketTab: (t: 'orders' | 'sell' | null) => void;
   setQuestsOpen: (open: boolean) => void;
+  setMapOpen: (open: boolean) => void;
   setExpansionPanel: (id: string | null) => void;
   setScreen: (s: 'home' | 'game') => void;
   setInfoPanel: (p: 'how' | 'tips' | 'about' | 'settings' | null) => void;
@@ -98,6 +100,7 @@ export const useFarm = create<FarmState>((set) => ({
   placing: null,
   marketTab: null,
   questsOpen: false,
+  mapOpen: false,
   expansionPanel: null,
   screen: 'home',
   infoPanel: null,
@@ -135,6 +138,7 @@ export const useFarm = create<FarmState>((set) => ({
   setPlacing: (placing) => set({ placing }),
   setMarketTab: (marketTab) => set({ marketTab }),
   setQuestsOpen: (questsOpen) => set({ questsOpen }),
+  setMapOpen: (mapOpen) => set({ mapOpen }),
   setExpansionPanel: (expansionPanel) => set({ expansionPanel }),
   setScreen: (screen) => set({ screen }),
   setInfoPanel: (infoPanel) => set({ infoPanel }),

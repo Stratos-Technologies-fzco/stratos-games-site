@@ -43,3 +43,10 @@ Honest limits: kids category (no ads/analytics); the speed-up is paid in the pag
 
 ## 2026-11-18 — Selling by quantity, double-click placing
 Selling: every item row (Items panel and Market > Sell) has a quantity picker (-, number, +, Max) and a Sell N button that sells exactly that many (SellRow.tsx); the service already supported any quantity. Shop: tap a spot on the farm, then double-click a home or factory in the shop to build it right there (placeAtSelected); a single click still starts placement and now begins on the selected spot. A double-click is detected in the shop itself (300 ms), so it works for mouse and touch, and a single click starts placing about 0.3 s later. Tests: vitest 83, Playwright 14 passed (new: quantity selling, double-click placing incl. no spot, bad spot, factory, single click preselect).
+
+## 2026-11-18 — Phases 5, 6 and 7
+Phase 5: village map panel (`MapPanel.tsx`: SVG map, tap to focus the camera and open a building or the expansion panel, facts, neighbours from `stats["order:<npc>"]`, share card via `farmCard.ts`), `social.ts` contract with `OfflineSocial`. The Map nav button is no longer "coming soon".
+Phase 6: `fx.ts`/`perf.ts` (reduce effects, fps watchdog), construction animation, non-overlapping floating text, keyboard controls and Escape, focus styles, touch target sizes, reduced motion, Phaser/React split chunks, `tests/balance.test.ts` (bot plays 24 h: L2 30 min, L3 2 h, L4 4 h, L5 8 h, L6 12 h, L8 24 h, never below 0 coins).
+Phase 7: signed saves + previous-save recovery, backup export/import in Settings, `providers/` mocks, `tests/perf.test.ts` (first load 2.94 MB raw, 415 KB gzipped scripts, audio 0 bytes), docs SOCIAL_API, SECURITY_REVIEW, PERFORMANCE, MIGRATIONS, DEPLOYMENT. Cover and clip regenerated (Map button is active now).
+Tests: vitest 102 passed, Playwright 17 passed (new: Map, keyboard + reduce effects, backup export/import, plus the earlier quantity selling and double-click placing).
+Honest limits: no real-device test (touch, fps, sound by ear); social, admin dashboard and real payments need a backend; the kids category means no analytics, so balance tuning needs playtests.

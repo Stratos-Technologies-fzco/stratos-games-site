@@ -3,6 +3,7 @@ import game from '../../game.json';
 import { useFarm } from '../state/store';
 import { farm } from '../game/controller';
 import { setPref } from '../game/audio';
+import { savePrefs } from '../game/prefs';
 import { SC, coinBalance, onCoinsChange } from '../game/stratos';
 import { QUESTS } from '../services/quests';
 import { PanelShell } from './Panels';
@@ -140,11 +141,16 @@ export function SettingsPanel() {
         <li><button className="row" onClick={() => setPref('sfx', !prefs.sfx)} aria-pressed={prefs.sfx} data-testid="set-sfx">
           <Icon name={prefs.sfx ? 'sound_on' : 'sound_off'} size={32} /><span className="grow"><b>Sound effects</b><small>{prefs.sfx ? 'On' : 'Off'}</small></span>
         </button></li>
+        <li><button className="row" onClick={() => { const n = { ...prefs, lowFx: !prefs.lowFx }; useFarm.getState().setPrefs(n); savePrefs(n); }} aria-pressed={prefs.lowFx} data-testid="set-lowfx">
+          <Icon name="settings" size={32} /><span className="grow"><b>Reduce effects</b><small>{prefs.lowFx ? 'On: fewer animations, smoother on slow phones' : 'Off: all animations'}</small></span>
+        </button></li>
         {stratos !== null && (
           <li><div className="row"><Icon atlas="atlas_ui_fx" name="logo_small" size={32} /><span className="grow"><b>Stratos Coins: {stratos}</b><small>Earn them by reaching new levels. Spend them on speed-ups and hints.</small></span></div></li>
         )}
       </ul>
       <div className="actions-grid">
+        <button className="btn small" onClick={() => farm.exportSave()} data-testid="set-export">Save a backup</button>
+        <label className="btn small file-btn" data-testid="set-import-label">Restore a backup<input type="file" accept="application/json,.json" data-testid="set-import" onChange={(e) => { const f = e.target.files?.[0]; if (f) farm.importSave(f); e.target.value = ''; }} /></label>
         <button className="btn small" onClick={() => setInfo('how')} data-testid="set-how">How to play</button>
         <button className="btn small" onClick={() => setInfo('tips')}>Tips</button>
         <button className="btn small" onClick={() => setInfo('about')}>About</button>

@@ -25,7 +25,7 @@ test('loads, renders the canvas and shows the HUD', async ({ page }) => {
   expect(shot.length).toBeGreaterThan(40000);
   await expect(page.getByTestId('coins')).toContainText('100');
   await expect(page.getByTestId('gems')).toContainText('5');
-  await expect(page.getByTestId('nav-map')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByTestId('nav-map')).toHaveAttribute('aria-disabled', 'false'); // every button is real now
   expect(errors).toEqual([]);
 });
 
@@ -525,4 +525,111 @@ test('shop: select a spot, then double-click a building to place it right there'
   await expect(page.getByTestId('place-confirm')).toBeEnabled(); // the ghost is already on the selected spot
   await page.getByTestId('place-cancel').click();
   expect(errors).toEqual([]);
+});
+
+
+test('Map: village map, jump to a building, neighbours, honest social note, share', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    const now = Date.now();
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 3, coins: 900, gems: 5, xp: 0, level: 4, inventory: {},
+      plots: [], buildings: [{ id: 'b1', type: 'chicken_coop', gx: 0, gy: 2, level: 1 }],
+      animals: [{ id: 'a1', type: 'chicken', buildingId: 'b1', readyAt: now - 1000, hungrySince: null, happiness: 100 }], jobs: [],
+      orders: [], orderCooldowns: {}, orderCounter: 5, expanded: [], stats: { order: 4, 'order:old_joe': 4, harvest: 7 }, claimed: [],
+      daily: { day: -1, ids: [], base: {}, claimed: [] }, tutorialDone: true,
+      nextId: 5, lastSeen: now, ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('nav-map').click();
+  await expect(page.getByTestId('map-panel')).toBeVisible();
+  await expect(page.getByTestId('minimap')).toBeVisible();
+  await expect(page.getByTestId('village-facts')).toContainText('buildings');
+  await expect(page.getByTestId('neighbour-old_joe')).toContainText('4 orders delivered');
+  await expect(page.getByTestId('neighbour-priya')).toContainText('Has not met you yet');
+  await expect(page.getByTestId('social-note')).toContainText('need Stratos accounts'); // honest: no fake friends list
+  // tap the coop on the map: the map closes, the camera flies there and its panel opens
+  await page.getByTestId('map-b1').click();
+  await expect(page.getByTestId('map-panel')).toHaveCount(0);
+  await expect(page.getByTestId('building-panel')).toContainText('Chicken Coop');
+  await page.getByTestId('building-panel-close').click();
+  // locked land on the map opens the expansion panel
+  await page.getByTestId('nav-map').click();
+  await page.getByTestId('map-expansion-south_meadow').click();
+  await expect(page.getByTestId('expansion-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('expansion-panel')).toHaveCount(0);
+  // sharing produces a picture (download fallback in a desktop test browser)
+  await page.getByTestId('nav-map').click();
+  const download = page.waitForEvent('download', { timeout: 10000 });
+  await page.getByTestId('share-village').click();
+  expect((await download).suggestedFilename()).toBe('my-stratos-farm.png');
+  await expect(page.getByTestId('share-result')).toContainText('Picture saved');
+  expect(errors).toEqual([]);
+});
+
+test('keyboard: arrow keys move the camera, plus and minus zoom, Escape closes panels', async ({ page }) => {
+  await openFarm(page);
+  // zoom in first: when the whole island fits the window the camera has nowhere to move
+  const z0 = await page.evaluate(() => (window as any).__farm.zoom());
+  for (let i = 0; i < 4; i++) await page.keyboard.press('+');
+  expect(await page.evaluate(() => (window as any).__farm.zoom())).toBeGreaterThan(z0);
+  const s0 = await page.evaluate(() => (window as any).__farm.scroll());
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
+  const s1 = await page.evaluate(() => (window as any).__farm.scroll());
+  expect(s1.x).toBeGreaterThan(s0.x);
+  expect(s1.y).toBeGreaterThan(s0.y);
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inventory-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('inventory-panel')).toHaveCount(0);
+  // Reduce effects can be switched on in Settings and is remembered
+  await page.getByTestId('settings').click();
+  await page.getByTestId('set-lowfx').click();
+  await expect(page.getByTestId('set-lowfx')).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await page.getByTestId('play').click();
+  await page.getByTestId('settings').click();
+  await expect(page.getByTestId('set-lowfx')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('backup: save a backup file, change the farm, restore it; a wrong file is refused', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 500, gems: 5, xp: 0, level: 1, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  // plant once so a signed save exists, then back it up (coins 498)
+  let p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('seed-wheat').click();
+  await expect(page.getByTestId('coins')).toContainText('498');
+  await page.getByTestId('settings').click();
+  const dl = page.waitForEvent('download');
+  await page.getByTestId('set-export').click();
+  const file = await dl;
+  expect(file.suggestedFilename()).toBe('stratos-farm-backup.json');
+  const path = await file.path();
+  // change the farm afterwards (coins 494)
+  await page.getByTestId('settings-panel-close').click();
+  p = await tilePos(page, 3, 6);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('seed-carrot').click();
+  await expect(page.getByTestId('coins')).toContainText('494');
+  // a wrong file is refused and nothing changes
+  await page.getByTestId('settings').click();
+  await page.getByTestId('set-import').setInputFiles({ name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":"world"}') });
+  await expect(page.getByTestId('toast')).toContainText('not a Stratos Farm backup');
+  await expect(page.getByTestId('coins')).toContainText('494');
+  // the real backup restores the farm as it was (the page reloads)
+  await page.getByTestId('set-import').setInputFiles(path!);
+  await page.getByTestId('resume-note').waitFor({ timeout: 30000 });
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('coins')).toContainText('498');
 });

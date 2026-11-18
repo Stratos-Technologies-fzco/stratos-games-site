@@ -55,7 +55,7 @@ export interface FarmSnapshot {
   tutorialDone: boolean;
   serverNow: number;
   /** Set when a saved game could not be read and a fresh farm was created. */
-  notice?: 'save_reset';
+  notice?: 'save_reset' | 'save_restored';
 }
 
 export type ErrorCode =

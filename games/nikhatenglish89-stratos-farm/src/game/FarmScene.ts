@@ -9,6 +9,8 @@ import { farm } from './controller';
 import { cropStage } from '../services/types';
 import { BuildingsLayer } from './BuildingsLayer';
 import { initAudio } from './audio';
+import { effectsOn } from './fx';
+import { watchFrameRate } from './perf';
 
 const TERRAIN_DEPTH = -1_000_000;
 const EDGE_DEPTH = -2_000_000;
@@ -35,6 +37,7 @@ export class FarmScene extends Phaser.Scene {
   private selectedObject: string | null = null;
   private plotSprites = new Map<string, { crop: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; gx: number; gy: number }>();
   private floatPool: Phaser.GameObjects.Text[] = [];
+  private recentFloats: { x: number; y: number; until: number }[] = [];
   private layer!: BuildingsLayer;
 
   constructor() { super('Farm'); }
@@ -52,6 +55,12 @@ export class FarmScene extends Phaser.Scene {
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.animateWater() });
     bus.on('ui:panelClosed', () => this.clearSelection());
     bus.on('camera:reset', () => this.fitCamera(true));
+    bus.on('camera:focus', ({ gx, gy }) => {
+      const p = gridToScreen(gx + 1, gy + 1), cam = this.cameras.main;
+      this.userMoved = true;
+      this.zoomAt(cam.width / 2, cam.height / 2, Math.max(cam.zoom, 0.9));
+      cam.pan(p.x, p.y - 40, effectsOn() ? 600 : 0, 'Sine.easeInOut');
+    });
     this.buildPlots();
     this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded));
     this.layer.sync();
@@ -69,6 +78,8 @@ export class FarmScene extends Phaser.Scene {
     if (this.debug) this.exposeDebug();
     // Sound stays off and is not even downloaded until the player turns it on in Settings.
     initAudio(this);
+    watchFrameRate(this);
+    this.setupKeyboard();
     useFarm.getState().setReady();
   }
 
@@ -111,7 +122,7 @@ export class FarmScene extends Phaser.Scene {
       const depth = depthKey(p.gx, p.gy, undefined, OBJECT_LAYER);
       const crop = this.add.image(s.x, s.y, 'atlas_crops', 'wheat_0').setOriginFromFrame().setDepth(depth).setVisible(false);
       const bubble = this.add.image(s.x, s.y - 4, 'atlas_ui_fx', 'ready_bubble').setOrigin(0.5, 1).setDepth(depth + 500).setVisible(false);
-      this.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', paused: !effectsOn() });
       this.plotSprites.set(p.id, { crop, bubble, gx: p.gx, gy: p.gy });
     }
   }
@@ -126,7 +137,7 @@ export class FarmScene extends Phaser.Scene {
     const changed = sp.crop.frame.name !== frame || !sp.crop.visible;
     sp.crop.setFrame(frame).setOriginFromFrame().setVisible(true);
     sp.bubble.setVisible(stage === 3);
-    if (pop && changed) {
+    if (pop && changed && effectsOn()) {
       sp.crop.setScale(0.6);
       this.tweens.add({ targets: sp.crop, scale: 1, duration: 260, ease: 'Back.easeOut' });
     }
@@ -138,9 +149,16 @@ export class FarmScene extends Phaser.Scene {
   private floatText(gx: number, gy: number, lines: string[], cropFrame?: string) {
     const p = gridToScreen(gx, gy);
     const depth = 900_000;
-    if (cropFrame) {
-      const icon = this.add.image(p.x, p.y, 'atlas_crops', cropFrame).setOriginFromFrame().setDepth(depth).setScale(0.8);
-      this.tweens.add({ targets: icon, y: p.y - 90, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => icon.destroy() });
+    const fancy = effectsOn();
+    // several collections at once would print on top of each other: lift new text above any that is still showing nearby
+    const now = this.time.now;
+    this.recentFloats = this.recentFloats.filter((f) => f.until > now);
+    let lift = 0;
+    while (this.recentFloats.some((f) => Math.abs(f.x - p.x) < 80 && Math.abs(f.y - (p.y - lift)) < 32 * Math.max(1, lines.length))) lift += 32 * lines.length;
+    this.recentFloats.push({ x: p.x, y: p.y - lift, until: now + 900 });
+    if (cropFrame && fancy) {
+      const icon = this.add.image(p.x, p.y - lift, 'atlas_crops', cropFrame).setOriginFromFrame().setDepth(depth).setScale(0.8);
+      this.tweens.add({ targets: icon, y: p.y - lift - 90, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => icon.destroy() });
     }
     lines.forEach((line, i) => {
       let t = this.floatPool.find((x) => !x.visible);
@@ -149,8 +167,12 @@ export class FarmScene extends Phaser.Scene {
         this.floatPool.push(t);
       }
       t.setText(line).setColor(line.startsWith('-') ? '#ffd2c2' : line.includes('XP') ? '#ffe36b' : '#ffffff')
-        .setPosition(p.x, p.y - 30 - i * 30).setAlpha(1).setVisible(true).setDepth(depth + 1);
-      this.tweens.add({ targets: t, y: t.y - 70, alpha: 0, duration: 1100, delay: i * 120, ease: 'Cubic.easeOut', onComplete: () => t!.setVisible(false) });
+        .setPosition(p.x, p.y - lift - 30 - i * 30).setAlpha(1).setVisible(true).setDepth(depth + 1);
+      if (fancy) {
+        this.tweens.add({ targets: t, y: t.y - 70, alpha: 0, duration: 1100, delay: i * 120, ease: 'Cubic.easeOut', onComplete: () => t!.setVisible(false) });
+      } else {
+        this.time.delayedCall(1000, () => t!.setVisible(false)); // plain: the text just stays a second
+      }
     });
   }
 
@@ -168,6 +190,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private animateWater() {
+    if (!effectsOn()) return;
     for (const w of this.water) {
       const i = Math.floor(this.time.now / 450 + w.gx + w.gy) % w.frames.length;
       w.img.setFrame(w.frames[i]).setOriginFromFrame();
@@ -225,6 +248,28 @@ export class FarmScene extends Phaser.Scene {
   }
 
   // ---------- input ----------
+  /** Keyboard: arrow keys / WASD move the camera, + and - zoom, R recentres (typing in a box is left alone). */
+  private setupKeyboard() {
+    const kb = this.input.keyboard;
+    if (!kb) return;
+    kb.on('keydown', (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (useFarm.getState().screen !== 'game') return;
+      const cam = this.cameras.main, step = 70 / cam.zoom;
+      const k = e.key.toLowerCase();
+      if (k === 'arrowleft' || k === 'a') cam.scrollX -= step;
+      else if (k === 'arrowright' || k === 'd') cam.scrollX += step;
+      else if (k === 'arrowup' || k === 'w') cam.scrollY -= step;
+      else if (k === 'arrowdown' || k === 's') cam.scrollY += step;
+      else if (k === '+' || k === '=') this.zoomAt(cam.width / 2, cam.height / 2, cam.zoom * 1.15);
+      else if (k === '-' || k === '_') this.zoomAt(cam.width / 2, cam.height / 2, cam.zoom / 1.15);
+      else if (k === 'r') { this.fitCamera(true); return; }
+      else return;
+      this.userMoved = true;
+    });
+  }
+
   private setupInput() {
     this.input.addPointer(1); // second finger for pinch
     const cam = this.cameras.main;

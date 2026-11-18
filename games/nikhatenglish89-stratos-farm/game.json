@@ -10,7 +10,8 @@
     "Tap or click a field to plant a seed; tap a crop with a green tick to harvest it",
     "Tap a building to open it: feed animals, collect products, start recipes, move or upgrade it",
     "Drag to move around the farm; use the mouse wheel or two fingers to zoom",
-    "Use the bottom buttons for the Shop, Animals, Market (orders and selling), Items and Quests"
+    "Use the bottom buttons for the Shop, Animals, Market (orders and selling), Items and the village Map",
+    "Keyboard: arrow keys or WASD move around, + and - zoom, R recentres, Esc closes a panel"
   ],
   "tips": [
     "Plant wheat first: it only takes two minutes and gives you coins for your first chicken.",
@@ -18,7 +19,8 @@
     "Check the Market often: new customers arrive a few minutes after you deliver an order.",
     "Fill the queue of every factory before you leave. Production keeps going while the game is closed.",
     "Claim your daily quests with the scroll button at the top: they change every day.",
-    "Stuck on an order? Tap Hint in the Market to see how to make the missing item."
+    "Stuck on an order? Tap Hint in the Market to see how to make the missing item.",
+    "Open the Map to see your whole village, jump to any building, meet your neighbours and share a picture of your village."
   ],
   "story": "I wanted to make the kind of farm game where nothing is ever wasted and a short visit always feels good. Stratos Farm began with a tiny field and a single chicken, and it grew, just like your village will. Every house, animal and customer is drawn and made for this game.",
   "faq": [

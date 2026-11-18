@@ -129,3 +129,32 @@ describe('game.json meets the site rules', () => {
     expect(game.github).toBe('nikhatenglish89');
   });
 });
+
+import { social } from '../src/services/social';
+import { cardData, shareText } from '../src/game/farmCard';
+
+describe('social is honest until a server exists', () => {
+  it('says it is unavailable and every call fails with needs_accounts', async () => {
+    expect(social.available).toBe(false);
+    expect(social.reason).toContain('Stratos accounts');
+    for (const r of [await social.friends(), await social.visit('x'), await social.sendGift('x', 'egg', 'k'), await social.leaderboard()]) {
+      expect(r).toEqual({ ok: false, error: 'needs_accounts' });
+    }
+  });
+  it('builds the share text from real numbers', () => {
+    const d = cardData({ level: 7, buildings: [{}, {}] as never, animals: [{}] as never, stats: { harvest: 30, order: 5 } });
+    expect(d).toEqual({ level: 7, buildings: 2, animals: 1, harvests: 30, orders: 5 });
+    expect(shareText(d)).toContain('level 7');
+  });
+});
+
+describe('neighbour friendship counts', () => {
+  it('counts delivered orders per customer', async () => {
+    const { svc } = make({ inventory: { wheat: 20 } });
+    const o = (await svc.load()).orders.find((x) => x.slot === 0)!;
+    mustOk(await svc.fulfilOrder(o.id, k()));
+    const s = await svc.load();
+    expect(s.stats['order:old_joe']).toBe(1);
+    expect(s.stats.order).toBe(1);
+  });
+});

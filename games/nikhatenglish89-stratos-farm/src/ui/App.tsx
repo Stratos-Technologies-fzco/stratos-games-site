@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { GameCanvas } from './GameCanvas';
+import { farm } from '../game/controller';
 import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from './Hud';
 import { useFarm } from '../state/store';
 import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
 import { BuildingPanel, PlacementBar, ShopPanel } from './BuildingPanels';
 import { ExpansionPanel, MarketPanel, PlotPanel, QuestsPanel, TutorialBanner } from './EconomyPanels';
+import { MapPanel } from './MapPanel';
 import { AboutPanel, HomeScreen, HowToPlayPanel, Logo, SettingsPanel, TipsPanel } from './Home';
 
 export function App() {
@@ -12,6 +15,26 @@ export function App() {
   const error = useFarm((s) => s.loadError);
   const screen = useFarm((s) => s.screen);
   const playing = ready && !error && screen === 'game';
+  useEffect(() => {
+    // Escape: cancel placing, otherwise close the top panel
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const st = useFarm.getState();
+      if (st.placing) { farm.cancelPlacing(); return; }
+      if (st.infoPanel) { st.setInfoPanel(null); return; }
+      if (st.seedPlot) st.setSeedPlot(null);
+      else if (st.plotInfo) st.setPlotInfo(null);
+      else if (st.buildingPanel) st.setBuildingPanel(null);
+      else if (st.shopTab) st.setShopTab(null);
+      else if (st.marketTab) st.setMarketTab(null);
+      else if (st.inventoryOpen) st.setInventoryOpen(false);
+      else if (st.questsOpen) st.setQuestsOpen(false);
+      else if (st.mapOpen) st.setMapOpen(false);
+      else if (st.expansionPanel) st.setExpansionPanel(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   return (
     <div className="app">
       <GameCanvas />
@@ -29,6 +52,7 @@ export function App() {
           <BuildingPanel />
           <PlacementBar />
           <MarketPanel />
+          <MapPanel />
           <QuestsPanel />
           <ExpansionPanel />
           <TutorialBanner />

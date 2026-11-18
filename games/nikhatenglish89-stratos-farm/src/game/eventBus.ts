@@ -5,6 +5,7 @@ export interface BusEvents {
   'selection:cleared': undefined;
   'ui:panelClosed': undefined;
   'camera:reset': undefined;
+  'camera:focus': { gx: number; gy: number };
   'plot:tapped': { plotId: string; gx: number; gy: number };
   'farm:changed': { plotIds: string[] };
   'fx:feed': { habitatId: string };

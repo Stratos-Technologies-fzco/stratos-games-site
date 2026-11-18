@@ -1,4 +1,4 @@
-import { LocalFarmService } from '../services/LocalFarmService';
+import { LocalFarmService, SAVE_KEY, validateSave } from '../services/LocalFarmService';
 import { ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
 import { animalStatus, cropStage, ErrorCode, FarmSnapshot } from '../services/types';
 import { useFarm } from '../state/store';
@@ -68,6 +68,7 @@ class FarmController {
     const snap = await this.service.load();
     this.apply(snap);
     if (snap.notice === 'save_reset') useFarm.getState().showToast('Your saved farm could not be read, so you start fresh');
+    if (snap.notice === 'save_restored') useFarm.getState().showToast('Your latest save was damaged, so we restored the one before it');
     setInterval(() => useFarm.getState().bumpTick(), 1000);
   }
 
@@ -344,6 +345,34 @@ class FarmController {
     const st = useFarm.getState();
     st.setInfoPanel(null); st.setScreen('home');
     setMusicTrack('music_title');
+  }
+
+  /** Download the farm as a file: a backup the player keeps. */
+  exportSave() {
+    let raw: string | null = null;
+    try { raw = localStorage.getItem(SAVE_KEY); } catch { /* ignore */ }
+    if (!raw) { useFarm.getState().showToast('Nothing to back up yet, play a little first'); return; }
+    const blob = new Blob([JSON.stringify({ game: 'stratos-farm', exportedAt: new Date().toISOString(), save: raw })], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'stratos-farm-backup.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    useFarm.getState().showToast('Backup saved to your downloads');
+  }
+
+  /** Restore a backup file: checked first, and only then does it replace the current farm. */
+  async importSave(file: File) {
+    try {
+      const text = await file.text();
+      const wrapper = JSON.parse(text) as { game?: string; save?: string };
+      if (wrapper.game !== 'stratos-farm' || typeof wrapper.save !== 'string') throw new Error('not a backup');
+      const check = validateSave(wrapper.save, worldConfig(farmLayout));
+      if (!check.ok) { useFarm.getState().showToast(check.error); return; }
+      localStorage.setItem(SAVE_KEY, wrapper.save);
+      location.reload();
+    } catch {
+      useFarm.getState().showToast('That file is not a Stratos Farm backup');
+    }
   }
 
   /** Throw the saved farm away and start over (the home screen asks twice first). */
