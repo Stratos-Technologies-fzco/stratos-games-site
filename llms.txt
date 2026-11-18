@@ -3,6 +3,7 @@
 Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.
 
 ## Play (free browser games)
+- [Chai & Chakkar](https://stratos.games/play/chai-chakkar/): Drop Indian snacks into the dabba, merge two of a kind into a bigger treat, and climb 14 tiers to the Royal Thali before the tilt spills you over. Made by Md. Saiqul Haque Modi.
 - [Stratos Drop Zone](https://stratos.games/play/stratos-drop-zone/): Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in. Made by Sk Sarfaraj Ali.
 - [Stratos 29 Card Game](https://stratos.games/play/stratos-29-card-game/): The classic 29 trick-taking card game: bid, pick a trump and win points with your partner against three AI opponents. Made by Sk Sarfaraj Ali.
 - [Zest Strike](https://stratos.games/play/zest-strike/): An always-online fruit shooter: open it and jump into one live arena with everyone playing, no room code. Made by Mohua Liza.
