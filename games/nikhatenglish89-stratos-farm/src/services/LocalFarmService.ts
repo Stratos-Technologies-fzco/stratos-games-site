@@ -35,6 +35,8 @@ export interface WorldConfig {
   staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
   isBuildable: (gx: number, gy: number) => boolean;
   expansions?: ExpansionDef[];
+  /** May this land be cleared now (does it touch land you own)? Missing = always. */
+  canExpand?: (id: string, expandedIds: string[]) => boolean;
 }
 
 export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
@@ -634,6 +636,7 @@ export class LocalFarmService implements FarmService {
       const ex = this.world.expansions?.find((e) => e.id === expansionId);
       if (!ex) return fail('unknown_expansion');
       if (s.expanded.includes(ex.id)) return fail('already_expanded');
+      if (this.world.canExpand && !this.world.canExpand(ex.id, s.expanded)) return fail('not_adjacent');
       if (ex.unlockLevel > s.level) return fail('not_unlocked');
       if (s.coins < ex.cost) return fail('insufficient_coins');
       for (const [item, qty] of Object.entries(ex.materials)) if ((s.inventory[item] ?? 0) < qty) return fail('insufficient_items');

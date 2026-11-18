@@ -1,7 +1,7 @@
 {
  "version": 1,
- "cols": 12,
- "rows": 12,
+ "cols": 24,
+ "rows": 24,
  "terrain": {
   "default": [
    "grass_1",
@@ -328,5 +328,12 @@
    },
    "unlockLevel": 4
   }
- ]
+ ],
+ "base": {
+  "cols": 12,
+  "rows": 12
+ },
+ "lots": {
+  "size": 4
+ }
 }

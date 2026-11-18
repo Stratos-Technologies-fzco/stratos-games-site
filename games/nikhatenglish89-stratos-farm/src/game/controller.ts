@@ -37,6 +37,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   not_empty: 'Empty the building first (animals and queued recipes)',
   same_spot: 'Pick a different spot',
   already_ready: 'It is already ready',
+  not_adjacent: 'Clear the land next to your farm first',
 };
 
 const newKey = () => (globalThis.crypto?.randomUUID?.() ?? `k-${Date.now()}-${Math.random().toString(36).slice(2)}`);

@@ -722,3 +722,43 @@ test('feeding: a new player gets starter feed, and with none the panel says exac
   await expect(page.getByTestId('toast')).toContainText('No animal feed');
   expect(errors).toEqual([]);
 });
+
+test('a bigger farm: clear the land next to the island, build on it, and the next lot appears', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 20000, gems: 5, xp: 0, level: 6, inventory: { flour: 20, bread: 20, cheese: 10 },
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  // open sea is not a tile: tapping it selects nothing
+  const sea = await tilePos(page, 3, 18);
+  await page.mouse.click(sea.x, sea.y);
+  await expect(page.getByTestId('tile-chip')).toHaveCount(0);
+  // the lot east of the island is for sale; the one beyond it is not (yet)
+  let p = await tilePos(page, 13, 1);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('expansion-panel')).toContainText('Land lot');
+  await page.getByTestId('expand-confirm').click();
+  await expect(page.getByTestId('coins')).toContainText('19650'); // 350 coins
+  await expect(page.getByTestId('toast')).toContainText('New land cleared');
+  // build a chicken coop on the new land by selecting a spot there and double-clicking
+  p = await tilePos(page, 13, 1);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('19590');
+  // clearing it revealed the next lot to the east (zoom out a little so it is on screen)
+  for (let i = 0; i < 4; i++) await page.keyboard.press('-');
+  p = await tilePos(page, 17, 1);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('expansion-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  // the map shows the bigger village, with the new building
+  await page.getByTestId('nav-map').click();
+  await expect(page.getByTestId('village-facts')).toContainText('1/29');
+  await expect(page.getByTestId('map-expansion-lot_4_0')).toBeVisible();
+  expect(errors).toEqual([]);
+});

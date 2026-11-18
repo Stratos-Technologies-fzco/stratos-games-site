@@ -20,15 +20,38 @@
     "Fill the queue of every factory before you leave. Production keeps going while the game is closed.",
     "Claim your daily quests with the scroll button at the top: they change every day.",
     "Stuck on an order? Tap Hint in the Market to see how to make the missing item.",
-    "Open the Map to see your whole village, jump to any building, meet your neighbours and share a picture of your village."
+    "Open the Map to see your whole village, jump to any building, meet your neighbours and share a picture of your village.",
+    "Want a bigger farm? Tap the grey land around your island, then clear it with coins and factory goods. Each new piece reveals the next one, up to four times the size you start with."
   ],
   "story": "I wanted to make the kind of farm game where nothing is ever wasted and a short visit always feels good. Stratos Farm began with a tiny field and a single chicken, and it grew, just like your village will. Every house, animal and customer is drawn and made for this game.",
   "faq": [
-    { "q": "Is Stratos Farm free?", "a": "Yes. It is free to play, and you do not need to sign up or log in." },
-    { "q": "Does the farm keep growing when I close the game?", "a": "Yes. Crops, animals and factories keep working while you are away, and everything is waiting for you when you return." },
-    { "q": "Where is my progress saved?", "a": "On this device, in your browser. Press Continue on the home screen to carry on where you left off." },
-    { "q": "What are Stratos Coins used for here?", "a": "You earn Stratos Coins by playing and reaching new levels. You can spend them on a Speed-up for a crop, an animal or a recipe, or on a Hint for an order." },
-    { "q": "Does it work on a phone?", "a": "Yes. It is built for phones and computers: drag to move around and tap to play." }
+    {
+      "q": "Is Stratos Farm free?",
+      "a": "Yes. It is free to play, and you do not need to sign up or log in."
+    },
+    {
+      "q": "Does the farm keep growing when I close the game?",
+      "a": "Yes. Crops, animals and factories keep working while you are away, and everything is waiting for you when you return."
+    },
+    {
+      "q": "Where is my progress saved?",
+      "a": "On this device, in your browser. Press Continue on the home screen to carry on where you left off."
+    },
+    {
+      "q": "What are Stratos Coins used for here?",
+      "a": "You earn Stratos Coins by playing and reaching new levels. You can spend them on a Speed-up for a crop, an animal or a recipe, or on a Hint for an order."
+    },
+    {
+      "q": "Does it work on a phone?",
+      "a": "Yes. It is built for phones and computers: drag to move around and tap to play."
+    },
+    {
+      "q": "How do I make my farm bigger?",
+      "a": "Tap the locked grey land around your island. Clear it with coins and goods made in your factories, such as flour and bread. Every cleared piece shows the next one, until your farm is four times bigger than at the start."
+    }
   ],
-  "resume": { "native": true, "how": "The whole farm is saved after every action and the home screen has a Continue button; crops, animals and factories carry on while the game is closed." }
+  "resume": {
+    "native": true,
+    "how": "The whole farm is saved after every action and the home screen has a Continue button; crops, animals and factories carry on while the game is closed."
+  }
 }

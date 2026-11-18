@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm } from '../game/controller';
 import { bus } from '../game/eventBus';
-import { farmLayout as L, terrainFrameAt } from '../game/layout';
+import { farmLayout as L, isLot, landBox, landState, lotTouchesOwned, terrainFrameAt } from '../game/layout';
 import { ANIMAL_BY_ID, BUILDING_BY_ID, ORDERS, RECIPES } from '../services/data';
 import { cropStage } from '../services/types';
 import { social } from '../services/social';
@@ -11,10 +11,12 @@ import { frameUrl } from '../game/assets';
 import { Icon } from './Icon';
 import { PanelShell } from './Panels';
 
-const CELL = 24;
+const MAP_PX = 336;
+const CELL = Math.floor(MAP_PX / farmLayoutSize());
+function farmLayoutSize() { return L.cols; }
 const COLORS: Record<string, string> = {
   grass: '#86d062', path: '#cfc7b4', water: '#6fb8ea', locked: '#a8996f', field: '#9a6a43', fieldGrow: '#7cae4a', fieldReady: '#f2c230',
-  habitat: '#f08a3c', factory: '#8f6fd8', house: '#d9503a', barn: '#a5472d', silo: '#b9c3cc', tree: '#3f9a3a',
+  sea: '#6fb8ea', habitat: '#f08a3c', factory: '#8f6fd8', house: '#d9503a', barn: '#a5472d', silo: '#b9c3cc', tree: '#3f9a3a',
 };
 
 function tileColor(frame: string): string {
@@ -32,9 +34,11 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
   const plots = useFarm((s) => s.plots);
   useFarm((s) => s.tick);
   const now = farm.now();
-  const size = L.cols * CELL;
   const tiles: JSX.Element[] = [];
-  for (let gx = 0; gx < L.cols; gx++) for (let gy = 0; gy < L.rows; gy++) {
+  const box = landBox(L, expanded, true);
+  const cols = box.maxGx + 1, rows = box.maxGy + 1;
+  for (let gx = 0; gx < cols; gx++) for (let gy = 0; gy < rows; gy++) {
+    if (landState(L, gx, gy, expanded) === 'sea') continue; // open sea: just the blue background
     tiles.push(<rect key={`t${gx},${gy}`} x={gx * CELL} y={gy * CELL} width={CELL} height={CELL} fill={tileColor(terrainFrameAt(L, gx, gy, expanded).frame)} stroke="#0001" />);
   }
   const plotRects = plots.map((p) => {
@@ -44,14 +48,14 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
   });
   const statics = L.objects.filter((o) => o.kind === 'building' || (o.kind === 'decor' && o.frame?.startsWith('tree')));
   return (
-    <svg className="minimap" viewBox={`0 0 ${size} ${size}`} role="group" aria-label="Village map" data-testid="minimap">
+    <svg className="minimap" viewBox={`0 0 ${cols * CELL} ${rows * CELL}`} role="group" aria-label="Village map" data-testid="minimap">
       {tiles}
       {plotRects}
-      {L.expansions.filter((e) => !expanded.includes(e.id)).map((e) => (
+      {L.expansions.filter((e) => !expanded.includes(e.id) && (!isLot(e.id) || lotTouchesOwned(L, e, expanded))).map((e) => (
         <g key={e.id} role="button" tabIndex={0} aria-label={`${e.name}, locked land`} data-testid={`map-expansion-${e.id}`} className="map-hit"
           onClick={() => onPick('expansion', e.id, e.rect[0], e.rect[1])} onKeyDown={(k) => { if (k.key === 'Enter') onPick('expansion', e.id, e.rect[0], e.rect[1]); }}>
           <rect x={e.rect[0] * CELL} y={e.rect[1] * CELL} width={e.rect[2] * CELL} height={e.rect[3] * CELL} fill="#0000" />
-          <image href={frameUrl('atlas_icons', 'lock')} x={(e.rect[0] + e.rect[2] / 2) * CELL - 11} y={(e.rect[1] + e.rect[3] / 2) * CELL - 11} width={22} height={22} />
+          <image href={frameUrl('atlas_icons', 'lock')} x={(e.rect[0] + e.rect[2] / 2) * CELL - CELL * 0.6} y={(e.rect[1] + e.rect[3] / 2) * CELL - CELL * 0.6} width={CELL * 1.2} height={CELL * 1.2} />
         </g>
       ))}
       {statics.map((o) => o.kind === 'decor' ? (
@@ -61,7 +65,7 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
           onClick={() => onPick('static', o.id, o.gx, o.gy)} onKeyDown={(k) => { if (k.key === 'Enter') onPick('static', o.id, o.gx, o.gy); }}>
           <rect x={o.gx * CELL + 1} y={o.gy * CELL + 1} width={o.w * CELL - 2} height={o.h * CELL - 2} rx={4}
             fill={o.id === 'farmhouse' ? COLORS.house : o.id === 'barn' ? COLORS.barn : COLORS.silo} stroke="#3b2a1e" strokeWidth={1.5} />
-          <text x={(o.gx + o.w / 2) * CELL} y={(o.gy + o.h / 2) * CELL + 4} textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">{o.id === 'farmhouse' ? 'Home' : o.id === 'barn' ? 'Barn' : 'Silo'}</text>
+          <text x={(o.gx + o.w / 2) * CELL} y={(o.gy + o.h / 2) * CELL + 4} textAnchor="middle" fontSize={Math.max(7, CELL * 0.46)} fontWeight="800" fill="#fff">{o.id === 'farmhouse' ? 'Home' : o.id === 'barn' ? 'Barn' : 'Silo'}</text>
         </g>
       ))}
       {buildings.map((b) => {
@@ -73,7 +77,7 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
             <rect x={b.gx * CELL + 1} y={b.gy * CELL + 1} width={def.w * CELL - 2} height={def.h * CELL - 2} rx={4}
               fill={def.kind === 'habitat' ? COLORS.habitat : COLORS.factory} stroke="#3b2a1e" strokeWidth={1.5} />
             <image href={frameUrl('atlas_icons', `item_${def.animal ? ANIMAL_BY_ID.get(def.animal)!.product : RECIPES.find((r) => r.building === def.id)!.output}`)}
-              x={(b.gx + def.w / 2) * CELL - 14} y={(b.gy + def.h / 2) * CELL - 14} width={28} height={28} />
+              x={(b.gx + def.w / 2) * CELL - CELL * def.w * 0.4} y={(b.gy + def.h / 2) * CELL - CELL * def.w * 0.4} width={CELL * def.w * 0.8} height={CELL * def.w * 0.8} />
             {ready && <circle cx={(b.gx + def.w) * CELL - 4} cy={b.gy * CELL + 6} r={6} fill="#33c24d" stroke="#fff" strokeWidth={2} />}
           </g>
         );

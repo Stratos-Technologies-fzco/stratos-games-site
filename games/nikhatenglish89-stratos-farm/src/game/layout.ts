@@ -1,4 +1,6 @@
 import raw from '../data/farm_layout.json';
+import type { ExpansionDef } from '../services/types';
+import type { WorldConfig } from '../services/LocalFarmService';
 
 export interface TerrainRect { frame: string; rect: [number, number, number, number]; animate?: string[] }
 export interface LayoutObject {
@@ -10,23 +12,94 @@ export interface LayoutObject {
   soil?: string;
 }
 export interface InfoEntry { title: string; text: string; lines: string[] }
-import type { ExpansionDef } from '../services/types';
 export interface FarmLayout {
+  /** Hand-placed patches inside the starting island. The outer lots are generated below. */
   expansions: ExpansionDef[];
-  version: number; cols: number; rows: number;
+  version: number;
+  /** The whole world grid (the farm can grow out to here). */
+  cols: number; rows: number;
+  /** The starting island. */
+  base: { cols: number; rows: number };
+  /** The world beyond the island is sold in square lots of this size. */
+  lots: { size: number };
   terrain: { default: string[]; flowerFrame: string; flowerEvery: number; unbuildable: string[]; rects: TerrainRect[] };
   objects: LayoutObject[];
   info: Record<string, InfoEntry>;
 }
 
-export const farmLayout = raw as unknown as FarmLayout;
-
-/** Terrain frame for a tile: explicit rects win, then flowers sprinkled by a stable hash, then plain grass. */
 const inRect = (r: number[], gx: number, gy: number) => gx >= r[0] && gx < r[0] + r[2] && gy >= r[1] && gy < r[1] + r[3];
 
+// ---------- the land you can buy beyond the island ----------
+// Rings: lots touching the island are ring 1, the next layer ring 2, and so on. Each ring costs more, needs a higher level and
+// asks for better factory goods. A lot can only be cleared when it touches land you already own.
+const RING_RULES = [
+  { cost: 350, level: 2, materials: { flour: 3 } as Record<string, number> },
+  { cost: 1200, level: 5, materials: { bread: 4, cheese: 2 } },
+  { cost: 3500, level: 9, materials: { cake: 2, sweater: 1, strawberry_jam: 2 } },
+];
+
+export function lotId(lx: number, ly: number) { return `lot_${lx}_${ly}`; }
+
+export function generateLots(l: Pick<FarmLayout, 'cols' | 'rows' | 'base' | 'lots'>): ExpansionDef[] {
+  const s = l.lots.size;
+  const baseLx = Math.ceil(l.base.cols / s), baseLy = Math.ceil(l.base.rows / s);
+  const nx = Math.floor(l.cols / s), ny = Math.floor(l.rows / s);
+  const out: ExpansionDef[] = [];
+  for (let ly = 0; ly < ny; ly++) for (let lx = 0; lx < nx; lx++) {
+    if (lx < baseLx && ly < baseLy) continue; // that is the island
+    const ring = Math.max(lx - baseLx + 1, ly - baseLy + 1, 1);
+    const rule = RING_RULES[Math.min(ring, RING_RULES.length) - 1];
+    const n = out.length;
+    out.push({
+      id: lotId(lx, ly), name: `Land lot ${n + 1}`, rect: [lx * s, ly * s, s, s],
+      cost: Math.round((rule.cost * (1 + (n % 5) * 0.1)) / 10) * 10, materials: { ...rule.materials }, unlockLevel: rule.level,
+    });
+  }
+  return out;
+}
+
+const parsed = raw as unknown as FarmLayout;
+export const farmLayout: FarmLayout = { ...parsed, expansions: [...parsed.expansions, ...generateLots(parsed)] };
+
+export const isLot = (id: string) => id.startsWith('lot_');
+const lotOfTile = (l: FarmLayout, gx: number, gy: number) => l.expansions.find((e) => isLot(e.id) && inRect(e.rect, gx, gy)) ?? null;
+const inBase = (l: FarmLayout, gx: number, gy: number) => gx >= 0 && gy >= 0 && gx < l.base.cols && gy < l.base.rows;
+
+/** Does the lot touch land the player already owns (the island or a cleared lot)? */
+export function lotTouchesOwned(l: FarmLayout, lot: ExpansionDef, expanded: string[]): boolean {
+  const [x, y, w, h] = lot.rect;
+  const owned = (gx: number, gy: number) => inBase(l, gx, gy) || expanded.some((id) => { const e = l.expansions.find((q) => q.id === id); return !!e && isLot(e.id) && inRect(e.rect, gx, gy); });
+  for (let i = 0; i < w; i++) {
+    if (owned(x + i, y - 1) || owned(x + i, y + h)) return true;
+  }
+  for (let j = 0; j < h; j++) {
+    if (owned(x - 1, y + j) || owned(x + w, y + j)) return true;
+  }
+  return false;
+}
+
+/** What a tile is right now: the starting island, a cleared lot, a lot you can buy next, or open sea (nothing). */
+export type LandState = 'base' | 'cleared' | 'locked' | 'sea';
+export function landState(l: FarmLayout, gx: number, gy: number, expanded: string[]): LandState {
+  if (gx < 0 || gy < 0 || gx >= l.cols || gy >= l.rows) return 'sea';
+  if (inBase(l, gx, gy)) return 'base';
+  const lot = lotOfTile(l, gx, gy);
+  if (!lot) return 'sea';
+  if (expanded.includes(lot.id)) return 'cleared';
+  return lotTouchesOwned(l, lot, expanded) ? 'locked' : 'sea';
+}
+
+/** Terrain frame for a tile: explicit rects win, then flowers sprinkled by a stable hash, then plain grass. null = open sea. */
 export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: string[] = []): { frame: string; animate?: string[] } {
-  // a cleared patch is plain grass, whatever the locked-land rectangle says
-  const cleared = l.expansions.some((e) => expanded.includes(e.id) && inRect(e.rect, gx, gy));
+  const state = landState(l, gx, gy, expanded);
+  if (state === 'sea') return { frame: '' };
+  if (state === 'locked') return { frame: 'locked_land' };
+  if (state === 'cleared') {
+    if ((gx * 5 + gy) % l.terrain.flowerEvery === 0) return { frame: l.terrain.flowerFrame };
+    return { frame: l.terrain.default[(gx * 7 + gy * 3) % l.terrain.default.length] };
+  }
+  // a cleared patch inside the island is plain grass, whatever the locked-land rectangle says
+  const cleared = l.expansions.some((e) => !isLot(e.id) && expanded.includes(e.id) && inRect(e.rect, gx, gy));
   for (let i = l.terrain.rects.length - 1; i >= 0; i--) {
     const r = l.terrain.rects[i];
     if (cleared && r.frame === 'locked_land') continue;
@@ -42,6 +115,7 @@ export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: 
 
 export function isBuildableTile(l: FarmLayout, gx: number, gy: number, expanded: string[] = []): boolean {
   const t = terrainFrameAt(l, gx, gy, expanded);
+  if (!t.frame) return false;
   return !l.terrain.unbuildable.includes(t.frame) && !t.animate;
 }
 
@@ -55,17 +129,37 @@ export function plotCells(l: FarmLayout): { gx: number; gy: number }[] {
   return out;
 }
 
-import type { WorldConfig } from '../services/LocalFarmService';
 export function worldConfig(l: FarmLayout): WorldConfig {
   return {
     cols: l.cols, rows: l.rows, plotCells: plotCells(l),
     staticObjects: l.objects.map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
     isBuildable: (gx, gy) => isBuildableTile(l, gx, gy),
     expansions: l.expansions,
+    // a lot may only be cleared next to land you own
+    canExpand: (id, expanded) => {
+      const e = l.expansions.find((x) => x.id === id);
+      return !!e && (!isLot(e.id) || lotTouchesOwned(l, e, expanded));
+    },
   };
 }
 
-/** The expansion whose still-locked patch covers this tile, if any. */
+/** The expansion whose still-locked patch covers this tile, if any (lots only count while they touch your land). */
 export function lockedExpansionAt(l: FarmLayout, gx: number, gy: number, expanded: string[]): ExpansionDef | null {
-  return l.expansions.find((e) => !expanded.includes(e.id) && inRect(e.rect, gx, gy)) ?? null;
+  const e = l.expansions.find((x) => !expanded.includes(x.id) && inRect(x.rect, gx, gy));
+  if (!e) return null;
+  if (isLot(e.id) && !lotTouchesOwned(l, e, expanded)) return null;
+  return e;
+}
+
+/** Tile bounds of all land you can see (island + cleared + lots for sale). */
+export function landBox(l: FarmLayout, expanded: string[], includeLocked = true): { minGx: number; minGy: number; maxGx: number; maxGy: number } {
+  let minGx = 0, minGy = 0, maxGx = l.base.cols - 1, maxGy = l.base.rows - 1;
+  for (const e of l.expansions) {
+    if (!isLot(e.id)) continue;
+    const owned = expanded.includes(e.id);
+    if (!owned && !(includeLocked && lotTouchesOwned(l, e, expanded))) continue;
+    maxGx = Math.max(maxGx, e.rect[0] + e.rect[2] - 1);
+    maxGy = Math.max(maxGy, e.rect[1] + e.rect[3] - 1);
+  }
+  return { minGx, minGy, maxGx, maxGy };
 }

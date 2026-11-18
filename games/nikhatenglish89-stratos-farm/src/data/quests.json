@@ -361,6 +361,45 @@
     "gems": 2
    },
    "unlockLevel": 1
+  },
+  {
+   "id": "f_land_4",
+   "type": "farming",
+   "title": "Growing farm",
+   "desc": "Clear 4 pieces of land.",
+   "stat": "expand",
+   "target": 4,
+   "reward": {
+    "coins": 200,
+    "xp": 40
+   },
+   "unlockLevel": 2
+  },
+  {
+   "id": "ach_land_10",
+   "type": "achievement",
+   "title": "Land baron",
+   "desc": "Clear 10 pieces of land.",
+   "stat": "expand",
+   "target": 10,
+   "reward": {
+    "coins": 600,
+    "gems": 3
+   },
+   "unlockLevel": 1
+  },
+  {
+   "id": "ach_land_20",
+   "type": "achievement",
+   "title": "Village founder",
+   "desc": "Clear 20 pieces of land.",
+   "stat": "expand",
+   "target": 20,
+   "reward": {
+    "coins": 1500,
+    "gems": 6
+   },
+   "unlockLevel": 1
   }
  ]
 }

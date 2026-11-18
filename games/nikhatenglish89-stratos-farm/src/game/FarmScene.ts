@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import { DEFAULT_ISO, depthKey, gridToScreen, screenToGrid, worldBounds } from '../iso/grid';
+import { DEFAULT_ISO, depthKey, gridToScreen, rectBounds, screenToGrid } from '../iso/grid';
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
-import { farmLayout as L, isBuildableTile, LayoutObject, lockedExpansionAt, terrainFrameAt } from './layout';
+import { farmLayout as L, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, terrainFrameAt } from './layout';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
@@ -29,6 +29,9 @@ export class FarmScene extends Phaser.Scene {
   private debug = false;
   private water: { img: Phaser.GameObjects.Image; frames: string[]; gx: number; gy: number }[] = [];
   private tiles = new Map<string, Phaser.GameObjects.Image>();
+  private edges: Phaser.GameObjects.Image[] = [];
+  private landKey = '';
+  private land = new Set<string>();
   private minZoom = 0.2;
   private fitZoom = 0.5;
   private userMoved = false;
@@ -84,16 +87,41 @@ export class FarmScene extends Phaser.Scene {
   }
 
   // ---------- world building ----------
-  private buildTerrain() {
+  /** Draw every tile that is land right now (the island, cleared lots, lots for sale); open sea draws nothing. */
+  private buildTerrain() { this.syncTerrain(true); }
+
+  private syncTerrain(first = false) {
+    const expanded = useFarm.getState().expanded;
+    const key = expanded.join(',');
+    if (!first && key === this.landKey) return;
+    this.landKey = key;
+    this.land.clear();
     for (let gx = 0; gx < L.cols; gx++) for (let gy = 0; gy < L.rows; gy++) {
-      const p = gridToScreen(gx, gy);
-      if (gy === L.rows - 1) this.add.image(p.x, p.y, 'atlas_terrain', 'edge_left').setOriginFromFrame().setDepth(EDGE_DEPTH);
-      if (gx === L.cols - 1) this.add.image(p.x, p.y, 'atlas_terrain', 'edge_right').setOriginFromFrame().setDepth(EDGE_DEPTH);
-      const t = terrainFrameAt(L, gx, gy, useFarm.getState().expanded);
-      const img = this.add.image(p.x, p.y, 'atlas_terrain', t.frame).setOriginFromFrame().setDepth(TERRAIN_DEPTH + depthKey(gx, gy));
-      this.tiles.set(`${gx},${gy}`, img);
-      if (t.animate) this.water.push({ img, frames: t.animate, gx, gy });
+      const t = terrainFrameAt(L, gx, gy, expanded);
+      if (!t.frame) continue;
+      this.land.add(`${gx},${gy}`);
+      const k = `${gx},${gy}`, have = this.tiles.get(k);
+      if (!have) {
+        const p = gridToScreen(gx, gy);
+        const img = this.add.image(p.x, p.y, 'atlas_terrain', t.frame).setOriginFromFrame().setDepth(TERRAIN_DEPTH + depthKey(gx, gy));
+        this.tiles.set(k, img);
+        if (t.animate) this.water.push({ img, frames: t.animate, gx, gy });
+        if (!first && effectsOn()) this.tweens.add({ targets: img, alpha: { from: 0.2, to: 1 }, duration: 500 });
+      } else if (have.frame.name !== t.frame && !t.animate) {
+        have.setFrame(t.frame).setOriginFromFrame();
+        if (effectsOn()) this.tweens.add({ targets: have, alpha: { from: 0.4, to: 1 }, duration: 400 });
+      }
     }
+    // the cliff sides of the land: wherever the next tile down-left / down-right is open sea
+    this.edges.forEach((e) => e.destroy());
+    this.edges = [];
+    for (const k of this.land) {
+      const [gx, gy] = k.split(',').map(Number);
+      const p = gridToScreen(gx, gy);
+      if (!this.land.has(`${gx},${gy + 1}`)) this.edges.push(this.add.image(p.x, p.y, 'atlas_terrain', 'edge_left').setOriginFromFrame().setDepth(EDGE_DEPTH));
+      if (!this.land.has(`${gx + 1},${gy}`)) this.edges.push(this.add.image(p.x, p.y, 'atlas_terrain', 'edge_right').setOriginFromFrame().setDepth(EDGE_DEPTH));
+    }
+    if (!first) this.updateBounds();
   }
 
   private buildObjects() {
@@ -176,15 +204,18 @@ export class FarmScene extends Phaser.Scene {
     });
   }
 
-  /** Cleared patches turn from locked land into grass. */
-  private refreshTerrain() {
+  /** Cleared patches turn from locked land into grass, and new lots appear next to them. */
+  private refreshTerrain() { this.syncTerrain(); this.refreshLegacyPatches(); }
+
+  /** The hand-placed locked patches inside the island turn into grass when cleared. */
+  private refreshLegacyPatches() {
     const expanded = useFarm.getState().expanded;
     for (const e of L.expansions) {
-      if (!expanded.includes(e.id)) continue;
+      if (e.id.startsWith('lot_') || !expanded.includes(e.id)) continue;
       for (let gx = e.rect[0]; gx < e.rect[0] + e.rect[2]; gx++) for (let gy = e.rect[1]; gy < e.rect[1] + e.rect[3]; gy++) {
         const img = this.tiles.get(`${gx},${gy}`);
         const f = terrainFrameAt(L, gx, gy, expanded).frame;
-        if (img && img.frame.name !== f) { img.setFrame(f).setOriginFromFrame(); this.tweens.add({ targets: img, alpha: { from: 0.4, to: 1 }, duration: 400 }); }
+        if (img && img.frame.name !== f) { img.setFrame(f).setOriginFromFrame(); if (effectsOn()) this.tweens.add({ targets: img, alpha: { from: 0.4, to: 1 }, duration: 400 }); }
       }
     }
   }
@@ -199,18 +230,28 @@ export class FarmScene extends Phaser.Scene {
 
   // ---------- camera ----------
   private setupCamera() {
-    const b = worldBounds(L.cols, L.rows, DEFAULT_ISO, WORLD_PAD);
-    this.cameras.main.setBounds(b.x, b.y - TOP_EXTRA, b.width, b.height + TOP_EXTRA);
+    this.updateBounds();
     this.cameras.main.setBackgroundColor('#7ec8ee');
     this.fitCamera(true);
   }
 
+  /** The camera may roam over all the land you can see (including lots for sale), plus a margin. */
+  private updateBounds() {
+    const bx = landBox(L, useFarm.getState().expanded, true);
+    const b = rectBounds(bx.minGx, bx.minGy, bx.maxGx, bx.maxGy, DEFAULT_ISO, WORLD_PAD);
+    this.cameras.main.setBounds(b.x, b.y - TOP_EXTRA, b.width, b.height + TOP_EXTRA);
+  }
+
+  /** The area the player owns (island + cleared lots): what the camera frames when it recentres. */
+  private ownedBox() { return landBox(L, useFarm.getState().expanded, false); }
+
   private computeFit() {
     const cam = this.cameras.main;
-    const b = worldBounds(L.cols, L.rows, DEFAULT_ISO, 40);
+    const o = this.ownedBox();
+    const b = rectBounds(o.minGx, o.minGy, o.maxGx, o.maxGy, DEFAULT_ISO, 40);
     const fit = Math.min(cam.width / b.width, cam.height / (b.height + 200));
     this.fitZoom = fit;
-    this.minZoom = Math.max(0.12, fit * 0.8);
+    this.minZoom = Math.max(0.1, fit * 0.6);
   }
 
   /** Centre the island. In portrait the island would be tiny, so start closer and let the player pan. */
@@ -220,7 +261,8 @@ export class FarmScene extends Phaser.Scene {
     const portrait = cam.height > cam.width;
     const z = Phaser.Math.Clamp(portrait ? Math.max(this.fitZoom, 0.5) : this.fitZoom, this.minZoom, MAX_ZOOM);
     cam.setZoom(z);
-    const c = gridToScreen(L.cols / 2, L.rows / 2);
+    const o = this.ownedBox();
+    const c = gridToScreen((o.maxGx + 1) / 2, (o.maxGy + 1) / 2);
     cam.centerOn(c.x, c.y - 60);
     if (reset) this.userMoved = false;
   }
@@ -320,7 +362,7 @@ export class FarmScene extends Phaser.Scene {
   private tileAt(p: Phaser.Input.Pointer) {
     const w = this.screenToWorld(p.x, p.y);
     const c = screenToGrid(w.x, w.y);
-    return this.occ.inBounds(c.gx, c.gy) ? c : null;
+    return this.occ.inBounds(c.gx, c.gy) && this.land.has(`${c.gx},${c.gy}`) ? c : null;
   }
 
   private updateHover(p: Phaser.Input.Pointer) {

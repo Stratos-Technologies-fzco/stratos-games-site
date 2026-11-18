@@ -36,6 +36,15 @@ export function cellsOf(gx: number, gy: number, fp: Footprint): Cell[] {
   return out;
 }
 
+/** Pixel bounds of the tile rectangle minGx..maxGx x minGy..maxGy (inclusive). */
+export function rectBounds(minGx: number, minGy: number, maxGx: number, maxGy: number, c: IsoConfig = DEFAULT_ISO, pad = 0) {
+  const left = gridToScreen(minGx, maxGy + 1, c).x;
+  const right = gridToScreen(maxGx + 1, minGy, c).x;
+  const top = gridToScreen(minGx, minGy, c).y;
+  const bottom = gridToScreen(maxGx + 1, maxGy + 1, c).y;
+  return { x: left - pad, y: top - pad, width: right - left + pad * 2, height: bottom - top + pad * 2 };
+}
+
 /** World pixel bounds of a cols x rows tile grid (top vertex of (0,0) is x=0,y=0). */
 export function worldBounds(cols: number, rows: number, c: IsoConfig = DEFAULT_ISO, pad = 0) {
   const left = gridToScreen(0, rows, c).x;
