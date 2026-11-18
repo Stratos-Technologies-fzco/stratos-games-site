@@ -1,9 +1,9 @@
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
-import { CROPS } from '../services/LocalFarmService';
+import { CROPS, ITEMS } from '../services/data';
 import { Icon } from './Icon';
 
-function PanelShell({ title, onClose, testId, children }: { title: string; onClose: () => void; testId: string; children: React.ReactNode }) {
+export function PanelShell({ title, onClose, testId, children }: { title: string; onClose: () => void; testId: string; children: React.ReactNode }) {
   return (
     <aside className="info-panel wide" role="dialog" aria-label={title} data-testid={testId}>
       <div className="ribbon">{title}</div>
@@ -54,7 +54,7 @@ export function InventoryPanel() {
   const inv = useFarm((s) => s.inventory);
   const setOpen = useFarm((s) => s.setInventoryOpen);
   if (!open) return null;
-  const items = CROPS.filter((c) => (inv[c.id] ?? 0) > 0);
+  const items = ITEMS.filter((c) => (inv[c.id] ?? 0) > 0);
   return (
     <PanelShell title="Inventory" testId="inventory-panel" onClose={() => setOpen(false)}>
       {items.length === 0 ? (

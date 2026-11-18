@@ -8,6 +8,7 @@ import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
 import { cropStage } from '../services/types';
+import { BuildingsLayer } from './BuildingsLayer';
 
 const TERRAIN_DEPTH = -1_000_000;
 const EDGE_DEPTH = -2_000_000;
@@ -33,6 +34,7 @@ export class FarmScene extends Phaser.Scene {
   private selectedObject: string | null = null;
   private plotSprites = new Map<string, { crop: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; gx: number; gy: number }>();
   private floatPool: Phaser.GameObjects.Text[] = [];
+  private layer!: BuildingsLayer;
 
   constructor() { super('Farm'); }
 
@@ -50,9 +52,15 @@ export class FarmScene extends Phaser.Scene {
     bus.on('ui:panelClosed', () => this.clearSelection());
     bus.on('camera:reset', () => this.fitCamera(true));
     this.buildPlots();
-    bus.on('farm:changed', ({ plotIds }) => plotIds.forEach((id) => this.renderPlot(id, true)));
+    this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy));
+    this.layer.sync();
+    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.layer.sync(); });
+    bus.on('fx:feed', ({ habitatId }) => this.layer.feed(habitatId));
+    bus.on('place:start', ({ type }) => { this.clearSelection(); this.layer.startPlacing(type); });
+    bus.on('place:end', () => this.layer.endPlacing());
+    this.time.addEvent({ delay: 450, loop: true, callback: () => this.layer.animate(this.time.now) });
     bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));
-    this.time.addEvent({ delay: 1000, loop: true, callback: () => this.refreshPlots() });
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.refreshPlots(); this.layer.refresh(); } });
     if (this.debug) this.exposeDebug();
     // Music is queued after the first rendered frame so the first screen is not delayed.
     this.events.once('postupdate', () => this.queueMusic());
@@ -260,6 +268,7 @@ export class FarmScene extends Phaser.Scene {
 
   private updateHover(p: Phaser.Input.Pointer) {
     const c = this.tileAt(p);
+    if (this.layer.placing) { if (c) this.layer.moveGhost(c.gx, c.gy); return; }
     if (!c) { this.hover.setVisible(false); this.preview.hide(); return; }
     const s = gridToScreen(c.gx, c.gy);
     this.hover.setPosition(s.x, s.y).setDepth(depthKey(c.gx, c.gy) + 5).setVisible(true);
@@ -267,6 +276,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private handleTap(p: Phaser.Input.Pointer) {
+    if (this.layer.placing) { const t = this.tileAt(p); if (t) this.layer.moveGhost(t.gx, t.gy); return; }
     // Pixel-accurate hit on interactive buildings (roofs sit far above their footprint), then fall back to the tile.
     const hits = this.input.hitTestPointer(p) as Phaser.GameObjects.Image[];
     let objectId: string | null = null;
@@ -278,6 +288,15 @@ export class FarmScene extends Phaser.Scene {
     if (!objectId && tile) {
       const occ = this.occ.occupantAt(tile.gx, tile.gy);
       if (occ && L.objects.find((o) => o.id === occ)?.interactive) objectId = occ;
+    }
+    if (!objectId && hits.length) {
+      const top = hits.reduce((a, b) => (b.depth > a.depth ? b : a));
+      const bid = this.layer.idOf(top);
+      if (bid) { this.clearSelection(); bus.emit('building:tapped', { id: bid }); return; }
+    }
+    if (!objectId && tile) {
+      const occId = this.occ.occupantAt(tile.gx, tile.gy);
+      if (occId && !L.objects.some((o) => o.id === occId) ) { this.clearSelection(); bus.emit('building:tapped', { id: occId }); return; }
     }
     if (objectId) { this.selectObject(objectId); return; }
     if (!tile) { this.clearSelection(); bus.emit('selection:cleared'); return; }

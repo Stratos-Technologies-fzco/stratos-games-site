@@ -46,3 +46,12 @@ export function plotCells(l: FarmLayout): { gx: number; gy: number }[] {
   }
   return out;
 }
+
+import type { WorldConfig } from '../services/LocalFarmService';
+export function worldConfig(l: FarmLayout): WorldConfig {
+  return {
+    cols: l.cols, rows: l.rows, plotCells: plotCells(l),
+    staticObjects: l.objects.map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    isBuildable: (gx, gy) => isBuildableTile(l, gx, gy),
+  };
+}

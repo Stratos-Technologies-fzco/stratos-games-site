@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN
 
-Status: **Phases 0, 1 and 2 done. Waiting for "go" on Phase 3.** Decisions approved 2026-11-18: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, currencies Farm Coins + Gems.
+Status: **Phases 0-3 done. Waiting for "go" on Phase 4 (completes the MVP).** Decisions approved 2026-11-18: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, currencies Farm Coins + Gems.
 
 ## Phase 1 — Foundation (DONE)  ~35 files, all under games/nikhatenglish89-stratos-farm/
 - Tooling: package.json, vite.config.ts, tsconfig, tailwind config, vitest + playwright config.
@@ -12,7 +12,7 @@ Status: **Phases 0, 1 and 2 done. Waiting for "go" on Phase 3.** Decisions appro
 - Done when: dev command runs, pan/zoom (mouse + touch), tile select, panels open, resize OK in portrait and landscape, tests pass with shown output, committed.
 
 ## Phase 2 — Farming loop (DONE): LocalFarmService, crops.json (12 crops), plant / harvest / harvest-all / sell, lazy timers, ledger, idempotency keys, serialized calls, seed picker, inventory with selling, harvest effects, save/load.
-## Phase 3 — Animals + production (6 animals, 8 buildings, recipes, offline queues).
+## Phase 3 — Animals + production (DONE): 6 animals, 6 habitats, 8 factories, 17 recipes, shop + placement, feeding, collection, happiness, upgrades, queues that finish offline.
 ## Phase 4 — Orders, market, building shop, expansion, quests, tutorial (MVP complete).
 ## Site-launch pass — home screen, Continue/resume, thumbnail, clip, description, Stratos Coins adapter, quality bar.
 ## Later (needs backend + Stratos central accounts): social, leaderboards, admin dashboard, real purchases.
@@ -25,6 +25,5 @@ Status: **Phases 0, 1 and 2 done. Waiting for "go" on Phase 3.** Decisions appro
 5. Currency names Farm Coins + Gems; which Stratos Coins items to request.
 
 ## Next steps (exact)
-1. Phase 3: animals (`data/animals.json`, 6 animals, habitats 2x2, feed, product collection with lazy time, happiness) and production (8 buildings, recipes, queues, `production_jobs` finishing offline) as new methods on `FarmService` + `LocalFarmService`; building/habitat placement uses `validatePlacement` and the preview.
-2. Make the Shop nav button real (buildings and animals) and show product icons from `atlas_icons` (`item_<id>`).
-3. Before launch: home screen, Continue/resume (`"resume": {"native": true}` is probably right, state always carries over), thumbnail, hover clip, 150+ word description, Stratos Coins adapter, publish to `staging`.
+1. Phase 4: NPC customer orders (old_joe, priya, chef_marco, lily, omar, nana_rose, portraits in `atlas_characters`), market selling with prices from `items.json`, building move/rotate/remove, farm expansion (the `locked_land` patch and `expand` icon), data-driven quests (tutorial, daily, farming, animal, production), idempotent reward claiming, achievements, ~5-step first-session tutorial, MVP acceptance check against CLAUDE.md.
+2. Before launch: home screen, Continue/resume (`"resume": {"native": true}` fits, the farm always carries on), thumbnail, hover clip, 150+ word description, Stratos Coins adapter, publish to `staging`.

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { xpForNextLevel } from '../game/rules';
-import type { FarmSnapshot, PlotState } from '../services/types';
+import type { AnimalState, BuildingState, FarmSnapshot, JobState, PlotState } from '../services/types';
 
 export interface SelectedTile { gx: number; gy: number; terrain: string; objectId: string | null }
 
@@ -10,6 +10,9 @@ interface FarmState {
   xpNext: number;
   inventory: Record<string, number>;
   plots: PlotState[];
+  buildings: BuildingState[];
+  animals: AnimalState[];
+  jobs: JobState[];
   farmLoaded: boolean;
   // loading
   loadProgress: number;
@@ -20,6 +23,9 @@ interface FarmState {
   openPanel: string | null; // id of the building whose info panel is open
   seedPlot: string | null; // plot id whose seed picker is open
   inventoryOpen: boolean;
+  shopTab: 'habitats' | 'factories' | null; // shop panel open on this tab
+  buildingPanel: string | null; // building id whose panel is open
+  placing: { type: string; gx: number | null; gy: number | null; valid: boolean } | null;
   toast: { id: number; text: string } | null;
   /** Bumps once a second so countdowns and the "harvest all" button refresh. */
   tick: number;
@@ -32,6 +38,9 @@ interface FarmState {
   setOpenPanel: (id: string | null) => void;
   setSeedPlot: (id: string | null) => void;
   setInventoryOpen: (open: boolean) => void;
+  setShopTab: (t: 'habitats' | 'factories' | null) => void;
+  setBuildingPanel: (id: string | null) => void;
+  setPlacing: (p: FarmState['placing']) => void;
   showToast: (text: string) => void;
   clearToast: (id: number) => void;
   bumpTick: () => void;
@@ -44,6 +53,9 @@ export const useFarm = create<FarmState>((set) => ({
   xpNext: xpForNextLevel(1),
   inventory: {},
   plots: [],
+  buildings: [],
+  animals: [],
+  jobs: [],
   farmLoaded: false,
   loadProgress: 0,
   ready: false,
@@ -52,6 +64,9 @@ export const useFarm = create<FarmState>((set) => ({
   openPanel: null,
   seedPlot: null,
   inventoryOpen: false,
+  shopTab: null,
+  buildingPanel: null,
+  placing: null,
   toast: null,
   tick: 0,
 
@@ -60,6 +75,9 @@ export const useFarm = create<FarmState>((set) => ({
     xpNext: xpForNextLevel(s.level),
     inventory: s.inventory,
     plots: s.plots,
+    buildings: s.buildings,
+    animals: s.animals,
+    jobs: s.jobs,
     farmLoaded: true,
   })),
   setProgress: (loadProgress) => set({ loadProgress }),
@@ -69,6 +87,9 @@ export const useFarm = create<FarmState>((set) => ({
   setOpenPanel: (openPanel) => set({ openPanel }),
   setSeedPlot: (seedPlot) => set({ seedPlot }),
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
+  setShopTab: (shopTab) => set({ shopTab }),
+  setBuildingPanel: (buildingPanel) => set({ buildingPanel }),
+  setPlacing: (placing) => set({ placing }),
   showToast: (text) => set({ toast: { id: ++toastId, text } }),
   clearToast: (id) => set((s) => (s.toast?.id === id ? { toast: null } : {})),
   bumpTick: () => set((s) => ({ tick: s.tick + 1 })),

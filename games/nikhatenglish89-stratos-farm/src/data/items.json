@@ -1,0 +1,202 @@
+{
+ "items": [
+  {
+   "id": "wheat",
+   "name": "Wheat",
+   "sellPrice": 3,
+   "kind": "crop"
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "sellPrice": 6,
+   "kind": "crop"
+  },
+  {
+   "id": "corn",
+   "name": "Corn",
+   "sellPrice": 9,
+   "kind": "crop"
+  },
+  {
+   "id": "tomato",
+   "name": "Tomato",
+   "sellPrice": 12,
+   "kind": "crop"
+  },
+  {
+   "id": "potato",
+   "name": "Potato",
+   "sellPrice": 11,
+   "kind": "crop"
+  },
+  {
+   "id": "strawberry",
+   "name": "Strawberry",
+   "sellPrice": 9,
+   "kind": "crop"
+  },
+  {
+   "id": "sunflower",
+   "name": "Sunflower",
+   "sellPrice": 10,
+   "kind": "crop"
+  },
+  {
+   "id": "pumpkin",
+   "name": "Pumpkin",
+   "sellPrice": 14,
+   "kind": "crop"
+  },
+  {
+   "id": "cabbage",
+   "name": "Cabbage",
+   "sellPrice": 10,
+   "kind": "crop"
+  },
+  {
+   "id": "sugarcane",
+   "name": "Sugarcane",
+   "sellPrice": 12,
+   "kind": "crop"
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "sellPrice": 11,
+   "kind": "crop"
+  },
+  {
+   "id": "cotton",
+   "name": "Cotton",
+   "sellPrice": 15,
+   "kind": "crop"
+  },
+  {
+   "id": "egg",
+   "name": "Egg",
+   "sellPrice": 8,
+   "kind": "animal"
+  },
+  {
+   "id": "feather",
+   "name": "Feather",
+   "sellPrice": 12,
+   "kind": "animal"
+  },
+  {
+   "id": "milk",
+   "name": "Milk",
+   "sellPrice": 18,
+   "kind": "animal"
+  },
+  {
+   "id": "wool",
+   "name": "Wool",
+   "sellPrice": 25,
+   "kind": "animal"
+  },
+  {
+   "id": "goat_milk",
+   "name": "Goat Milk",
+   "sellPrice": 30,
+   "kind": "animal"
+  },
+  {
+   "id": "truffle",
+   "name": "Truffle",
+   "sellPrice": 38,
+   "kind": "animal"
+  },
+  {
+   "id": "animal_feed",
+   "name": "Animal Feed",
+   "sellPrice": 6,
+   "kind": "product"
+  },
+  {
+   "id": "flour",
+   "name": "Flour",
+   "sellPrice": 12,
+   "kind": "product"
+  },
+  {
+   "id": "bread",
+   "name": "Bread",
+   "sellPrice": 34,
+   "kind": "product"
+  },
+  {
+   "id": "cake",
+   "name": "Cake",
+   "sellPrice": 80,
+   "kind": "product"
+  },
+  {
+   "id": "pumpkin_pie",
+   "name": "Pumpkin Pie",
+   "sellPrice": 60,
+   "kind": "product"
+  },
+  {
+   "id": "cheese",
+   "name": "Cheese",
+   "sellPrice": 50,
+   "kind": "product"
+  },
+  {
+   "id": "butter",
+   "name": "Butter",
+   "sellPrice": 48,
+   "kind": "product"
+  },
+  {
+   "id": "sugar",
+   "name": "Sugar",
+   "sellPrice": 30,
+   "kind": "product"
+  },
+  {
+   "id": "fabric",
+   "name": "Fabric",
+   "sellPrice": 60,
+   "kind": "product"
+  },
+  {
+   "id": "sweater",
+   "name": "Sweater",
+   "sellPrice": 75,
+   "kind": "product"
+  },
+  {
+   "id": "tomato_juice",
+   "name": "Tomato Juice",
+   "sellPrice": 50,
+   "kind": "product"
+  },
+  {
+   "id": "carrot_juice",
+   "name": "Carrot Juice",
+   "sellPrice": 28,
+   "kind": "product"
+  },
+  {
+   "id": "sunflower_oil",
+   "name": "Sunflower Oil",
+   "sellPrice": 42,
+   "kind": "product"
+  },
+  {
+   "id": "strawberry_jam",
+   "name": "Strawberry Jam",
+   "sellPrice": 85,
+   "kind": "product"
+  },
+  {
+   "id": "popcorn",
+   "name": "Popcorn",
+   "sellPrice": 26,
+   "kind": "product"
+  }
+ ]
+}

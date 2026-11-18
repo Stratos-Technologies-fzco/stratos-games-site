@@ -24,7 +24,7 @@ test('loads, renders the canvas and shows the HUD', async ({ page }) => {
   expect(shot.length).toBeGreaterThan(40000);
   await expect(page.getByTestId('coins')).toContainText('100');
   await expect(page.getByTestId('gems')).toContainText('5');
-  await expect(page.getByTestId('nav-shop')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByTestId('nav-market')).toHaveAttribute('aria-disabled', 'true');
   expect(errors).toEqual([]);
 });
 
@@ -108,5 +108,84 @@ test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', 
   await page.getByTestId('sell-wheat').click();
   await expect(page.getByTestId('coins')).toContainText('104');
   await expect(page.getByTestId('inventory-empty')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('animals and production: egg, wheat -> flour -> bread, and it all survives a reload', async ({ page }) => {
+  // start from a seeded save (only when none exists, so the reload below keeps the real one)
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 2000, gems: 5, xp: 0, level: 2, inventory: { wheat: 6, animal_feed: 3 },
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  const place = async (shopId: string, tab: 'habitats' | 'factories', gx: number, gy: number) => {
+    await page.getByTestId(tab === 'habitats' ? 'nav-animals' : 'nav-shop').click();
+    await page.getByTestId(`shop-${shopId}`).click();
+    await expect(page.getByTestId('placement-bar')).toBeVisible();
+    const p = await tilePos(page, gx, gy);
+    await page.mouse.click(p.x, p.y);
+    await expect(page.getByTestId('place-confirm')).toBeEnabled();
+    await page.getByTestId('place-confirm').click();
+    await expect(page.getByTestId('placement-bar')).toHaveCount(0);
+  };
+  const openBuilding = async (gx: number, gy: number) => {
+    const p = await tilePos(page, gx + 1, gy + 1); // middle of the 2x2 footprint
+    await page.mouse.click(p.x, p.y - 50);
+    await expect(page.getByTestId('building-panel')).toBeVisible();
+  };
+
+  // an invalid spot (on the farmhouse) cannot be confirmed
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  const bad = await tilePos(page, 4, 2);
+  await page.mouse.click(bad.x, bad.y);
+  await expect(page.getByTestId('place-confirm')).toBeDisabled();
+  await page.getByTestId('place-cancel').click();
+
+  await place('chicken_coop', 'habitats', 0, 2);
+  await place('flour_mill', 'factories', 0, 5);
+  await place('bakery', 'factories', 5, 8);
+  await expect(page.getByTestId('coins')).toContainText(String(2000 - 60 - 120 - 250));
+
+  // chicken: buy, feed, wait 10 minutes, collect an egg
+  await openBuilding(0, 2);
+  await page.getByTestId('buy-animal').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('1 / 4');
+  await page.getByTestId('feed').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 2');
+  await expect(page.getByTestId('collect')).toBeDisabled();
+  await page.evaluate(() => (window as any).__farm.advance(601000));
+  await expect(page.getByTestId('collect')).toBeEnabled({ timeout: 5000 });
+  await page.getByTestId('collect').click();
+  await page.getByTestId('building-panel-close').click();
+
+  // flour mill: 3 wheat -> flour (twice), then bakery: 2 flour -> bread
+  await openBuilding(0, 5);
+  await page.getByTestId('recipe-flour').click();
+  await page.getByTestId('recipe-flour').click();
+  await expect(page.getByTestId('queue-meta')).toContainText('2 / 2');
+  await page.evaluate(() => (window as any).__farm.advance(601000));
+  await expect(page.getByTestId('collect')).toContainText('(2)', { timeout: 5000 });
+  await page.getByTestId('collect').click();
+  await page.getByTestId('building-panel-close').click();
+  await openBuilding(5, 8);
+  await page.getByTestId('recipe-bread').click();
+  await page.evaluate(() => (window as any).__farm.advance(601000));
+  await expect(page.getByTestId('collect')).toContainText('(1)', { timeout: 5000 });
+  await page.getByTestId('collect').click();
+  await page.getByTestId('building-panel-close').click();
+
+  // reload: buildings, animal and items come back from the save
+  await page.reload();
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inv-egg')).toContainText('Egg × 1');
+  await expect(page.getByTestId('inv-bread')).toContainText('Bread × 1');
+  await page.getByTestId('inventory-panel-close').click();
+  await openBuilding(0, 2);
+  await expect(page.getByTestId('habitat-meta')).toContainText('1 / 4');
   expect(errors).toEqual([]);
 });

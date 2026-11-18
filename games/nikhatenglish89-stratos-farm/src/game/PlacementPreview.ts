@@ -6,7 +6,7 @@ import { validatePlacement } from '../iso/placement';
 /** Green/red ghost footprint: one place_ok / place_bad diamond per cell, driven by validatePlacement(). */
 export class PlacementPreview {
   private pool: Phaser.GameObjects.Image[] = [];
-  constructor(private scene: Phaser.Scene, private occ: OccupancyMap, private isBuildable: (gx: number, gy: number) => boolean) {}
+  constructor(private scene: Phaser.Scene, private occ: OccupancyMap, private isBuildable: (gx: number, gy: number) => boolean, private depthBoost = 100000) {}
 
   show(gx: number, gy: number, fp: Footprint, ignoreId?: string) {
     const res = validatePlacement(this.occ, gx, gy, fp, this.isBuildable, ignoreId);
@@ -18,7 +18,7 @@ export class PlacementPreview {
       }
       const p = gridToScreen(c.gx, c.gy);
       img.setFrame(c.ok ? 'place_ok' : 'place_bad').setOriginFromFrame().setPosition(p.x, p.y)
-        .setDepth(depthKey(c.gx, c.gy, undefined, 9) + 100000).setAlpha(0.85).setVisible(true);
+        .setDepth(depthKey(c.gx, c.gy, undefined, 9) + this.depthBoost).setAlpha(0.85).setVisible(true);
     });
     for (let i = res.cells.length; i < this.pool.length; i++) this.pool[i].setVisible(false);
     return res;

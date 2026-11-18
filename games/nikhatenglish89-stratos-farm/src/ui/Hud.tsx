@@ -35,8 +35,8 @@ export function TopBar() {
 
 const NAV = [
   { id: 'farm', label: 'Farm', icon: 'nav_farm', ready: true },
-  { id: 'shop', label: 'Shop', icon: 'nav_shop', ready: false },
-  { id: 'animals', label: 'Animals', icon: 'nav_animals', ready: false },
+  { id: 'shop', label: 'Shop', icon: 'nav_shop', ready: true },
+  { id: 'animals', label: 'Animals', icon: 'nav_animals', ready: true },
   { id: 'market', label: 'Market', icon: 'nav_market', ready: false },
   { id: 'inventory', label: 'Items', icon: 'nav_inventory', ready: true },
   { id: 'map', label: 'Map', icon: 'nav_map', ready: false },
@@ -56,6 +56,8 @@ export function BottomNav() {
           onClick={() => {
             if (!n.ready) showToast(`${n.label} is coming soon`);
             else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
+            else if (n.id === 'shop') useFarm.getState().setShopTab('factories');
+            else if (n.id === 'animals') useFarm.getState().setShopTab('habitats');
             else bus.emit('camera:reset');
           }}
         >

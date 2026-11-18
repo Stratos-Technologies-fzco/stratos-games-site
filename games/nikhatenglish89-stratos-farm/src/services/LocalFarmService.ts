@@ -1,8 +1,16 @@
-import crops from '../data/crops.json';
 import { xpForNextLevel } from '../game/rules';
+import { OccupancyMap } from '../iso/occupancy';
+import { validatePlacement } from '../iso/placement';
 import {
-  CropDef, ErrorCode, FarmService, FarmSnapshot, HarvestResult, LedgerRow, PlantResult, PlotState, SellResult,
+  ANIMAL_BY_ID, BUILDING_BY_ID, CROP_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPE_BY_ID, START,
+} from './data';
+import {
+  AnimalBuyResult, AnimalState, BuildingState, CollectResult, ErrorCode, FarmService, FarmSnapshot, FeedResult, HarvestResult,
+  JobState, LedgerRow, PlaceResult, PlantResult, PlotState, QueueResult, SellResult, UpgradeResult,
+  animalHappiness, animalStatus, habitatCapacity, productionSlots,
 } from './types';
+
+export { CROPS } from './data';
 
 export interface KV { get(key: string): string | null; set(key: string, value: string): void }
 export interface Clock { now(): number }
@@ -18,8 +26,16 @@ export class BrowserKV implements KV {
   set(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* storage full or blocked: play on without saving */ } }
 }
 
+/** What the service needs to know about the map: field plots, fixed objects and which tiles may be built on. */
+export interface WorldConfig {
+  cols: number; rows: number;
+  plotCells: { gx: number; gy: number }[];
+  staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
+  isBuildable: (gx: number, gy: number) => boolean;
+}
+
 const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
-const VERSION = 1;
+const VERSION = 2;
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -28,6 +44,10 @@ interface SavedState {
   coins: number; gems: number; xp: number; level: number;
   inventory: Record<string, number>;
   plots: PlotState[];
+  buildings: BuildingState[];
+  animals: AnimalState[];
+  jobs: JobState[];
+  nextId: number;
   lastSeen: number;
   ledger: LedgerRow[];
   nextLedgerId: number;
@@ -35,16 +55,15 @@ interface SavedState {
   idemOrder: string[];
 }
 
-export const CROPS: CropDef[] = crops.crops;
-const CROP_BY_ID = new Map(CROPS.map((c) => [c.id, c]));
-
 type Fail = { ok: false; error: ErrorCode };
 const fail = (error: ErrorCode): Fail => ({ ok: false, error });
+const emptyPlot = (c: { gx: number; gy: number }): PlotState => ({ id: `${c.gx},${c.gy}`, gx: c.gx, gy: c.gy, cropId: null, plantedAt: null, readyAt: null });
 
 /**
  * Local stand-in for the server. It keeps the server rules so a real API can replace it later:
- * lazy time (planted_at / ready_at, never a tick loop), one atomic transaction per action, a ledger row for every
- * change, idempotency keys, and a clock that can never run backwards. Calls are queued one at a time (like row locks).
+ * lazy time (planted_at / ready_at / production job times, never a tick loop), one atomic transaction per action,
+ * a ledger row for every change, idempotency keys, and a clock that can never run backwards.
+ * Calls are queued one at a time (like row locks).
  */
 export class LocalFarmService implements FarmService {
   private state: SavedState;
@@ -53,7 +72,7 @@ export class LocalFarmService implements FarmService {
   private notice?: 'save_reset';
 
   constructor(
-    private plotCells: { gx: number; gy: number }[],
+    private world: WorldConfig,
     private kv: KV = new BrowserKV(),
     private clock: Clock = { now: () => Date.now() },
   ) {
@@ -73,8 +92,8 @@ export class LocalFarmService implements FarmService {
   // ---------- persistence ----------
   private fresh(): SavedState {
     return {
-      version: VERSION, ...crops.start, inventory: {},
-      plots: this.plotCells.map((c) => ({ id: `${c.gx},${c.gy}`, gx: c.gx, gy: c.gy, cropId: null, plantedAt: null, readyAt: null })),
+      version: VERSION, ...START, inventory: {},
+      plots: this.world.plotCells.map(emptyPlot), buildings: [], animals: [], jobs: [], nextId: 1,
       lastSeen: this.clock.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
     };
   }
@@ -84,10 +103,13 @@ export class LocalFarmService implements FarmService {
     if (!raw) return this.fresh();
     try {
       const s = JSON.parse(raw) as SavedState;
-      if (s.version !== VERSION || typeof s.coins !== 'number' || !Array.isArray(s.plots)) throw new Error('bad save');
-      // new plots added to the layout later start empty; plots removed from the layout are dropped
+      if (typeof s.coins !== 'number' || !Array.isArray(s.plots)) throw new Error('bad save');
+      if (s.version === 1) { // Phase 2 saves gain empty buildings, animals and jobs
+        s.buildings = []; s.animals = []; s.jobs = []; s.nextId = 1; s.version = VERSION;
+      }
+      if (s.version !== VERSION) throw new Error('unknown version');
       const byId = new Map(s.plots.map((p) => [p.id, p]));
-      s.plots = this.plotCells.map((c) => byId.get(`${c.gx},${c.gy}`) ?? { id: `${c.gx},${c.gy}`, gx: c.gx, gy: c.gy, cropId: null, plantedAt: null, readyAt: null });
+      s.plots = this.world.plotCells.map((c) => byId.get(`${c.gx},${c.gy}`) ?? emptyPlot(c));
       return s;
     } catch {
       this.notice = 'save_reset';
@@ -101,8 +123,9 @@ export class LocalFarmService implements FarmService {
     const s = this.state;
     return {
       version: VERSION, coins: s.coins, gems: s.gems, xp: s.xp, level: s.level,
-      inventory: { ...s.inventory }, plots: s.plots.map((p) => ({ ...p })), serverNow: this.now(),
-      ...(this.notice ? { notice: this.notice } : {}),
+      inventory: { ...s.inventory }, plots: s.plots.map((p) => ({ ...p })),
+      buildings: s.buildings.map((b) => ({ ...b })), animals: s.animals.map((a) => ({ ...a })), jobs: s.jobs.map((j) => ({ ...j })),
+      serverNow: this.now(), ...(this.notice ? { notice: this.notice } : {}),
     };
   }
 
@@ -143,16 +166,32 @@ export class LocalFarmService implements FarmService {
   /** Exposed for tests and the future audit view. */
   getLedger(): LedgerRow[] { return this.state.ledger.map((r) => ({ ...r })); }
 
-  private addXp(amount: number, ref: string): number | null {
+  private spend(amount: number, ref: string, reason: string) {
+    this.state.coins -= amount;
+    this.log('coins', ref, -amount, this.state.coins, reason);
+  }
+  private addItem(itemId: string, qty: number, ref: string, reason: string) {
+    const inv = this.state.inventory;
+    inv[itemId] = (inv[itemId] ?? 0) + qty;
+    this.log('item', ref, qty, inv[itemId], reason);
+  }
+  private takeItem(itemId: string, qty: number, ref: string, reason: string) {
+    const inv = this.state.inventory;
+    inv[itemId] -= qty;
+    this.log('item', ref, -qty, inv[itemId], reason);
+    if (inv[itemId] === 0) delete inv[itemId];
+  }
+  private addXp(amount: number, ref: string, reason: string): number | null {
     const s = this.state;
     s.xp += amount;
-    this.log('xp', ref, amount, s.xp, 'harvest');
+    this.log('xp', ref, amount, s.xp, reason);
     let up: number | null = null;
     while (s.xp >= xpForNextLevel(s.level)) { s.xp -= xpForNextLevel(s.level); s.level += 1; up = s.level; }
     return up;
   }
+  private newId(prefix: string) { return `${prefix}${this.state.nextId++}`; }
 
-  // ---------- API ----------
+  // ---------- farming ----------
   async load(): Promise<FarmSnapshot> { return this.queue.then(() => this.snapshot()); }
 
   plant(plotId: string, cropId: string, key: string): Promise<PlantResult> {
@@ -166,28 +205,25 @@ export class LocalFarmService implements FarmService {
       if (plot.cropId) return fail('plot_occupied');
       if (s.coins < crop.seedCost) return fail('insufficient_coins');
       const now = this.now();
-      s.coins -= crop.seedCost;
-      this.log('coins', `plant:${plotId}:${cropId}`, -crop.seedCost, s.coins, 'seed');
+      this.spend(crop.seedCost, `plant:${plotId}:${cropId}`, 'seed');
       plot.cropId = cropId; plot.plantedAt = now; plot.readyAt = now + crop.growSeconds * 1000;
       return { ok: true as const, plotId, cropId, cost: crop.seedCost, snapshot: this.snapshot() };
     });
   }
 
   private harvestPlots(ids: string[]): HarvestResult {
-    const s = this.state, now = this.now();
+    const s = this.state;
     const harvested: { plotId: string; cropId: string; amount: number; xp: number }[] = [];
     let levelUp: number | null = null;
     for (const id of ids) {
       const plot = s.plots.find((p) => p.id === id)!;
       const crop = CROP_BY_ID.get(plot.cropId!)!;
-      s.inventory[crop.id] = (s.inventory[crop.id] ?? 0) + crop.yield;
-      this.log('item', `harvest:${id}:${crop.id}`, crop.yield, s.inventory[crop.id], 'harvest');
-      const up = this.addXp(crop.xp, `harvest:${id}`);
+      this.addItem(crop.id, crop.yield, `harvest:${id}:${crop.id}`, 'harvest');
+      const up = this.addXp(crop.xp, `harvest:${id}`, 'harvest');
       if (up) levelUp = up;
       harvested.push({ plotId: id, cropId: crop.id, amount: crop.yield, xp: crop.xp });
       plot.cropId = null; plot.plantedAt = null; plot.readyAt = null;
     }
-    void now;
     return { ok: true, harvested, levelUp, snapshot: this.snapshot() };
   }
 
@@ -213,16 +249,173 @@ export class LocalFarmService implements FarmService {
   sell(itemId: string, qty: number, key: string): Promise<SellResult> {
     return this.tx(key, (): SellResult => {
       const s = this.state;
-      const crop = CROP_BY_ID.get(itemId);
-      if (!crop || !Number.isInteger(qty) || qty < 1) return fail('bad_request');
+      const item = ITEM_BY_ID.get(itemId);
+      if (!item || !Number.isInteger(qty) || qty < 1) return fail('bad_request');
       if ((s.inventory[itemId] ?? 0) < qty) return fail('insufficient_items');
-      s.inventory[itemId] -= qty;
-      if (s.inventory[itemId] === 0) delete s.inventory[itemId];
-      this.log('item', `sell:${itemId}`, -qty, s.inventory[itemId] ?? 0, 'sell');
-      const coins = qty * crop.sellPrice;
+      this.takeItem(itemId, qty, `sell:${itemId}`, 'sell');
+      const coins = qty * item.sellPrice;
       s.coins += coins;
       this.log('coins', `sell:${itemId}`, coins, s.coins, 'sell');
       return { ok: true as const, itemId, qty, coins, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- buildings ----------
+  private occupancy(): OccupancyMap {
+    const occ = new OccupancyMap(this.world.cols, this.world.rows);
+    for (const o of this.world.staticObjects) occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h });
+    for (const b of this.state.buildings) {
+      const d = BUILDING_BY_ID.get(b.type)!;
+      occ.place(b.id, b.gx, b.gy, { w: d.w, h: d.h });
+    }
+    return occ;
+  }
+
+  placeBuilding(type: string, gx: number, gy: number, key: string): Promise<PlaceResult> {
+    return this.tx(key, (): PlaceResult => {
+      const s = this.state;
+      const def = BUILDING_BY_ID.get(type);
+      if (!def) return fail('unknown_building');
+      if (!Number.isInteger(gx) || !Number.isInteger(gy)) return fail('bad_request');
+      if (def.unlockLevel > s.level) return fail('not_unlocked');
+      if (s.coins < def.cost) return fail('insufficient_coins');
+      const check = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, this.world.isBuildable);
+      if (!check.valid) return fail('invalid_placement');
+      const id = this.newId('b');
+      s.buildings.push({ id, type, gx, gy, level: 1 });
+      this.spend(def.cost, `build:${id}:${type}`, 'building');
+      return { ok: true as const, buildingId: id, cost: def.cost, snapshot: this.snapshot() };
+    });
+  }
+
+  upgradeBuilding(buildingId: string, key: string): Promise<UpgradeResult> {
+    return this.tx(key, (): UpgradeResult => {
+      const s = this.state;
+      const b = s.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      const def = BUILDING_BY_ID.get(b.type)!;
+      if (b.level >= MAX_LEVEL) return fail('max_level');
+      const cost = def.upgradeCost[b.level] ?? Infinity;
+      if (s.coins < cost) return fail('insufficient_coins');
+      this.spend(cost, `upgrade:${b.id}:${b.level + 1}`, 'upgrade');
+      b.level += 1;
+      return { ok: true as const, buildingId, level: b.level, cost, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- animals ----------
+  buyAnimal(habitatId: string, key: string): Promise<AnimalBuyResult> {
+    return this.tx(key, (): AnimalBuyResult => {
+      const s = this.state;
+      const b = s.buildings.find((x) => x.id === habitatId);
+      if (!b) return fail('unknown_building');
+      const def = BUILDING_BY_ID.get(b.type)!;
+      if (def.kind !== 'habitat') return fail('wrong_building');
+      const animal = ANIMAL_BY_ID.get(def.animal!)!;
+      if (animal.unlockLevel > s.level) return fail('not_unlocked');
+      if (s.animals.filter((a) => a.buildingId === habitatId).length >= habitatCapacity(def, b.level)) return fail('at_capacity');
+      if (s.coins < animal.cost) return fail('insufficient_coins');
+      const id = this.newId('a');
+      s.animals.push({ id, type: animal.id, buildingId: habitatId, readyAt: null, hungrySince: this.now(), happiness: 100 });
+      this.spend(animal.cost, `animal:${id}:${animal.id}`, 'animal');
+      return { ok: true as const, animalId: id, cost: animal.cost, snapshot: this.snapshot() };
+    });
+  }
+
+  /** Feed every hungry animal in a habitat, one animal feed each, as far as the stock goes. */
+  feedAnimals(habitatId: string, key: string): Promise<FeedResult> {
+    return this.tx(key, (): FeedResult => {
+      const s = this.state, now = this.now();
+      const b = s.buildings.find((x) => x.id === habitatId);
+      if (!b) return fail('unknown_building');
+      if (BUILDING_BY_ID.get(b.type)!.kind !== 'habitat') return fail('wrong_building');
+      const hungry = s.animals.filter((a) => a.buildingId === habitatId && animalStatus(a, now) === 'hungry');
+      if (!hungry.length) return fail('nothing_hungry');
+      const stock = s.inventory[FEED_ITEM] ?? 0;
+      if (stock < 1) return fail('insufficient_items');
+      let fed = 0;
+      for (const a of hungry.slice(0, stock)) {
+        const def = ANIMAL_BY_ID.get(a.type)!;
+        const h = Math.min(100, animalHappiness(a, now) + 10);
+        a.happiness = h;
+        a.hungrySince = null;
+        // an unhappy animal is a little slower: up to +12.5 percent at the happiness floor
+        a.readyAt = now + Math.round(def.productSeconds * 1000 * (1 + (100 - h) / 400));
+        this.takeItem(FEED_ITEM, 1, `feed:${a.id}`, 'feed');
+        fed++;
+      }
+      return { ok: true as const, fed, snapshot: this.snapshot() };
+    });
+  }
+
+  collectAnimals(habitatId: string, key: string): Promise<CollectResult> {
+    return this.tx(key, (): CollectResult => {
+      const s = this.state, now = this.now();
+      const b = s.buildings.find((x) => x.id === habitatId);
+      if (!b) return fail('unknown_building');
+      if (BUILDING_BY_ID.get(b.type)!.kind !== 'habitat') return fail('wrong_building');
+      const ready = s.animals.filter((a) => a.buildingId === habitatId && animalStatus(a, now) === 'ready');
+      if (!ready.length) return fail('nothing_ready');
+      const totals = new Map<string, number>();
+      let xp = 0, levelUp: number | null = null;
+      for (const a of ready) {
+        const def = ANIMAL_BY_ID.get(a.type)!;
+        this.addItem(def.product, 1, `collect:${a.id}`, 'animal_product');
+        totals.set(def.product, (totals.get(def.product) ?? 0) + 1);
+        xp += def.xp;
+        const up = this.addXp(def.xp, `collect:${a.id}`, 'animal_product');
+        if (up) levelUp = up;
+        a.readyAt = null; a.hungrySince = now; // hungry again until fed
+      }
+      return { ok: true as const, collected: [...totals].map(([itemId, qty]) => ({ itemId, qty })), xp, levelUp, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- production ----------
+  queueRecipe(buildingId: string, recipeId: string, key: string): Promise<QueueResult> {
+    return this.tx(key, (): QueueResult => {
+      const s = this.state, now = this.now();
+      const b = s.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      const def = BUILDING_BY_ID.get(b.type)!;
+      if (def.kind !== 'production') return fail('wrong_building');
+      const recipe = RECIPE_BY_ID.get(recipeId);
+      if (!recipe) return fail('unknown_recipe');
+      if (recipe.building !== b.type) return fail('wrong_building');
+      if (recipe.unlockLevel > s.level) return fail('not_unlocked');
+      const mine = s.jobs.filter((j) => j.buildingId === buildingId);
+      if (mine.length >= productionSlots(def, b.level)) return fail('queue_full');
+      for (const [item, qty] of Object.entries(recipe.inputs)) if ((s.inventory[item] ?? 0) < qty) return fail('insufficient_items');
+      const id = this.newId('j');
+      for (const [item, qty] of Object.entries(recipe.inputs)) this.takeItem(item, qty, `job:${id}`, 'recipe_input');
+      // jobs run one after another: this one starts when the previous one ends (computed now, never ticked)
+      const startAt = Math.max(now, ...mine.map((j) => j.readyAt));
+      const readyAt = startAt + recipe.seconds * 1000;
+      s.jobs.push({ id, buildingId, recipeId, startAt, readyAt });
+      return { ok: true as const, jobId: id, readyAt, snapshot: this.snapshot() };
+    });
+  }
+
+  collectJobs(buildingId: string, key: string): Promise<CollectResult> {
+    return this.tx(key, (): CollectResult => {
+      const s = this.state, now = this.now();
+      const b = s.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      if (BUILDING_BY_ID.get(b.type)!.kind !== 'production') return fail('wrong_building');
+      const done = s.jobs.filter((j) => j.buildingId === buildingId && now >= j.readyAt);
+      if (!done.length) return fail('nothing_ready');
+      const totals = new Map<string, number>();
+      let xp = 0, levelUp: number | null = null;
+      for (const j of done) {
+        const r = RECIPE_BY_ID.get(j.recipeId)!;
+        this.addItem(r.output, 1, `job:${j.id}`, 'production');
+        totals.set(r.output, (totals.get(r.output) ?? 0) + 1);
+        xp += r.xp;
+        const up = this.addXp(r.xp, `job:${j.id}`, 'production');
+        if (up) levelUp = up;
+      }
+      s.jobs = s.jobs.filter((j) => !done.includes(j));
+      return { ok: true as const, collected: [...totals].map(([itemId, qty]) => ({ itemId, qty })), xp, levelUp, snapshot: this.snapshot() };
     });
   }
 }

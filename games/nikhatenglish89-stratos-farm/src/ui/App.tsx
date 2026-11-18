@@ -2,6 +2,7 @@ import { GameCanvas } from './GameCanvas';
 import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from './Hud';
 import { useFarm } from '../state/store';
 import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
+import { BuildingPanel, PlacementBar, ShopPanel } from './BuildingPanels';
 
 export function App() {
   const ready = useFarm((s) => s.ready);
@@ -18,6 +19,9 @@ export function App() {
           <InfoPanel />
           <SeedPanel />
           <InventoryPanel />
+          <ShopPanel />
+          <BuildingPanel />
+          <PlacementBar />
           <HarvestAllButton />
           <BottomNav />
           <Toast />

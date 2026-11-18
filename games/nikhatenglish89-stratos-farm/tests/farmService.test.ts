@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { LocalFarmService, MemoryKV } from '../src/services/LocalFarmService';
+import { LocalFarmService, MemoryKV, WorldConfig } from '../src/services/LocalFarmService';
 import { cropStage } from '../src/services/types';
 
 const CELLS = [{ gx: 0, gy: 0 }, { gx: 1, gy: 0 }, { gx: 0, gy: 1 }, { gx: 1, gy: 1 }];
+const WORLD: WorldConfig = { cols: 12, rows: 12, plotCells: CELLS, staticObjects: [{ id: 'field', gx: 0, gy: 0, w: 2, h: 2 }], isBuildable: () => true };
 function make(kv = new MemoryKV(), t = { v: 1_000_000 }) {
-  const svc = new LocalFarmService(CELLS, kv, { now: () => t.v });
+  const svc = new LocalFarmService(WORLD, kv, { now: () => t.v });
   return { svc, kv, t };
 }
 let n = 0;
@@ -64,10 +65,10 @@ describe('growth by server time and offline progress', () => {
   });
   it('a crop planted before closing the game is ready after reopening later (offline progress)', async () => {
     const kv = new MemoryKV(); const t = { v: 1_000_000 };
-    const a = new LocalFarmService(CELLS, kv, { now: () => t.v });
+    const a = new LocalFarmService(WORLD, kv, { now: () => t.v });
     await a.plant('0,0', 'wheat', k());
     t.v += 10 * 60_000; // 10 minutes pass with the game closed
-    const b = new LocalFarmService(CELLS, kv, { now: () => t.v }); // reload
+    const b = new LocalFarmService(WORLD, kv, { now: () => t.v }); // reload
     const snap = await b.load();
     expect(snap.plots[0].cropId).toBe('wheat');
     expect(cropStage(snap.plots[0], b.now())).toBe(3);
@@ -162,12 +163,12 @@ describe('selling and persistence', () => {
   });
   it('persists across a reload and survives a corrupt save', async () => {
     const kv = new MemoryKV(); const t = { v: 5_000 };
-    const a = new LocalFarmService(CELLS, kv, { now: () => t.v });
+    const a = new LocalFarmService(WORLD, kv, { now: () => t.v });
     await a.plant('1,1', 'carrot', k());
-    const b = new LocalFarmService(CELLS, kv, { now: () => t.v });
+    const b = new LocalFarmService(WORLD, kv, { now: () => t.v });
     expect((await b.load()).plots[3].cropId).toBe('carrot');
     kv.set('stratos_farm_save_v1', '{not json');
-    const c = new LocalFarmService(CELLS, kv, { now: () => t.v });
+    const c = new LocalFarmService(WORLD, kv, { now: () => t.v });
     const s = await c.load();
     expect(s.coins).toBe(100);
     expect(s.notice).toBe('save_reset');
