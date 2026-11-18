@@ -15,7 +15,6 @@ describe('farm layout data', () => {
   it('only uses frames that exist in the atlas JSON', () => {
     for (const o of L.objects) {
       if (o.kind === 'field') {
-        expect(atlasFrames('atlas_crops').has(`${o.crop}_${o.stage}`), o.id).toBe(true);
         expect(atlasFrames('atlas_terrain').has(o.soil!), o.id).toBe(true);
       } else {
         expect(atlasFrames(o.atlas!).has(o.frame!), `${o.id}: ${o.frame}`).toBe(true);

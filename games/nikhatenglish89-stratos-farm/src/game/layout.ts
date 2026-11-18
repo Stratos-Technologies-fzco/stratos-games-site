@@ -7,7 +7,7 @@ export interface LayoutObject {
   gx: number; gy: number; w: number; h: number;
   atlas?: string; frame?: string;
   interactive?: boolean;
-  soil?: string; crop?: string; stage?: number;
+  soil?: string;
 }
 export interface InfoEntry { title: string; text: string; lines: string[] }
 export interface FarmLayout {
@@ -35,4 +35,14 @@ export function terrainFrameAt(l: FarmLayout, gx: number, gy: number): { frame: 
 
 export function isBuildableTile(l: FarmLayout, gx: number, gy: number): boolean {
   return !l.terrain.unbuildable.includes(terrainFrameAt(l, gx, gy).frame) && !terrainFrameAt(l, gx, gy).animate;
+}
+
+/** Every tile of every field is one plot: the farm service owns what grows on it. */
+export function plotCells(l: FarmLayout): { gx: number; gy: number }[] {
+  const out: { gx: number; gy: number }[] = [];
+  for (const o of l.objects) {
+    if (o.kind !== 'field') continue;
+    for (let dx = 0; dx < o.w; dx++) for (let dy = 0; dy < o.h; dy++) out.push({ gx: o.gx + dx, gy: o.gy + dy });
+  }
+  return out;
 }

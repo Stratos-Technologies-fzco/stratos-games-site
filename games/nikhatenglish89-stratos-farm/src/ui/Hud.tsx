@@ -38,7 +38,7 @@ const NAV = [
   { id: 'shop', label: 'Shop', icon: 'nav_shop', ready: false },
   { id: 'animals', label: 'Animals', icon: 'nav_animals', ready: false },
   { id: 'market', label: 'Market', icon: 'nav_market', ready: false },
-  { id: 'inventory', label: 'Items', icon: 'nav_inventory', ready: false },
+  { id: 'inventory', label: 'Items', icon: 'nav_inventory', ready: true },
   { id: 'map', label: 'Map', icon: 'nav_map', ready: false },
 ];
 
@@ -49,11 +49,15 @@ export function BottomNav() {
       {NAV.map((n) => (
         <button
           key={n.id}
-          className={`nav-btn ${n.ready ? 'active' : 'disabled'}`}
+          className={`nav-btn ${n.ready ? (n.id === 'farm' ? 'active' : '') : 'disabled'}`}
           aria-disabled={!n.ready}
-          aria-current={n.ready ? 'page' : undefined}
+          aria-current={n.id === 'farm' ? 'page' : undefined}
           data-testid={`nav-${n.id}`}
-          onClick={() => (n.ready ? bus.emit('camera:reset') : showToast(`${n.label} is coming soon`))}
+          onClick={() => {
+            if (!n.ready) showToast(`${n.label} is coming soon`);
+            else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
+            else bus.emit('camera:reset');
+          }}
         >
           <Icon name={n.icon} size={34} />
           <span>{n.label}</span>

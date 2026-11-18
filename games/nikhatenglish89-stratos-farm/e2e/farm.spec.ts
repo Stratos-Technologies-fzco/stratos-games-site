@@ -74,3 +74,39 @@ test('wheel zoom and drag pan move the camera, resize keeps the layout', async (
   const gems = await page.getByTestId('settings').boundingBox();
   expect(gems!.x + gems!.width).toBeLessThanOrEqual(390);
 });
+
+test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', async ({ page }) => {
+  const errors = await openFarm(page);
+  // plot (2,6) is a field tile
+  let p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('seed-panel')).toBeVisible();
+  await expect(page.getByTestId('seed-corn')).toBeDisabled(); // locked at level 1
+  await page.getByTestId('seed-wheat').click();
+  await expect(page.getByTestId('coins')).toContainText('98');
+  await expect(page.getByTestId('seed-panel')).toHaveCount(0);
+  // not ready yet: tapping shows the countdown instead of harvesting
+  p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('toast')).toContainText('ready in');
+  await expect(page.getByTestId('harvest-all')).toHaveCount(0);
+  // fast-forward server time past the 2 minute grow time
+  await page.evaluate(() => (window as any).__farm.advance(121000));
+  await expect(page.getByTestId('harvest-all')).toBeVisible({ timeout: 5000 });
+  p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('harvest-all')).toHaveCount(0);
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inv-wheat')).toContainText('Wheat × 2');
+  await page.getByTestId('inventory-panel-close').click();
+  // reload: state comes back from the saved farm
+  await page.reload();
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId('coins')).toContainText('98');
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inv-wheat')).toContainText('Wheat × 2');
+  await page.getByTestId('sell-wheat').click();
+  await expect(page.getByTestId('coins')).toContainText('104');
+  await expect(page.getByTestId('inventory-empty')).toBeVisible();
+  expect(errors).toEqual([]);
+});

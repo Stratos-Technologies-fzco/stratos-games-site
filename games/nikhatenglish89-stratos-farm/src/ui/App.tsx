@@ -1,6 +1,7 @@
 import { GameCanvas } from './GameCanvas';
 import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from './Hud';
 import { useFarm } from '../state/store';
+import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
 
 export function App() {
   const ready = useFarm((s) => s.ready);
@@ -15,6 +16,9 @@ export function App() {
           <TileChip />
           <RecenterButton />
           <InfoPanel />
+          <SeedPanel />
+          <InventoryPanel />
+          <HarvestAllButton />
           <BottomNav />
           <Toast />
         </>

@@ -4,6 +4,7 @@ import { BootScene } from '../game/BootScene';
 import { FarmScene } from '../game/FarmScene';
 import { bus } from '../game/eventBus';
 import { useFarm } from '../state/store';
+import { farm } from '../game/controller';
 
 /** Mounts the Phaser game and bridges world events into the Zustand store. No game logic here. */
 export function GameCanvas() {
@@ -21,9 +22,10 @@ export function GameCanvas() {
     });
     const store = useFarm.getState();
     const offs = [
-      bus.on('tile:selected', (t) => { store.selectTile(t); store.setOpenPanel(null); }),
+      bus.on('tile:selected', (t) => { store.selectTile(t); store.setOpenPanel(null); store.setSeedPlot(null); }),
+      bus.on('plot:tapped', ({ plotId }) => farm.onPlotTapped(plotId)),
       bus.on('object:selected', ({ id }) => store.setOpenPanel(id)),
-      bus.on('selection:cleared', () => { store.selectTile(null); store.setOpenPanel(null); }),
+      bus.on('selection:cleared', () => { store.selectTile(null); store.setOpenPanel(null); store.setSeedPlot(null); }),
     ];
     return () => { offs.forEach((o) => o()); game.destroy(true); };
   }, []);

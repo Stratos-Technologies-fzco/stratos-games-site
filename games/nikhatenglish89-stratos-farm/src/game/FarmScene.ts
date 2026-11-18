@@ -6,6 +6,8 @@ import { farmLayout as L, isBuildableTile, LayoutObject, terrainFrameAt } from '
 import { Manifest } from './assets';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
+import { farm } from './controller';
+import { cropStage } from '../services/types';
 
 const TERRAIN_DEPTH = -1_000_000;
 const EDGE_DEPTH = -2_000_000;
@@ -29,6 +31,8 @@ export class FarmScene extends Phaser.Scene {
   private press: { x: number; y: number; dragging: boolean } | null = null;
   private pinchDist = 0;
   private selectedObject: string | null = null;
+  private plotSprites = new Map<string, { crop: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; gx: number; gy: number }>();
+  private floatPool: Phaser.GameObjects.Text[] = [];
 
   constructor() { super('Farm'); }
 
@@ -45,6 +49,10 @@ export class FarmScene extends Phaser.Scene {
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.animateWater() });
     bus.on('ui:panelClosed', () => this.clearSelection());
     bus.on('camera:reset', () => this.fitCamera(true));
+    this.buildPlots();
+    bus.on('farm:changed', ({ plotIds }) => plotIds.forEach((id) => this.renderPlot(id, true)));
+    bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));
+    this.time.addEvent({ delay: 1000, loop: true, callback: () => this.refreshPlots() });
     if (this.debug) this.exposeDebug();
     // Music is queued after the first rendered frame so the first screen is not delayed.
     this.events.once('postupdate', () => this.queueMusic());
@@ -71,11 +79,7 @@ export class FarmScene extends Phaser.Scene {
       }
       const list: Phaser.GameObjects.Image[] = [];
       if (o.kind === 'field') {
-        for (let dx = 0; dx < o.w; dx++) for (let dy = 0; dy < o.h; dy++) {
-          const gx = o.gx + dx, gy = o.gy + dy, p = gridToScreen(gx, gy);
-          list.push(this.add.image(p.x, p.y, 'atlas_crops', `${o.crop}_${o.stage ?? 3}`).setOriginFromFrame()
-            .setDepth(depthKey(gx, gy, undefined, OBJECT_LAYER)));
-        }
+        // soil comes from the terrain layer; crops are drawn from farm state in buildPlots()
       } else {
         const p = gridToScreen(o.gx, o.gy);
         const img = this.add.image(p.x, p.y, o.atlas!, o.frame!).setOriginFromFrame().setDepth(depthKey(o.gx, o.gy, { w: o.w, h: o.h }, OBJECT_LAYER));
@@ -84,6 +88,56 @@ export class FarmScene extends Phaser.Scene {
       }
       this.sprites.set(o.id, list);
     }
+  }
+
+  // ---------- crops (drawn from farm state, never from the layout) ----------
+  private buildPlots() {
+    for (const p of useFarm.getState().plots) {
+      const s = gridToScreen(p.gx, p.gy);
+      const depth = depthKey(p.gx, p.gy, undefined, OBJECT_LAYER);
+      const crop = this.add.image(s.x, s.y, 'atlas_crops', 'wheat_0').setOriginFromFrame().setDepth(depth).setVisible(false);
+      const bubble = this.add.image(s.x, s.y - 4, 'atlas_ui_fx', 'ready_bubble').setOrigin(0.5, 1).setDepth(depth + 500).setVisible(false);
+      this.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.plotSprites.set(p.id, { crop, bubble, gx: p.gx, gy: p.gy });
+    }
+  }
+
+  private renderPlot(id: string, pop = false) {
+    const sp = this.plotSprites.get(id);
+    const plot = useFarm.getState().plots.find((p) => p.id === id);
+    if (!sp || !plot) return;
+    const stage = cropStage(plot, farm.now());
+    if (stage === null) { sp.crop.setVisible(false); sp.bubble.setVisible(false); return; }
+    const frame = `${plot.cropId}_${stage}`;
+    const changed = sp.crop.frame.name !== frame || !sp.crop.visible;
+    sp.crop.setFrame(frame).setOriginFromFrame().setVisible(true);
+    sp.bubble.setVisible(stage === 3);
+    if (pop && changed) {
+      sp.crop.setScale(0.6);
+      this.tweens.add({ targets: sp.crop, scale: 1, duration: 260, ease: 'Back.easeOut' });
+    }
+  }
+
+  private refreshPlots() { for (const id of this.plotSprites.keys()) this.renderPlot(id); }
+
+  /** Rising "+2 wheat / +1 XP" text (pooled) with a little crop icon that flies up and fades. */
+  private floatText(gx: number, gy: number, lines: string[], cropFrame?: string) {
+    const p = gridToScreen(gx, gy);
+    const depth = 900_000;
+    if (cropFrame) {
+      const icon = this.add.image(p.x, p.y, 'atlas_crops', cropFrame).setOriginFromFrame().setDepth(depth).setScale(0.8);
+      this.tweens.add({ targets: icon, y: p.y - 90, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => icon.destroy() });
+    }
+    lines.forEach((line, i) => {
+      let t = this.floatPool.find((x) => !x.visible);
+      if (!t) {
+        t = this.add.text(0, 0, '', { fontFamily: 'Trebuchet MS, Segoe UI, sans-serif', fontStyle: 'bold', fontSize: '26px', color: '#ffffff', stroke: '#3b2a1e', strokeThickness: 5 }).setOrigin(0.5);
+        this.floatPool.push(t);
+      }
+      t.setText(line).setColor(line.startsWith('-') ? '#ffd2c2' : line.includes('XP') ? '#ffe36b' : '#ffffff')
+        .setPosition(p.x, p.y - 30 - i * 30).setAlpha(1).setVisible(true).setDepth(depth + 1);
+      this.tweens.add({ targets: t, y: t.y - 70, alpha: 0, duration: 1100, delay: i * 120, ease: 'Cubic.easeOut', onComplete: () => t!.setVisible(false) });
+    });
   }
 
   private animateWater() {
@@ -228,6 +282,10 @@ export class FarmScene extends Phaser.Scene {
     if (objectId) { this.selectObject(objectId); return; }
     if (!tile) { this.clearSelection(); bus.emit('selection:cleared'); return; }
     this.selectTile(tile.gx, tile.gy);
+    const occ = this.occ.occupantAt(tile.gx, tile.gy);
+    if (occ && L.objects.find((o) => o.id === occ)?.kind === 'field') {
+      bus.emit('plot:tapped', { plotId: `${tile.gx},${tile.gy}`, gx: tile.gx, gy: tile.gy });
+    }
   }
 
   // ---------- selection ----------
@@ -276,6 +334,8 @@ export class FarmScene extends Phaser.Scene {
         const sy = (s.y + 32 - cam.scrollY - cam.height / 2) * cam.zoom + cam.height / 2;
         return { x: r.left + (sx * r.width) / cam.width, y: r.top + (sy * r.height) / cam.height };
       },
+      /** Fast-forward service time (debug only). */
+      advance: (ms: number) => { farm.service.advance(ms); this.refreshPlots(); },
       zoom: () => this.cameras.main.zoom,
       scroll: () => ({ x: this.cameras.main.scrollX, y: this.cameras.main.scrollY }),
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),

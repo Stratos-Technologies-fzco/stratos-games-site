@@ -5,6 +5,9 @@ export interface BusEvents {
   'selection:cleared': undefined;
   'ui:panelClosed': undefined;
   'camera:reset': undefined;
+  'plot:tapped': { plotId: string; gx: number; gy: number };
+  'farm:changed': { plotIds: string[] };
+  'fx:float': { gx: number; gy: number; lines: string[]; cropFrame?: string };
 }
 
 type Handler<K extends keyof BusEvents> = (payload: BusEvents[K]) => void;

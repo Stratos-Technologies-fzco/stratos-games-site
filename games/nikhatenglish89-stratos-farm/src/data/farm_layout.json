@@ -19,9 +19,9 @@
     { "id": "barn", "kind": "building", "atlas": "atlas_buildings", "frame": "barn", "gx": 7, "gy": 1, "w": 3, "h": 3, "interactive": true },
     { "id": "silo", "kind": "building", "atlas": "atlas_buildings", "frame": "silo", "gx": 10, "gy": 1, "w": 1, "h": 1 },
 
-    { "id": "field_a", "kind": "field", "gx": 2, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed", "crop": "wheat", "stage": 3 },
-    { "id": "field_b", "kind": "field", "gx": 7, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed", "crop": "carrot", "stage": 2 },
-    { "id": "field_c", "kind": "field", "gx": 2, "gy": 9, "w": 2, "h": 2, "soil": "field_plowed", "crop": "sunflower", "stage": 3 },
+    { "id": "field_a", "kind": "field", "gx": 2, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed" },
+    { "id": "field_b", "kind": "field", "gx": 7, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed" },
+    { "id": "field_c", "kind": "field", "gx": 2, "gy": 9, "w": 2, "h": 2, "soil": "field_plowed" },
 
     { "id": "well", "kind": "decor", "atlas": "atlas_decor", "frame": "well", "gx": 6, "gy": 4, "w": 1, "h": 1 },
     { "id": "lamp", "kind": "decor", "atlas": "atlas_decor", "frame": "lamp_post", "gx": 4, "gy": 5, "w": 1, "h": 1 },

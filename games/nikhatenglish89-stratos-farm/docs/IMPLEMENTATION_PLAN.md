@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN
 
-Status: **Phase 0 and Phase 1 done. Waiting for "go" on Phase 2.** Decisions approved 2026-11-18: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, currencies Farm Coins + Gems.
+Status: **Phases 0, 1 and 2 done. Waiting for "go" on Phase 3.** Decisions approved 2026-11-18: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, currencies Farm Coins + Gems.
 
 ## Phase 1 — Foundation (DONE)  ~35 files, all under games/nikhatenglish89-stratos-farm/
 - Tooling: package.json, vite.config.ts, tsconfig, tailwind config, vitest + playwright config.
@@ -11,7 +11,7 @@ Status: **Phase 0 and Phase 1 done. Waiting for "go" on Phase 2.** Decisions app
 - Tests: iso math, occupancy, placement; one Playwright test (canvas renders, tile selectable).
 - Done when: dev command runs, pan/zoom (mouse + touch), tile select, panels open, resize OK in portrait and landscape, tests pass with shown output, committed.
 
-## Phase 2 — Farming loop: FarmService (local), master data JSON, plant/harvest, lazy timers, ledger, idempotency, inventory, level-up.
+## Phase 2 — Farming loop (DONE): LocalFarmService, crops.json (12 crops), plant / harvest / harvest-all / sell, lazy timers, ledger, idempotency keys, serialized calls, seed picker, inventory with selling, harvest effects, save/load.
 ## Phase 3 — Animals + production (6 animals, 8 buildings, recipes, offline queues).
 ## Phase 4 — Orders, market, building shop, expansion, quests, tutorial (MVP complete).
 ## Site-launch pass — home screen, Continue/resume, thumbnail, clip, description, Stratos Coins adapter, quality bar.
@@ -25,6 +25,6 @@ Status: **Phase 0 and Phase 1 done. Waiting for "go" on Phase 2.** Decisions app
 5. Currency names Farm Coins + Gems; which Stratos Coins items to request.
 
 ## Next steps (exact)
-1. Phase 2: `src/services/FarmService.ts` interface + `LocalFarmService` (localStorage), master data JSON (`data/crops.json`, items), ledger + idempotency, plant/harvest, seed shop, inventory screen, server-time-style lazy timers (`ready_at`).
-2. Replace the visual-only fields in `farm_layout.json` with state-driven crop stages.
-3. Before launch: home screen, Continue/resume, thumbnail 800x500, hover clip, 150+ word description, Stratos Coins adapter, publish to `staging`.
+1. Phase 3: animals (`data/animals.json`, 6 animals, habitats 2x2, feed, product collection with lazy time, happiness) and production (8 buildings, recipes, queues, `production_jobs` finishing offline) as new methods on `FarmService` + `LocalFarmService`; building/habitat placement uses `validatePlacement` and the preview.
+2. Make the Shop nav button real (buildings and animals) and show product icons from `atlas_icons` (`item_<id>`).
+3. Before launch: home screen, Continue/resume (`"resume": {"native": true}` is probably right, state always carries over), thumbnail, hover clip, 150+ word description, Stratos Coins adapter, publish to `staging`.

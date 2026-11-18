@@ -1,6 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './ui/App';
+import { farm } from './game/controller';
 import './styles.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+// Load the saved farm first, then draw the UI and start the game.
+farm.init().then(() => createRoot(document.getElementById('root')!).render(<App />));
