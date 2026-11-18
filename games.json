@@ -1,7 +1,20 @@
 {
  "site": "https://stratos.games",
- "count": 36,
+ "count": 37,
  "games": [
+  {
+   "slug": "nikhatenglish89-stratos-farm",
+   "title": "STRATOS FARM \u2014 MY DREAM VILLAGE",
+   "maker": "Nikhat Sultana",
+   "one_line": "Grow a small neglected farm into a thriving dream village: crops, animals, factories and happy customers.",
+   "category": "kids",
+   "url": "play/stratos-farm-my-dream-village/",
+   "thumb": "games/nikhatenglish89-stratos-farm/thumbnail.png",
+   "added": "2026-11-18",
+   "github": "nikhatenglish89",
+   "kind": "family",
+   "soon": false
+  },
   {
    "slug": "saiqulmodi-chai-and-chakkar",
    "title": "Chai & Chakkar",
