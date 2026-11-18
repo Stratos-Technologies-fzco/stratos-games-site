@@ -10,6 +10,11 @@
   function load(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v || d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage blocked */ } }
   function track(name, details) { try { var S = window.Stratos || (window.parent !== window ? window.parent.Stratos : null); if (S) S.track(name, details); } catch (e) { /* never break the game */ } }
+  // Stratos Resume (stratos-games-site CLAUDE.md "Resume", 18-Nov-2026): the war is the mission, each launch site
+  // destroyed is a safe point. A player who leaves mid-war gets "Continue?" and takes off again with the sites,
+  // jets lost, time and level they had. Restoring never pays Stratos Coins (only a won war pays).
+  function SR() { try { var S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
+  function FL() { return window.__fighterLevel || null; } // main.ts: get() / set(n) of the game level
   function mmss(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   var touch = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window;
   var best = load(BEST_KEY, { sites: 0, fastest: 0, wins: 0 });
@@ -150,9 +155,35 @@
   coachEl.addEventListener('click', function () { if (step >= 0 && step < STEPS.length) nextStep(); });
   setInterval(function () { if (window.__fighterHold && window.__fighterTwo) endHold(); }, 500);
 
+  // the safe point: sites destroyed so far, jets lost, war time and level (plain data, a few bytes). Not in two-player mode.
+  function resumeSave() {
+    var R = SR(); if (!R || won || !flying || window.__fighterTwo) return;
+    var L = FL(), lv = L ? L.get() : 1;
+    try { R.save({ mission: 'war', checkpoint: kills, lost: lost, secs: Math.round((Date.now() - t0) / 1000), level: lv }, { ver: 1, label: 'War: ' + kills + ' / ' + GOAL + ' sites' }); } catch (e) { /* never break the game */ }
+  }
+  var restored = null;
+  function resumeRestore(saved) {
+    if (!saved || saved.mission !== 'war' || flying) return;
+    restored = saved;
+    var L = FL(); if (L && saved.level) L.set(saved.level);
+    if (start) start.click(); // take off, as a tap on the play button does
+  }
+  function offerResume(tries) {
+    var R = SR(); tries = tries || 0;
+    if (!R) { if (tries < 40) setTimeout(function () { offerResume(tries + 1); }, 100); return; }
+    try { if (!R.has({ ver: 1 }) || flying) return; R.offer(resumeRestore, function () { /* Start new: stay on the home screen */ }, { ver: 1 }); } catch (e) { /* play as normal */ }
+  }
+  offerResume();
+
   function takeOff() {
     if (flying) return;
-    flying = true; t0 = Date.now(); paintChip();
+    flying = true; t0 = Date.now();
+    if (restored) {
+      kills = Math.max(0, Math.min(GOAL - 1, restored.checkpoint | 0)); lost = Math.max(0, restored.lost | 0);
+      t0 = Date.now() - Math.max(0, restored.secs | 0) * 1000; restored = null;
+      if (kills) say('War continues: ' + kills + ' / ' + GOAL + ' launch sites destroyed. ' + (GOAL - kills) + ' more to win.', false, 5000);
+    }
+    paintChip(); resumeSave();
     if (!seen.tutorial && !window.__fighterTwo) {
       window.__fighterHold = true; tutStart = Date.now(); step = 0; showStep();
       seen.fly = 1; save(COACH_KEY, seen);
@@ -172,7 +203,7 @@
   if (down) {
     new MutationObserver(function () {
       var shown = getComputedStyle(down).display !== 'none';
-      if (shown && !wasDown) { lost += 1; coach('lost', 'Jet lost. The next jet of your squadron takes over: the war goes on.'); }
+      if (shown && !wasDown) { lost += 1; resumeSave(); coach('lost', 'Jet lost. The next jet of your squadron takes over: the war goes on.'); }
       wasDown = shown;
     }).observe(down, { attributes: true, attributeFilter: ['style'] });
   }
@@ -183,8 +214,9 @@
     if (won) return;
     kills += 1; paintChip();
     if (kills > best.sites) { best.sites = Math.min(GOAL, kills); save(BEST_KEY, best); }
-    if (kills < GOAL) { say('Launch site destroyed! ' + (GOAL - kills) + ' more to win the war.', false, 4000); return; }
+    if (kills < GOAL) { resumeSave(); say('Launch site destroyed! ' + (GOAL - kills) + ' more to win the war.', false, 4000); return; }
     won = true; paintChip();
+    try { var R = SR(); if (R) R.clear(); } catch (e) { /* nothing to forget */ }
     var secs = (Date.now() - t0) / 1000, stars = lost <= 1 ? 3 : lost <= 4 ? 2 : 1, two = !!window.__fighterTwo;
     best.wins = (best.wins || 0) + 1;
     var record = !best.fastest || secs < best.fastest;

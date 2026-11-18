@@ -308,6 +308,7 @@ class Play {
   }
 
   load() {
+    try { if (this.cfg.onPicture) this.cfg.onPicture(this.i); } catch (e) { /* never break the game */ }
     const it = this.rows[this.i];
     this.it = it;
     this.stage = 'trace';
@@ -618,7 +619,7 @@ export async function openTrace(cfg) {
   const index = await (await fetch('trace/index.json')).json();
   const rows = await (await fetch(`trace/${index[cfg.cat]}.json`)).json();
   st.ui.wait.hidden = true;
-  current = new Play(cfg, rows, 0);
+  current = new Play(cfg, rows, Math.max(0, Math.min(rows.length - 1, cfg.start | 0)));   // start: Stratos Resume reopens that picture
   if (new URLSearchParams(location.search).has('test')) window.__trace = { get play() { return current; }, st };
   return current;
 }

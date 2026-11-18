@@ -1334,7 +1334,7 @@ function tapBlock(b) {
   openChooser({ kind: 'open', block: b, href: list[0].href, trace: list[0].trace });
 }
 // the picture's own 3D stage; the town waits behind it
-function enterStage(cat, href) {
+function enterStage(cat, href, start) {
   const fade = document.getElementById('fade');
   fade.style.opacity = '1';
   setTimeout(async () => {
@@ -1342,7 +1342,8 @@ function enterStage(cat, href) {
     backBtn.hidden = homeBtn.hidden = true;
     inStage = true;
     await openTrace({
-      renderer, cat, href, tint: current ? current.colour : 0xffbf00, audio,
+      renderer, cat, href, start, tint: current ? current.colour : 0xffbf00, audio,
+      onPicture: (i) => resumeSave(cat, href, i),
       onMore: (url) => openSubject(url),
       onExit: (home) => {
         inStage = false;
@@ -1360,6 +1361,39 @@ function enterStage(cat, href) {
     fade.style.opacity = '0';
   }, 420);
 }
+// ------------------------------------------------------------------ Stratos Resume (stratos-games-site CLAUDE.md "Resume", 18-Nov-2026)
+// The place to come back to is the picture being traced: its class house, its picture set and its number in the set.
+// Saved (plain data, on the player's device only) each time a picture opens; forgotten when the picture is finished.
+// "Continue" lands at that house and reopens that picture from its first dot. Nothing here pays Stratos Coins.
+function SR() { try { const S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
+function resumeSave(cat, href, i) {
+  const R = SR(); if (!R || !current) return;
+  try { R.save({ house: current.key, cat, href, i }, { ver: 1, label: current.n ? 'Class ' + current.n : 'Picture ' + (i + 1) }); } catch (e) { /* never break the game */ }
+}
+function resumeClear() { try { const R = SR(); if (R) R.clear(); } catch (e) { /* nothing to forget */ } }
+function resumeRestore(saved) {
+  const item = saved && houses.find((h) => h.key === saved.house);
+  if (!item || typeof saved.cat !== 'string' || view !== 'logo' || flight || journey || hop || inStage) return;
+  closeChooser();
+  logoFall = performance.now() / 1000;               // the ring falls away, as after Play
+  current = item; view = 'house'; level = 'subjects';
+  camera.position.copy(item.view.pos); camLook.copy(item.view.look);
+  hero.g.position.copy(item.pos).addScaledVector(frame(item).toCam, item.n ? 46 : 30).setY(1.3);
+  hero.g.visible = true; heroStand();
+  setButtons();
+  (function blocksWhenReady(n) {                   // the subject blocks wait for data.json
+    if (current !== item || view !== 'house') return;
+    if (!item.n || Object.keys(DATA.classes).length) showBlocks(item); else if (n < 50) setTimeout(() => blocksWhenReady(n + 1), 100);
+  })(0);
+  enterStage(saved.cat, saved.href, saved.i | 0);
+}
+(function offerResume(tries) {
+  const R = SR();
+  if (!R) { if (tries < 40) setTimeout(() => offerResume(tries + 1), 100); return; }
+  try { if (!R.has({ ver: 1 }) || view !== 'logo' || flight) return; R.offer(resumeRestore, () => { /* Start new: stay on the logo */ }, { ver: 1 }); } catch (e) { /* play as normal */ }
+})(0);
+window.addEventListener('domino-picture-done', resumeClear);
+
 function openSubject(href) {
   pop(880);
   if (current && current.n) { visited.add(current.key); /* Stratos box: nothing is saved */ }

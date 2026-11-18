@@ -1,0 +1,25 @@
+{
+  "name": "jet-vs-missile-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:sim": "esbuild tests/sim.ts --bundle --platform=node --format=esm --outfile=tests/.out/sim.mjs --log-level=warning && node tests/.out/sim.mjs",
+    "test:maneuvers": "esbuild tests/maneuvers.ts --bundle --platform=node --format=esm --outfile=tests/.out/maneuvers.mjs --log-level=warning && node tests/.out/maneuvers.mjs",
+    "test:rtb": "esbuild tests/rtb.ts --bundle --platform=node --format=esm --outfile=tests/.out/rtb.mjs --log-level=warning && node tests/.out/rtb.mjs",
+    "test:pilot": "esbuild tests/pilot.ts --bundle --platform=node --format=esm --outfile=tests/.out/pilot.mjs --log-level=warning && node tests/.out/pilot.mjs"
+  },
+  "dependencies": {
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.169.0",
+    "esbuild": "0.21.5",
+    "typescript": "5.6.3",
+    "vite": "5.4.10"
+  }
+}

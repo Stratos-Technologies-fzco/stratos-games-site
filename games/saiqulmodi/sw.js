@@ -1,6 +1,6 @@
 // Offline play: the game is cached the first time it loads, then it opens without a network.
 // Cache-first for the game's own files; a new version replaces the old cache.
-const CACHE = 'fighter-v8'; // v8: built from source with manoeuvres, return to base, landing, pilot G (17-Nov); v7: first-flight tutorial, touch hints, no FPS (17-Nov); v6: war goal, coaching, results panel + Stratos Coins (16-Nov); v3: world to the horizon, streamlined jet, new emblem + icons (01-Nov)
+const CACHE = 'fighter-v9'; // v9: Stratos Resume, continue the war where you left it (18-Nov); v8: built from source with manoeuvres, return to base, landing, pilot G (17-Nov); v7: first-flight tutorial, touch hints, no FPS (17-Nov); v6: war goal, coaching, results panel + Stratos Coins (16-Nov); v3: world to the horizon, streamlined jet, new emblem + icons (01-Nov)
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './index.html', './manifest.webmanifest'])).then(() => self.skipWaiting()));
