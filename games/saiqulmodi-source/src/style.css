@@ -182,3 +182,30 @@ button { background: var(--hud); color: #001520; border: 0; border-radius: 6px; 
 .gv-red { z-index: 9; background: radial-gradient(ellipse at center, rgba(200, 0, 0, 0.55) 20%, rgba(90, 0, 0, 0.95) 85%); }
 .gv-black { z-index: 13; background: #000; }
 .path-mini { position: fixed; cursor: pointer; border: 1px solid rgba(56, 189, 248, 0.7); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45); display: none; }
+
+/* Phone held upright (Stratos #55, 19-Nov): the landscape button layout put the stick on top of
+   FLARE / CHAFF / ECM. Upright: stick bottom-left, buttons in a 3-column grid on the right half,
+   status panel above the stick, message log above the buttons. Nothing overlaps. */
+@media (max-width: 640px) and (orientation: portrait) {
+  .stick-base { left: 12px; bottom: 18px; }
+  .touch-btn.thr-down, .touch-btn.flare, .touch-btn.ab, .touch-btn.thr-up, .touch-btn.chaff, .touch-btn.ecm,
+  .touch-btn.agm, .touch-btn.bomb, .touch-btn.aam, .touch-btn.aero, .touch-btn.mnv, .touch-btn.sam, .touch-btn.rtb {
+    width: 56px; height: 56px; font-size: 11px; left: auto; top: auto; }
+  .touch-btn.thr-down { right: 136px; bottom: 16px; }
+  .touch-btn.flare    { right: 72px;  bottom: 16px; }
+  .touch-btn.ab       { right: 8px;   bottom: 16px; }
+  .touch-btn.thr-up   { right: 136px; bottom: 80px; }
+  .touch-btn.chaff    { right: 72px;  bottom: 80px; }
+  .touch-btn.ecm      { right: 8px;   bottom: 80px; }
+  .touch-btn.agm      { right: 136px; bottom: 144px; }
+  .touch-btn.bomb     { right: 72px;  bottom: 144px; }
+  .touch-btn.aam      { right: 8px;   bottom: 144px; }
+  .touch-btn.aero     { right: 136px; bottom: 208px; }
+  .touch-btn.mnv      { right: 72px;  bottom: 208px; }
+  .touch-btn.sam      { right: 8px;   bottom: 208px; }
+  .touch-btn.rtb      { right: 8px;   bottom: 272px; }
+  .hud-bl { left: 8px; bottom: 196px; padding: 4px 8px; font-size: 11px; }
+  .hud-bl .hud-mid { font-size: 13px; }
+  .hud-bl .hud-cm-bar { width: 44px; }
+  .hud-log { right: 8px; bottom: 336px; font-size: 11px; }
+}
