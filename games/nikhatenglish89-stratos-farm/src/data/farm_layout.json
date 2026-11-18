@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "cols": 12,
+  "rows": 12,
+  "terrain": {
+    "default": ["grass_1", "grass_2", "grass_3"],
+    "flowerFrame": "grass_flowers",
+    "flowerEvery": 11,
+    "unbuildable": ["water_0", "locked_land"],
+    "rects": [
+      { "frame": "path_stone", "rect": [3, 4, 6, 1] },
+      { "frame": "path_stone", "rect": [5, 5, 1, 7] },
+      { "frame": "water_0", "rect": [9, 4, 3, 2], "animate": ["water_0", "water_1", "water_2"] },
+      { "frame": "locked_land", "rect": [7, 8, 3, 2] }
+    ]
+  },
+  "objects": [
+    { "id": "farmhouse", "kind": "building", "atlas": "atlas_buildings", "frame": "farmhouse", "gx": 3, "gy": 1, "w": 3, "h": 3, "interactive": true },
+    { "id": "barn", "kind": "building", "atlas": "atlas_buildings", "frame": "barn", "gx": 7, "gy": 1, "w": 3, "h": 3, "interactive": true },
+    { "id": "silo", "kind": "building", "atlas": "atlas_buildings", "frame": "silo", "gx": 10, "gy": 1, "w": 1, "h": 1 },
+
+    { "id": "field_a", "kind": "field", "gx": 2, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed", "crop": "wheat", "stage": 3 },
+    { "id": "field_b", "kind": "field", "gx": 7, "gy": 6, "w": 2, "h": 2, "soil": "field_plowed", "crop": "carrot", "stage": 2 },
+    { "id": "field_c", "kind": "field", "gx": 2, "gy": 9, "w": 2, "h": 2, "soil": "field_plowed", "crop": "sunflower", "stage": 3 },
+
+    { "id": "well", "kind": "decor", "atlas": "atlas_decor", "frame": "well", "gx": 6, "gy": 4, "w": 1, "h": 1 },
+    { "id": "lamp", "kind": "decor", "atlas": "atlas_decor", "frame": "lamp_post", "gx": 4, "gy": 5, "w": 1, "h": 1 },
+    { "id": "mailbox", "kind": "decor", "atlas": "atlas_decor", "frame": "mailbox", "gx": 10, "gy": 3, "w": 1, "h": 1 },
+    { "id": "scarecrow", "kind": "decor", "atlas": "atlas_decor", "frame": "scarecrow", "gx": 4, "gy": 7, "w": 1, "h": 1 },
+    { "id": "signpost", "kind": "decor", "atlas": "atlas_decor", "frame": "sign_for_sale", "gx": 7, "gy": 10, "w": 1, "h": 1 },
+    { "id": "hay", "kind": "decor", "atlas": "atlas_decor", "frame": "hay_bale", "gx": 6, "gy": 0, "w": 1, "h": 1 },
+    { "id": "tree_oak_1", "kind": "decor", "atlas": "atlas_decor", "frame": "tree_oak", "gx": 0, "gy": 1, "w": 1, "h": 1 },
+    { "id": "tree_pine_1", "kind": "decor", "atlas": "atlas_decor", "frame": "tree_pine", "gx": 11, "gy": 1, "w": 1, "h": 1 },
+    { "id": "tree_apple_1", "kind": "decor", "atlas": "atlas_decor", "frame": "tree_apple", "gx": 1, "gy": 4, "w": 1, "h": 1 },
+    { "id": "tree_autumn_1", "kind": "decor", "atlas": "atlas_decor", "frame": "tree_autumn", "gx": 10, "gy": 7, "w": 1, "h": 1 },
+    { "id": "bush_1", "kind": "decor", "atlas": "atlas_decor", "frame": "bush", "gx": 0, "gy": 8, "w": 1, "h": 1 },
+    { "id": "berry_1", "kind": "decor", "atlas": "atlas_decor", "frame": "bush_berry", "gx": 6, "gy": 11, "w": 1, "h": 1 },
+    { "id": "rock_1", "kind": "decor", "atlas": "atlas_decor", "frame": "rock_large", "gx": 10, "gy": 10, "w": 1, "h": 1 },
+    { "id": "stump_1", "kind": "decor", "atlas": "atlas_decor", "frame": "tree_stump", "gx": 4, "gy": 10, "w": 1, "h": 1 },
+    { "id": "flowers_1", "kind": "decor", "atlas": "atlas_decor", "frame": "flowers", "gx": 1, "gy": 9, "w": 1, "h": 1 }
+  ],
+  "info": {
+    "farmhouse": {
+      "title": "Farmhouse",
+      "text": "Your home on the farm. This is where the story of your dream village begins.",
+      "lines": ["Size: 3 x 3 tiles", "Upgrades come in a later update"]
+    },
+    "barn": {
+      "title": "Barn",
+      "text": "The barn keeps your harvest and products safe and dry.",
+      "lines": ["Size: 3 x 3 tiles", "Storage and upgrades come in a later update"]
+    }
+  }
+}

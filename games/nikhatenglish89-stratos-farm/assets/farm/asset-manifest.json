@@ -1,0 +1,497 @@
+{
+ "version": 1,
+ "tile": {
+  "w": 128,
+  "h": 64
+ },
+ "atlases": [
+  {
+   "key": "atlas_terrain",
+   "image": "assets/farm/atlases/atlas_terrain.png",
+   "json": "assets/farm/atlases/atlas_terrain.json",
+   "size": [
+    512,
+    494
+   ],
+   "frames": 20,
+   "kb": 32.1
+  },
+  {
+   "key": "atlas_crops",
+   "image": "assets/farm/atlases/atlas_crops.png",
+   "json": "assets/farm/atlases/atlas_crops.json",
+   "size": [
+    1024,
+    910
+   ],
+   "frames": 48,
+   "kb": 252.5
+  },
+  {
+   "key": "atlas_animals",
+   "image": "assets/farm/atlases/atlas_animals.png",
+   "json": "assets/farm/atlases/atlas_animals.json",
+   "size": [
+    512,
+    516
+   ],
+   "frames": 30,
+   "kb": 62.5
+  },
+  {
+   "key": "atlas_buildings",
+   "image": "assets/farm/atlases/atlas_buildings.png",
+   "json": "assets/farm/atlases/atlas_buildings.json",
+   "size": [
+    1024,
+    1660
+   ],
+   "frames": 15,
+   "kb": 185.4
+  },
+  {
+   "key": "atlas_habitats",
+   "image": "assets/farm/atlases/atlas_habitats.png",
+   "json": "assets/farm/atlases/atlas_habitats.json",
+   "size": [
+    512,
+    1416
+   ],
+   "frames": 6,
+   "kb": 112.6
+  },
+  {
+   "key": "atlas_decor",
+   "image": "assets/farm/atlases/atlas_decor.png",
+   "json": "assets/farm/atlases/atlas_decor.json",
+   "size": [
+    512,
+    708
+   ],
+   "frames": 21,
+   "kb": 60.5
+  },
+  {
+   "key": "atlas_characters",
+   "image": "assets/farm/atlases/atlas_characters.png",
+   "json": "assets/farm/atlases/atlas_characters.json",
+   "size": [
+    512,
+    970
+   ],
+   "frames": 34,
+   "kb": 159.6
+  },
+  {
+   "key": "atlas_icons",
+   "image": "assets/farm/atlases/atlas_icons.png",
+   "json": "assets/farm/atlases/atlas_icons.json",
+   "size": [
+    512,
+    660
+   ],
+   "frames": 66,
+   "kb": 103.9
+  },
+  {
+   "key": "atlas_ui_fx",
+   "image": "assets/farm/atlases/atlas_ui_fx.png",
+   "json": "assets/farm/atlases/atlas_ui_fx.json",
+   "size": [
+    512,
+    974
+   ],
+   "frames": 45,
+   "kb": 95.4
+  }
+ ],
+ "images": [
+  {
+   "key": "logo",
+   "url": "assets/farm/ui/logo.png"
+  },
+  {
+   "key": "app_icon_192",
+   "url": "assets/farm/ui/app_icon_192.png"
+  },
+  {
+   "key": "app_icon_512",
+   "url": "assets/farm/ui/app_icon_512.png"
+  }
+ ],
+ "audio": {
+  "music": [
+   {
+    "key": "jingle_level_up",
+    "urls": [
+     "assets/farm/audio/music/jingle_level_up.ogg",
+     "assets/farm/audio/music/jingle_level_up.mp3"
+    ],
+    "loop": false,
+    "duration": 3.54
+   },
+   {
+    "key": "jingle_quest_complete",
+    "urls": [
+     "assets/farm/audio/music/jingle_quest_complete.ogg",
+     "assets/farm/audio/music/jingle_quest_complete.mp3"
+    ],
+    "loop": false,
+    "duration": 2.69
+   },
+   {
+    "key": "jingle_order_complete",
+    "urls": [
+     "assets/farm/audio/music/jingle_order_complete.ogg",
+     "assets/farm/audio/music/jingle_order_complete.mp3"
+    ],
+    "loop": false,
+    "duration": 2.0
+   },
+   {
+    "key": "jingle_new_unlock",
+    "urls": [
+     "assets/farm/audio/music/jingle_new_unlock.ogg",
+     "assets/farm/audio/music/jingle_new_unlock.mp3"
+    ],
+    "loop": false,
+    "duration": 2.32
+   },
+   {
+    "key": "ambience_farm",
+    "urls": [
+     "assets/farm/audio/music/ambience_farm.ogg",
+     "assets/farm/audio/music/ambience_farm.mp3"
+    ],
+    "loop": true,
+    "duration": 28.0
+   },
+   {
+    "key": "music_title",
+    "urls": [
+     "assets/farm/audio/music/music_title.ogg",
+     "assets/farm/audio/music/music_title.mp3"
+    ],
+    "loop": true,
+    "duration": 38.4
+   },
+   {
+    "key": "music_farm_day",
+    "urls": [
+     "assets/farm/audio/music/music_farm_day.ogg",
+     "assets/farm/audio/music/music_farm_day.mp3"
+    ],
+    "loop": true,
+    "duration": 65.45
+   },
+   {
+    "key": "music_market",
+    "urls": [
+     "assets/farm/audio/music/music_market.ogg",
+     "assets/farm/audio/music/music_market.mp3"
+    ],
+    "loop": true,
+    "duration": 33.1
+   },
+   {
+    "key": "music_evening",
+    "urls": [
+     "assets/farm/audio/music/music_evening.ogg",
+     "assets/farm/audio/music/music_evening.mp3"
+    ],
+    "loop": true,
+    "duration": 53.33
+   }
+  ],
+  "sfx": [
+   {
+    "key": "ui_click",
+    "urls": [
+     "assets/farm/audio/sfx/ui_click.ogg",
+     "assets/farm/audio/sfx/ui_click.mp3"
+    ],
+    "loop": false,
+    "duration": 0.04
+   },
+   {
+    "key": "ui_open",
+    "urls": [
+     "assets/farm/audio/sfx/ui_open.ogg",
+     "assets/farm/audio/sfx/ui_open.mp3"
+    ],
+    "loop": false,
+    "duration": 0.37
+   },
+   {
+    "key": "ui_close",
+    "urls": [
+     "assets/farm/audio/sfx/ui_close.ogg",
+     "assets/farm/audio/sfx/ui_close.mp3"
+    ],
+    "loop": false,
+    "duration": 0.37
+   },
+   {
+    "key": "ui_tab",
+    "urls": [
+     "assets/farm/audio/sfx/ui_tab.ogg",
+     "assets/farm/audio/sfx/ui_tab.mp3"
+    ],
+    "loop": false,
+    "duration": 0.08
+   },
+   {
+    "key": "ui_error",
+    "urls": [
+     "assets/farm/audio/sfx/ui_error.ogg",
+     "assets/farm/audio/sfx/ui_error.mp3"
+    ],
+    "loop": false,
+    "duration": 0.36
+   },
+   {
+    "key": "plant_seed",
+    "urls": [
+     "assets/farm/audio/sfx/plant_seed.ogg",
+     "assets/farm/audio/sfx/plant_seed.mp3"
+    ],
+    "loop": false,
+    "duration": 0.2
+   },
+   {
+    "key": "harvest_pop",
+    "urls": [
+     "assets/farm/audio/sfx/harvest_pop.ogg",
+     "assets/farm/audio/sfx/harvest_pop.mp3"
+    ],
+    "loop": false,
+    "duration": 0.52
+   },
+   {
+    "key": "coin_collect",
+    "urls": [
+     "assets/farm/audio/sfx/coin_collect.ogg",
+     "assets/farm/audio/sfx/coin_collect.mp3"
+    ],
+    "loop": false,
+    "duration": 0.62
+   },
+   {
+    "key": "gem_collect",
+    "urls": [
+     "assets/farm/audio/sfx/gem_collect.ogg",
+     "assets/farm/audio/sfx/gem_collect.mp3"
+    ],
+    "loop": false,
+    "duration": 0.7
+   },
+   {
+    "key": "xp_gain",
+    "urls": [
+     "assets/farm/audio/sfx/xp_gain.ogg",
+     "assets/farm/audio/sfx/xp_gain.mp3"
+    ],
+    "loop": false,
+    "duration": 0.45
+   },
+   {
+    "key": "place_object",
+    "urls": [
+     "assets/farm/audio/sfx/place_object.ogg",
+     "assets/farm/audio/sfx/place_object.mp3"
+    ],
+    "loop": false,
+    "duration": 0.25
+   },
+   {
+    "key": "place_invalid",
+    "urls": [
+     "assets/farm/audio/sfx/place_invalid.ogg",
+     "assets/farm/audio/sfx/place_invalid.mp3"
+    ],
+    "loop": false,
+    "duration": 0.36
+   },
+   {
+    "key": "remove_object",
+    "urls": [
+     "assets/farm/audio/sfx/remove_object.ogg",
+     "assets/farm/audio/sfx/remove_object.mp3"
+    ],
+    "loop": false,
+    "duration": 0.35
+   },
+   {
+    "key": "build_complete",
+    "urls": [
+     "assets/farm/audio/sfx/build_complete.ogg",
+     "assets/farm/audio/sfx/build_complete.mp3"
+    ],
+    "loop": false,
+    "duration": 1.8
+   },
+   {
+    "key": "production_start",
+    "urls": [
+     "assets/farm/audio/sfx/production_start.ogg",
+     "assets/farm/audio/sfx/production_start.mp3"
+    ],
+    "loop": false,
+    "duration": 0.7
+   },
+   {
+    "key": "production_done",
+    "urls": [
+     "assets/farm/audio/sfx/production_done.ogg",
+     "assets/farm/audio/sfx/production_done.mp3"
+    ],
+    "loop": false,
+    "duration": 1.05
+   },
+   {
+    "key": "feed_animal",
+    "urls": [
+     "assets/farm/audio/sfx/feed_animal.ogg",
+     "assets/farm/audio/sfx/feed_animal.mp3"
+    ],
+    "loop": false,
+    "duration": 0.37
+   },
+   {
+    "key": "collect_product",
+    "urls": [
+     "assets/farm/audio/sfx/collect_product.ogg",
+     "assets/farm/audio/sfx/collect_product.mp3"
+    ],
+    "loop": false,
+    "duration": 0.45
+   },
+   {
+    "key": "order_fulfil",
+    "urls": [
+     "assets/farm/audio/sfx/order_fulfil.ogg",
+     "assets/farm/audio/sfx/order_fulfil.mp3"
+    ],
+    "loop": false,
+    "duration": 0.96
+   },
+   {
+    "key": "expand_land",
+    "urls": [
+     "assets/farm/audio/sfx/expand_land.ogg",
+     "assets/farm/audio/sfx/expand_land.mp3"
+    ],
+    "loop": false,
+    "duration": 1.19
+   },
+   {
+    "key": "clear_chop",
+    "urls": [
+     "assets/farm/audio/sfx/clear_chop.ogg",
+     "assets/farm/audio/sfx/clear_chop.mp3"
+    ],
+    "loop": false,
+    "duration": 0.15
+   },
+   {
+    "key": "clear_rock",
+    "urls": [
+     "assets/farm/audio/sfx/clear_rock.ogg",
+     "assets/farm/audio/sfx/clear_rock.mp3"
+    ],
+    "loop": false,
+    "duration": 0.4
+   },
+   {
+    "key": "notification",
+    "urls": [
+     "assets/farm/audio/sfx/notification.ogg",
+     "assets/farm/audio/sfx/notification.mp3"
+    ],
+    "loop": false,
+    "duration": 0.85
+   },
+   {
+    "key": "tutorial_pop",
+    "urls": [
+     "assets/farm/audio/sfx/tutorial_pop.ogg",
+     "assets/farm/audio/sfx/tutorial_pop.mp3"
+    ],
+    "loop": false,
+    "duration": 0.1
+   },
+   {
+    "key": "crop_ready",
+    "urls": [
+     "assets/farm/audio/sfx/crop_ready.ogg",
+     "assets/farm/audio/sfx/crop_ready.mp3"
+    ],
+    "loop": false,
+    "duration": 0.56
+   },
+   {
+    "key": "camera_whoosh",
+    "urls": [
+     "assets/farm/audio/sfx/camera_whoosh.ogg",
+     "assets/farm/audio/sfx/camera_whoosh.mp3"
+    ],
+    "loop": false,
+    "duration": 0.3
+   },
+   {
+    "key": "animal_cow_moo",
+    "urls": [
+     "assets/farm/audio/sfx/animal_cow_moo.ogg",
+     "assets/farm/audio/sfx/animal_cow_moo.mp3"
+    ],
+    "loop": false,
+    "duration": 1.3
+   },
+   {
+    "key": "animal_sheep_baa",
+    "urls": [
+     "assets/farm/audio/sfx/animal_sheep_baa.ogg",
+     "assets/farm/audio/sfx/animal_sheep_baa.mp3"
+    ],
+    "loop": false,
+    "duration": 0.9
+   },
+   {
+    "key": "animal_goat_bleat",
+    "urls": [
+     "assets/farm/audio/sfx/animal_goat_bleat.ogg",
+     "assets/farm/audio/sfx/animal_goat_bleat.mp3"
+    ],
+    "loop": false,
+    "duration": 0.6
+   },
+   {
+    "key": "animal_pig_oink",
+    "urls": [
+     "assets/farm/audio/sfx/animal_pig_oink.ogg",
+     "assets/farm/audio/sfx/animal_pig_oink.mp3"
+    ],
+    "loop": false,
+    "duration": 0.44
+   },
+   {
+    "key": "animal_chicken_cluck",
+    "urls": [
+     "assets/farm/audio/sfx/animal_chicken_cluck.ogg",
+     "assets/farm/audio/sfx/animal_chicken_cluck.mp3"
+    ],
+    "loop": false,
+    "duration": 0.42
+   },
+   {
+    "key": "animal_duck_quack",
+    "urls": [
+     "assets/farm/audio/sfx/animal_duck_quack.ogg",
+     "assets/farm/audio/sfx/animal_duck_quack.mp3"
+    ],
+    "loop": false,
+    "duration": 0.52
+   }
+  ]
+ }
+}
