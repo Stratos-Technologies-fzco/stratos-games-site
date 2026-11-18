@@ -109,6 +109,7 @@ export function BuildingPanel() {
                       {' · happiness '}{animalHappiness(a, now)}
                     </small>
                   </span>
+                  {st === 'producing' && <button className="btn small" onClick={() => farm.speedUp('animal', a.id)} data-testid={`speed-${a.id}`}>Speed up</button>}
                 </div>
               </li>
             );
@@ -140,6 +141,7 @@ export function BuildingPanel() {
                 <div className="row" data-testid={`job-${j.id}`}>
                   <Icon name={`item_${r.output}`} size={34} />
                   <span className="grow"><b>{r.name}</b><small><Countdown to={j.readyAt} /></small></span>
+                  {j.readyAt > now && <button className="btn small" onClick={() => farm.speedUp('job', j.id)} data-testid={`speed-${j.id}`}>Speed up</button>}
                 </div>
               </li>
             );

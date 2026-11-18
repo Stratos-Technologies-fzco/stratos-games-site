@@ -5,6 +5,7 @@ import { farm } from './game/controller';
 import './styles.css';
 import './phase3.css';
 import './phase4.css';
+import './phase5.css';
 
 // Load the saved farm first, then draw the UI and start the game.
 farm.init().then(() => createRoot(document.getElementById('root')!).render(<App />));

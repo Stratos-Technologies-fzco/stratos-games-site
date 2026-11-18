@@ -3,12 +3,12 @@ import { DEFAULT_ISO, depthKey, gridToScreen, screenToGrid, worldBounds } from '
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
 import { farmLayout as L, isBuildableTile, LayoutObject, lockedExpansionAt, terrainFrameAt } from './layout';
-import { Manifest } from './assets';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
 import { cropStage } from '../services/types';
 import { BuildingsLayer } from './BuildingsLayer';
+import { initAudio } from './audio';
 
 const TERRAIN_DEPTH = -1_000_000;
 const EDGE_DEPTH = -2_000_000;
@@ -63,8 +63,8 @@ export class FarmScene extends Phaser.Scene {
     bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.refreshPlots(); this.layer.refresh(); } });
     if (this.debug) this.exposeDebug();
-    // Music is queued after the first rendered frame so the first screen is not delayed.
-    this.events.once('postupdate', () => this.queueMusic());
+    // Sound stays off and is not even downloaded until the player turns it on in Settings.
+    initAudio(this);
     useFarm.getState().setReady();
   }
 
@@ -168,13 +168,6 @@ export class FarmScene extends Phaser.Scene {
       const i = Math.floor(this.time.now / 450 + w.gx + w.gy) % w.frames.length;
       w.img.setFrame(w.frames[i]).setOriginFromFrame();
     }
-  }
-
-  private queueMusic() {
-    const m = this.cache.json.get('manifest') as Manifest | undefined;
-    if (!m) return;
-    for (const a of m.audio.music) this.load.audio(a.key, a.urls);
-    this.load.start();
   }
 
   // ---------- camera ----------

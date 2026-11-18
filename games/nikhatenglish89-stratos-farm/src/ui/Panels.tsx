@@ -3,9 +3,9 @@ import { farm, formatDuration } from '../game/controller';
 import { CROPS, ITEMS } from '../services/data';
 import { Icon } from './Icon';
 
-export function PanelShell({ title, onClose, testId, children }: { title: string; onClose: () => void; testId: string; children: React.ReactNode }) {
+export function PanelShell({ title, onClose, testId, children, center = false }: { title: string; onClose: () => void; testId: string; children: React.ReactNode; center?: boolean }) {
   return (
-    <aside className="info-panel wide" role="dialog" aria-label={title} data-testid={testId}>
+    <aside className={`info-panel wide${center ? ' center' : ''}`} role="dialog" aria-label={title} data-testid={testId}>
       <div className="ribbon">{title}</div>
       <div className="panel-body">{children}</div>
       <div className="panel-actions">

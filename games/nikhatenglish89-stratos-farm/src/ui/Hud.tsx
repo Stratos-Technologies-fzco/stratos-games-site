@@ -4,12 +4,13 @@ import { bus } from '../game/eventBus';
 import { Icon } from './Icon';
 import { farmLayout } from '../game/layout';
 import { useClaimable } from './EconomyPanels';
+import { useStratosBalance } from './Home';
 
 export function TopBar() {
   const { player, xpNext } = useFarm();
   const pct = Math.min(100, Math.round((player.xp / xpNext) * 100));
-  const soon = () => useFarm.getState().showToast('Settings are coming soon');
   const claimable = useClaimable();
+  const stratos = useStratosBalance();
   return (
     <header className="top-bar" data-testid="top-bar">
       <div className="avatar">
@@ -26,13 +27,16 @@ export function TopBar() {
         </div>
       </div>
       <div className="spacer" />
-      <div className="pill" data-testid="coins"><Icon name="coin" size={26} /><span>{player.coins}</span></div>
+      {stratos !== null && (
+        <div className="pill stratos-pill" data-testid="stratos-coins" title="Stratos Coins"><Icon atlas="atlas_ui_fx" name="logo_small" size={26} /><span>{stratos}</span></div>
+      )}
+      <div className="pill" data-testid="coins" title="Farm Coins"><Icon name="coin" size={26} /><span>{player.coins}</span></div>
       <div className="pill" data-testid="gems"><Icon name="gem" size={26} /><span>{player.gems}</span></div>
       <button className="round-btn" onClick={() => useFarm.getState().setQuestsOpen(true)} aria-label="Quests" data-testid="quests-btn">
         <Icon name="quest" size={26} />
         {claimable > 0 && <span className="badge" data-testid="quest-badge">{claimable}</span>}
       </button>
-      <button className="round-btn disabled" onClick={soon} aria-label="Settings (coming soon)" aria-disabled="true" data-testid="settings">
+      <button className="round-btn" onClick={() => useFarm.getState().setInfoPanel('settings')} aria-label="Settings" data-testid="settings">
         <Icon name="settings" size={26} />
       </button>
     </header>

@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { farmLayout } from '../game/layout';
-import { ITEMS, ITEM_BY_ID, NPC_BY_ID, ORDERS } from '../services/data';
+import { CROP_BY_ID, ITEMS, ITEM_BY_ID, NPC_BY_ID, ORDERS } from '../services/data';
+import { hintFor } from '../services/hints';
+import { offerCoins } from '../game/stratos';
+import { cropStage } from '../services/types';
 import {
   QUESTS, QuestDef, QuestView, activeQuests, claimableCount, currentTutorialStep, isClaimed, isComplete, questProgress,
 } from '../services/quests';
@@ -39,6 +42,7 @@ export function MarketPanel() {
   const cooldowns = useFarm((s) => s.orderCooldowns);
   const inv = useFarm((s) => s.inventory);
   const level = useFarm((s) => s.player.level);
+  const [hints, setHints] = useState<Record<string, string>>({});
   useFarm((s) => s.tick);
   if (!tab) return null;
   const now = farm.now();
@@ -74,9 +78,13 @@ export function MarketPanel() {
                       ))}
                     </div>
                     <Rewards coins={o.coins} xp={o.xp} />
+                    {hints[o.id] && <div className="hint-box" data-testid={`hint-text-${o.slot}`}>{hints[o.id]}</div>}
                   </div>
                   <div className="order-actions">
                     <button className="btn small" disabled={!can} onClick={() => farm.fulfilOrder(o.id)} data-testid={`deliver-${o.slot}`}>Deliver</button>
+                    {!can && (
+                      <button className="link" data-testid={`hint-${o.slot}`} onClick={() => offerCoins('hint', () => setHints((h) => ({ ...h, [o.id]: Object.entries(o.items).filter(([i, q]) => (inv[i] ?? 0) < q).map(([i]) => hintFor(i)).join(' ') })), { label: 'Hint', title: 'Need a hint?', what: 'A hint' })}>Hint</button>
+                    )}
                     <button className="link" onClick={() => farm.skipOrder(o.id)} data-testid={`skip-${o.slot}`}>Skip</button>
                   </div>
                 </div>
@@ -205,6 +213,27 @@ export function ExpansionPanel() {
       </ul>
       <div className="panel-actions" style={{ marginTop: 10 }}>
         <button className="btn" disabled={!ready} onClick={() => farm.expandLand(id)} data-testid="expand-confirm">Clear the land</button>
+      </div>
+    </PanelShell>
+  );
+}
+
+/** A growing crop: time left and a Speed-up. */
+export function PlotPanel() {
+  const id = useFarm((s) => s.plotInfo);
+  const plot = useFarm((s) => s.plots.find((p) => p.id === id));
+  const setId = useFarm((s) => s.setPlotInfo);
+  useFarm((s) => s.tick);
+  if (!id || !plot || !plot.cropId) return null;
+  const now = farm.now();
+  const stage = cropStage(plot, now);
+  if (stage === 3) return null;
+  const crop = CROP_BY_ID.get(plot.cropId)!;
+  return (
+    <PanelShell title={crop.name} testId="plot-panel" onClose={() => setId(null)}>
+      <p className="meta" data-testid="plot-time">Ready in {formatDuration((plot.readyAt ?? now) - now)}</p>
+      <div className="panel-actions">
+        <button className="btn small" onClick={() => farm.speedUp('plot', id)} data-testid="speedup">Speed up</button>
       </div>
     </PanelShell>
   );

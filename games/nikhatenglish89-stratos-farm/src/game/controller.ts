@@ -5,6 +5,9 @@ import { useFarm } from '../state/store';
 import { bus } from './eventBus';
 import { farmLayout, worldConfig } from './layout';
 import { QUEST_BY_ID } from '../services/quests';
+import { offerCoins, track } from './stratos';
+import { playSfx, setMusicTrack } from './audio';
+import type { SpeedKind } from '../services/types';
 
 const MESSAGES: Record<ErrorCode, string> = {
   invalid_plot: 'That is not a field',
@@ -33,9 +36,16 @@ const MESSAGES: Record<ErrorCode, string> = {
   already_expanded: 'You already own this land',
   not_empty: 'Empty the building first (animals and queued recipes)',
   same_spot: 'Pick a different spot',
+  already_ready: 'It is already ready',
 };
 
 const newKey = () => (globalThis.crypto?.randomUUID?.() ?? `k-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+const ANIMAL_SOUND: Record<string, string> = { chicken: 'cluck', duck: 'quack', cow: 'moo', sheep: 'baa', goat: 'bleat', pig: 'oink' };
+function animalSound(habitatType?: string): string {
+  const animal = habitatType ? BUILDING_BY_ID.get(habitatType)?.animal ?? 'chicken' : 'chicken';
+  return `animal_${animal}_${ANIMAL_SOUND[animal] ?? 'cluck'}`;
+}
 
 export function formatDuration(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -62,11 +72,16 @@ class FarmController {
   }
 
   private apply(snap: FarmSnapshot, changed?: string[]) {
-    useFarm.getState().applySnapshot(snap);
+    const st = useFarm.getState();
+    const before = st.farmLoaded ? st.player.level : snap.level;
+    st.applySnapshot(snap);
+    // Stratos Coins: the site pays once per new level when a game reports level_complete with a level number
+    for (let lv = before; lv < snap.level; lv++) track('level_complete', { level: lv });
+    if (snap.level > before) playSfx('jingle_level_up');
     bus.emit('farm:changed', { plotIds: changed ?? snap.plots.map((p) => p.id) });
   }
 
-  private fail(error: ErrorCode) { useFarm.getState().showToast(MESSAGES[error]); }
+  private fail(error: ErrorCode) { useFarm.getState().showToast(MESSAGES[error]); playSfx('ui_error'); }
 
   /** One action at a time: run the call, show the error or hand the result on. */
   private async act<R extends { ok: boolean }>(call: () => Promise<R>, onOk: (r: Extract<R, { ok: true }>) => void) {
@@ -92,14 +107,14 @@ class FarmController {
     if (!plot) return;
     if (!plot.cropId) { st.setSeedPlot(plotId); return; }
     if (cropStage(plot, this.now()) === 3) { void this.harvest(plotId); return; }
-    const crop = CROP_BY_ID.get(plot.cropId)!;
-    st.showToast(`${crop.name} ready in ${formatDuration((plot.readyAt ?? 0) - this.now())}`);
+    st.setPlotInfo(plotId);
   }
 
   plant(plotId: string, cropId: string) {
     return this.act(() => this.service.plant(plotId, cropId, newKey()), (r) => {
       useFarm.getState().setSeedPlot(null);
       this.apply(r.snapshot, [plotId]);
+      playSfx('plant_seed');
       const plot = r.snapshot.plots.find((p) => p.id === plotId)!;
       bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, lines: [`-${r.cost} coins`] });
     });
@@ -115,6 +130,7 @@ class FarmController {
 
   private afterHarvest(h: { plotId: string; cropId: string; amount: number; xp: number }[], levelUp: number | null, snap: FarmSnapshot) {
     this.apply(snap, h.map((x) => x.plotId));
+    playSfx('harvest_pop');
     h.forEach((x, i) => {
       const plot = snap.plots.find((p) => p.id === x.plotId)!;
       setTimeout(() => bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, cropFrame: `${x.cropId}_3`, lines: [`+${x.amount} ${x.cropId}`, `+${x.xp} XP`] }), i * 90);
@@ -135,6 +151,7 @@ class FarmController {
   sell(itemId: string, qty: number) {
     return this.act(() => this.service.sell(itemId, qty, newKey()), (r) => {
       this.apply(r.snapshot, []);
+      playSfx('coin_collect');
       useFarm.getState().showToast(`Sold ${r.qty} for ${r.coins} coins`);
     });
   }
@@ -174,12 +191,14 @@ class FarmController {
       return this.act(() => this.service.moveBuilding(id, gx, gy, newKey()), (r) => {
         this.cancelPlacing();
         this.apply(r.snapshot);
+        playSfx('place_object');
         useFarm.getState().showToast('Moved');
       });
     }
     return this.act(() => this.service.placeBuilding(type, gx, gy, newKey()), (r) => {
       this.cancelPlacing();
       this.apply(r.snapshot);
+      playSfx('build_complete');
       useFarm.getState().showToast(`${BUILDING_BY_ID.get(type)!.name} built`);
     });
   }
@@ -193,6 +212,7 @@ class FarmController {
   buyAnimal(habitatId: string) {
     return this.act(() => this.service.buyAnimal(habitatId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx(animalSound(useFarm.getState().buildings.find((b) => b.id === habitatId)?.type));
       useFarm.getState().showToast('New animal bought');
     });
   }
@@ -200,13 +220,14 @@ class FarmController {
   feedAnimals(habitatId: string) {
     return this.act(() => this.service.feedAnimals(habitatId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx('feed_animal');
       this.float(habitatId, [`Fed ${r.fed}`]);
       bus.emit('fx:feed', { habitatId });
     });
   }
 
-  collectAnimals(habitatId: string) { return this.act(() => this.service.collectAnimals(habitatId, newKey()), (r) => this.afterCollect(habitatId, r)); }
-  collectJobs(buildingId: string) { return this.act(() => this.service.collectJobs(buildingId, newKey()), (r) => this.afterCollect(buildingId, r)); }
+  collectAnimals(habitatId: string) { return this.act(() => this.service.collectAnimals(habitatId, newKey()), (r) => { playSfx('collect_product'); this.afterCollect(habitatId, r); }); }
+  collectJobs(buildingId: string) { return this.act(() => this.service.collectJobs(buildingId, newKey()), (r) => { playSfx('production_done'); this.afterCollect(buildingId, r); }); }
 
   private afterCollect(buildingId: string, r: Collected) {
     this.apply(r.snapshot);
@@ -217,6 +238,7 @@ class FarmController {
   upgrade(buildingId: string) {
     return this.act(() => this.service.upgradeBuilding(buildingId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx('build_complete');
       useFarm.getState().showToast(`Upgraded to level ${r.level}`);
     });
   }
@@ -224,6 +246,7 @@ class FarmController {
   queueRecipe(buildingId: string, recipeId: string) {
     return this.act(() => this.service.queueRecipe(buildingId, recipeId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx('production_start');
       useFarm.getState().showToast(`${RECIPE_BY_ID.get(recipeId)!.name} started`);
     });
   }
@@ -240,6 +263,7 @@ class FarmController {
   fulfilOrder(orderId: string) {
     return this.act(() => this.service.fulfilOrder(orderId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx('order_fulfil');
       useFarm.getState().showToast(`Order delivered: +${r.coins} coins, +${r.xp} XP`);
       if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
     });
@@ -252,6 +276,7 @@ class FarmController {
   claimQuest(questId: string) {
     return this.act(() => this.service.claimQuest(questId, newKey()), (r) => {
       this.apply(r.snapshot);
+      playSfx('jingle_quest_complete');
       const bits = [r.coins && `${r.coins} coins`, r.xp && `${r.xp} XP`, r.gems && `${r.gems} gems`].filter(Boolean).join(', ');
       useFarm.getState().showToast(`${QUEST_BY_ID.get(questId)!.title}: +${bits}`);
       if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
@@ -269,8 +294,44 @@ class FarmController {
     return this.act(() => this.service.expandLand(id, newKey()), (r) => {
       useFarm.getState().setExpansionPanel(null);
       this.apply(r.snapshot);
+      playSfx('expand_land');
       useFarm.getState().showToast('New land cleared! You can build here now');
     });
+  }
+
+  // ---------- Stratos Coins: speed-up ----------
+  /** Finish one crop, animal product or factory job now. On the site it costs a Stratos Coins "boost"; on its own it is free. */
+  speedUp(kind: SpeedKind, id: string) {
+    offerCoins('boost', () => {
+      void this.act(() => this.service.speedUp(kind, id, newKey()), (r) => {
+        this.apply(r.snapshot);
+        useFarm.getState().setPlotInfo(null);
+        playSfx('notification');
+        useFarm.getState().showToast('Done! It is ready now');
+      });
+    }, { label: 'Speed-up', title: 'Finish it right now?', what: 'A speed-up' });
+  }
+
+  // ---------- screens ----------
+  /** Play / Continue on the home screen. Reports level_start, which pays the first-play Stratos Coins once. */
+  startGame() {
+    const st = useFarm.getState();
+    st.setScreen('game');
+    st.setInfoPanel(null);
+    track('level_start', { level: st.player.level });
+    setMusicTrack('music_farm_day');
+  }
+
+  goHome() {
+    const st = useFarm.getState();
+    st.setInfoPanel(null); st.setScreen('home');
+    setMusicTrack('music_title');
+  }
+
+  /** Throw the saved farm away and start over (the home screen asks twice first). */
+  startNewFarm() {
+    try { localStorage.removeItem('stratos_farm_save_v1'); } catch { /* ignore */ }
+    location.reload();
   }
 
   // ---------- derived numbers for the UI ----------

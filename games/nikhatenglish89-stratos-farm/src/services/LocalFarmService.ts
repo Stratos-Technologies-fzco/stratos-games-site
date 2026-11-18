@@ -8,7 +8,7 @@ import { QUEST_BY_ID, TUTORIAL, dayOf, isClaimed, pickDaily, questProgress } fro
 import {
   AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
   FeedResult, HarvestResult, JobState, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
-  RemoveResult, SellResult, SimpleResult, UpgradeResult,
+  RemoveResult, SellResult, SimpleResult, SpeedKind, SpeedResult, UpgradeResult,
   animalHappiness, animalStatus, habitatCapacity, productionSlots,
 } from './types';
 
@@ -624,6 +624,41 @@ export class LocalFarmService implements FarmService {
       s.coins += refund;
       this.log('coins', `remove:${b.id}`, refund, s.coins, 'refund');
       return { ok: true as const, buildingId, refund, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- speed-up (paid for with Stratos Coins by the game page, outside the farm economy) ----------
+  /** Finish one growing crop, one animal product or one factory job right now. */
+  speedUp(kind: SpeedKind, id: string, key: string): Promise<SpeedResult> {
+    return this.tx(key, (): SpeedResult => {
+      const s = this.state, now = this.now();
+      if (kind === 'plot') {
+        const plot = s.plots.find((p) => p.id === id);
+        if (!plot) return fail('invalid_plot');
+        if (!plot.cropId || plot.readyAt === null) return fail('nothing_planted');
+        if (now >= plot.readyAt) return fail('already_ready');
+        plot.readyAt = now;
+      } else if (kind === 'animal') {
+        const a = s.animals.find((x) => x.id === id);
+        if (!a) return fail('bad_request');
+        if (a.readyAt === null) return fail('nothing_hungry'); // hungry animals need feed, not time
+        if (now >= a.readyAt) return fail('already_ready');
+        a.readyAt = now;
+      } else if (kind === 'job') {
+        const job = s.jobs.find((j) => j.id === id);
+        if (!job) return fail('bad_request');
+        if (now >= job.readyAt) return fail('already_ready');
+        const delta = job.readyAt - Math.max(now, job.startAt);
+        const oldEnd = job.readyAt;
+        job.readyAt = now;
+        // later jobs in the same building move up by the time saved
+        for (const j of s.jobs) {
+          if (j.buildingId === job.buildingId && j.id !== job.id && j.startAt >= oldEnd) { j.startAt -= delta; j.readyAt -= delta; }
+        }
+      } else return fail('bad_request');
+      this.bump('speedup');
+      this.log('item', `speedup:${kind}:${id}`, 1, 1, 'speedup');
+      return { ok: true as const, kind, id, snapshot: this.snapshot() };
     });
   }
 }

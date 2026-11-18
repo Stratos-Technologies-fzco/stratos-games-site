@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { xpForNextLevel } from '../game/rules';
+import { loadPrefs, Prefs } from '../game/prefs';
 import type { AnimalState, BuildingState, FarmSnapshot, JobState, OrderState, PlotState } from '../services/types';
 
 export interface SelectedTile { gx: number; gy: number; terrain: string; objectId: string | null }
@@ -36,6 +37,10 @@ interface FarmState {
   marketTab: 'orders' | 'sell' | null;
   questsOpen: boolean;
   expansionPanel: string | null;
+  screen: 'home' | 'game';
+  infoPanel: 'how' | 'tips' | 'about' | 'settings' | null;
+  plotInfo: string | null; // growing plot whose countdown / speed-up panel is open
+  prefs: Prefs;
   toast: { id: number; text: string } | null;
   /** Bumps once a second so countdowns and the "harvest all" button refresh. */
   tick: number;
@@ -54,6 +59,10 @@ interface FarmState {
   setMarketTab: (t: 'orders' | 'sell' | null) => void;
   setQuestsOpen: (open: boolean) => void;
   setExpansionPanel: (id: string | null) => void;
+  setScreen: (s: 'home' | 'game') => void;
+  setInfoPanel: (p: 'how' | 'tips' | 'about' | 'settings' | null) => void;
+  setPlotInfo: (id: string | null) => void;
+  setPrefs: (p: Prefs) => void;
   showToast: (text: string) => void;
   clearToast: (id: number) => void;
   bumpTick: () => void;
@@ -90,6 +99,10 @@ export const useFarm = create<FarmState>((set) => ({
   marketTab: null,
   questsOpen: false,
   expansionPanel: null,
+  screen: 'home',
+  infoPanel: null,
+  plotInfo: null,
+  prefs: loadPrefs(),
   toast: null,
   tick: 0,
 
@@ -123,6 +136,10 @@ export const useFarm = create<FarmState>((set) => ({
   setMarketTab: (marketTab) => set({ marketTab }),
   setQuestsOpen: (questsOpen) => set({ questsOpen }),
   setExpansionPanel: (expansionPanel) => set({ expansionPanel }),
+  setScreen: (screen) => set({ screen }),
+  setInfoPanel: (infoPanel) => set({ infoPanel }),
+  setPlotInfo: (plotInfo) => set({ plotInfo }),
+  setPrefs: (prefs) => set({ prefs }),
   showToast: (text) => set({ toast: { id: ++toastId, text } }),
   clearToast: (id) => set((s) => (s.toast?.id === id ? { toast: null } : {})),
   bumpTick: () => set((s) => ({ tick: s.tick + 1 })),

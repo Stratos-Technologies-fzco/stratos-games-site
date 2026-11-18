@@ -1,8 +1,32 @@
 {
   "title": "STRATOS FARM — MY DREAM VILLAGE",
   "maker": "Nikhat Sultana",
-  "one_line": "Build your dream village: grow a farm, care for it and watch your little village come to life.",
+  "one_line": "Grow a small neglected farm into a thriving dream village: crops, animals, factories and happy customers.",
   "category": "kids",
   "github": "nikhatenglish89",
-  "status": "coming_soon"
+  "how_to_play": "Tap a field to plant, tap ready crops to harvest, then build animal homes and factories and deliver orders from your neighbours.",
+  "description": "Stratos Farm: My Dream Village is a cosy farming game where you start with a small, neglected patch of land and slowly grow it into a busy, colourful village. Tap an empty field, pick a seed and watch your crops grow from tiny sprouts into a golden harvest. Wheat is quick, pumpkins take their time, and every crop gives you coins and experience.\n\nOnce the fields are running, build homes for chickens, ducks, cows, sheep, goats and pigs. Feed them and collect eggs, milk, wool and more. Turn your harvest into flour, bread, cheese, jam and sweaters in eight different factories, and keep their queues full while you do other things. Everything keeps growing and cooking while the game is closed, so there is always something waiting when you come back.\n\nYour neighbours, from Old Joe to Chef Marco, love to place orders. Deliver what they ask for to earn coins and experience, unlock new crops, animals and buildings as you level up, and clear new land to make your village bigger. Daily quests, goals and awards give you a reason to visit every day.\n\nThe game is calm, friendly and has no timers that punish you. Your farm is saved on your device, so you can always continue where you left off. Earn Stratos Coins as you reach new levels and spend them on a speed-up or a hint when you are in a hurry.",
+  "controls": [
+    "Tap or click a field to plant a seed; tap a crop with a green tick to harvest it",
+    "Tap a building to open it: feed animals, collect products, start recipes, move or upgrade it",
+    "Drag to move around the farm; use the mouse wheel or two fingers to zoom",
+    "Use the bottom buttons for the Shop, Animals, Market (orders and selling), Items and Quests"
+  ],
+  "tips": [
+    "Plant wheat first: it only takes two minutes and gives you coins for your first chicken.",
+    "Animals need animal feed. Build a Feed Mill and turn wheat into feed.",
+    "Check the Market often: new customers arrive a few minutes after you deliver an order.",
+    "Fill the queue of every factory before you leave. Production keeps going while the game is closed.",
+    "Claim your daily quests with the scroll button at the top: they change every day.",
+    "Stuck on an order? Tap Hint in the Market to see how to make the missing item."
+  ],
+  "story": "I wanted to make the kind of farm game where nothing is ever wasted and a short visit always feels good. Stratos Farm began with a tiny field and a single chicken, and it grew, just like your village will. Every house, animal and customer is drawn and made for this game.",
+  "faq": [
+    { "q": "Is Stratos Farm free?", "a": "Yes. It is free to play, and you do not need to sign up or log in." },
+    { "q": "Does the farm keep growing when I close the game?", "a": "Yes. Crops, animals and factories keep working while you are away, and everything is waiting for you when you return." },
+    { "q": "Where is my progress saved?", "a": "On this device, in your browser. Press Continue on the home screen to carry on where you left off." },
+    { "q": "What are Stratos Coins used for here?", "a": "You earn Stratos Coins by playing and reaching new levels. You can spend them on a Speed-up for a crop, an animal or a recipe, or on a Hint for an order." },
+    { "q": "Does it work on a phone?", "a": "Yes. It is built for phones and computers: drag to move around and tap to play." }
+  ],
+  "resume": { "native": true, "how": "The whole farm is saved after every action and the home screen has a Continue button; crops, animals and factories carry on while the game is closed." }
 }

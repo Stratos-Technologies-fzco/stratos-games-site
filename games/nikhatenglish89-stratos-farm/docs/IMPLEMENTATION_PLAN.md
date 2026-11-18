@@ -1,6 +1,6 @@
 # IMPLEMENTATION PLAN
 
-Status: **MVP (Phases 1-4) built. Waiting for the owner on: push to staging, then the site-launch pass.** Decisions approved 2026-11-18: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, currencies Farm Coins + Gems.
+Status: **MVP built and the site-launch checklist done (2026-11-18). Waiting for the owner to say "publish" (push to staging).** Decisions approved: no backend (local FarmService), keep React, build in the Desktop clone, category `kids`, Farm Coins + Gems as the game's own currencies.
 
 ## Phase 1 — Foundation (DONE)  ~35 files, all under games/nikhatenglish89-stratos-farm/
 - Tooling: package.json, vite.config.ts, tsconfig, tailwind config, vitest + playwright config.
@@ -40,8 +40,39 @@ Status: **MVP (Phases 1-4) built. Waiting for the owner on: push to staging, the
 | Server-authoritative rules | Met **locally only**: no real server (decision 1). A player can edit the save or set the device clock |
 | Registration / login | Dropped on purpose (site rule: no sign-up forms) |
 
+## Site launch checklist (CLAUDE.md of the site repo, checked 2026-11-18)
+| Rule | Status |
+|---|---|
+| Stratos splash and loading screen | Added by the site on the play page (the game must not build its own). The game starts straight on its own logo + home screen |
+| Home screen with a clear goal, logo, Play / Continue | Done (`Home.tsx`): logo, one-line goal, Play or Continue (+ level and coins), How to play, Tips, About, music/sound switches, rotating tip, "Start a new farm" (asks twice) |
+| How to play, tips, about | Done, in the home screen and in Settings; text comes from `game.json`, so the page and the game never disagree |
+| Fits the screen, no scrolling, phone portrait + landscape + computer | Checked at 390x844 phone, 1366x768 computer, 640x360 (screens only; panels scroll inside themselves) |
+| First tap to fun under 10 s | Home -> Play -> farm, tutorial banner |
+| Teaches while playing | 5-step tutorial banner, skippable |
+| Sound off by default, mute | Music and effects both OFF, nothing downloaded until turned on, remembered; soft sounds only |
+| No sign-up forms, no outside scripts, works offline once loaded | Met |
+| No errors in the console | Met (every test fails on a console error) |
+| Saved progress / Continue (#72) | `localStorage` save after every action; Continue on the home screen; `game.json` has `"resume": {"native": true}` |
+| Full game page (#70) | `game.json`: 237-word description, controls, tips, story, 5 FAQ questions, how_to_play |
+| Cover (800x500) | `thumbnail.png`, a real picture from the game |
+| Hover clip (#71) | `preview.mp4`, 6 s, 480x300, silent, real play (harvest, pan, zoom). Made with the Playwright + ffmpeg-static equivalent of `tools/make_clip.py` because Python Playwright and ffmpeg are not installed here |
+| Analytics | Not needed: `kids` category (no analytics, no ads) |
+| Stratos Coins: earn | `level_start` on Play (first-play coins), `level_complete` with a level number when the player levels up (new-level coins). Both sent through `Stratos.track`, paid by the site |
+| Stratos Coins: spend | Items `boost` (Speed-up for a crop, an animal product or a factory job) and `hint` (how to get an order item), through `Stratos.coins.offer`. The site shows price and balance and spends on one tap |
+| Own coin kept separate | Farm Coins and Gems stay in the game; the Stratos balance is shown separately (top bar chip, home screen, Settings) |
+| Plays when Stratos is absent | Yes: boosts and hints are then free, nothing breaks (tested) |
+| Never touches `stratos.` storage keys | Save key is `stratos_farm_save_v1`, preferences `sf_prefs_v1` |
+| Real wallet test | `e2e/stratos-site.spec.ts` runs the game in a copy of the play page with the real `assets/stratos.js` and `coins-config.json`: +20 first play, +10 new level, -20 speed-up, -10 hint, a refused spend changes nothing |
+| `tools/check_games.py` | cover, clip, details, files, coins, resume all pass ("goes live"); analytics is a dash (kids). The phone/computer rows were skipped by the tool (no Python Playwright) and were checked with an equivalent script: no scrolling, no crash |
+
+## Needs a human or the admins
+- **Say "publish"** to push to `staging` (removing `coming_soon` puts the game on the staging play page; it goes live at the Saturday release if issue #33 shows it ready, and @Mohua tests it).
+- Anything in `assets/coins-config.json` (new rules or items, e.g. a "daily_challenge" for this game, a bigger price for boost) belongs to Sarfaraj, Sahil or Sahariar.
+- Kids category means no ads and no analytics on this game (read the three questions in the commit). If the owner wants ads or analytics, change `category` to a general one and add `track()` events + a rewarded-ad `offerReward`.
+- Pinch zoom and touch were never tried on a real phone; hover sound and music were checked for loading, not by ear.
+
 ## Next steps (exact)
-1. Push Phases 2-4 to `staging` (owner's call) and check https://stratos-family-staging.vercel.app.
-2. Site-launch pass (not in the master prompt, required by the repo): home screen with a clear goal and **Continue** (`"resume": {"native": true}` fits), thumbnail 800x500, hover clip (`tools/make_clip.py`), 150+ word description / controls / tips / story in `game.json`, `how_to_play`, Stratos Coins adapter (earn via `level_complete` events, spend on `hint`-style items; kids category = no analytics), no console errors, sound off by default.
-3. Phase 6 (polish): audio, animations, accessibility, mobile pass on a real phone.
+1. Publish to `staging` when the owner says so; check https://stratos-family-staging.vercel.app and issue #33.
+2. Real-phone test (touch, pinch, portrait), listen to the sounds.
+3. Balance pass with real play numbers; polish animations; `construction_2x2` build animation.
 4. Later, needs a backend + Stratos central accounts: social, leaderboards, admin dashboard, real purchases.

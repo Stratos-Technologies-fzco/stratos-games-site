@@ -5,6 +5,7 @@ async function openFarm(page: Page) {
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('/app.html?debug=1');
+  await page.getByTestId('play').click({ timeout: 30000 }); // the home screen comes first
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   return errors;
 }
@@ -88,7 +89,8 @@ test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', 
   // not ready yet: tapping shows the countdown instead of harvesting
   p = await tilePos(page, 2, 6);
   await page.mouse.click(p.x, p.y);
-  await expect(page.getByTestId('toast')).toContainText('ready in');
+  await expect(page.getByTestId('plot-panel')).toContainText('Ready in');
+  await page.getByTestId('plot-panel-close').click();
   await expect(page.getByTestId('harvest-all')).toHaveCount(0);
   // fast-forward server time past the 2 minute grow time
   await page.evaluate(() => (window as any).__farm.advance(121000));
@@ -101,6 +103,8 @@ test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', 
   await page.getByTestId('inventory-panel-close').click();
   // reload: state comes back from the saved farm
   await page.reload();
+  await expect(page.getByTestId('resume-note')).toBeVisible({ timeout: 30000 }); // Continue, not Play
+  await page.getByTestId('play').click();
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId('coins')).toContainText('98');
   await page.getByTestId('nav-inventory').click();
@@ -180,6 +184,8 @@ test('animals and production: egg, wheat -> flour -> bread, and it all survives 
 
   // reload: buildings, animal and items come back from the save
   await page.reload();
+  await expect(page.getByTestId('resume-note')).toBeVisible({ timeout: 30000 }); // Continue, not Play
+  await page.getByTestId('play').click();
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   await page.getByTestId('nav-inventory').click();
   await expect(page.getByTestId('inv-egg')).toContainText('Egg × 1');
@@ -234,6 +240,8 @@ test('first session: the five tutorial steps, with a real order and a real sale'
   await expect(banner).toHaveCount(0);
   // it stays finished after a reload
   await page.reload();
+  await expect(page.getByTestId('resume-note')).toBeVisible({ timeout: 30000 }); // Continue, not Play
+  await page.getByTestId('play').click();
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId('tutorial')).toHaveCount(0);
   expect(errors).toEqual([]);
@@ -293,5 +301,122 @@ test('expand land, build on it, move and remove a building, claim a quest', asyn
   await expect(page.getByTestId('quest-ach_level_3')).toBeVisible();
   await page.getByTestId('claim-ach_level_3').click(); // level 4 already passed level 3
   await expect(page.getByTestId('gems')).toContainText('6');
+  expect(errors).toEqual([]);
+});
+
+test('home screen: logo, how to play, tips, about, sound off by default, Continue after progress', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/app.html?debug=1');
+  await expect(page.getByTestId('home')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.home img.logo')).toBeVisible();
+  await expect(page.getByTestId('play')).toHaveText('Play'); // nothing to continue yet
+  await expect(page.getByTestId('home-music')).toHaveAttribute('aria-pressed', 'false'); // sound is off by default
+  await expect(page.getByTestId('home-sfx')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('home-tip')).toContainText('Tip:');
+  await page.getByTestId('home-how').click();
+  await expect(page.getByTestId('how-panel')).toContainText('Your first five steps');
+  await expect(page.getByTestId('how-panel')).toContainText('Stratos Coins');
+  await page.getByTestId('how-panel-close').click();
+  await page.getByTestId('home-tips').click();
+  await expect(page.getByTestId('tips-panel')).toContainText('Plant wheat first');
+  await page.getByTestId('tips-panel-close').click();
+  await page.getByTestId('home-about').click();
+  await expect(page.getByTestId('about-panel')).toContainText('Nikhat Sultana');
+  await expect(page.getByTestId('about-panel')).toContainText('Is Stratos Farm free?');
+  await page.getByTestId('about-panel-close').click();
+  // no Stratos site around: no Stratos Coins chip
+  await expect(page.getByTestId('home-stratos')).toHaveCount(0);
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('stratos-coins')).toHaveCount(0);
+  // settings: toggles and back to the home screen
+  await page.getByTestId('settings').click();
+  await expect(page.getByTestId('settings-panel')).toBeVisible();
+  await page.getByTestId('set-sfx').click();
+  await expect(page.getByTestId('set-sfx')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('set-sfx').click();
+  await page.getByTestId('set-how').click();
+  await expect(page.getByTestId('how-panel')).toBeVisible();
+  await page.getByTestId('how-panel-close').click();
+  // make some progress, go home: the button now says Continue
+  const p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('seed-wheat').click();
+  await page.getByTestId('settings').click();
+  await page.getByTestId('set-home').click();
+  await expect(page.getByTestId('play')).toHaveText('Continue');
+  await expect(page.getByTestId('resume-note')).toContainText('Level 1');
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('top-bar')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('Stratos Coins: first-play and level events, balance chip, paid speed-up and hint', async ({ page }) => {
+  await page.addInitScript(() => {
+    const w = window as any;
+    w.__events = []; w.__offers = [];
+    w.Stratos = {
+      track: (name: string, d: unknown) => w.__events.push([name, d]),
+      coins: { balance: () => 42, onChange: () => () => undefined, offer: (kind: string, done: () => void) => { w.__offers.push(kind); done(); } },
+    };
+    if (!localStorage.getItem('stratos_farm_save_v1')) {
+      localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+        version: 2, coins: 500, gems: 5, xp: 99, level: 1, inventory: {},
+        plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+      }));
+    }
+  });
+  await page.goto('/app.html?debug=1');
+  await expect(page.getByTestId('home-stratos')).toContainText('42 Stratos Coins');
+  await page.getByTestId('play').click();
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId('stratos-coins')).toContainText('42');
+  // Play reports level_start (pays the first-play Stratos Coins on the site)
+  expect(await page.evaluate(() => (window as any).__events)).toContainEqual(['level_start', { level: 1 }]);
+  // speed-up goes through the wallet
+  await page.getByTestId('tutorial-skip').click();
+  const p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('seed-wheat').click();
+  const q = await tilePos(page, 2, 6);
+  await page.mouse.click(q.x, q.y);
+  await expect(page.getByTestId('plot-panel')).toContainText('Ready in');
+  await page.getByTestId('speedup').click();
+  expect(await page.evaluate(() => (window as any).__offers)).toEqual(['boost']);
+  await expect(page.getByTestId('harvest-all')).toBeVisible({ timeout: 5000 });
+  // harvesting the 99 -> 100 xp levels up: level_complete for level 1 is reported
+  await page.getByTestId('harvest-all').click();
+  await expect(page.getByTestId('level')).toContainText('Lv 2');
+  expect(await page.evaluate(() => (window as any).__events)).toContainEqual(['level_complete', { level: 1 }]);
+  // an order we cannot fill yet offers a paid hint
+  await page.getByTestId('nav-market').click();
+  await page.getByTestId('tab-orders').click();
+  const hintBtn = page.getByTestId('hint-1');
+  await expect(hintBtn).toBeVisible();
+  await hintBtn.click();
+  expect(await page.evaluate(() => (window as any).__offers)).toEqual(['boost', 'hint']);
+  await expect(page.getByTestId('hint-text-1')).toContainText('plant it in a field');
+});
+
+test('sound stays silent and undownloaded until the player turns it on, and the choice is remembered', async ({ page }) => {
+  const audio: string[] = [];
+  page.on('request', (r) => { if (/\.(ogg|mp3)(\?|$)/.test(r.url())) audio.push(r.url()); });
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto('/app.html?debug=1');
+  await page.getByTestId('play').click({ timeout: 30000 });
+  await page.getByTestId('top-bar').waitFor();
+  await page.waitForTimeout(1500);
+  expect(audio).toEqual([]); // nothing downloaded by default
+  await page.getByTestId('settings').click();
+  await page.getByTestId('set-music').click();
+  await expect(page.getByTestId('set-music')).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => audio.length, { timeout: 15000 }).toBeGreaterThan(5); // the files load only now
+  expect(audio.some((u) => u.includes('music_farm_day'))).toBe(true);
+  await page.reload();
+  await page.getByTestId('home-music').waitFor({ timeout: 30000 });
+  await expect(page.getByTestId('home-music')).toHaveAttribute('aria-pressed', 'true'); // remembered
   expect(errors).toEqual([]);
 });

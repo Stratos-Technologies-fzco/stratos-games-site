@@ -63,7 +63,7 @@ export type ErrorCode =
   | 'nothing_planted' | 'not_ready' | 'nothing_ready' | 'insufficient_items' | 'bad_request'
   | 'unknown_building' | 'invalid_placement' | 'wrong_building' | 'at_capacity' | 'nothing_hungry'
   | 'max_level' | 'unknown_recipe' | 'queue_full'
-  | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
+  | 'already_ready' | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
 
 export type Result<T> = ({ ok: true; snapshot: FarmSnapshot; replayed?: boolean } & T) | { ok: false; error: ErrorCode };
 
@@ -83,6 +83,8 @@ export type ExpandResult = Result<{ expansionId: string }>;
 export type MoveResult = Result<{ buildingId: string }>;
 export type RemoveResult = Result<{ buildingId: string; refund: number }>;
 export type SimpleResult = Result<object>;
+export type SpeedKind = 'plot' | 'animal' | 'job';
+export type SpeedResult = Result<{ kind: SpeedKind; id: string }>;
 
 export interface FarmService {
   load(): Promise<FarmSnapshot>;
@@ -105,6 +107,7 @@ export interface FarmService {
   expandLand(expansionId: string, key: string): Promise<ExpandResult>;
   moveBuilding(buildingId: string, gx: number, gy: number, key: string): Promise<MoveResult>;
   removeBuilding(buildingId: string, key: string): Promise<RemoveResult>;
+  speedUp(kind: SpeedKind, id: string, key: string): Promise<SpeedResult>;
 }
 
 export interface LedgerRow {
