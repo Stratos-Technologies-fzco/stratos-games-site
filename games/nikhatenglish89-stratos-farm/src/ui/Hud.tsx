@@ -3,11 +3,13 @@ import { useFarm } from '../state/store';
 import { bus } from '../game/eventBus';
 import { Icon } from './Icon';
 import { farmLayout } from '../game/layout';
+import { useClaimable } from './EconomyPanels';
 
 export function TopBar() {
   const { player, xpNext } = useFarm();
   const pct = Math.min(100, Math.round((player.xp / xpNext) * 100));
   const soon = () => useFarm.getState().showToast('Settings are coming soon');
+  const claimable = useClaimable();
   return (
     <header className="top-bar" data-testid="top-bar">
       <div className="avatar">
@@ -26,6 +28,10 @@ export function TopBar() {
       <div className="spacer" />
       <div className="pill" data-testid="coins"><Icon name="coin" size={26} /><span>{player.coins}</span></div>
       <div className="pill" data-testid="gems"><Icon name="gem" size={26} /><span>{player.gems}</span></div>
+      <button className="round-btn" onClick={() => useFarm.getState().setQuestsOpen(true)} aria-label="Quests" data-testid="quests-btn">
+        <Icon name="quest" size={26} />
+        {claimable > 0 && <span className="badge" data-testid="quest-badge">{claimable}</span>}
+      </button>
       <button className="round-btn disabled" onClick={soon} aria-label="Settings (coming soon)" aria-disabled="true" data-testid="settings">
         <Icon name="settings" size={26} />
       </button>
@@ -37,7 +43,7 @@ const NAV = [
   { id: 'farm', label: 'Farm', icon: 'nav_farm', ready: true },
   { id: 'shop', label: 'Shop', icon: 'nav_shop', ready: true },
   { id: 'animals', label: 'Animals', icon: 'nav_animals', ready: true },
-  { id: 'market', label: 'Market', icon: 'nav_market', ready: false },
+  { id: 'market', label: 'Market', icon: 'nav_market', ready: true },
   { id: 'inventory', label: 'Items', icon: 'nav_inventory', ready: true },
   { id: 'map', label: 'Map', icon: 'nav_map', ready: false },
 ];
@@ -56,6 +62,7 @@ export function BottomNav() {
           onClick={() => {
             if (!n.ready) showToast(`${n.label} is coming soon`);
             else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
+            else if (n.id === 'market') useFarm.getState().setMarketTab('orders');
             else if (n.id === 'shop') useFarm.getState().setShopTab('factories');
             else if (n.id === 'animals') useFarm.getState().setShopTab('habitats');
             else bus.emit('camera:reset');

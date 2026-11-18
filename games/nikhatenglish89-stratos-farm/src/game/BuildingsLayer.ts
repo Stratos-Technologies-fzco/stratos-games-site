@@ -40,8 +40,16 @@ export class BuildingsLayer {
   // ---------- state -> sprites ----------
   sync() {
     const st = useFarm.getState();
+    // removed buildings
+    for (const [id, bs] of [...this.buildings]) {
+      if (st.buildings.some((b) => b.id === id)) continue;
+      this.occ.remove(id); bs.img.destroy(); bs.bubble.destroy(); this.buildings.delete(id);
+      for (const [aid, a] of [...this.animals]) if (a.buildingId === id) { a.img.destroy(); this.animals.delete(aid); }
+    }
     for (const b of st.buildings) {
-      if (this.buildings.has(b.id)) continue;
+      const have = this.buildings.get(b.id);
+      if (have && (have.gx !== b.gx || have.gy !== b.gy)) { this.relocate(b.id, b.gx, b.gy); continue; }
+      if (have) continue;
       const def = BUILDING_BY_ID.get(b.type)!;
       this.occ.place(b.id, b.gx, b.gy, { w: def.w, h: def.h });
       const p = gridToScreen(b.gx, b.gy);
@@ -66,6 +74,20 @@ export class BuildingsLayer {
       this.placeAnimal(s);
     }
     this.refresh();
+  }
+
+  /** A moved building: new tiles in the occupancy map, new screen position, its animals follow. */
+  private relocate(id: string, gx: number, gy: number) {
+    const bs = this.buildings.get(id)!;
+    const def = BUILDING_BY_ID.get(bs.type)!;
+    this.occ.remove(id);
+    this.occ.place(id, gx, gy, { w: def.w, h: def.h });
+    bs.gx = gx; bs.gy = gy;
+    const p = gridToScreen(gx, gy);
+    const depth = depthKey(gx, gy, { w: def.w, h: def.h }, OBJECT_LAYER);
+    bs.img.setPosition(p.x, p.y).setDepth(depth).setAlpha(1);
+    bs.bubble.setDepth(depth + 500).setPosition(p.x, p.y - bs.img.displayOriginY + 40);
+    for (const a of this.animals.values()) if (a.buildingId === id) { this.scene.tweens.killTweensOf(a.img); a.walking = false; this.placeAnimal(a); }
   }
 
   private placeAnimal(a: AnimalSprite) {
@@ -116,9 +138,13 @@ export class BuildingsLayer {
   }
 
   // ---------- placement mode ----------
-  startPlacing(type: string) {
+  private moveId: string | null = null;
+
+  startPlacing(type: string, moveId?: string) {
     this.endPlacing();
     this.placingType = type;
+    this.moveId = moveId ?? null;
+    if (moveId) this.buildings.get(moveId)?.img.setAlpha(0.35);
     const def = BUILDING_BY_ID.get(type)!;
     this.ghost = this.scene.add.image(0, 0, def.atlas, def.frames[0]).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false);
   }
@@ -131,11 +157,13 @@ export class BuildingsLayer {
     const p = gridToScreen(gx, gy);
     this.ghost.setPosition(p.x, p.y).setVisible(true);
     this.ghostCell = { gx, gy };
-    const res = this.preview.show(gx, gy, { w: def.w, h: def.h });
+    const res = this.preview.show(gx, gy, { w: def.w, h: def.h }, this.moveId ?? undefined);
     bus.emit('place:moved', { gx, gy, valid: res.valid });
   }
 
   endPlacing() {
+    if (this.moveId) this.buildings.get(this.moveId)?.img.setAlpha(1);
+    this.moveId = null;
     this.placingType = null; this.ghostCell = null;
     this.ghost?.destroy(); this.ghost = null;
     this.preview.hide();

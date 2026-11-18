@@ -3,6 +3,7 @@ import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from '.
 import { useFarm } from '../state/store';
 import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
 import { BuildingPanel, PlacementBar, ShopPanel } from './BuildingPanels';
+import { ExpansionPanel, MarketPanel, QuestsPanel, TutorialBanner } from './EconomyPanels';
 
 export function App() {
   const ready = useFarm((s) => s.ready);
@@ -22,6 +23,10 @@ export function App() {
           <ShopPanel />
           <BuildingPanel />
           <PlacementBar />
+          <MarketPanel />
+          <QuestsPanel />
+          <ExpansionPanel />
+          <TutorialBanner />
           <HarvestAllButton />
           <BottomNav />
           <Toast />

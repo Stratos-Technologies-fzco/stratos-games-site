@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEFAULT_ISO, depthKey, gridToScreen, screenToGrid, worldBounds } from '../iso/grid';
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
-import { farmLayout as L, isBuildableTile, LayoutObject, terrainFrameAt } from './layout';
+import { farmLayout as L, isBuildableTile, LayoutObject, lockedExpansionAt, terrainFrameAt } from './layout';
 import { Manifest } from './assets';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
@@ -26,6 +26,7 @@ export class FarmScene extends Phaser.Scene {
   private preview!: PlacementPreview;
   private debug = false;
   private water: { img: Phaser.GameObjects.Image; frames: string[]; gx: number; gy: number }[] = [];
+  private tiles = new Map<string, Phaser.GameObjects.Image>();
   private minZoom = 0.2;
   private fitZoom = 0.5;
   private userMoved = false;
@@ -52,11 +53,11 @@ export class FarmScene extends Phaser.Scene {
     bus.on('ui:panelClosed', () => this.clearSelection());
     bus.on('camera:reset', () => this.fitCamera(true));
     this.buildPlots();
-    this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy));
+    this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded));
     this.layer.sync();
-    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.layer.sync(); });
+    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); });
     bus.on('fx:feed', ({ habitatId }) => this.layer.feed(habitatId));
-    bus.on('place:start', ({ type }) => { this.clearSelection(); this.layer.startPlacing(type); });
+    bus.on('place:start', ({ type, moveId }) => { this.clearSelection(); this.layer.startPlacing(type, moveId); });
     bus.on('place:end', () => this.layer.endPlacing());
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.layer.animate(this.time.now) });
     bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));
@@ -73,8 +74,9 @@ export class FarmScene extends Phaser.Scene {
       const p = gridToScreen(gx, gy);
       if (gy === L.rows - 1) this.add.image(p.x, p.y, 'atlas_terrain', 'edge_left').setOriginFromFrame().setDepth(EDGE_DEPTH);
       if (gx === L.cols - 1) this.add.image(p.x, p.y, 'atlas_terrain', 'edge_right').setOriginFromFrame().setDepth(EDGE_DEPTH);
-      const t = terrainFrameAt(L, gx, gy);
+      const t = terrainFrameAt(L, gx, gy, useFarm.getState().expanded);
       const img = this.add.image(p.x, p.y, 'atlas_terrain', t.frame).setOriginFromFrame().setDepth(TERRAIN_DEPTH + depthKey(gx, gy));
+      this.tiles.set(`${gx},${gy}`, img);
       if (t.animate) this.water.push({ img, frames: t.animate, gx, gy });
     }
   }
@@ -146,6 +148,19 @@ export class FarmScene extends Phaser.Scene {
         .setPosition(p.x, p.y - 30 - i * 30).setAlpha(1).setVisible(true).setDepth(depth + 1);
       this.tweens.add({ targets: t, y: t.y - 70, alpha: 0, duration: 1100, delay: i * 120, ease: 'Cubic.easeOut', onComplete: () => t!.setVisible(false) });
     });
+  }
+
+  /** Cleared patches turn from locked land into grass. */
+  private refreshTerrain() {
+    const expanded = useFarm.getState().expanded;
+    for (const e of L.expansions) {
+      if (!expanded.includes(e.id)) continue;
+      for (let gx = e.rect[0]; gx < e.rect[0] + e.rect[2]; gx++) for (let gy = e.rect[1]; gy < e.rect[1] + e.rect[3]; gy++) {
+        const img = this.tiles.get(`${gx},${gy}`);
+        const f = terrainFrameAt(L, gx, gy, expanded).frame;
+        if (img && img.frame.name !== f) { img.setFrame(f).setOriginFromFrame(); this.tweens.add({ targets: img, alpha: { from: 0.4, to: 1 }, duration: 400 }); }
+      }
+    }
   }
 
   private animateWater() {
@@ -300,6 +315,8 @@ export class FarmScene extends Phaser.Scene {
     }
     if (objectId) { this.selectObject(objectId); return; }
     if (!tile) { this.clearSelection(); bus.emit('selection:cleared'); return; }
+    const lockedEx = lockedExpansionAt(L, tile.gx, tile.gy, useFarm.getState().expanded);
+    if (lockedEx) { this.selectTile(tile.gx, tile.gy); bus.emit('expansion:tapped', { id: lockedEx.id }); return; }
     this.selectTile(tile.gx, tile.gy);
     const occ = this.occ.occupantAt(tile.gx, tile.gy);
     if (occ && L.objects.find((o) => o.id === occ)?.kind === 'field') {

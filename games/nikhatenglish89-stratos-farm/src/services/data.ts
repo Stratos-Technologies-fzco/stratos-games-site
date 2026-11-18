@@ -4,6 +4,7 @@ import itemsJson from '../data/items.json';
 import animalsJson from '../data/animals.json';
 import buildingsJson from '../data/buildings.json';
 import recipesJson from '../data/recipes.json';
+import ordersJson from '../data/orders.json';
 
 export interface CropDef {
   id: string; name: string; seedCost: number; growSeconds: number;
@@ -41,3 +42,11 @@ export const ITEM_BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
 export const ANIMAL_BY_ID = new Map(ANIMALS.map((a) => [a.id, a]));
 export const BUILDING_BY_ID = new Map(BUILDINGS.map((b) => [b.id, b]));
 export const RECIPE_BY_ID = new Map(RECIPES.map((r) => [r.id, r]));
+
+export interface OrderConfig {
+  slots: { unlockLevel: number }[]; cooldownSeconds: number; rewardMultiplier: number; xpDivisor: number;
+  twoItemsFromLevel: number; firstOrder: { npc: string; items: Record<string, number> };
+  npcs: { id: string; name: string }[];
+}
+export const ORDERS = ordersJson as OrderConfig;
+export const NPC_BY_ID = new Map(ORDERS.npcs.map((n) => [n.id, n]));

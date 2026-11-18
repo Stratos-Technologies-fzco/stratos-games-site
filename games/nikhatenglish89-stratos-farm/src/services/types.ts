@@ -26,6 +26,17 @@ export interface JobState {
   startAt: number; readyAt: number;
 }
 
+export interface OrderState {
+  id: string; slot: number; npc: string;
+  items: Record<string, number>;
+  coins: number; xp: number;
+}
+
+export interface ExpansionDef {
+  id: string; name: string; rect: [number, number, number, number];
+  cost: number; materials: Record<string, number>; unlockLevel: number;
+}
+
 export interface FarmSnapshot {
   version: number;
   coins: number; gems: number; xp: number; level: number;
@@ -34,6 +45,14 @@ export interface FarmSnapshot {
   buildings: BuildingState[];
   animals: AnimalState[];
   jobs: JobState[];
+  orders: OrderState[];
+  /** slot -> time the next order appears there */
+  orderCooldowns: Record<string, number>;
+  expanded: string[];
+  stats: Record<string, number>;
+  claimed: string[];
+  daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
+  tutorialDone: boolean;
   serverNow: number;
   /** Set when a saved game could not be read and a fresh farm was created. */
   notice?: 'save_reset';
@@ -43,7 +62,8 @@ export type ErrorCode =
   | 'invalid_plot' | 'unknown_crop' | 'not_unlocked' | 'insufficient_coins' | 'plot_occupied'
   | 'nothing_planted' | 'not_ready' | 'nothing_ready' | 'insufficient_items' | 'bad_request'
   | 'unknown_building' | 'invalid_placement' | 'wrong_building' | 'at_capacity' | 'nothing_hungry'
-  | 'max_level' | 'unknown_recipe' | 'queue_full';
+  | 'max_level' | 'unknown_recipe' | 'queue_full'
+  | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
 
 export type Result<T> = ({ ok: true; snapshot: FarmSnapshot; replayed?: boolean } & T) | { ok: false; error: ErrorCode };
 
@@ -56,6 +76,13 @@ export type FeedResult = Result<{ fed: number }>;
 export type CollectResult = Result<{ collected: { itemId: string; qty: number }[]; xp: number; levelUp: number | null }>;
 export type UpgradeResult = Result<{ buildingId: string; level: number; cost: number }>;
 export type QueueResult = Result<{ jobId: string; readyAt: number }>;
+
+export type OrderResult = Result<{ orderId: string; coins: number; xp: number; levelUp: number | null }>;
+export type ClaimResult = Result<{ questId: string; coins: number; xp: number; gems: number; levelUp: number | null }>;
+export type ExpandResult = Result<{ expansionId: string }>;
+export type MoveResult = Result<{ buildingId: string }>;
+export type RemoveResult = Result<{ buildingId: string; refund: number }>;
+export type SimpleResult = Result<object>;
 
 export interface FarmService {
   load(): Promise<FarmSnapshot>;
@@ -71,6 +98,13 @@ export interface FarmService {
   upgradeBuilding(buildingId: string, key: string): Promise<UpgradeResult>;
   queueRecipe(buildingId: string, recipeId: string, key: string): Promise<QueueResult>;
   collectJobs(buildingId: string, key: string): Promise<CollectResult>;
+  fulfilOrder(orderId: string, key: string): Promise<OrderResult>;
+  skipOrder(orderId: string, key: string): Promise<SimpleResult>;
+  claimQuest(questId: string, key: string): Promise<ClaimResult>;
+  skipTutorial(key: string): Promise<SimpleResult>;
+  expandLand(expansionId: string, key: string): Promise<ExpandResult>;
+  moveBuilding(buildingId: string, gx: number, gy: number, key: string): Promise<MoveResult>;
+  removeBuilding(buildingId: string, key: string): Promise<RemoveResult>;
 }
 
 export interface LedgerRow {

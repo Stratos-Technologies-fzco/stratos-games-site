@@ -24,7 +24,7 @@ test('loads, renders the canvas and shows the HUD', async ({ page }) => {
   expect(shot.length).toBeGreaterThan(40000);
   await expect(page.getByTestId('coins')).toContainText('100');
   await expect(page.getByTestId('gems')).toContainText('5');
-  await expect(page.getByTestId('nav-market')).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByTestId('nav-map')).toHaveAttribute('aria-disabled', 'true');
   expect(errors).toEqual([]);
 });
 
@@ -187,5 +187,111 @@ test('animals and production: egg, wheat -> flour -> bread, and it all survives 
   await page.getByTestId('inventory-panel-close').click();
   await openBuilding(0, 2);
   await expect(page.getByTestId('habitat-meta')).toContainText('1 / 4');
+  expect(errors).toEqual([]);
+});
+
+test('first session: the five tutorial steps, with a real order and a real sale', async ({ page }) => {
+  const errors = await openFarm(page);
+  const banner = page.getByTestId('tutorial');
+  await expect(banner).toContainText('Step 1 of 5');
+  const plant = async (gx: number, gy: number) => {
+    const p = await tilePos(page, gx, gy);
+    await page.mouse.click(p.x, p.y);
+    await page.getByTestId('seed-wheat').click();
+  };
+  await plant(2, 6);
+  await plant(3, 6);
+  await page.getByTestId('tutorial-claim').click(); // step 1
+  await expect(banner).toContainText('Step 2 of 5');
+  await page.evaluate(() => (window as any).__farm.advance(121000));
+  await expect(page.getByTestId('harvest-all')).toBeVisible({ timeout: 5000 });
+  await page.getByTestId('harvest-all').click();
+  await page.getByTestId('tutorial-claim').click(); // step 2
+  await expect(banner).toContainText('Step 3 of 5');
+  // market: sell one wheat, then deliver Old Joe's order (2 wheat)
+  await page.getByTestId('nav-market').click();
+  await expect(page.getByTestId('order-0')).toContainText('Old Joe');
+  await page.getByTestId('tab-sell').click();
+  await page.getByTestId('sell1-wheat').click();
+  await page.getByTestId('tab-orders').click();
+  await page.getByTestId('deliver-0').click();
+  await page.getByTestId('market-panel-close').click();
+  await page.getByTestId('tutorial-claim').click(); // step 3 (sold something)
+  await expect(banner).toContainText('Step 4 of 5');
+  // coop + chicken
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  const spot = await tilePos(page, 0, 2);
+  await page.mouse.click(spot.x, spot.y);
+  await page.getByTestId('place-confirm').click();
+  const body = await tilePos(page, 1, 3);
+  await page.mouse.click(body.x, body.y - 50);
+  await page.getByTestId('buy-animal').click();
+  await page.getByTestId('building-panel-close').click();
+  await page.getByTestId('tutorial-claim').click(); // step 4
+  await expect(banner).toContainText('Step 5 of 5');
+  await page.getByTestId('tutorial-claim').click(); // step 5 (the order was already delivered)
+  await expect(banner).toHaveCount(0);
+  // it stays finished after a reload
+  await page.reload();
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByTestId('tutorial')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('expand land, build on it, move and remove a building, claim a quest', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 3000, gems: 5, xp: 0, level: 4, inventory: { flour: 5 },
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  // building on locked land is refused
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  let p = await tilePos(page, 8, 8);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('place-confirm')).toBeDisabled();
+  await page.getByTestId('place-cancel').click();
+  // tapping the locked patch opens the expansion panel
+  p = await tilePos(page, 8, 8);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('expansion-panel')).toBeVisible();
+  await page.getByTestId('expand-confirm').click();
+  await expect(page.getByTestId('coins')).toContainText('2700');
+  // now the same spot works
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  p = await tilePos(page, 8, 8);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('place-confirm')).toBeEnabled();
+  await page.getByTestId('place-confirm').click();
+  await expect(page.getByTestId('coins')).toContainText('2640');
+  // move it to a free spot
+  const open = async (gx: number, gy: number) => {
+    const q = await tilePos(page, gx + 1, gy + 1);
+    await page.mouse.click(q.x, q.y - 50);
+    await expect(page.getByTestId('building-panel')).toBeVisible();
+  };
+  await open(8, 8);
+  await page.getByTestId('move').click();
+  p = await tilePos(page, 0, 2);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('place-confirm').click();
+  await open(0, 2);
+  // remove it: two taps, half the price comes back
+  await page.getByTestId('remove').click();
+  await page.getByTestId('remove').click();
+  await expect(page.getByTestId('coins')).toContainText('2670');
+  // quests panel opens and lists today's quests
+  await page.getByTestId('quests-btn').click();
+  await expect(page.getByTestId('quests-panel')).toBeVisible();
+  await page.getByTestId('qtab-achievements').click();
+  await expect(page.getByTestId('quest-ach_level_3')).toBeVisible();
+  await page.getByTestId('claim-ach_level_3').click(); // level 4 already passed level 3
+  await expect(page.getByTestId('gems')).toContainText('6');
   expect(errors).toEqual([]);
 });

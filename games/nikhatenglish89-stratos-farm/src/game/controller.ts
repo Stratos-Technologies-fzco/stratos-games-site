@@ -1,9 +1,10 @@
 import { LocalFarmService } from '../services/LocalFarmService';
-import { ANIMAL_BY_ID, BUILDING_BY_ID, CROP_BY_ID, ITEM_BY_ID, RECIPE_BY_ID } from '../services/data';
+import { ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
 import { animalStatus, cropStage, ErrorCode, FarmSnapshot } from '../services/types';
 import { useFarm } from '../state/store';
 import { bus } from './eventBus';
 import { farmLayout, worldConfig } from './layout';
+import { QUEST_BY_ID } from '../services/quests';
 
 const MESSAGES: Record<ErrorCode, string> = {
   invalid_plot: 'That is not a field',
@@ -24,6 +25,14 @@ const MESSAGES: Record<ErrorCode, string> = {
   max_level: 'Already at the top level',
   unknown_recipe: 'Unknown recipe',
   queue_full: 'The queue is full, collect or upgrade',
+  unknown_order: 'That order is gone',
+  unknown_quest: 'That quest is not available',
+  not_complete: 'Not finished yet',
+  already_claimed: 'Already claimed',
+  unknown_expansion: 'Unknown land',
+  already_expanded: 'You already own this land',
+  not_empty: 'Empty the building first (animals and queued recipes)',
+  same_spot: 'Pick a different spot',
 };
 
 const newKey = () => (globalThis.crypto?.randomUUID?.() ?? `k-${Date.now()}-${Math.random().toString(36).slice(2)}`);
@@ -113,7 +122,15 @@ class FarmController {
     if (levelUp) this.levelUpToast(levelUp);
   }
 
-  private levelUpToast(level: number) { useFarm.getState().showToast(`Level up! You are now level ${level}`); }
+  private levelUpToast(level: number) {
+    const unlocked = [
+      ...CROPS.filter((c) => c.unlockLevel === level).map((c) => c.name),
+      ...ANIMALS.filter((a) => a.unlockLevel === level).map((a) => a.name),
+      ...BUILDINGS.filter((b) => b.unlockLevel === level).map((b) => b.name),
+      ...RECIPES.filter((r) => r.unlockLevel === level && (BUILDING_BY_ID.get(r.building)?.unlockLevel ?? 99) < level).map((r) => r.name),
+    ];
+    useFarm.getState().showToast(`Level ${level}!${unlocked.length ? ` New: ${unlocked.slice(0, 4).join(', ')}` : ''}`);
+  }
 
   sell(itemId: string, qty: number) {
     return this.act(() => this.service.sell(itemId, qty, newKey()), (r) => {
@@ -123,12 +140,17 @@ class FarmController {
   }
 
   // ---------- placing buildings ----------
-  startPlacing(type: string) {
+  startPlacing(type: string, moveId?: string) {
     const st = useFarm.getState();
     st.setShopTab(null);
     st.setBuildingPanel(null);
-    st.setPlacing({ type, gx: null, gy: null, valid: false });
-    bus.emit('place:start', { type });
+    st.setPlacing({ type, moveId, gx: null, gy: null, valid: false });
+    bus.emit('place:start', { type, moveId });
+  }
+
+  startMove(buildingId: string) {
+    const b = useFarm.getState().buildings.find((x) => x.id === buildingId);
+    if (b) this.startPlacing(b.type, buildingId);
   }
 
   /** Reported by the scene whenever the ghost moves. */
@@ -147,6 +169,14 @@ class FarmController {
     if (!p || p.gx === null || p.gy === null) { useFarm.getState().showToast('Tap a spot on the farm first'); return; }
     if (!p.valid) { this.fail('invalid_placement'); return; }
     const { type, gx, gy } = p as { type: string; gx: number; gy: number };
+    if (p.moveId) {
+      const id = p.moveId;
+      return this.act(() => this.service.moveBuilding(id, gx, gy, newKey()), (r) => {
+        this.cancelPlacing();
+        this.apply(r.snapshot);
+        useFarm.getState().showToast('Moved');
+      });
+    }
     return this.act(() => this.service.placeBuilding(type, gx, gy, newKey()), (r) => {
       this.cancelPlacing();
       this.apply(r.snapshot);
@@ -195,6 +225,51 @@ class FarmController {
     return this.act(() => this.service.queueRecipe(buildingId, recipeId, newKey()), (r) => {
       this.apply(r.snapshot);
       useFarm.getState().showToast(`${RECIPE_BY_ID.get(recipeId)!.name} started`);
+    });
+  }
+
+  removeBuilding(buildingId: string) {
+    return this.act(() => this.service.removeBuilding(buildingId, newKey()), (r) => {
+      useFarm.getState().setBuildingPanel(null);
+      this.apply(r.snapshot);
+      useFarm.getState().showToast(`Removed, you got ${r.refund} coins back`);
+    });
+  }
+
+  // ---------- orders, quests, land ----------
+  fulfilOrder(orderId: string) {
+    return this.act(() => this.service.fulfilOrder(orderId, newKey()), (r) => {
+      this.apply(r.snapshot);
+      useFarm.getState().showToast(`Order delivered: +${r.coins} coins, +${r.xp} XP`);
+      if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
+    });
+  }
+
+  skipOrder(orderId: string) {
+    return this.act(() => this.service.skipOrder(orderId, newKey()), (r) => { this.apply(r.snapshot); });
+  }
+
+  claimQuest(questId: string) {
+    return this.act(() => this.service.claimQuest(questId, newKey()), (r) => {
+      this.apply(r.snapshot);
+      const bits = [r.coins && `${r.coins} coins`, r.xp && `${r.xp} XP`, r.gems && `${r.gems} gems`].filter(Boolean).join(', ');
+      useFarm.getState().showToast(`${QUEST_BY_ID.get(questId)!.title}: +${bits}`);
+      if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
+    });
+  }
+
+  skipTutorial() { return this.act(() => this.service.skipTutorial(newKey()), (r) => this.apply(r.snapshot)); }
+
+  onExpansionTapped(id: string) {
+    const st = useFarm.getState();
+    st.setSeedPlot(null); st.setBuildingPanel(null); st.setOpenPanel(null); st.setExpansionPanel(id);
+  }
+
+  expandLand(id: string) {
+    return this.act(() => this.service.expandLand(id, newKey()), (r) => {
+      useFarm.getState().setExpansionPanel(null);
+      this.apply(r.snapshot);
+      useFarm.getState().showToast('New land cleared! You can build here now');
     });
   }
 

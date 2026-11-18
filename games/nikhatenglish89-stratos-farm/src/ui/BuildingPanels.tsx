@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPES } from '../services/data';
@@ -61,6 +62,7 @@ export function BuildingPanel() {
   const inv = useFarm((s) => s.inventory);
   const level = useFarm((s) => s.player.level);
   const setPanel = useFarm((s) => s.setBuildingPanel);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   useFarm((s) => s.tick);
   if (!id || !b) return null;
   const def = BUILDING_BY_ID.get(b.type)!;
@@ -70,6 +72,16 @@ export function BuildingPanel() {
     <button className="btn small" disabled={upgradeCost === null} data-testid="upgrade" onClick={() => farm.upgrade(b.id)}>
       {upgradeCost === null ? 'Max level' : `Upgrade · ${upgradeCost}`}
     </button>
+  );
+
+  const moveRemove = (
+    <div className="btn-row">
+      <button className="btn small" onClick={() => farm.startMove(b.id)} data-testid="move">Move</button>
+      <button className={`btn small ${confirmRemove ? 'red' : ''}`} data-testid="remove"
+        onClick={() => (confirmRemove ? farm.removeBuilding(b.id) : setConfirmRemove(true))}>
+        {confirmRemove ? `Sure? Get ${Math.floor(def.cost / 2)} back` : 'Remove'}
+      </button>
+    </div>
   );
 
   if (def.kind === 'habitat') {
@@ -108,6 +120,7 @@ export function BuildingPanel() {
           <button className="btn small" disabled={level < animal.unlockLevel} onClick={() => farm.buyAnimal(b.id)} data-testid="buy-animal">Buy {animal.name} · {animal.cost}</button>
           {upgradeBtn}
         </div>
+        {moveRemove}
       </PanelShell>
     );
   }
@@ -156,6 +169,7 @@ export function BuildingPanel() {
         <button className="btn small" disabled={done === 0} onClick={() => farm.collectJobs(b.id)} data-testid="collect">Collect ({done})</button>
         {upgradeBtn}
       </div>
+      {moveRemove}
     </PanelShell>
   );
 }
@@ -167,9 +181,9 @@ export function PlacementBar() {
   const def = BUILDING_BY_ID.get(p.type)!;
   return (
     <div className="placement-bar" data-testid="placement-bar">
-      <span>{p.gx === null ? `Tap a spot for your ${def.name}` : p.valid ? 'Looks good!' : 'Something is in the way'}</span>
+      <span>{p.gx === null ? (p.moveId ? `Tap a new spot for your ${def.name}` : `Tap a spot for your ${def.name}`) : p.valid ? 'Looks good!' : 'Something is in the way'}</span>
       <div className="panel-actions">
-        <button className="btn small" disabled={!p.valid} onClick={() => farm.confirmPlacing()} data-testid="place-confirm">Place · {def.cost}</button>
+        <button className="btn small" disabled={!p.valid} onClick={() => farm.confirmPlacing()} data-testid="place-confirm">{p.moveId ? 'Move here' : `Place · ${def.cost}`}</button>
         <button className="btn small red" onClick={() => farm.cancelPlacing()} data-testid="place-cancel">Cancel</button>
       </div>
     </div>

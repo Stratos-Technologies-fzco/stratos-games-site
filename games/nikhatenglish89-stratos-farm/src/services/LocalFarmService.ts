@@ -2,11 +2,13 @@ import { xpForNextLevel } from '../game/rules';
 import { OccupancyMap } from '../iso/occupancy';
 import { validatePlacement } from '../iso/placement';
 import {
-  ANIMAL_BY_ID, BUILDING_BY_ID, CROP_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPE_BY_ID, START,
+  ANIMAL_BY_ID, BUILDING_BY_ID, CROPS, CROP_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, ORDERS, RECIPES, RECIPE_BY_ID, START,
 } from './data';
+import { QUEST_BY_ID, TUTORIAL, dayOf, isClaimed, pickDaily, questProgress } from './quests';
 import {
-  AnimalBuyResult, AnimalState, BuildingState, CollectResult, ErrorCode, FarmService, FarmSnapshot, FeedResult, HarvestResult,
-  JobState, LedgerRow, PlaceResult, PlantResult, PlotState, QueueResult, SellResult, UpgradeResult,
+  AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
+  FeedResult, HarvestResult, JobState, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
+  RemoveResult, SellResult, SimpleResult, UpgradeResult,
   animalHappiness, animalStatus, habitatCapacity, productionSlots,
 } from './types';
 
@@ -32,10 +34,11 @@ export interface WorldConfig {
   plotCells: { gx: number; gy: number }[];
   staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
   isBuildable: (gx: number, gy: number) => boolean;
+  expansions?: ExpansionDef[];
 }
 
 const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
-const VERSION = 2;
+const VERSION = 3;
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -47,6 +50,14 @@ interface SavedState {
   buildings: BuildingState[];
   animals: AnimalState[];
   jobs: JobState[];
+  orders: OrderState[];
+  orderCooldowns: Record<string, number>;
+  orderCounter: number;
+  expanded: string[];
+  stats: Record<string, number>;
+  claimed: string[];
+  daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
+  tutorialDone: boolean;
   nextId: number;
   lastSeen: number;
   ledger: LedgerRow[];
@@ -93,7 +104,7 @@ export class LocalFarmService implements FarmService {
   private fresh(): SavedState {
     return {
       version: VERSION, ...START, inventory: {},
-      plots: this.world.plotCells.map(emptyPlot), buildings: [], animals: [], jobs: [], nextId: 1,
+      plots: this.world.plotCells.map(emptyPlot), buildings: [], animals: [], jobs: [], ...this.phase4Defaults(), nextId: 1,
       lastSeen: this.clock.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
     };
   }
@@ -105,7 +116,10 @@ export class LocalFarmService implements FarmService {
       const s = JSON.parse(raw) as SavedState;
       if (typeof s.coins !== 'number' || !Array.isArray(s.plots)) throw new Error('bad save');
       if (s.version === 1) { // Phase 2 saves gain empty buildings, animals and jobs
-        s.buildings = []; s.animals = []; s.jobs = []; s.nextId = 1; s.version = VERSION;
+        s.buildings = []; s.animals = []; s.jobs = []; s.nextId = 1; s.version = 2;
+      }
+      if (s.version === 2) { // Phase 3 saves gain orders, quests, expansions
+        Object.assign(s, this.phase4Defaults()); s.version = VERSION;
       }
       if (s.version !== VERSION) throw new Error('unknown version');
       const byId = new Map(s.plots.map((p) => [p.id, p]));
@@ -117,14 +131,27 @@ export class LocalFarmService implements FarmService {
     }
   }
 
+  private phase4Defaults() {
+    return {
+      orders: [] as OrderState[], orderCooldowns: {} as Record<string, number>, orderCounter: 0, expanded: [] as string[],
+      stats: {} as Record<string, number>, claimed: [] as string[],
+      daily: { day: -1, ids: [] as string[], base: {} as Record<string, number>, claimed: [] as string[] }, tutorialDone: false,
+    };
+  }
+
   private save() { this.kv.set(SAVE_KEY, JSON.stringify(this.state)); }
 
   private snapshot(): FarmSnapshot {
+    this.refresh();
     const s = this.state;
     return {
       version: VERSION, coins: s.coins, gems: s.gems, xp: s.xp, level: s.level,
       inventory: { ...s.inventory }, plots: s.plots.map((p) => ({ ...p })),
       buildings: s.buildings.map((b) => ({ ...b })), animals: s.animals.map((a) => ({ ...a })), jobs: s.jobs.map((j) => ({ ...j })),
+      orders: s.orders.map((o) => ({ ...o, items: { ...o.items } })), orderCooldowns: { ...s.orderCooldowns },
+      expanded: [...s.expanded], stats: { ...s.stats }, claimed: [...s.claimed],
+      daily: { day: s.daily.day, ids: [...s.daily.ids], base: { ...s.daily.base }, claimed: [...s.daily.claimed] },
+      tutorialDone: s.tutorialDone,
       serverNow: this.now(), ...(this.notice ? { notice: this.notice } : {}),
     };
   }
@@ -137,6 +164,7 @@ export class LocalFarmService implements FarmService {
       const prev = this.state.idem[key] as T | undefined;
       if (prev) return { ...prev, snapshot: this.snapshot(), replayed: true } as T;
       this.state.lastSeen = this.now();
+      this.refresh();
       const backup = JSON.stringify(this.state);
       let res: T;
       try { res = fn(); } catch (e) { this.state = JSON.parse(backup); throw e; }
@@ -189,6 +217,66 @@ export class LocalFarmService implements FarmService {
     while (s.xp >= xpForNextLevel(s.level)) { s.xp -= xpForNextLevel(s.level); s.level += 1; up = s.level; }
     return up;
   }
+  /** Count something the player did; quests and achievements read these counters. */
+  private bump(stat: string, n = 1) { this.state.stats[stat] = (this.state.stats[stat] ?? 0) + n; }
+
+  // ---------- lazy evaluation of orders and daily quests ----------
+  private refresh() {
+    const s = this.state, now = this.now();
+    const day = dayOf(now);
+    if (s.daily.day !== day) {
+      s.daily = { day, ids: pickDaily(day, s.level), base: { ...s.stats }, claimed: [] };
+    }
+    ORDERS.slots.forEach((slot, i) => {
+      if (slot.unlockLevel > s.level || s.orders.some((o) => o.slot === i)) return;
+      if (now < (s.orderCooldowns[i] ?? 0)) return;
+      s.orders.push(this.makeOrder(i));
+      delete s.orderCooldowns[i];
+    });
+  }
+
+  private rng() {
+    // mulberry32: small seeded generator so orders are reproducible
+    let t = (this.state.orderCounter++ * 0x9e3779b9 + 0x6d2b79f5) >>> 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  /** Items a customer may ask for at the player's level: crops, animal products and factory goods they can really make. */
+  private orderableItems(): string[] {
+    const lvl = this.state.level;
+    const out: string[] = CROPS.filter((c) => c.unlockLevel <= lvl).map((c) => c.id);
+    for (const a of ANIMAL_BY_ID.values()) if (a.unlockLevel <= lvl) out.push(a.product);
+    for (const r of RECIPES) {
+      const b = BUILDING_BY_ID.get(r.building)!;
+      if (r.unlockLevel <= lvl && b.unlockLevel <= lvl && ITEM_BY_ID.get(r.output)) out.push(r.output);
+    }
+    return [...new Set(out)];
+  }
+
+  private makeOrder(slot: number): OrderState {
+    const s = this.state;
+    const id = this.newId('o');
+    let npc: string, items: Record<string, number>;
+    if (s.stats.order_made === undefined) { // the very first order is always easy, for the tutorial
+      npc = ORDERS.firstOrder.npc; items = { ...ORDERS.firstOrder.items };
+    } else {
+      npc = ORDERS.npcs[Math.floor(this.rng() * ORDERS.npcs.length)].id;
+      const pool = this.orderableItems();
+      const kinds = s.level >= ORDERS.twoItemsFromLevel && this.rng() < 0.5 ? 2 : 1;
+      items = {};
+      for (let i = 0; i < kinds; i++) {
+        const item = pool[Math.floor(this.rng() * pool.length)];
+        const isCrop = CROP_BY_ID.has(item);
+        items[item] = (items[item] ?? 0) + (isCrop ? 1 + Math.floor(this.rng() * 3) : 1 + Math.floor(this.rng() * 2));
+      }
+    }
+    this.bump('order_made');
+    const value = Object.entries(items).reduce((sum, [i, q]) => sum + ITEM_BY_ID.get(i)!.sellPrice * q, 0);
+    return { id, slot, npc, items, coins: Math.round(value * ORDERS.rewardMultiplier), xp: Math.max(2, Math.round(value / ORDERS.xpDivisor)) };
+  }
+
   private newId(prefix: string) { return `${prefix}${this.state.nextId++}`; }
 
   // ---------- farming ----------
@@ -207,6 +295,7 @@ export class LocalFarmService implements FarmService {
       const now = this.now();
       this.spend(crop.seedCost, `plant:${plotId}:${cropId}`, 'seed');
       plot.cropId = cropId; plot.plantedAt = now; plot.readyAt = now + crop.growSeconds * 1000;
+      this.bump('plant'); this.bump(`plant:${cropId}`);
       return { ok: true as const, plotId, cropId, cost: crop.seedCost, snapshot: this.snapshot() };
     });
   }
@@ -222,6 +311,7 @@ export class LocalFarmService implements FarmService {
       const up = this.addXp(crop.xp, `harvest:${id}`, 'harvest');
       if (up) levelUp = up;
       harvested.push({ plotId: id, cropId: crop.id, amount: crop.yield, xp: crop.xp });
+      this.bump('harvest'); this.bump(`harvest:${crop.id}`);
       plot.cropId = null; plot.plantedAt = null; plot.readyAt = null;
     }
     return { ok: true, harvested, levelUp, snapshot: this.snapshot() };
@@ -253,6 +343,7 @@ export class LocalFarmService implements FarmService {
       if (!item || !Number.isInteger(qty) || qty < 1) return fail('bad_request');
       if ((s.inventory[itemId] ?? 0) < qty) return fail('insufficient_items');
       this.takeItem(itemId, qty, `sell:${itemId}`, 'sell');
+      this.bump('sell', qty);
       const coins = qty * item.sellPrice;
       s.coins += coins;
       this.log('coins', `sell:${itemId}`, coins, s.coins, 'sell');
@@ -271,6 +362,13 @@ export class LocalFarmService implements FarmService {
     return occ;
   }
 
+  /** Base buildable land plus any patch the player has cleared. */
+  private buildable(gx: number, gy: number): boolean {
+    if (this.world.isBuildable(gx, gy)) return true;
+    return (this.world.expansions ?? []).some((e) => this.state.expanded.includes(e.id)
+      && gx >= e.rect[0] && gx < e.rect[0] + e.rect[2] && gy >= e.rect[1] && gy < e.rect[1] + e.rect[3]);
+  }
+
   placeBuilding(type: string, gx: number, gy: number, key: string): Promise<PlaceResult> {
     return this.tx(key, (): PlaceResult => {
       const s = this.state;
@@ -279,10 +377,11 @@ export class LocalFarmService implements FarmService {
       if (!Number.isInteger(gx) || !Number.isInteger(gy)) return fail('bad_request');
       if (def.unlockLevel > s.level) return fail('not_unlocked');
       if (s.coins < def.cost) return fail('insufficient_coins');
-      const check = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, this.world.isBuildable);
+      const check = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, (x, y) => this.buildable(x, y));
       if (!check.valid) return fail('invalid_placement');
       const id = this.newId('b');
       s.buildings.push({ id, type, gx, gy, level: 1 });
+      this.bump('build'); this.bump(`build:${def.kind}`);
       this.spend(def.cost, `build:${id}:${type}`, 'building');
       return { ok: true as const, buildingId: id, cost: def.cost, snapshot: this.snapshot() };
     });
@@ -299,6 +398,7 @@ export class LocalFarmService implements FarmService {
       if (s.coins < cost) return fail('insufficient_coins');
       this.spend(cost, `upgrade:${b.id}:${b.level + 1}`, 'upgrade');
       b.level += 1;
+      this.bump('upgrade');
       return { ok: true as const, buildingId, level: b.level, cost, snapshot: this.snapshot() };
     });
   }
@@ -318,6 +418,7 @@ export class LocalFarmService implements FarmService {
       const id = this.newId('a');
       s.animals.push({ id, type: animal.id, buildingId: habitatId, readyAt: null, hungrySince: this.now(), happiness: 100 });
       this.spend(animal.cost, `animal:${id}:${animal.id}`, 'animal');
+      this.bump('animal_buy');
       return { ok: true as const, animalId: id, cost: animal.cost, snapshot: this.snapshot() };
     });
   }
@@ -366,6 +467,7 @@ export class LocalFarmService implements FarmService {
         const up = this.addXp(def.xp, `collect:${a.id}`, 'animal_product');
         if (up) levelUp = up;
         a.readyAt = null; a.hungrySince = now; // hungry again until fed
+        this.bump('animal_collect');
       }
       return { ok: true as const, collected: [...totals].map(([itemId, qty]) => ({ itemId, qty })), xp, levelUp, snapshot: this.snapshot() };
     });
@@ -392,6 +494,7 @@ export class LocalFarmService implements FarmService {
       const startAt = Math.max(now, ...mine.map((j) => j.readyAt));
       const readyAt = startAt + recipe.seconds * 1000;
       s.jobs.push({ id, buildingId, recipeId, startAt, readyAt });
+      this.bump('job_queue');
       return { ok: true as const, jobId: id, readyAt, snapshot: this.snapshot() };
     });
   }
@@ -410,12 +513,117 @@ export class LocalFarmService implements FarmService {
         const r = RECIPE_BY_ID.get(j.recipeId)!;
         this.addItem(r.output, 1, `job:${j.id}`, 'production');
         totals.set(r.output, (totals.get(r.output) ?? 0) + 1);
+        this.bump('job_collect'); this.bump(`produce:${r.output}`);
         xp += r.xp;
         const up = this.addXp(r.xp, `job:${j.id}`, 'production');
         if (up) levelUp = up;
       }
       s.jobs = s.jobs.filter((j) => !done.includes(j));
       return { ok: true as const, collected: [...totals].map(([itemId, qty]) => ({ itemId, qty })), xp, levelUp, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- customer orders ----------
+  fulfilOrder(orderId: string, key: string): Promise<OrderResult> {
+    return this.tx(key, (): OrderResult => {
+      const s = this.state;
+      const order = s.orders.find((o) => o.id === orderId);
+      if (!order) return fail('unknown_order');
+      for (const [item, qty] of Object.entries(order.items)) if ((s.inventory[item] ?? 0) < qty) return fail('insufficient_items');
+      for (const [item, qty] of Object.entries(order.items)) this.takeItem(item, qty, `order:${order.id}`, 'order_items');
+      s.coins += order.coins;
+      this.log('coins', `order:${order.id}`, order.coins, s.coins, 'order');
+      const levelUp = this.addXp(order.xp, `order:${order.id}`, 'order');
+      s.orders = s.orders.filter((o) => o.id !== orderId);
+      s.orderCooldowns[order.slot] = this.now() + ORDERS.cooldownSeconds * 1000;
+      this.bump('order');
+      return { ok: true as const, orderId, coins: order.coins, xp: order.xp, levelUp, snapshot: this.snapshot() };
+    });
+  }
+
+  /** Not interested: the slot gets a fresh customer after the cooldown. */
+  skipOrder(orderId: string, key: string): Promise<SimpleResult> {
+    return this.tx(key, (): SimpleResult => {
+      const s = this.state;
+      const order = s.orders.find((o) => o.id === orderId);
+      if (!order) return fail('unknown_order');
+      s.orders = s.orders.filter((o) => o.id !== orderId);
+      s.orderCooldowns[order.slot] = this.now() + ORDERS.cooldownSeconds * 1000;
+      return { ok: true as const, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- quests, achievements, tutorial ----------
+  claimQuest(questId: string, key: string): Promise<ClaimResult> {
+    return this.tx(key, (): ClaimResult => {
+      const s = this.state;
+      const def = QUEST_BY_ID.get(questId);
+      if (!def) return fail('unknown_quest');
+      const view = { stats: s.stats, level: s.level, daily: s.daily, claimed: s.claimed };
+      const active = def.daily ? s.daily.ids.includes(def.id) : def.unlockLevel <= s.level;
+      if (!active) return fail('unknown_quest');
+      if (isClaimed(def, view)) return fail('already_claimed');
+      if (questProgress(def, view) < def.target) return fail('not_complete');
+      (def.daily ? s.daily.claimed : s.claimed).push(def.id);
+      const coins = def.reward.coins ?? 0, xp = def.reward.xp ?? 0, gems = def.reward.gems ?? 0;
+      if (coins) { s.coins += coins; this.log('coins', `quest:${def.id}`, coins, s.coins, 'quest'); }
+      if (gems) { s.gems += gems; this.log('gems', `quest:${def.id}`, gems, s.gems, 'quest'); }
+      const levelUp = xp ? this.addXp(xp, `quest:${def.id}`, 'quest') : null;
+      if (TUTORIAL.every((t) => s.claimed.includes(t.id))) s.tutorialDone = true;
+      return { ok: true as const, questId, coins, xp, gems, levelUp, snapshot: this.snapshot() };
+    });
+  }
+
+  skipTutorial(key: string): Promise<SimpleResult> {
+    return this.tx(key, (): SimpleResult => { this.state.tutorialDone = true; return { ok: true as const, snapshot: this.snapshot() }; });
+  }
+
+  // ---------- land ----------
+  /** A locked patch becomes buildable land once cleared with coins and materials. */
+  expandLand(expansionId: string, key: string): Promise<ExpandResult> {
+    return this.tx(key, (): ExpandResult => {
+      const s = this.state;
+      const ex = this.world.expansions?.find((e) => e.id === expansionId);
+      if (!ex) return fail('unknown_expansion');
+      if (s.expanded.includes(ex.id)) return fail('already_expanded');
+      if (ex.unlockLevel > s.level) return fail('not_unlocked');
+      if (s.coins < ex.cost) return fail('insufficient_coins');
+      for (const [item, qty] of Object.entries(ex.materials)) if ((s.inventory[item] ?? 0) < qty) return fail('insufficient_items');
+      this.spend(ex.cost, `expand:${ex.id}`, 'expansion');
+      for (const [item, qty] of Object.entries(ex.materials)) this.takeItem(item, qty, `expand:${ex.id}`, 'expansion_materials');
+      s.expanded.push(ex.id);
+      this.bump('expand');
+      return { ok: true as const, expansionId, snapshot: this.snapshot() };
+    });
+  }
+
+  moveBuilding(buildingId: string, gx: number, gy: number, key: string): Promise<MoveResult> {
+    return this.tx(key, (): MoveResult => {
+      const s = this.state;
+      const b = s.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      if (!Number.isInteger(gx) || !Number.isInteger(gy)) return fail('bad_request');
+      if (b.gx === gx && b.gy === gy) return fail('same_spot');
+      const def = BUILDING_BY_ID.get(b.type)!;
+      const check = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, (x, y) => this.buildable(x, y), b.id);
+      if (!check.valid) return fail('invalid_placement');
+      b.gx = gx; b.gy = gy;
+      return { ok: true as const, buildingId, snapshot: this.snapshot() };
+    });
+  }
+
+  /** Removing refunds half the build price. A building must be empty (no animals, no queued jobs). */
+  removeBuilding(buildingId: string, key: string): Promise<RemoveResult> {
+    return this.tx(key, (): RemoveResult => {
+      const s = this.state;
+      const b = s.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      if (s.animals.some((a) => a.buildingId === b.id) || s.jobs.some((j) => j.buildingId === b.id)) return fail('not_empty');
+      const refund = Math.floor(BUILDING_BY_ID.get(b.type)!.cost / 2);
+      s.buildings = s.buildings.filter((x) => x.id !== buildingId);
+      s.coins += refund;
+      this.log('coins', `remove:${b.id}`, refund, s.coins, 'refund');
+      return { ok: true as const, buildingId, refund, snapshot: this.snapshot() };
     });
   }
 }
