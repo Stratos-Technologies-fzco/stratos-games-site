@@ -21,7 +21,7 @@ function useShopClick() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   return (id: string) => {
     const now = Date.now();
-    if (last.current && last.current.id === id && now - last.current.t < 300) {
+    if (last.current && last.current.id === id && now - last.current.t < 400) {
       if (timer.current) clearTimeout(timer.current);
       last.current = null;
       farm.placeAtSelected(id);
@@ -33,7 +33,7 @@ function useShopClick() {
       last.current = null;
       if (useFarm.getState().player.coins < (BUILDING_BY_ID.get(id)?.cost ?? 0)) useFarm.getState().showToast('Not enough coins');
       else farm.startPlacing(id);
-    }, 310);
+    }, 410);
   };
 }
 

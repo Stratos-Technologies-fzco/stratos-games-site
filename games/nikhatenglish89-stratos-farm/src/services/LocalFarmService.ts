@@ -408,6 +408,14 @@ export class LocalFarmService implements FarmService {
       && gx >= e.rect[0] && gx < e.rect[0] + e.rect[2] && gy >= e.rect[1] && gy < e.rect[1] + e.rect[3]);
   }
 
+  /** Would this building fit here? Answers without changing anything (the real check still runs again in placeBuilding). */
+  canPlace(type: string, gx: number, gy: number, ignoreId?: string): { valid: boolean; reason: 'ok' | 'out_of_bounds' | 'occupied' | 'locked' | 'unknown' } {
+    const def = BUILDING_BY_ID.get(type);
+    if (!def) return { valid: false, reason: 'unknown' };
+    const r = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, (x, y) => this.buildable(x, y), ignoreId);
+    return { valid: r.valid, reason: r.reason };
+  }
+
   placeBuilding(type: string, gx: number, gy: number, key: string): Promise<PlaceResult> {
     return this.tx(key, (): PlaceResult => {
       const s = this.state;

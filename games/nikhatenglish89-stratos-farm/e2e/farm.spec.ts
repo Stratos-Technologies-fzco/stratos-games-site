@@ -490,7 +490,7 @@ test('shop: select a spot, then double-click a building to place it right there'
   await page.mouse.click(p.x, p.y + 60);
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').dblclick();
-  await expect(page.getByTestId('toast')).toContainText('cannot build there');
+  await expect(page.getByTestId('toast')).toContainText('already there'); // and it says why
   await expect(page.getByTestId('coins')).toContainText('2000');
   await page.getByTestId('shop-panel-close').click();
 
@@ -632,4 +632,57 @@ test('backup: save a backup file, change the farm, restore it; a wrong file is r
   await page.getByTestId('resume-note').waitFor({ timeout: 30000 });
   await page.getByTestId('play').click();
   await expect(page.getByTestId('coins')).toContainText('498');
+});
+
+
+test('placing: the selected tile can be any part of the building, and the ghost stays put until you tap', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 2000, gems: 5, xp: 0, level: 4, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  const ghost = () => page.evaluate(() => (window as any).__farm.ghost());
+
+  // (9,10) as the top corner would hit the rock at (10,10); the building fits when that tile is its other corner
+  let p = await tilePos(page, 9, 10);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('1940');
+  await expect(page.getByTestId('toast')).not.toContainText('already there');
+  const q = await tilePos(page, 9, 11);
+  await page.mouse.click(q.x, q.y - 50);
+  await expect(page.getByTestId('building-panel')).toContainText('Chicken Coop');
+  await page.getByTestId('building-panel-close').click();
+
+  // a slower double-click (about a third of a second apart) still counts as a double-click
+  p = await tilePos(page, 0, 5);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-shop').click();
+  const row = page.getByTestId('shop-flour_mill');
+  await row.dispatchEvent('click'); // dispatched directly so test-runner overhead does not stretch the gap
+  await page.waitForTimeout(300);
+  await row.dispatchEvent('click');
+  await expect(page.getByTestId('coins')).toContainText('1820');
+  await expect(page.getByTestId('placement-bar')).toHaveCount(0);
+
+  // placing by single click: the ghost starts on the selected spot and does NOT follow the mouse
+  p = await tilePos(page, 5, 8);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible();
+  await expect.poll(ghost).toEqual({ gx: 5, gy: 8 });
+  const far = await tilePos(page, 1, 9);
+  await page.mouse.move(far.x, far.y, { steps: 8 });
+  await page.waitForTimeout(300);
+  expect(await ghost()).toEqual({ gx: 5, gy: 8 });          // moving the mouse changes nothing
+  await page.mouse.click(far.x, far.y);                      // only a tap moves it
+  await expect.poll(ghost).toEqual({ gx: 1, gy: 9 });
+  await page.getByTestId('place-cancel').click();
+  expect(errors).toEqual([]);
 });

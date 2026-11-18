@@ -47,6 +47,13 @@ function animalSound(habitatType?: string): string {
   return `animal_${animal}_${ANIMAL_SOUND[animal] ?? 'cluck'}`;
 }
 
+const WHY: Record<string, string> = {
+  occupied: 'Something is already there. Tap a different spot.',
+  locked: 'That land is still locked. Tap it first to clear it.',
+  out_of_bounds: 'That is outside your farm.',
+  unknown: 'You cannot build that.',
+};
+
 export function formatDuration(ms: number): string {
   const s = Math.max(0, Math.ceil(ms / 1000));
   if (s < 60) return `${s}s`;
@@ -164,7 +171,21 @@ class FarmController {
     st.setBuildingPanel(null);
     st.setPlacing({ type, moveId, gx: null, gy: null, valid: false });
     const sel = moveId ? null : st.selectedTile; // a new building starts on the spot the player already selected
-    bus.emit('place:start', { type, moveId, at: sel ? { gx: sel.gx, gy: sel.gy } : undefined });
+    const fit = sel ? this.fitAround(type, sel.gx, sel.gy) : null;
+    bus.emit('place:start', { type, moveId, at: fit ? { gx: fit.gx, gy: fit.gy } : undefined });
+  }
+
+  /** The selected tile is somewhere inside the building, not necessarily its top corner: try the four ways a 2x2 can cover it. */
+  private fitAround(type: string, gx: number, gy: number): { gx: number; gy: number; valid: boolean; reason: string } {
+    const tries: [number, number][] = [[0, 0], [-1, 0], [0, -1], [-1, -1]];
+    let first: { gx: number; gy: number; valid: boolean; reason: string } | null = null;
+    for (const [dx, dy] of tries) {
+      const c = this.service.canPlace(type, gx + dx, gy + dy);
+      const res = { gx: gx + dx, gy: gy + dy, ...c };
+      if (c.valid) return res;
+      first ??= res;
+    }
+    return first!;
   }
 
   /** Double-click in the shop: build right on the selected spot, no extra steps. */
@@ -176,7 +197,13 @@ class FarmController {
       playSfx('ui_error');
       return;
     }
-    return this.act(() => this.service.placeBuilding(type, t.gx, t.gy, newKey()), (r) => {
+    const fit = this.fitAround(type, t.gx, t.gy);
+    if (!fit.valid) {
+      st.showToast(WHY[fit.reason] ?? WHY.unknown);
+      playSfx('ui_error');
+      return;
+    }
+    return this.act(() => this.service.placeBuilding(type, fit.gx, fit.gy, newKey()), (r) => {
       st.setShopTab(null);
       this.apply(r.snapshot);
       playSfx('build_complete');

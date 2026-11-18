@@ -325,7 +325,7 @@ export class FarmScene extends Phaser.Scene {
 
   private updateHover(p: Phaser.Input.Pointer) {
     const c = this.tileAt(p);
-    if (this.layer.placing) { if (c) this.layer.moveGhost(c.gx, c.gy); return; }
+    if (this.layer.placing) { this.hover.setVisible(false); return; } // placing: the ghost stays where it was put until the next tap
     if (!c) { this.hover.setVisible(false); this.preview.hide(); return; }
     const s = gridToScreen(c.gx, c.gy);
     this.hover.setPosition(s.x, s.y).setDepth(depthKey(c.gx, c.gy) + 5).setVisible(true);
@@ -417,6 +417,7 @@ export class FarmScene extends Phaser.Scene {
       zoom: () => this.cameras.main.zoom,
       scroll: () => ({ x: this.cameras.main.scrollX, y: this.cameras.main.scrollY }),
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),
+      ghost: () => this.layer.ghostCell,
     };
   }
 }
