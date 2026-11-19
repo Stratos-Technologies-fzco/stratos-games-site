@@ -5,18 +5,19 @@ import animalsJson from '../data/animals.json';
 import buildingsJson from '../data/buildings.json';
 import recipesJson from '../data/recipes.json';
 import ordersJson from '../data/orders.json';
+import obstaclesJson from '../data/obstacles.json';
 
 export interface CropDef {
   id: string; name: string; seedCost: number; growSeconds: number;
   yield: number; xp: number; unlockLevel: number; sellPrice: number;
 }
-export interface ItemDef { id: string; name: string; sellPrice: number; kind: 'crop' | 'animal' | 'product' }
+export interface ItemDef { id: string; name: string; sellPrice: number; kind: 'crop' | 'animal' | 'product' | 'material'; /** art that is not in the item icon atlas */ icon?: { atlas: string; frame: string } }
 export interface AnimalDef {
   id: string; name: string; cost: number; product: string; productSeconds: number;
   habitat: string; unlockLevel: number; xp: number;
 }
 export interface BuildingDef {
-  id: string; kind: 'habitat' | 'production'; name: string;
+  id: string; kind: 'habitat' | 'production' | 'decor'; name: string;
   atlas: string; frames: string[]; w: number; h: number;
   cost: number; unlockLevel: number; upgradeCost: number[];
   animal?: string; capacity?: number[]; slots?: number[];
@@ -36,6 +37,10 @@ export const HAPPINESS_MIN = animalsJson.happinessMin;
 export const BUILDINGS = buildingsJson.buildings as BuildingDef[];
 export const MAX_LEVEL = buildingsJson.maxLevel;
 export const RECIPES = recipesJson.recipes as unknown as RecipeDef[];
+
+export interface ObstacleType { id: string; name: string; frame: string; cost: number; unlockLevel: number; reward: Record<string, number>; xp: number }
+export const OBSTACLE_TYPES = obstaclesJson.types as unknown as ObstacleType[];
+export const OBSTACLE_TYPE_BY_ID = new Map(OBSTACLE_TYPES.map((t) => [t.id, t]));
 
 export const CROP_BY_ID = new Map(CROPS.map((c) => [c.id, c]));
 export const ITEM_BY_ID = new Map(ITEMS.map((i) => [i.id, i]));

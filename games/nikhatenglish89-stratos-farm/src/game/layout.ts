@@ -1,5 +1,6 @@
 import raw from '../data/farm_layout.json';
-import type { ExpansionDef } from '../services/types';
+import type { ExpansionDef, ObstacleDef } from '../services/types';
+import { OBSTACLE_TYPES } from '../services/data';
 import type { WorldConfig } from '../services/LocalFarmService';
 
 export interface TerrainRect { frame: string; rect: [number, number, number, number]; animate?: string[] }
@@ -10,6 +11,8 @@ export interface LayoutObject {
   atlas?: string; frame?: string;
   interactive?: boolean;
   soil?: string;
+  /** a rock, tree or bush the player can pay to clear */
+  clearable?: boolean;
 }
 export interface InfoEntry { title: string; text: string; lines: string[] }
 export interface FarmLayout {
@@ -129,10 +132,30 @@ export function plotCells(l: FarmLayout): { gx: number; gy: number }[] {
   return out;
 }
 
+const hashStr = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+
+/** Every rock, tree or bush in the world: the clearable ones on the island plus a few that come with each lot (always the same). */
+export function obstacleList(l: FarmLayout): ObstacleDef[] {
+  const out: ObstacleDef[] = l.objects.filter((o) => o.clearable).map((o) => ({ id: o.id, type: o.frame!, gx: o.gx, gy: o.gy }));
+  for (const e of l.expansions) {
+    if (!isLot(e.id)) continue;
+    const used = new Set<string>();
+    for (let i = 0; i < 3; i++) {
+      const h = hashStr(`${e.id}:${i}`);
+      let gx = e.rect[0] + (h % e.rect[2]), gy = e.rect[1] + ((h >>> 8) % e.rect[3]);
+      for (let tries = 0; used.has(`${gx},${gy}`) && tries < 16; tries++) { gx = e.rect[0] + ((gx - e.rect[0] + 1) % e.rect[2]); if (tries % e.rect[2] === e.rect[2] - 1) gy = e.rect[1] + ((gy - e.rect[1] + 1) % e.rect[3]); }
+      used.add(`${gx},${gy}`);
+      out.push({ id: `ob_${e.id}_${i}`, type: OBSTACLE_TYPES[(h >>> 16) % OBSTACLE_TYPES.length].id, gx, gy, lot: e.id });
+    }
+  }
+  return out;
+}
+
 export function worldConfig(l: FarmLayout): WorldConfig {
   return {
     cols: l.cols, rows: l.rows, plotCells: plotCells(l),
-    staticObjects: l.objects.map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    staticObjects: l.objects.filter((o) => !o.clearable).map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    obstacles: obstacleList(l),
     isBuildable: (gx, gy) => isBuildableTile(l, gx, gy),
     expansions: l.expansions,
     // a lot may only be cleared next to land you own

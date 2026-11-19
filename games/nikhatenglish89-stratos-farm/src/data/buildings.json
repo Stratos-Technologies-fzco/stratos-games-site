@@ -331,6 +331,312 @@
     1400,
     3500
    ]
+  },
+  {
+   "id": "decor_bench",
+   "kind": "decor",
+   "name": "Garden bench",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bench"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 25,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_lamp_post",
+   "kind": "decor",
+   "name": "Lamp post",
+   "atlas": "atlas_decor",
+   "frames": [
+    "lamp_post"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 30,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_flowers",
+   "kind": "decor",
+   "name": "Flower bed",
+   "atlas": "atlas_decor",
+   "frames": [
+    "flowers"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 10,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_bush",
+   "kind": "decor",
+   "name": "Bush",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bush"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 12,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_bush_berry",
+   "kind": "decor",
+   "name": "Berry bush",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bush_berry"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_signpost",
+   "kind": "decor",
+   "name": "Signpost",
+   "atlas": "atlas_decor",
+   "frames": [
+    "signpost"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_fence_x",
+   "kind": "decor",
+   "name": "Fence",
+   "atlas": "atlas_decor",
+   "frames": [
+    "fence_x"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 8,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_fence_y",
+   "kind": "decor",
+   "name": "Fence (turned)",
+   "atlas": "atlas_decor",
+   "frames": [
+    "fence_y"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 8,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_oak",
+   "kind": "decor",
+   "name": "Oak tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_oak"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 40,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_pine",
+   "kind": "decor",
+   "name": "Pine tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_pine"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 40,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_hay_bale",
+   "kind": "decor",
+   "name": "Hay bale",
+   "atlas": "atlas_decor",
+   "frames": [
+    "hay_bale"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_mailbox",
+   "kind": "decor",
+   "name": "Mailbox",
+   "atlas": "atlas_decor",
+   "frames": [
+    "mailbox"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 25,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_log_pile",
+   "kind": "decor",
+   "name": "Log pile",
+   "atlas": "atlas_decor",
+   "frames": [
+    "log_pile"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 15,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_apple",
+   "kind": "decor",
+   "name": "Apple tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_apple"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 55,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_autumn",
+   "kind": "decor",
+   "name": "Autumn tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_autumn"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 55,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_scarecrow",
+   "kind": "decor",
+   "name": "Scarecrow",
+   "atlas": "atlas_decor",
+   "frames": [
+    "scarecrow"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 45,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_well",
+   "kind": "decor",
+   "name": "Stone well",
+   "atlas": "atlas_decor",
+   "frames": [
+    "well"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 80,
+   "unlockLevel": 4,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
   }
  ]
 }

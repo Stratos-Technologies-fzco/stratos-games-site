@@ -1,9 +1,9 @@
 import { LocalFarmService, SAVE_KEY, validateSave } from '../services/LocalFarmService';
-import { FEED_ITEM, ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
+import { OBSTACLE_TYPE_BY_ID, FEED_ITEM, ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, CROPS, CROP_BY_ID, ITEM_BY_ID, RECIPES, RECIPE_BY_ID } from '../services/data';
 import { animalStatus, cropStage, ErrorCode, FarmSnapshot } from '../services/types';
 import { useFarm } from '../state/store';
 import { bus } from './eventBus';
-import { farmLayout, worldConfig } from './layout';
+import { farmLayout, obstacleList, worldConfig } from './layout';
 import { QUEST_BY_ID } from '../services/quests';
 import { offerCoins, track } from './stratos';
 import { playSfx, setMusicTrack } from './audio';
@@ -37,6 +37,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   not_empty: 'Empty the building first (animals and queued recipes)',
   same_spot: 'Pick a different spot',
   already_ready: 'It is already ready',
+  unknown_obstacle: 'That is already cleared',
   not_adjacent: 'Clear the land next to your farm first',
 };
 
@@ -86,7 +87,7 @@ class FarmController {
     st.applySnapshot(snap);
     // Stratos Coins: the site pays once per new level when a game reports level_complete with a level number
     for (let lv = before; lv < snap.level; lv++) track('level_complete', { level: lv });
-    if (snap.level > before) playSfx('jingle_level_up');
+    if (snap.level > before) { playSfx('jingle_level_up'); setTimeout(() => this.levelUpToast(snap.level), 1500); }
     bus.emit('farm:changed', { plotIds: changed ?? snap.plots.map((p) => p.id) });
   }
 
@@ -144,7 +145,6 @@ class FarmController {
       const plot = snap.plots.find((p) => p.id === x.plotId)!;
       setTimeout(() => bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, cropFrame: `${x.cropId}_3`, lines: [`+${x.amount} ${x.cropId}`, `+${x.xp} XP`] }), i * 90);
     });
-    if (levelUp) this.levelUpToast(levelUp);
   }
 
   private levelUpToast(level: number) {
@@ -170,7 +170,7 @@ class FarmController {
     const st = useFarm.getState();
     st.setShopTab(null);
     st.setBuildingPanel(null);
-    st.setPlacing({ type, moveId, gx: null, gy: null, valid: false });
+    st.setPlacing({ type, moveId, flip: false, gx: null, gy: null, valid: false });
     const sel = moveId ? null : st.selectedTile; // a new building starts on the spot the player already selected
     const fit = sel ? this.fitAround(type, sel.gx, sel.gy) : null;
     bus.emit('place:start', { type, moveId, at: fit ? { gx: fit.gx, gy: fit.gy } : undefined });
@@ -242,11 +242,52 @@ class FarmController {
         useFarm.getState().showToast('Moved');
       });
     }
-    return this.act(() => this.service.placeBuilding(type, gx, gy, newKey()), (r) => {
+    const flip = !!p.flip;
+    return this.act(() => this.service.placeBuilding(type, gx, gy, newKey(), flip), (r) => {
       this.cancelPlacing();
       this.apply(r.snapshot);
       playSfx('build_complete');
       useFarm.getState().showToast(`${BUILDING_BY_ID.get(type)!.name} built`);
+    });
+  }
+
+  /** Turn the building you are about to place (new buildings only; an existing one is turned from its own panel). */
+  togglePlacingFlip() {
+    const p = useFarm.getState().placing;
+    if (!p) return;
+    const flip = !p.flip;
+    useFarm.getState().setPlacing({ ...p, flip });
+    bus.emit('place:flip', { flip });
+  }
+
+  rotateBuilding(id: string) {
+    return this.act(() => this.service.rotateBuilding(id, newKey()), (r) => {
+      this.apply(r.snapshot);
+      playSfx('place_object');
+    });
+  }
+
+  // ---------- rocks, trees and bushes ----------
+  private obstacles = new Map(obstacleList(farmLayout).map((o) => [o.id, o]));
+
+  obstacleInfo(id: string) {
+    const o = this.obstacles.get(id);
+    const t = o ? OBSTACLE_TYPE_BY_ID.get(o.type) : undefined;
+    return o && t ? { ...o, def: t } : null;
+  }
+
+  onObstacleTapped(id: string) {
+    const st = useFarm.getState();
+    st.setSeedPlot(null); st.setOpenPanel(null); st.setBuildingPanel(null); st.setObstaclePanel(id);
+  }
+
+  clearObstacle(id: string) {
+    const info = this.obstacleInfo(id);
+    return this.act(() => this.service.clearObstacle(id, newKey()), (r) => {
+      useFarm.getState().setObstaclePanel(null);
+      this.apply(r.snapshot);
+      playSfx(info?.type.startsWith('rock') ? 'clear_rock' : 'clear_chop');
+      if (info) bus.emit('fx:float', { gx: info.gx, gy: info.gy, lines: [...Object.entries(r.rewards).map(([i, q]) => `+${q} ${i}`), `+${r.xp} XP`] });
     });
   }
 
@@ -284,7 +325,6 @@ class FarmController {
   private afterCollect(buildingId: string, r: Collected) {
     this.apply(r.snapshot);
     this.float(buildingId, [...r.collected.map((c) => `+${c.qty} ${ITEM_BY_ID.get(c.itemId)?.name ?? c.itemId}`), `+${r.xp} XP`]);
-    if (r.levelUp) this.levelUpToast(r.levelUp);
   }
 
   upgrade(buildingId: string) {
@@ -317,7 +357,6 @@ class FarmController {
       this.apply(r.snapshot);
       playSfx('order_fulfil');
       useFarm.getState().showToast(`Order delivered: +${r.coins} coins, +${r.xp} XP`);
-      if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
     });
   }
 
@@ -331,7 +370,6 @@ class FarmController {
       playSfx('jingle_quest_complete');
       const bits = [r.coins && `${r.coins} coins`, r.xp && `${r.xp} XP`, r.gems && `${r.gems} gems`].filter(Boolean).join(', ');
       useFarm.getState().showToast(`${QUEST_BY_ID.get(questId)!.title}: +${bits}`);
-      if (r.levelUp) setTimeout(() => this.levelUpToast(r.levelUp!), 1900);
     });
   }
 

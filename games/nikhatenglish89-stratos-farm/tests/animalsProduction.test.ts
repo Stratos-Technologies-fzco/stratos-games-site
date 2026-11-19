@@ -32,7 +32,7 @@ describe('master data is consistent', () => {
       Object.keys(r.inputs).forEach((i) => expect(ITEM_BY_ID.has(i), `${r.id}:${i}`).toBe(true));
     }
     for (const a of ANIMALS) { expect(b.has(a.habitat)).toBe(true); expect(ITEM_BY_ID.has(a.product)).toBe(true); }
-    expect(ITEMS.length).toBe(33);
+    expect(ITEMS.length).toBe(35); // 12 crops, 6 animal products, 15 factory goods, wood and stone
     expect(BUILDINGS.filter((x) => x.kind === 'production')).toHaveLength(8);
     expect(ANIMALS).toHaveLength(6);
     expect(CROP_BY_ID.size).toBe(12);
@@ -95,15 +95,15 @@ describe('animals: buy, feed, collect', () => {
     expect(await m.svc.buyAnimal(mill, k())).toEqual({ ok: false, error: 'wrong_building' });
     expect(await m.svc.buyAnimal('nope', k())).toEqual({ ok: false, error: 'unknown_building' });
   });
-  it('feeding uses animal feed, then an egg is ready after 10 minutes and survives a reload', async () => {
+  it('feeding uses animal feed, then an egg is ready after 5 minutes and survives a reload', async () => {
     const { svc, t, kv, id } = await coop();
     mustOk(await svc.buyAnimal(id, k()));
     const fed = mustOk(await svc.feedAnimals(id, k()));
     expect(fed.fed).toBe(1);
     expect(fed.snapshot.inventory.animal_feed).toBe(4);
-    t.v += 9 * 60_000;
+    t.v += 4 * 60_000;
     expect(await svc.collectAnimals(id, k())).toEqual({ ok: false, error: 'nothing_ready' });
-    t.v += 2 * 60_000; // 11 minutes, the player was away
+    t.v += 2 * 60_000; // 6 minutes, the player was away
     const again = new LocalFarmService(WORLD, kv, { now: () => t.v });
     const snap = await again.load();
     expect(animalStatus(snap.animals[0], again.now())).toBe('ready');
@@ -163,11 +163,9 @@ describe('production: wheat -> flour -> bread, queues, offline', () => {
     expect(q1.snapshot.inventory.wheat).toBe(3);
     mustOk(await svc.queueRecipe(mill, 'flour', k()));
     expect(await svc.collectJobs(mill, k())).toEqual({ ok: false, error: 'nothing_ready' });
-    t.v += 301_000; // first flour done, second still running (jobs run one after another)
+    t.v += 301_000; // both flours were queued together and are done together (each slot works on its own)
     const c1 = mustOk(await svc.collectJobs(mill, k()));
-    expect(c1.collected).toEqual([{ itemId: 'flour', qty: 1 }]);
-    t.v += 300_000;
-    mustOk(await svc.collectJobs(mill, k()));
+    expect(c1.collected).toEqual([{ itemId: 'flour', qty: 2 }]);
     expect((await svc.load()).inventory).toEqual({ flour: 2 });
     mustOk(await svc.queueRecipe(bakery, 'bread', k()));
     t.v += 601_000;

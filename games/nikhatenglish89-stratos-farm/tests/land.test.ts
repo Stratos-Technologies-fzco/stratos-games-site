@@ -105,13 +105,16 @@ describe('clearing and using new land (real layout and rules)', () => {
     expect(await svc.expandLand('lot_3_0', k())).toEqual({ ok: false, error: 'already_expanded' });
     mustOk(await svc.expandLand('lot_4_0', k())); // now it touches cleared land
   });
-  it('you can build on a cleared lot but not on a locked one or in the sea', async () => {
+  it('you can build on a cleared lot (where no rock or tree stands) but not on a locked one or in the sea', async () => {
     const svc = make(rich);
-    expect(await svc.placeBuilding('chicken_coop', 12, 0, k())).toEqual({ ok: false, error: 'invalid_placement' });
+    expect(await svc.placeBuilding('decor_bench', 12, 0, k())).toEqual({ ok: false, error: 'invalid_placement' }); // still locked
     mustOk(await svc.expandLand('lot_3_0', k()));
-    mustOk(await svc.placeBuilding('chicken_coop', 12, 0, k()));
+    const taken = new Set(svc.activeObstacles().map((o) => `${o.gx},${o.gy}`));
+    let free: [number, number] | null = null;
+    for (let x = 12; x < 16 && !free; x++) for (let y = 0; y < 4 && !free; y++) if (!taken.has(`${x},${y}`)) free = [x, y];
+    expect(free).not.toBeNull();
+    mustOk(await svc.placeBuilding('decor_bench', free![0], free![1], k()));
     expect(await svc.placeBuilding('chicken_coop', 19, 0, k())).toEqual({ ok: false, error: 'invalid_placement' }); // sea
-    expect(svc.canPlace('flour_mill', 14, 2)).toEqual({ valid: true, reason: 'ok' });
     expect(svc.canPlace('flour_mill', 15, 2).valid).toBe(false); // would hang over the edge of the lot into locked land
   });
   it('the old starting patches still work', async () => {

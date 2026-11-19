@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { farm } from '../game/controller';
 import type { ItemDef } from '../services/data';
-import { Icon } from './Icon';
+import { Icon, ItemIcon } from './Icon';
 
 /** One item you own, with a quantity picker: - / number / + / Max, then Sell for exactly that many. */
 export function SellRow({ item, have, testId }: { item: ItemDef; have: number; testId: string }) {
@@ -13,7 +13,7 @@ export function SellRow({ item, have, testId }: { item: ItemDef; have: number; t
   const id = item.id;
   return (
     <div className="row sell-row" data-testid={testId}>
-      <Icon name={`item_${id}`} size={36} />
+      <ItemIcon id={id} size={36} />
       <span className="grow"><b>{item.name} × {have}</b><small>{item.sellPrice} coins each</small></span>
       <div className="qty" role="group" aria-label={`How many ${item.name} to sell`}>
         <button className="qty-btn" onClick={() => set(qty - 1)} disabled={qty <= 1} aria-label="One less" data-testid={`minus-${id}`}>−</button>

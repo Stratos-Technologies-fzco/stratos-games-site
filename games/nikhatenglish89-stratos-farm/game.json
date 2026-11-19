@@ -8,6 +8,7 @@
   "description": "Stratos Farm: My Dream Village is a cosy farming game where you start with a small, neglected patch of land and slowly grow it into a busy, colourful village. Tap an empty field, pick a seed and watch your crops grow from tiny sprouts into a golden harvest. Wheat is quick, pumpkins take their time, and every crop gives you coins and experience.\n\nOnce the fields are running, build homes for chickens, ducks, cows, sheep, goats and pigs. Feed them and collect eggs, milk, wool and more. Turn your harvest into flour, bread, cheese, jam and sweaters in eight different factories, and keep their queues full while you do other things. Everything keeps growing and cooking while the game is closed, so there is always something waiting when you come back.\n\nYour neighbours, from Old Joe to Chef Marco, love to place orders. Deliver what they ask for to earn coins and experience, unlock new crops, animals and buildings as you level up, and clear new land to make your village bigger. Daily quests, goals and awards give you a reason to visit every day.\n\nThe game is calm, friendly and has no timers that punish you. Your farm is saved on your device, so you can always continue where you left off. Earn Stratos Coins as you reach new levels and spend them on a speed-up or a hint when you are in a hurry.",
   "controls": [
     "Tap or click a field to plant a seed; tap a crop with a green tick to harvest it",
+    "Tap a rock, tree or bush to clear it for a little wood or stone; open the Shop's Decor tab to decorate; use Turn around on any building",
     "Tap a building to open it: feed animals, collect products, start recipes, move or upgrade it",
     "Drag to move around the farm; use the mouse wheel or two fingers to zoom",
     "Use the bottom buttons for the Shop, Animals, Market (orders and selling), Items and the village Map",
@@ -21,7 +22,9 @@
     "Claim your daily quests with the scroll button at the top: they change every day.",
     "Stuck on an order? Tap Hint in the Market to see how to make the missing item.",
     "Open the Map to see your whole village, jump to any building, meet your neighbours and share a picture of your village.",
-    "Want a bigger farm? Tap the grey land around your island, then clear it with coins and factory goods. Each new piece reveals the next one, up to four times the size you start with."
+    "Want a bigger farm? Tap the grey land around your island, then clear it with coins and factory goods. Each new piece reveals the next one, up to four times the size you start with.",
+    "Make room first: rocks, trees and bushes block building. Tap one to clear it, and keep the wood and stone you get.",
+    "Decorate your village from the Shop's Decor tab. Select a spot on the farm first, then double-click a decoration to put it there."
   ],
   "story": "I wanted to make the kind of farm game where nothing is ever wasted and a short visit always feels good. Stratos Farm began with a tiny field and a single chicken, and it grew, just like your village will. Every house, animal and customer is drawn and made for this game.",
   "faq": [
@@ -48,6 +51,10 @@
     {
       "q": "How do I make my farm bigger?",
       "a": "Tap the locked grey land around your island. Clear it with coins and goods made in your factories, such as flour and bread. Every cleared piece shows the next one, until your farm is four times bigger than at the start."
+    },
+    {
+      "q": "Can I turn a building around?",
+      "a": "Yes. Open any building and press Turn around, or press it while you place a new one. It mirrors the building so it faces the other way."
     }
   ],
   "resume": {

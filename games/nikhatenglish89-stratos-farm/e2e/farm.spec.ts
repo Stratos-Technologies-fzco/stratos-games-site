@@ -31,9 +31,9 @@ test('loads, renders the canvas and shows the HUD', async ({ page }) => {
 
 test('a tile can be selected', async ({ page }) => {
   await openFarm(page);
-  const p = await tilePos(page, 4, 10);
+  const p = await tilePos(page, 6, 10); // (4,10) is an old stump you can clear, so pick plain grass
   await page.mouse.click(p.x, p.y);
-  await expect(page.getByTestId('tile-chip')).toContainText('Tile 4, 10');
+  await expect(page.getByTestId('tile-chip')).toContainText('Tile 6, 10');
 });
 
 test('clicking the farmhouse and the barn opens their panels', async ({ page }) => {
@@ -744,8 +744,17 @@ test('a bigger farm: clear the land next to the island, build on it, and the nex
   await page.getByTestId('expand-confirm').click();
   await expect(page.getByTestId('coins')).toContainText('19650'); // 350 coins
   await expect(page.getByTestId('toast')).toContainText('New land cleared');
-  // build a chicken coop on the new land by selecting a spot there and double-clicking
-  p = await tilePos(page, 13, 1);
+  // rocks and trees came with the new land; pick a tile in it where none stands, then double-click a coop onto it
+  const free = await page.evaluate(() => {
+    const taken = new Set((window as any).__farm.obstacles().map((o: any) => `${o.gx},${o.gy}`));
+    for (let x = 13; x < 16; x++) for (let y = 1; y < 3; y++) {
+      // a coop needs this tile plus its right and lower neighbours (or a shifted fit): look for a free 2x2 inside the lot
+      if (![[0, 0], [1, 0], [0, 1], [1, 1]].some(([dx, dy]) => taken.has(`${x + dx},${y + dy}`))) return { gx: x, gy: y };
+    }
+    return null;
+  });
+  expect(free).not.toBeNull();
+  p = await tilePos(page, free!.gx, free!.gy);
   await page.mouse.click(p.x, p.y);
   await page.getByTestId('nav-animals').click();
   await page.getByTestId('shop-chicken_coop').dblclick();
@@ -761,4 +770,88 @@ test('a bigger farm: clear the land next to the island, build on it, and the nex
   await expect(page.getByTestId('village-facts')).toContainText('1/29');
   await expect(page.getByTestId('map-expansion-lot_4_0')).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test('more to do on the land: clear a rock, buy decorations, turn a building around', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 3000, gems: 5, xp: 0, level: 4, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+
+  // the big rock at (10,10): tap it, see what it costs and gives, clear it
+  let p = await tilePos(page, 10, 10);
+  await page.mouse.click(p.x, p.y - 20);
+  await expect(page.getByTestId('obstacle-panel')).toContainText('Big rock');
+  await expect(page.getByTestId('obstacle-panel')).toContainText('Stone');
+  await page.getByTestId('clear-confirm').click();
+  await expect(page.getByTestId('coins')).toContainText('2960');
+  await expect(page.getByTestId('obstacle-panel')).toHaveCount(0);
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inv-stone')).toContainText('Stone × 3');   // wood and stone show up as items you can sell
+  await page.getByTestId('inventory-panel-close').click();
+  // the tile is free now: a decoration fits right where the rock was (select it, double-click in the Decor tab)
+  p = await tilePos(page, 10, 10);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.getByTestId('tile-chip')).toContainText('Tile 10, 10');
+  await page.getByTestId('nav-shop').click();
+  await page.getByTestId('tab-decor').click();
+  await page.getByTestId('shop-decor_bench').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('2935');
+
+  // open the bench: turn it around, then it is mirrored (the panel offers Turn around)
+  const b = await tilePos(page, 10, 10);
+  await page.mouse.click(b.x, b.y - 10);
+  await expect(page.getByTestId('building-panel')).toContainText('Garden bench');
+  await page.getByTestId('rotate').click();
+  await page.getByTestId('building-panel-close').click();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('stratos_farm_save_v1')!).buildings);
+  expect(saved[0].flipped).toBe(true);
+
+  // a new building can be turned before it is placed
+  p = await tilePos(page, 0, 2);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await page.getByTestId('shop-chicken_coop').click();
+  await expect(page.getByTestId('placement-bar')).toBeVisible();
+  await page.getByTestId('place-turn').click();
+  await expect(page.getByTestId('place-turn')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('place-confirm').click();
+  const saved2 = await page.evaluate(() => JSON.parse(localStorage.getItem('stratos_farm_save_v1')!).buildings);
+  expect(saved2.find((x: any) => x.type === 'chicken_coop').flipped).toBe(true);
+
+  // the map and the quest list know about all this
+  await page.getByTestId('nav-map').click();
+  await expect(page.getByTestId('village-facts')).toContainText('buildings');
+  await page.keyboard.press('Escape');
+  expect(errors).toEqual([]);
+});
+
+test('two flours queued together finish together (no waiting in line)', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 3000, gems: 5, xp: 0, level: 2, inventory: { wheat: 9 },
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  let p = await tilePos(page, 0, 5);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-shop').click();
+  await page.getByTestId('shop-flour_mill').dblclick();
+  const q = await tilePos(page, 1, 6);
+  await page.mouse.click(q.x, q.y - 50);
+  await page.getByTestId('recipe-flour').click();
+  await page.getByTestId('recipe-flour').click();
+  const times = await page.locator('[data-testid^="job-"] small').allTextContents();
+  expect(times).toHaveLength(2);
+  expect(times[0]).toBe(times[1]);                       // the same time left on both
+  await page.evaluate(() => (window as any).__farm.advance(301000));
+  await expect(page.getByTestId('collect')).toContainText('(2)', { timeout: 5000 });
 });

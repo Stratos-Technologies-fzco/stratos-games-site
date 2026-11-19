@@ -18,6 +18,7 @@ async function play(hours: number, stepMin = 4) {
   let spot = 0;
   const nextSpot = () => { const s = spot++; return { gx: 8 + (s % 4) * 3, gy: 1 + Math.floor(s / 4) * 3 }; };
   const checkpoints: Record<string, { level: number; coins: number }> = {};
+  const timeline = { level: {} as Record<number, number>, firstEgg: null as number | null, firstFeedMill: null as number | null };
   const steps = Math.round((hours * 60) / stepMin);
   let snap: FarmSnapshot = await svc.load();
   let minCoins = snap.coins;
@@ -81,11 +82,28 @@ async function play(hours: number, stepMin = 4) {
     }
     snap = await svc.load();
     minCoins = Math.min(minCoins, snap.coins);
+    const minutes = (i + 1) * stepMin;
+    if (timeline.level[snap.level] === undefined) timeline.level[snap.level] = minutes;
+    if (timeline.firstEgg === null && (snap.stats.animal_collect ?? 0) > 0) timeline.firstEgg = minutes;
+    if (timeline.firstFeedMill === null && snap.buildings.some((b) => b.type === 'feed_mill')) timeline.firstFeedMill = minutes;
     const h = ((i + 1) * stepMin) / 60;
     for (const mark of [0.5, 1, 2, 4, 8, 12, 24]) if (!checkpoints[`${mark}h`] && h >= mark) checkpoints[`${mark}h`] = { level: snap.level, coins: snap.coins };
   }
-  return { snap, checkpoints, minCoins, ledger: svc.getLedger() };
+  return { snap, checkpoints, minCoins, ledger: svc.getLedger(), timeline };
 }
+
+describe('the first hour feels quick (a bot plays minute by minute)', () => {
+  it('reaches level 2 in minutes, the first egg soon after, level 3 within the hour', async () => {
+    const r = await play(1.5, 1);
+    // eslint-disable-next-line no-console
+    console.log('EARLY', JSON.stringify(r.timeline));
+    expect(r.timeline.level[2]).toBeLessThanOrEqual(15);          // level 2 inside 15 minutes
+    expect(r.timeline.firstEgg).not.toBeNull();
+    expect(r.timeline.firstEgg!).toBeLessThanOrEqual(20);          // the first egg inside 20 minutes
+    expect(r.timeline.level[3]).toBeLessThanOrEqual(60);           // level 3 inside the first hour
+    expect(r.minCoins).toBeGreaterThanOrEqual(0);
+  });
+});
 
 describe('economy balance (a bot plays 24 hours)', () => {
   it('keeps progressing without stalling, going negative or breaking the ledger', async () => {
@@ -106,7 +124,8 @@ describe('economy balance (a bot plays 24 hours)', () => {
   it('rewards faster levels to the player who plays more (no cap that makes extra play pointless)', async () => {
     const a = await play(4), b = await play(8);
     expect(b.snap.level).toBeGreaterThanOrEqual(a.snap.level);
-    expect(b.snap.coins + b.snap.xp).toBeGreaterThan(a.snap.coins + a.snap.xp);
+    const totalXp = (s: { level: number; xp: number }) => { let t = s.xp; for (let l = 1; l < s.level; l++) t += Math.round(100 * Math.pow(l, 1.5)); return t; };
+    expect(totalXp(b.snap)).toBeGreaterThan(totalXp(a.snap));
   });
   it('every quest and achievement is reachable by the data (targets are positive, rewards exist)', () => {
     for (const q of QUESTS) {

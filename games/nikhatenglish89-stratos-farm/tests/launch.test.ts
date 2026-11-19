@@ -48,17 +48,16 @@ describe('speed-up', () => {
     mustOk(await svc.speedUp('animal', aid, k()));
     expect(mustOk(await svc.collectAnimals(coop, k())).collected[0].itemId).toBe('egg');
   });
-  it('speeding up a factory job pulls the next job forward by the time saved', async () => {
+  it('two jobs queued together in one building take the same time, and speeding one up leaves the other alone', async () => {
     const { svc, t } = make({ coins: 1000, level: 1, inventory: { wheat: 6 } });
     const mill = mustOk(await svc.placeBuilding('flour_mill', 4, 4, k())).buildingId;
     const a = mustOk(await svc.queueRecipe(mill, 'flour', k()));
+    t.v += 20_000;                                   // a little later: the second one still takes its own full time
     const b = mustOk(await svc.queueRecipe(mill, 'flour', k()));
-    expect(b.readyAt - a.readyAt).toBe(300_000);
+    expect(b.readyAt - a.readyAt).toBe(20_000);      // started 20 s apart, so they end 20 s apart (no waiting in line)
     mustOk(await svc.speedUp('job', a.jobId, k()));
     const snap = await svc.load();
-    const second = snap.jobs.find((j) => j.id === b.jobId)!;
-    expect(second.readyAt - snap.serverNow).toBe(300_000); // runs for its own 5 minutes starting now
-    t.v += 1000;
+    expect(snap.jobs.find((j) => j.id === b.jobId)!.readyAt).toBe(b.readyAt); // untouched
     expect(mustOk(await svc.collectJobs(mill, k())).collected).toEqual([{ itemId: 'flour', qty: 1 }]);
   });
 });

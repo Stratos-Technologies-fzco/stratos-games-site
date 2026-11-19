@@ -9,7 +9,7 @@
    "target": 1,
    "reward": {
     "coins": 10,
-    "xp": 5
+    "xp": 10
    },
    "unlockLevel": 1,
    "order": 1
@@ -23,7 +23,7 @@
    "target": 1,
    "reward": {
     "coins": 10,
-    "xp": 5
+    "xp": 15
    },
    "unlockLevel": 1,
    "order": 2
@@ -37,7 +37,7 @@
    "target": 1,
    "reward": {
     "coins": 15,
-    "xp": 5
+    "xp": 15
    },
    "unlockLevel": 1,
    "order": 3
@@ -51,7 +51,7 @@
    "target": 1,
    "reward": {
     "coins": 20,
-    "xp": 10
+    "xp": 25
    },
    "unlockLevel": 1,
    "order": 4
@@ -65,7 +65,7 @@
    "target": 1,
    "reward": {
     "coins": 30,
-    "xp": 15
+    "xp": 35
    },
    "unlockLevel": 1,
    "order": 5
@@ -398,6 +398,58 @@
    "reward": {
     "coins": 1500,
     "gems": 6
+   },
+   "unlockLevel": 1
+  },
+  {
+   "id": "f_clear_5",
+   "type": "farming",
+   "title": "Land clearer",
+   "desc": "Clear 5 rocks, trees or bushes.",
+   "stat": "clear",
+   "target": 5,
+   "reward": {
+    "coins": 80,
+    "xp": 20
+   },
+   "unlockLevel": 1
+  },
+  {
+   "id": "f_decor_8",
+   "type": "farming",
+   "title": "Decorator",
+   "desc": "Put 8 decorations in your village.",
+   "stat": "build:decor",
+   "target": 8,
+   "reward": {
+    "coins": 100,
+    "xp": 25
+   },
+   "unlockLevel": 2
+  },
+  {
+   "id": "ach_clear_30",
+   "type": "achievement",
+   "title": "Tidy farmer",
+   "desc": "Clear 30 rocks, trees or bushes.",
+   "stat": "clear",
+   "target": 30,
+   "reward": {
+    "coins": 400,
+    "gems": 3
+   },
+   "unlockLevel": 1
+  },
+  {
+   "id": "ach_decor_30",
+   "type": "achievement",
+   "title": "Garden designer",
+   "desc": "Put 30 decorations in your village.",
+   "stat": "build:decor",
+   "target": 30,
+   "reward": {
+    "coins": 500,
+    "gems": 3
    },
    "unlockLevel": 1
   }

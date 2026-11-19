@@ -13,7 +13,7 @@ const OBJECT_LAYER = 10;
 // where animals stand inside a 2x2 pen (fractions of a tile from the footprint's top corner)
 const SLOTS: [number, number][] = [[0.5, 0.5], [1.5, 0.5], [0.5, 1.5], [1.5, 1.5], [1.0, 0.3], [0.3, 1.0], [1.7, 1.0], [1.0, 1.7]];
 
-interface BuildingSprite { img: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; type: string; gx: number; gy: number; frameIdx: number }
+interface BuildingSprite { img: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; type: string; gx: number; gy: number; frameIdx: number; flipped: boolean }
 interface AnimalSprite {
   img: Phaser.GameObjects.Image; type: string; buildingId: string; slot: number;
   fx: number; fy: number; eatUntil: number; nextWalk: number; walking: boolean;
@@ -50,7 +50,8 @@ export class BuildingsLayer {
     }
     for (const b of st.buildings) {
       const have = this.buildings.get(b.id);
-      if (have && (have.gx !== b.gx || have.gy !== b.gy)) { this.relocate(b.id, b.gx, b.gy); continue; }
+      if (have && (have.gx !== b.gx || have.gy !== b.gy)) this.relocate(b.id, b.gx, b.gy);
+      if (have && have.flipped !== !!b.flipped) { have.flipped = !!b.flipped; have.img.setFlipX(have.flipped); }
       if (have) continue;
       const def = BUILDING_BY_ID.get(b.type)!;
       this.occ.place(b.id, b.gx, b.gy, { w: def.w, h: def.h });
@@ -60,8 +61,9 @@ export class BuildingsLayer {
         .setInteractive({ pixelPerfect: true, alphaTolerance: 20, useHandCursor: true });
       const bubble = this.scene.add.image(p.x, p.y - img.displayOriginY + 40, 'atlas_ui_fx', 'ready_bubble').setOrigin(0.5, 1).setDepth(depth + 500).setVisible(false);
       this.scene.tweens.add({ targets: bubble, y: bubble.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', paused: !effectsOn() });
-      this.buildings.set(b.id, { img, bubble, type: b.type, gx: b.gx, gy: b.gy, frameIdx: 0 });
-      if (!this.firstSync && effectsOn()) this.construct(img, p, depth);
+      img.setFlipX(!!b.flipped);
+      this.buildings.set(b.id, { img, bubble, type: b.type, gx: b.gx, gy: b.gy, frameIdx: 0, flipped: !!b.flipped });
+      if (!this.firstSync && effectsOn() && def.w >= 2) this.construct(img, p, depth);
     }
     for (const a of st.animals) {
       if (this.animals.has(a.id)) continue;
@@ -162,11 +164,15 @@ export class BuildingsLayer {
     this.placingType = type;
     this.moveId = moveId ?? null;
     if (moveId) this.buildings.get(moveId)?.img.setAlpha(0.35);
+    this.ghostFlip = !!(moveId && this.buildings.get(moveId)?.flipped);
     const def = BUILDING_BY_ID.get(type)!;
-    this.ghost = this.scene.add.image(0, 0, def.atlas, def.frames[0]).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false);
+    this.ghost = this.scene.add.image(0, 0, def.atlas, def.frames[0]).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false).setFlipX(this.ghostFlip);
   }
 
+  private ghostFlip = false;
   get placing() { return this.placingType !== null; }
+
+  setGhostFlip(flip: boolean) { this.ghostFlip = flip; this.ghost?.setFlipX(flip); }
 
   moveGhost(gx: number, gy: number) {
     if (!this.placingType || !this.ghost) return;

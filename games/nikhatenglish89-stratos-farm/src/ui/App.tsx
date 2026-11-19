@@ -5,7 +5,7 @@ import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from '.
 import { useFarm } from '../state/store';
 import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
 import { BuildingPanel, PlacementBar, ShopPanel } from './BuildingPanels';
-import { ExpansionPanel, MarketPanel, PlotPanel, QuestsPanel, TutorialBanner } from './EconomyPanels';
+import { ExpansionPanel, MarketPanel, ObstaclePanel, PlotPanel, QuestsPanel, TutorialBanner } from './EconomyPanels';
 import { MapPanel } from './MapPanel';
 import { AboutPanel, HomeScreen, HowToPlayPanel, Logo, SettingsPanel, TipsPanel } from './Home';
 
@@ -31,6 +31,7 @@ export function App() {
       else if (st.questsOpen) st.setQuestsOpen(false);
       else if (st.mapOpen) st.setMapOpen(false);
       else if (st.expansionPanel) st.setExpansionPanel(null);
+      else if (st.obstaclePanel) st.setObstaclePanel(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -55,6 +56,7 @@ export function App() {
           <MapPanel />
           <QuestsPanel />
           <ExpansionPanel />
+          <ObstaclePanel />
           <TutorialBanner />
           <HarvestAllButton />
           <BottomNav />

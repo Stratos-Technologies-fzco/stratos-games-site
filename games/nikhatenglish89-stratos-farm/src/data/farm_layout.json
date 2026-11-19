@@ -195,7 +195,8 @@
    "gx": 0,
    "gy": 1,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "tree_pine_1",
@@ -205,7 +206,8 @@
    "gx": 11,
    "gy": 1,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "tree_apple_1",
@@ -215,7 +217,8 @@
    "gx": 1,
    "gy": 4,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "tree_autumn_1",
@@ -225,7 +228,8 @@
    "gx": 10,
    "gy": 7,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "bush_1",
@@ -235,7 +239,8 @@
    "gx": 0,
    "gy": 8,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "berry_1",
@@ -245,7 +250,8 @@
    "gx": 6,
    "gy": 11,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "rock_1",
@@ -255,7 +261,8 @@
    "gx": 10,
    "gy": 10,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "stump_1",
@@ -265,7 +272,8 @@
    "gx": 4,
    "gy": 10,
    "w": 1,
-   "h": 1
+   "h": 1,
+   "clearable": true
   },
   {
    "id": "flowers_1",

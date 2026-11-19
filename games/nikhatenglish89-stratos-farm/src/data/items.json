@@ -197,6 +197,26 @@
    "name": "Popcorn",
    "sellPrice": 26,
    "kind": "product"
+  },
+  {
+   "id": "wood",
+   "name": "Wood",
+   "sellPrice": 4,
+   "kind": "material",
+   "icon": {
+    "atlas": "atlas_decor",
+    "frame": "log_pile"
+   }
+  },
+  {
+   "id": "stone",
+   "name": "Stone",
+   "sellPrice": 5,
+   "kind": "material",
+   "icon": {
+    "atlas": "atlas_decor",
+    "frame": "rock_small"
+   }
   }
  ]
 }

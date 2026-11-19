@@ -8,6 +8,7 @@ import { useFarm } from '../state/store';
 import { farm } from './controller';
 import { cropStage } from '../services/types';
 import { BuildingsLayer } from './BuildingsLayer';
+import { ObstaclesLayer } from './ObstaclesLayer';
 import { initAudio } from './audio';
 import { effectsOn } from './fx';
 import { watchFrameRate } from './perf';
@@ -42,6 +43,7 @@ export class FarmScene extends Phaser.Scene {
   private floatPool: Phaser.GameObjects.Text[] = [];
   private recentFloats: { x: number; y: number; until: number }[] = [];
   private layer!: BuildingsLayer;
+  private obstacles!: ObstaclesLayer;
 
   constructor() { super('Farm'); }
 
@@ -67,7 +69,10 @@ export class FarmScene extends Phaser.Scene {
     this.buildPlots();
     this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded));
     this.layer.sync();
-    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); });
+    this.obstacles = new ObstaclesLayer(this, this.occ);
+    this.obstacles.sync();
+    bus.on('place:flip', ({ flip }) => this.layer.setGhostFlip(flip));
+    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); this.obstacles.sync(); });
     bus.on('fx:feed', ({ habitatId }) => this.layer.feed(habitatId));
     bus.on('place:start', ({ type, moveId, at }) => {
       this.clearSelection();
@@ -126,6 +131,7 @@ export class FarmScene extends Phaser.Scene {
 
   private buildObjects() {
     for (const o of L.objects) {
+      if (o.clearable) continue; // rocks, trees and bushes are drawn by the obstacles layer
       if (!this.occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h })) {
         console.warn(`[layout] ${o.id} overlaps something or is out of bounds; skipped`);
         continue;
@@ -392,9 +398,12 @@ export class FarmScene extends Phaser.Scene {
       const top = hits.reduce((a, b) => (b.depth > a.depth ? b : a));
       const bid = this.layer.idOf(top);
       if (bid) { this.clearSelection(); bus.emit('building:tapped', { id: bid }); return; }
+      const oid = this.obstacles.idOf(top);
+      if (oid) { this.clearSelection(); bus.emit('obstacle:tapped', { id: oid }); return; }
     }
     if (!objectId && tile) {
       const occId = this.occ.occupantAt(tile.gx, tile.gy);
+      if (occId && this.obstacles.has(occId)) { this.clearSelection(); bus.emit('obstacle:tapped', { id: occId }); return; }
       if (occId && !L.objects.some((o) => o.id === occId) ) { this.clearSelection(); bus.emit('building:tapped', { id: occId }); return; }
     }
     if (objectId) { this.selectObject(objectId); return; }
@@ -460,6 +469,7 @@ export class FarmScene extends Phaser.Scene {
       scroll: () => ({ x: this.cameras.main.scrollX, y: this.cameras.main.scrollY }),
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),
       ghost: () => this.layer.ghostCell,
+      obstacles: () => this.obstacles.active().map((o) => ({ id: o.id, gx: o.gx, gy: o.gy })),
     };
   }
 }

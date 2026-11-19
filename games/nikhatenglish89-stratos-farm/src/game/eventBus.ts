@@ -10,6 +10,8 @@ export interface BusEvents {
   'farm:changed': { plotIds: string[] };
   'fx:feed': { habitatId: string };
   'building:tapped': { id: string };
+  'obstacle:tapped': { id: string };
+  'place:flip': { flip: boolean };
   'place:start': { type: string; moveId?: string; at?: { gx: number; gy: number } };
   'expansion:tapped': { id: string };
   'place:end': undefined;

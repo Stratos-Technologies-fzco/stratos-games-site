@@ -2,12 +2,12 @@ import { xpForNextLevel } from '../game/rules';
 import { OccupancyMap } from '../iso/occupancy';
 import { validatePlacement } from '../iso/placement';
 import {
-  ANIMAL_BY_ID, BUILDING_BY_ID, CROPS, CROP_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, ORDERS, RECIPES, RECIPE_BY_ID, START,
+  ANIMAL_BY_ID, BUILDING_BY_ID, CROPS, CROP_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, OBSTACLE_TYPE_BY_ID, ORDERS, RECIPES, RECIPE_BY_ID, START,
 } from './data';
 import { QUEST_BY_ID, TUTORIAL, dayOf, isClaimed, pickDaily, questProgress } from './quests';
 import {
   AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
-  FeedResult, HarvestResult, JobState, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
+  FeedResult, HarvestResult, JobState, ObstacleDef, ClearResult, RotateResult, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
   RemoveResult, SellResult, SimpleResult, SpeedKind, SpeedResult, UpgradeResult,
   animalHappiness, animalStatus, habitatCapacity, productionSlots,
 } from './types';
@@ -35,13 +35,15 @@ export interface WorldConfig {
   staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
   isBuildable: (gx: number, gy: number) => boolean;
   expansions?: ExpansionDef[];
+  /** Rocks, trees and bushes that can be cleared (some belong to a lot and only appear once it is cleared). */
+  obstacles?: ObstacleDef[];
   /** May this land be cleared now (does it touch land you own)? Missing = always. */
   canExpand?: (id: string, expandedIds: string[]) => boolean;
 }
 
 export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
 const PREV_KEY = 'stratos_farm_save_prev_v1'; // the save before the latest one: a way back if the latest is damaged
-const VERSION = 3;
+const VERSION = 4;
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -57,6 +59,7 @@ interface SavedState {
   orderCooldowns: Record<string, number>;
   orderCounter: number;
   expanded: string[];
+  clearedObstacles: string[];
   stats: Record<string, number>;
   claimed: string[];
   daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
@@ -156,7 +159,10 @@ export class LocalFarmService implements FarmService {
         s.buildings = []; s.animals = []; s.jobs = []; s.nextId = 1; s.version = 2;
       }
       if (s.version === 2) { // Phase 3 saves gain orders, quests, expansions
-        Object.assign(s, this.phase4Defaults()); s.version = VERSION;
+        Object.assign(s, this.phase4Defaults()); s.version = 3;
+      }
+      if (s.version === 3) { // rocks, trees and bushes can be cleared now
+        s.clearedObstacles = []; s.version = VERSION;
       }
       if (s.version !== VERSION) throw new Error('unknown version');
       const byId = new Map(s.plots.map((p) => [p.id, p]));
@@ -169,7 +175,7 @@ export class LocalFarmService implements FarmService {
 
   private phase4Defaults() {
     return {
-      orders: [] as OrderState[], orderCooldowns: {} as Record<string, number>, orderCounter: 0, expanded: [] as string[],
+      orders: [] as OrderState[], orderCooldowns: {} as Record<string, number>, orderCounter: 0, expanded: [] as string[], clearedObstacles: [] as string[],
       stats: {} as Record<string, number>, claimed: [] as string[],
       daily: { day: -1, ids: [] as string[], base: {} as Record<string, number>, claimed: [] as string[] }, tutorialDone: false,
     };
@@ -190,7 +196,7 @@ export class LocalFarmService implements FarmService {
       inventory: { ...s.inventory }, plots: s.plots.map((p) => ({ ...p })),
       buildings: s.buildings.map((b) => ({ ...b })), animals: s.animals.map((a) => ({ ...a })), jobs: s.jobs.map((j) => ({ ...j })),
       orders: s.orders.map((o) => ({ ...o, items: { ...o.items } })), orderCooldowns: { ...s.orderCooldowns },
-      expanded: [...s.expanded], stats: { ...s.stats }, claimed: [...s.claimed],
+      expanded: [...s.expanded], clearedObstacles: [...s.clearedObstacles], stats: { ...s.stats }, claimed: [...s.claimed],
       daily: { day: s.daily.day, ids: [...s.daily.ids], base: { ...s.daily.base }, claimed: [...s.daily.claimed] },
       tutorialDone: s.tutorialDone,
       serverNow: this.now(), ...(this.notice ? { notice: this.notice } : {}),
@@ -255,7 +261,12 @@ export class LocalFarmService implements FarmService {
     s.xp += amount;
     this.log('xp', ref, amount, s.xp, reason);
     let up: number | null = null;
-    while (s.xp >= xpForNextLevel(s.level)) { s.xp -= xpForNextLevel(s.level); s.level += 1; up = s.level; }
+    while (s.xp >= xpForNextLevel(s.level)) {
+      s.xp -= xpForNextLevel(s.level); s.level += 1; up = s.level;
+      const bonus = 10 * s.level; // a small present for every new level
+      s.coins += bonus;
+      this.log('coins', `level:${s.level}`, bonus, s.coins, 'level_up');
+    }
     return up;
   }
   /** Count something the player did; quests and achievements read these counters. */
@@ -396,11 +407,18 @@ export class LocalFarmService implements FarmService {
   private occupancy(): OccupancyMap {
     const occ = new OccupancyMap(this.world.cols, this.world.rows);
     for (const o of this.world.staticObjects) occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h });
+    for (const o of this.activeObstacles()) occ.place(o.id, o.gx, o.gy, { w: 1, h: 1 });
     for (const b of this.state.buildings) {
       const d = BUILDING_BY_ID.get(b.type)!;
       occ.place(b.id, b.gx, b.gy, { w: d.w, h: d.h });
     }
     return occ;
+  }
+
+  /** Obstacles that are in the world right now: not cleared, and (for lot obstacles) the lot is cleared. */
+  activeObstacles(): ObstacleDef[] {
+    const s = this.state;
+    return (this.world.obstacles ?? []).filter((o) => !s.clearedObstacles.includes(o.id) && (!o.lot || s.expanded.includes(o.lot)));
   }
 
   /** Base buildable land plus any patch the player has cleared. */
@@ -418,7 +436,7 @@ export class LocalFarmService implements FarmService {
     return { valid: r.valid, reason: r.reason };
   }
 
-  placeBuilding(type: string, gx: number, gy: number, key: string): Promise<PlaceResult> {
+  placeBuilding(type: string, gx: number, gy: number, key: string, flipped = false): Promise<PlaceResult> {
     return this.tx(key, (): PlaceResult => {
       const s = this.state;
       const def = BUILDING_BY_ID.get(type);
@@ -429,9 +447,10 @@ export class LocalFarmService implements FarmService {
       const check = validatePlacement(this.occupancy(), gx, gy, { w: def.w, h: def.h }, (x, y) => this.buildable(x, y));
       if (!check.valid) return fail('invalid_placement');
       const id = this.newId('b');
-      s.buildings.push({ id, type, gx, gy, level: 1 });
+      s.buildings.push(flipped ? { id, type, gx, gy, level: 1, flipped: true } : { id, type, gx, gy, level: 1 });
       this.bump('build'); this.bump(`build:${def.kind}`);
       this.spend(def.cost, `build:${id}:${type}`, 'building');
+      this.addXp(Math.max(3, Math.round(def.cost / 15)), `build:${id}`, 'building'); // building something is progress too
       return { ok: true as const, buildingId: id, cost: def.cost, snapshot: this.snapshot() };
     });
   }
@@ -442,7 +461,7 @@ export class LocalFarmService implements FarmService {
       const b = s.buildings.find((x) => x.id === buildingId);
       if (!b) return fail('unknown_building');
       const def = BUILDING_BY_ID.get(b.type)!;
-      if (b.level >= MAX_LEVEL) return fail('max_level');
+      if (def.kind === 'decor' || b.level >= MAX_LEVEL) return fail('max_level');
       const cost = def.upgradeCost[b.level] ?? Infinity;
       if (s.coins < cost) return fail('insufficient_coins');
       this.spend(cost, `upgrade:${b.id}:${b.level + 1}`, 'upgrade');
@@ -468,6 +487,7 @@ export class LocalFarmService implements FarmService {
       s.animals.push({ id, type: animal.id, buildingId: habitatId, readyAt: null, hungrySince: this.now(), happiness: 100 });
       this.spend(animal.cost, `animal:${id}:${animal.id}`, 'animal');
       if (!s.stats.animal_buy) this.addItem(FEED_ITEM, 3, `starter:${id}`, 'starter_gift'); // your first animal comes with 3 animal feed
+      this.addXp(5, `animal:${id}`, 'animal_buy');
       this.bump('animal_buy');
       return { ok: true as const, animalId: id, cost: animal.cost, snapshot: this.snapshot() };
     });
@@ -540,8 +560,8 @@ export class LocalFarmService implements FarmService {
       for (const [item, qty] of Object.entries(recipe.inputs)) if ((s.inventory[item] ?? 0) < qty) return fail('insufficient_items');
       const id = this.newId('j');
       for (const [item, qty] of Object.entries(recipe.inputs)) this.takeItem(item, qty, `job:${id}`, 'recipe_input');
-      // jobs run one after another: this one starts when the previous one ends (computed now, never ticked)
-      const startAt = Math.max(now, ...mine.map((j) => j.readyAt));
+      // every slot works on its own, so two flour (or two feed) queued together are ready together
+      const startAt = now;
       const readyAt = startAt + recipe.seconds * 1000;
       s.jobs.push({ id, buildingId, recipeId, startAt, readyAt });
       this.bump('job_queue');
@@ -699,17 +719,41 @@ export class LocalFarmService implements FarmService {
         const job = s.jobs.find((j) => j.id === id);
         if (!job) return fail('bad_request');
         if (now >= job.readyAt) return fail('already_ready');
-        const delta = job.readyAt - Math.max(now, job.startAt);
-        const oldEnd = job.readyAt;
-        job.readyAt = now;
-        // later jobs in the same building move up by the time saved
-        for (const j of s.jobs) {
-          if (j.buildingId === job.buildingId && j.id !== job.id && j.startAt >= oldEnd) { j.startAt -= delta; j.readyAt -= delta; }
-        }
+        job.readyAt = now; // jobs are independent: nothing else moves
       } else return fail('bad_request');
       this.bump('speedup');
       this.log('item', `speedup:${kind}:${id}`, 1, 1, 'speedup');
       return { ok: true as const, kind, id, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- turning and clearing ----------
+  /** Turn a building around (mirror it). Every building here is square, so it always fits. */
+  rotateBuilding(buildingId: string, key: string): Promise<RotateResult> {
+    return this.tx(key, (): RotateResult => {
+      const b = this.state.buildings.find((x) => x.id === buildingId);
+      if (!b) return fail('unknown_building');
+      b.flipped = !b.flipped;
+      return { ok: true as const, buildingId, flipped: !!b.flipped, snapshot: this.snapshot() };
+    });
+  }
+
+  /** Pay to clear a rock, tree or bush; you get a little wood or stone and XP, and the land is free to build on. */
+  clearObstacle(obstacleId: string, key: string): Promise<ClearResult> {
+    return this.tx(key, (): ClearResult => {
+      const s = this.state;
+      const ob = this.activeObstacles().find((o) => o.id === obstacleId);
+      if (!ob) return fail('unknown_obstacle');
+      const t = OBSTACLE_TYPE_BY_ID.get(ob.type);
+      if (!t) return fail('unknown_obstacle');
+      if (t.unlockLevel > s.level) return fail('not_unlocked');
+      if (s.coins < t.cost) return fail('insufficient_coins');
+      this.spend(t.cost, `clear:${ob.id}`, 'clearing');
+      for (const [item, qty] of Object.entries(t.reward)) this.addItem(item, qty, `clear:${ob.id}`, 'clearing');
+      this.addXp(t.xp, `clear:${ob.id}`, 'clearing');
+      s.clearedObstacles.push(ob.id);
+      this.bump('clear'); this.bump(`clear:${t.id}`);
+      return { ok: true as const, obstacleId, cost: t.cost, rewards: { ...t.reward }, xp: t.xp, snapshot: this.snapshot() };
     });
   }
 }

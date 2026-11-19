@@ -10,6 +10,8 @@ export function hintFor(itemId: string): string {
     const home = BUILDING_BY_ID.get(animal.habitat)!;
     return `${name}: build a ${home.name}, buy a ${animal.name.toLowerCase()}, feed it and collect (level ${animal.unlockLevel}).`;
   }
+  if (itemId === 'wood') return 'Wood: clear trees, stumps and bushes on your land (tap them).';
+  if (itemId === 'stone') return 'Stone: clear rocks on your land (tap them).';
   const recipes = RECIPES.filter((r) => r.output === itemId);
   if (recipes.length) {
     const r = [...recipes].sort((a, b) => a.unlockLevel - b.unlockLevel)[0];

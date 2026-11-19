@@ -8,7 +8,7 @@
    "name": "Chicken",
    "cost": 50,
    "product": "egg",
-   "productSeconds": 600,
+   "productSeconds": 300,
    "habitat": "chicken_coop",
    "unlockLevel": 1,
    "xp": 1
@@ -18,7 +18,7 @@
    "name": "Duck",
    "cost": 80,
    "product": "feather",
-   "productSeconds": 900,
+   "productSeconds": 600,
    "habitat": "duck_pond",
    "unlockLevel": 2,
    "xp": 2

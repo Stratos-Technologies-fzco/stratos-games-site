@@ -3,7 +3,7 @@ import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPES } from '../services/data';
 import { animalHappiness, animalStatus, habitatCapacity, productionSlots } from '../services/types';
-import { Icon } from './Icon';
+import { Icon, ItemIcon } from './Icon';
 import { PanelShell } from './Panels';
 
 const recipeIcon = (buildingId: string) => `item_${RECIPES.find((r) => r.building === buildingId)!.output}`;
@@ -45,12 +45,13 @@ export function ShopPanel() {
   const coins = useFarm((s) => s.player.coins);
   const setTab = useFarm((s) => s.setShopTab);
   if (!tab) return null;
-  const list = BUILDINGS.filter((b) => (tab === 'habitats' ? b.kind === 'habitat' : b.kind === 'production'));
+  const list = BUILDINGS.filter((b) => b.kind === (tab === 'habitats' ? 'habitat' : tab === 'factories' ? 'production' : 'decor'));
   return (
     <PanelShell title="Shop" testId="shop-panel" onClose={() => setTab(null)}>
       <div className="tabs" role="tablist">
         <button className={tab === 'habitats' ? 'on' : ''} onClick={() => setTab('habitats')} data-testid="tab-habitats">Animal homes</button>
         <button className={tab === 'factories' ? 'on' : ''} onClick={() => setTab('factories')} data-testid="tab-factories">Factories</button>
+        <button className={tab === 'decor' ? 'on' : ''} onClick={() => setTab('decor')} data-testid="tab-decor">Decor</button>
       </div>
       <p className="meta" data-testid="shop-hint">{selected ? `Selected spot: ${selected.gx}, ${selected.gy}. Double-click a building to put it there.` : 'Tip: tap a spot on the farm first, then double-click a building to put it there.'}</p>
       <ul className="rows">
@@ -62,10 +63,10 @@ export function ShopPanel() {
             <li key={b.id}>
               <button className={`row ${locked || coins < b.cost ? 'dim' : ''}`} disabled={locked} data-testid={`shop-${b.id}`}
                 onClick={() => click(b.id)}>
-                <Icon name={animal ? `item_${animal.product}` : recipeIcon(b.id)} size={40} />
+                {b.kind === 'decor' ? <Icon atlas={b.atlas} name={b.frames[0]} size={40} /> : <Icon name={animal ? `item_${animal.product}` : recipeIcon(b.id)} size={40} />}
                 <span className="grow">
                   <b>{b.name}</b>
-                  <small>{animal ? `Home for ${animal.name.toLowerCase()}s, makes ${ITEM_BY_ID.get(animal.product)!.name.toLowerCase()}` : `Makes ${makes}`}</small>
+                  <small>{b.kind === 'decor' ? 'A pretty extra for your village' : animal ? `Home for ${animal.name.toLowerCase()}s, makes ${ITEM_BY_ID.get(animal.product)!.name.toLowerCase()}` : `Makes ${makes}`}</small>
                 </span>
                 {locked ? <span className="tag"><Icon name="lock" size={18} /> Lv {b.unlockLevel}</span>
                   : <span className="tag"><Icon name="coin" size={20} /> {b.cost}</span>}
@@ -102,6 +103,7 @@ export function BuildingPanel() {
   const moveRemove = (
     <div className="btn-row">
       <button className="btn small" onClick={() => farm.startMove(b.id)} data-testid="move">Move</button>
+      <button className="btn small" onClick={() => farm.rotateBuilding(b.id)} data-testid="rotate">Turn around</button>
       <button className={`btn small ${confirmRemove ? 'red' : ''}`} data-testid="remove"
         onClick={() => (confirmRemove ? farm.removeBuilding(b.id) : setConfirmRemove(true))}>
         {confirmRemove ? `Sure? Get ${Math.floor(def.cost / 2)} back` : 'Remove'}
@@ -131,7 +133,7 @@ export function BuildingPanel() {
             return (
               <li key={a.id}>
                 <div className="row" data-testid={`animal-${a.id}`}>
-                  <Icon name={`item_${animal.product}`} size={34} />
+                  <ItemIcon id={animal.product} size={34} />
                   <span className="grow">
                     <b>{animal.name}</b>
                     <small>
@@ -156,6 +158,15 @@ export function BuildingPanel() {
     );
   }
 
+  if (def.kind === 'decor') {
+    return (
+      <PanelShell title={def.name} testId="building-panel" onClose={() => setPanel(null)}>
+        <p className="meta">A decoration. It makes your village look like yours. You can move it, turn it around, or take it away for half the price back.</p>
+        {moveRemove}
+      </PanelShell>
+    );
+  }
+
   const myJobs = jobs.filter((j) => j.buildingId === b.id);
   const slots = productionSlots(def, b.level);
   const done = myJobs.filter((j) => now >= j.readyAt).length;
@@ -169,7 +180,7 @@ export function BuildingPanel() {
             return (
               <li key={j.id}>
                 <div className="row" data-testid={`job-${j.id}`}>
-                  <Icon name={`item_${r.output}`} size={34} />
+                  <ItemIcon id={r.output} size={34} />
                   <span className="grow"><b>{r.name}</b><small><Countdown to={j.readyAt} /></small></span>
                   {j.readyAt > now && <button className="btn small" onClick={() => farm.speedUp('job', j.id)} data-testid={`speed-${j.id}`}>Speed up</button>}
                 </div>
@@ -186,7 +197,7 @@ export function BuildingPanel() {
           return (
             <li key={r.id}>
               <button className={`row ${locked || missing ? 'dim' : ''}`} disabled={locked} data-testid={`recipe-${r.id}`} onClick={() => farm.queueRecipe(b.id, r.id)}>
-                <Icon name={`item_${r.output}`} size={36} />
+                <ItemIcon id={r.output} size={36} />
                 <span className="grow">
                   <b>{r.name}</b>
                   <small>{Object.entries(r.inputs).map(([i, q]) => `${inv[i] ?? 0}/${q} ${ITEM_BY_ID.get(i)!.name}`).join(' + ')} · {formatDuration(r.seconds * 1000)}</small>
@@ -216,6 +227,7 @@ export function PlacementBar() {
       <span>{p.gx === null ? (p.moveId ? `Tap a new spot for your ${def.name}` : `Tap a spot for your ${def.name}`) : p.valid ? 'Looks good!' : 'Something is in the way'}</span>
       <div className="panel-actions">
         <button className="btn small" disabled={!p.valid} onClick={() => farm.confirmPlacing()} data-testid="place-confirm">{p.moveId ? 'Move here' : `Place · ${def.cost}`}</button>
+        {!p.moveId && <button className="btn small" onClick={() => farm.togglePlacingFlip()} data-testid="place-turn" aria-pressed={!!p.flip}>Turn around</button>}
         <button className="btn small red" onClick={() => farm.cancelPlacing()} data-testid="place-cancel">Cancel</button>
       </div>
     </div>

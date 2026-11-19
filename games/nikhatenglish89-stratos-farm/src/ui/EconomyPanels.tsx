@@ -9,7 +9,7 @@ import { cropStage } from '../services/types';
 import {
   QUESTS, QuestDef, QuestView, activeQuests, claimableCount, currentTutorialStep, isClaimed, isComplete, questProgress,
 } from '../services/quests';
-import { Icon } from './Icon';
+import { Icon, ItemIcon } from './Icon';
 import { PanelShell } from './Panels';
 import { SellRow } from './SellRow';
 
@@ -74,7 +74,7 @@ export function MarketPanel() {
                     <div className="wants">
                       {Object.entries(o.items).map(([item, q]) => (
                         <span key={item} className={`want ${(inv[item] ?? 0) >= q ? 'ok' : ''}`}>
-                          <Icon name={`item_${item}`} size={24} /> {inv[item] ?? 0}/{q}
+                          <ItemIcon id={item} size={24} /> {inv[item] ?? 0}/{q}
                         </span>
                       ))}
                     </div>
@@ -167,7 +167,7 @@ export function TutorialBanner() {
   const v = useQuestView();
   const step = currentTutorialStep(v);
   // stay out of the way while a panel is open
-  const panelOpen = useFarm((s) => !!(s.shopTab || s.marketTab || s.inventoryOpen || s.questsOpen || s.buildingPanel || s.seedPlot || s.openPanel || s.expansionPanel || s.placing));
+  const panelOpen = useFarm((s) => !!(s.shopTab || s.marketTab || s.inventoryOpen || s.questsOpen || s.obstaclePanel || s.buildingPanel || s.seedPlot || s.openPanel || s.expansionPanel || s.placing));
   if (done || !loaded || !step || panelOpen) return null;
   const idx = QUESTS.filter((q) => q.type === 'tutorial').findIndex((q) => q.id === step.id) + 1;
   const complete = isComplete(step, v);
@@ -204,7 +204,7 @@ export function ExpansionPanel() {
       <ul className="rows">
         <li><div className="row"><Icon name="coin" size={32} /><span className="grow"><b>Coins</b></span><span className={`tag ${coins >= ex.cost ? '' : 'bad'}`}>{coins} / {ex.cost}</span></div></li>
         {Object.entries(ex.materials).map(([item, q]) => (
-          <li key={item}><div className="row"><Icon name={`item_${item}`} size={32} /><span className="grow"><b>{ITEM_BY_ID.get(item)?.name ?? item}</b></span><span className={`tag ${(inv[item] ?? 0) >= q ? '' : 'bad'}`}>{inv[item] ?? 0} / {q}</span></div></li>
+          <li key={item}><div className="row"><ItemIcon id={item} size={32} /><span className="grow"><b>{ITEM_BY_ID.get(item)?.name ?? item}</b></span><span className={`tag ${(inv[item] ?? 0) >= q ? '' : 'bad'}`}>{inv[item] ?? 0} / {q}</span></div></li>
         ))}
       </ul>
       <div className="panel-actions" style={{ marginTop: 10 }}>
@@ -230,6 +230,32 @@ export function PlotPanel() {
       <p className="meta" data-testid="plot-time">Ready in {formatDuration((plot.readyAt ?? now) - now)}</p>
       <div className="panel-actions">
         <button className="btn small" onClick={() => farm.speedUp('plot', id)} data-testid="speedup">Speed up</button>
+      </div>
+    </PanelShell>
+  );
+}
+
+/** Clear a rock, tree or bush: costs coins, pays wood or stone and a little XP, and frees the land. */
+export function ObstaclePanel() {
+  const id = useFarm((s) => s.obstaclePanel);
+  const setId = useFarm((s) => s.setObstaclePanel);
+  const coins = useFarm((s) => s.player.coins);
+  const cleared = useFarm((s) => s.clearedObstacles);
+  const info = id ? farm.obstacleInfo(id) : null;
+  if (!id || !info || cleared.includes(id)) return null;
+  const t = info.def;
+  return (
+    <PanelShell title={t.name} testId="obstacle-panel" onClose={() => setId(null)}>
+      <p className="meta">It is in the way. Clear it to make room, and keep what you get.</p>
+      <ul className="rows">
+        <li><div className="row"><Icon name="coin" size={32} /><span className="grow"><b>Cost</b></span><span className={`tag ${coins >= t.cost ? '' : 'bad'}`}>{coins} / {t.cost}</span></div></li>
+        {Object.entries(t.reward).map(([item, q]) => (
+          <li key={item}><div className="row"><ItemIcon id={item} size={32} /><span className="grow"><b>You get {ITEM_BY_ID.get(item)?.name ?? item}</b></span><span className="tag">+{q}</span></div></li>
+        ))}
+        <li><div className="row"><Icon name="xp_star" size={32} /><span className="grow"><b>Experience</b></span><span className="tag">+{t.xp}</span></div></li>
+      </ul>
+      <div className="panel-actions" style={{ marginTop: 10 }}>
+        <button className="btn" disabled={coins < t.cost} onClick={() => farm.clearObstacle(id)} data-testid="clear-confirm">Clear it</button>
       </div>
     </PanelShell>
   );

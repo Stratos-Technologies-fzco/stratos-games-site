@@ -12,7 +12,10 @@ export interface PlotState {
 }
 
 /** A habitat or production building the player owns (its definition lives in buildings.json). */
-export interface BuildingState { id: string; type: string; gx: number; gy: number; level: number }
+export interface BuildingState { id: string; type: string; gx: number; gy: number; level: number; /** mirrored (turned) */ flipped?: boolean }
+
+/** A rock, tree or bush that blocks land until it is cleared. */
+export interface ObstacleDef { id: string; type: string; gx: number; gy: number; /** only there once this lot is cleared */ lot?: string }
 
 export interface AnimalState {
   id: string; type: string; buildingId: string;
@@ -49,6 +52,7 @@ export interface FarmSnapshot {
   /** slot -> time the next order appears there */
   orderCooldowns: Record<string, number>;
   expanded: string[];
+  clearedObstacles: string[];
   stats: Record<string, number>;
   claimed: string[];
   daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
@@ -63,7 +67,7 @@ export type ErrorCode =
   | 'nothing_planted' | 'not_ready' | 'nothing_ready' | 'insufficient_items' | 'bad_request'
   | 'unknown_building' | 'invalid_placement' | 'wrong_building' | 'at_capacity' | 'nothing_hungry'
   | 'max_level' | 'unknown_recipe' | 'queue_full'
-  | 'already_ready' | 'not_adjacent' | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
+  | 'already_ready' | 'unknown_obstacle' | 'not_adjacent' | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
 
 export type Result<T> = ({ ok: true; snapshot: FarmSnapshot; replayed?: boolean } & T) | { ok: false; error: ErrorCode };
 
@@ -83,6 +87,8 @@ export type ExpandResult = Result<{ expansionId: string }>;
 export type MoveResult = Result<{ buildingId: string }>;
 export type RemoveResult = Result<{ buildingId: string; refund: number }>;
 export type SimpleResult = Result<object>;
+export type ClearResult = Result<{ obstacleId: string; cost: number; rewards: Record<string, number>; xp: number }>;
+export type RotateResult = Result<{ buildingId: string; flipped: boolean }>;
 export type SpeedKind = 'plot' | 'animal' | 'job';
 export type SpeedResult = Result<{ kind: SpeedKind; id: string }>;
 
@@ -93,7 +99,9 @@ export interface FarmService {
   harvest(plotId: string, key: string): Promise<HarvestResult>;
   harvestAll(key: string): Promise<HarvestResult>;
   sell(itemId: string, qty: number, key: string): Promise<SellResult>;
-  placeBuilding(type: string, gx: number, gy: number, key: string): Promise<PlaceResult>;
+  placeBuilding(type: string, gx: number, gy: number, key: string, flipped?: boolean): Promise<PlaceResult>;
+  rotateBuilding(buildingId: string, key: string): Promise<RotateResult>;
+  clearObstacle(obstacleId: string, key: string): Promise<ClearResult>;
   buyAnimal(habitatId: string, key: string): Promise<AnimalBuyResult>;
   feedAnimals(habitatId: string, key: string): Promise<FeedResult>;
   collectAnimals(habitatId: string, key: string): Promise<CollectResult>;

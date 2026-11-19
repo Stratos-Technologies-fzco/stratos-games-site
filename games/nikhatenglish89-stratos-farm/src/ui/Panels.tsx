@@ -1,7 +1,7 @@
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
 import { CROPS, ITEMS } from '../services/data';
-import { Icon } from './Icon';
+import { Icon, ItemIcon } from './Icon';
 import { SellRow } from './SellRow';
 
 export function PanelShell({ title, onClose, testId, children, center = false }: { title: string; onClose: () => void; testId: string; children: React.ReactNode; center?: boolean }) {
@@ -33,7 +33,7 @@ export function SeedPanel() {
             <li key={c.id}>
               <button className={`row ${locked || poor ? 'dim' : ''}`} disabled={locked} data-testid={`seed-${c.id}`}
                 onClick={() => (poor ? useFarm.getState().showToast('Not enough coins') : farm.plant(plotId, c.id))}>
-                <Icon name={`item_${c.id}`} size={40} />
+                <ItemIcon id={c.id} size={40} />
                 <span className="grow">
                   <b>{c.name}</b>
                   <small>{formatDuration(c.growSeconds * 1000)} · {c.yield} per harvest · {c.xp} XP</small>

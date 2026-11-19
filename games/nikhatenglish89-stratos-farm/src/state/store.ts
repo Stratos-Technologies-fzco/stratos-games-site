@@ -31,9 +31,11 @@ interface FarmState {
   openPanel: string | null; // id of the building whose info panel is open
   seedPlot: string | null; // plot id whose seed picker is open
   inventoryOpen: boolean;
-  shopTab: 'habitats' | 'factories' | null; // shop panel open on this tab
+  shopTab: 'habitats' | 'factories' | 'decor' | null; // shop panel open on this tab
+  obstaclePanel: string | null; // rock, tree or bush whose clear panel is open
+  clearedObstacles: string[];
   buildingPanel: string | null; // building id whose panel is open
-  placing: { type: string; moveId?: string; gx: number | null; gy: number | null; valid: boolean } | null;
+  placing: { type: string; moveId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean } | null;
   marketTab: 'orders' | 'sell' | null;
   questsOpen: boolean;
   mapOpen: boolean;
@@ -54,7 +56,8 @@ interface FarmState {
   setOpenPanel: (id: string | null) => void;
   setSeedPlot: (id: string | null) => void;
   setInventoryOpen: (open: boolean) => void;
-  setShopTab: (t: 'habitats' | 'factories' | null) => void;
+  setShopTab: (t: 'habitats' | 'factories' | 'decor' | null) => void;
+  setObstaclePanel: (id: string | null) => void;
   setBuildingPanel: (id: string | null) => void;
   setPlacing: (p: FarmState['placing']) => void;
   setMarketTab: (t: 'orders' | 'sell' | null) => void;
@@ -96,6 +99,8 @@ export const useFarm = create<FarmState>((set) => ({
   seedPlot: null,
   inventoryOpen: false,
   shopTab: null,
+  obstaclePanel: null,
+  clearedObstacles: [],
   buildingPanel: null,
   placing: null,
   marketTab: null,
@@ -120,6 +125,7 @@ export const useFarm = create<FarmState>((set) => ({
     orders: s.orders,
     orderCooldowns: s.orderCooldowns,
     expanded: s.expanded,
+    clearedObstacles: s.clearedObstacles,
     stats: s.stats,
     claimed: s.claimed,
     daily: s.daily,
@@ -134,6 +140,7 @@ export const useFarm = create<FarmState>((set) => ({
   setSeedPlot: (seedPlot) => set({ seedPlot }),
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setShopTab: (shopTab) => set({ shopTab }),
+  setObstaclePanel: (obstaclePanel) => set({ obstaclePanel }),
   setBuildingPanel: (buildingPanel) => set({ buildingPanel }),
   setPlacing: (placing) => set({ placing }),
   setMarketTab: (marketTab) => set({ marketTab }),
