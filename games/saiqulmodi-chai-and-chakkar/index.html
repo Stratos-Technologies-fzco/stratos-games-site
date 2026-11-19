@@ -277,6 +277,28 @@
       color: #ffffff;
       animation: goldRecordGlow 1.4s infinite ease-in-out;
     }
+    #pingHudPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      color: #fde68a;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s ease, transform 0.15s ease;
+    }
+    #pingHudPill.pulse { transform: scale(1.12); }
+    #pingHudPill svg rect, #pingHudPill svg circle { transition: fill 0.2s ease, opacity 0.2s ease; }
+    #pingDot { animation: pingDotBlink 1.6s infinite ease-in-out; }
+    @keyframes pingDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   </style>
   <meta name="description" content="Drop and merge 14 Indian treats inside a tilting brass dabba! Instant mobile and desktop play, daily seeds, and live 2-player duels." />
   <meta property="og:type" content="website" />
@@ -303,7 +325,7 @@
       <div class="pill" id="chakkarPill">🔔 12</div><div class="pill" id="chaiPill" title="Drops until Cutting Chai Wildcard">☕ 12</div>
       <div class="pill" id="nextPill">Next: <canvas id="nextMini" width="20" height="20"></canvas></div>
     </div>
-    <span id="bestHudPill" title="All-Time Personal Best">👑 0</span><span id="chakkarHudPill" title="Drops until next Chakkar tilt">🔔 12</span><span id="comboPill">🔥 x2</span><button class="pill-btn" id="hudMuteBtn" title="Toggle Sound & Haptics" aria-label="Toggle Sound">🔊</button><button id="menuBtn">☰ Menu</button>
+    <span id="bestHudPill" title="All-Time Personal Best">👑 0</span><span id="chakkarHudPill" title="Drops until next Chakkar tilt">🔔 12</span><span id="comboPill">🔥 x2</span><span id="pingHudPill" title="Live Server Round-Trip Ping" role="button" aria-label="Live ping, tap to refresh"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M0.8 8.2h4.6l-.5 3.9a.9.9 0 0 1-.9.8H2.2a.9.9 0 0 1-.9-.8z" fill="#d97706" stroke="#fde68a" stroke-width=".7"/><circle id="pingDot" cx="3.1" cy="5.4" r="1.4" fill="#fde68a"/><rect id="pingBar1" x="6.4" y="9" width="2" height="4" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar2" x="9" y="6" width="2" height="7" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar3" x="11.6" y="2.6" width="2" height="10.4" rx=".5" fill="#fde68a" opacity=".25"/></svg><span id="pingMsText">-- ms</span></span><button class="pill-btn" id="hudMuteBtn" title="Toggle Sound & Haptics" aria-label="Toggle Sound">🔊</button><button id="menuBtn">☰ Menu</button>
   </div>
   <div id="lvBarWrap"><div id="lvBar"></div></div>
 
@@ -320,6 +342,7 @@
         🟰 Two of the same snack merge into a bigger one.<br>
         🔔 Every 12 drops the dabba tilts.<br>
         ☕ Every 12th drop is a Cutting Chai: 2x on any snack.<br>
+        ⏳ Stall too long and the steam lid drops 1%/sec — chain combos or score bonus points to clear it!<br>
         🌀 More twists in Menu → Twists.
       </div>
       <div class="homeBtns">
@@ -390,6 +413,8 @@
             🔥 Quick merges in a row build a combo.<br>
             ⚠️ Keep the pile below the dashed line.<br>
             🔔 Every 12 drops the dabba tilts. ☕ Every 12th drop is a Cutting Chai (2x).<br>
+            ⏳ Stall too long and the steam lid drops 1%/sec — chain combos or score bonus points to clear it!<br>
+            🎯 The glowing dot shows where your snack lands; green means a match.<br>
             🌀 Switch twists ON / OFF in the Twists tab.
           </div>
         </details>
@@ -833,6 +858,43 @@
   let isDaily = false, rngState = Date.now() % 2147483647;
   let hintEnabled = false, hintCharges = 0, nextHintThreshold = 500;
 
+  // Over-Steeped Steam Lid: stalling lowers the danger line by 1% of the dabba per second
+  let idleTimer = 0, topCreepPct = 0;
+  const IDLE_GRACE_SEC = 2.0;
+  function currentDangerY() { return DANGER_Y + (FLOOR - DANGER_Y) * (topCreepPct / 100); }
+  // Where a new snack starts: just under the lid, but never inside a snack already sitting below it
+  function spawnY(r, x) {
+    let y = currentDangerY() - 12;
+    for (const b of bodies) {
+      if (!b.merged && Math.abs(b.x - x) < b.r + r) y = Math.min(y, b.y - b.r - r - 2);
+    }
+    return Math.max(DANGER_Y - 12, y);
+  }
+  function modalOpen() { const m = document.getElementById("modalBackdrop"); return !!m && m.style.display === "flex"; }
+  function steamClear() {
+    if (topCreepPct > 5) {
+      const dy = currentDangerY();
+      spawnPopup((WALL_L + WALL_R) / 2, dy - 16, "💨 STEAM CLEARED!", "#fde68a", false);
+      for (let i = 0; i < 6; i++) spawnParticles(WALL_L + (WALL_R - WALL_L) * (i + 0.5) / 6, dy, "rgba(254,243,199,0.85)", 5);
+    }
+    topCreepPct = 0;
+  }
+  function steamRelief() { topCreepPct = Math.max(0, topCreepPct - 4); }
+
+  // Landing point of a snack of radius r dropped at x: first snack it touches, or the floor
+  function landingAt(x, r) {
+    let y = FLOOR - r, tier = -2;
+    for (const b of bodies) {
+      if (b.merged) continue;
+      const dx = Math.abs(b.x - x), sumR = b.r + r;
+      if (dx < sumR) {
+        const yCand = b.y - Math.sqrt(sumR * sumR - dx * dx);
+        if (yCand < y) { y = yCand; tier = b.tier; }
+      }
+    }
+    return { y, tier };
+  }
+
   function seededRand() {
     if (!isDaily) return Math.random();
     rngState = (rngState * 48271) % 2147483647;
@@ -901,7 +963,7 @@
     r.doneDate = today;
     store.set("recipe", r);
     unlockAch("recipe");
-    score += 1000;
+    score += 1000; steamClear();
     showToast(`🍽️ Daily Recipe done! +1,000 • 🔥 ${r.streak} day${r.streak === 1 ? "" : "s"}`);
     spawnConfetti(); playLevelFanfare(); buzz([30, 30, 50]);
     checkProgression(); updateHUD();
@@ -914,7 +976,7 @@
     if (tw.order && TW("customer") && nt === tw.order.tier) {
       unlockAch("cust");
       const tip = Math.pow(2, nt) * 10 * 2;
-      score += tip;
+      score += tip; steamClear();
       spawnPopup(x, y - 30, `😋 Tip +${tip.toLocaleString()}`, "#10b981", true);
       showToast(`😋 Customer happy! Tip +${tip.toLocaleString()}`);
       tw.order = null;
@@ -1073,6 +1135,7 @@
     dropsUntilChakkar = 12;
     tiltAngle = 0; tiltTimer = 0;
     overflowTimer = 0; gameOver = false;
+    idleTimer = 0; topCreepPct = 0;
     hintEnabled = false; hintCharges = 0; nextHintThreshold = 500;
     while (score >= nextHintThreshold) {
       hintCharges = 5;
@@ -1205,9 +1268,10 @@
     if (gameOver || dropCooldown > 0 || homeOpen) return;
     const r = tierInfo(currentTier).r;
     const x = Math.min(WALL_R - r - 2, Math.max(WALL_L + r + 2, aimX));
-    bodies.push({ x, y: DANGER_Y - 12, vx: 0, vy: 40, tier: currentTier, r, age: 0, merged: false, mystery: tw.curMys && TW("mystery") });
+    bodies.push({ x, y: spawnY(r, x), vx: 0, vy: 40, tier: currentTier, r, age: 0, merged: false, mystery: tw.curMys && TW("mystery") });
     if (currentTier >= 0) unlockTier(currentTier);
     dropCount++;
+    idleTimer = 0;
     tone(190, 0.07, "sine", 0.1); buzz(12);
     dropCooldown = 0.42;
 
@@ -1396,6 +1460,7 @@
                 score += totalPts;
                 spawnPopup(s.x, s.y, `☕ 2x +${totalPts.toLocaleString()}`, "#f59e0b", true);
                 if (chainCount >= 2) spawnPopup(s.x, s.y - 24, `🔥 x${chainCount} COMBO!`, "#ec4899", true);
+                if (chainCount >= 2) steamClear(); else steamRelief();
                 bodies.push({ x: s.x, y: s.y, vx: 0, vy: -35, tier: nt, r: tiers[nt].r, age: 0, merged: false });
                 unlockTier(nt);
                 onSnackMade(nt, s.x, s.y);
@@ -1406,7 +1471,7 @@
                 // Tier 13: clear up to 4 lowest-tier crumbs (tier <= 1)
                 const crumbs = bodies.filter(o => !o.merged && o.tier >= 0 && o.tier <= 1).sort((p, q) => p.tier - q.tier).slice(0, 4);
                 for (const o of crumbs) { o.merged = true; spawnParticles(o.x, o.y, "#fde68a", 8); }
-                score += 2500;
+                score += 2500; steamClear();
                 spawnPopup(s.x, s.y, "☕ +2,500 CLEAN-UP!", "#fbbf24", true);
                 tone(740, 0.2, "triangle", 0.14); buzz([20, 25, 35]);
               }
@@ -1421,7 +1486,7 @@
               if (a.tier !== b.tier) { spawnPopup(mx, my - 46, "🌶️ Masala merge!", "#dc2626", false); unlockAch("masala"); }
               if (baseT === 13) {
                 unlockAch("grand");
-                score += 50000; spawnPopup(mx, my, "+50,000!", "#fbbf24", true); spawnConfetti(); triggerShake(9, 0.45);
+                score += 50000; steamClear(); spawnPopup(mx, my, "+50,000!", "#fbbf24", true); spawnConfetti(); triggerShake(9, 0.45);
                 spawnParticles(mx, my, "#fbbf24", 32);
                 tone(980, 0.3, "triangle", 0.18);
                 showToast("👑 GRAND FEAST +50,000!"); buzz([60, 40, 80]);
@@ -1436,6 +1501,7 @@
           const totalPts = Math.round(pts * comboMult);
           const bonusPts = totalPts - pts;
           score += totalPts;
+          if (chainCount >= 2) steamClear(); else steamRelief();
           spawnPopup(mx, my, `+${totalPts.toLocaleString()}`, nt >= 8 ? "#10b981" : "#f59e0b", nt >= 10 || chainCount >= 3);
           if (chainCount >= 2) {
             spawnPopup(mx, my - 24, `🔥 x${chainCount} COMBO! (+${bonusPts.toLocaleString()})`, "#ec4899", true);
@@ -1472,9 +1538,15 @@
     }
     if (runChanged) saveRunState();
 
+    // Steam lid creeps down 1%/sec once the player stalls past the grace window (paused in the menu)
+    if (!gameOver && !modalOpen()) {
+      idleTimer += dt;
+      if (idleTimer > IDLE_GRACE_SEC) topCreepPct = Math.min(100, topCreepPct + 1.0 * dt);
+    }
+    const dangerY = currentDangerY();
     let danger = false;
     for (const b of bodies) {
-      if (b.age > 1.0 && b.y - b.r < DANGER_Y && Math.hypot(b.vx, b.vy) < 35) {
+      if (b.age > 1.0 && b.y - b.r < dangerY && Math.hypot(b.vx, b.vy) < 35) {
         danger = true; break;
       }
     }
@@ -1678,13 +1750,31 @@
     ctx.strokeStyle = nightMode ? "#8c6239" : "#c59249";
     ctx.stroke();
 
+    const lidY = currentDangerY();
+    if (topCreepPct >= 0.5) {
+      const hot = topCreepPct >= 75;
+      ctx.save();
+      const lg = ctx.createLinearGradient(0, 0, 0, lidY);
+      lg.addColorStop(0, "rgba(120, 53, 15, 0.28)");
+      lg.addColorStop(1, hot ? "rgba(239, 68, 68, 0.45)" : "rgba(217, 119, 6, 0.42)");
+      ctx.fillStyle = lg;
+      ctx.fillRect(WALL_L, 0, WALL_R - WALL_L, lidY);
+      ctx.strokeStyle = hot ? "#ef4444" : "#f59e0b"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(WALL_L, lidY - 4); ctx.lineTo(WALL_R, lidY - 4); ctx.stroke();
+      ctx.strokeStyle = "#fde68a"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(WALL_L, lidY - 1); ctx.lineTo(WALL_R, lidY - 1); ctx.stroke();
+      ctx.font = "800 10px system-ui, sans-serif"; ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+      ctx.fillStyle = hot ? "#fecaca" : "#fde68a";
+      ctx.fillText(`STEAM LID ${Math.round(topCreepPct)}%`, WALL_R - 6, lidY - 7);
+      ctx.restore();
+    }
     ctx.save();
     ctx.setLineDash([7, 6]);
     ctx.strokeStyle = overflowTimer > 0 ? "#ef4444" : "rgba(217,119,6,0.45)";
     ctx.lineWidth = overflowTimer > 0 ? 3 : 2;
     ctx.beginPath();
-    ctx.moveTo(WALL_L, DANGER_Y);
-    ctx.lineTo(WALL_R, DANGER_Y);
+    ctx.moveTo(WALL_L, lidY);
+    ctx.lineTo(WALL_R, lidY);
     ctx.stroke();
     ctx.restore();
 
@@ -1733,19 +1823,25 @@
       ctx.restore();
     }
 
+    let aimTarget = null;
     if (!gameOver) {
       const cur = tierInfo(currentTier);
       const clampedX = Math.min(WALL_R - cur.r - 2, Math.max(WALL_L + cur.r + 2, aimX));
+      const sy = spawnY(cur.r, clampedX);
+      const land = landingAt(clampedX, cur.r);
+      const tgtY = Math.min(FLOOR, land.y + cur.r);   // where the snack's bottom touches down
+      const onMatch = currentTier === -1 ? land.tier >= 0 : land.tier === currentTier;
       ctx.save();
       ctx.setLineDash([3, 5]);
       ctx.strokeStyle = "rgba(180,83,9,0.4)";
       ctx.beginPath();
-      ctx.moveTo(clampedX, DANGER_Y - 12);
-      ctx.lineTo(clampedX, FLOOR);
+      ctx.moveTo(clampedX, sy);
+      ctx.lineTo(clampedX, tgtY);
       ctx.stroke();
       ctx.restore();
-      if (tw.curMys && TW("mystery") && currentTier >= 0) drawMysteryBox(ctx, clampedX, DANGER_Y - 24, cur.r);
-      else drawTreat(clampedX, DANGER_Y - 24, cur.r, cur);
+      if (!homeOpen) aimTarget = { x: clampedX, y: tgtY, match: onMatch };
+      if (tw.curMys && TW("mystery") && currentTier >= 0) drawMysteryBox(ctx, clampedX, sy - 12, cur.r);
+      else drawTreat(clampedX, sy - 12, cur.r, cur);
     }
 
     const masalaGlow = tw.masalaT > 0 && TW("masala");
@@ -1754,6 +1850,29 @@
       if (masalaGlow) { ctx.save(); ctx.shadowColor = "#dc2626"; ctx.shadowBlur = 12; }
       drawTreat(b.x, b.y, b.r, b.tier === -1 ? CHAI_WILDCARD : tiers[b.tier]);
       if (masalaGlow) ctx.restore();
+    }
+
+    // Precision target (on top of the snacks): pulsing ring, crosshair ticks and a bright dot where the snack touches down.
+    // Emerald = it lands on a matching snack (merge), amber = no match.
+    if (aimTarget) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 160);
+      const tc = aimTarget.match ? "#10b981" : "#f59e0b";
+      const tx = aimTarget.x, ty = aimTarget.y, rr = 8 + 3 * pulse;
+      ctx.save();
+      ctx.shadowColor = tc; ctx.shadowBlur = 12;
+      ctx.strokeStyle = tc; ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.55 + 0.45 * pulse;
+      ctx.beginPath(); ctx.arc(tx, ty, rr, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(tx - rr - 5, ty); ctx.lineTo(tx - rr + 1, ty);
+      ctx.moveTo(tx + rr - 1, ty); ctx.lineTo(tx + rr + 5, ty);
+      ctx.moveTo(tx, ty - rr - 5); ctx.lineTo(tx, ty - rr + 1);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#fffbeb"; ctx.strokeStyle = tc; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(tx, ty, 3.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.restore();
     }
 
     for (const p of particles) {
@@ -2585,6 +2704,55 @@
     resetGame(1);
   }
   showHome();
+  // Live ping: real round trip to the server this page was loaded from
+  (function () {
+    const pill = document.getElementById("pingHudPill");
+    const txt = document.getElementById("pingMsText");
+    const dot = document.getElementById("pingDot");
+    const bars = [1, 2, 3].map(i => document.getElementById("pingBar" + i));
+    let busy = false;
+    function show(ms) {
+      let lit, col;
+      if (ms == null) { lit = 0; col = "#ef4444"; }
+      else if (ms < 80) { lit = 3; col = "#10b981"; }
+      else if (ms <= 220) { lit = 2; col = "#f59e0b"; }
+      else { lit = 1; col = "#ef4444"; }
+      bars.forEach((b, i) => { if (b) { b.setAttribute("fill", i < lit ? col : "#fde68a"); b.setAttribute("opacity", i < lit ? "1" : "0.25"); } });
+      if (dot) dot.setAttribute("fill", col);
+      if (txt) txt.textContent = ms == null ? "OFFLINE" : `${ms}ms`;
+      if (pill) pill.style.borderColor = col;
+    }
+    async function once(method) {
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 3500);
+      try {
+        const t0 = performance.now();
+        const r = await fetch(location.origin + location.pathname + "?ping=" + Date.now(), { method, cache: "no-store", signal: ac.signal });
+        return { ok: r.ok, ms: Math.round(performance.now() - t0) };
+      } finally { clearTimeout(t); }
+    }
+    async function measureRealPing() {
+      if (busy || document.hidden) return;
+      busy = true;
+      let ms = null;
+      try {
+        let r = await once("HEAD");
+        if (!r.ok) r = await once("GET");   // a server that refuses HEAD
+        if (r.ok) ms = r.ms;
+      } catch (e) { ms = null; }          // timeout or no network
+      busy = false;
+      show(ms);
+    }
+    if (pill) pill.addEventListener("click", () => {
+      pill.classList.add("pulse");
+      setTimeout(() => pill.classList.remove("pulse"), 180);
+      measureRealPing();
+    });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) measureRealPing(); });
+    setInterval(measureRealPing, 5000);
+    measureRealPing();
+  })();
+
   requestAnimationFrame(loop);
 })();
 </script>
