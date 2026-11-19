@@ -489,6 +489,7 @@ CAT_GLYPHS = {   # 24 x 24, round strokes
     "word": '<path d="M3.5 18.5L8 6l4.5 12.5"/><path d="M5.2 14h5.6"/><path d="M15 6.5v12"/><path d="M15 13.2c.6-1.3 1.6-2 2.8-2 1.7 0 2.7 1.4 2.7 3.6s-1 3.7-2.7 3.7c-1.2 0-2.2-.7-2.8-2"/>',
     "party": '<path d="M4 20l3.6-10.4 6.8 6.8z" fill="currentColor"/><path d="M13 4.5c.4 1.6-.4 2.8-1.6 3.2"/><path d="M19.5 10.5c-1.4-.6-2.8 0-3.4 1.2"/><path d="M16 3.5v.01M20 6.5v.01M17.5 14v.01M9.5 3v.01"/>',
     "sports": '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c3.2 2.4 3.2 14.6 0 17"/><path d="M12 3.5c-3.2 2.4-3.2 14.6 0 17"/>',
+    "adventure": '<circle cx="12" cy="12" r="8.5"/><path d="M15.8 8.2l-2.2 5.4-5.4 2.2 2.2-5.4z" fill="currentColor"/>',
     "kids": '<circle cx="6.6" cy="6.6" r="2.4"/><circle cx="17.4" cy="6.6" r="2.4"/><circle cx="12" cy="13" r="7.2"/><path d="M9.6 12v.01M14.4 12v.01"/><path d="M9.8 15.6c1.3 1.1 3.1 1.1 4.4 0"/>',
     "studio": '<path d="M16.8 7.2C16.2 4.2 8.2 4 8.2 8.4c0 4 8.6 2.6 8.6 7 0 4.6-8 4.8-9 1.6"/><circle cx="15.2" cy="6.4" r="1.1" fill="currentColor" stroke="none"/>',
 }
@@ -758,6 +759,7 @@ def build_category(cid, items, fam, studio):
 # Play page: one framed block under the tiles, laid out like Poki's game pages (Nov 2026):
 # cover + breadcrumb + title + description (Show more), a row of quick facts, then an "About this game" table.
 # It lines up with the tiles (not the game: on phones the game runs edge to edge).
+ICONS["compass"] = '<circle cx="12" cy="12" r="9"/><path d="M15.8 8.2l-2.2 5.4-5.4 2.2 2.2-5.4z"/>'
 ICONS["phone"] = '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>'
 ICONS["joystick"] = ICONS.get("joystick") or '<circle cx="12" cy="6" r="3"/><path d="M12 9v6M5 15h14v5H5z"/>'
 
@@ -773,7 +775,7 @@ def pk_faq(g):
     "faq": [{"q": "...", "a": "..."}]."""
     t, maker = g["title"], g["maker"]
     kind = {"arcade": "an arcade game", "puzzle": "a puzzle game", "word": "a word game", "party": "a party game",
-            "sports": "a sports game", "kids": "a game for kids"}.get(g["category"], f'a {CATS[g["category"]]["label"].lower()} game')
+            "sports": "a sports game", "adventure": "an adventure game", "kids": "a game for kids"}.get(g["category"], f'a {CATS[g["category"]]["label"].lower()} game')
     ctr = [str(x).strip().rstrip(".") for x in ([g["controls"]] if isinstance(g.get("controls"), str) else g.get("controls") or []) if str(x).strip()]
     qa = []
     how = (g.get("how_to_play") or "").strip()

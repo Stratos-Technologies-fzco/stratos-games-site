@@ -47,7 +47,7 @@ Say "publish" when you are happy. About a minute later it is on staging (https:/
         preview.mp4     6 seconds of real play, silent, 480 by 300: plays when a mouse rests on the tile. Make it with
                         python3 tools/make_clip.py <your-folder> --steps "click:PLAY; wait:1500; mark; hold:ArrowUp:6000"
 
-Categories: arcade, puzzle, word, party, sports, kids.
+Categories: arcade, puzzle, word, party, sports, adventure, kids.
 
 ## Rules
 

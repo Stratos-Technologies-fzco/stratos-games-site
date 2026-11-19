@@ -66,6 +66,15 @@
       "intro": "Sports and racing games you can play in a few minutes: matches, stunts and races, right in your browser."
     },
     {
+      "id": "adventure",
+      "label": "Adventure",
+      "icon": "compass",
+      "mood": "Explore and discover", "color": "#E8A33D",
+      "emoji": "🧭",
+      "hue": 38,
+      "intro": "Games about exploring: wander new places, find hidden things, solve little mysteries and follow a story. Take your time, every game runs in your browser and fits a phone screen."
+    },
+    {
       "id": "kids",
       "label": "Kids",
       "icon": "star",
