@@ -57,10 +57,23 @@ test('move a field with its crops, a lamp post and a rock; it all survives a rel
   await tap(page, 6, 4, -30);                                    // the well
   await page.getByTestId('move-object').click();
   await tap(page, 10, 4);                                        // the pond
-  await expect(page.getByTestId('placement-bar')).toContainText('in the way');
+  await expect(page.getByTestId('placement-bar')).toContainText('locked or water');
   await expect(page.getByTestId('place-confirm')).toBeDisabled();
   await page.getByTestId('place-cancel').click();
   expect(await moved(page)).not.toHaveProperty('well');
+
+  // a bush and a pine tree move too; its own spot is refused with a reason
+  await tap(page, 0, 8, -20);
+  await page.getByTestId('move-object').click();
+  await tap(page, 0, 8);
+  await expect(page.getByTestId('placement-bar')).toContainText('already stands here');
+  await tap(page, 2, 3);
+  await page.getByTestId('place-confirm').click();
+  await tap(page, 11, 1, -20);
+  await page.getByTestId('move-object').click();
+  await tap(page, 6, 2);
+  await page.getByTestId('place-confirm').click();
+  await expect.poll(() => moved(page)).toMatchObject({ bush_1: { gx: 2, gy: 3 }, tree_pine_1: { gx: 6, gy: 2 } });
 
   // a rock keeps its Clear option and gains Move
   await tap(page, 10, 10, -10);

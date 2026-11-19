@@ -17,7 +17,7 @@ export interface BusEvents {
   'place:start': { type: string; moveId?: string; at?: { gx: number; gy: number } };
   'expansion:tapped': { id: string };
   'place:end': undefined;
-  'place:moved': { gx: number; gy: number; valid: boolean };
+  'place:moved': { gx: number; gy: number; valid: boolean; reason?: string };
   'fx:float': { gx: number; gy: number; lines: string[]; cropFrame?: string };
 }
 

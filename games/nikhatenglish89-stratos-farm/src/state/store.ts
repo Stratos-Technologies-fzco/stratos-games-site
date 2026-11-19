@@ -39,7 +39,7 @@ interface FarmState {
   objectPanel: string | null; // a fixed object (lamp post, well, silo...) whose panel is open
   clearedObstacles: string[];
   buildingPanel: string | null; // building id whose panel is open
-  placing: { type: string; moveId?: string; objectId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean } | null;
+  placing: { type: string; moveId?: string; objectId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean; reason?: string } | null;
   marketTab: 'orders' | 'sell' | null;
   questsOpen: boolean;
   mapOpen: boolean;

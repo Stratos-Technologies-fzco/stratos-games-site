@@ -224,7 +224,7 @@ export function PlacementBar() {
   if (p.objectId) {                                  // moving something that was already on the farm
     return (
       <div className="placement-bar" data-testid="placement-bar">
-        <span>{p.gx === null ? `Tap a new spot for the ${farm.objectName(p.objectId)}` : p.valid ? 'Looks good!' : 'Something is in the way'}</span>
+        <span>{p.gx === null ? `Tap a new spot for the ${farm.objectName(p.objectId)}` : p.valid ? 'Looks good!' : ({ same: 'It already stands here. Tap a different spot.', locked: 'That land is locked or water. Tap a green spot.', out_of_bounds: 'That is outside your farm.' } as Record<string, string>)[p.reason ?? ''] ?? 'Something is in the way. Tap a green spot.'}</span>
         <div className="panel-actions">
           <button className="btn small" disabled={!p.valid} onClick={() => farm.confirmPlacing()} data-testid="place-confirm">Move here</button>
           <button className="btn small red" onClick={() => farm.cancelPlacing()} data-testid="place-cancel">Cancel</button>

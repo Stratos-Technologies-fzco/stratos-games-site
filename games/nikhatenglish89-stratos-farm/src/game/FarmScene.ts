@@ -201,7 +201,9 @@ export class FarmScene extends Phaser.Scene {
     const p = gridToScreen(gx, gy);
     m.ghost?.setPosition(p.x, p.y).setVisible(true);
     const res = this.preview.show(gx, gy, { w: m.w, h: m.h }, m.id);
-    bus.emit('place:moved', { gx, gy, valid: res.valid });
+    const cur = placedAt(L.objects.find((o) => o.id === m.id)!, useFarm.getState().moved);
+    const same = cur.gx === gx && cur.gy === gy;   // its own spot is free (it is the one standing there) but is not a move
+    bus.emit('place:moved', { gx, gy, valid: res.valid && !same, reason: same ? 'same' : res.reason });
   }
 
   private endMoving() {

@@ -278,9 +278,9 @@ class FarmController {
   }
 
   /** Reported by the scene whenever the ghost moves. */
-  onPlaceMoved(gx: number, gy: number, valid: boolean) {
+  onPlaceMoved(gx: number, gy: number, valid: boolean, reason?: string) {
     const p = useFarm.getState().placing;
-    if (p) useFarm.getState().setPlacing({ ...p, gx, gy, valid });
+    if (p) useFarm.getState().setPlacing({ ...p, gx, gy, valid, reason });
   }
 
   cancelPlacing() {
