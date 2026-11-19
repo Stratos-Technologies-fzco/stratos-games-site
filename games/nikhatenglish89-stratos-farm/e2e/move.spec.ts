@@ -100,3 +100,22 @@ test('move a field with its crops, a lamp post and a rock; it all survives a rel
   expect(await page.evaluate(() => (window as any).__farm.plot('0,5')?.cropId)).toBe('wheat');
   expect(errors).toEqual([]);
 });
+
+test('rocks, trees and bushes in a bought lot can be moved too', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.addInitScript((save) => { if (!localStorage.getItem('stratos_farm_save_v1')) localStorage.setItem('stratos_farm_save_v1', JSON.stringify({ ...save, expanded: ['lot_3_0'], lastSeen: Date.now() })); }, SAVE());
+  const errors = await openFarm(page);
+  const lotObs: { id: string; gx: number; gy: number }[] = await page.evaluate(() => (window as any).__farm.obstacles().filter((o: any) => o.gx >= 12));
+  expect(lotObs.length).toBeGreaterThan(0);
+  const o = lotObs[0];
+  await page.evaluate((id) => (window as any).__farm.startMove(id), o.id);
+  await expect(page.getByTestId('placement-bar')).toContainText('Tap a new spot');
+  let done = false;
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [0, 2]]) {
+    await tap(page, o.gx + dx, o.gy + dy);
+    if (await page.getByTestId('place-confirm').isEnabled()) { await page.getByTestId('place-confirm').click(); done = true; break; }
+  }
+  expect(done, 'no free spot next to it was accepted').toBe(true);
+  await expect.poll(() => moved(page)).toHaveProperty(o.id);
+  expect(errors).toEqual([]);
+});

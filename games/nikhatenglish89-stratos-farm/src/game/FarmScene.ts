@@ -181,18 +181,17 @@ export class FarmScene extends Phaser.Scene {
     this.clearSelection();
     const st = useFarm.getState();
     const base = L.objects.find((o) => o.id === id);
-    if (!base) return;
-    const o = placedAt(base, st.moved);
     let img: Phaser.GameObjects.Image | undefined = this.sprites.get(id)?.[0];
-    let atlas = base.atlas, frame = base.frame;
-    if (base.clearable) {                                  // a rock, tree or bush
+    let atlas = base?.atlas, frame = base?.frame, w = base?.w ?? 1, h = base?.h ?? 1;
+    if (!base || base.clearable) {                         // a rock, tree or bush (the ones in the bought lots are not in the layout file)
       const ob = this.obstacles.active().find((x) => x.id === id);
-      const t = ob ? OBSTACLE_TYPE_BY_ID.get(ob.type) : undefined;
-      img = this.obstacles.spriteOf(id); atlas = 'atlas_decor'; frame = t?.frame;
+      if (!ob) return;
+      img = this.obstacles.spriteOf(id); atlas = 'atlas_decor'; frame = OBSTACLE_TYPE_BY_ID.get(ob.type)?.frame; w = 1; h = 1;
     }
+    void st;
     const ghost = frame && atlas ? this.add.image(0, 0, atlas, frame).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false) : null;
     img?.setAlpha(0.35);
-    this.moving = { id, w: o.w, h: o.h, ghost, dim: img ?? null };
+    this.moving = { id, w, h, ghost, dim: img ?? null };
   }
 
   private moveTo(gx: number, gy: number) {
@@ -201,8 +200,9 @@ export class FarmScene extends Phaser.Scene {
     const p = gridToScreen(gx, gy);
     m.ghost?.setPosition(p.x, p.y).setVisible(true);
     const res = this.preview.show(gx, gy, { w: m.w, h: m.h }, m.id);
-    const cur = placedAt(L.objects.find((o) => o.id === m.id)!, useFarm.getState().moved);
-    const same = cur.gx === gx && cur.gy === gy;   // its own spot is free (it is the one standing there) but is not a move
+    const lay = L.objects.find((o) => o.id === m.id) ?? this.obstacles.active().find((o) => o.id === m.id);
+    const cur = lay ? placedAt(lay, useFarm.getState().moved) : null;
+    const same = !!cur && cur.gx === gx && cur.gy === gy;   // its own spot is free (it is the one standing there) but is not a move
     bus.emit('place:moved', { gx, gy, valid: res.valid && !same, reason: same ? 'same' : res.reason });
   }
 
