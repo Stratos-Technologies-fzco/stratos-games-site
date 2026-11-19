@@ -45,6 +45,21 @@ describe('first load budget (built files)', () => {
     expect(text).toContain('level_complete');
     expect(text).toContain('Stratos');
   });
+  it.skipIf(!built)('passes the site build rule that lists a non-kids game (tools/build.py has_analytics, copied exactly)', () => {
+    // The site only lists the game when its code has the text "Stratos ... .track(" within 80 characters, plus level_start and level_complete.
+    // (tools/check_games.py is looser than the build, so this test copies the build's rule.)
+    let code = '';
+    const walk = (d: string) => {
+      for (const e of readdirSync(join(root, d), { withFileTypes: true })) {
+        if (e.isDirectory()) { if (!['node_modules', 'vendor', 'cdn', '.git'].includes(e.name)) walk(join(d, e.name)); continue; }
+        if (/\.(html|js|mjs)$/.test(e.name)) code += readFileSync(join(root, d, e.name), 'utf8');
+      }
+    };
+    walk('.');
+    expect(/Stratos[\s\S]{0,80}\.track\(/.test(code)).toBe(true);
+    expect(code).toContain('level_start');
+    expect(code.includes('level_complete') || code.includes('game_over')).toBe(true);
+  });
   it.skipIf(!built)('no outside scripts or styles and no mobile ad IDs', () => {
     const html = readFileSync(join(root, 'index.html'), 'utf8');
     expect(html).not.toMatch(/<script[^>]+src="https?:/);

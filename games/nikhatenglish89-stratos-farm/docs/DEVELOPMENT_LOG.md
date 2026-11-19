@@ -80,3 +80,6 @@ Owner: plant many seeds with one tap per field. Now: pick a seed in the seed lis
 `game.json` category is `adventure`. The site has no such category (categories live in the shared `site.json`; an unknown one falls back to Arcade in `tools/build.py` line 138), so `docs/CATEGORY_REQUEST.md` asks Sahil, Sahariar or Sarfaraj to add it. Non-kids games need Stratos analytics: `level_start` and `level_complete` were already sent; added `reward_offered`, `reward_taken`, `order_delivered`, `building_placed`, `land_cleared`, `quest_claimed`, `tutorial_done`. Kids coin rules no longer apply (the normal coin rules do). Docs updated.
 
 Update: Sarfaraj created the Adventure category on the site (commit 23a5631), so the game now sits on the Adventure shelf and the Arcade fallback no longer applies.
+
+## 2026-11-19 — Game missing from staging (fixed)
+After the move to Adventure the site build (tools/build.py has_analytics) treated the game as coming soon, so it was not listed. Its rule needs the literal text "Stratos ... .track(" within 80 characters in the game's code; my track() used an optional call (track?.()), so the text was never there. tools/check_games.py is looser, which is why it still said goes live. Fixed: track() is written like the site's own snippet; tests/perf.test.ts now copies the build's exact rule so this cannot slip through again.

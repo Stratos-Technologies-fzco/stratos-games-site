@@ -20,7 +20,9 @@ export function SC(): CoinsApi | null { return site()?.coins ?? null; }
 
 /** Analytics / coin events. On the site these pay Stratos Coins automatically (level_start, level_complete with a level number). */
 export function track(name: string, details?: Record<string, unknown>) {
-  try { site()?.track?.(name, details); } catch { /* never let tracking break the game */ }
+  // Written like the site's own snippet on purpose: tools/build.py looks for the text "Stratos ... .track(" in the game's code
+  // before it will list a non-kids game, so do not turn this into an optional call (track?.()).
+  try { const w = globalThis as { Stratos?: StratosApi; parent?: { Stratos?: StratosApi } }; const S = w.Stratos || (w.parent && w.parent.Stratos); if (S && S.track) S.track(name, details); } catch { /* never let tracking break the game */ }
 }
 
 /** Ask the player to pay with Stratos Coins, then run onDone. Without the site it runs onDone straight away. */
