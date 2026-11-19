@@ -292,7 +292,7 @@
    "text": "Your home on the farm. This is where the story of your dream village begins.",
    "lines": [
     "Size: 3 x 3 tiles",
-    "Upgrades come in a later update"
+    "You can move it: press Move, then tap a new spot"
    ]
   },
   "barn": {
@@ -300,7 +300,7 @@
    "text": "The barn keeps your harvest and products safe and dry.",
    "lines": [
     "Size: 3 x 3 tiles",
-    "Storage and upgrades come in a later update"
+    "Your harvest is kept safe here with no limit on how much"
    ]
   }
  },

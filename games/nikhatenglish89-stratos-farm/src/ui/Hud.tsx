@@ -101,7 +101,6 @@ export function InfoPanel() {
       <p>{info.text}</p>
       <ul>{info.lines.map((l) => <li key={l}>{l}</li>)}</ul>
       <div className="panel-actions" style={{ marginBottom: 6 }}>
-        <button className="btn small disabled" aria-disabled="true" onClick={() => useFarm.getState().showToast('Upgrades are coming soon')}>Upgrade · soon</button>
         <button className="btn small" onClick={() => farm.startMoveObject(id!)} data-testid="move-object">Move</button>
       </div>
     </PanelShell>
