@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { GameCanvas } from './GameCanvas';
 import { farm } from '../game/controller';
+import { bus } from '../game/eventBus';
 import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from './Hud';
 import { useFarm } from '../state/store';
 import { HarvestAllButton, InventoryPanel, PlantingBar, SeedPanel } from './Panels';
@@ -20,8 +21,9 @@ export function App() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       const st = useFarm.getState();
-      if (st.placing) { farm.cancelPlacing(); return; }
-      if (st.plantSeed && !st.seedPlot) { farm.cancelPlanting(); return; }
+      const clear = () => { st.selectTile(null); bus.emit('ui:panelClosed'); };   // Escape also drops the selected spot and its marker
+      if (st.placing) { farm.cancelPlacing(); clear(); return; }
+      if (st.plantSeed && !st.seedPlot) { farm.cancelPlanting(); clear(); return; }
       if (st.infoPanel) { st.setInfoPanel(null); return; }
       if (st.seedPlot) st.setSeedPlot(null);
       else if (st.plotInfo) st.setPlotInfo(null);
@@ -34,6 +36,7 @@ export function App() {
       else if (st.expansionPanel) st.setExpansionPanel(null);
       else if (st.obstaclePanel) st.setObstaclePanel(null);
       else if (st.objectPanel) st.setObjectPanel(null);
+      clear();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

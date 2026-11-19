@@ -3,7 +3,7 @@ import { DEFAULT_ISO, depthKey, gridToScreen, rectBounds, screenToGrid } from '.
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
 import { farmLayout as L, fieldAtCell, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, placedAt, terrainFrameAt } from './layout';
-import { OBSTACLE_TYPE_BY_ID } from '../services/data';
+import { BUILDING_BY_ID, OBSTACLE_TYPE_BY_ID } from '../services/data';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
@@ -17,6 +17,7 @@ import { watchFrameRate } from './perf';
 const TERRAIN_DEPTH = -1_000_000;
 const EDGE_DEPTH = -2_000_000;
 const OBJECT_LAYER = 10;
+const LONG_PRESS_MS = 550; // hold this long on something to pick it up
 const DRAG_THRESHOLD = 8; // px of movement before a press becomes a pan instead of a tap
 const MAX_ZOOM = 2;
 const WORLD_PAD = 160;
@@ -37,7 +38,7 @@ export class FarmScene extends Phaser.Scene {
   private minZoom = 0.2;
   private fitZoom = 0.5;
   private userMoved = false;
-  private press: { x: number; y: number; dragging: boolean } | null = null;
+  private press: { x: number; y: number; dragging: boolean; grab: boolean; off: { dx: number; dy: number }; timer?: number } | null = null;
   private pinchDist = 0;
   private selectedObject: string | null = null;
   private plotSprites = new Map<string, { crop: Phaser.GameObjects.Image; bubble: Phaser.GameObjects.Image; gx: number; gy: number }>();
@@ -46,7 +47,7 @@ export class FarmScene extends Phaser.Scene {
   private layer!: BuildingsLayer;
   private obstacles!: ObstaclesLayer;
   private movedKey = '{}';
-  private moving: { id: string; w: number; h: number; ghost: Phaser.GameObjects.Image | null; dim: Phaser.GameObjects.Image | null } | null = null;
+  private moving: { id: string; w: number; h: number; ghost: Phaser.GameObjects.Image | null; dim: Phaser.GameObjects.Image | null; cell: { gx: number; gy: number } | null } | null = null;
 
   constructor() { super('Farm'); }
 
@@ -191,7 +192,7 @@ export class FarmScene extends Phaser.Scene {
     void st;
     const ghost = frame && atlas ? this.add.image(0, 0, atlas, frame).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false) : null;
     img?.setAlpha(0.35);
-    this.moving = { id, w, h, ghost, dim: img ?? null };
+    this.moving = { id, w, h, ghost, dim: img ?? null, cell: null };
   }
 
   private moveTo(gx: number, gy: number) {
@@ -199,6 +200,7 @@ export class FarmScene extends Phaser.Scene {
     if (!m) return;
     const p = gridToScreen(gx, gy);
     m.ghost?.setPosition(p.x, p.y).setVisible(true);
+    m.cell = { gx, gy };
     const res = this.preview.show(gx, gy, { w: m.w, h: m.h }, m.id);
     const lay = L.objects.find((o) => o.id === m.id) ?? this.obstacles.active().find((o) => o.id === m.id);
     const cur = lay ? placedAt(lay, useFarm.getState().moved) : null;
@@ -389,7 +391,15 @@ export class FarmScene extends Phaser.Scene {
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (this.input.pointer2.isDown && this.input.pointer1.isDown) { this.press = null; this.pinchDist = this.pinchDistance(); return; }
-      this.press = { x: p.x, y: p.y, dragging: false };
+      this.press = { x: p.x, y: p.y, dragging: false, grab: false, off: { dx: 0, dy: 0 } };
+      const t = this.tileAt(p);
+      const g = this.ghostBox();
+      if (t && g) {                                   // pressing on the ghost picks it up: dragging moves it, not the camera
+        if (t.gx >= g.gx && t.gx < g.gx + g.w && t.gy >= g.gy && t.gy < g.gy + g.h) { this.press.grab = true; this.press.off = { dx: t.gx - g.gx, dy: t.gy - g.gy }; }
+      } else if (!g) {                                // press and hold on a building, field or object picks it up
+        const press = this.press;
+        press.timer = window.setTimeout(() => this.longPress(p, press), LONG_PRESS_MS);   // real time: the game loop can be slow
+      }
     });
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -400,10 +410,16 @@ export class FarmScene extends Phaser.Scene {
         this.pinchDist = d;
         return;
       }
+      if (this.press && p.isDown && this.press.grab) {
+        this.press.dragging = true; this.hover.setVisible(false);
+        const t = this.tileAt(p);
+        if (t) this.ghostTo(t.gx - this.press.off.dx, t.gy - this.press.off.dy);
+        return;
+      }
       if (this.press && p.isDown) {
         const moved = Phaser.Math.Distance.Between(p.x, p.y, this.press.x, this.press.y);
         if (this.press.dragging || moved > DRAG_THRESHOLD) {
-          this.press.dragging = true; this.userMoved = true;
+          clearTimeout(this.press.timer); this.press.dragging = true; this.userMoved = true;
           cam.scrollX -= (p.x - p.prevPosition.x) / cam.zoom;
           cam.scrollY -= (p.y - p.prevPosition.y) / cam.zoom;
           this.hover.setVisible(false);
@@ -416,6 +432,7 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
       this.pinchDist = 0;
       const press = this.press; this.press = null;
+      clearTimeout(press?.timer);
       if (!press || press.dragging) return;
       this.handleTap(p);
     });
@@ -423,6 +440,63 @@ export class FarmScene extends Phaser.Scene {
     this.input.on('wheel', (p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
       this.zoomAt(p.x, p.y, cam.zoom * (dy > 0 ? 0.9 : 1.1));
     });
+  }
+
+  /** The ghost of the thing being placed or moved: where it is now and how big (null when nothing is being moved). */
+  private ghostBox(): { gx: number; gy: number; w: number; h: number } | null {
+    if (this.moving) {
+      if (this.moving.cell) return { ...this.moving.cell, w: this.moving.w, h: this.moving.h };
+      const lay = L.objects.find((o) => o.id === this.moving!.id) ?? this.obstacles.active().find((o) => o.id === this.moving!.id);
+      const cur = lay ? placedAt(lay, useFarm.getState().moved) : null;
+      return cur ? { gx: cur.gx, gy: cur.gy, w: this.moving.w, h: this.moving.h } : null;
+    }
+    const sz = this.layer.ghostSize, c = this.layer.ghostCell;
+    if (sz && c) return { ...c, ...sz };
+    const st = useFarm.getState().placing;               // a building being moved: the ghost has not been put down yet, so it is still on its old spot
+    const b = st?.moveId ? useFarm.getState().buildings.find((x) => x.id === st.moveId) : null;
+    return sz && b ? { gx: b.gx, gy: b.gy, ...sz } : null;
+  }
+
+  private ghostTo(gx: number, gy: number) {
+    if (this.moving) this.moveTo(gx, gy); else if (this.layer.placing) this.layer.moveGhost(gx, gy);
+  }
+
+  /** What could be picked up under this pointer: a building, or a field, rock, tree, lamp post... */
+  private movableAt(p: Phaser.Input.Pointer): { building: boolean; id: string } | null {
+    const hits = this.input.hitTestPointer(p) as Phaser.GameObjects.Image[];
+    if (hits.length) {
+      const top = hits.reduce((a, b) => (b.depth > a.depth ? b : a));
+      const bid = this.layer.idOf(top); if (bid) return { building: true, id: bid };
+      const oid = this.obstacles.idOf(top); if (oid) return { building: false, id: oid };
+      for (const [id, list] of this.sprites) if (list.includes(top)) return { building: false, id };
+    }
+    const t = this.tileAt(p);
+    const occ = t ? this.occ.occupantAt(t.gx, t.gy) : undefined;
+    if (!t || !occ) return null;
+    if (this.obstacles.has(occ) || L.objects.some((o) => o.id === occ)) return { building: false, id: occ };
+    return { building: true, id: occ };
+  }
+
+  private cornerOf(id: string, building: boolean): { gx: number; gy: number } | null {
+    if (building) return useFarm.getState().buildings.find((b) => b.id === id) ?? null;
+    const lay = L.objects.find((o) => o.id === id) ?? this.obstacles.active().find((o) => o.id === id);
+    return lay ? placedAt(lay, useFarm.getState().moved) : null;
+  }
+
+  /** Held a finger or button on something for a moment: pick it up, and keep dragging to carry it. */
+  private longPress(p: Phaser.Input.Pointer, press: NonNullable<FarmScene['press']>) {
+    if (this.press !== press || press.dragging || this.moving || this.layer.placing) return;
+    const target = this.movableAt(p), t = this.tileAt(p);
+    if (!target || !t) return;
+    const c = this.cornerOf(target.id, target.building);
+    if (!c) return;
+    press.dragging = true; press.grab = true;               // the release is not a tap
+    // where on the thing the finger is, kept inside its own size (a tall sprite is hit above its tiles)
+    const lay = target.building ? BUILDING_BY_ID.get(useFarm.getState().buildings.find((b) => b.id === target.id)?.type ?? '') : (L.objects.find((o) => o.id === target.id) ?? { w: 1, h: 1 });
+    const w = lay?.w ?? 1, h = lay?.h ?? 1;
+    press.off = { dx: Math.min(w - 1, Math.max(0, t.gx - c.gx)), dy: Math.min(h - 1, Math.max(0, t.gy - c.gy)) };
+    if (target.building) farm.startMove(target.id); else farm.startMoveObject(target.id);
+    this.ghostTo(c.gx, c.gy);
   }
 
   private pinchDistance() {

@@ -300,6 +300,7 @@ class FarmController {
         this.apply(r.snapshot);
         playSfx('place_object');
         useFarm.getState().showToast('Moved');
+        useFarm.getState().selectTile(null); bus.emit('ui:panelClosed');   // the spot label and marker would still point at the old place
       });
     }
     if (p.moveId) {
@@ -309,6 +310,7 @@ class FarmController {
         this.apply(r.snapshot);
         playSfx('place_object');
         useFarm.getState().showToast('Moved');
+        useFarm.getState().selectTile(null); bus.emit('ui:panelClosed');
       });
     }
     const flip = !!p.flip;

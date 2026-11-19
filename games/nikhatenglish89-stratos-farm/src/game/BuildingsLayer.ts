@@ -171,6 +171,8 @@ export class BuildingsLayer {
 
   private ghostFlip = false;
   get placing() { return this.placingType !== null; }
+  /** Size of the building being placed (for grabbing and dragging its ghost). */
+  get ghostSize() { const d = this.placingType ? BUILDING_BY_ID.get(this.placingType) : null; return d ? { w: d.w, h: d.h } : null; }
 
   setGhostFlip(flip: boolean) { this.ghostFlip = flip; this.ghost?.setFlipX(flip); }
 

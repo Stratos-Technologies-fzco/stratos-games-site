@@ -119,3 +119,46 @@ test('rocks, trees and bushes in a bought lot can be moved too', async ({ page }
   await expect.poll(() => moved(page)).toHaveProperty(o.id);
   expect(errors).toEqual([]);
 });
+
+test('hold and drag picks up a lamp post, a field and a building; the bar docks left; Escape and a move clear the spot label', async ({ page }) => {
+  test.setTimeout(120_000);
+  const now = Date.now();
+  await page.addInitScript((save) => { if (!localStorage.getItem('stratos_farm_save_v1')) localStorage.setItem('stratos_farm_save_v1', JSON.stringify({ ...save, buildings: [{ id: 'b1', type: 'chicken_coop', gx: 0, gy: 3, level: 1 }], lastSeen: Date.now() })); }, { ...SAVE(), lastSeen: now });
+  const errors = await openFarm(page);
+  const at = (gx: number, gy: number, dy = 0) => page.evaluate(([x, y, d]) => { const q = (window as any).__farm.tileClientPos(x, y); return { x: q.x, y: q.y + d }; }, [gx, gy, dy]);
+  const drag = async (from: { x: number; y: number }, to: { x: number; y: number }) => {
+    await page.mouse.move(from.x, from.y); await page.mouse.down(); await page.waitForTimeout(800);   // hold: it is picked up
+    await page.mouse.move((from.x + to.x) / 2, (from.y + to.y) / 2, { steps: 6 }); await page.mouse.move(to.x, to.y, { steps: 6 });
+    await page.mouse.up(); await page.waitForTimeout(250);
+  };
+
+  // a lamp post: hold, drag to a free spot, release, confirm
+  await drag(await at(4, 5, -30), await at(1, 0));
+  await expect(page.getByTestId('placement-bar')).toContainText('Looks good');
+  const bar = await page.getByTestId('placement-bar').boundingBox();
+  expect(bar!.x).toBeLessThan(40);                                          // docked on the left
+  await page.getByTestId('place-confirm').click();
+  await expect.poll(() => moved(page)).toMatchObject({ lamp: { gx: 1, gy: 0 } });
+  await expect(page.getByTestId('tile-chip')).toHaveCount(0);               // the "Tile 4, 5 · Lamp" label is gone after the move
+
+  // a whole field
+  await drag(await at(7, 6), await at(7, 4).then((q) => ({ x: q.x, y: q.y })));
+  await expect(page.getByTestId('placement-bar')).toBeVisible();
+  await page.keyboard.press('Escape');                                      // cancels, and leaves nothing selected
+  await expect(page.getByTestId('placement-bar')).toHaveCount(0);
+  expect(await moved(page)).not.toHaveProperty('field_b');
+  await expect(page.getByTestId('tile-chip')).toHaveCount(0);
+
+  // a building: hold it, drag it, it lands where it is dropped
+  await drag(await at(1, 4, -40), await at(8, 10));
+  await expect(page.getByTestId('placement-bar')).toContainText(/Looks good|in the way/);
+  await page.keyboard.press('Escape');
+
+  // a quick tap or a plain drag still just taps / pans (no accidental pick-up)
+  const before = await page.evaluate(() => (window as any).__farm.scroll());
+  const a = await at(6, 7);
+  await page.mouse.move(a.x, a.y); await page.mouse.down(); await page.mouse.move(a.x + 120, a.y + 40, { steps: 8 }); await page.mouse.up();
+  await expect(page.getByTestId('placement-bar')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).__farm.scroll())).not.toEqual(before);
+  expect(errors).toEqual([]);
+});

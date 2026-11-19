@@ -94,3 +94,8 @@ Tests: vitest 144 (new `tests/moveObjects.test.ts`), Playwright 32 (new `e2e/mov
 
 ## 2026-11-19 - Moving rocks, trees and bushes in bought land
 Owner: bush and pine tree could not be moved to free space. Cause: the rocks, trees and bushes that come with the 27 bought lots are not in the layout file, and move mode looked them up only there, so it never started (no ghost, nothing to tap, Move here stayed grey). Move mode now takes size and picture from the live obstacle list. New test moves an obstacle in a bought lot (fails without the fix).
+
+## 2026-11-19 - Smoother moving, new cover and clip
+Owner asked for: new cover and clip; spot label stuck on the old place after a move; placing bar covering the lower farm; Escape to clear the selection; moving by dragging.
+Done: (1) the placing/moving bar docks top-left like every other pop-up (bottom on a portrait phone); (2) after a move, and on Escape, the selected spot, its label and its marker are cleared; (3) hold (about half a second) on a building, field, rock, tree or lamp post to pick it up, then drag it where you want it and let go; the bar shows Move here (a plain drag still pans the map, a quick tap still taps; a drag that starts on a ghost carries it). The hold timer uses real time because the game loop can run slowly. (4) New cover and 6 s clip made from the real game (cows, pigs, sheep, ducks, the bigger farm, harvest, the docked shop, carrying a lamp post).
+Tests: Playwright 34 (new hold-and-drag test), vitest 144.

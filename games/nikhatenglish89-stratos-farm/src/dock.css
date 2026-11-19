@@ -46,3 +46,9 @@
   .info-panel.two { width: min(620px, 62vw); }
   .rows.cols2 { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* the placing / moving bar docks on the left like every other panel, so it never covers the lower farm */
+.placement-bar { left: calc(var(--gap) + var(--safe-l)); transform: none; top: calc(var(--top-h) + var(--gap)); bottom: auto; width: min(300px, 38vw); }
+@media (max-aspect-ratio: 1/1) and (max-width: 700px) {
+  .placement-bar { left: 50%; transform: translateX(-50%); top: auto; bottom: calc(var(--nav-h) + var(--gap)); width: min(420px, calc(100vw - 16px)); }
+}
