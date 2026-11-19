@@ -325,7 +325,7 @@
       <div class="pill" id="chakkarPill">🔔 12</div><div class="pill" id="chaiPill" title="Drops until Cutting Chai Wildcard">☕ 12</div>
       <div class="pill" id="nextPill">Next: <canvas id="nextMini" width="20" height="20"></canvas></div>
     </div>
-    <span id="bestHudPill" title="All-Time Personal Best">👑 0</span><span id="chakkarHudPill" title="Drops until next Chakkar tilt">🔔 12</span><span id="comboPill">🔥 x2</span><span id="pingHudPill" title="Live Server Round-Trip Ping" role="button" aria-label="Live ping, tap to refresh"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M0.8 8.2h4.6l-.5 3.9a.9.9 0 0 1-.9.8H2.2a.9.9 0 0 1-.9-.8z" fill="#d97706" stroke="#fde68a" stroke-width=".7"/><circle id="pingDot" cx="3.1" cy="5.4" r="1.4" fill="#fde68a"/><rect id="pingBar1" x="6.4" y="9" width="2" height="4" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar2" x="9" y="6" width="2" height="7" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar3" x="11.6" y="2.6" width="2" height="10.4" rx=".5" fill="#fde68a" opacity=".25"/></svg><span id="pingMsText">-- ms</span></span><button class="pill-btn" id="hudMuteBtn" title="Toggle Sound & Haptics" aria-label="Toggle Sound">🔊</button><button id="menuBtn">☰ Menu</button>
+    <span id="bestHudPill" title="All-Time Personal Best">👑 0</span><span id="chakkarHudPill" title="Drops until next Chakkar tilt">🔔 12</span><span id="comboPill">🔥 x2</span><span id="pingHudPill" style="display:none" title="2-player ping: round trip to your rival through the relay" role="button" aria-label="2-player ping, tap to refresh"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M0.8 8.2h4.6l-.5 3.9a.9.9 0 0 1-.9.8H2.2a.9.9 0 0 1-.9-.8z" fill="#d97706" stroke="#fde68a" stroke-width=".7"/><circle id="pingDot" cx="3.1" cy="5.4" r="1.4" fill="#fde68a"/><rect id="pingBar1" x="6.4" y="9" width="2" height="4" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar2" x="9" y="6" width="2" height="7" rx=".5" fill="#fde68a" opacity=".25"/><rect id="pingBar3" x="11.6" y="2.6" width="2" height="10.4" rx=".5" fill="#fde68a" opacity=".25"/></svg><span id="pingMsText">-- ms</span></span><button class="pill-btn" id="hudMuteBtn" title="Toggle Sound & Haptics" aria-label="Toggle Sound">🔊</button><button id="menuBtn">☰ Menu</button>
   </div>
   <div id="lvBarWrap"><div id="lvBar"></div></div>
 
@@ -414,7 +414,7 @@
             ⚠️ Keep the pile below the dashed line.<br>
             🔔 Every 12 drops the dabba tilts. ☕ Every 12th drop is a Cutting Chai (2x).<br>
             ⏳ Stall too long and the steam lid drops 1%/sec — chain combos or score bonus points to clear it!<br>
-            🎯 The glowing dot shows where your snack lands; green means a match.<br>
+            🎯 The glowing dot shows where your snack lands.<br>
             🌀 Switch twists ON / OFF in the Twists tab.
           </div>
         </details>
@@ -1830,7 +1830,6 @@
       const sy = spawnY(cur.r, clampedX);
       const land = landingAt(clampedX, cur.r);
       const tgtY = Math.min(FLOOR, land.y + cur.r);   // where the snack's bottom touches down
-      const onMatch = currentTier === -1 ? land.tier >= 0 : land.tier === currentTier;
       ctx.save();
       ctx.setLineDash([3, 5]);
       ctx.strokeStyle = "rgba(180,83,9,0.4)";
@@ -1839,7 +1838,7 @@
       ctx.lineTo(clampedX, tgtY);
       ctx.stroke();
       ctx.restore();
-      if (!homeOpen) aimTarget = { x: clampedX, y: tgtY, match: onMatch };
+      if (!homeOpen) aimTarget = { x: clampedX, y: tgtY };
       if (tw.curMys && TW("mystery") && currentTier >= 0) drawMysteryBox(ctx, clampedX, sy - 12, cur.r);
       else drawTreat(clampedX, sy - 12, cur.r, cur);
     }
@@ -1853,10 +1852,10 @@
     }
 
     // Precision target (on top of the snacks): pulsing ring, crosshair ticks and a bright dot where the snack touches down.
-    // Emerald = it lands on a matching snack (merge), amber = no match.
+    // One colour only: it shows where, the player still judges whether it merges.
     if (aimTarget) {
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 160);
-      const tc = aimTarget.match ? "#10b981" : "#f59e0b";
+      const tc = "#f59e0b";
       const tx = aimTarget.x, ty = aimTarget.y, rr = 8 + 3 * pulse;
       ctx.save();
       ctx.shadowColor = tc; ctx.shadowBlur = 12;
@@ -1966,6 +1965,8 @@
   let roomCode = (urlParams.get("room") || Math.random().toString(36).substring(2, 6)).toUpperCase();
   let wsBase = urlParams.get("ws") || store.get("wsUrl", DEFAULT_WS);
   let bc = null, ws = null;
+  const myPingId = Math.random().toString(36).slice(2, 10);   // tells my pings apart from the rival's
+  let onPong = null;
 
   let wsWanted = urlParams.has("room");
   function connectRoom() {
@@ -2005,6 +2006,11 @@
 
   function handlePeerMsg(data) {
     if (!data) return;
+    if (data.type === "ping") {   // rival measuring lag: answer straight back through the relay
+      if (data.from !== myPingId && ws && ws.readyState === 1) { try { ws.send(JSON.stringify({ type: "pong", to: data.from, t: data.t })); } catch {} }
+      return;
+    }
+    if (data.type === "pong") { if (data.to === myPingId && onPong) onPong(data.t); return; }
     peerConnected = true;
     if (typeof data.level === "number" && data.level >= 1) {
       peerLevel = data.level;
@@ -2704,53 +2710,52 @@
     resetGame(1);
   }
   showHome();
-  // Live ping: real round trip to the server this page was loaded from
+  // Live 2-player ping: round trip to the rival through the relay (me -> relay -> rival -> relay -> me).
+  // Shown only after a 2-player room is joined; single play has no network lag to show.
   (function () {
     const pill = document.getElementById("pingHudPill");
     const txt = document.getElementById("pingMsText");
     const dot = document.getElementById("pingDot");
     const bars = [1, 2, 3].map(i => document.getElementById("pingBar" + i));
-    let busy = false;
-    function show(ms) {
+    let pending = null;
+    function show(ms, state) {          // state: undefined = measured, "wait" = no rival answer, "off" = relay not connected
       let lit, col;
-      if (ms == null) { lit = 0; col = "#ef4444"; }
+      if (state === "off") { lit = 0; col = "#ef4444"; }
+      else if (state === "wait") { lit = 0; col = "#f59e0b"; }
       else if (ms < 80) { lit = 3; col = "#10b981"; }
       else if (ms <= 220) { lit = 2; col = "#f59e0b"; }
       else { lit = 1; col = "#ef4444"; }
       bars.forEach((b, i) => { if (b) { b.setAttribute("fill", i < lit ? col : "#fde68a"); b.setAttribute("opacity", i < lit ? "1" : "0.25"); } });
       if (dot) dot.setAttribute("fill", col);
-      if (txt) txt.textContent = ms == null ? "OFFLINE" : `${ms}ms`;
+      if (txt) txt.textContent = state === "off" ? "OFFLINE" : state === "wait" ? "-- ms" : `${ms}ms`;
       if (pill) pill.style.borderColor = col;
     }
-    async function once(method) {
-      const ac = new AbortController();
-      const t = setTimeout(() => ac.abort(), 3500);
-      try {
-        const t0 = performance.now();
-        const r = await fetch(location.origin + location.pathname + "?ping=" + Date.now(), { method, cache: "no-store", signal: ac.signal });
-        return { ok: r.ok, ms: Math.round(performance.now() - t0) };
-      } finally { clearTimeout(t); }
+    onPong = t => {
+      if (!pending || pending.t !== t) return;
+      clearTimeout(pending.timer);
+      pending = null;
+      show(Math.round(performance.now() - t));
+    };
+    function measureRealPing() {
+      if (document.hidden || !wsWanted) return;
+      if (!ws || ws.readyState !== 1) { show(0, "off"); return; }
+      if (pending) return;
+      const t = performance.now();
+      pending = { t, timer: setTimeout(() => { pending = null; show(0, "wait"); }, 3500) };
+      try { ws.send(JSON.stringify({ type: "ping", from: myPingId, t })); }
+      catch (e) { clearTimeout(pending.timer); pending = null; show(0, "off"); }
     }
-    async function measureRealPing() {
-      if (busy || document.hidden) return;
-      busy = true;
-      let ms = null;
-      try {
-        let r = await once("HEAD");
-        if (!r.ok) r = await once("GET");   // a server that refuses HEAD
-        if (r.ok) ms = r.ms;
-      } catch (e) { ms = null; }          // timeout or no network
-      busy = false;
-      show(ms);
-    }
+    function syncVisible() { if (pill) pill.style.display = wsWanted ? "inline-flex" : "none"; }
     if (pill) pill.addEventListener("click", () => {
       pill.classList.add("pulse");
       setTimeout(() => pill.classList.remove("pulse"), 180);
       measureRealPing();
     });
     document.addEventListener("visibilitychange", () => { if (!document.hidden) measureRealPing(); });
+    setInterval(syncVisible, 1000);
     setInterval(measureRealPing, 5000);
-    measureRealPing();
+    syncVisible();
+    setTimeout(measureRealPing, 1500);  // give the relay a moment to connect
   })();
 
   requestAnimationFrame(loop);
