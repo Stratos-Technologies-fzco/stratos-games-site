@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useFarm } from '../state/store';
 import { bus } from '../game/eventBus';
+import { farm } from '../game/controller';
 import { Icon } from './Icon';
 import { farmLayout } from '../game/layout';
 import { useClaimable } from './EconomyPanels';
@@ -64,6 +65,7 @@ export function BottomNav() {
           aria-current={n.id === 'farm' ? 'page' : undefined}
           data-testid={`nav-${n.id}`}
           onClick={() => {
+            if (n.id !== 'farm') farm.cancelPlanting(); // opening another screen ends planting mode
             if (!n.ready) showToast(`${n.label} is coming soon`);
             else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
             else if (n.id === 'map') useFarm.getState().setMapOpen(true);

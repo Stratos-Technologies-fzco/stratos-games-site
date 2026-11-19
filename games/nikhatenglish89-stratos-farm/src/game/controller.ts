@@ -98,12 +98,12 @@ class FarmController {
   private fail(error: ErrorCode) { useFarm.getState().showToast(MESSAGES[error]); playSfx('ui_error'); }
 
   /** One action at a time: run the call, show the error or hand the result on. */
-  private async act<R extends { ok: boolean }>(call: () => Promise<R>, onOk: (r: Extract<R, { ok: true }>) => void) {
+  private async act<R extends { ok: boolean }>(call: () => Promise<R>, onOk: (r: Extract<R, { ok: true }>) => void, onFail?: (error: ErrorCode) => void) {
     if (this.busy) return;
     this.busy = true;
     try {
       const r = await call();
-      if (!r.ok) { this.fail((r as unknown as { error: ErrorCode }).error); return; }
+      if (!r.ok) { const e = (r as unknown as { error: ErrorCode }).error; this.fail(e); onFail?.(e); return; }
       onOk(r as Extract<R, { ok: true }>);
     } finally { this.busy = false; }
   }
@@ -119,10 +119,39 @@ class FarmController {
     const st = useFarm.getState();
     const plot = st.plots.find((p) => p.id === plotId);
     if (!plot) return;
+    if (cropStage(plot, this.now()) === 3) { void this.harvest(plotId); return; }   // ripe crops are always picked
+    if (st.plantSeed && !plot.cropId) { void this.plantInMode(plotId, st.plantSeed); return; }
     if (!plot.cropId) { st.setSeedPlot(plotId); return; }
-    if (cropStage(plot, this.now()) === 3) { void this.harvest(plotId); return; }
+    if (st.plantSeed) {                                                              // planting mode: just say how long it needs
+      const crop = CROP_BY_ID.get(plot.cropId)!;
+      st.showToast(`${crop.name} ready in ${formatDuration((plot.readyAt ?? 0) - this.now())}`);
+      return;
+    }
     st.setPlotInfo(plotId);
   }
+
+  /** Pick a crop in the seed list. From a field: plant it there and stay in planting mode. From "Change seed": just switch crops. */
+  pickSeed(plotId: string, cropId: string) {
+    const st = useFarm.getState();
+    if (plotId === '*') { st.setSeedPlot(null); st.setPlantSeed(cropId); return; }
+    st.setPlantSeed(cropId);
+    return this.plant(plotId, cropId);
+  }
+
+  /** One tap on an empty field while a seed is picked: plant it, and stop when the money runs out. */
+  private plantInMode(plotId: string, cropId: string) {
+    return this.act(() => this.service.plant(plotId, cropId, newKey()), (r) => {
+      this.apply(r.snapshot, [plotId]);
+      playSfx('plant_seed');
+      const plot = r.snapshot.plots.find((p) => p.id === plotId)!;
+      bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, lines: [`-${r.cost} coins`] });
+    }, (error) => {
+      // no coins, or the crop is not unlocked: leave planting mode so the next tap is not another error
+      if (error === 'insufficient_coins' || error === 'not_unlocked' || error === 'unknown_crop') useFarm.getState().setPlantSeed(null);
+    });
+  }
+
+  cancelPlanting() { useFarm.getState().setPlantSeed(null); }
 
   plant(plotId: string, cropId: string) {
     return this.act(() => this.service.plant(plotId, cropId, newKey()), (r) => {
@@ -172,6 +201,7 @@ class FarmController {
   // ---------- placing buildings ----------
   startPlacing(type: string, moveId?: string) {
     const st = useFarm.getState();
+    st.setPlantSeed(null);
     st.setShopTab(null);
     st.setBuildingPanel(null);
     st.setPlacing({ type, moveId, flip: false, gx: null, gy: null, valid: false });

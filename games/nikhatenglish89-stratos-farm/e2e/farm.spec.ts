@@ -84,6 +84,7 @@ test('plant wheat, wait, harvest, and coins/XP/inventory persist after reload', 
   await expect(page.getByTestId('seed-panel')).toBeVisible();
   await expect(page.getByTestId('seed-corn')).toBeDisabled(); // locked at level 1
   await page.getByTestId('seed-wheat').click();
+  await page.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   await expect(page.getByTestId('coins')).toContainText('98');
   await expect(page.getByTestId('seed-panel')).toHaveCount(0);
   // not ready yet: tapping shows the countdown instead of harvesting
@@ -206,6 +207,7 @@ test('first session: the five tutorial steps, with a real order and a real sale'
     const p = await tilePos(page, gx, gy);
     await page.mouse.click(p.x, p.y);
     await page.getByTestId('seed-wheat').click();
+    await page.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   };
   await plant(2, 6);
   await plant(3, 6);
@@ -348,6 +350,7 @@ test('home screen: logo, how to play, tips, about, sound off by default, Continu
   const p = await tilePos(page, 2, 6);
   await page.mouse.click(p.x, p.y);
   await page.getByTestId('seed-wheat').click();
+  await page.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   await page.getByTestId('settings').click();
   await page.getByTestId('set-home').click();
   await expect(page.getByTestId('play')).toHaveText('Continue');
@@ -384,6 +387,7 @@ test('Stratos Coins: first-play and level events, balance chip, paid speed-up an
   const p = await tilePos(page, 2, 6);
   await page.mouse.click(p.x, p.y);
   await page.getByTestId('seed-wheat').click();
+  await page.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   const q = await tilePos(page, 2, 6);
   await page.mouse.click(q.x, q.y);
   await expect(page.getByTestId('plot-panel')).toContainText('Ready in');
@@ -609,6 +613,7 @@ test('backup: save a backup file, change the farm, restore it; a wrong file is r
   let p = await tilePos(page, 2, 6);
   await page.mouse.click(p.x, p.y);
   await page.getByTestId('seed-wheat').click();
+  await page.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   await expect(page.getByTestId('coins')).toContainText('498');
   await page.getByTestId('settings').click();
   const dl = page.waitForEvent('download');
@@ -894,4 +899,83 @@ test('new crops and animals work in the game: seed list, horse stable, horse, fe
   await page.getByTestId('nav-inventory').click();
   await expect(page.getByTestId('inv-horsehair')).toContainText('Horsehair × 1');
   expect(errors).toEqual([]);
+});
+
+const seedSave = (coins: number) => ({
+  version: 2, coins, gems: 5, xp: 0, level: 2, inventory: {},
+  plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+});
+
+test('planting mode: pick a seed once, then one tap per field plants it', async ({ page }) => {
+  await page.addInitScript((save) => { if (!localStorage.getItem('stratos_farm_save_v1')) localStorage.setItem('stratos_farm_save_v1', JSON.stringify({ ...save, lastSeen: Date.now() })); }, seedSave(100));
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  const tap = async (gx: number, gy: number) => { const q = await tilePos(page, gx, gy); await page.mouse.click(q.x, q.y); };
+
+  // the first field opens the seed list as before; choosing wheat plants it AND keeps planting mode on
+  await tap(2, 6);
+  await page.getByTestId('seed-wheat').click();
+  await expect(page.getByTestId('coins')).toContainText('98');
+  await expect(page.getByTestId('planting-bar')).toContainText('Planting Wheat');
+  // now a single tap on each empty field plants wheat, with no seed list in between
+  for (const [x, y] of [[3, 6], [2, 7], [3, 7]]) await tap(x, y);
+  await expect(page.getByTestId('coins')).toContainText('92');            // 4 seeds x 2 coins
+  await expect(page.getByTestId('seed-panel')).toHaveCount(0);
+  const planted = await page.evaluate(() => JSON.parse(localStorage.getItem('stratos_farm_save_v1')!).plots.filter((p: any) => p.cropId === 'wheat').length);
+  expect(planted).toBe(4);
+  // tapping a growing field in planting mode only says how long it needs: no panel, no second seed
+  await tap(3, 7);
+  await expect(page.getByTestId('toast')).toContainText('ready in');
+  await expect(page.getByTestId('plot-panel')).toHaveCount(0);
+  await expect(page.getByTestId('coins')).toContainText('92');
+  // change the seed without leaving the mode, then plant a carrot (4 coins) on another field
+  await page.getByTestId('planting-change').click();
+  await page.getByTestId('seed-carrot').click();
+  await expect(page.getByTestId('planting-bar')).toContainText('Planting Carrot');
+  await tap(7, 6);
+  await expect(page.getByTestId('coins')).toContainText('88');
+  // ripe wheat is still picked with a tap; the emptied field then takes the current seed (carrot, 4 coins) with one more tap
+  await page.evaluate(() => (window as any).__farm.advance(121000));
+  await expect(page.getByTestId('harvest-all')).toBeVisible({ timeout: 5000 });
+  await tap(2, 6);
+  await expect(page.getByTestId('coins')).toContainText('88');            // picking costs nothing
+  await tap(2, 6);
+  await expect(page.getByTestId('coins')).toContainText('84');
+  // Done ends the mode: the next empty field opens the seed list again
+  await page.getByTestId('planting-done').click();
+  await expect(page.getByTestId('planting-bar')).toHaveCount(0);
+  await tap(8, 6);
+  await expect(page.getByTestId('seed-panel')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('planting mode stops by itself when the coins run out', async ({ page }) => {
+  await page.addInitScript((save) => { if (!localStorage.getItem('stratos_farm_save_v1')) localStorage.setItem('stratos_farm_save_v1', JSON.stringify({ ...save, lastSeen: Date.now() })); }, seedSave(5));
+  await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  const tap = async (gx: number, gy: number) => { const q = await tilePos(page, gx, gy); await page.mouse.click(q.x, q.y); };
+  await tap(2, 6);
+  await page.getByTestId('seed-wheat').click();                           // 5 -> 3
+  await tap(3, 6);                                                        // 3 -> 1
+  await expect(page.getByTestId('coins')).toContainText('1');
+  await tap(2, 7);                                                        // 1 coin is not enough: says so and leaves planting mode
+  await expect(page.getByTestId('toast')).toContainText('Not enough coins');
+  await expect(page.getByTestId('planting-bar')).toHaveCount(0);
+});
+
+test('planting mode ends with Escape, and when another screen is opened', async ({ page }) => {
+  await page.addInitScript((save) => { if (!localStorage.getItem('stratos_farm_save_v1')) localStorage.setItem('stratos_farm_save_v1', JSON.stringify({ ...save, lastSeen: Date.now() })); }, seedSave(100));
+  await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  const tap = async (gx: number, gy: number) => { const q = await tilePos(page, gx, gy); await page.mouse.click(q.x, q.y); };
+  await tap(2, 6);
+  await page.getByTestId('seed-wheat').click();
+  await expect(page.getByTestId('planting-bar')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('planting-bar')).toHaveCount(0);
+  await tap(3, 6);
+  await page.getByTestId('seed-wheat').click();
+  await expect(page.getByTestId('planting-bar')).toBeVisible();
+  await page.getByTestId('nav-inventory').click();                        // opening another screen ends it
+  await expect(page.getByTestId('planting-bar')).toHaveCount(0);
 });

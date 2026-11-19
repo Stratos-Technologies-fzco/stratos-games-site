@@ -46,6 +46,7 @@ test('real Stratos wallet: first play +20, new level +10, speed-up costs 20, hin
   let p = await tile(2, 6);
   await page.mouse.click(p.x, p.y);
   await game.getByTestId('seed-wheat').click();
+  await game.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   p = await tile(2, 6);
   await page.mouse.click(p.x, p.y);
   await game.getByTestId('speedup').click();
@@ -65,6 +66,7 @@ test('real Stratos wallet: first play +20, new level +10, speed-up costs 20, hin
   p = await tile(3, 6);
   await page.mouse.click(p.x, p.y);
   await game.getByTestId('seed-wheat').click();
+  await game.getByTestId('planting-done').click(); // one seed per visit in this test: leave planting mode
   p = await tile(3, 6);
   await page.mouse.click(p.x, p.y);
   await game.getByTestId('speedup').click();

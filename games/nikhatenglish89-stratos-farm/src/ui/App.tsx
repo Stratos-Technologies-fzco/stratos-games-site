@@ -3,7 +3,7 @@ import { GameCanvas } from './GameCanvas';
 import { farm } from '../game/controller';
 import { BottomNav, InfoPanel, RecenterButton, TileChip, Toast, TopBar } from './Hud';
 import { useFarm } from '../state/store';
-import { HarvestAllButton, InventoryPanel, SeedPanel } from './Panels';
+import { HarvestAllButton, InventoryPanel, PlantingBar, SeedPanel } from './Panels';
 import { BuildingPanel, PlacementBar, ShopPanel } from './BuildingPanels';
 import { ExpansionPanel, MarketPanel, ObstaclePanel, PlotPanel, QuestsPanel, TutorialBanner } from './EconomyPanels';
 import { MapPanel } from './MapPanel';
@@ -21,6 +21,7 @@ export function App() {
       if (e.key !== 'Escape') return;
       const st = useFarm.getState();
       if (st.placing) { farm.cancelPlacing(); return; }
+      if (st.plantSeed && !st.seedPlot) { farm.cancelPlanting(); return; }
       if (st.infoPanel) { st.setInfoPanel(null); return; }
       if (st.seedPlot) st.setSeedPlot(null);
       else if (st.plotInfo) st.setPlotInfo(null);
@@ -47,6 +48,7 @@ export function App() {
           <RecenterButton />
           <InfoPanel />
           <SeedPanel />
+          <PlantingBar />
           <PlotPanel />
           <InventoryPanel />
           <ShopPanel />

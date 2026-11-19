@@ -81,3 +81,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
 
 .minimap { background: #6fb8ea; }
+
+/* planting mode bar */
+.planting-bar { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.planting-line { display: inline-flex; align-items: center; gap: 6px; }
+.planting-bar small { font-weight: 600; opacity: .8; }
+
+.planting-text { display: flex; flex-direction: column; text-align: left; line-height: 1.2; }
+.planting-text span { font-size: 13px; font-weight: 700; opacity: .85; }

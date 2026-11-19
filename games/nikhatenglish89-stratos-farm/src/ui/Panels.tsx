@@ -24,7 +24,7 @@ export function SeedPanel() {
   const setSeedPlot = useFarm((s) => s.setSeedPlot);
   if (!plotId) return null;
   return (
-    <PanelShell title="Plant a seed" testId="seed-panel" onClose={() => setSeedPlot(null)}>
+    <PanelShell title={plotId === '*' ? 'Change seed' : 'Plant a seed'} testId="seed-panel" onClose={() => setSeedPlot(null)}>
       <ul className="rows">
         {CROPS.map((c) => {
           const locked = c.unlockLevel > level;
@@ -32,7 +32,7 @@ export function SeedPanel() {
           return (
             <li key={c.id}>
               <button className={`row ${locked || poor ? 'dim' : ''}`} disabled={locked} data-testid={`seed-${c.id}`}
-                onClick={() => (poor ? useFarm.getState().showToast('Not enough coins') : farm.plant(plotId, c.id))}>
+                onClick={() => (poor ? useFarm.getState().showToast('Not enough coins') : farm.pickSeed(plotId, c.id))}>
                 <ItemIcon id={c.id} size={40} />
                 <span className="grow">
                   <b>{c.name}</b>
@@ -83,5 +83,27 @@ export function HarvestAllButton() {
     <button className="harvest-all" onClick={() => farm.harvestAll()} data-testid="harvest-all">
       <Icon name="check" size={26} /> Harvest all ({n})
     </button>
+  );
+}
+
+/** Shown while a seed is picked: every tap on an empty field plants it. */
+export function PlantingBar() {
+  const seed = useFarm((s) => s.plantSeed);
+  const coins = useFarm((s) => s.player.coins);
+  const open = useFarm((s) => !!s.seedPlot);
+  if (!seed || open) return null;
+  const crop = CROPS.find((c) => c.id === seed)!;
+  return (
+    <div className="placement-bar planting-bar" data-testid="planting-bar">
+      <span className="planting-line">
+        <ItemIcon id={seed} size={34} />
+        <span className="planting-text"><b>Planting {crop.name}</b><span>{crop.seedCost} coins each · you have {coins}</span></span>
+      </span>
+      <small>Tap empty fields to plant. Tap a ripe crop to pick it.</small>
+      <div className="panel-actions">
+        <button className="btn small" onClick={() => useFarm.getState().setSeedPlot('*')} data-testid="planting-change">Change seed</button>
+        <button className="btn small red" onClick={() => farm.cancelPlanting()} data-testid="planting-done">Done</button>
+      </div>
+    </div>
   );
 }

@@ -33,6 +33,8 @@ interface FarmState {
   inventoryOpen: boolean;
   shopTab: 'habitats' | 'factories' | 'decor' | null; // shop panel open on this tab
   obstaclePanel: string | null; // rock, tree or bush whose clear panel is open
+  /** Planting mode: the crop picked in the seed list; every tap on an empty field plants it until the player is done. */
+  plantSeed: string | null;
   clearedObstacles: string[];
   buildingPanel: string | null; // building id whose panel is open
   placing: { type: string; moveId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean } | null;
@@ -58,6 +60,7 @@ interface FarmState {
   setInventoryOpen: (open: boolean) => void;
   setShopTab: (t: 'habitats' | 'factories' | 'decor' | null) => void;
   setObstaclePanel: (id: string | null) => void;
+  setPlantSeed: (id: string | null) => void;
   setBuildingPanel: (id: string | null) => void;
   setPlacing: (p: FarmState['placing']) => void;
   setMarketTab: (t: 'orders' | 'sell' | null) => void;
@@ -100,6 +103,7 @@ export const useFarm = create<FarmState>((set) => ({
   inventoryOpen: false,
   shopTab: null,
   obstaclePanel: null,
+  plantSeed: null,
   clearedObstacles: [],
   buildingPanel: null,
   placing: null,
@@ -141,6 +145,7 @@ export const useFarm = create<FarmState>((set) => ({
   setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
   setShopTab: (shopTab) => set({ shopTab }),
   setObstaclePanel: (obstaclePanel) => set({ obstaclePanel }),
+  setPlantSeed: (plantSeed) => set({ plantSeed }),
   setBuildingPanel: (buildingPanel) => set({ buildingPanel }),
   setPlacing: (placing) => set({ placing }),
   setMarketTab: (marketTab) => set({ marketTab }),
