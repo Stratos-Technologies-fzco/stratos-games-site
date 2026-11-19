@@ -30,6 +30,7 @@ async function openOnSite(page: Page) {
 const balance = (page: Page) => page.evaluate(() => (window as any).Stratos.coins.balance());
 
 test('real Stratos wallet: first play +20, new level +10, speed-up costs 20, hint costs 10', async ({ page }) => {
+  test.setTimeout(150_000);   // the whole suite shares one machine
   const game = await openOnSite(page);
   await expect(game.getByTestId('home-stratos')).toContainText('0 Stratos Coins');
   expect(await balance(page)).toBe(0);

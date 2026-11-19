@@ -11,6 +11,8 @@ export interface BusEvents {
   'fx:feed': { habitatId: string };
   'building:tapped': { id: string };
   'obstacle:tapped': { id: string };
+  'object:tapped': { id: string };
+  'objmove:start': { id: string };
   'place:flip': { flip: boolean };
   'place:start': { type: string; moveId?: string; at?: { gx: number; gy: number } };
   'expansion:tapped': { id: string };

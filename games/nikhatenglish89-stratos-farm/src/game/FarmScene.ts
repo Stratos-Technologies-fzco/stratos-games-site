@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { DEFAULT_ISO, depthKey, gridToScreen, rectBounds, screenToGrid } from '../iso/grid';
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
-import { farmLayout as L, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, terrainFrameAt } from './layout';
+import { farmLayout as L, fieldAtCell, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, placedAt, terrainFrameAt } from './layout';
+import { OBSTACLE_TYPE_BY_ID } from '../services/data';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
@@ -44,6 +45,8 @@ export class FarmScene extends Phaser.Scene {
   private recentFloats: { x: number; y: number; until: number }[] = [];
   private layer!: BuildingsLayer;
   private obstacles!: ObstaclesLayer;
+  private movedKey = '{}';
+  private moving: { id: string; w: number; h: number; ghost: Phaser.GameObjects.Image | null; dim: Phaser.GameObjects.Image | null } | null = null;
 
   constructor() { super('Farm'); }
 
@@ -53,7 +56,7 @@ export class FarmScene extends Phaser.Scene {
     this.buildTerrain();
     this.buildObjects();
     this.hover = this.add.image(0, 0, 'atlas_terrain', 'cursor_hover').setOriginFromFrame().setVisible(false).setAlpha(0.7);
-    this.preview = new PlacementPreview(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy));
+    this.preview = new PlacementPreview(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded, useFarm.getState().moved));
     this.setupCamera();
     this.setupInput();
     this.scale.on('resize', () => this.onResize());
@@ -67,19 +70,20 @@ export class FarmScene extends Phaser.Scene {
       cam.pan(p.x, p.y - 40, effectsOn() ? 600 : 0, 'Sine.easeInOut');
     });
     this.buildPlots();
-    this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded));
+    this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded, useFarm.getState().moved));
     this.layer.sync();
     this.obstacles = new ObstaclesLayer(this, this.occ);
     this.obstacles.sync();
     bus.on('place:flip', ({ flip }) => this.layer.setGhostFlip(flip));
-    bus.on('farm:changed', ({ plotIds }) => { plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); this.obstacles.sync(); });
+    bus.on('farm:changed', ({ plotIds }) => { this.syncStatics(); plotIds.forEach((id) => this.renderPlot(id, true)); this.refreshTerrain(); this.layer.sync(); this.obstacles.sync(); });
+    bus.on('objmove:start', ({ id }) => this.startMoving(id));
     bus.on('fx:feed', ({ habitatId }) => this.layer.feed(habitatId));
     bus.on('place:start', ({ type, moveId, at }) => {
       this.clearSelection();
       this.layer.startPlacing(type, moveId);
       if (at) this.layer.moveGhost(at.gx, at.gy); // a spot was already selected: the ghost starts there
     });
-    bus.on('place:end', () => this.layer.endPlacing());
+    bus.on('place:end', () => { this.layer.endPlacing(); this.endMoving(); });
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.layer.animate(this.time.now) });
     bus.on('fx:float', (e) => this.floatText(e.gx, e.gy, e.lines, e.cropFrame));
     this.time.addEvent({ delay: 1000, loop: true, callback: () => { this.refreshPlots(); this.layer.refresh(); } });
@@ -96,13 +100,13 @@ export class FarmScene extends Phaser.Scene {
   private buildTerrain() { this.syncTerrain(true); }
 
   private syncTerrain(first = false) {
-    const expanded = useFarm.getState().expanded;
-    const key = expanded.join(',');
+    const { expanded, moved } = useFarm.getState();
+    const key = expanded.join(',') + '|' + JSON.stringify(moved);
     if (!first && key === this.landKey) return;
     this.landKey = key;
     this.land.clear();
     for (let gx = 0; gx < L.cols; gx++) for (let gy = 0; gy < L.rows; gy++) {
-      const t = terrainFrameAt(L, gx, gy, expanded);
+      const t = terrainFrameAt(L, gx, gy, expanded, moved);
       if (!t.frame) continue;
       this.land.add(`${gx},${gy}`);
       const k = `${gx},${gy}`, have = this.tiles.get(k);
@@ -130,8 +134,11 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private buildObjects() {
-    for (const o of L.objects) {
-      if (o.clearable) continue; // rocks, trees and bushes are drawn by the obstacles layer
+    const moved = useFarm.getState().moved;
+    this.movedKey = JSON.stringify(moved);
+    for (const base of L.objects) {
+      if (base.clearable) continue; // rocks, trees and bushes are drawn by the obstacles layer
+      const o = placedAt(base, moved);
       if (!this.occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h })) {
         console.warn(`[layout] ${o.id} overlaps something or is out of bounds; skipped`);
         continue;
@@ -142,11 +149,67 @@ export class FarmScene extends Phaser.Scene {
       } else {
         const p = gridToScreen(o.gx, o.gy);
         const img = this.add.image(p.x, p.y, o.atlas!, o.frame!).setOriginFromFrame().setDepth(depthKey(o.gx, o.gy, { w: o.w, h: o.h }, OBJECT_LAYER));
-        if (o.interactive) img.setInteractive({ pixelPerfect: true, alphaTolerance: 20, useHandCursor: true });
+        img.setInteractive({ pixelPerfect: true, alphaTolerance: 20, useHandCursor: true });
         list.push(img);
       }
       this.sprites.set(o.id, list);
     }
+  }
+
+  /** After the player moves a field, silo, lamp post...: put the sprites, the spots they take and the crops where they stand now. */
+  private syncStatics() {
+    const moved = useFarm.getState().moved, key = JSON.stringify(moved);
+    if (key === this.movedKey) return;
+    this.movedKey = key;
+    const objs = L.objects.filter((o) => !o.clearable);
+    for (const o of objs) this.occ.remove(o.id);
+    for (const base of objs) {
+      const o = placedAt(base, moved);
+      this.occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h });
+      const img = this.sprites.get(o.id)?.[0];
+      if (img) { const p = gridToScreen(o.gx, o.gy); img.setPosition(p.x, p.y).setDepth(depthKey(o.gx, o.gy, { w: o.w, h: o.h }, OBJECT_LAYER)); }
+    }
+    for (const sp of this.plotSprites.values()) { this.tweens.killTweensOf(sp.bubble); sp.crop.destroy(); sp.bubble.destroy(); }
+    this.plotSprites.clear();
+    this.buildPlots();
+    this.refreshPlots();
+  }
+
+  // ---------- moving what was already on the farm ----------
+  private startMoving(id: string) {
+    this.endMoving();
+    this.clearSelection();
+    const st = useFarm.getState();
+    const base = L.objects.find((o) => o.id === id);
+    if (!base) return;
+    const o = placedAt(base, st.moved);
+    let img: Phaser.GameObjects.Image | undefined = this.sprites.get(id)?.[0];
+    let atlas = base.atlas, frame = base.frame;
+    if (base.clearable) {                                  // a rock, tree or bush
+      const ob = this.obstacles.active().find((x) => x.id === id);
+      const t = ob ? OBSTACLE_TYPE_BY_ID.get(ob.type) : undefined;
+      img = this.obstacles.spriteOf(id); atlas = 'atlas_decor'; frame = t?.frame;
+    }
+    const ghost = frame && atlas ? this.add.image(0, 0, atlas, frame).setOriginFromFrame().setAlpha(0.6).setDepth(900_000).setVisible(false) : null;
+    img?.setAlpha(0.35);
+    this.moving = { id, w: o.w, h: o.h, ghost, dim: img ?? null };
+  }
+
+  private moveTo(gx: number, gy: number) {
+    const m = this.moving;
+    if (!m) return;
+    const p = gridToScreen(gx, gy);
+    m.ghost?.setPosition(p.x, p.y).setVisible(true);
+    const res = this.preview.show(gx, gy, { w: m.w, h: m.h }, m.id);
+    bus.emit('place:moved', { gx, gy, valid: res.valid });
+  }
+
+  private endMoving() {
+    const m = this.moving;
+    if (!m) return;
+    m.dim?.setAlpha(1); m.ghost?.destroy();
+    this.moving = null;
+    this.preview.hide();
   }
 
   // ---------- crops (drawn from farm state, never from the layout) ----------
@@ -220,7 +283,7 @@ export class FarmScene extends Phaser.Scene {
       if (e.id.startsWith('lot_') || !expanded.includes(e.id)) continue;
       for (let gx = e.rect[0]; gx < e.rect[0] + e.rect[2]; gx++) for (let gy = e.rect[1]; gy < e.rect[1] + e.rect[3]; gy++) {
         const img = this.tiles.get(`${gx},${gy}`);
-        const f = terrainFrameAt(L, gx, gy, expanded).frame;
+        const f = terrainFrameAt(L, gx, gy, expanded, useFarm.getState().moved).frame;
         if (img && img.frame.name !== f) { img.setFrame(f).setOriginFromFrame(); if (effectsOn()) this.tweens.add({ targets: img, alpha: { from: 0.4, to: 1 }, duration: 400 }); }
       }
     }
@@ -373,7 +436,7 @@ export class FarmScene extends Phaser.Scene {
 
   private updateHover(p: Phaser.Input.Pointer) {
     const c = this.tileAt(p);
-    if (this.layer.placing) { this.hover.setVisible(false); return; } // placing: the ghost stays where it was put until the next tap
+    if (this.layer.placing || this.moving) { this.hover.setVisible(false); return; } // placing: the ghost stays where it was put until the next tap
     if (!c) { this.hover.setVisible(false); this.preview.hide(); return; }
     const s = gridToScreen(c.gx, c.gy);
     this.hover.setPosition(s.x, s.y).setDepth(depthKey(c.gx, c.gy) + 5).setVisible(true);
@@ -381,6 +444,7 @@ export class FarmScene extends Phaser.Scene {
   }
 
   private handleTap(p: Phaser.Input.Pointer) {
+    if (this.moving) { const t = this.tileAt(p); if (t) this.moveTo(t.gx, t.gy); return; }
     if (this.layer.placing) { const t = this.tileAt(p); if (t) this.layer.moveGhost(t.gx, t.gy); return; }
     // Pixel-accurate hit on interactive buildings (roofs sit far above their footprint), then fall back to the tile.
     const hits = this.input.hitTestPointer(p) as Phaser.GameObjects.Image[];
@@ -390,9 +454,14 @@ export class FarmScene extends Phaser.Scene {
       for (const [id, list] of this.sprites) if (list.includes(top)) objectId = id;
     }
     const tile = this.tileAt(p);
+    if (objectId && tile) {      // a tall scarecrow or lamp post must not steal a tap meant for the field tile it overlaps on screen
+      const hit = L.objects.find((o) => o.id === objectId), under = this.occ.occupantAt(tile.gx, tile.gy);
+      if (hit && !hit.interactive && under && L.objects.find((o) => o.id === under)?.kind === 'field') objectId = null;
+    }
     if (!objectId && tile) {
       const occ = this.occ.occupantAt(tile.gx, tile.gy);
-      if (occ && L.objects.find((o) => o.id === occ)?.interactive) objectId = occ;
+      const lo = occ ? L.objects.find((o) => o.id === occ) : undefined;
+      if (lo && lo.kind !== 'field' && !lo.clearable) objectId = occ!;
     }
     if (!objectId && hits.length) {
       const top = hits.reduce((a, b) => (b.depth > a.depth ? b : a));
@@ -438,7 +507,8 @@ export class FarmScene extends Phaser.Scene {
 
   private selectObject(id: string) {
     this.clearSelection();
-    const o = L.objects.find((x) => x.id === id) as LayoutObject;
+    const base = L.objects.find((x) => x.id === id) as LayoutObject;
+    const o = placedAt(base, useFarm.getState().moved);
     this.selectedObject = id;
     for (let dx = 0; dx < o.w; dx++) for (let dy = 0; dy < o.h; dy++) {
       const s = gridToScreen(o.gx + dx, o.gy + dy);
@@ -449,7 +519,7 @@ export class FarmScene extends Phaser.Scene {
       this.tweens.add({ targets: s, y: y0 - 6, duration: 110, yoyo: true, ease: 'Sine.easeOut', onComplete: () => { s.y = y0; } });
     });
     bus.emit('tile:selected', { gx: o.gx, gy: o.gy, terrain: terrainFrameAt(L, o.gx, o.gy).frame, objectId: id });
-    if (o.interactive) bus.emit('object:selected', { id });
+    bus.emit(o.interactive ? 'object:selected' : 'object:tapped', { id });
   }
 
   // ---------- debug (only with ?debug=1) ----------
@@ -470,6 +540,9 @@ export class FarmScene extends Phaser.Scene {
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),
       ghost: () => this.layer.ghostCell,
       openBuilding: (id: string) => bus.emit('building:tapped', { id }),
+      startMove: (id: string) => farm.startMoveObject(id),
+      moved: () => useFarm.getState().moved,
+      plot: (id: string) => useFarm.getState().plots.find((q) => q.id === id) ?? null,
       obstacles: () => this.obstacles.active().map((o) => ({ id: o.id, gx: o.gx, gy: o.gy })),
     };
   }

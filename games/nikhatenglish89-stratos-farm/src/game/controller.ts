@@ -3,7 +3,7 @@ import { OBSTACLE_TYPE_BY_ID, FEED_ITEM, ANIMALS, ANIMAL_BY_ID, BUILDINGS, BUILD
 import { animalStatus, cropStage, ErrorCode, FarmSnapshot } from '../services/types';
 import { useFarm } from '../state/store';
 import { bus } from './eventBus';
-import { farmLayout, obstacleList, worldConfig } from './layout';
+import { farmLayout, fieldAtCell, obstacleList, worldConfig } from './layout';
 import { QUEST_BY_ID } from '../services/quests';
 import { offerCoins, track } from './stratos';
 import { playSfx, setMusicTrack } from './audio';
@@ -38,6 +38,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   same_spot: 'Pick a different spot',
   already_ready: 'It is already ready',
   unknown_obstacle: 'That is already cleared',
+  unknown_object: 'That is no longer there',
   not_adjacent: 'Clear the land next to your farm first',
 };
 
@@ -247,6 +248,30 @@ class FarmController {
     });
   }
 
+  /** Fields, rocks, trees, lamp posts, the well, silo, farmhouse and barn can all be picked up and put somewhere else, free. */
+  startMoveObject(id: string) {
+    const st = useFarm.getState();
+    st.setPlantSeed(null); st.setShopTab(null); st.setBuildingPanel(null); st.setSeedPlot(null); st.setPlotInfo(null);
+    st.setObstaclePanel(null); st.setObjectPanel(null); st.setOpenPanel(null);
+    st.setPlacing({ type: '', objectId: id, flip: false, gx: null, gy: null, valid: false });
+    bus.emit('objmove:start', { id });
+  }
+
+  objectName(id: string) {
+    const names: Record<string, string> = { farmhouse: 'farmhouse', barn: 'barn', silo: 'silo', well: 'well', lamp: 'lamp post', mailbox: 'mailbox', scarecrow: 'scarecrow', signpost: 'sign', hay: 'hay bale', flowers_1: 'flowers', field_a: 'field', field_b: 'field', field_c: 'field' };
+    if (names[id]) return names[id];
+    const o = this.obstacles.get(id);
+    return (o && OBSTACLE_TYPE_BY_ID.get(o.type)?.name.toLowerCase()) || 'object';
+  }
+
+  /** The field that covers a tile (for the Move field button). */
+  fieldIdAt(gx: number, gy: number) { return fieldAtCell(farmLayout, useFarm.getState().moved, gx, gy)?.id ?? null; }
+
+  onObjectTapped(id: string) {
+    const st = useFarm.getState();
+    st.setSeedPlot(null); st.setOpenPanel(null); st.setBuildingPanel(null); st.setObstaclePanel(null); st.setObjectPanel(id);
+  }
+
   startMove(buildingId: string) {
     const b = useFarm.getState().buildings.find((x) => x.id === buildingId);
     if (b) this.startPlacing(b.type, buildingId);
@@ -268,6 +293,15 @@ class FarmController {
     if (!p || p.gx === null || p.gy === null) { useFarm.getState().showToast('Tap a spot on the farm first'); return; }
     if (!p.valid) { this.fail('invalid_placement'); return; }
     const { type, gx, gy } = p as { type: string; gx: number; gy: number };
+    if (p.objectId) {
+      const oid = p.objectId;
+      return this.act(() => this.service.moveObject(oid, gx, gy, newKey()), (r) => {
+        this.cancelPlacing();
+        this.apply(r.snapshot);
+        playSfx('place_object');
+        useFarm.getState().showToast('Moved');
+      });
+    }
     if (p.moveId) {
       const id = p.moveId;
       return this.act(() => this.service.moveBuilding(id, gx, gy, newKey()), (r) => {

@@ -3,7 +3,7 @@ import { depthKey, gridToScreen } from '../iso/grid';
 import { OccupancyMap } from '../iso/occupancy';
 import { OBSTACLE_TYPE_BY_ID } from '../services/data';
 import { useFarm } from '../state/store';
-import { farmLayout, obstacleList } from './layout';
+import { farmLayout, obstacleList, placedAt } from './layout';
 import { effectsOn } from './fx';
 
 const OBJECT_LAYER = 10;
@@ -13,10 +13,13 @@ export class ObstaclesLayer {
   private all = obstacleList(farmLayout);
   private sprites = new Map<string, Phaser.GameObjects.Image>();
   private first = true;
+  private at = new Map<string, { gx: number; gy: number }>();
 
   constructor(private scene: Phaser.Scene, private occ: OccupancyMap) {}
 
   has(id: string) { return this.all.some((o) => o.id === id); }
+
+  spriteOf(id: string) { return this.sprites.get(id); }
 
   idOf(obj: Phaser.GameObjects.GameObject): string | null {
     for (const [id, s] of this.sprites) if (s === obj) return id;
@@ -26,7 +29,7 @@ export class ObstaclesLayer {
   /** Which obstacles stand in the world now: not cleared, and for a lot, only once the lot is cleared. */
   active() {
     const st = useFarm.getState();
-    return this.all.filter((o) => !st.clearedObstacles.includes(o.id) && (!o.lot || st.expanded.includes(o.lot)));
+    return this.all.filter((o) => !st.clearedObstacles.includes(o.id) && (!o.lot || st.expanded.includes(o.lot))).map((o) => placedAt(o, st.moved)); // where they stand now
   }
 
   sync() {
@@ -34,11 +37,22 @@ export class ObstaclesLayer {
     for (const [id, s] of [...this.sprites]) {
       if (now.has(id)) continue;
       this.occ.remove(id);
+      this.at.delete(id);
       this.sprites.delete(id);
       this.poof(s);
     }
     for (const o of this.active()) {
-      if (this.sprites.has(o.id)) continue;
+      const have = this.sprites.get(o.id);
+      if (have) {                                   // moved by the player: carry the sprite and its spot over
+        const at = this.at.get(o.id);
+        if (at && (at.gx !== o.gx || at.gy !== o.gy)) {
+          this.occ.remove(o.id); this.occ.place(o.id, o.gx, o.gy, { w: 1, h: 1 });
+          const p = gridToScreen(o.gx, o.gy);
+          have.setPosition(p.x, p.y).setDepth(depthKey(o.gx, o.gy, undefined, OBJECT_LAYER));
+          this.at.set(o.id, { gx: o.gx, gy: o.gy });
+        }
+        continue;
+      }
       const t = OBSTACLE_TYPE_BY_ID.get(o.type);
       if (!t) continue;
       this.occ.place(o.id, o.gx, o.gy, { w: 1, h: 1 });
@@ -46,6 +60,7 @@ export class ObstaclesLayer {
       const img = this.scene.add.image(p.x, p.y, 'atlas_decor', t.frame).setOriginFromFrame().setDepth(depthKey(o.gx, o.gy, undefined, OBJECT_LAYER))
         .setInteractive({ pixelPerfect: true, alphaTolerance: 20, useHandCursor: true });
       this.sprites.set(o.id, img);
+      this.at.set(o.id, { gx: o.gx, gy: o.gy });
       if (!this.first && effectsOn()) { img.setScale(0.7); this.scene.tweens.add({ targets: img, scale: 1, duration: 300, ease: 'Back.easeOut' }); }
     }
     this.first = false;

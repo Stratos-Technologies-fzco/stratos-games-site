@@ -93,7 +93,15 @@ export function landState(l: FarmLayout, gx: number, gy: number, expanded: strin
 }
 
 /** Terrain frame for a tile: explicit rects win, then flowers sprinkled by a stable hash, then plain grass. null = open sea. */
-export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: string[] = []): { frame: string; animate?: string[] } {
+export type Moved = Record<string, { gx: number; gy: number }>;
+
+/** An object where it stands now (the layout position, unless the player moved it). */
+export function placedAt<T extends { id: string; gx: number; gy: number }>(o: T, moved: Moved): T {
+  const m = moved[o.id];
+  return m ? { ...o, gx: m.gx, gy: m.gy } : o;
+}
+
+export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: string[] = [], moved: Moved = {}): { frame: string; animate?: string[] } {
   const state = landState(l, gx, gy, expanded);
   if (state === 'sea') return { frame: '' };
   if (state === 'locked') return { frame: 'locked_land' };
@@ -103,21 +111,23 @@ export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: 
   }
   // a cleared patch inside the island is plain grass, whatever the locked-land rectangle says
   const cleared = l.expansions.some((e) => !isLot(e.id) && expanded.includes(e.id) && inRect(e.rect, gx, gy));
+  for (const f of l.objects) {
+    if (f.kind !== 'field') continue;
+    const o = placedAt(f, moved);   // soil follows the field when it is moved
+    if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return { frame: o.soil ?? 'dirt' };
+  }
   for (let i = l.terrain.rects.length - 1; i >= 0; i--) {
     const r = l.terrain.rects[i];
     if (cleared && r.frame === 'locked_land') continue;
     const [x, y, w, h] = r.rect;
     if (gx >= x && gx < x + w && gy >= y && gy < y + h) return { frame: r.frame, animate: r.animate };
   }
-  for (const o of l.objects) {
-    if (o.kind === 'field' && gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return { frame: o.soil ?? 'dirt' };
-  }
   if ((gx * 5 + gy) % l.terrain.flowerEvery === 0) return { frame: l.terrain.flowerFrame };
   return { frame: l.terrain.default[(gx * 7 + gy * 3) % l.terrain.default.length] };
 }
 
-export function isBuildableTile(l: FarmLayout, gx: number, gy: number, expanded: string[] = []): boolean {
-  const t = terrainFrameAt(l, gx, gy, expanded);
+export function isBuildableTile(l: FarmLayout, gx: number, gy: number, expanded: string[] = [], moved: Moved = {}): boolean {
+  const t = terrainFrameAt(l, gx, gy, expanded, moved);
   if (!t.frame) return false;
   return !l.terrain.unbuildable.includes(t.frame) && !t.animate;
 }
@@ -156,7 +166,8 @@ export function worldConfig(l: FarmLayout): WorldConfig {
     cols: l.cols, rows: l.rows, plotCells: plotCells(l),
     staticObjects: l.objects.filter((o) => !o.clearable).map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
     obstacles: obstacleList(l),
-    isBuildable: (gx, gy) => isBuildableTile(l, gx, gy),
+    fields: l.objects.filter((o) => o.kind === 'field').map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    isBuildable: (gx, gy, moved) => isBuildableTile(l, gx, gy, [], moved),
     expansions: l.expansions,
     // a lot may only be cleared next to land you own
     canExpand: (id, expanded) => {
@@ -185,4 +196,14 @@ export function landBox(l: FarmLayout, expanded: string[], includeLocked = true)
     maxGy = Math.max(maxGy, e.rect[1] + e.rect[3] - 1);
   }
   return { minGx, minGy, maxGx, maxGy };
+}
+
+/** The field (if any) that covers this tile, where the fields stand now. */
+export function fieldAtCell(l: FarmLayout, moved: Moved, gx: number, gy: number): LayoutObject | null {
+  for (const f of l.objects) {
+    if (f.kind !== 'field') continue;
+    const o = placedAt(f, moved);
+    if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return f;
+  }
+  return null;
 }

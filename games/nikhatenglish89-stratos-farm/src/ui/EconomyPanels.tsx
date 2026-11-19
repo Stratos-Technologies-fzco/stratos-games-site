@@ -1,3 +1,4 @@
+import { bus } from '../game/eventBus';
 import { useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm, formatDuration } from '../game/controller';
@@ -172,7 +173,7 @@ export function TutorialBanner() {
   const v = useQuestView();
   const step = currentTutorialStep(v);
   // stay out of the way while a panel is open
-  const panelOpen = useFarm((s) => !!(s.shopTab || s.marketTab || s.inventoryOpen || s.questsOpen || s.obstaclePanel || s.buildingPanel || s.seedPlot || s.openPanel || s.expansionPanel || s.placing));
+  const panelOpen = useFarm((s) => !!(s.shopTab || s.marketTab || s.inventoryOpen || s.questsOpen || s.obstaclePanel || s.objectPanel || s.buildingPanel || s.seedPlot || s.openPanel || s.expansionPanel || s.placing));
   if (done || !loaded || !step || panelOpen) return null;
   const idx = QUESTS.filter((q) => q.type === 'tutorial').findIndex((q) => q.id === step.id) + 1;
   const complete = isComplete(step, v);
@@ -219,6 +220,22 @@ export function ExpansionPanel() {
   );
 }
 
+/** A lamp post, well, silo, scarecrow...: nothing to do with it except move it somewhere else. */
+export function ObjectPanel() {
+  const id = useFarm((s) => s.objectPanel);
+  const setId = useFarm((s) => s.setObjectPanel);
+  if (!id) return null;
+  const name = farm.objectName(id);
+  return (
+    <PanelShell title={name.charAt(0).toUpperCase() + name.slice(1)} testId="object-panel" onClose={() => { setId(null); bus.emit('ui:panelClosed'); }}>
+      <p className="meta">Not happy with where it stands? Pick it up and put it down somewhere else. It is free.</p>
+      <div className="panel-actions" style={{ marginTop: 10 }}>
+        <button className="btn" onClick={() => farm.startMoveObject(id)} data-testid="move-object">Move it</button>
+      </div>
+    </PanelShell>
+  );
+}
+
 /** A growing crop: time left and a Speed-up. */
 export function PlotPanel() {
   const id = useFarm((s) => s.plotInfo);
@@ -235,6 +252,7 @@ export function PlotPanel() {
       <p className="meta" data-testid="plot-time">Ready in {formatDuration((plot.readyAt ?? now) - now)}</p>
       <div className="panel-actions">
         <button className="btn small" onClick={() => farm.speedUp('plot', id)} data-testid="speedup">Speed up</button>
+        <button className="btn small" onClick={() => { const f = farm.fieldIdAt(plot.gx, plot.gy); if (f) farm.startMoveObject(f); }} data-testid="move-field">Move field</button>
       </div>
     </PanelShell>
   );
@@ -261,6 +279,7 @@ export function ObstaclePanel() {
       </ul>
       <div className="panel-actions" style={{ marginTop: 10 }}>
         <button className="btn" disabled={coins < t.cost} onClick={() => farm.clearObstacle(id)} data-testid="clear-confirm">Clear it</button>
+        <button className="btn small" onClick={() => farm.startMoveObject(id)} data-testid="move-object">Move it</button>
       </div>
     </PanelShell>
   );

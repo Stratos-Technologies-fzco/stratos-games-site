@@ -26,6 +26,7 @@ export function GameCanvas() {
       bus.on('plot:tapped', ({ plotId }) => farm.onPlotTapped(plotId)),
       bus.on('expansion:tapped', ({ id }) => farm.onExpansionTapped(id)),
       bus.on('obstacle:tapped', ({ id }) => farm.onObstacleTapped(id)),
+      bus.on('object:tapped', ({ id }) => farm.onObjectTapped(id)),
       bus.on('building:tapped', ({ id }) => farm.onBuildingTapped(id)),
       bus.on('place:moved', ({ gx, gy, valid }) => farm.onPlaceMoved(gx, gy, valid)),
       bus.on('object:selected', ({ id }) => store.setOpenPanel(id)),

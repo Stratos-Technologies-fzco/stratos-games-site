@@ -53,6 +53,8 @@ export interface FarmSnapshot {
   orderCooldowns: Record<string, number>;
   expanded: string[];
   clearedObstacles: string[];
+  /** Fields, rocks, trees, lamp posts and the like that the player has moved: object id -> its new top corner. */
+  moved: Record<string, { gx: number; gy: number }>;
   stats: Record<string, number>;
   claimed: string[];
   daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
@@ -67,7 +69,7 @@ export type ErrorCode =
   | 'nothing_planted' | 'not_ready' | 'nothing_ready' | 'insufficient_items' | 'bad_request'
   | 'unknown_building' | 'invalid_placement' | 'wrong_building' | 'at_capacity' | 'nothing_hungry'
   | 'max_level' | 'unknown_recipe' | 'queue_full'
-  | 'already_ready' | 'unknown_obstacle' | 'not_adjacent' | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
+  | 'already_ready' | 'unknown_object' | 'unknown_obstacle' | 'not_adjacent' | 'unknown_order' | 'unknown_quest' | 'not_complete' | 'already_claimed' | 'unknown_expansion' | 'already_expanded' | 'not_empty' | 'same_spot';
 
 export type Result<T> = ({ ok: true; snapshot: FarmSnapshot; replayed?: boolean } & T) | { ok: false; error: ErrorCode };
 
@@ -88,6 +90,7 @@ export type MoveResult = Result<{ buildingId: string }>;
 export type RemoveResult = Result<{ buildingId: string; refund: number }>;
 export type SimpleResult = Result<object>;
 export type ClearResult = Result<{ obstacleId: string; cost: number; rewards: Record<string, number>; xp: number }>;
+export type MoveObjectResult = Result<{ objectId: string }>;
 export type RotateResult = Result<{ buildingId: string; flipped: boolean }>;
 export type SpeedKind = 'plot' | 'animal' | 'job';
 export type SpeedResult = Result<{ kind: SpeedKind; id: string }>;
@@ -102,6 +105,7 @@ export interface FarmService {
   placeBuilding(type: string, gx: number, gy: number, key: string, flipped?: boolean): Promise<PlaceResult>;
   rotateBuilding(buildingId: string, key: string): Promise<RotateResult>;
   clearObstacle(obstacleId: string, key: string): Promise<ClearResult>;
+  moveObject(objectId: string, gx: number, gy: number, key: string): Promise<MoveObjectResult>;
   buyAnimal(habitatId: string, key: string): Promise<AnimalBuyResult>;
   feedAnimals(habitatId: string, key: string): Promise<FeedResult>;
   collectAnimals(habitatId: string, key: string): Promise<CollectResult>;

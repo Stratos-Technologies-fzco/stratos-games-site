@@ -35,9 +35,11 @@ interface FarmState {
   obstaclePanel: string | null; // rock, tree or bush whose clear panel is open
   /** Planting mode: the crop picked in the seed list; every tap on an empty field plants it until the player is done. */
   plantSeed: string | null;
+  moved: Record<string, { gx: number; gy: number }>;
+  objectPanel: string | null; // a fixed object (lamp post, well, silo...) whose panel is open
   clearedObstacles: string[];
   buildingPanel: string | null; // building id whose panel is open
-  placing: { type: string; moveId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean } | null;
+  placing: { type: string; moveId?: string; objectId?: string; flip?: boolean; gx: number | null; gy: number | null; valid: boolean } | null;
   marketTab: 'orders' | 'sell' | null;
   questsOpen: boolean;
   mapOpen: boolean;
@@ -61,6 +63,7 @@ interface FarmState {
   setShopTab: (t: 'habitats' | 'factories' | 'decor' | null) => void;
   setObstaclePanel: (id: string | null) => void;
   setPlantSeed: (id: string | null) => void;
+  setObjectPanel: (id: string | null) => void;
   setBuildingPanel: (id: string | null) => void;
   setPlacing: (p: FarmState['placing']) => void;
   setMarketTab: (t: 'orders' | 'sell' | null) => void;
@@ -77,6 +80,9 @@ interface FarmState {
 }
 
 let toastId = 0;
+
+/** Opening a big screen (shop, market, items, quests, map) closes the small pop-ups about one thing on the farm, so two never pile up on the left. */
+const CLOSE_SMALL = { openPanel: null, obstaclePanel: null, objectPanel: null, plotInfo: null, seedPlot: null, buildingPanel: null, expansionPanel: null } as const;
 
 export const useFarm = create<FarmState>((set) => ({
   player: { name: 'Farmer', avatar: 'farmer_boy_portrait', level: 1, xp: 0, coins: 0, gems: 0 },
@@ -104,6 +110,8 @@ export const useFarm = create<FarmState>((set) => ({
   shopTab: null,
   obstaclePanel: null,
   plantSeed: null,
+  moved: {},
+  objectPanel: null,
   clearedObstacles: [],
   buildingPanel: null,
   placing: null,
@@ -130,6 +138,7 @@ export const useFarm = create<FarmState>((set) => ({
     orderCooldowns: s.orderCooldowns,
     expanded: s.expanded,
     clearedObstacles: s.clearedObstacles,
+    moved: s.moved,
     stats: s.stats,
     claimed: s.claimed,
     daily: s.daily,
@@ -142,15 +151,16 @@ export const useFarm = create<FarmState>((set) => ({
   selectTile: (selectedTile) => set({ selectedTile }),
   setOpenPanel: (openPanel) => set({ openPanel }),
   setSeedPlot: (seedPlot) => set({ seedPlot }),
-  setInventoryOpen: (inventoryOpen) => set({ inventoryOpen }),
-  setShopTab: (shopTab) => set({ shopTab }),
+  setInventoryOpen: (inventoryOpen) => set(inventoryOpen ? { inventoryOpen, ...CLOSE_SMALL } : { inventoryOpen }),
+  setShopTab: (shopTab) => set(shopTab ? { shopTab, ...CLOSE_SMALL } : { shopTab }),
   setObstaclePanel: (obstaclePanel) => set({ obstaclePanel }),
   setPlantSeed: (plantSeed) => set({ plantSeed }),
+  setObjectPanel: (objectPanel) => set({ objectPanel }),
   setBuildingPanel: (buildingPanel) => set({ buildingPanel }),
   setPlacing: (placing) => set({ placing }),
-  setMarketTab: (marketTab) => set({ marketTab }),
-  setQuestsOpen: (questsOpen) => set({ questsOpen }),
-  setMapOpen: (mapOpen) => set({ mapOpen }),
+  setMarketTab: (marketTab) => set(marketTab ? { marketTab, ...CLOSE_SMALL } : { marketTab }),
+  setQuestsOpen: (questsOpen) => set(questsOpen ? { questsOpen, ...CLOSE_SMALL } : { questsOpen }),
+  setMapOpen: (mapOpen) => set(mapOpen ? { mapOpen, ...CLOSE_SMALL } : { mapOpen }),
   setExpansionPanel: (expansionPanel) => set({ expansionPanel }),
   setScreen: (screen) => set({ screen }),
   setInfoPanel: (infoPanel) => set({ infoPanel }),

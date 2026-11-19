@@ -37,6 +37,9 @@ export function SeedPanel() {
           );
         })}
       </ul>
+      {plotId !== '*' && (() => { const [x, y] = plotId.split(',').map(Number); const f = farm.fieldIdAt(x, y); return f ? (
+        <div className="panel-actions" style={{ marginTop: 6 }}><button className="btn small" onClick={() => farm.startMoveObject(f)} data-testid="move-field">Move field</button></div>
+      ) : null; })()}
     </PanelShell>
   );
 }

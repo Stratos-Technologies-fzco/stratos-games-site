@@ -6,7 +6,7 @@ import {
 } from './data';
 import { QUEST_BY_ID, TUTORIAL, dayOf, isClaimed, pickDaily, questProgress } from './quests';
 import {
-  AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
+  MoveObjectResult, AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
   FeedResult, HarvestResult, JobState, ObstacleDef, ClearResult, RotateResult, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
   RemoveResult, SellResult, SimpleResult, SpeedKind, SpeedResult, UpgradeResult,
   animalHappiness, animalStatus, habitatCapacity, productionSlots,
@@ -32,8 +32,10 @@ export class BrowserKV implements KV {
 export interface WorldConfig {
   cols: number; rows: number;
   plotCells: { gx: number; gy: number }[];
+  /** The fields of the map (they also appear in staticObjects). When given, plots follow the fields when a field is moved. */
+  fields?: { id: string; gx: number; gy: number; w: number; h: number }[];
   staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
-  isBuildable: (gx: number, gy: number) => boolean;
+  isBuildable: (gx: number, gy: number, moved?: Record<string, { gx: number; gy: number }>) => boolean;
   expansions?: ExpansionDef[];
   /** Rocks, trees and bushes that can be cleared (some belong to a lot and only appear once it is cleared). */
   obstacles?: ObstacleDef[];
@@ -43,7 +45,7 @@ export interface WorldConfig {
 
 export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
 const PREV_KEY = 'stratos_farm_save_prev_v1'; // the save before the latest one: a way back if the latest is damaged
-const VERSION = 4;
+const VERSION = 5;
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -60,6 +62,7 @@ interface SavedState {
   orderCounter: number;
   expanded: string[];
   clearedObstacles: string[];
+  moved: Record<string, { gx: number; gy: number }>;
   stats: Record<string, number>;
   claimed: string[];
   daily: { day: number; ids: string[]; base: Record<string, number>; claimed: string[] };
@@ -125,7 +128,7 @@ export class LocalFarmService implements FarmService {
   private fresh(): SavedState {
     return {
       version: VERSION, ...START, inventory: {},
-      plots: this.world.plotCells.map(emptyPlot), buildings: [], animals: [], jobs: [], ...this.phase4Defaults(), nextId: 1,
+      plots: this.cellsFor({}).map(emptyPlot), buildings: [], animals: [], jobs: [], ...this.phase4Defaults(), nextId: 1,
       lastSeen: this.clock.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
     };
   }
@@ -162,11 +165,14 @@ export class LocalFarmService implements FarmService {
         Object.assign(s, this.phase4Defaults()); s.version = 3;
       }
       if (s.version === 3) { // rocks, trees and bushes can be cleared now
-        s.clearedObstacles = []; s.version = VERSION;
+        s.clearedObstacles = []; s.version = 4;
+      }
+      if (s.version === 4) { // fields, rocks, trees and lamp posts can be moved now
+        s.moved = {}; s.version = VERSION;
       }
       if (s.version !== VERSION) throw new Error('unknown version');
       const byId = new Map(s.plots.map((p) => [p.id, p]));
-      s.plots = this.world.plotCells.map((c) => byId.get(`${c.gx},${c.gy}`) ?? emptyPlot(c));
+      s.plots = this.cellsFor(s.moved ?? {}).map((c) => byId.get(`${c.gx},${c.gy}`) ?? emptyPlot(c));
       return sigBad ? { ok: false, unsigned: s } : { ok: true, state: s };
     } catch {
       return { ok: false };
@@ -175,7 +181,7 @@ export class LocalFarmService implements FarmService {
 
   private phase4Defaults() {
     return {
-      orders: [] as OrderState[], orderCooldowns: {} as Record<string, number>, orderCounter: 0, expanded: [] as string[], clearedObstacles: [] as string[],
+      orders: [] as OrderState[], orderCooldowns: {} as Record<string, number>, orderCounter: 0, expanded: [] as string[], clearedObstacles: [] as string[], moved: {} as Record<string, { gx: number; gy: number }>,
       stats: {} as Record<string, number>, claimed: [] as string[],
       daily: { day: -1, ids: [] as string[], base: {} as Record<string, number>, claimed: [] as string[] }, tutorialDone: false,
     };
@@ -196,7 +202,7 @@ export class LocalFarmService implements FarmService {
       inventory: { ...s.inventory }, plots: s.plots.map((p) => ({ ...p })),
       buildings: s.buildings.map((b) => ({ ...b })), animals: s.animals.map((a) => ({ ...a })), jobs: s.jobs.map((j) => ({ ...j })),
       orders: s.orders.map((o) => ({ ...o, items: { ...o.items } })), orderCooldowns: { ...s.orderCooldowns },
-      expanded: [...s.expanded], clearedObstacles: [...s.clearedObstacles], stats: { ...s.stats }, claimed: [...s.claimed],
+      expanded: [...s.expanded], clearedObstacles: [...s.clearedObstacles], moved: Object.fromEntries(Object.entries(s.moved).map(([k, v]) => [k, { ...v }])), stats: { ...s.stats }, claimed: [...s.claimed],
       daily: { day: s.daily.day, ids: [...s.daily.ids], base: { ...s.daily.base }, claimed: [...s.daily.claimed] },
       tutorialDone: s.tutorialDone,
       serverNow: this.now(), ...(this.notice ? { notice: this.notice } : {}),
@@ -406,7 +412,7 @@ export class LocalFarmService implements FarmService {
   // ---------- buildings ----------
   private occupancy(): OccupancyMap {
     const occ = new OccupancyMap(this.world.cols, this.world.rows);
-    for (const o of this.world.staticObjects) occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h });
+    for (const o of this.world.staticObjects) { const p = this.state.moved[o.id] ?? o; occ.place(o.id, p.gx, p.gy, { w: o.w, h: o.h }); }
     for (const o of this.activeObstacles()) occ.place(o.id, o.gx, o.gy, { w: 1, h: 1 });
     for (const b of this.state.buildings) {
       const d = BUILDING_BY_ID.get(b.type)!;
@@ -415,15 +421,27 @@ export class LocalFarmService implements FarmService {
     return occ;
   }
 
+  /** The tiles of every field, where the fields stand now. */
+  private cellsFor(moved: Record<string, { gx: number; gy: number }>): { gx: number; gy: number }[] {
+    if (!this.world.fields) return this.world.plotCells;
+    const out: { gx: number; gy: number }[] = [];
+    for (const f of this.world.fields) {
+      const p = moved[f.id] ?? f;
+      for (let dx = 0; dx < f.w; dx++) for (let dy = 0; dy < f.h; dy++) out.push({ gx: p.gx + dx, gy: p.gy + dy });
+    }
+    return out;
+  }
+
   /** Obstacles that are in the world right now: not cleared, and (for lot obstacles) the lot is cleared. */
   activeObstacles(): ObstacleDef[] {
     const s = this.state;
-    return (this.world.obstacles ?? []).filter((o) => !s.clearedObstacles.includes(o.id) && (!o.lot || s.expanded.includes(o.lot)));
+    return (this.world.obstacles ?? []).filter((o) => !s.clearedObstacles.includes(o.id) && (!o.lot || s.expanded.includes(o.lot)))
+      .map((o) => (s.moved[o.id] ? { ...o, ...s.moved[o.id] } : o)); // where they stand now
   }
 
   /** Base buildable land plus any patch the player has cleared. */
   private buildable(gx: number, gy: number): boolean {
-    if (this.world.isBuildable(gx, gy)) return true;
+    if (this.world.isBuildable(gx, gy, this.state.moved)) return true;
     return (this.world.expansions ?? []).some((e) => this.state.expanded.includes(e.id)
       && gx >= e.rect[0] && gx < e.rect[0] + e.rect[2] && gy >= e.rect[1] && gy < e.rect[1] + e.rect[3]);
   }
@@ -754,6 +772,35 @@ export class LocalFarmService implements FarmService {
       s.clearedObstacles.push(ob.id);
       this.bump('clear'); this.bump(`clear:${t.id}`);
       return { ok: true as const, obstacleId, cost: t.cost, rewards: { ...t.reward }, xp: t.xp, snapshot: this.snapshot() };
+    });
+  }
+
+  // ---------- moving the things that were already on the farm ----------
+  /** Move a field, rock, tree, bush, lamp post, well, silo, farmhouse or barn. Free. A field takes its crops with it. */
+  moveObject(objectId: string, gx: number, gy: number, key: string): Promise<MoveObjectResult> {
+    return this.tx(key, (): MoveObjectResult => {
+      const s = this.state;
+      const stat = this.world.staticObjects.find((o) => o.id === objectId);
+      const orig = stat ?? (this.world.obstacles ?? []).find((o) => o.id === objectId);
+      const live = stat ?? this.activeObstacles().find((o) => o.id === objectId);
+      if (!orig || !live) return fail('unknown_object');
+      if (!Number.isInteger(gx) || !Number.isInteger(gy)) return fail('bad_request');
+      const cur = s.moved[objectId] ?? orig;
+      const w = stat ? stat.w : 1, h = stat ? stat.h : 1;
+      if (cur.gx === gx && cur.gy === gy) return fail('same_spot');
+      const check = validatePlacement(this.occupancy(), gx, gy, { w, h }, (x, y) => this.buildable(x, y), objectId);
+      if (!check.valid) return fail('invalid_placement');
+      if (this.world.fields?.some((f) => f.id === objectId)) {   // the crops move with the soil
+        const dx = gx - cur.gx, dy = gy - cur.gy;
+        const mine = new Set<string>();
+        for (let i = 0; i < w; i++) for (let j = 0; j < h; j++) mine.add(`${cur.gx + i},${cur.gy + j}`);
+        const carried = s.plots.filter((p) => mine.has(p.id));
+        s.plots = s.plots.filter((p) => !mine.has(p.id));
+        for (const p of carried) { p.gx += dx; p.gy += dy; p.id = `${p.gx},${p.gy}`; }
+        s.plots.push(...carried);
+      }
+      if (gx === orig.gx && gy === orig.gy) delete s.moved[objectId]; else s.moved[objectId] = { gx, gy };
+      return { ok: true as const, objectId, snapshot: this.snapshot() };
     });
   }
 }
