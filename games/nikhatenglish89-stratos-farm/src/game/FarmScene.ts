@@ -469,6 +469,7 @@ export class FarmScene extends Phaser.Scene {
       scroll: () => ({ x: this.cameras.main.scrollX, y: this.cameras.main.scrollY }),
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),
       ghost: () => this.layer.ghostCell,
+      openBuilding: (id: string) => bus.emit('building:tapped', { id }),
       obstacles: () => this.obstacles.active().map((o) => ({ id: o.id, gx: o.gx, gy: o.gy })),
     };
   }

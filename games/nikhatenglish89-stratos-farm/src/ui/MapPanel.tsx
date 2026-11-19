@@ -9,7 +9,7 @@ import { social } from '../services/social';
 import { cardData, shareVillage } from '../game/farmCard';
 import { frameUrl } from '../game/assets';
 import { Icon } from './Icon';
-import { PanelShell } from './Panels';
+import { PanelShell } from './PanelShell';
 
 const MAP_PX = 336;
 const CELL = Math.floor(MAP_PX / farmLayoutSize());
@@ -99,6 +99,7 @@ export function MapPanel() {
   const animals = useFarm((s) => s.animals);
   const expanded = useFarm((s) => s.expanded);
   const [shared, setShared] = useState('');
+  const [tab, setTab] = useState<'map' | 'village' | 'neighbours'>('map');
   if (!open) return null;
 
   const pick = (kind: 'static' | 'building' | 'expansion', id: string, gx: number, gy: number) => {
@@ -115,14 +116,24 @@ export function MapPanel() {
   };
 
   return (
-    <PanelShell title="Village map" testId="map-panel" onClose={() => setOpen(false)} center>
-      <MiniMap onPick={pick} />
-      <p className="legend">
-        <span><i style={{ background: COLORS.habitat }} /> Animal homes</span>
-        <span><i style={{ background: COLORS.factory }} /> Factories</span>
-        <span><i style={{ background: COLORS.fieldReady }} /> Ready crops</span>
-        <span><i style={{ background: COLORS.locked }} /> Locked land</span>
-      </p>
+    <PanelShell title="Village map" testId="map-panel" onClose={() => setOpen(false)} wide>
+      <div className="tabs" role="tablist">
+        <button className={tab === 'map' ? 'on' : ''} onClick={() => setTab('map')} data-testid="maptab-map">Map</button>
+        <button className={tab === 'village' ? 'on' : ''} onClick={() => setTab('village')} data-testid="maptab-village">Village</button>
+        <button className={tab === 'neighbours' ? 'on' : ''} onClick={() => setTab('neighbours')} data-testid="maptab-neighbours">Neighbours</button>
+      </div>
+      {tab === 'map' && (
+        <>
+          <MiniMap onPick={pick} />
+          <p className="legend">
+            <span><i style={{ background: COLORS.habitat }} /> Animal homes</span>
+            <span><i style={{ background: COLORS.factory }} /> Factories</span>
+            <span><i style={{ background: COLORS.fieldReady }} /> Ready crops</span>
+            <span><i style={{ background: COLORS.locked }} /> Locked land</span>
+          </p>
+        </>
+      )}
+      {tab === 'village' && (
       <section className="doc">
         <h4>Your village</h4>
         <ul className="facts" data-testid="village-facts">
@@ -136,6 +147,9 @@ export function MapPanel() {
         <div className="panel-actions"><button className="btn small" onClick={share} data-testid="share-village">Share my village</button></div>
         {shared && <p className="meta" role="status" data-testid="share-result">{shared}</p>}
       </section>
+      )}
+      {tab === 'neighbours' && (
+      <>
       <section className="doc">
         <h4>Your neighbours</h4>
         <ul className="rows">
@@ -156,6 +170,8 @@ export function MapPanel() {
         <h4>Friends and leaderboards</h4>
         <p className="meta" data-testid="social-note">{social.reason}</p>
       </section>
+      </>
+      )}
     </PanelShell>
   );
 }

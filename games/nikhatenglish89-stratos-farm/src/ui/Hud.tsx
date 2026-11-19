@@ -5,6 +5,7 @@ import { farm } from '../game/controller';
 import { Icon } from './Icon';
 import { farmLayout } from '../game/layout';
 import { useClaimable } from './EconomyPanels';
+import { PanelShell } from './PanelShell';
 import { useStratosBalance } from './Home';
 
 export function TopBar() {
@@ -96,15 +97,13 @@ export function InfoPanel() {
   }, []);
   if (!info) return null;
   return (
-    <aside className="info-panel" role="dialog" aria-label={info.title} data-testid="info-panel">
-      <div className="ribbon">{info.title}</div>
+    <PanelShell title={info.title} testId="info-panel" closeTestId="panel-close" onClose={close}>
       <p>{info.text}</p>
       <ul>{info.lines.map((l) => <li key={l}>{l}</li>)}</ul>
-      <div className="panel-actions">
-        <button className="btn disabled" aria-disabled="true" onClick={() => useFarm.getState().showToast('Upgrades are coming soon')}>Upgrade · soon</button>
-        <button className="btn" onClick={close} data-testid="panel-close">Close</button>
+      <div className="panel-actions" style={{ marginBottom: 6 }}>
+        <button className="btn small disabled" aria-disabled="true" onClick={() => useFarm.getState().showToast('Upgrades are coming soon')}>Upgrade · soon</button>
       </div>
-    </aside>
+    </PanelShell>
   );
 }
 

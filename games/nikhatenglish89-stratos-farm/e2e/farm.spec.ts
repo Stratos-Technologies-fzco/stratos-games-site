@@ -324,13 +324,17 @@ test('home screen: logo, how to play, tips, about, sound off by default, Continu
   await expect(page.getByTestId('home-tip')).toContainText('Tip:');
   await page.getByTestId('home-how').click();
   await expect(page.getByTestId('how-panel')).toContainText('Your first five steps');
+  await page.getByTestId('how-coins').click();                              // the pages are tabs now, so nothing needs a scroll bar
   await expect(page.getByTestId('how-panel')).toContainText('Stratos Coins');
   await page.getByTestId('how-panel-close').click();
   await page.getByTestId('home-tips').click();
   await expect(page.getByTestId('tips-panel')).toContainText('Plant wheat first');
   await page.getByTestId('tips-panel-close').click();
   await page.getByTestId('home-about').click();
+  await expect(page.getByTestId('about-panel')).toContainText('cosy farming game');
+  await page.getByTestId('about-tab-credits').click();
   await expect(page.getByTestId('about-panel')).toContainText('Nikhat Sultana');
+  await page.getByTestId('about-tab-questions').click();
   await expect(page.getByTestId('about-panel')).toContainText('Is Stratos Farm free?');
   await page.getByTestId('about-panel-close').click();
   // no Stratos site around: no Stratos Coins chip
@@ -551,17 +555,21 @@ test('Map: village map, jump to a building, neighbours, honest social note, shar
   await page.getByTestId('nav-map').click();
   await expect(page.getByTestId('map-panel')).toBeVisible();
   await expect(page.getByTestId('minimap')).toBeVisible();
+  await page.getByTestId('maptab-village').click();
   await expect(page.getByTestId('village-facts')).toContainText('buildings');
+  await page.getByTestId('maptab-neighbours').click();
   await expect(page.getByTestId('neighbour-old_joe')).toContainText('4 orders delivered');
   await expect(page.getByTestId('neighbour-priya')).toContainText('Has not met you yet');
   await expect(page.getByTestId('social-note')).toContainText('need Stratos accounts'); // honest: no fake friends list
-  // tap the coop on the map: the map closes, the camera flies there and its panel opens
+  // tap the coop on the map (first tab): the map closes, the camera flies there and its panel opens
+  await page.getByTestId('maptab-map').click();
   await page.getByTestId('map-b1').click();
   await expect(page.getByTestId('map-panel')).toHaveCount(0);
   await expect(page.getByTestId('building-panel')).toContainText('Chicken Coop');
   await page.getByTestId('building-panel-close').click();
   // locked land on the map opens the expansion panel
   await page.getByTestId('nav-map').click();
+  await expect(page.getByTestId('minimap')).toBeVisible(); // the map tab is the one that opens
   await page.getByTestId('map-expansion-south_meadow').click();
   await expect(page.getByTestId('expansion-panel')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -569,6 +577,7 @@ test('Map: village map, jump to a building, neighbours, honest social note, shar
   // sharing produces a picture (download fallback in a desktop test browser)
   await page.getByTestId('nav-map').click();
   const download = page.waitForEvent('download', { timeout: 10000 });
+  await page.getByTestId('maptab-village').click();
   await page.getByTestId('share-village').click();
   expect((await download).suggestedFilename()).toBe('my-stratos-farm.png');
   await expect(page.getByTestId('share-result')).toContainText('Picture saved');
@@ -774,8 +783,9 @@ test('a bigger farm: clear the land next to the island, build on it, and the nex
   await page.keyboard.press('Escape');
   // the map shows the bigger village, with the new building
   await page.getByTestId('nav-map').click();
-  await expect(page.getByTestId('village-facts')).toContainText('1/29');
   await expect(page.getByTestId('map-expansion-lot_4_0')).toBeVisible();
+  await page.getByTestId('maptab-village').click();
+  await expect(page.getByTestId('village-facts')).toContainText('1/29');
   expect(errors).toEqual([]);
 });
 
@@ -833,6 +843,7 @@ test('more to do on the land: clear a rock, buy decorations, turn a building aro
 
   // the map and the quest list know about all this
   await page.getByTestId('nav-map').click();
+  await page.getByTestId('maptab-village').click();
   await expect(page.getByTestId('village-facts')).toContainText('buildings');
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);

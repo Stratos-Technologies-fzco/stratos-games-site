@@ -4,7 +4,7 @@ import { farm, formatDuration } from '../game/controller';
 import { ANIMAL_BY_ID, BUILDINGS, BUILDING_BY_ID, FEED_ITEM, ITEM_BY_ID, MAX_LEVEL, RECIPES } from '../services/data';
 import { animalHappiness, animalStatus, habitatCapacity, productionSlots } from '../services/types';
 import { Icon, ItemIcon } from './Icon';
-import { PanelShell } from './Panels';
+import { PanelShell } from './PanelShell';
 
 const recipeIcon = (buildingId: string) => `item_${RECIPES.find((r) => r.building === buildingId)!.output}`;
 
@@ -47,14 +47,14 @@ export function ShopPanel() {
   if (!tab) return null;
   const list = BUILDINGS.filter((b) => b.kind === (tab === 'habitats' ? 'habitat' : tab === 'factories' ? 'production' : 'decor'));
   return (
-    <PanelShell title="Shop" testId="shop-panel" onClose={() => setTab(null)}>
+    <PanelShell title="Shop" testId="shop-panel" onClose={() => setTab(null)} wide>
       <div className="tabs" role="tablist">
         <button className={tab === 'habitats' ? 'on' : ''} onClick={() => setTab('habitats')} data-testid="tab-habitats">Animal homes</button>
         <button className={tab === 'factories' ? 'on' : ''} onClick={() => setTab('factories')} data-testid="tab-factories">Factories</button>
         <button className={tab === 'decor' ? 'on' : ''} onClick={() => setTab('decor')} data-testid="tab-decor">Decor</button>
       </div>
       <p className="meta" data-testid="shop-hint">{selected ? `Selected spot: ${selected.gx}, ${selected.gy}. Double-click a building to put it there.` : 'Tip: tap a spot on the farm first, then double-click a building to put it there.'}</p>
-      <ul className="rows">
+      <ul className="rows cols2">
         {list.map((b) => {
           const locked = b.unlockLevel > level;
           const animal = b.animal ? ANIMAL_BY_ID.get(b.animal) : null;
@@ -127,7 +127,7 @@ export function BuildingPanel() {
           </div>
         )}
         {mine.length === 0 && <p className="empty">No animals yet. Buy your first {animal.name.toLowerCase()}!</p>}
-        <ul className="rows">
+        <ul className="rows cols2">
           {mine.map((a) => {
             const st = animalStatus(a, now);
             return (

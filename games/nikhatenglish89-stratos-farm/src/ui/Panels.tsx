@@ -3,18 +3,10 @@ import { farm, formatDuration } from '../game/controller';
 import { CROPS, ITEMS } from '../services/data';
 import { Icon, ItemIcon } from './Icon';
 import { SellRow } from './SellRow';
+import { PanelShell } from './PanelShell';
+import { Paged } from './Paged';
 
-export function PanelShell({ title, onClose, testId, children, center = false }: { title: string; onClose: () => void; testId: string; children: React.ReactNode; center?: boolean }) {
-  return (
-    <aside className={`info-panel wide${center ? ' center' : ''}`} role="dialog" aria-label={title} data-testid={testId}>
-      <div className="ribbon">{title}</div>
-      <div className="panel-body">{children}</div>
-      <div className="panel-actions">
-        <button className="btn" onClick={onClose} data-testid={`${testId}-close`}>Close</button>
-      </div>
-    </aside>
-  );
-}
+export { PanelShell };
 
 /** Seed picker for one empty plot. Locked crops are shown with the level that unlocks them. */
 export function SeedPanel() {
@@ -24,8 +16,8 @@ export function SeedPanel() {
   const setSeedPlot = useFarm((s) => s.setSeedPlot);
   if (!plotId) return null;
   return (
-    <PanelShell title={plotId === '*' ? 'Change seed' : 'Plant a seed'} testId="seed-panel" onClose={() => setSeedPlot(null)}>
-      <ul className="rows">
+    <PanelShell title={plotId === '*' ? 'Change seed' : 'Plant a seed'} testId="seed-panel" onClose={() => setSeedPlot(null)} wide>
+      <ul className="rows cols2">
         {CROPS.map((c) => {
           const locked = c.unlockLevel > level;
           const poor = !locked && coins < c.seedCost;
@@ -61,13 +53,17 @@ export function InventoryPanel() {
       {items.length === 0 ? (
         <p className="empty" data-testid="inventory-empty">Nothing here yet. Plant a seed and harvest it to fill your barn.</p>
       ) : (
-        <ul className="rows">
-          {items.map((c) => (
-            <li key={c.id}>
-              <SellRow item={c} have={inv[c.id]} testId={`inv-${c.id}`} />
-            </li>
-          ))}
-        </ul>
+        <Paged items={items} perPage={5} testId="inv-pager">
+          {(page) => (
+            <ul className="rows">
+              {page.map((c) => (
+                <li key={c.id}>
+                  <SellRow item={c} have={inv[c.id]} testId={`inv-${c.id}`} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Paged>
       )}
     </PanelShell>
   );

@@ -10,7 +10,8 @@ import {
   QUESTS, QuestDef, QuestView, activeQuests, claimableCount, currentTutorialStep, isClaimed, isComplete, questProgress,
 } from '../services/quests';
 import { Icon, ItemIcon } from './Icon';
-import { PanelShell } from './Panels';
+import { PanelShell } from './PanelShell';
+import { Paged } from './Paged';
 import { SellRow } from './SellRow';
 
 const useQuestView = (): QuestView => {
@@ -104,13 +105,17 @@ function SellList({ inv }: { inv: Record<string, number> }) {
   const items = ITEMS.filter((i) => (inv[i.id] ?? 0) > 0);
   if (!items.length) return <p className="empty" data-testid="sell-empty">Nothing to sell yet. Harvest crops or collect products first.</p>;
   return (
-    <ul className="rows">
-      {items.map((c) => (
-        <li key={c.id}>
-          <SellRow item={c} have={inv[c.id]} testId={`market-${c.id}`} />
-        </li>
-      ))}
-    </ul>
+    <Paged items={items} perPage={5} testId="sell-pager">
+      {(page) => (
+        <ul className="rows">
+          {page.map((c) => (
+            <li key={c.id}>
+              <SellRow item={c} have={inv[c.id]} testId={`market-${c.id}`} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Paged>
   );
 }
 
@@ -154,7 +159,7 @@ export function QuestsPanel() {
         <button className={tab === 'achievements' ? 'on' : ''} onClick={() => setTab('achievements')} data-testid="qtab-achievements">Awards</button>
       </div>
       {tab === 'daily' && <p className="meta">New daily quests in {formatDuration(msLeft)}</p>}
-      <ul className="rows">{list.map((q) => <QuestRow key={q.id} q={q} v={v} />)}</ul>
+      <Paged key={tab} items={list} perPage={4} testId="quest-pager">{(page) => <ul className="rows">{page.map((q) => <QuestRow key={q.id} q={q} v={v} />)}</ul>}</Paged>
       {list.length === 0 && <p className="empty">Nothing here yet. Keep playing!</p>}
     </PanelShell>
   );

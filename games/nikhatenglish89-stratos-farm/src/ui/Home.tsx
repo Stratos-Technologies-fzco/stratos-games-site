@@ -6,7 +6,8 @@ import { setPref } from '../game/audio';
 import { savePrefs } from '../game/prefs';
 import { SC, coinBalance, onCoinsChange } from '../game/stratos';
 import { QUESTS } from '../services/quests';
-import { PanelShell } from './Panels';
+import { PanelShell } from './PanelShell';
+import { Paged } from './Paged';
 import { Icon } from './Icon';
 
 const LOGO = 'assets/farm/ui/logo.png';
@@ -81,14 +82,20 @@ const section = (title: string, children: React.ReactNode) => (
 export function HowToPlayPanel() {
   const open = useFarm((s) => s.infoPanel === 'how');
   const setInfo = useFarm((s) => s.setInfoPanel);
+  const [tab, setTab] = useState<'steps' | 'controls' | 'coins'>('steps');
   if (!open) return null;
   const steps = QUESTS.filter((q) => q.type === 'tutorial').sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return (
-    <PanelShell title="How to play" testId="how-panel" onClose={() => setInfo(null)} center>
+    <PanelShell title="How to play" testId="how-panel" onClose={() => setInfo(null)}>
       <p>{game.how_to_play}</p>
-      {section('Your first five steps', <ol>{steps.map((s) => <li key={s.id}><b>{s.title}.</b> {s.desc}</li>)}</ol>)}
-      {section('Controls', <ul>{game.controls.map((c) => <li key={c}>{c}</li>)}</ul>)}
-      {section('Stratos Coins', (
+      <div className="tabs" role="tablist">
+        <button className={tab === 'steps' ? 'on' : ''} onClick={() => setTab('steps')} data-testid="how-steps">First steps</button>
+        <button className={tab === 'controls' ? 'on' : ''} onClick={() => setTab('controls')} data-testid="how-controls">Controls</button>
+        <button className={tab === 'coins' ? 'on' : ''} onClick={() => setTab('coins')} data-testid="how-coins">Coins</button>
+      </div>
+      {tab === 'steps' && section('Your first five steps', <ol>{steps.map((s) => <li key={s.id}><b>{s.title}.</b> {s.desc}</li>)}</ol>)}
+      {tab === 'controls' && section('Controls', <ul>{game.controls.map((c) => <li key={c}>{c}</li>)}</ul>)}
+      {tab === 'coins' && section('Stratos Coins', (
         <ul>
           <li>Earn them by trying the game for the first time and by reaching each new level.</li>
           <li>Spend them on a <b>Speed-up</b> (finish a crop, an animal or a recipe at once) or a <b>Hint</b> (how to make a missing item).</li>
@@ -104,8 +111,10 @@ export function TipsPanel() {
   const setInfo = useFarm((s) => s.setInfoPanel);
   if (!open) return null;
   return (
-    <PanelShell title="Tips" testId="tips-panel" onClose={() => setInfo(null)} center>
-      <ul className="tips">{game.tips.map((t) => <li key={t}>{t}</li>)}</ul>
+    <PanelShell title="Tips" testId="tips-panel" onClose={() => setInfo(null)}>
+      <Paged items={game.tips} perPage={4} testId="tips-pager">
+        {(page) => <ul className="tips">{page.map((t) => <li key={t}>{t}</li>)}</ul>}
+      </Paged>
     </PanelShell>
   );
 }
@@ -113,14 +122,28 @@ export function TipsPanel() {
 export function AboutPanel() {
   const open = useFarm((s) => s.infoPanel === 'about');
   const setInfo = useFarm((s) => s.setInfoPanel);
+  const [tab, setTab] = useState<'about' | 'questions' | 'credits'>('about');
   if (!open) return null;
   return (
-    <PanelShell title="About" testId="about-panel" onClose={() => setInfo(null)} center>
-      <Logo className="small" />
-      {game.description.split('\n\n').map((p) => <p key={p.slice(0, 24)}>{p}</p>)}
-      {section('The story', <p>{game.story}</p>)}
-      {section('Questions', <dl>{game.faq.map((f) => <div key={f.q}><dt>{f.q}</dt><dd>{f.a}</dd></div>)}</dl>)}
-      {section('Credits', <p>Made by {game.maker} for Stratos Games. Art and sound are original to this game. Your farm is saved on this device only.</p>)}
+    <PanelShell title="About" testId="about-panel" onClose={() => setInfo(null)} wide>
+      <div className="tabs" role="tablist">
+        <button className={tab === 'about' ? 'on' : ''} onClick={() => setTab('about')} data-testid="about-tab-about">The game</button>
+        <button className={tab === 'questions' ? 'on' : ''} onClick={() => setTab('questions')} data-testid="about-tab-questions">Questions</button>
+        <button className={tab === 'credits' ? 'on' : ''} onClick={() => setTab('credits')} data-testid="about-tab-credits">Story and credits</button>
+      </div>
+      {tab === 'about' && (
+        <div className="about-cols">
+          {game.description.split('\n\n').map((p) => <p key={p.slice(0, 24)}>{p}</p>)}
+        </div>
+      )}
+      {tab === 'questions' && <dl className="about-cols">{game.faq.map((f) => <div key={f.q}><dt>{f.q}</dt><dd>{f.a}</dd></div>)}</dl>}
+      {tab === 'credits' && (
+        <>
+          <Logo className="small" />
+          {section('The story', <p>{game.story}</p>)}
+          {section('Credits', <p>Made by {game.maker} for Stratos Games. Art and sound are original to this game. Your farm is saved on this device only.</p>)}
+        </>
+      )}
     </PanelShell>
   );
 }
@@ -133,7 +156,7 @@ export function SettingsPanel() {
   const stratos = useStratosBalance();
   if (!open) return null;
   return (
-    <PanelShell title="Settings" testId="settings-panel" onClose={() => setInfo(null)} center>
+    <PanelShell title="Settings" testId="settings-panel" onClose={() => setInfo(null)}>
       <ul className="rows">
         <li><button className="row" onClick={() => setPref('music', !prefs.music)} aria-pressed={prefs.music} data-testid="set-music">
           <Icon name={prefs.music ? 'music_on' : 'music_off'} size={32} /><span className="grow"><b>Music</b><small>{prefs.music ? 'On' : 'Off'}</small></span>
