@@ -30,8 +30,8 @@
   },
   "cow_pasture": {
    "frame": {
-    "x": 0,
-    "y": 236,
+    "x": 274,
+    "y": 0,
     "w": 272,
     "h": 234
    },
@@ -58,8 +58,8 @@
   },
   "sheep_pen": {
    "frame": {
-    "x": 0,
-    "y": 472,
+    "x": 548,
+    "y": 0,
     "w": 272,
     "h": 234
    },
@@ -87,7 +87,7 @@
   "pig_pen": {
    "frame": {
     "x": 0,
-    "y": 708,
+    "y": 236,
     "w": 272,
     "h": 234
    },
@@ -114,8 +114,8 @@
   },
   "goat_yard": {
    "frame": {
-    "x": 0,
-    "y": 944,
+    "x": 274,
+    "y": 236,
     "w": 272,
     "h": 234
    },
@@ -142,8 +142,92 @@
   },
   "duck_pond": {
    "frame": {
+    "x": 548,
+    "y": 236,
+    "w": 272,
+    "h": 234
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
     "x": 0,
-    "y": 1180,
+    "y": 0,
+    "w": 272,
+    "h": 234
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 234
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4188
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4188
+   }
+  },
+  "turkey_pen": {
+   "frame": {
+    "x": 0,
+    "y": 472,
+    "w": 272,
+    "h": 234
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 234
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 234
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4188
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4188
+   }
+  },
+  "rabbit_hutch": {
+   "frame": {
+    "x": 274,
+    "y": 472,
+    "w": 272,
+    "h": 234
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 234
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 234
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4188
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4188
+   }
+  },
+  "horse_stable": {
+   "frame": {
+    "x": 548,
+    "y": 472,
     "w": 272,
     "h": 234
    },
@@ -175,8 +259,8 @@
   "image": "atlas_habitats.png",
   "format": "RGBA8888",
   "size": {
-   "w": 512,
-   "h": 1416
+   "w": 1024,
+   "h": 708
   },
   "scale": "1"
  }

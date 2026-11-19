@@ -146,6 +146,78 @@
    ]
   },
   {
+   "id": "turkey_pen",
+   "kind": "habitat",
+   "name": "Turkey Pen",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "turkey_pen"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 400,
+   "unlockLevel": 7,
+   "animal": "turkey",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    800,
+    2000
+   ]
+  },
+  {
+   "id": "rabbit_hutch",
+   "kind": "habitat",
+   "name": "Rabbit Hutch",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "rabbit_hutch"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 440,
+   "unlockLevel": 8,
+   "animal": "rabbit",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    880,
+    2200
+   ]
+  },
+  {
+   "id": "horse_stable",
+   "kind": "habitat",
+   "name": "Horse Stable",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "horse_stable"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 800,
+   "unlockLevel": 11,
+   "animal": "horse",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    1600,
+    4000
+   ]
+  },
+  {
    "id": "flour_mill",
    "kind": "production",
    "name": "Flour Mill",

@@ -1,17 +1,170 @@
 {
-  "crops": [
-    { "id": "wheat",      "name": "Wheat",      "seedCost": 2,  "growSeconds": 120,  "yield": 2, "xp": 1,  "unlockLevel": 1,  "sellPrice": 3 },
-    { "id": "carrot",     "name": "Carrot",     "seedCost": 4,  "growSeconds": 300,  "yield": 2, "xp": 2,  "unlockLevel": 1,  "sellPrice": 6 },
-    { "id": "corn",       "name": "Corn",       "seedCost": 8,  "growSeconds": 900,  "yield": 3, "xp": 3,  "unlockLevel": 3,  "sellPrice": 9 },
-    { "id": "tomato",     "name": "Tomato",     "seedCost": 12, "growSeconds": 1200, "yield": 3, "xp": 4,  "unlockLevel": 4,  "sellPrice": 12 },
-    { "id": "potato",     "name": "Potato",     "seedCost": 14, "growSeconds": 1800, "yield": 4, "xp": 5,  "unlockLevel": 5,  "sellPrice": 11 },
-    { "id": "strawberry", "name": "Strawberry", "seedCost": 18, "growSeconds": 2700, "yield": 3, "xp": 7,  "unlockLevel": 6,  "sellPrice": 9 },
-    { "id": "sunflower",  "name": "Sunflower",  "seedCost": 20, "growSeconds": 3600, "yield": 3, "xp": 8,  "unlockLevel": 7,  "sellPrice": 10 },
-    { "id": "pumpkin",    "name": "Pumpkin",    "seedCost": 28, "growSeconds": 5400, "yield": 3, "xp": 10, "unlockLevel": 8,  "sellPrice": 14 },
-    { "id": "cabbage",    "name": "Cabbage",    "seedCost": 24, "growSeconds": 4500, "yield": 4, "xp": 9,  "unlockLevel": 9,  "sellPrice": 10 },
-    { "id": "sugarcane",  "name": "Sugarcane",  "seedCost": 30, "growSeconds": 7200, "yield": 4, "xp": 12, "unlockLevel": 10, "sellPrice": 12 },
-    { "id": "rice",       "name": "Rice",       "seedCost": 36, "growSeconds": 9000, "yield": 5, "xp": 14, "unlockLevel": 11, "sellPrice": 11 },
-    { "id": "cotton",     "name": "Cotton",     "seedCost": 40, "growSeconds": 10800,"yield": 4, "xp": 16, "unlockLevel": 12, "sellPrice": 15 }
-  ],
-  "start": { "coins": 100, "gems": 5, "level": 1, "xp": 0 }
+ "crops": [
+  {
+   "id": "wheat",
+   "name": "Wheat",
+   "seedCost": 2,
+   "growSeconds": 120,
+   "yield": 2,
+   "xp": 1,
+   "unlockLevel": 1,
+   "sellPrice": 3
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "seedCost": 4,
+   "growSeconds": 300,
+   "yield": 2,
+   "xp": 2,
+   "unlockLevel": 1,
+   "sellPrice": 6
+  },
+  {
+   "id": "onion",
+   "name": "Onion",
+   "seedCost": 5,
+   "growSeconds": 240,
+   "yield": 3,
+   "xp": 2,
+   "unlockLevel": 2,
+   "sellPrice": 5
+  },
+  {
+   "id": "corn",
+   "name": "Corn",
+   "seedCost": 8,
+   "growSeconds": 900,
+   "yield": 3,
+   "xp": 3,
+   "unlockLevel": 3,
+   "sellPrice": 9
+  },
+  {
+   "id": "tomato",
+   "name": "Tomato",
+   "seedCost": 12,
+   "growSeconds": 1200,
+   "yield": 3,
+   "xp": 4,
+   "unlockLevel": 4,
+   "sellPrice": 12
+  },
+  {
+   "id": "potato",
+   "name": "Potato",
+   "seedCost": 14,
+   "growSeconds": 1800,
+   "yield": 4,
+   "xp": 5,
+   "unlockLevel": 5,
+   "sellPrice": 11
+  },
+  {
+   "id": "strawberry",
+   "name": "Strawberry",
+   "seedCost": 18,
+   "growSeconds": 2700,
+   "yield": 3,
+   "xp": 7,
+   "unlockLevel": 6,
+   "sellPrice": 9
+  },
+  {
+   "id": "blueberry",
+   "name": "Blueberry",
+   "seedCost": 22,
+   "growSeconds": 3000,
+   "yield": 3,
+   "xp": 8,
+   "unlockLevel": 6,
+   "sellPrice": 11
+  },
+  {
+   "id": "sunflower",
+   "name": "Sunflower",
+   "seedCost": 20,
+   "growSeconds": 3600,
+   "yield": 3,
+   "xp": 8,
+   "unlockLevel": 7,
+   "sellPrice": 10
+  },
+  {
+   "id": "pumpkin",
+   "name": "Pumpkin",
+   "seedCost": 28,
+   "growSeconds": 5400,
+   "yield": 3,
+   "xp": 10,
+   "unlockLevel": 8,
+   "sellPrice": 14
+  },
+  {
+   "id": "cabbage",
+   "name": "Cabbage",
+   "seedCost": 24,
+   "growSeconds": 4500,
+   "yield": 4,
+   "xp": 9,
+   "unlockLevel": 9,
+   "sellPrice": 10
+  },
+  {
+   "id": "sugarcane",
+   "name": "Sugarcane",
+   "seedCost": 30,
+   "growSeconds": 7200,
+   "yield": 4,
+   "xp": 12,
+   "unlockLevel": 10,
+   "sellPrice": 12
+  },
+  {
+   "id": "peanut",
+   "name": "Peanut",
+   "seedCost": 32,
+   "growSeconds": 6300,
+   "yield": 4,
+   "xp": 12,
+   "unlockLevel": 10,
+   "sellPrice": 11
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "seedCost": 36,
+   "growSeconds": 9000,
+   "yield": 5,
+   "xp": 14,
+   "unlockLevel": 11,
+   "sellPrice": 11
+  },
+  {
+   "id": "cotton",
+   "name": "Cotton",
+   "seedCost": 40,
+   "growSeconds": 10800,
+   "yield": 4,
+   "xp": 16,
+   "unlockLevel": 12,
+   "sellPrice": 15
+  },
+  {
+   "id": "lavender",
+   "name": "Lavender",
+   "seedCost": 45,
+   "growSeconds": 9000,
+   "yield": 3,
+   "xp": 15,
+   "unlockLevel": 13,
+   "sellPrice": 22
+  }
+ ],
+ "start": {
+  "coins": 100,
+  "gems": 5,
+  "level": 1,
+  "xp": 0
+ }
 }

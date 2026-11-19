@@ -62,6 +62,36 @@
    "habitat": "pig_pen",
    "unlockLevel": 6,
    "xp": 6
+  },
+  {
+   "id": "turkey",
+   "name": "Turkey",
+   "cost": 380,
+   "product": "big_egg",
+   "productSeconds": 2400,
+   "habitat": "turkey_pen",
+   "unlockLevel": 7,
+   "xp": 6
+  },
+  {
+   "id": "rabbit",
+   "name": "Rabbit",
+   "cost": 420,
+   "product": "fluff",
+   "productSeconds": 2700,
+   "habitat": "rabbit_hutch",
+   "unlockLevel": 8,
+   "xp": 6
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "cost": 700,
+   "product": "horsehair",
+   "productSeconds": 3600,
+   "habitat": "horse_stable",
+   "unlockLevel": 11,
+   "xp": 9
   }
  ]
 }

@@ -12,6 +12,7 @@ Every asset that ships with the game. Produced to the art direction and asset po
 - Animals and characters face down-left. Mirror with `setFlipX(true)` for down-right.
 - Runtime loading: `public/assets/farm/asset-manifest.json` lists the atlases, standalone images and audio (OGG first, MP3 fallback for Safari).
 - Load budget: the atlases total about 1064 KB. Load music lazily after the first frame (about 1.5 MB OGG), so the first load stays well under 5 MB.
+- More art (onion, blueberry, peanut, lavender, turkey, rabbit, horse and their homes and icons) is drawn by `art/more_art.py`, rendered with Chromium by `art/render.mjs` and merged into the atlases by `art/pack_more.py`.
 - Regenerate: `cd tools/asset-gen && python3 build_all.py` (needs Python 3, numpy, scipy, Pillow, `rsvg-convert`, ffmpeg).
 
 ## Atlases
@@ -19,13 +20,13 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | Key | Image | Size | Frames | KB |
 |---|---|---|---|---|
 | atlas_terrain | `assets/farm/atlases/atlas_terrain.png` | 512×494 | 20 | 32.1 |
-| atlas_crops | `assets/farm/atlases/atlas_crops.png` | 1024×910 | 48 | 252.5 |
-| atlas_animals | `assets/farm/atlases/atlas_animals.png` | 512×516 | 30 | 62.5 |
+| atlas_crops | `assets/farm/atlases/atlas_crops.png` | 1024×1300 | 64 | 340.6 |
+| atlas_animals | `assets/farm/atlases/atlas_animals.png` | 512×770 | 45 | 103.5 |
 | atlas_buildings | `assets/farm/atlases/atlas_buildings.png` | 1024×1660 | 15 | 185.4 |
-| atlas_habitats | `assets/farm/atlases/atlas_habitats.png` | 512×1416 | 6 | 112.6 |
+| atlas_habitats | `assets/farm/atlases/atlas_habitats.png` | 1024×708 | 9 | 125.1 |
 | atlas_decor | `assets/farm/atlases/atlas_decor.png` | 512×708 | 21 | 60.5 |
 | atlas_characters | `assets/farm/atlases/atlas_characters.png` | 512×970 | 34 | 159.6 |
-| atlas_icons | `assets/farm/atlases/atlas_icons.png` | 512×660 | 66 | 103.9 |
+| atlas_icons | `assets/farm/atlases/atlas_icons.png` | 512×726 | 73 | 118.3 |
 | atlas_ui_fx | `assets/farm/atlases/atlas_ui_fx.png` | 512×974 | 45 | 95.4 |
 
 ## Terrain tiles and cursors (20)
@@ -53,7 +54,7 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | water_1 | `public/assets/farm/terrain/water_1.png` | 128×64 | 1 | 64,0 | atlas_terrain | same | same | v1 |
 | water_2 | `public/assets/farm/terrain/water_2.png` | 128×64 | 1 | 64,0 | atlas_terrain | same | same | v1 |
 
-## Crops (stages 0 planted · 1 sprout · 2 growing · 3 ready) (48)
+## Crops (stages 0 planted · 1 sprout · 2 growing · 3 ready) (64)
 
 | Name | Path | Size | Frames / notes | Anchor | Atlas | Source | Licence | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -105,8 +106,24 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | wheat_1 | `public/assets/farm/crops/wheat_1.png` | 128×128 | sprout | 64,64 | atlas_crops | same | same | v1 |
 | wheat_2 | `public/assets/farm/crops/wheat_2.png` | 128×128 | growing | 64,64 | atlas_crops | same | same | v1 |
 | wheat_3 | `public/assets/farm/crops/wheat_3.png` | 128×128 | ready | 64,64 | atlas_crops | same | same | v1 |
+| onion_0 | `public/assets/farm/crops/onion_0.png` | 128×128 | planted | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| onion_1 | `public/assets/farm/crops/onion_1.png` | 128×128 | sprout | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| onion_2 | `public/assets/farm/crops/onion_2.png` | 128×128 | growing | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| onion_3 | `public/assets/farm/crops/onion_3.png` | 128×128 | ready | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| blueberry_0 | `public/assets/farm/crops/blueberry_0.png` | 128×128 | planted | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| blueberry_1 | `public/assets/farm/crops/blueberry_1.png` | 128×128 | sprout | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| blueberry_2 | `public/assets/farm/crops/blueberry_2.png` | 128×128 | growing | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| blueberry_3 | `public/assets/farm/crops/blueberry_3.png` | 128×128 | ready | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| peanut_0 | `public/assets/farm/crops/peanut_0.png` | 128×128 | planted | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| peanut_1 | `public/assets/farm/crops/peanut_1.png` | 128×128 | sprout | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| peanut_2 | `public/assets/farm/crops/peanut_2.png` | 128×128 | growing | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| peanut_3 | `public/assets/farm/crops/peanut_3.png` | 128×128 | ready | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| lavender_0 | `public/assets/farm/crops/lavender_0.png` | 128×128 | planted | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| lavender_1 | `public/assets/farm/crops/lavender_1.png` | 128×128 | sprout | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| lavender_2 | `public/assets/farm/crops/lavender_2.png` | 128×128 | growing | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| lavender_3 | `public/assets/farm/crops/lavender_3.png` | 128×128 | ready | 64,64 | atlas_crops | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
 
-## Animals (5 frames each) (30)
+## Animals (5 frames each) (45)
 
 | Name | Path | Size | Frames / notes | Anchor | Atlas | Source | Licence | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -140,6 +157,21 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | sheep_idle_1 | `public/assets/farm/animals/sheep_idle_1.png` | 96×80 | idle_1 | 48,72 | atlas_animals | same | same | v1 |
 | sheep_walk_0 | `public/assets/farm/animals/sheep_walk_0.png` | 96×80 | walk_0 | 48,72 | atlas_animals | same | same | v1 |
 | sheep_walk_1 | `public/assets/farm/animals/sheep_walk_1.png` | 96×80 | walk_1 | 48,72 | atlas_animals | same | same | v1 |
+| turkey_idle_0 | `public/assets/farm/animals/turkey_idle_0.png` | 80×72 | idle_0 | 40,64 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| turkey_idle_1 | `public/assets/farm/animals/turkey_idle_1.png` | 80×72 | idle_1 | 40,64 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| turkey_eat | `public/assets/farm/animals/turkey_eat.png` | 80×72 | eat | 40,64 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| turkey_walk_0 | `public/assets/farm/animals/turkey_walk_0.png` | 80×72 | walk_0 | 40,64 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| turkey_walk_1 | `public/assets/farm/animals/turkey_walk_1.png` | 80×72 | walk_1 | 40,64 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_idle_0 | `public/assets/farm/animals/rabbit_idle_0.png` | 72×64 | idle_0 | 36,56 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_idle_1 | `public/assets/farm/animals/rabbit_idle_1.png` | 72×64 | idle_1 | 36,56 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_eat | `public/assets/farm/animals/rabbit_eat.png` | 72×64 | eat | 36,56 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_walk_0 | `public/assets/farm/animals/rabbit_walk_0.png` | 72×64 | walk_0 | 36,56 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_walk_1 | `public/assets/farm/animals/rabbit_walk_1.png` | 72×64 | walk_1 | 36,56 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_idle_0 | `public/assets/farm/animals/horse_idle_0.png` | 120×104 | idle_0 | 60,96 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_idle_1 | `public/assets/farm/animals/horse_idle_1.png` | 120×104 | idle_1 | 60,96 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_eat | `public/assets/farm/animals/horse_eat.png` | 120×104 | eat | 60,96 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_walk_0 | `public/assets/farm/animals/horse_walk_0.png` | 120×104 | walk_0 | 60,96 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_walk_1 | `public/assets/farm/animals/horse_walk_1.png` | 120×104 | walk_1 | 60,96 | atlas_animals | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
 
 ## Buildings (15)
 
@@ -161,7 +193,7 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | sugar_mill | `public/assets/farm/buildings/sugar_mill.png` | 272×280 | footprint 2x2; production | 136,144 | atlas_buildings | same | same | v1 |
 | textile_mill | `public/assets/farm/buildings/textile_mill.png` | 272×280 | footprint 2x2; production | 136,144 | atlas_buildings | same | same | v1 |
 
-## Animal habitats (6)
+## Animal habitats (9)
 
 | Name | Path | Size | Frames / notes | Anchor | Atlas | Source | Licence | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -171,6 +203,9 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | goat_yard | `public/assets/farm/habitats/goat_yard.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | same | same | v1 |
 | pig_pen | `public/assets/farm/habitats/pig_pen.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | same | same | v1 |
 | sheep_pen | `public/assets/farm/habitats/sheep_pen.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | same | same | v1 |
+| turkey_pen | `public/assets/farm/habitats/turkey_pen.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| rabbit_hutch | `public/assets/farm/habitats/rabbit_hutch.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| horse_stable | `public/assets/farm/habitats/horse_stable.png` | 272×234 | footprint 2x2; animal habitat | 136,98 | atlas_habitats | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
 
 ## Decor and obstacles (21)
 
@@ -237,7 +272,7 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | priya_portrait | `public/assets/farm/characters/priya_portrait.png` | 128×128 | portrait | 64,64 | atlas_characters | same | same | v1 |
 | priya_wave | `public/assets/farm/characters/priya_wave.png` | 80×140 | wave | 40,134 | atlas_characters | same | same | v1 |
 
-## Icons (HUD, crop items, products) (66)
+## Icons (HUD, crop items, products) (73)
 
 | Name | Path | Size | Frames / notes | Anchor | Atlas | Source | Licence | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -307,6 +342,13 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | upgrade | `public/assets/farm/icons/upgrade.png` | 64×64 | 1 | — | atlas_icons | same | same | v1 |
 | warning | `public/assets/farm/icons/warning.png` | 64×64 | 1 | — | atlas_icons | same | same | v1 |
 | xp_star | `public/assets/farm/icons/xp_star.png` | 64×64 | 1 | — | atlas_icons | same | same | v1 |
+| item_onion | `public/assets/farm/icons/item_onion.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_blueberry | `public/assets/farm/icons/item_blueberry.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_peanut | `public/assets/farm/icons/item_peanut.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_lavender | `public/assets/farm/icons/item_lavender.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_fluff | `public/assets/farm/icons/item_fluff.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_big_egg | `public/assets/farm/icons/item_big_egg.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
+| item_horsehair | `public/assets/farm/icons/item_horsehair.png` | 64×64 | 1 | — | atlas_icons | Original, programmatically drawn (SVG source in `art/svg/`, generator in `art/`) | Project-owned original work | v1 |
 
 ## FX (19)
 

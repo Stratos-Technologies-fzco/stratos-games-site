@@ -855,3 +855,43 @@ test('two flours queued together finish together (no waiting in line)', async ({
   await page.evaluate(() => (window as any).__farm.advance(301000));
   await expect(page.getByTestId('collect')).toContainText('(2)', { timeout: 5000 });
 });
+
+test('new crops and animals work in the game: seed list, horse stable, horse, feed', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 2, coins: 5000, gems: 5, xp: 0, level: 13, inventory: {},
+      plots: [], buildings: [], animals: [], jobs: [], nextId: 1, lastSeen: Date.now(), ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  const errors = await openFarm(page);
+  await page.getByTestId('tutorial-skip').click();
+  // the seed list has all 16 crops, the four new ones included, and onion plants for 5 coins
+  let p = await tilePos(page, 2, 6);
+  await page.mouse.click(p.x, p.y);
+  for (const id of ['onion', 'blueberry', 'peanut', 'lavender']) await expect(page.getByTestId(`seed-${id}`)).toBeVisible();
+  await expect(page.locator('button[data-testid^="seed-"]:not([data-testid="seed-panel-close"])')).toHaveCount(16);
+  await page.getByTestId('seed-onion').click();
+  await expect(page.getByTestId('coins')).toContainText('4995');
+  // the horse stable and the horse
+  p = await tilePos(page, 0, 2);
+  await page.mouse.click(p.x, p.y);
+  await page.getByTestId('nav-animals').click();
+  await expect(page.locator('button[data-testid^="shop-"]:not([data-testid="shop-panel-close"])')).toHaveCount(9); // nine animal homes
+  await page.getByTestId('shop-horse_stable').dblclick();
+  await expect(page.getByTestId('coins')).toContainText('4195');
+  const body = await tilePos(page, 1, 3);
+  await page.mouse.click(body.x, body.y - 50);
+  await expect(page.getByTestId('building-panel')).toContainText('Horse Stable');
+  await page.getByTestId('buy-animal').click();                      // 700 coins, and the first animal brings 3 feed
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 3');
+  await page.getByTestId('feed').click();
+  await expect(page.getByTestId('habitat-meta')).toContainText('Animal feed: 2');
+  await page.evaluate(() => (window as any).__farm.advance(3601000));
+  await expect(page.getByTestId('collect')).toBeEnabled({ timeout: 5000 });
+  await page.getByTestId('collect').click();
+  await page.getByTestId('building-panel-close').click();
+  await page.getByTestId('nav-inventory').click();
+  await expect(page.getByTestId('inv-horsehair')).toContainText('Horsehair × 1');
+  expect(errors).toEqual([]);
+});

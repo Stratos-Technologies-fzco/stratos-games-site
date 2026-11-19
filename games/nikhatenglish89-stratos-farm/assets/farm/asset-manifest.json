@@ -22,10 +22,10 @@
    "json": "assets/farm/atlases/atlas_crops.json",
    "size": [
     1024,
-    910
+    1300
    ],
-   "frames": 48,
-   "kb": 252.5
+   "frames": 64,
+   "kb": 340.6
   },
   {
    "key": "atlas_animals",
@@ -33,10 +33,10 @@
    "json": "assets/farm/atlases/atlas_animals.json",
    "size": [
     512,
-    516
+    770
    ],
-   "frames": 30,
-   "kb": 62.5
+   "frames": 45,
+   "kb": 103.5
   },
   {
    "key": "atlas_buildings",
@@ -54,11 +54,11 @@
    "image": "assets/farm/atlases/atlas_habitats.png",
    "json": "assets/farm/atlases/atlas_habitats.json",
    "size": [
-    512,
-    1416
+    1024,
+    708
    ],
-   "frames": 6,
-   "kb": 112.6
+   "frames": 9,
+   "kb": 125.1
   },
   {
    "key": "atlas_decor",
@@ -88,10 +88,10 @@
    "json": "assets/farm/atlases/atlas_icons.json",
    "size": [
     512,
-    660
+    726
    ],
-   "frames": 66,
-   "kb": 103.9
+   "frames": 73,
+   "kb": 118.3
   },
   {
    "key": "atlas_ui_fx",

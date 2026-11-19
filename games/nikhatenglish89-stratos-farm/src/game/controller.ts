@@ -43,10 +43,14 @@ const MESSAGES: Record<ErrorCode, string> = {
 
 const newKey = () => (globalThis.crypto?.randomUUID?.() ?? `k-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
-const ANIMAL_SOUND: Record<string, string> = { chicken: 'cluck', duck: 'quack', cow: 'moo', sheep: 'baa', goat: 'bleat', pig: 'oink' };
+// the farm sounds that exist; the newer animals borrow a similar one (the rabbit stays quiet)
+const ANIMAL_SOUND: Record<string, string> = {
+  chicken: 'animal_chicken_cluck', duck: 'animal_duck_quack', cow: 'animal_cow_moo', sheep: 'animal_sheep_baa', goat: 'animal_goat_bleat', pig: 'animal_pig_oink',
+  turkey: 'animal_chicken_cluck', horse: 'animal_cow_moo',
+};
 function animalSound(habitatType?: string): string {
   const animal = habitatType ? BUILDING_BY_ID.get(habitatType)?.animal ?? 'chicken' : 'chicken';
-  return `animal_${animal}_${ANIMAL_SOUND[animal] ?? 'cluck'}`;
+  return ANIMAL_SOUND[animal] ?? '';
 }
 
 const WHY: Record<string, string> = {

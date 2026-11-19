@@ -217,6 +217,48 @@
     "atlas": "atlas_decor",
     "frame": "rock_small"
    }
+  },
+  {
+   "id": "onion",
+   "name": "Onion",
+   "sellPrice": 5,
+   "kind": "crop"
+  },
+  {
+   "id": "blueberry",
+   "name": "Blueberry",
+   "sellPrice": 11,
+   "kind": "crop"
+  },
+  {
+   "id": "peanut",
+   "name": "Peanut",
+   "sellPrice": 11,
+   "kind": "crop"
+  },
+  {
+   "id": "lavender",
+   "name": "Lavender",
+   "sellPrice": 22,
+   "kind": "crop"
+  },
+  {
+   "id": "big_egg",
+   "name": "Big Egg",
+   "sellPrice": 24,
+   "kind": "animal"
+  },
+  {
+   "id": "fluff",
+   "name": "Fluff",
+   "sellPrice": 28,
+   "kind": "animal"
+  },
+  {
+   "id": "horsehair",
+   "name": "Horsehair",
+   "sellPrice": 48,
+   "kind": "animal"
   }
  ]
 }

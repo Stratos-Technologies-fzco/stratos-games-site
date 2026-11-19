@@ -32,10 +32,10 @@ describe('master data is consistent', () => {
       Object.keys(r.inputs).forEach((i) => expect(ITEM_BY_ID.has(i), `${r.id}:${i}`).toBe(true));
     }
     for (const a of ANIMALS) { expect(b.has(a.habitat)).toBe(true); expect(ITEM_BY_ID.has(a.product)).toBe(true); }
-    expect(ITEMS.length).toBe(35); // 12 crops, 6 animal products, 15 factory goods, wood and stone
+    expect(ITEMS.length).toBe(42); // 16 crops, 9 animal products, 15 factory goods, wood and stone
     expect(BUILDINGS.filter((x) => x.kind === 'production')).toHaveLength(8);
-    expect(ANIMALS).toHaveLength(6);
-    expect(CROP_BY_ID.size).toBe(12);
+    expect(ANIMALS).toHaveLength(9);
+    expect(CROP_BY_ID.size).toBe(16);
   });
 });
 
