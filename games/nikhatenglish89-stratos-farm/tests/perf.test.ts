@@ -39,6 +39,12 @@ describe('first load budget (built files)', () => {
     }, 0);
     expect(walk('.')).toBeLessThan(100 * 1048576);
   });
+  it.skipIf(!built)('reports the events the site requires for a non-kids game (level_start, level_complete, Stratos)', () => {
+    const text = readdirSync(join(root, 'build')).filter((x) => x.endsWith('.js')).map((f) => readFileSync(join(root, 'build', f), 'utf8')).join('\n');
+    expect(text).toContain('level_start');
+    expect(text).toContain('level_complete');
+    expect(text).toContain('Stratos');
+  });
   it.skipIf(!built)('no outside scripts or styles and no mobile ad IDs', () => {
     const html = readFileSync(join(root, 'index.html'), 'utf8');
     expect(html).not.toMatch(/<script[^>]+src="https?:/);

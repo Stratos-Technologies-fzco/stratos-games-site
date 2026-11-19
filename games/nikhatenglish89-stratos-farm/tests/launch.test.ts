@@ -100,6 +100,18 @@ describe('Stratos site link', () => {
     offerCoins('boost', () => { ran = true; });
     expect(offers).toEqual(['boost']);
     expect(ran).toBe(false); // runs only after the wallet says the player paid
+    expect(events.map((e) => e[0])).toEqual(['level_complete', 'reward_offered']); // offered, but not taken yet
+  });
+  it('reports reward_taken only when the boost really runs', () => {
+    const events: string[] = [];
+    (globalThis as { Stratos?: unknown }).Stratos = {
+      track: (name: string) => events.push(name),
+      coins: { offer: (_k: string, done: () => void) => done() }, // the player pays
+    };
+    let ran = false;
+    offerCoins('hint', () => { ran = true; });
+    expect(ran).toBe(true);
+    expect(events).toEqual(['reward_offered', 'reward_taken']);
   });
   it('survives a broken Stratos object', () => {
     (globalThis as { Stratos?: unknown }).Stratos = { track: () => { throw new Error('boom'); }, coins: { offer: () => { throw new Error('boom'); } } };
@@ -120,6 +132,9 @@ describe('game.json meets the site rules', () => {
     expect(game.tips.length).toBeGreaterThan(0);
     expect(game.story).toBeTruthy();
     expect(game.faq.length).toBeGreaterThan(0);
+  });
+  it('is an adventure game (not kids), so Stratos analytics apply', () => {
+    expect(game.category).toBe('adventure');
   });
   it('is no longer a coming-soon placeholder and records native resume', () => {
     expect((game as Record<string, unknown>).status).toBeUndefined();

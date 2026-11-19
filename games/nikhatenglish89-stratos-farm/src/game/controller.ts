@@ -242,6 +242,7 @@ class FarmController {
       st.setShopTab(null);
       this.apply(r.snapshot);
       playSfx('build_complete');
+      track('building_placed', { type });
       st.showToast(`${BUILDING_BY_ID.get(type)!.name} built`);
     });
   }
@@ -281,6 +282,7 @@ class FarmController {
       this.cancelPlacing();
       this.apply(r.snapshot);
       playSfx('build_complete');
+      track('building_placed', { type });
       useFarm.getState().showToast(`${BUILDING_BY_ID.get(type)!.name} built`);
     });
   }
@@ -391,6 +393,7 @@ class FarmController {
       this.apply(r.snapshot);
       playSfx('order_fulfil');
       useFarm.getState().showToast(`Order delivered: +${r.coins} coins, +${r.xp} XP`);
+      track('order_delivered', { coins: r.coins });
     });
   }
 
@@ -404,6 +407,8 @@ class FarmController {
       playSfx('jingle_quest_complete');
       const bits = [r.coins && `${r.coins} coins`, r.xp && `${r.xp} XP`, r.gems && `${r.gems} gems`].filter(Boolean).join(', ');
       useFarm.getState().showToast(`${QUEST_BY_ID.get(questId)!.title}: +${bits}`);
+      track('quest_claimed', { id: questId });
+      if (r.snapshot.tutorialDone) track('tutorial_done');
     });
   }
 
@@ -420,6 +425,7 @@ class FarmController {
       this.apply(r.snapshot);
       playSfx('expand_land');
       useFarm.getState().showToast('New land cleared! You can build here now');
+      track('land_cleared', { id });
     });
   }
 

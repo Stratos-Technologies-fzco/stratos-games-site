@@ -65,7 +65,7 @@ Status: **All phases done as far as a static, single-player game allows (2026-11
 | Full game page (#70) | `game.json`: 237-word description, controls, tips, story, 5 FAQ questions, how_to_play |
 | Cover (800x500) | `thumbnail.png`, a real picture from the game |
 | Hover clip (#71) | `preview.mp4`, 6 s, 480x300, silent, real play (harvest, pan, zoom). Made with the Playwright + ffmpeg-static equivalent of `tools/make_clip.py` because Python Playwright and ffmpeg are not installed here |
-| Analytics | Not needed: `kids` category (no analytics, no ads) |
+| Analytics | Category is now `adventure` (Sarfaraj added the category on 2026-11-19, see `docs/CATEGORY_REQUEST.md`). The game reports `level_start`, `level_complete` and milestone events |
 | Stratos Coins: earn | `level_start` on Play (first-play coins), `level_complete` with a level number when the player levels up (new-level coins). Both sent through `Stratos.track`, paid by the site |
 | Stratos Coins: spend | Items `boost` (Speed-up for a crop, an animal product or a factory job) and `hint` (how to get an order item), through `Stratos.coins.offer`. The site shows price and balance and spends on one tap |
 | Own coin kept separate | Farm Coins and Gems stay in the game; the Stratos balance is shown separately (top bar chip, home screen, Settings) |

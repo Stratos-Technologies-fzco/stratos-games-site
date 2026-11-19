@@ -75,3 +75,8 @@ Not redone: the cover picture and hover clip (they do not show the new animals y
 
 ## 2026-11-19 — Planting mode
 Owner: plant many seeds with one tap per field. Now: pick a seed in the seed list once (from any empty field) and it plants there AND stays selected; each further tap on an empty field plants it with no list in between. A bar shows the crop, its price and your coins, with Change seed and Done. Ripe crops are still picked with a tap; tapping a growing field only shows its time; the mode ends with Done, Escape, opening another screen, starting to place a building, or by itself when coins run out. Tests: Playwright 26 (3 new for planting mode; older tests now press Done after their single planting).
+
+## 2026-11-19 — Category: kids -> adventure
+`game.json` category is `adventure`. The site has no such category (categories live in the shared `site.json`; an unknown one falls back to Arcade in `tools/build.py` line 138), so `docs/CATEGORY_REQUEST.md` asks Sahil, Sahariar or Sarfaraj to add it. Non-kids games need Stratos analytics: `level_start` and `level_complete` were already sent; added `reward_offered`, `reward_taken`, `order_delivered`, `building_placed`, `land_cleared`, `quest_claimed`, `tutorial_done`. Kids coin rules no longer apply (the normal coin rules do). Docs updated.
+
+Update: Sarfaraj created the Adventure category on the site (commit 23a5631), so the game now sits on the Adventure shelf and the Arcade fallback no longer applies.

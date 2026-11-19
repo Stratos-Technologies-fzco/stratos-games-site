@@ -18,7 +18,7 @@ There is no `.env`, no database, no container image and no background worker. A 
 - Read the 3 questions (retention, time well spent, money) into the commit message.
 
 ## Monitoring
-- The game is in the **kids** category: the site turns analytics and ads off there, so **there is no usage data**. The only monitoring is the checks above and players' reports. If monitoring is wanted, the category must change and `track()` events (`level_start`, `level_complete`, `game_over`) must be added (see the site's CLAUDE.md, Analytics before launch).
+- The game is in the **adventure** category (changed from kids on 2026-11-19, see `docs/CATEGORY_REQUEST.md`), so Stratos analytics apply. The game reports `level_start`, `level_complete`, `reward_offered`, `reward_taken`, `order_delivered`, `building_placed`, `land_cleared`, `quest_claimed` and `tutorial_done` through the site's `Stratos.track`. Builders and testers open `https://stratos.games/?builder=1` once in their browser so test visits are not counted. No ads exist in the game yet; adding them is for the site owners (one shared setup, rewarded first, never in the first session).
 - Errors: the game never swallows an error silently in its own code; browser console errors fail every test.
 
 ## Backups

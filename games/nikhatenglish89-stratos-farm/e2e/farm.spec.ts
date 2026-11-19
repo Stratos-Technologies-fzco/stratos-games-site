@@ -393,6 +393,8 @@ test('Stratos Coins: first-play and level events, balance chip, paid speed-up an
   await expect(page.getByTestId('plot-panel')).toContainText('Ready in');
   await page.getByTestId('speedup').click();
   expect(await page.evaluate(() => (window as any).__offers)).toEqual(['boost']);
+  const names = await page.evaluate(() => (window as any).__events.map((e: any) => e[0]));
+  expect(names).toEqual(expect.arrayContaining(['reward_offered', 'reward_taken'])); // analytics for a non-kids game
   await expect(page.getByTestId('harvest-all')).toBeVisible({ timeout: 5000 });
   // harvesting the 99 -> 100 xp levels up: level_complete for level 1 is reported
   await page.getByTestId('harvest-all').click();
@@ -854,9 +856,10 @@ test('two flours queued together finish together (no waiting in line)', async ({
   await page.mouse.click(q.x, q.y - 50);
   await page.getByTestId('recipe-flour').click();
   await page.getByTestId('recipe-flour').click();
-  const times = await page.locator('[data-testid^="job-"] small').allTextContents();
-  expect(times).toHaveLength(2);
-  expect(times[0]).toBe(times[1]);                       // the same time left on both
+  // both jobs started together: their start times are seconds apart, not a whole recipe apart (waiting in line would be 300 s)
+  const jobs = await page.evaluate(() => JSON.parse(localStorage.getItem('stratos_farm_save_v1')!).jobs);
+  expect(jobs).toHaveLength(2);
+  expect(Math.abs(jobs[1].startAt - jobs[0].startAt)).toBeLessThan(10_000);
   await page.evaluate(() => (window as any).__farm.advance(301000));
   await expect(page.getByTestId('collect')).toContainText('(2)', { timeout: 5000 });
 });

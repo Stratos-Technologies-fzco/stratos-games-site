@@ -26,10 +26,12 @@ export function track(name: string, details?: Record<string, unknown>) {
 /** Ask the player to pay with Stratos Coins, then run onDone. Without the site it runs onDone straight away. */
 export function offerCoins(kind: 'boost' | 'hint', onDone: () => void, o?: { label?: string; title?: string; what?: string; onCancel?: () => void }) {
   const c = SC();
+  track('reward_offered', { kind });
+  const taken = () => { track('reward_taken', { kind }); onDone(); };
   if (c?.offer) {
-    try { c.offer(kind, onDone, o); return; } catch { /* fall through to the free path */ }
+    try { c.offer(kind, taken, o); return; } catch { /* fall through to the free path */ }
   }
-  onDone();
+  taken();
 }
 
 export function coinBalance(): number | null {
