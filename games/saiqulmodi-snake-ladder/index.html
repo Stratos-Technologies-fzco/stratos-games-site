@@ -43,6 +43,8 @@
     }
     .pill span.val { color: var(--amber-light); font-variant-numeric: tabular-nums; }
     .pill.emerald span.val { color: #6ee7b7; }
+    .pill.dice-pill { border-color: #fbbf24; background: rgba(58, 34, 14, 0.95); }
+    .pill.dice-pill span.val { color: #ffffff; font-size: 13px; }
     .pill.combo {
       border-color: #fbbf24;
       background: rgba(120, 53, 15, 0.9);
@@ -56,15 +58,33 @@
       background: var(--bg-card);
       border: 1px solid var(--border-amber);
       color: var(--cream); border-radius: 999px;
-      padding: 4px 10px; font-size: 11.5px; font-weight: 800;
+      padding: 4px 11px; font-size: 11.5px; font-weight: 800;
       transition: transform 0.12s, border-color 0.15s;
     }
     .btn-action {
-      background: linear-gradient(135deg, rgba(253, 230, 138, 0.22), rgba(245, 158, 11, 0.25));
-      border-color: var(--amber);
-      color: var(--amber-light);
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+      border-color: var(--amber-light);
+      color: #18100c;
     }
-    .btn-action:hover, .btn-icon:hover { border-color: var(--amber-light); transform: scale(1.05); }
+    .btn-action:hover, .btn-icon:hover { transform: scale(1.05); }
+
+    #dice-badge {
+      position: fixed; bottom: 18px; left: 18px;
+      background: rgba(34, 22, 16, 0.94);
+      border: 2px solid var(--amber);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+      border-radius: 14px; padding: 6px 12px;
+      display: flex; align-items: center; gap: 8px;
+      z-index: 12; pointer-events: none;
+    }
+    #dice-num {
+      font-size: 22px; font-weight: 900; color: #fde68a;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    #dice-sub {
+      font-size: 11px; font-weight: 700; color: #d6c3b3;
+      text-align: left; line-height: 1.25;
+    }
 
     #toast {
       position: fixed; top: 44px; left: 50%; transform: translateX(-50%) translateY(-6px);
@@ -186,20 +206,25 @@
   <div id="hud">
     <div class="hud-group">
       <div class="pill emerald">TILE <span class="val" id="hud-tile">1/100</span></div>
-      <div class="pill">DICE <span class="val" id="hud-dice">🎲 -</span></div>
+      <div class="pill dice-pill">DICE <span class="val" id="hud-dice">-</span></div>
       <div class="pill">SCORE <span class="val" id="hud-score">0</span></div>
       <div class="pill">BEST <span class="val" id="hud-best">0</span></div>
       <div class="pill combo" id="hud-combo">CHAIN <span class="val" id="hud-combo-val">x2</span></div>
     </div>
     <div class="hud-group">
-      <button class="btn-action" id="btn-roll" title="Roll Dice (R)">🎲 ROLL</button>
+      <button class="btn-action" id="btn-roll" title="Roll Dice (R)">🎲 ROLL (R)</button>
       <div class="pill" id="hop-pill">HOP <span class="val" id="hud-hop">READY</span></div>
       <button class="btn-icon" id="btn-mute" title="Toggle Audio & Haptics (M)">🔊</button>
       <button class="btn-icon" id="btn-pause" title="Pause (P)">⏸</button>
     </div>
   </div>
 
-  <div id="toast">LADDER CLIMB! +12 TILES</div>
+  <div id="dice-badge">
+    <div id="dice-num">🎲 -</div>
+    <div id="dice-sub">Press R or tap ROLL<br/>to step 1–6 tiles</div>
+  </div>
+
+  <div id="toast">DICE ROLLED 4 • MOVED TO TILE 5</div>
 
   <div id="overlay">
     <div class="card">
@@ -209,15 +234,15 @@
       </div>
       <h1 id="ov-title">SNAKE LADDER</h1>
       <p class="sub" id="ov-sub">
-        Roll the <strong>Dice (R)</strong> or steer to collect gems, climb traditional <strong>Ladders</strong> up the board,
-        and enjoy calm, stress-free score climbing with a 50× slower wandering snake.
+        Roll the <strong>Dice (R)</strong> to step forward <strong>1–6 tiles</strong>, climb <strong>Ladders</strong> up the board,
+        or slide from a <strong>Snake Head</strong> down to its <strong>Tail</strong> while collecting gems stress-free!
       </p>
       <div id="final-stats"></div>
       <div class="controls-grid">
-        <div class="ctrl-card"><strong>Roll Dice</strong>Tap ROLL or press R (1–6)</div>
-        <div class="ctrl-card"><strong>Traditional Ladders</strong>Climb from ladder base to top</div>
-        <div class="ctrl-card"><strong>Easy Steer</strong>Drag finger/mouse or WASD/Arrows</div>
-        <div class="ctrl-card"><strong>Hop &amp; Pause</strong>Space/HOP to hop • P Pause</div>
+        <div class="ctrl-card"><strong>Step Dice (1–6)</strong>Press R or tap ROLL</div>
+        <div class="ctrl-card"><strong>Board Ladders &amp; Snakes</strong>Climb ladders; snake head → tail</div>
+        <div class="ctrl-card"><strong>1 Slow Mover + Fixed</strong>Only 1 snake wanders; rest stay</div>
+        <div class="ctrl-card"><strong>Easy Steer &amp; Hop</strong>Drag/WASD • Space/HOP</div>
       </div>
       <div class="lb-box">
         <div class="lb-title"><span>Top 5 Climbers</span><span>Score • Tile</span></div>
@@ -242,7 +267,7 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
 
-  // Traditional Snake & Ladder jumps (base tile -> top tile)
+  // Traditional board ladders: base tile -> top tile
   const BOARD_LADDERS = {
     4: 25,
     13: 46,
@@ -254,7 +279,19 @@
   };
   const LADDER_BASES = new Set(Object.keys(BOARD_LADDERS).map(Number));
   const LADDER_TOPS = new Set(Object.values(BOARD_LADDERS));
-  const LADDER_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+  // Stationary live snakes placed across different board squares: headTile -> tailTile
+  const STATIONARY_SNAKES = {
+    16: 6,
+    47: 26,
+    49: 11,
+    56: 53,
+    64: 19,
+    87: 24,
+    98: 78
+  };
+  const SNAKE_HEADS = new Set(Object.keys(STATIONARY_SNAKES).map(Number));
+  const DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
   function trackEvent(name, data = {}) {
     try {
@@ -266,6 +303,8 @@
 
   const hudTile = document.getElementById('hud-tile');
   const hudDice = document.getElementById('hud-dice');
+  const diceNumEl = document.getElementById('dice-num');
+  const diceSubEl = document.getElementById('dice-sub');
   const hudScore = document.getElementById('hud-score');
   const hudBest = document.getElementById('hud-best');
   const hudCombo = document.getElementById('hud-combo');
@@ -421,6 +460,10 @@
     });
     haptic([20, 25, 30]);
   }
+  function sfxSnakeSlide() {
+    playTone(420, 0.26, 'sine', 0.09, 210);
+    haptic(20);
+  }
 
   btnMute.addEventListener('click', () => {
     muted = !muted;
@@ -436,7 +479,8 @@
   let score = 0;
   let boardTile = 1;
   let lastDice = null;
-  let diceCooldown = 0;
+  let stepQueue = 0;
+  let stepTimer = 0;
   let bumpCooldown = 0;
   let chainCount = 0;
   let chainTimer = 0;
@@ -445,6 +489,7 @@
   let timeElapsed = 0;
   let toastTimeout = null;
 
+  // Frog / Climber sprite
   const player = {
     x: 0, y: 0, vx: 0, vy: 0,
     angle: 0, radius: 9,
@@ -452,6 +497,7 @@
     tailHistory: []
   };
 
+  // Single slow-wandering live snake
   const snake = {
     x: 0, y: 0, angle: 0,
     wanderAngle: 0,
@@ -551,49 +597,77 @@
     return { x: rect.cx, y: rect.cy };
   }
 
-  function applyLadderClimb(fromTile, extraBonus = 200) {
-    const destTile = BOARD_LADDERS[fromTile];
-    if (!destTile) return false;
-    boardTile = Math.min(100, destTile);
-    score += extraBonus;
-    const pos = getTileCenter(boardTile);
-    player.x = pos.x;
-    player.y = pos.y;
-    sfxLadderBoost();
-    spawnBurst(player.x, player.y, '#fde68a', 20);
-    addPopup(player.x, player.y - 12, `LADDER → ${boardTile}! +${extraBonus}`, '#fde68a');
-    showToast(`TRADITIONAL LADDER! CLIMBED TO TILE ${boardTile}`);
-    return true;
+  function checkTileBoardEffect(tileNum) {
+    if (BOARD_LADDERS[tileNum]) {
+      const destTile = Math.min(100, BOARD_LADDERS[tileNum]);
+      boardTile = destTile;
+      score += 200;
+      const pos = getTileCenter(boardTile);
+      player.x = pos.x;
+      player.y = pos.y;
+      sfxLadderBoost();
+      spawnBurst(player.x, player.y, '#fde68a', 20);
+      addPopup(player.x, player.y - 12, `LADDER → ${boardTile}! +200`, '#fde68a');
+      showToast(`LADDER CLIMB! TILE ${tileNum} → TILE ${boardTile}`);
+      return true;
+    }
+
+    // If frog reaches a square where a snake head is placed, slide to the snake's tail end
+    if (STATIONARY_SNAKES[tileNum]) {
+      const tailTile = Math.max(1, STATIONARY_SNAKES[tileNum]);
+      boardTile = tailTile;
+      score += 40;
+      const pos = getTileCenter(boardTile);
+      player.x = pos.x;
+      player.y = pos.y;
+      sfxSnakeSlide();
+      spawnBurst(player.x, player.y, '#fca5a5', 14);
+      addPopup(player.x, player.y - 12, `SNAKE HEAD → TAIL ${boardTile}`, '#fca5a5');
+      showToast(`SNAKE HEAD ON ${tileNum} → SLID TO TAIL ${boardTile}!`);
+      return true;
+    }
+
+    return false;
   }
 
   function rollDice() {
-    if (diceCooldown > 0) return;
+    if (stepQueue > 0) return;
     initAudio();
     const rolled = 1 + Math.floor(Math.random() * 6);
     lastDice = rolled;
-    diceCooldown = 0.55;
+    stepQueue = rolled;
+    stepTimer = 0.04;
+    score += rolled * 25;
     playTone(440 + rolled * 45, 0.14, 'triangle', 0.1, 660 + rolled * 50);
     haptic(15);
 
-    boardTile = Math.min(100, boardTile + rolled);
-    score += rolled * 30;
+    diceNumEl.textContent = `${DICE_FACES[rolled - 1]} ${rolled}`;
+    diceSubEl.textContent = `Stepping +${rolled} tile${rolled > 1 ? 's' : ''} forward...`;
+    showToast(`ROLLED ${rolled} (${DICE_FACES[rolled - 1]}) • MOVING +${rolled} TILES`);
+    updateHud();
+  }
+
+  function stepOneTileForward() {
+    if (boardTile >= 100) {
+      stepQueue = 0;
+      return;
+    }
+    boardTile = Math.min(100, boardTile + 1);
     const pos = getTileCenter(boardTile);
     player.x = pos.x;
     player.y = pos.y;
-    addPopup(player.x, player.y - 10, `🎲 ${rolled} → TILE ${boardTile}`, '#6ee7b7');
+    playTone(500 + boardTile * 4, 0.05, 'sine', 0.05);
+    addPopup(player.x, player.y - 8, `TILE ${boardTile}`, '#6ee7b7');
 
-    if (BOARD_LADDERS[boardTile]) {
-      applyLadderClimb(boardTile, 250);
-    } else {
-      showToast(`ROLLED ${LADDER_FACES[rolled - 1]} (${rolled}) • TILE ${boardTile}/100`);
+    if (stepQueue === 0 || boardTile >= 100) {
+      checkTileBoardEffect(boardTile);
+      saveActiveRun();
+      if (boardTile >= 100) {
+        score += 1000;
+        finishSummitRun();
+      }
     }
-
-    saveActiveRun();
     updateHud();
-    if (boardTile >= 100) {
-      score += 1000;
-      finishSummitRun();
-    }
   }
 
   function nudgeSnakeAway(dist = 42) {
@@ -619,7 +693,7 @@
         nudgeSnakeAway(48);
         score += 120;
         sfxLadderBoost();
-        showToast('FRIENDLY HOP! +120 SCORE');
+        showToast('FROG HOP! +120 SCORE');
         addPopup(snake.x, snake.y - 12, 'HOP +120!', '#fde68a');
       }
     }
@@ -629,7 +703,7 @@
     toastEl.textContent = text;
     toastEl.classList.add('show');
     clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2000);
+    toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2100);
   }
 
   function triggerShake(duration = 0.16, intensity = 3) {
@@ -684,7 +758,8 @@
     score = saved ? saved.score : 0;
     boardTile = saved ? saved.boardTile : 1;
     lastDice = saved && saved.lastDice ? saved.lastDice : null;
-    diceCooldown = 0;
+    stepQueue = 0;
+    stepTimer = 0;
     bumpCooldown = 0;
     chainCount = 0;
     chainTimer = 0;
@@ -720,13 +795,21 @@
 
     for (let i = 0; i < 5; i++) spawnGem();
 
+    if (lastDice) {
+      diceNumEl.textContent = `${DICE_FACES[lastDice - 1]} ${lastDice}`;
+      diceSubEl.textContent = `Last roll: ${lastDice} • Tile ${boardTile}`;
+    } else {
+      diceNumEl.textContent = '🎲 -';
+      diceSubEl.textContent = 'Press R or tap ROLL\nto step 1–6 tiles';
+    }
+
     overlay.classList.add('hidden');
     finalStats.style.display = 'none';
     state = 'PLAYING';
     btnPause.textContent = '⏸';
     updateHud();
     trackEvent('level_start', { tile: boardTile, resumed: Boolean(saved) });
-    showToast('ROLL DICE (R) OR STEER TO GEMS & LADDERS!');
+    showToast('ROLL DICE (R) TO STEP 1–6 OR STEER TO GEMS!');
   }
 
   btnStart.addEventListener('click', () => startGame(false));
@@ -752,7 +835,7 @@
 
   function updateHud() {
     hudTile.textContent = `${boardTile}/100`;
-    hudDice.textContent = lastDice ? `${LADDER_FACES[lastDice - 1]} ${lastDice}` : '🎲 -';
+    hudDice.textContent = lastDice ? `${DICE_FACES[lastDice - 1]} ${lastDice}` : '-';
     hudScore.textContent = score;
 
     if (chainCount >= 2 && chainTimer > 0) {
@@ -778,6 +861,16 @@
     if (state !== 'PLAYING') return;
     timeElapsed += dt;
 
+    // Step through rolled dice tiles visibly one step at a time
+    if (stepQueue > 0) {
+      stepTimer -= dt;
+      if (stepTimer <= 0) {
+        stepQueue--;
+        stepTimer = 0.16;
+        stepOneTileForward();
+      }
+    }
+
     const progressFactor = 1 + (boardTile - 1) * 0.003;
     const baseSpeed = 165 * progressFactor;
     const snakeSpeed = (baseSpeed * 0.60) / 50;
@@ -786,7 +879,6 @@
 
     if (player.hopTimer > 0) player.hopTimer = Math.max(0, player.hopTimer - dt);
     if (player.hopCooldown > 0) player.hopCooldown = Math.max(0, player.hopCooldown - dt);
-    if (diceCooldown > 0) diceCooldown = Math.max(0, diceCooldown - dt);
     if (bumpCooldown > 0) bumpCooldown = Math.max(0, bumpCooldown - dt);
     if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
 
@@ -836,6 +928,7 @@
     player.tailHistory.unshift({ x: player.x, y: player.y });
     while (player.tailHistory.length > desiredTailLen) player.tailHistory.pop();
 
+    // Only one snake moves (slowly wandering across the board)
     snake.wanderTimer -= dt;
     if (snake.wanderTimer <= 0) {
       snake.wanderTimer = 1.6 + Math.random() * 1.8;
@@ -910,10 +1003,7 @@
           }
         }
 
-        if (BOARD_LADDERS[boardTile]) {
-          applyLadderClimb(boardTile, 200);
-        }
-
+        checkTileBoardEffect(boardTile);
         saveActiveRun();
 
         if (chainCount >= 4) triggerShake(0.16, 3);
@@ -928,6 +1018,7 @@
       }
     }
 
+    // Gentle stress-free bounce against the single wandering snake
     if (bumpCooldown <= 0) {
       for (let i = 0; i < snake.segments.length; i++) {
         const seg = snake.segments[i];
@@ -974,7 +1065,7 @@
     const cols = 10, rows = 10;
     const cw = bw / cols, ch = bh / rows;
 
-    // Draw 1-100 squares with boustrophedon tile numbers inside each cell
+    // 1-100 numbered squares
     ctx.save();
     const fontSize = Math.max(9, Math.min(13, Math.floor(Math.min(cw, ch) * 0.24)));
     ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
@@ -986,11 +1077,14 @@
       const isCurrent = tileNum === boardTile;
       const isLadderBase = LADDER_BASES.has(tileNum);
       const isLadderTop = LADDER_TOPS.has(tileNum);
+      const isSnakeHead = SNAKE_HEADS.has(tileNum);
 
       if (isCurrent) {
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.24)';
       } else if (isLadderBase) {
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.11)';
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      } else if (isSnakeHead) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.13)';
       } else if (isLadderTop) {
         ctx.fillStyle = 'rgba(253, 230, 138, 0.09)';
       } else {
@@ -1001,7 +1095,9 @@
       if (isCurrent) {
         ctx.fillStyle = '#fde68a';
       } else if (isLadderBase) {
-        ctx.fillStyle = 'rgba(110, 231, 183, 0.72)';
+        ctx.fillStyle = 'rgba(110, 231, 183, 0.78)';
+      } else if (isSnakeHead) {
+        ctx.fillStyle = 'rgba(252, 165, 165, 0.85)';
       } else if (isLadderTop || tileNum === 100) {
         ctx.fillStyle = 'rgba(253, 230, 138, 0.65)';
       } else {
@@ -1011,7 +1107,7 @@
     }
     ctx.restore();
 
-    // Draw traditional board ladders connecting base -> top tiles
+    // Traditional board ladders (base -> top)
     ctx.save();
     for (const [baseStr, topTile] of Object.entries(BOARD_LADDERS)) {
       const baseTile = Number(baseStr);
@@ -1039,6 +1135,46 @@
         ctx.lineTo(rx - Math.cos(perp) * halfW, ry - Math.sin(perp) * halfW);
       }
       ctx.stroke();
+    }
+    ctx.restore();
+
+    // Stationary live snakes across different squares (head -> tail)
+    ctx.save();
+    for (const [headStr, tailTile] of Object.entries(STATIONARY_SNAKES)) {
+      const headTile = Number(headStr);
+      const headPos = getTileCenter(headTile);
+      const tailPos = getTileCenter(tailTile);
+      const midX = (headPos.x + tailPos.x) * 0.5 + Math.sin(timeElapsed * 2.2 + headTile) * 14;
+      const midY = (headPos.y + tailPos.y) * 0.5 + Math.cos(timeElapsed * 2.2 + headTile) * 14;
+
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.52)';
+      ctx.lineWidth = 4.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(headPos.x, headPos.y);
+      ctx.quadraticCurveTo(midX, midY, tailPos.x, tailPos.y);
+      ctx.stroke();
+
+      // Tail marker
+      ctx.fillStyle = 'rgba(252, 165, 165, 0.7)';
+      ctx.beginPath();
+      ctx.arc(tailPos.x, tailPos.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glowing snake head marker on headTile
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#ef4444';
+      ctx.fillStyle = '#f87171';
+      ctx.beginPath();
+      ctx.arc(headPos.x, headPos.y, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fffbeb';
+      ctx.beginPath();
+      ctx.arc(headPos.x - 2.2, headPos.y - 1.5, 1.6, 0, Math.PI * 2);
+      ctx.arc(headPos.x + 2.2, headPos.y - 1.5, 1.6, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
 
