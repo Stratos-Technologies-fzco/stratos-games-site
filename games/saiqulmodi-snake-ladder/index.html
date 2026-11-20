@@ -657,7 +657,7 @@
     timeElapsed += dt;
 
     const progressFactor = 1 + (boardTile - 1) * 0.0045;
-    const baseSpeed = 235 * progressFactor;
+    const baseSpeed = 265 * progressFactor;
     const hopBoost = player.hopTimer > 0 ? 1.38 : 1.0;
     const pSpeed = baseSpeed * hopBoost;
 
@@ -722,7 +722,7 @@
       snake.wavePhase += dt * 7.5;
       const slitherOffset = Math.sin(snake.wavePhase) * 0.35;
       const moveAngle = snake.angle + slitherOffset;
-      const snakeSpeed = baseSpeed * 0.96;
+      const snakeSpeed = baseSpeed * 0.80;
 
       snake.x += Math.cos(moveAngle) * snakeSpeed * dt;
       snake.y += Math.sin(moveAngle) * snakeSpeed * dt;
