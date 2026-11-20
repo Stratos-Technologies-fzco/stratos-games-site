@@ -252,6 +252,8 @@
     62: 81,
     74: 92
   };
+  const LADDER_BASES = new Set(Object.keys(BOARD_LADDERS).map(Number));
+  const LADDER_TOPS = new Set(Object.values(BOARD_LADDERS));
   const LADDER_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
   function trackEvent(name, data = {}) {
@@ -526,7 +528,7 @@
   }
   btnPause.addEventListener('click', togglePause);
 
-  function getTileCenter(tileNum) {
+  function getTileCellRect(tileNum) {
     const left = 4, top = 34, right = W - 4, bottom = H - 4;
     const bw = right - left, bh = bottom - top;
     const cw = bw / 10, ch = bh / 10;
@@ -535,9 +537,18 @@
     const colInRow = rowFromBottom % 2 === 0 ? (idx % 10) : (9 - (idx % 10));
     const drawRow = 9 - rowFromBottom;
     return {
-      x: left + (colInRow + 0.5) * cw,
-      y: top + (drawRow + 0.5) * ch
+      x: left + colInRow * cw,
+      y: top + drawRow * ch,
+      w: cw,
+      h: ch,
+      cx: left + (colInRow + 0.5) * cw,
+      cy: top + (drawRow + 0.5) * ch
     };
+  }
+
+  function getTileCenter(tileNum) {
+    const rect = getTileCellRect(tileNum);
+    return { x: rect.cx, y: rect.cy };
   }
 
   function applyLadderClimb(fromTile, extraBonus = 200) {
@@ -571,7 +582,6 @@
     player.y = pos.y;
     addPopup(player.x, player.y - 10, `🎲 ${rolled} → TILE ${boardTile}`, '#6ee7b7');
 
-    // Traditional ladder move if landing on a ladder base
     if (BOARD_LADDERS[boardTile]) {
       applyLadderClimb(boardTile, 250);
     } else {
@@ -900,7 +910,6 @@
           }
         }
 
-        // Climb up a traditional ladder if standing on or near its base tile
         if (BOARD_LADDERS[boardTile]) {
           applyLadderClimb(boardTile, 200);
         }
@@ -965,12 +974,42 @@
     const cols = 10, rows = 10;
     const cw = bw / cols, ch = bh / rows;
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(245, 158, 11, 0.035)' : 'rgba(255, 255, 255, 0.012)';
-        ctx.fillRect(left + c * cw, top + r * ch, cw, ch);
+    // Draw 1-100 squares with boustrophedon tile numbers inside each cell
+    ctx.save();
+    const fontSize = Math.max(9, Math.min(13, Math.floor(Math.min(cw, ch) * 0.24)));
+    ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    for (let tileNum = 1; tileNum <= 100; tileNum++) {
+      const cell = getTileCellRect(tileNum);
+      const isCurrent = tileNum === boardTile;
+      const isLadderBase = LADDER_BASES.has(tileNum);
+      const isLadderTop = LADDER_TOPS.has(tileNum);
+
+      if (isCurrent) {
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.22)';
+      } else if (isLadderBase) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.11)';
+      } else if (isLadderTop) {
+        ctx.fillStyle = 'rgba(253, 230, 138, 0.09)';
+      } else {
+        ctx.fillStyle = (tileNum % 2 === 0) ? 'rgba(245, 158, 11, 0.035)' : 'rgba(255, 255, 255, 0.012)';
       }
+      ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
+
+      if (isCurrent) {
+        ctx.fillStyle = '#fde68a';
+      } else if (isLadderBase) {
+        ctx.fillStyle = 'rgba(110, 231, 183, 0.72)';
+      } else if (isLadderTop || tileNum === 100) {
+        ctx.fillStyle = 'rgba(253, 230, 138, 0.65)';
+      } else {
+        ctx.fillStyle = 'rgba(214, 195, 179, 0.36)';
+      }
+      ctx.fillText(String(tileNum), cell.x + 4, cell.y + 3);
     }
+    ctx.restore();
 
     // Draw traditional board ladders connecting base -> top tiles
     ctx.save();
@@ -982,7 +1021,7 @@
       const perp = angle + Math.PI / 2;
       const halfW = 5;
 
-      ctx.strokeStyle = 'rgba(253, 230, 138, 0.34)';
+      ctx.strokeStyle = 'rgba(253, 230, 138, 0.36)';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.moveTo(a.x + Math.cos(perp) * halfW, a.y + Math.sin(perp) * halfW);
@@ -1002,13 +1041,6 @@
       ctx.stroke();
     }
     ctx.restore();
-
-    const idx = Math.max(0, Math.min(99, boardTile - 1));
-    const rowFromBottom = Math.floor(idx / 10);
-    const colInRow = rowFromBottom % 2 === 0 ? (idx % 10) : (9 - (idx % 10));
-    const drawRow = 9 - rowFromBottom;
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
-    ctx.fillRect(left + colInRow * cw, top + drawRow * ch, cw, ch);
 
     ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
     ctx.lineWidth = 1.5;
