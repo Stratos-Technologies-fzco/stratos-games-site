@@ -38,6 +38,9 @@
   kbd{background:rgba(255,255,255,.2);border-radius:6px;padding:1px 8px;font-family:inherit}
   .hidden{display:none!important}
   #paused{font-size:44px;font-weight:700;text-shadow:0 3px 20px rgba(0,0,0,.5)}
+  button.daily{background:linear-gradient(90deg,#ff8ac2,#ffb36b);color:#3a0b2e;box-shadow:0 6px 0 #b8457e,0 10px 30px rgba(255,120,180,.3);margin-top:10px}
+  button.daily:active{box-shadow:0 3px 0 #b8457e}
+  .dinfo{font-size:15px;margin:8px 0 0;opacity:.95}.dinfo b{color:#ffe259}
   .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:center}
   button.alt{background:linear-gradient(90deg,#7afcff,#b69bff);color:#1d0b2e;box-shadow:0 6px 0 #5a3aa8,0 10px 30px rgba(120,160,255,.3)}
   button.alt:active{box-shadow:0 3px 0 #5a3aa8}
@@ -86,6 +89,8 @@
     <p>Run, jump and duck through a living world.</p>
     <div class="weathers">☀️🌇🌧️⛈️❄️🌫️🌙</div>
     <p style="font-size:14px;opacity:.85">A new sky every level, and every level gets faster.</p>
+    <button id="dailyBtn" class="daily">📅 Daily run</button>
+    <p id="dailyInfo" class="dinfo"></p>
     <div class="btnrow"><button id="startBtn">Play solo</button><button id="onlineBtn" class="alt">🌍 Race online</button></div>
     <div class="keys">
       <kbd>Space</kbd>/<kbd>↑</kbd> jump · <kbd>↓</kbd> duck · <kbd>←</kbd><kbd>→</kbd> change lane<br>
@@ -100,6 +105,7 @@
     <p id="overLevel" style="font-size:18px;opacity:.9"></p>
     <p id="finalScore" style="font-size:26px;font-weight:700"></p>
     <p id="finalBest" style="opacity:.9"></p>
+    <p id="dailyOver" class="dinfo hidden"></p>
     <button id="continueBtn" style="display:none">Keep going (Stratos Coins)</button>
     <button id="againBtn">Play again</button>
     <div class="keys">or press <kbd>Space</kbd></div>
@@ -1110,6 +1116,51 @@ const stratosCoins = () => { try { const P = window.Stratos || parent.Stratos; r
 let best = 0;
 try { best = parseInt(localStorage.getItem('momoDashBest') || '0', 10) || 0; } catch (e) { best = 0; }
 $('best').textContent = 'HI ' + best;
+
+/* ----- Daily run: today's road comes from the date, so it is the same for everyone. Clear level 1 to count the day.
+   Streak: one missed day is forgiven (at most once a week), so one busy day does not wipe a long streak. ----- */
+let daily = false, dailyRng = null, dailyCounted = false;
+const dayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const dayNum = k => { const [y, m, d] = k.split('-').map(Number); return Math.round(Date.UTC(y, m - 1, d) / 864e5); };
+const DAILY0 = { last: '', streak: 0, bestStreak: 0, forgivenOn: '', today: '', todayBest: 0 };
+function loadDaily() { try { return Object.assign({}, DAILY0, JSON.parse(localStorage.getItem('momoDaily') || '{}')); } catch (e) { return Object.assign({}, DAILY0); } }
+function saveDaily(D) { try { localStorage.setItem('momoDaily', JSON.stringify(D)); } catch (e) { } }
+function canForgive(D) { return !D.forgivenOn || dayNum(dayKey()) - dayNum(D.forgivenOn) >= 7; }
+// the streak as it stands today (0 once it has lapsed and cannot be forgiven)
+function liveStreak(D) {
+  if (!D.last) return 0;
+  const gap = dayNum(dayKey()) - dayNum(D.last);
+  if (gap <= 1) return D.streak;
+  if (gap === 2 && canForgive(D)) return D.streak;
+  return 0;
+}
+function renderDaily() {
+  const D = loadDaily(), k = dayKey(), st = liveStreak(D), done = D.last === k;
+  const bestToday = D.today === k ? D.todayBest : 0;
+  $('dailyInfo').innerHTML = (st > 0 ? '🔥 <b>' + st + ' day</b> streak · ' : '') +
+    (done ? '✅ Done today' + (bestToday ? ' · best <b>' + bestToday.toLocaleString() + '</b>' : '') + ' · come back tomorrow!'
+      : (st > 0 ? 'Clear level 1 today to keep it!' : 'A new road every day. Clear level 1 to start a streak!'));
+}
+function countDailyDay() {
+  const D = loadDaily(), k = dayKey();
+  if (D.last === k) return null;
+  const gap = D.last ? dayNum(k) - dayNum(D.last) : 99;
+  let how = 'new';
+  if (gap === 1) { D.streak++; how = 'kept'; }
+  else if (gap === 2 && canForgive(D)) { D.streak++; D.forgivenOn = k; how = 'forgiven'; }
+  else D.streak = 1;
+  D.last = k; D.bestStreak = Math.max(D.bestStreak, D.streak);
+  saveDaily(D);
+  track(how === 'forgiven' ? 'streak_forgiven' : how === 'kept' ? 'streak_kept' : 'streak_started', { streak: D.streak });
+  return { streak: D.streak, how };
+}
+function saveDailyScore(sc) {
+  const D = loadDaily(), k = dayKey();
+  if (D.today !== k) { D.today = k; D.todayBest = 0; }
+  const isBest = sc > D.todayBest; if (isBest) D.todayBest = sc;
+  saveDaily(D); return { best: D.todayBest, isBest };
+}
+renderDaily();
 const levelLen = l => Math.min(1300, 650 + (l - 1) * 110);
 const levelSpeed = l => Math.min(46, 17 + (l - 1) * 3.2);
 
@@ -1126,10 +1177,10 @@ function startLevel(n) {
   breakT = n === 1 ? 0.5 : 1.2; nextSpawn = n === 1 ? 30 : 22;
   const w = WEATHERS[(n - 1) % WEATHERS.length];
   setWeather(w);
-  $('lvlNum').textContent = 'LEVEL ' + n; $('lvlName').textContent = w.icon + ' ' + w.name;
+  $('lvlNum').textContent = (daily ? '📅 DAILY · LEVEL ' : 'LEVEL ') + n; $('lvlName').textContent = w.icon + ' ' + w.name;
   showBanner('Level ' + n, w.icon + ' ' + w.name + (n > 1 ? ' · Speed up!' : ''));
   SND.levelStart(); SND.play(w.song);
-  track('level_start', { level: n, weather: w.name });
+  track('level_start', { level: n, weather: w.name, mode: daily ? 'daily' : 'solo' });
 }
 function completeLevel() {
   levelDone = true; levelTimer = 3.0;
@@ -1137,9 +1188,16 @@ function completeLevel() {
   const b = 250 * level; bonus += b;
   SND.stop(0.3); SND.levelComplete();
   showBanner('Level ' + level + ' complete! 🎉', '+' + b + ' bonus');
+  if (daily && !dailyCounted) {
+    dailyCounted = true; const r = countDailyDay();
+    if (r) { track('daily_done', { streak: r.streak, score }); setTimeout(() => toastMsg(r.how === 'forgiven' ? 'Missed a day? Forgiven 💛 🔥 ' + r.streak + ' day streak!' : '🔥 ' + r.streak + ' day streak! See you tomorrow'), 900); }
+  }
   burst(new THREE.Vector3(player.x, 3, -2), [0xff5fa2, 0xffe259, 0x37b6ff, 0x5be37d, 0xb46bff, 0xffffff], isMobile ? 60 : 120, 7, { confetti: true, grav: 5, life: 2, spread: 3 });
 }
-function start() {
+function start(isDaily) {
+  daily = !!isDaily; dailyCounted = false;
+  dailyRng = daily ? seeded(dayNum(dayKey()) * 2654435761) : null;
+  if (daily) track('daily_start', { streak: liveStreak(loadDaily()) });
   SND.init(); SND.start();
   if (race || Net.client) leaveRoom(true);
   setMomoColor(0xff5fa2); player.group.visible = true;
@@ -1167,6 +1225,14 @@ function crash() {
     $('overLevel').textContent = `Reached level ${level} · ${WEATHERS[(level - 1) % WEATHERS.length].icon} ${WEATHERS[(level - 1) % WEATHERS.length].name}`;
     $('finalScore').textContent = `Score ${score}  ·  💎 ${gemCount}`;
     $('finalBest').textContent = isBest ? 'New best score! 🎉' : `Best ${best}`;
+    if (daily) {
+      const r = saveDailyScore(score), st = liveStreak(loadDaily());
+      $('dailyOver').innerHTML = loadDaily().last === dayKey()
+        ? '📅 Today\'s best <b>' + r.best.toLocaleString() + '</b>' + (r.isBest && r.best ? ' 🎉' : '') + ' · 🔥 <b>' + st + '</b> day streak'
+        : '📅 So close! Clear level 1 to count today' + (st ? ' and keep your <b>' + st + '</b> day streak' : '') + '.';
+    }
+    $('dailyOver').classList.toggle('hidden', !daily);
+    renderDaily();
     $('continueBtn').style.display = (!revived && stratosCoins()) ? '' : 'none';
     $('over').classList.remove('hidden');
     if (isBest) SND.newBest();
@@ -1208,9 +1274,9 @@ addEventListener('keydown', e => {
   if (e.target && e.target.tagName === 'INPUT') return;
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) e.preventDefault();
   if (k === 'KeyM') { const m = SND.toggleMute(); showBanner(m ? '🔇 Sound off' : '🔊 Sound on'); return; }
-  if (state === 'menu') { if ((k === 'Space' || k === 'Enter') && !$('menu').classList.contains('hidden')) start(); return; }
+  if (state === 'menu') { if ((k === 'Space' || k === 'Enter') && !$('menu').classList.contains('hidden')) start(false); return; }
   if (state === 'countdown' || state === 'raceEnd') return;
-  if (state === 'over') { if ((k === 'Space' || k === 'Enter') && canRestart) start(); return; }
+  if (state === 'over') { if ((k === 'Space' || k === 'Enter') && canRestart) start(daily); return; }
   if (k === 'KeyP' || k === 'Escape') { togglePause(); return; }
   if (paused || e.repeat) return;
   if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW') jump();
@@ -1228,8 +1294,9 @@ addEventListener('touchend', e => {
   if (Math.abs(dx) > Math.abs(dy)) moveLane(dx > 0 ? 1 : -1);
   else if (dy < 0) jump(); else player.duckTimer = 0.6;
 }, { passive: true });
-$('startBtn').addEventListener('click', start);
-$('againBtn').addEventListener('click', () => canRestart && start());
+$('startBtn').addEventListener('click', () => start(false));
+$('dailyBtn').addEventListener('click', () => start(true));
+$('againBtn').addEventListener('click', () => canRestart && start(daily));
 $('continueBtn').addEventListener('click', reviveRun);
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play' && !paused) togglePause(); });
 
@@ -1737,10 +1804,12 @@ function update(dt) {
       else if (breakT <= 0 && rem > 150) {
         nextSpawn -= v;
         if (nextSpawn <= 0) {
+          const saved = RNG; if (dailyRng) RNG = dailyRng;
           spawnPattern(-135);
           const tight = 1 - Math.min(0.25, (level - 1) * 0.04);
           nextSpawn = (Math.max(speed * 0.9, rand(15, 24)) + rand(0, speed * 0.5)) * tight;
           nextSpawn = Math.max(nextSpawn, speed * 0.8);
+          RNG = saved;
         }
       }
     } else { levelTimer -= dt; if (levelTimer <= 0) startLevel(level + 1); }

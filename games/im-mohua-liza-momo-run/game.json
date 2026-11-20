@@ -5,7 +5,7 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Computer: Space or Up to jump, Down to duck, Left and Right to change lanes. Phone: swipe up, down, left or right, or tap to jump. Race online: create a room and share the code, or join a friend's room.",
-  "description": "Momo Run is a 3D endless runner starring Momo, a little pink runner with a glowing antenna and a big love for gems. Run down a cobblestone road, collect gems and see how far you can go.\n\nJump over boulders and fallen logs, duck under wooden gates, and switch lanes around crate stacks and rolling barrels. Run through the FINISH gate to clear a level, grab the bonus, and the next level is a little faster under a brand-new sky: Sunny Meadow, Golden Sunset, Rainy Forest, a Thunderstorm with lightning, Snowfall, Misty Dawn and a Starry Night full of fireflies. Every weather has its own music, and gems chime higher when you chain them.\n\nPlay alone and chase your best score, or race 2 to 4 friends online. One person makes a room and shares the code, everyone runs the same road with the same gems, and the most points after 2 minutes wins. It is quick, cheerful and easy to pick up, so it suits kids, grown-ups and anyone with a few minutes to spare.",
+  "description": "Momo Run is a 3D endless runner starring Momo, a little pink runner with a glowing antenna and a big love for gems. Run down a cobblestone road, collect gems and see how far you can go.\n\nJump over boulders and fallen logs, duck under wooden gates, and switch lanes around crate stacks and rolling barrels. Run through the FINISH gate to clear a level, grab the bonus, and the next level is a little faster under a brand-new sky: Sunny Meadow, Golden Sunset, Rainy Forest, a Thunderstorm with lightning, Snowfall, Misty Dawn and a Starry Night full of fireflies. Every weather has its own music, and gems chime higher when you chain them.\n\nPlay alone and chase your best score, or race 2 to 4 friends online. One person makes a room and shares the code, everyone runs the same road with the same gems, and the most points after 2 minutes wins. It is quick, cheerful and easy to pick up, so it suits kids, grown-ups and anyone with a few minutes to spare. Every day there is also a Daily run: one new road for the day. Clear level 1 to count the day and grow your streak; miss one day and it is forgiven, so a busy day never wipes it.",
   "controls": [
     "Phone: swipe up to jump, down to duck, left or right to change lanes",
     "Phone: tap anywhere to jump",
@@ -15,8 +15,12 @@
   "tips": [
     "Watch the road ahead, not Momo. Each level gets faster.",
     "Stay in the middle lane when you can, so you can dodge either way.",
-    "Chain gems without a break to make them chime higher."
+    "Chain gems without a break to make them chime higher.",
+    "Play the Daily run every day to keep your streak; one missed day is forgiven"
   ],
   "story": "I wanted a happy runner game that anyone can pick up in a second. I made Momo with Claude, gave every level its own weather and music, and added online races so I can run against my friends.",
-  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
+  "resume": {
+    "supported": false,
+    "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"
+  }
 }
