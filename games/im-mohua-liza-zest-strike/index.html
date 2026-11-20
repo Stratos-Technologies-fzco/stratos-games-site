@@ -37,7 +37,7 @@ input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px soli
 .row{display:flex;align-items:center;gap:10px;margin:8px 0}
 .row span{flex:0 0 120px;font-size:14px}.row output{flex:0 0 44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--acc2)}
 input[type=range]{flex:1;accent-color:var(--acc)}
-.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;min-height:40px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}
 .seg button.on{background:var(--acc);color:#1a1006;border-color:var(--acc);font-weight:700}
 .big{display:block;width:100%;margin-top:18px;padding:15px;font-family:Bungee,sans-serif;font-size:22px;border:0;border-radius:14px;color:#1a1006;background:linear-gradient(180deg,#ffd23a,#ff8a1f);box-shadow:0 5px 0 #b65a0c}
 .big:active{transform:translateY(3px);box-shadow:0 2px 0 #b65a0c}
@@ -136,7 +136,7 @@ body.touch #msg{font-size:22px}body.touch #hint{bottom:auto;top:44%;font-size:14
 body.touch #scope .tip,body.touch #scope .side{display:none}
 body.touch #death{padding-bottom:4vh}body.touch #picks{pointer-events:auto}body.touch #picks div{padding:10px 14px;font-size:14px}
 body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
-.touchonly{display:none}body.touch .touchonly{display:block}
+.touchonly{display:none}body.touch .touchonly{display:block}body.touch #sets{display:none}body.touch.sets-open #sets{display:block}
 #rotate{z-index:40}#rotate .panel{max-width:320px;text-align:center}#rotate .ph{font-size:56px;display:inline-block;animation:turn 1.6s ease-in-out infinite}
 @keyframes turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
 #touchnote{z-index:30}#touchnote .panel{max-width:360px;text-align:center}#touchnote p{color:var(--dim);line-height:1.5;margin:14px 0 0}
@@ -212,6 +212,8 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
         <div class="weps" id="weps"></div>
       </div>
       <div>
+        <button class="ghost touchonly" id="setsBtn" style="width:100%;margin-top:12px">&#9881; Bots &amp; settings</button>
+        <div id="sets">
         <div class="lbl">Practice with bots</div>
         <div class="row"><span>Bots</span><input type="range" id="bots" min="2" max="9" step="1"><output id="botsv"></output></div>
         <div class="row"><span>Bot skill</span><div class="seg" id="diff" style="flex:1"><button data-v="0">Easy</button><button data-v="1">Normal</button><button data-v="2">Hard</button></div></div>
@@ -220,6 +222,7 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
         <div class="row deskonly"><span>Scope speed</span><input type="range" id="ssens" min="0.3" max="2" step="0.05"><output id="ssensv"></output></div>
         <div class="row deskonly"><span>Field of view</span><input type="range" id="fov" min="70" max="110" step="1"><output id="fovv"></output></div>
         <div class="row"><span>Volume</span><input type="range" id="vol" min="0" max="1" step="0.05"><output id="volv"></output></div>
+        </div>
         <div class="lbl">Controls</div>
         <div class="touchonly note" style="font-size:14px;line-height:1.6;color:var(--txt)">Left thumb: move (push far to run).<br>Right thumb: drag to look.<br>Hold <b>FIRE</b> to shoot, tap <b>AIM</b> to aim or open the scope.</div>
         <div class="keys">

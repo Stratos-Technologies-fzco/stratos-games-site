@@ -1505,6 +1505,7 @@ addEventListener('resize', fitPanels);
 const panelWatch = new MutationObserver(fitPanels);
 for (const el of document.querySelectorAll('.screen')) panelWatch.observe(el, { attributes: true, attributeFilter: ['class'] });
 fitPanels();
+$('setsBtn').addEventListener('click', () => { document.body.classList.toggle('sets-open'); fitPanels(); });
 
 // test hooks
 window.__zs = { get player() { return player; }, get bodies() { return bodies; }, get state() { return state; }, rayScene, raySphere, colliders, burst, tracer, splat, set state(v) { state = v; }, startMatch, step(dt) { step(dt); if (player) updateCamera(dt); }, keys, setMouse(l, r) { mouseL = l; mouseR = r; }, changeZoom, get aimT() { return aimT; }, get zoomCur() { return zoomCur; }, camera, S, Net, byId, get online() { return online; }, startOnline: async () => { await Net.start(); if (Net.c) startMatch(true); } };
