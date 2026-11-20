@@ -8,7 +8,7 @@
   <style>
     :root {
       --bg-deep: #18100c;
-      --bg-card: rgba(34, 22, 16, 0.9);
+      --bg-card: rgba(34, 22, 16, 0.92);
       --border-amber: rgba(245, 158, 11, 0.35);
       --amber: #f59e0b;
       --amber-light: #fde68a;
@@ -26,7 +26,6 @@
     }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* Compact HUD so the board looks bigger */
     #hud {
       position: fixed; top: 6px; left: 8px; right: 8px;
       display: flex; justify-content: space-between; align-items: center;
@@ -52,15 +51,20 @@
     }
     .pill.combo.active { opacity: 1; transform: scale(1); }
 
-    .btn-icon {
+    .btn-action, .btn-icon {
       pointer-events: auto; cursor: pointer;
       background: var(--bg-card);
       border: 1px solid var(--border-amber);
       color: var(--cream); border-radius: 999px;
-      padding: 4px 9px; font-size: 12px; font-weight: 700;
+      padding: 4px 10px; font-size: 11.5px; font-weight: 800;
       transition: transform 0.12s, border-color 0.15s;
     }
-    .btn-icon:hover { border-color: var(--amber); transform: scale(1.05); }
+    .btn-action {
+      background: linear-gradient(135deg, rgba(253, 230, 138, 0.22), rgba(245, 158, 11, 0.25));
+      border-color: var(--amber);
+      color: var(--amber-light);
+    }
+    .btn-action:hover, .btn-icon:hover { border-color: var(--amber-light); transform: scale(1.05); }
 
     #toast {
       position: fixed; top: 44px; left: 50%; transform: translateX(-50%) translateY(-6px);
@@ -162,36 +166,40 @@
       border-radius: 10px; padding: 6px 10px;
     }
 
-    #mobile-hop {
+    .mobile-controls {
       position: fixed; bottom: 16px; right: 16px;
-      width: 66px; height: 66px; border-radius: 50%;
+      display: none; gap: 10px; align-items: center;
+      z-index: 12; touch-action: manipulation;
+    }
+    #mobile-dice, #mobile-hop {
+      width: 58px; height: 58px; border-radius: 50%;
       background: rgba(245, 158, 11, 0.25);
       border: 2px solid rgba(253, 230, 138, 0.85);
       box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
-      color: var(--cream); font-weight: 800; font-size: 13px;
-      display: none; align-items: center; justify-content: center;
-      z-index: 12; touch-action: manipulation;
+      color: var(--cream); font-weight: 800; font-size: 11.5px;
+      display: flex; align-items: center; justify-content: center;
     }
-    @media (pointer: coarse) { #mobile-hop { display: flex; } }
+    @media (pointer: coarse) { .mobile-controls { display: flex; } }
   </style>
 </head>
 <body>
   <div id="hud">
     <div class="hud-group">
       <div class="pill emerald">TILE <span class="val" id="hud-tile">1/100</span></div>
-      <div class="pill">LADDER <span class="val" id="hud-lives">♥ 3</span></div>
+      <div class="pill">DICE <span class="val" id="hud-dice">🎲 -</span></div>
       <div class="pill">SCORE <span class="val" id="hud-score">0</span></div>
       <div class="pill">BEST <span class="val" id="hud-best">0</span></div>
       <div class="pill combo" id="hud-combo">CHAIN <span class="val" id="hud-combo-val">x2</span></div>
     </div>
     <div class="hud-group">
+      <button class="btn-action" id="btn-roll" title="Roll Dice (R)">🎲 ROLL</button>
       <div class="pill" id="hop-pill">HOP <span class="val" id="hud-hop">READY</span></div>
       <button class="btn-icon" id="btn-mute" title="Toggle Audio & Haptics (M)">🔊</button>
       <button class="btn-icon" id="btn-pause" title="Pause (P)">⏸</button>
     </div>
   </div>
 
-  <div id="toast">LADDER BOOST +4 TILES!</div>
+  <div id="toast">LADDER CLIMB! +12 TILES</div>
 
   <div id="overlay">
     <div class="card">
@@ -201,15 +209,15 @@
       </div>
       <h1 id="ov-title">SNAKE LADDER</h1>
       <p class="sub" id="ov-sub">
-        Big full-screen board! Starts slow with <strong>4× manual steering</strong>, glowing eyes &amp; growing tails
-        for both <strong>Ladders</strong> and <strong>Snakes</strong>, plus <strong>3 Ladder Charges</strong>.
+        Roll the <strong>Dice (R)</strong> or steer to collect gems, climb traditional <strong>Ladders</strong> up the board,
+        and enjoy calm, stress-free score climbing with a 50× slower wandering snake.
       </p>
       <div id="final-stats"></div>
       <div class="controls-grid">
-        <div class="ctrl-card"><strong>4× Manual Steer</strong>WASD, Arrows, or Drag</div>
-        <div class="ctrl-card"><strong>Ladder Stun Hop</strong>Space, Shift, or Tap HOP</div>
-        <div class="ctrl-card"><strong>Growing &amp; Glowing</strong>Longer tails, color &amp; eyes</div>
-        <div class="ctrl-card"><strong>Quick Keys</strong>P Pause • M Audio</div>
+        <div class="ctrl-card"><strong>Roll Dice</strong>Tap ROLL or press R (1–6)</div>
+        <div class="ctrl-card"><strong>Traditional Ladders</strong>Climb from ladder base to top</div>
+        <div class="ctrl-card"><strong>Easy Steer</strong>Drag finger/mouse or WASD/Arrows</div>
+        <div class="ctrl-card"><strong>Hop &amp; Pause</strong>Space/HOP to hop • P Pause</div>
       </div>
       <div class="lb-box">
         <div class="lb-title"><span>Top 5 Climbers</span><span>Score • Tile</span></div>
@@ -223,13 +231,28 @@
     </div>
   </div>
 
-  <button id="mobile-hop">HOP</button>
+  <div class="mobile-controls">
+    <button id="mobile-dice">🎲</button>
+    <button id="mobile-hop">HOP</button>
+  </div>
   <canvas id="game"></canvas>
 
 <script>
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+
+  // Traditional Snake & Ladder jumps (base tile -> top tile)
+  const BOARD_LADDERS = {
+    4: 25,
+    13: 46,
+    33: 49,
+    42: 63,
+    50: 69,
+    62: 81,
+    74: 92
+  };
+  const LADDER_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
   function trackEvent(name, data = {}) {
     try {
@@ -240,7 +263,7 @@
   }
 
   const hudTile = document.getElementById('hud-tile');
-  const hudLives = document.getElementById('hud-lives');
+  const hudDice = document.getElementById('hud-dice');
   const hudScore = document.getElementById('hud-score');
   const hudBest = document.getElementById('hud-best');
   const hudCombo = document.getElementById('hud-combo');
@@ -256,8 +279,10 @@
   const btnContinue = document.getElementById('btn-continue');
   const btnStart = document.getElementById('btn-start');
   const btnTestAv = document.getElementById('btn-test-av');
+  const btnRoll = document.getElementById('btn-roll');
   const btnMute = document.getElementById('btn-mute');
   const btnPause = document.getElementById('btn-pause');
+  const mobileDice = document.getElementById('mobile-dice');
   const mobileHop = document.getElementById('mobile-hop');
 
   const SCORE_KEY = 'stratos_snake_ladder_top5_v2';
@@ -308,7 +333,7 @@
 
   function saveActiveRun() {
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ score, boardTile, ladderCharges }));
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ score, boardTile, lastDice }));
     } catch {}
   }
 
@@ -357,7 +382,7 @@
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
 
-  function haptic(ms = 20) {
+  function haptic(ms = 16) {
     if (!muted && navigator.vibrate) {
       try { navigator.vibrate(ms); } catch {}
     }
@@ -382,21 +407,17 @@
   function sfxGem(chainCount = 1) {
     const pitchBoost = Math.min(1.6, 1 + (chainCount - 1) * 0.08);
     playTone(523.25 * pitchBoost, 0.1, 'triangle', 0.11, 783.99 * pitchBoost);
-    haptic(18);
+    haptic(14);
   }
   function sfxHop() {
     playTone(280, 0.2, 'sine', 0.11, 620);
-    haptic(25);
+    haptic(16);
   }
   function sfxLadderBoost() {
     [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => {
       setTimeout(() => playTone(n, 0.16, 'triangle', 0.1), i * 60);
     });
-    haptic([25, 30, 40]);
-  }
-  function sfxBite() {
-    playTone(185, 0.42, 'sawtooth', 0.13, 46);
-    haptic([60, 40, 80]);
+    haptic([20, 25, 30]);
   }
 
   btnMute.addEventListener('click', () => {
@@ -412,8 +433,9 @@
   let state = 'MENU';
   let score = 0;
   let boardTile = 1;
-  let ladderCharges = 3;
-  let invulnTimer = 0;
+  let lastDice = null;
+  let diceCooldown = 0;
+  let bumpCooldown = 0;
   let chainCount = 0;
   let chainTimer = 0;
   let shakeTimer = 0;
@@ -423,24 +445,22 @@
 
   const player = {
     x: 0, y: 0, vx: 0, vy: 0,
-    angle: 0, radius: 15,
+    angle: 0, radius: 9,
     hopTimer: 0, hopCooldown: 0,
-    shieldTimer: 0,
     tailHistory: []
   };
 
   const snake = {
     x: 0, y: 0, angle: 0,
-    stunTimer: 0,
-    surgeTimer: 0,
+    wanderAngle: 0,
+    wanderTimer: 0,
     wavePhase: 0,
     segments: [],
-    segmentCount: 24,
-    segmentSpacing: 9
+    segmentCount: 22,
+    segmentSpacing: 6.5
   };
 
   let gems = [];
-  let powerups = [];
   let particles = [];
   let floatingPopups = [];
 
@@ -450,6 +470,9 @@
 
   window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
+    if (e.code === 'KeyR' && state === 'PLAYING') {
+      rollDice();
+    }
     if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
       if (state === 'PLAYING') triggerHop();
       else if (state === 'MENU' || state === 'GAMEOVER') startGame(false);
@@ -473,6 +496,17 @@
   });
   window.addEventListener('pointerup', () => { pointerActive = false; });
 
+  btnRoll.addEventListener('click', () => {
+    if (state === 'PLAYING') rollDice();
+  });
+  mobileDice.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (state === 'PLAYING') rollDice();
+  }, { passive: false });
+  mobileDice.addEventListener('click', () => {
+    if (state === 'PLAYING') rollDice();
+  });
+
   mobileHop.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (state === 'PLAYING') triggerHop();
@@ -492,10 +526,71 @@
   }
   btnPause.addEventListener('click', togglePause);
 
-  function pushSnakeBack(dist = 80) {
+  function getTileCenter(tileNum) {
+    const left = 4, top = 34, right = W - 4, bottom = H - 4;
+    const bw = right - left, bh = bottom - top;
+    const cw = bw / 10, ch = bh / 10;
+    const idx = Math.max(0, Math.min(99, tileNum - 1));
+    const rowFromBottom = Math.floor(idx / 10);
+    const colInRow = rowFromBottom % 2 === 0 ? (idx % 10) : (9 - (idx % 10));
+    const drawRow = 9 - rowFromBottom;
+    return {
+      x: left + (colInRow + 0.5) * cw,
+      y: top + (drawRow + 0.5) * ch
+    };
+  }
+
+  function applyLadderClimb(fromTile, extraBonus = 200) {
+    const destTile = BOARD_LADDERS[fromTile];
+    if (!destTile) return false;
+    boardTile = Math.min(100, destTile);
+    score += extraBonus;
+    const pos = getTileCenter(boardTile);
+    player.x = pos.x;
+    player.y = pos.y;
+    sfxLadderBoost();
+    spawnBurst(player.x, player.y, '#fde68a', 20);
+    addPopup(player.x, player.y - 12, `LADDER → ${boardTile}! +${extraBonus}`, '#fde68a');
+    showToast(`TRADITIONAL LADDER! CLIMBED TO TILE ${boardTile}`);
+    return true;
+  }
+
+  function rollDice() {
+    if (diceCooldown > 0) return;
+    initAudio();
+    const rolled = 1 + Math.floor(Math.random() * 6);
+    lastDice = rolled;
+    diceCooldown = 0.55;
+    playTone(440 + rolled * 45, 0.14, 'triangle', 0.1, 660 + rolled * 50);
+    haptic(15);
+
+    boardTile = Math.min(100, boardTile + rolled);
+    score += rolled * 30;
+    const pos = getTileCenter(boardTile);
+    player.x = pos.x;
+    player.y = pos.y;
+    addPopup(player.x, player.y - 10, `🎲 ${rolled} → TILE ${boardTile}`, '#6ee7b7');
+
+    // Traditional ladder move if landing on a ladder base
+    if (BOARD_LADDERS[boardTile]) {
+      applyLadderClimb(boardTile, 250);
+    } else {
+      showToast(`ROLLED ${LADDER_FACES[rolled - 1]} (${rolled}) • TILE ${boardTile}/100`);
+    }
+
+    saveActiveRun();
+    updateHud();
+    if (boardTile >= 100) {
+      score += 1000;
+      finishSummitRun();
+    }
+  }
+
+  function nudgeSnakeAway(dist = 42) {
     const awayAngle = Math.atan2(snake.y - player.y, snake.x - player.x);
     snake.x = Math.max(24, Math.min(W - 24, snake.x + Math.cos(awayAngle) * dist));
     snake.y = Math.max(44, Math.min(H - 24, snake.y + Math.sin(awayAngle) * dist));
+    snake.wanderAngle = awayAngle + (Math.random() - 0.5) * 1.2;
     for (let i = 0; i < snake.segments.length; i++) {
       snake.segments[i].x -= Math.cos(awayAngle) * dist * (1 - i / snake.segments.length);
       snake.segments[i].y -= Math.sin(awayAngle) * dist * (1 - i / snake.segments.length);
@@ -504,20 +599,18 @@
 
   function triggerHop() {
     if (player.hopCooldown <= 0 && player.hopTimer <= 0) {
-      player.hopTimer = 0.46;
-      player.hopCooldown = 1.05;
+      player.hopTimer = 0.45;
+      player.hopCooldown = 0.85;
       sfxHop();
-      spawnBurst(player.x, player.y, '#fde68a', 15);
+      spawnBurst(player.x, player.y, '#fde68a', 12);
 
       const distToSnake = Math.hypot(snake.x - player.x, snake.y - player.y);
-      if (distToSnake < 140) {
-        snake.stunTimer = 2.5;
-        snake.surgeTimer = 0;
-        pushSnakeBack(90);
+      if (distToSnake < 90) {
+        nudgeSnakeAway(48);
         score += 120;
         sfxLadderBoost();
-        showToast('LADDER SLAM! SNAKE STUNNED (+120)');
-        addPopup(snake.x, snake.y - 14, 'STUNNED +120!', '#fde68a');
+        showToast('FRIENDLY HOP! +120 SCORE');
+        addPopup(snake.x, snake.y - 12, 'HOP +120!', '#fde68a');
       }
     }
   }
@@ -529,22 +622,22 @@
     toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2000);
   }
 
-  function triggerShake(duration = 0.22, intensity = 5) {
+  function triggerShake(duration = 0.16, intensity = 3) {
     shakeTimer = duration;
     shakeIntensity = intensity;
   }
 
-  function spawnBurst(x, y, color, count = 16) {
+  function spawnBurst(x, y, color, count = 14) {
     for (let i = 0; i < count; i++) {
       const a = (Math.PI * 2 * i) / count + Math.random() * 0.4;
-      const spd = 65 + Math.random() * 180;
+      const spd = 50 + Math.random() * 140;
       particles.push({
         x, y,
         vx: Math.cos(a) * spd,
         vy: Math.sin(a) * spd,
-        life: 0.42 + Math.random() * 0.28,
-        maxLife: 0.7,
-        size: 2.5 + Math.random() * 3,
+        life: 0.4 + Math.random() * 0.25,
+        maxLife: 0.65,
+        size: 2 + Math.random() * 2.2,
         color
       });
     }
@@ -554,8 +647,8 @@
     floatingPopups.push({ x, y, text, color, life: 0.85, maxLife: 0.85 });
   }
 
-  function safeSpawnCoords(minDistFromPlayer = 130) {
-    const pad = 42;
+  function safeSpawnCoords(minDistFromPlayer = 90) {
+    const pad = 34;
     for (let attempt = 0; attempt < 25; attempt++) {
       const x = pad + Math.random() * Math.max(100, W - pad * 2);
       const y = pad + 26 + Math.random() * Math.max(100, H - pad * 2 - 26);
@@ -567,18 +660,12 @@
   }
 
   function spawnGem() {
-    const pos = safeSpawnCoords(115);
+    const pos = safeSpawnCoords(90);
     gems.push({
       x: pos.x, y: pos.y,
       pulse: Math.random() * Math.PI * 2,
-      ladder: Math.random() < 0.26
+      ladder: Math.random() < 0.28
     });
-  }
-
-  function spawnShield() {
-    if (powerups.length >= 1) return;
-    const pos = safeSpawnCoords(160);
-    powerups.push({ x: pos.x, y: pos.y, pulse: 0 });
   }
 
   function startGame(resumeSaved = false) {
@@ -586,42 +673,42 @@
     const saved = resumeSaved ? checkSavedRun() : null;
     score = saved ? saved.score : 0;
     boardTile = saved ? saved.boardTile : 1;
-    ladderCharges = saved && saved.ladderCharges ? saved.ladderCharges : 3;
-    invulnTimer = 1.0;
+    lastDice = saved && saved.lastDice ? saved.lastDice : null;
+    diceCooldown = 0;
+    bumpCooldown = 0;
     chainCount = 0;
     chainTimer = 0;
     shakeTimer = 0;
     timeElapsed = 0;
     particles = [];
     floatingPopups = [];
-    powerups = [];
     gems = [];
 
-    player.x = W * 0.25;
-    player.y = H * 0.54;
+    const startPos = getTileCenter(boardTile);
+    player.x = startPos.x;
+    player.y = startPos.y;
     player.vx = 0;
     player.vy = 0;
     player.angle = 0;
     player.hopTimer = 0;
     player.hopCooldown = 0;
-    player.shieldTimer = 0;
     player.tailHistory = [];
-    for (let i = 0; i < 24; i++) {
-      player.tailHistory.push({ x: player.x - i * 4, y: player.y });
+    for (let i = 0; i < 20; i++) {
+      player.tailHistory.push({ x: player.x - i * 3, y: player.y });
     }
 
-    snake.x = W * 0.82;
+    snake.x = W * 0.78;
     snake.y = H * 0.54;
-    snake.angle = Math.PI;
-    snake.stunTimer = 1.4;
-    snake.surgeTimer = 0;
-    snake.segmentCount = 24;
+    snake.wanderAngle = Math.PI * 0.75;
+    snake.angle = snake.wanderAngle;
+    snake.wanderTimer = 1.5;
+    snake.segmentCount = 22;
     snake.segments = [];
     for (let i = 0; i < snake.segmentCount; i++) {
       snake.segments.push({ x: snake.x + i * snake.segmentSpacing, y: snake.y });
     }
 
-    for (let i = 0; i < 4; i++) spawnGem();
+    for (let i = 0; i < 5; i++) spawnGem();
 
     overlay.classList.add('hidden');
     finalStats.style.display = 'none';
@@ -629,28 +716,20 @@
     btnPause.textContent = '⏸';
     updateHud();
     trackEvent('level_start', { tile: boardTile, resumed: Boolean(saved) });
-    showToast('SLOW START • 4× MANUAL STEER READY!');
+    showToast('ROLL DICE (R) OR STEER TO GEMS & LADDERS!');
   }
 
   btnStart.addEventListener('click', () => startGame(false));
   btnContinue.addEventListener('click', () => startGame(true));
 
-  function finishRun(wonSummit = false) {
+  function finishSummitRun() {
     state = 'GAMEOVER';
     clearSavedRun();
-    if (wonSummit) {
-      sfxLadderBoost();
-      spawnBurst(player.x, player.y, '#fbbf24', 42);
-      ovTitle.textContent = 'TILE 100 SUMMIT!';
-      ovSub.textContent = 'You conquered the Snake Ladder board! Start another climb to beat your high score.';
-      trackEvent('level_complete', { score, tile: boardTile });
-    } else {
-      sfxBite();
-      spawnBurst(player.x, player.y, '#ef4444', 34);
-      ovTitle.textContent = 'LADDER CHARGES DEPLETED';
-      ovSub.textContent = 'Use manual steering (4× faster than the snake) and Hop to stun & push the snake back.';
-      trackEvent('game_over', { score, tile: boardTile });
-    }
+    sfxLadderBoost();
+    spawnBurst(player.x, player.y, '#fbbf24', 36);
+    ovTitle.textContent = 'TILE 100 SUMMIT!';
+    ovSub.textContent = 'You reached Tile 100! Tap Climb Again to keep building your score.';
+    trackEvent('level_complete', { score, tile: boardTile });
     saveScoreToTop5(score, boardTile);
     renderTop5();
 
@@ -663,7 +742,7 @@
 
   function updateHud() {
     hudTile.textContent = `${boardTile}/100`;
-    hudLives.textContent = `♥ ${ladderCharges}`;
+    hudDice.textContent = lastDice ? `${LADDER_FACES[lastDice - 1]} ${lastDice}` : '🎲 -';
     hudScore.textContent = score;
 
     if (chainCount >= 2 && chainTimer > 0) {
@@ -674,7 +753,7 @@
     }
 
     if (player.hopTimer > 0) {
-      hudHop.textContent = 'SLAM HOP';
+      hudHop.textContent = 'HOPPING';
       hudHop.style.color = '#fde68a';
     } else if (player.hopCooldown > 0) {
       hudHop.textContent = `${player.hopCooldown.toFixed(1)}s`;
@@ -689,28 +768,17 @@
     if (state !== 'PLAYING') return;
     timeElapsed += dt;
 
-    // Starts slow at 155 px/s and ramps gently as boardTile climbs
-    const progressFactor = 1 + (boardTile - 1) * 0.004;
-    const baseSpeed = 155 * progressFactor;
+    const progressFactor = 1 + (boardTile - 1) * 0.003;
+    const baseSpeed = 165 * progressFactor;
+    const snakeSpeed = (baseSpeed * 0.60) / 50;
+    const manualSteerSpeed = baseSpeed * 1.45;
+    const hopMult = player.hopTimer > 0 ? 1.2 : 1.0;
 
     if (player.hopTimer > 0) player.hopTimer = Math.max(0, player.hopTimer - dt);
     if (player.hopCooldown > 0) player.hopCooldown = Math.max(0, player.hopCooldown - dt);
-    if (player.shieldTimer > 0) player.shieldTimer = Math.max(0, player.shieldTimer - dt);
-    if (snake.stunTimer > 0) snake.stunTimer = Math.max(0, snake.stunTimer - dt);
-    if (snake.surgeTimer > 0) snake.surgeTimer = Math.max(0, snake.surgeTimer - dt);
-    if (invulnTimer > 0) invulnTimer = Math.max(0, invulnTimer - dt);
+    if (diceCooldown > 0) diceCooldown = Math.max(0, diceCooldown - dt);
+    if (bumpCooldown > 0) bumpCooldown = Math.max(0, bumpCooldown - dt);
     if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
-
-    // Periodic Snake Coil Surge opportunity every ~7s when not stunned
-    if (snake.stunTimer <= 0 && snake.surgeTimer <= 0 && Math.floor(timeElapsed) % 7 === 0 && (timeElapsed % 7) < 0.06) {
-      snake.surgeTimer = 1.6;
-      showToast('SNAKE COIL SURGE — WATCH GLOWING EYES!');
-    }
-
-    const surgeMult = snake.surgeTimer > 0 ? 1.25 : 1.0;
-    const snakeSpeed = baseSpeed * 0.60 * surgeMult;
-    const manualSteerSpeed = (baseSpeed * 0.60) * 4.0;
-    const hopMult = player.hopTimer > 0 ? 1.25 : 1.0;
 
     if (chainTimer > 0) {
       chainTimer = Math.max(0, chainTimer - dt);
@@ -733,50 +801,53 @@
       const dx = pointerX - player.x;
       const dy = pointerY - player.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 6) {
-        const factor = Math.min(1, dist / 45);
-        player.vx = (dx / dist) * manualSteerSpeed * hopMult * Math.max(0.35, factor);
-        player.vy = (dy / dist) * manualSteerSpeed * hopMult * Math.max(0.35, factor);
+      if (dist > 5) {
+        const factor = Math.min(1, dist / 36);
+        player.vx = (dx / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
+        player.vy = (dy / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
         player.angle = Math.atan2(dy, dx);
       } else {
-        player.vx *= 0.78;
-        player.vy *= 0.78;
+        player.vx *= 0.8;
+        player.vy *= 0.8;
       }
     } else {
-      player.vx *= 0.78;
-      player.vy *= 0.78;
+      player.vx *= 0.82;
+      player.vy *= 0.82;
     }
 
     player.x += player.vx * dt;
     player.y += player.vy * dt;
 
-    const margin = 14;
+    const margin = 12;
     player.x = Math.max(margin, Math.min(W - margin, player.x));
-    player.y = Math.max(margin + 28, Math.min(H - margin, player.y));
+    player.y = Math.max(margin + 26, Math.min(H - margin, player.y));
 
-    // Ladder tail grows longer as boardTile climbs (up to 36 nodes)
-    const desiredTailLen = Math.min(36, 22 + Math.floor(boardTile * 0.14));
+    const desiredTailLen = Math.min(28, 16 + Math.floor(boardTile * 0.1));
     player.tailHistory.unshift({ x: player.x, y: player.y });
     while (player.tailHistory.length > desiredTailLen) player.tailHistory.pop();
 
-    if (snake.stunTimer <= 0) {
-      const targetAngle = Math.atan2(player.y - snake.y, player.x - snake.x);
-      let diff = targetAngle - snake.angle;
-      while (diff > Math.PI) diff -= Math.PI * 2;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      const turnRate = 2.6 + Math.min(1.1, boardTile * 0.008);
-      snake.angle += Math.sign(diff) * Math.min(Math.abs(diff), turnRate * dt);
-
-      snake.wavePhase += dt * 6.5;
-      const slitherOffset = Math.sin(snake.wavePhase) * 0.32;
-      const moveAngle = snake.angle + slitherOffset;
-
-      snake.x += Math.cos(moveAngle) * snakeSpeed * dt;
-      snake.y += Math.sin(moveAngle) * snakeSpeed * dt;
+    snake.wanderTimer -= dt;
+    if (snake.wanderTimer <= 0) {
+      snake.wanderTimer = 1.6 + Math.random() * 1.8;
+      const pad = 48;
+      if (snake.x < pad || snake.x > W - pad || snake.y < pad + 26 || snake.y > H - pad) {
+        snake.wanderAngle = Math.atan2(H * 0.52 - snake.y, W * 0.5 - snake.x);
+      } else {
+        snake.wanderAngle += (Math.random() - 0.5) * 1.9;
+      }
     }
 
-    // Snake grows longer both over time and as boardTile climbs (up to 64 segments)
-    const desiredSegments = Math.min(64, 24 + Math.floor(timeElapsed * 0.45) + Math.floor(boardTile * 0.2));
+    let diff = snake.wanderAngle - snake.angle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    snake.angle += Math.sign(diff) * Math.min(Math.abs(diff), 1.4 * dt);
+
+    snake.wavePhase += dt * 4.2;
+    const moveAngle = snake.angle + Math.sin(snake.wavePhase) * 0.25;
+    snake.x += Math.cos(moveAngle) * snakeSpeed * dt;
+    snake.y += Math.sin(moveAngle) * snakeSpeed * dt;
+
+    const desiredSegments = Math.min(46, 22 + Math.floor(timeElapsed * 0.35) + Math.floor(boardTile * 0.14));
     while (snake.segments.length < desiredSegments) {
       const last = snake.segments[snake.segments.length - 1];
       snake.segments.push({ x: last.x, y: last.y });
@@ -798,8 +869,8 @@
 
     for (let i = gems.length - 1; i >= 0; i--) {
       const g = gems[i];
-      g.pulse += dt * 5;
-      if (Math.hypot(player.x - g.x, player.y - g.y) < player.radius + 17) {
+      g.pulse += dt * 4.5;
+      if (Math.hypot(player.x - g.x, player.y - g.y) < player.radius + 13) {
         gems.splice(i, 1);
 
         if (chainTimer > 0) chainCount++;
@@ -813,16 +884,15 @@
 
         const tileJump = g.ladder ? 4 : 1;
         boardTile = Math.min(100, boardTile + tileJump);
-        saveActiveRun();
 
         if (g.ladder) {
           sfxLadderBoost();
           showToast(`LADDER BOOST! +${tileJump} TILES (+${pts})`);
-          spawnBurst(g.x, g.y, '#f59e0b', 24);
-          addPopup(g.x, g.y - 12, `LADDER +${tileJump}!`, '#fde68a');
+          spawnBurst(g.x, g.y, '#f59e0b', 18);
+          addPopup(g.x, g.y - 10, `LADDER +${tileJump}!`, '#fde68a');
         } else {
           sfxGem(chainCount);
-          spawnBurst(g.x, g.y, '#10b981', 16);
+          spawnBurst(g.x, g.y, '#10b981', 14);
           if (chainCount >= 2) {
             addPopup(g.x, g.y - 10, `x${chainCount} (+${pts})`, '#fde68a');
           } else {
@@ -830,63 +900,37 @@
           }
         }
 
-        if (chainCount >= 4) triggerShake(0.24, 5.5);
+        // Climb up a traditional ladder if standing on or near its base tile
+        if (BOARD_LADDERS[boardTile]) {
+          applyLadderClimb(boardTile, 200);
+        }
+
+        saveActiveRun();
+
+        if (chainCount >= 4) triggerShake(0.16, 3);
 
         if (boardTile >= 100) {
           score += 1000;
-          finishRun(true);
+          finishSummitRun();
           return;
         }
 
         spawnGem();
-        if (boardTile % 7 === 0 && powerups.length === 0) spawnShield();
       }
     }
 
-    for (let i = powerups.length - 1; i >= 0; i--) {
-      const p = powerups[i];
-      p.pulse += dt * 4.5;
-      if (Math.hypot(player.x - p.x, player.y - p.y) < player.radius + 18) {
-        powerups.splice(i, 1);
-        player.shieldTimer = 6.0;
-        snake.stunTimer = 2.6;
-        if (ladderCharges < 3) ladderCharges++;
-        score += 150;
-        sfxLadderBoost();
-        showToast('LADDER POWERUP! SHIELD + SNAKE STUN');
-        spawnBurst(p.x, p.y, '#f59e0b', 22);
-      }
-    }
-
-    if (invulnTimer <= 0 && snake.stunTimer <= 0) {
+    if (bumpCooldown <= 0) {
       for (let i = 0; i < snake.segments.length; i++) {
         const seg = snake.segments[i];
-        const segRadius = i === 0 ? 15 : Math.max(5, 13 * (1 - i / (snake.segments.length * 1.15)));
-        if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + segRadius - 3) {
-          if (player.hopTimer > 0 || player.shieldTimer > 0) {
-            snake.stunTimer = 2.5;
-            pushSnakeBack(95);
-            score += 150;
-            sfxLadderBoost();
-            spawnBurst(seg.x, seg.y, '#fde68a', 24);
-            addPopup(seg.x, seg.y - 10, 'OVERPOWERED +150!', '#fde68a');
-            showToast('LADDER OVERPOWERED SNAKE! +150');
-          } else {
-            ladderCharges--;
-            invulnTimer = 1.35;
-            snake.stunTimer = 1.6;
-            pushSnakeBack(90);
-            boardTile = Math.max(1, boardTile - 3);
-            triggerShake(0.28, 6);
-            sfxBite();
-            spawnBurst(player.x, player.y, '#ef4444', 24);
-            saveActiveRun();
-            if (ladderCharges <= 0) {
-              finishRun(false);
-              return;
-            }
-            showToast(`LADDER CHARGE USED! ${ladderCharges} LEFT`);
-          }
+        const segRadius = i === 0 ? 8 : Math.max(2.5, 7 * (1 - i / (snake.segments.length * 1.15)));
+        if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + segRadius) {
+          bumpCooldown = 0.9;
+          nudgeSnakeAway(36);
+          score += 50;
+          sfxGem(1);
+          spawnBurst(seg.x, seg.y, '#fde68a', 12);
+          addPopup(seg.x, seg.y - 10, 'GENTLE BOUNCE +50!', '#fde68a');
+          showToast('SNAKE BOUNCED! KEEP CLIMBING (+50)');
           break;
         }
       }
@@ -904,7 +948,7 @@
 
     for (let i = floatingPopups.length - 1; i >= 0; i--) {
       const fp = floatingPopups[i];
-      fp.y -= 34 * dt;
+      fp.y -= 30 * dt;
       fp.life -= dt;
       if (fp.life <= 0) floatingPopups.splice(i, 1);
     }
@@ -912,59 +956,88 @@
     updateHud();
   }
 
-  // Full-bleed bigger board
   function drawBoard() {
     ctx.fillStyle = '#18100c';
     ctx.fillRect(0, 0, W, H);
 
-    const left = 4, top = 36, right = W - 4, bottom = H - 4;
+    const left = 4, top = 34, right = W - 4, bottom = H - 4;
     const bw = right - left, bh = bottom - top;
     const cols = 10, rows = 10;
     const cw = bw / cols, ch = bh / rows;
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(245, 158, 11, 0.04)' : 'rgba(255, 255, 255, 0.015)';
+        ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(245, 158, 11, 0.035)' : 'rgba(255, 255, 255, 0.012)';
         ctx.fillRect(left + c * cw, top + r * ch, cw, ch);
       }
     }
+
+    // Draw traditional board ladders connecting base -> top tiles
+    ctx.save();
+    for (const [baseStr, topTile] of Object.entries(BOARD_LADDERS)) {
+      const baseTile = Number(baseStr);
+      const a = getTileCenter(baseTile);
+      const b = getTileCenter(topTile);
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
+      const perp = angle + Math.PI / 2;
+      const halfW = 5;
+
+      ctx.strokeStyle = 'rgba(253, 230, 138, 0.34)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(a.x + Math.cos(perp) * halfW, a.y + Math.sin(perp) * halfW);
+      ctx.lineTo(b.x + Math.cos(perp) * halfW, b.y + Math.sin(perp) * halfW);
+      ctx.moveTo(a.x - Math.cos(perp) * halfW, a.y - Math.sin(perp) * halfW);
+      ctx.lineTo(b.x - Math.cos(perp) * halfW, b.y - Math.sin(perp) * halfW);
+
+      const dist = Math.hypot(b.x - a.x, b.y - a.y);
+      const rungs = Math.max(3, Math.floor(dist / 16));
+      for (let r = 1; r < rungs; r++) {
+        const t = r / rungs;
+        const rx = a.x + (b.x - a.x) * t;
+        const ry = a.y + (b.y - a.y) * t;
+        ctx.moveTo(rx + Math.cos(perp) * halfW, ry + Math.sin(perp) * halfW);
+        ctx.lineTo(rx - Math.cos(perp) * halfW, ry - Math.sin(perp) * halfW);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
 
     const idx = Math.max(0, Math.min(99, boardTile - 1));
     const rowFromBottom = Math.floor(idx / 10);
     const colInRow = rowFromBottom % 2 === 0 ? (idx % 10) : (9 - (idx % 10));
     const drawRow = 9 - rowFromBottom;
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.18)';
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
     ctx.fillRect(left + colInRow * cw, top + drawRow * ch, cw, ch);
 
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+    ctx.lineWidth = 1.5;
     ctx.strokeRect(left, top, bw, bh);
   }
 
-  function drawGemsAndPowerups() {
-    const ladderGlowBoost = Math.min(14, boardTile * 0.12);
+  function drawGems() {
+    const ladderGlowBoost = Math.min(12, boardTile * 0.1);
     for (const g of gems) {
-      const r = 11 + Math.sin(g.pulse) * 2.2;
+      const r = 7 + Math.sin(g.pulse) * 1.4;
       ctx.save();
       ctx.translate(g.x, g.y);
 
       if (g.ladder) {
-        // Ladder rungs grow slightly & glow brighter as tile rises
-        const rungScale = 1 + Math.min(0.35, boardTile * 0.003);
+        const rungScale = 1 + Math.min(0.25, boardTile * 0.002);
         ctx.scale(rungScale, rungScale);
-        ctx.shadowBlur = 18 + ladderGlowBoost;
+        ctx.shadowBlur = 14 + ladderGlowBoost;
         ctx.shadowColor = '#fbbf24';
         ctx.strokeStyle = '#fef08a';
-        ctx.lineWidth = 3.2;
+        ctx.lineWidth = 2.4;
         ctx.beginPath();
-        ctx.moveTo(-6, -11); ctx.lineTo(-6, 11);
-        ctx.moveTo(6, -11); ctx.lineTo(6, 11);
-        ctx.moveTo(-6, -5); ctx.lineTo(6, -5);
-        ctx.moveTo(-6, 1); ctx.lineTo(6, 1);
-        ctx.moveTo(-6, 7); ctx.lineTo(6, 7);
+        ctx.moveTo(-4.5, -8); ctx.lineTo(-4.5, 8);
+        ctx.moveTo(4.5, -8); ctx.lineTo(4.5, 8);
+        ctx.moveTo(-4.5, -4); ctx.lineTo(4.5, -4);
+        ctx.moveTo(-4.5, 0); ctx.lineTo(4.5, 0);
+        ctx.moveTo(-4.5, 4); ctx.lineTo(4.5, 4);
         ctx.stroke();
       } else {
-        ctx.shadowBlur = 16 + ladderGlowBoost * 0.6;
+        ctx.shadowBlur = 12 + ladderGlowBoost * 0.5;
         ctx.shadowColor = '#10b981';
         ctx.fillStyle = '#34d399';
         ctx.beginPath();
@@ -977,56 +1050,27 @@
       }
       ctx.restore();
     }
-
-    for (const p of powerups) {
-      const r = 13 + Math.sin(p.pulse) * 2.5;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.shadowBlur = 22;
-      ctx.shadowColor = '#f59e0b';
-      ctx.strokeStyle = '#fde68a';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.28)';
-      ctx.fill();
-      ctx.restore();
-    }
   }
 
-  // Snake shifts color over time & tile progress + glowing eyes
   function getSnakeHue(index) {
-    const baseHue = (timeElapsed * 28 + boardTile * 3.5 + index * 5) % 360;
-    return Math.round(baseHue);
+    return Math.round((timeElapsed * 24 + boardTile * 3 + index * 5) % 360);
   }
 
   function drawSnake() {
     if (!snake.segments.length) return;
-    const stunned = snake.stunTimer > 0;
-    const surging = snake.surgeTimer > 0;
-    const distToPlayer = Math.hypot(player.x - snake.x, player.y - snake.y);
-    const eyeHot = surging || distToPlayer < 170;
-
     ctx.save();
     for (let i = snake.segments.length - 1; i >= 0; i--) {
       const seg = snake.segments[i];
       const ratio = 1 - i / snake.segments.length;
-      const radius = i === 0 ? 17 : Math.max(4.5, 16 * ratio);
+      const radius = i === 0 ? 8.5 : Math.max(2.5, 7.5 * ratio);
 
       ctx.beginPath();
       ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
-      if (stunned) {
-        ctx.fillStyle = i % 2 === 0 ? '#a8a29e' : '#78716c';
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = '#a8a29e';
-      } else {
-        const hue = getSnakeHue(i);
-        const light = i === 0 ? 64 : (i % 3 === 0 ? 54 : 44);
-        ctx.fillStyle = `hsl(${hue}, 86%, ${light}%)`;
-        ctx.shadowBlur = surging ? 22 : (i < 6 ? 16 : 8);
-        ctx.shadowColor = `hsl(${hue}, 90%, 58%)`;
-      }
+      const hue = getSnakeHue(i);
+      const light = i === 0 ? 64 : (i % 3 === 0 ? 54 : 44);
+      ctx.fillStyle = `hsl(${hue}, 86%, ${light}%)`;
+      ctx.shadowBlur = i < 5 ? 12 : 6;
+      ctx.shadowColor = `hsl(${hue}, 90%, 58%)`;
       ctx.fill();
     }
 
@@ -1034,54 +1078,50 @@
     ctx.translate(head.x, head.y);
     ctx.rotate(snake.angle);
 
-    const tongueLen = 12 + Math.sin(timeElapsed * 24) * 5;
+    const tongueLen = 8 + Math.sin(timeElapsed * 18) * 3;
     ctx.strokeStyle = '#fde68a';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(15, 0);
-    ctx.lineTo(15 + tongueLen, 0);
-    ctx.lineTo(19 + tongueLen, -3);
-    ctx.moveTo(15 + tongueLen, 0);
-    ctx.lineTo(19 + tongueLen, 3);
+    ctx.moveTo(8, 0);
+    ctx.lineTo(8 + tongueLen, 0);
+    ctx.lineTo(11 + tongueLen, -2);
+    ctx.moveTo(8 + tongueLen, 0);
+    ctx.lineTo(11 + tongueLen, 2);
     ctx.stroke();
 
-    // Glowing Snake Eyes
     ctx.save();
-    ctx.shadowBlur = eyeHot ? 20 : 12;
-    ctx.shadowColor = surging ? '#ff2a55' : '#fef08a';
-    ctx.fillStyle = surging ? '#fffbeb' : '#fef08a';
-    const eyeR = eyeHot ? 4.2 : 3.2;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = '#fef08a';
+    ctx.fillStyle = '#fffbeb';
     ctx.beginPath();
-    ctx.arc(6, -6.5, eyeR, 0, Math.PI * 2);
-    ctx.arc(6, 6.5, eyeR, 0, Math.PI * 2);
+    ctx.arc(3.5, -3.5, 2.3, 0, Math.PI * 2);
+    ctx.arc(3.5, 3.5, 2.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
     ctx.restore();
   }
 
-  // Ladder Climber: longer tail, shifting warm/emerald color & glowing eyes
   function drawPlayer() {
-    if (invulnTimer > 0 && Math.floor(invulnTimer * 16) % 2 === 0) return;
     const hopScale = player.hopTimer > 0
-      ? 1 + Math.sin((player.hopTimer / 0.46) * Math.PI) * 0.52
+      ? 1 + Math.sin((player.hopTimer / 0.45) * Math.PI) * 0.45
       : 1;
 
     const climberHue = (38 + boardTile * 1.4 + timeElapsed * 12) % 360;
-    const eyeGlowing = player.hopTimer > 0 || player.shieldTimer > 0 || boardTile >= 15;
+    const eyeGlowing = player.hopTimer > 0 || boardTile >= 10;
 
     ctx.save();
     for (let i = player.tailHistory.length - 1; i >= 1; i--) {
       const pt = player.tailHistory[i];
       const t = 1 - i / player.tailHistory.length;
-      const sway = Math.sin(timeElapsed * 14 + i * 0.45) * 6.5 * (1 - t);
-      const r = (6.5 + Math.sin(t * Math.PI) * 17) * hopScale;
+      const sway = Math.sin(timeElapsed * 12 + i * 0.45) * 4 * (1 - t);
+      const r = (3.5 + Math.sin(t * Math.PI) * 8.5) * hopScale;
       const segHue = (climberHue + i * 4) % 360;
 
       ctx.beginPath();
       ctx.arc(pt.x, pt.y + sway, r, 0, Math.PI * 2);
       ctx.fillStyle = `hsla(${segHue}, 92%, 58%, 0.42)`;
-      ctx.shadowBlur = 15 + Math.min(10, boardTile * 0.1);
+      ctx.shadowBlur = 12;
       ctx.shadowColor = `hsl(${segHue}, 95%, 60%)`;
       ctx.fill();
     }
@@ -1091,40 +1131,37 @@
     ctx.translate(player.x, player.y);
     ctx.scale(hopScale, hopScale);
 
-    if (player.shieldTimer > 0 || player.hopTimer > 0) {
+    if (player.hopTimer > 0) {
       ctx.beginPath();
-      ctx.arc(0, 0, 24 + Math.sin(timeElapsed * 12) * 2, 0, Math.PI * 2);
+      ctx.arc(0, 0, 14 + Math.sin(timeElapsed * 12) * 1.5, 0, Math.PI * 2);
       ctx.strokeStyle = '#fde68a';
-      ctx.lineWidth = 2.5;
-      ctx.shadowBlur = 18;
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 14;
       ctx.shadowColor = '#f59e0b';
       ctx.stroke();
     }
 
     ctx.rotate(player.angle);
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = 14;
     ctx.shadowColor = `hsl(${climberHue}, 95%, 56%)`;
     ctx.fillStyle = `hsl(${climberHue}, 92%, 54%)`;
     ctx.beginPath();
-    ctx.ellipse(0, 0, 15.5, 11.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 9.5, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glowing Ears
     ctx.fillStyle = '#fef3c7';
     ctx.beginPath();
-    ctx.arc(5, -9, 4.2, 0, Math.PI * 2);
-    ctx.arc(5, 9, 4.2, 0, Math.PI * 2);
+    ctx.arc(3, -5.5, 2.5, 0, Math.PI * 2);
+    ctx.arc(3, 5.5, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glowing Ladder Climber Eyes
     ctx.save();
-    ctx.shadowBlur = eyeGlowing ? 18 : 10;
+    ctx.shadowBlur = eyeGlowing ? 14 : 8;
     ctx.shadowColor = '#fef08a';
-    ctx.fillStyle = eyeGlowing ? '#ffffff' : '#fef9c3';
-    const eyeSize = eyeGlowing ? 3.4 : 2.5;
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(8.5, -4.2, eyeSize, 0, Math.PI * 2);
-    ctx.arc(8.5, 4.2, eyeSize, 0, Math.PI * 2);
+    ctx.arc(5, -2.5, 2.1, 0, Math.PI * 2);
+    ctx.arc(5, 2.5, 2.1, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -1146,7 +1183,7 @@
       ctx.save();
       ctx.globalAlpha = Math.max(0, fp.life / fp.maxLife);
       ctx.fillStyle = fp.color;
-      ctx.font = '800 15px system-ui, sans-serif';
+      ctx.font = '800 13px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(fp.text, fp.x, fp.y);
       ctx.restore();
@@ -1159,7 +1196,7 @@
     ctx.fillStyle = 'rgba(24, 16, 12, 0.72)';
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#fde68a';
-    ctx.font = '800 28px system-ui, sans-serif';
+    ctx.font = '800 24px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('PAUSED — PRESS P TO RESUME', W * 0.5, H * 0.5);
     ctx.restore();
@@ -1179,7 +1216,7 @@
       ctx.translate(sx, sy);
     }
     drawBoard();
-    drawGemsAndPowerups();
+    drawGems();
     drawSnake();
     drawPlayer();
     drawParticlesAndPopups();
