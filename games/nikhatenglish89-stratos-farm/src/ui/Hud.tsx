@@ -67,6 +67,7 @@ export function BottomNav() {
           data-testid={`nav-${n.id}`}
           onClick={() => {
             if (n.id !== 'farm') farm.cancelPlanting(); // opening another screen ends planting mode
+            if (n.id === 'farm') useFarm.getState().closeScreens(); // the Farm button shows the farm: nothing open on top of it
             if (!n.ready) showToast(`${n.label} is coming soon`);
             else if (n.id === 'inventory') useFarm.getState().setInventoryOpen(true);
             else if (n.id === 'map') useFarm.getState().setMapOpen(true);

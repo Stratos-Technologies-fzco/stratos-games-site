@@ -63,6 +63,7 @@ interface FarmState {
   setShopTab: (t: 'habitats' | 'factories' | 'decor' | null) => void;
   setObstaclePanel: (id: string | null) => void;
   setPlantSeed: (id: string | null) => void;
+  closeScreens: () => void;
   setObjectPanel: (id: string | null) => void;
   setBuildingPanel: (id: string | null) => void;
   setPlacing: (p: FarmState['placing']) => void;
@@ -83,6 +84,9 @@ let toastId = 0;
 
 /** Opening a big screen (shop, market, items, quests, map) closes the small pop-ups about one thing on the farm, so two never pile up on the left. */
 const CLOSE_SMALL = { openPanel: null, obstaclePanel: null, objectPanel: null, plotInfo: null, seedPlot: null, buildingPanel: null, expansionPanel: null } as const;
+
+/** Only one big screen at a time: opening one closes the others. */
+const CLOSE_SCREENS = { shopTab: null, marketTab: null, inventoryOpen: false, questsOpen: false, mapOpen: false } as const;
 
 export const useFarm = create<FarmState>((set) => ({
   player: { name: 'Farmer', avatar: 'farmer_boy_portrait', level: 1, xp: 0, coins: 0, gems: 0 },
@@ -151,16 +155,17 @@ export const useFarm = create<FarmState>((set) => ({
   selectTile: (selectedTile) => set({ selectedTile }),
   setOpenPanel: (openPanel) => set({ openPanel }),
   setSeedPlot: (seedPlot) => set({ seedPlot }),
-  setInventoryOpen: (inventoryOpen) => set(inventoryOpen ? { inventoryOpen, ...CLOSE_SMALL } : { inventoryOpen }),
-  setShopTab: (shopTab) => set(shopTab ? { shopTab, ...CLOSE_SMALL } : { shopTab }),
+  setInventoryOpen: (inventoryOpen) => set(inventoryOpen ? { ...CLOSE_SMALL, ...CLOSE_SCREENS, inventoryOpen } : { inventoryOpen }),
+  setShopTab: (shopTab) => set(shopTab ? { ...CLOSE_SMALL, ...CLOSE_SCREENS, shopTab } : { shopTab }),
   setObstaclePanel: (obstaclePanel) => set({ obstaclePanel }),
   setPlantSeed: (plantSeed) => set({ plantSeed }),
   setObjectPanel: (objectPanel) => set({ objectPanel }),
   setBuildingPanel: (buildingPanel) => set({ buildingPanel }),
   setPlacing: (placing) => set({ placing }),
-  setMarketTab: (marketTab) => set(marketTab ? { marketTab, ...CLOSE_SMALL } : { marketTab }),
-  setQuestsOpen: (questsOpen) => set(questsOpen ? { questsOpen, ...CLOSE_SMALL } : { questsOpen }),
-  setMapOpen: (mapOpen) => set(mapOpen ? { mapOpen, ...CLOSE_SMALL } : { mapOpen }),
+  closeScreens: () => set({ ...CLOSE_SMALL, ...CLOSE_SCREENS }),
+  setMarketTab: (marketTab) => set(marketTab ? { ...CLOSE_SMALL, ...CLOSE_SCREENS, marketTab } : { marketTab }),
+  setQuestsOpen: (questsOpen) => set(questsOpen ? { ...CLOSE_SMALL, ...CLOSE_SCREENS, questsOpen } : { questsOpen }),
+  setMapOpen: (mapOpen) => set(mapOpen ? { ...CLOSE_SMALL, ...CLOSE_SCREENS, mapOpen } : { mapOpen }),
   setExpansionPanel: (expansionPanel) => set({ expansionPanel }),
   setScreen: (screen) => set({ screen }),
   setInfoPanel: (infoPanel) => set({ infoPanel }),

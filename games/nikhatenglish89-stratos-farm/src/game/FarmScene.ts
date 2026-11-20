@@ -234,14 +234,15 @@ export class FarmScene extends Phaser.Scene {
     if (!sp || !plot) return;
     const stage = cropStage(plot, farm.now());
     if (stage === null) { sp.crop.setVisible(false); sp.bubble.setVisible(false); return; }
-    const frame = `${plot.cropId}_${stage}`;
+    const frame = `${plot.cropId}_${stage === 0 ? 1 : stage}`;   // the very first stage is only a few specks: show the young plant, a little smaller
     const changed = sp.crop.frame.name !== frame || !sp.crop.visible;
+    const rest = stage === 0 ? 0.8 : 1;                 // so a freshly planted field is obvious at a glance
     sp.crop.setFrame(frame).setOriginFromFrame().setVisible(true);
     sp.bubble.setVisible(stage === 3);
     if (pop && changed && effectsOn()) {
       sp.crop.setScale(0.6);
-      this.tweens.add({ targets: sp.crop, scale: 1, duration: 260, ease: 'Back.easeOut' });
-    }
+      this.tweens.add({ targets: sp.crop, scale: rest, duration: 260, ease: 'Back.easeOut' });
+    } else if (!this.tweens.isTweening(sp.crop)) sp.crop.setScale(rest);
   }
 
   private refreshPlots() { for (const id of this.plotSprites.keys()) this.renderPlot(id); }

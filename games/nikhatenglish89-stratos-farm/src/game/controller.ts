@@ -438,13 +438,14 @@ class FarmController {
   }
 
   claimQuest(questId: string) {
+    const wasDone = useFarm.getState().tutorialDone;
     return this.act(() => this.service.claimQuest(questId, newKey()), (r) => {
       this.apply(r.snapshot);
       playSfx('jingle_quest_complete');
       const bits = [r.coins && `${r.coins} coins`, r.xp && `${r.xp} XP`, r.gems && `${r.gems} gems`].filter(Boolean).join(', ');
       useFarm.getState().showToast(`${QUEST_BY_ID.get(questId)!.title}: +${bits}`);
       track('quest_claimed', { id: questId });
-      if (r.snapshot.tutorialDone) track('tutorial_done');
+      if (r.snapshot.tutorialDone && !wasDone) track('tutorial_done');   // once, when the last tutorial step is claimed, never on later quests
     });
   }
 

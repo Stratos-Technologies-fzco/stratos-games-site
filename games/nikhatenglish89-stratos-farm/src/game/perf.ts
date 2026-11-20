@@ -3,7 +3,7 @@ import { useFarm } from '../state/store';
 import { savePrefs } from './prefs';
 
 /** Pure decision: switch effects off when the recent frame rate is clearly too low for a smooth game. */
-export function shouldReduceEffects(samples: number[], threshold = 35, needed = 3): boolean {
+export function shouldReduceEffects(samples: number[], threshold = 28, needed = 4): boolean {
   if (samples.length < needed) return false;
   const recent = samples.slice(-needed);
   return recent.every((f) => f > 0 && f < threshold);
@@ -13,11 +13,13 @@ export function shouldReduceEffects(samples: number[], threshold = 35, needed = 
 export function watchFrameRate(scene: Phaser.Scene) {
   if (typeof navigator !== 'undefined' && navigator.webdriver) return; // automated tests run on software rendering
   const samples: number[] = [];
+  let skip = 3;
   scene.time.addEvent({
     delay: 2000, loop: true,
     callback: () => {
       const st = useFarm.getState();
-      if (st.screen !== 'game' || st.prefs.lowFx || document.hidden) { samples.length = 0; return; }
+      if (st.screen !== 'game' || st.prefs.lowFx || document.hidden) { samples.length = 0; skip = Math.max(skip, 1); return; }
+      if (skip > 0) { skip--; return; }                 // the first seconds are loading and warming up, not a fair reading
       samples.push(scene.game.loop.actualFps);
       if (shouldReduceEffects(samples)) {
         const next = { ...st.prefs, lowFx: true };

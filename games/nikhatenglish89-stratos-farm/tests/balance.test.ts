@@ -138,10 +138,10 @@ describe('economy balance (a bot plays 24 hours)', () => {
 
 describe('frame-rate watchdog', () => {
   it('reduces effects only after several clearly slow samples in a row', () => {
-    expect(shouldReduceEffects([20, 20])).toBe(false);          // not enough samples yet
-    expect(shouldReduceEffects([60, 20, 20])).toBe(false);      // one good sample breaks the run
-    expect(shouldReduceEffects([20, 22, 25])).toBe(true);
-    expect(shouldReduceEffects([30, 30, 59])).toBe(false);
-    expect(shouldReduceEffects([0, 0, 0])).toBe(false);         // 0 means "no reading", never "slow"
+    expect(shouldReduceEffects([20, 20, 20])).toBe(false);      // not enough samples yet
+    expect(shouldReduceEffects([60, 20, 20, 20])).toBe(false);  // one good sample breaks the run
+    expect(shouldReduceEffects([20, 22, 25, 24])).toBe(true);
+    expect(shouldReduceEffects([30, 30, 30, 30])).toBe(false);  // 30 fps is still smooth enough
+    expect(shouldReduceEffects([0, 0, 0, 0])).toBe(false);         // 0 means "no reading", never "slow"
   });
 });
