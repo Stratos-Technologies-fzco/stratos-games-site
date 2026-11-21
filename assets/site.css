@@ -645,4 +645,43 @@ footer.foot{max-width:860px;box-sizing:border-box;margin-top:24px;padding:14px 2
 .pk-about .ab-link a{font-weight:800;text-decoration:none}
 @media (max-width:620px){.pk-about{padding:16px 16px 12px}.ab-mark{width:36px;height:36px}.ab-body.fold{max-height:118px}}
 @media (prefers-reduced-motion:reduce){.ab-btn svg{transition:none}}
+/* ===== #106 the home page's first card: the player's streak and today's challenge (filled in on this device by PK_JS from Stratos.coins) ===== */
+.h-daily{--c:#FF8A2A;position:relative;display:flex;align-items:center;gap:16px;margin:0 0 16px;padding:12px 16px 12px 14px;border-radius:18px;color:#fff;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--c) 26%,#11131e) 0%,#11131e 72%);border:1px solid color-mix(in srgb,var(--c) 36%,transparent);
+  transition:transform .16s ease,box-shadow .16s ease}
+.h-daily[hidden],.h-daily [hidden]{display:none!important}
+.h-daily[data-state=done]{--c:#33DD88}
+.h-daily:not([data-state=done]):hover{transform:translateY(-2px);box-shadow:0 0 0 2px var(--c),0 12px 26px rgba(0,0,0,.45)}
+.h-daily:not([data-state=done]):hover .hd-fire{animation:catWiggle .6s ease-in-out}
+.hd-fire svg{width:30px;height:30px}
+.hd-n{position:absolute;right:-10px;bottom:-10px;min-width:26px;height:26px;box-sizing:border-box;padding:0 6px;border-radius:13px;border:2px solid #0B0614;
+  background:#B6FF3B;color:#14151F;font:900 13px/22px Nunito,sans-serif;text-align:center}
+.hd-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;margin-left:4px}
+.hd-k{font:800 14px/1.2 Nunito,sans-serif;color:#FFC690}
+.h-daily[data-state=done] .hd-k{color:#9AF5C5}
+.hd-t{font:700 21px/1.2 Fredoka,Nunito,sans-serif;color:#fff;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.hd-img{flex:none;width:112px;aspect-ratio:16/10;border-radius:10px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.hd-go{flex:none;display:flex;flex-direction:column;align-items:center;gap:7px}
+.hd-coin{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 5px;border-radius:999px;background:#fff4cf;border:1.5px solid #f2c230;color:#5a3b00;
+  font:900 12px/1 Nunito,sans-serif;white-space:nowrap}
+.h-daily[data-state=done] .hd-coin{background:rgba(51,221,136,.16);border-color:rgba(51,221,136,.45);color:#7AF0B3}
+.hd-play{padding:11px 20px;border-radius:999px;background:#B6FF3B;color:#14151F;font:900 15px/1 Nunito,sans-serif;white-space:nowrap}
+.hd-play::after{content:"";position:absolute;inset:0;border-radius:18px}   /* a tap anywhere on the card opens the game */
+.hd-play:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (max-width:900px){.hd-img{display:none}}
+@media (max-width:620px){
+  .h-daily{gap:10px;margin:0 0 12px;padding:10px 12px 10px 10px;border-radius:16px}
+  .hd-fire{width:44px;height:44px;border-radius:13px}.hd-fire svg{width:25px;height:25px}
+  .hd-n{right:-8px;bottom:-8px;min-width:22px;height:22px;padding:0 5px;font-size:12px;line-height:18px}
+  .hd-tx{margin-left:2px}
+  .hd-k{font-size:12.5px}
+  .hd-t{font-size:15px}
+  .hd-go{gap:6px}.hd-coin{padding:2px 7px 2px 4px;font-size:11px}.hd-coin svg{width:12px;height:12px}
+  .hd-play{padding:9px 14px;font-size:14px}.hd-play::after{border-radius:16px}}
+@media (max-width:400px){   /* small phones: a slimmer badge and button, "+30" without the word, so the game's name fits */
+  .h-daily{gap:8px;padding:9px 10px 9px 9px}
+  .hd-fire{width:40px;height:40px;border-radius:12px;border-width:2.5px}.hd-fire svg{width:22px;height:22px}.hd-fire::after{left:5px;top:4px;width:11px;height:4px}
+  .hd-cw{display:none}.hd-play{padding:9px 12px}}
+@media (max-width:340px){.hd-k{font-size:11.5px}.hd-t{-webkit-line-clamp:3}}
+@media (prefers-reduced-motion:reduce){.h-daily{transition:none}.h-daily:hover{transform:none!important}.h-daily:hover .hd-fire{animation:none!important}}
 

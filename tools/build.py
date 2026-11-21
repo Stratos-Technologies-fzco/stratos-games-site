@@ -438,12 +438,36 @@ def h_mine():
     return (sec("sg_recent", "recent", "clock", "Recently played", "games you opened on this device") +
             sec("sg_likes", "favs", "heart", "Your favourites", "games you liked on this device"))
 
+def h_daily(fam, base=""):
+    """#106: the first card on the home page, the player's streak and today's challenge, so there is a reason to come back
+    tomorrow. The wallet (Stratos.coins in assets/stratos.js) picks the day's game from "dailyChallenges" in
+    assets/coins-config.json and keeps the streak on this device; PK_JS fills the card in. It stays hidden when the coins
+    do not load, or when the day's game is not on this site (hidden on live)."""
+    try: cfg = json.load(open(os.path.join(ROOT, "assets", "coins-config.json"), encoding="utf-8"))
+    except Exception: return ""
+    by = {g["slug"]: g for g in fam if not g.get("soon")}
+    games = {}
+    for c in cfg.get("dailyChallenges", []):
+        g = by.get(c.get("game"))
+        if g: games[g["slug"]] = {"t": g["title"].title() if g["title"].isupper() else g["title"], "u": g["url"], "th": g["thumb"]}
+    if not games: return ""
+    flame = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" '
+             'fill="#FFE066" stroke="#14151F" stroke-width="2.2" stroke-linejoin="round"/></svg>')
+    coin = ('<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#ffc933" stroke="#d98a00" stroke-width="2"/>'
+            '<circle cx="12" cy="12" r="5.5" fill="none" stroke="#d98a00" stroke-width="1.6"/></svg>')
+    gj = json.dumps(games, ensure_ascii=False, separators=(",", ":"))
+    return (f'<section class="h-daily" id="h-daily" data-games="{esc(gj)}" aria-label="Your streak and today&#39;s challenge" hidden>'
+            f'<span class="cat-badge hd-fire" style="--c:#FF8A2A" aria-hidden="true">{flame}<b class="hd-n" hidden></b></span>'
+            f'<span class="hd-tx"><span class="hd-k"></span><b class="hd-t"></b></span><img class="hd-img" alt="" loading="lazy" hidden>'
+            f'<span class="hd-go"><span class="hd-coin">{coin}<span class="hd-cn"></span><span class="hd-cw"></span></span><a class="hd-play" href="{base}coins/">▶ Play</a></span></section>')
+
 def home_sections(fam, studio, base=""):
     """#95: the home page in titled sections of even cards (mocked and reviewed with Ripon, 17 Nov 2026)."""
     real = sorted([g for g in fam if not g.get("soon")], key=lambda g: g.get("added") or "", reverse=True)
     pick = [g for s in SITE.get("featured", []) for g in real if g["slug"] == s]   # site.json "featured": folder names, in order
     feat = (pick + [g for g in real if g not in pick])[:5]
-    out = [f'<section class="h-feat">{h_featured(feat, base)}</section>'] if feat else []
+    out = [h_daily(fam, base)]   # #106: the streak and today's challenge come first, above the featured games
+    if feat: out.append(f'<section class="h-feat">{h_featured(feat, base)}</section>')
     out.append(h_mine())
     new = [g for g in real if is_new(g)]
     if new:
@@ -599,6 +623,27 @@ if(slot){var out='';[['sg_likes','❤️','Your favourites'],['sg_recent','🕘'
  l.forEach(function(x){var t=String(x.t);out+='<a class="h-card" href="'+e(B+x.u)+'"'+(x.pv?' data-pv="'+e(x.pv)+'"':'')+' title="'+e(t)+'"><img class="h-img" src="'+e(B+x.th)+'" alt="'+e(t)+'" loading="lazy"><span class="h-name"><span class="nf">'+e(t)+'</span><span class="ns">'+e(t.split(/: | \u2013 | - /)[0])+'</span></span></a>'});
  sec.querySelector('.h-row').innerHTML=out;sec.hidden=false});
 if(location.hash&&D.querySelector('[data-mine]')){var tg=D.getElementById(location.hash.slice(1));if(tg)tg.scrollIntoView({block:'center'})}
+/* home: the player's streak and today's challenge, the first card (#106). The wallet (Stratos.coins) says which game it is
+   today and how long the streak is. It loads a moment after the page, so wait for it (up to 5 s, else the card stays hidden). */
+var dl=D.getElementById('h-daily');
+if(dl){var dG={},dC=null,dN=0,dSeen=0;try{dG=JSON.parse(dl.getAttribute('data-games'))||{}}catch(x){}
+ var dq=function(c){return dl.querySelector(c)},dPlay=dq('.hd-play'),dImg=dq('.hd-img');
+ var dDraw=function(){var c,s;try{c=dC.dailyChallenge();s=dC.stats()}catch(x){return}
+  var g=c&&dG[c.game];if(!g){dl.hidden=true;return}
+  var n=s.streak||0,st=c.done?'done':s.todayEarned>0?'today':n?'keep':'new',b=dq('.hd-n');
+  dl.setAttribute('data-state',st);b.textContent=n;b.hidden=!n;
+  dq('.hd-k').textContent=st=='new'?'Start your streak today':st=='keep'?'Play today for Day '+(n+1):'Day '+n+' streak';
+  dq('.hd-t').textContent=c.done?'✅ Done! Come back tomorrow for Day '+(n+1):"Today's challenge: "+c.title;
+  dq('.hd-cn').textContent='+'+c.coins;dq('.hd-cw').textContent=c.done?' earned':' coins';dq('.hd-coin').hidden=!c.coins;
+  if(dImg.getAttribute('src')!==B+g.th)dImg.src=B+g.th;dImg.hidden=false;
+  dPlay.href=B+g.u;dPlay.hidden=!!c.done;dPlay.setAttribute('aria-label','Play '+g.t+": today's challenge");
+  dPlay.onclick=function(){try{window.Stratos.track('daily_card_play',{challenge:c.game,streak:n})}catch(x){}};
+  dl.hidden=false;
+  if(!dSeen){dSeen=1;try{window.Stratos.track('daily_card_view',{state:st,challenge:c.game,streak:n})}catch(x){}}};
+ var dGo=function(){var S=window.Stratos;if(!(S&&S.coins)){if(++dN<100)setTimeout(dGo,50);return}
+  dC=S.coins;dDraw();try{dC.ready().then(dDraw)}catch(x){}dC.onChange(dDraw);
+  D.addEventListener('visibilitychange',function(){if(!D.hidden)dDraw()})};   /* back after midnight: the new day's challenge */
+ dGo()}
 /* rows that scroll sideways (#95): arrows on a computer, hidden at each end */
 var wraps=[].slice.call(D.querySelectorAll('.h-rowwrap'));
 function rowsUpd(){wraps.forEach(function(w){var r=w.querySelector('.h-row'),m=r.scrollWidth-r.clientWidth;w.querySelector('.prev').hidden=r.scrollLeft<=4;w.querySelector('.next').hidden=r.scrollLeft>=m-4})}
