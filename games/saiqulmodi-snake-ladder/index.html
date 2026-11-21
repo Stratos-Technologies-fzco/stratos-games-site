@@ -45,6 +45,14 @@
     .pill.emerald span.val { color: #6ee7b7; }
     .pill.dice-pill { border-color: #fbbf24; background: rgba(58, 34, 14, 0.95); }
     .pill.dice-pill span.val { color: #ffffff; font-size: 13px; }
+    .pill.team { transition: transform 0.2s, box-shadow 0.2s; }
+    .pill.team.p0 { border-color: rgba(239, 68, 68, 0.55); }
+    .pill.team.p1 { border-color: rgba(59, 130, 246, 0.55); }
+    .pill.team.p0 span.val { color: #fca5a5; }
+    .pill.team.p1 span.val { color: #93c5fd; }
+    .pill.team.turn { transform: scale(1.08); }
+    .pill.team.p0.turn { background: rgba(127, 29, 29, 0.95); box-shadow: 0 0 12px rgba(239, 68, 68, 0.75); }
+    .pill.team.p1.turn { background: rgba(30, 58, 138, 0.95); box-shadow: 0 0 12px rgba(59, 130, 246, 0.75); }
     .pill.combo {
       border-color: #fbbf24;
       background: rgba(120, 53, 15, 0.9);
@@ -263,17 +271,17 @@
 <body>
   <div id="hud">
     <div class="hud-group">
-      <div class="pill emerald">🐸 <span class="val" id="hud-tile">1/100</span></div>
+      <div class="pill team p0 turn" id="hud-p0">🔴🐸 <span class="val" id="hud-t0">1</span> ⭐ <span class="val" id="hud-s0">0</span></div>
+      <div class="pill team p1" id="hud-p1">🔵🐸 <span class="val" id="hud-t1">1</span> ⭐ <span class="val" id="hud-s1">0</span></div>
       <div class="pill dice-pill">🎲 <span class="val" id="hud-dice">-</span></div>
-      <div class="pill">⭐ <span class="val" id="hud-score">0</span></div>
       <div class="pill">🏆 <span class="val" id="hud-best">0</span></div>
       <div class="pill combo" id="hud-combo">🔗 <span class="val" id="hud-combo-val">x2</span></div>
     </div>
     <div class="hud-group">
-      <button class="btn-action" id="btn-roll" title="R">🎲 R</button>
-      <div class="pill" id="hop-pill">⤴ <span class="val" id="hud-hop">✅</span></div>
+      <button class="btn-action" id="btn-roll" title="R / Space">🔴 🎲 R</button>
       <div class="pill" id="flute-pill" style="display:none; border-color:#c084fc">🎶 <span class="val">1</span></div>
       <button class="btn-icon" id="btn-flute" style="display:none" title="Flute">🎶+</button>
+      <button class="btn-icon" id="btn-reset" title="Reset: both frogs to 1 on a new board, scores kept">🔄</button>
       <button class="btn-icon" id="btn-home" title="Home (H)">🏠</button>
       <button class="btn-icon" id="btn-mute" title="Toggle Audio & Haptics (M)">🔊</button>
       <button class="btn-icon" id="btn-pause" title="Pause (P)">⏸</button>
@@ -282,7 +290,7 @@
 
   <div id="dice-badge">
     <div id="dice-num">🎲 -</div>
-    <div id="dice-sub">🐸 +1 … +6</div>
+    <div id="dice-sub">🎲🎲 🐸 +2 … +12</div>
   </div>
 
   <div id="toast"></div>
@@ -296,14 +304,18 @@
         <span class="badge" id="day-badge">🗓</span>
       </div>
       <h1 id="ov-title">🐍 🪜 🐸</h1>
-      <div class="goal">🐸 1 ➜ 🏁 100</div>
-      <p class="sub" id="ov-sub" style="font-size:20px">🎲 ➜ 🐸 ➜ 🏁 &nbsp; 🪜 ⬆ &nbsp; 🐍 ⬇</p>
+      <div class="goal">🔴🐸 🆚 🔵🐸 ➜ 🏁 100 ➜ 200 ➜ ♾️</div>
+      <p class="sub" id="ov-sub" style="font-size:20px">🎲 ➜ 🐸 ➜ 🏁 &nbsp; 🪜 ⬆ &nbsp; 🐍 ⬇ &nbsp; ⭐1…6 ➕</p>
       <div id="final-stats"></div>
       <div class="controls-grid" style="text-align:center;font-size:16px">
-        <div class="ctrl-card">🎲 = R</div>
-        <div class="ctrl-card">🐍 ➜ 🐸💤 = ⬇</div>
-        <div class="ctrl-card">👆 / ⬅ ⬆ ➡ ⬇</div>
-        <div class="ctrl-card">⤴ = ␣</div>
+        <div class="ctrl-card">🐸🎲 = R / ␣</div>
+        <div class="ctrl-card">🐍 = ⬅⬆➡⬇ / 👆</div>
+        <div class="ctrl-card">🔴🐸🎲 + 🔵🐍</div>
+        <div class="ctrl-card">🔵🐸🎲 + 🔴🐍</div>
+        <div class="ctrl-card">🪜 = ⬆ &nbsp; 🐍 = ⬇</div>
+        <div class="ctrl-card">🐍💥🐸 = ⬇10</div>
+        <div class="ctrl-card">🏁 100 = ⭐+1000 ➜ 101</div>
+        <div class="ctrl-card">🔄 = 🐸🐸 ➜ 1 &nbsp; ⭐ ✔</div>
       </div>
       <div class="lb-box">
         <div class="lb-title"><span>🏆 5</span><span>⭐ • 🐸</span></div>
@@ -319,7 +331,6 @@
 
   <div class="mobile-controls">
     <button id="mobile-dice" style="font-size:24px">🎲</button>
-    <button id="mobile-hop" style="font-size:24px">⤴</button>
   </div>
   <canvas id="game"></canvas>
 
@@ -372,8 +383,11 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
-  (function makeDailyBoard() {
-    const rnd = seededRng(DAY_SEED);
+  // Endless hundreds: every new hundred (101-200, 201-300 …) gets its own snake and ladder layout
+  let boardLap = 0;
+  let boardSeed = DAY_SEED;   // today's date; 🔄 Reset picks a new random one (saved with the game)
+  function makeDailyBoard(lap = 0) {
+    const rnd = seededRng(boardSeed + lap * 7919);
     const used = new Set([1, 100]);
     const ladders = {}, snakes = {};
     let guard = 0;
@@ -398,8 +412,12 @@
     LADDER_BASES.clear(); LADDER_TOPS.clear(); SNAKE_HEADS.clear();
     for (const [b, t] of Object.entries(ladders)) { LADDER_BASES.add(Number(b)); LADDER_TOPS.add(t); }
     for (const h of Object.keys(snakes)) SNAKE_HEADS.add(Number(h));
-  })();
+  }
+  makeDailyBoard(0);
   const DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+  // Two dice, like Ludo / Snakes and Ladders: the frog moves the total of both
+  function diceSum(d) { return Array.isArray(d) ? d[0] + d[1] : 0; }
+  function diceText(d) { return Array.isArray(d) ? `${DICE_FACES[d[0] - 1]}${DICE_FACES[d[1] - 1]} ${d[0] + d[1]}` : '-'; }
 
   function trackEvent(name, data = {}) {
     try {
@@ -446,15 +464,17 @@
     setTimeout(() => { coachEl.classList.remove('show'); setTimeout(nextCoach, 350); }, 3800);
   }
 
-  const hudTile = document.getElementById('hud-tile');
+  const hudTeam = [0, 1].map((i) => ({
+    pill: document.getElementById(`hud-p${i}`),
+    tile: document.getElementById(`hud-t${i}`),
+    score: document.getElementById(`hud-s${i}`)
+  }));
   const hudDice = document.getElementById('hud-dice');
   const diceNumEl = document.getElementById('dice-num');
   const diceSubEl = document.getElementById('dice-sub');
-  const hudScore = document.getElementById('hud-score');
   const hudBest = document.getElementById('hud-best');
   const hudCombo = document.getElementById('hud-combo');
   const hudComboVal = document.getElementById('hud-combo-val');
-  const hudHop = document.getElementById('hud-hop');
   const toastEl = document.getElementById('toast');
   const overlay = document.getElementById('overlay');
   const ovTitle = document.getElementById('ov-title');
@@ -469,11 +489,16 @@
   const btnMute = document.getElementById('btn-mute');
   const btnPause = document.getElementById('btn-pause');
   const mobileDice = document.getElementById('mobile-dice');
-  const mobileHop = document.getElementById('mobile-hop');
+
+  // Two teams: red frog (player 1) and blue frog (player 2)
+  const TEAMS = [
+    { icon: '🔴', hue: 0, color: '#ef4444', light: '#fca5a5', tint: 'rgba(239, 68, 68, 0.26)' },
+    { icon: '🔵', hue: 215, color: '#3b82f6', light: '#93c5fd', tint: 'rgba(59, 130, 246, 0.26)' }
+  ];
 
   const SCORE_KEY = 'stratos_snake_ladder_top5_v2';
   const STREAK_KEY = 'stratos_snake_ladder_streak_v2';
-  const SAVE_KEY = 'stratos_snake_ladder_save_v2';
+  const SAVE_KEY = 'stratos_snake_ladder_save_v3';   // v3 = two frogs
 
   function loadTop5() {
     try {
@@ -482,10 +507,11 @@
     } catch { return []; }
   }
 
-  function saveScoreToTop5(newScore, reachedTile) {
+  // one row per frog per game: each new hundred updates that frog's row instead of adding another
+  function saveScoreToTop5(newScore, reachedTile, key = '') {
     if (newScore <= 0) return;
-    const list = loadTop5();
-    list.push({ score: newScore, tile: reachedTile, date: new Date().toLocaleDateString() });
+    const list = loadTop5().filter((item) => !key || item.key !== key);
+    list.push({ score: newScore, tile: reachedTile, key, date: new Date().toLocaleDateString() });
     list.sort((a, b) => b.score - a.score);
     try { localStorage.setItem(SCORE_KEY, JSON.stringify(list.slice(0, 5))); } catch {}
   }
@@ -518,8 +544,16 @@
   }
 
   function saveActiveRun() {
+    storeTurn();
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify({ score, boardTile, lastDice, flute: fluteCharge }));
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        frogs: frogs.map((f) => ({ tile: f.tile, lap: f.lap, score: f.score, flute: f.flute })),
+        runId,
+        boardSeed,
+        turn: turnEndPending ? 1 - turn : turn,   // a finished move means the dice already belongs to the other frog
+        lastDice,
+        stars: stars.map((s) => ({ tile: s.tile, value: s.value, hue: s.hue }))
+      }));
     } catch {}
   }
 
@@ -531,9 +565,12 @@
   function checkSavedRun() {
     try {
       const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-      if (saved && saved.boardTile > 1 && saved.boardTile < 100) {
+      if (saved && Array.isArray(saved.frogs) && saved.frogs.length === 2 &&
+          saved.frogs.every((f) => f.tile >= 1 && f.tile < 100 && (f.lap || 0) >= 0) &&
+          saved.frogs.some((f) => f.tile > 1 || f.lap > 0 || f.score > 0)) {
+        const at = (f) => (f.lap || 0) * 100 + f.tile;
         btnContinue.style.display = 'inline-block';
-        btnContinue.textContent = `▶ 🐸 ${saved.boardTile}`;
+        btnContinue.textContent = `▶ 🔴 ${at(saved.frogs[0])} · 🔵 ${at(saved.frogs[1])}`;
         return saved;
       }
     } catch {}
@@ -661,20 +698,101 @@
   let toastTimeout = null;
   let runStartedAt = 0;
   let fluteCharge = 0;              // 1 = the next snake head is harmless
-  let hunterSegments = 22;          // grows when it catches the frog, shrinks when hopped
-  const tensAwarded = new Set();
   const ovSubDefault = ovSub.innerHTML;
 
-  // Frog / Climber sprite
-  const player = {
-    x: 0, y: 0, vx: 0, vy: 0,
-    angle: 0, radius: 7,
-    hopTimer: 0, hopCooldown: 0,
-    anim: null, animQueue: [],
-    tailHistory: []
-  };
+  // Two frogs, one per team. `player` is the frog whose turn it is; boardTile / score / fluteCharge
+  // hold that frog's live values and are copied back into it when the turn passes.
+  function makeFrog() {
+    return {
+      x: 0, y: 0, vx: 0, vy: 0,
+      angle: 0, radius: 7,
+      hopTimer: 0, hopCooldown: 0,
+      anim: null, animQueue: [],
+      tailHistory: [],
+      tile: 1, lap: 0, score: 0, flute: 0   // tile 1..100 inside the current hundred; lap = hundreds finished
+    };
+  }
+  // the number the players see: 1 … 100, then 101 … 200, and on
+  function frogAt(f) { return f.lap * 100 + f.tile; }
+  let runId = '';
+  const frogs = [makeFrog(), makeFrog()];
+  let turn = 0;
+  let player = frogs[0];
+  let turnEndPending = false;     // the frog has finished its dice move; pass the dice when its animation ends
+  function storeTurn() {
+    player.tile = boardTile; player.score = score; player.flute = fluteCharge;
+  }
+  function loadTurn(i) {
+    turn = i;
+    player = frogs[i];
+    boardTile = player.tile; score = player.score; fluteCharge = player.flute;
+  }
+  function frogTiles() { storeTurn(); return frogs.map((f) => f.tile); }
+  // Where a frog stands inside a square: red on the left half, blue on the right, so both always show
+  function frogSpot(tile, idx = turn) {
+    const c = getTileCellRect(tile);
+    return { x: c.cx + (idx === 0 ? -1 : 1) * c.w * 0.2, y: c.cy + c.h * 0.1 };
+  }
+  // Dice buttons take the colour of the team whose turn it is
+  function paintTurnUi() {
+    const T = TEAMS[turn];
+    btnRoll.textContent = `${T.icon} 🎲 R`;
+    btnRoll.style.background = `linear-gradient(135deg, ${T.light}, ${T.color})`;
+    mobileDice.textContent = `${T.icon}🎲`;
+    mobileDice.style.fontSize = '20px';
+    mobileDice.style.borderColor = T.light;
+    mobileDice.style.background = T.tint;
+    diceBadgeEl.style.borderColor = T.color;
+  }
+  function switchTurn() {
+    storeTurn();
+    loadTurn(1 - turn);
+    const T = TEAMS[turn];
+    paintTurnUi();
+    diceSubEl.textContent = `${T.icon}🐸 🎲🎲  ·  ${TEAMS[1 - turn].icon}🐍`;
+    showToast(`${T.icon}🐸 🎲   ${TEAMS[1 - turn].icon}🐍 ➜ ${T.icon}🐸`);
+    spawnHunterBehind();
+    coach('turns', '🔴🐸🎲 + 🔵🐍  ➜  🔵🐸🎲 + 🔴🐍');
+    saveActiveRun();
+    updateHud();
+  }
 
-  // Single slow-wandering live snake
+  // Live team snake. Each turn the OTHER team's snake hunts the frog whose turn it is, steered by the other
+  // player: 🔴 rolls for the red frog while 🔵 steers the blue snake, then the hands swap after every roll.
+  const teamSnakeLen = [22, 22];   // each team's snake grows by 3 for every catch
+  function snakeOwner() { return 1 - turn; }
+  // equal speed: the snake covers one square in the time a frog takes for one dice step (0.16 s)
+  function snakeSpeed() {
+    const c = getTileCellRect(1);
+    return ((c.w + c.h) * 0.5) / 0.16;
+  }
+  // Put the opponent's snake on the board behind the frog whose turn it is, tail trailing further back
+  function spawnHunterBehind() {
+    const c = getTileCellRect(1);
+    const behind = Math.max(1, boardTile - 2);
+    let hx, hy;
+    if (behind < boardTile) {
+      const p = getTileCenter(behind);
+      hx = p.x; hy = p.y;
+    } else {
+      hx = player.x - c.w * 1.4; hy = player.y + c.h * 0.6;
+    }
+    hx = Math.max(BOARD.left + 6, Math.min(BOARD.right - 6, hx));
+    hy = Math.max(BOARD.top + 6, Math.min(BOARD.bottom - 6, hy));
+    snake.x = hx; snake.y = hy;
+    snake.angle = Math.atan2(player.y - hy, player.x - hx);
+    snake.segmentSpacing = Math.max(4, Math.min(c.w, c.h) * 0.09);
+    snake.segments = [];
+    for (let i = 0; i < teamSnakeLen[snakeOwner()]; i++) {
+      snake.segments.push({   // the tail trails back from the head but always stays on the board
+        x: Math.max(BOARD.left + 4, Math.min(BOARD.right - 4, hx - Math.cos(snake.angle) * i * snake.segmentSpacing)),
+        y: Math.max(BOARD.top + 4, Math.min(BOARD.bottom - 4, hy - Math.sin(snake.angle) * i * snake.segmentSpacing))
+      });
+    }
+    pointerActive = false;
+    bumpCooldown = 1.2;   // a short head start for the frog at the start of its turn
+    spawnBurst(hx, hy, TEAMS[snakeOwner()].light, 12);
+  }
   const snake = {
     x: 0, y: 0, angle: 0,
     wanderAngle: 0,
@@ -685,7 +803,7 @@
     segmentSpacing: 5
   };
 
-  let gems = [];
+  let stars = [];   // ⭐ 1-6 bonus stars: { tile, value, hue }
   let particles = [];
   let floatingPopups = [];
   gameObjectsReady = true;
@@ -702,8 +820,8 @@
     if (e.code === 'KeyR' && state === 'PLAYING') {
       rollDice();
     }
-    if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-      if (state === 'PLAYING') triggerHop();
+    if (e.code === 'Space') {
+      if (state === 'PLAYING') rollDice();
       else if ((state === 'MENU' || state === 'GAMEOVER') && !overlay.classList.contains('hidden')) startGame(state === 'MENU' && btnContinue.style.display !== 'none');
     }
     if (e.code === 'KeyP') togglePause();
@@ -715,21 +833,25 @@
   // buttons drop keyboard focus after a click, so Space/Enter can't re-trigger them
   document.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => b.blur()));
 
+  // Frogs move only with the dice. A finger on the board steers the opponent's live snake.
+  let steerPointerId = null;
   canvas.addEventListener('pointerdown', (e) => {
     if (state !== 'PLAYING') return;
     e.preventDefault();
+    steerPointerId = e.pointerId;
     pointerActive = true;
     pointerX = e.clientX;
     pointerY = e.clientY;
   });
   window.addEventListener('pointermove', (e) => {
-    if (pointerActive) {
+    if (pointerActive && e.pointerId === steerPointerId) {
       pointerX = e.clientX;
       pointerY = e.clientY;
     }
   });
-  window.addEventListener('pointerup', () => { pointerActive = false; });
-  window.addEventListener('pointercancel', () => { pointerActive = false; });
+  const endSteer = (e) => { if (e.pointerId === steerPointerId) { pointerActive = false; steerPointerId = null; } };
+  window.addEventListener('pointerup', endSteer);
+  window.addEventListener('pointercancel', endSteer);
 
   btnRoll.addEventListener('click', () => {
     if (state === 'PLAYING') rollDice();
@@ -740,14 +862,6 @@
   }, { passive: false });
   mobileDice.addEventListener('click', () => {
     if (state === 'PLAYING') rollDice();
-  });
-
-  mobileHop.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (state === 'PLAYING') triggerHop();
-  }, { passive: false });
-  mobileHop.addEventListener('click', () => {
-    if (state === 'PLAYING') triggerHop();
   });
 
   function togglePause() {
@@ -780,19 +894,28 @@
     };
   }
 
-  // keep frog, gems and snake on the board after a resize / phone rotation
+  // Which numbered square (1..100) a point on the board is in; 0 when off the board
+  function tileAt(x, y) {
+    const { left, top, right, bottom } = BOARD;
+    if (x < left || x >= right || y < top || y >= bottom) return 0;
+    const col = Math.min(9, Math.floor((x - left) / ((right - left) / 10)));
+    const drawRow = Math.min(9, Math.floor((y - top) / ((bottom - top) / 10)));
+    const rowFromBottom = 9 - drawRow;
+    const colInRow = rowFromBottom % 2 === 0 ? col : 9 - col;
+    return rowFromBottom * 10 + colInRow + 1;
+  }
+
+  // keep frogs and snake on the board (stars sit on squares, so they follow by themselves) after a resize / phone rotation
   function onBoardResized() {
     if (state === 'MENU') return;
-    player.anim = null;
-    player.animQueue = [];
-    const pos = getTileCenter(boardTile);
-    player.x = pos.x; player.y = pos.y;
-    player.tailHistory = player.tailHistory.map(() => ({ x: pos.x, y: pos.y }));
-    for (const g of gems) {
-      if (g.x < BOARD.left + 14 || g.x > BOARD.right - 14 || g.y < BOARD.top + 14 || g.y > BOARD.bottom - 14) {
-        const p = safeSpawnCoords(90); g.x = p.x; g.y = p.y;
-      }
-    }
+    frogTiles().forEach((tile, i) => {
+      const f = frogs[i];
+      f.anim = null;
+      f.animQueue = [];
+      const pos = frogSpot(tile, i);
+      f.x = pos.x; f.y = pos.y;
+      f.tailHistory = f.tailHistory.map(() => ({ x: pos.x, y: pos.y }));
+    });
     const sx = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, snake.x));
     const sy = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, snake.y));
     const ddx = sx - snake.x, ddy = sy - snake.y;
@@ -810,12 +933,12 @@
       const destTile = Math.min(100, BOARD_LADDERS[tileNum]);
       boardTile = destTile;
       score += 200;
-      const pos = getTileCenter(boardTile);
+      const pos = frogSpot(boardTile);
       animateFrogTo(pos.x, pos.y, 0.55);
       sfxLadderBoost();
       spawnBurst(pos.x, pos.y, '#fde68a', 20);
       addPopup(pos.x, pos.y - 12, `🪜 ${boardTile}  +200`, '#fde68a');
-      showToast(`🪜 ${tileNum} ➜ ${boardTile}  ⭐ +200`);
+      showToast(`${TEAMS[turn].icon}🐸 🪜 ${player.lap * 100 + tileNum} ➜ ${player.lap * 100 + boardTile}  ⭐ +200`);
       coach('ladder', '🪜 = ⬆ ⬆   +200');
       return true;
     }
@@ -838,8 +961,8 @@
       const scoreBefore = score;
       boardTile = tailTile;
       score -= penalty;
-      const headPos = getTileCenter(tileNum);
-      const pos = getTileCenter(boardTile);
+      const headPos = frogSpot(tileNum);
+      const pos = frogSpot(boardTile);
       // slide along the drawn snake body (same curve the board draws)
       animateFrogTo(pos.x, pos.y, 0.6, {
         x: (headPos.x + pos.x) * 0.5 + Math.sin(timeElapsed * 2.2 + tileNum) * 14,
@@ -850,7 +973,7 @@
       addPopup(pos.x, pos.y - 12, `🐍 ⬇${tilesDown}  -${penalty}`, '#fca5a5');
       coach('snakesq', '🐍 = ⬇   −25 × ▦');
       offerSecondChance(tileNum, scoreBefore);
-      showToast(`🐍 ${tileNum} ➜ ${boardTile}  ⭐ -${penalty}`);
+      showToast(`${TEAMS[turn].icon}🐸 🐍 ${player.lap * 100 + tileNum} ➜ ${player.lap * 100 + boardTile}  ⭐ -${penalty}`);
       return true;
     }
 
@@ -863,7 +986,7 @@
     const oldBase = bases[Math.floor(Math.random() * bases.length)];
     const oldTop = BOARD_LADDERS[oldBase];
     const len = oldTop - oldBase;
-    const used = new Set([1, 100, boardTile]);
+    const used = new Set([1, 100, ...frogTiles()]);
     for (const [b, t] of Object.entries(BOARD_LADDERS)) {
       if (Number(b) !== oldBase) { used.add(Number(b)); used.add(t); }
     }
@@ -886,24 +1009,13 @@
     }
   }
 
-  // 5. Counting tiles: landing on 10, 20, 30 ... pays a +10 star burst once per climb
-  function checkTens() {
-    if (boardTile % 10 !== 0 || boardTile >= 100 || tensAwarded.has(boardTile)) return;
-    tensAwarded.add(boardTile);
-    score += 10;
-    const pos = getTileCenter(boardTile);
-    spawnBurst(pos.x, pos.y, '#fde047', 22);
-    addPopup(pos.x, pos.y - 16, `⭐ ${boardTile}  +10`, '#fde047');
-    playTone(880, 0.12, 'triangle', 0.09, 1320);
-    coach('tens', '10 · 20 · 30 …  =  ⭐ +10');
-  }
 
   function moveRandomIdleSnake() {
     const heads = Object.keys(STATIONARY_SNAKES).map(Number);
     if (!heads.length) return;
     const oldHead = heads[Math.floor(Math.random() * heads.length)];
     const drop = oldHead - STATIONARY_SNAKES[oldHead];
-    const used = new Set([1, 100, boardTile]);
+    const used = new Set([1, 100, ...frogTiles()]);
     for (const [b, t] of Object.entries(BOARD_LADDERS)) { used.add(Number(b)); used.add(t); }
     for (const [h, t] of Object.entries(STATIONARY_SNAKES)) {
       if (Number(h) !== oldHead) { used.add(Number(h)); used.add(t); }
@@ -926,21 +1038,25 @@
   }
 
   function rollDice() {
-    if (stepQueue > 0) return;
+    if (stepQueue > 0 || turnEndPending || player.anim) return;   // one roll per turn; wait for the move to land
     initAudio();
     btnRoll.classList.remove('pulse');
     mobileDice.classList.remove('pulse');
-    const rolled = 1 + Math.floor(Math.random() * 6);
-    lastDice = rolled;
+    const d1 = 1 + Math.floor(Math.random() * 6);
+    const d2 = 1 + Math.floor(Math.random() * 6);
+    const rolled = d1 + d2;
+    lastDice = [d1, d2];
     stepQueue = rolled;
     stepTimer = 0.04;
     score += rolled * 25;
-    playTone(440 + rolled * 45, 0.14, 'triangle', 0.1, 660 + rolled * 50);
+    playTone(440 + d1 * 45, 0.12, 'triangle', 0.09, 660 + d1 * 50);
+    setTimeout(() => playTone(440 + d2 * 45, 0.12, 'triangle', 0.09, 660 + d2 * 50), 110);
     haptic(15);
 
-    diceNumEl.textContent = `${DICE_FACES[rolled - 1]} ${rolled}`;
-    diceSubEl.textContent = `🐸 +${rolled} ➜`;
-    showToast(`🎲 ${rolled}  ➜  🐸 +${rolled}`);
+    const T = TEAMS[turn];
+    diceNumEl.textContent = diceText(lastDice);
+    diceSubEl.textContent = `${T.icon} ${d1} + ${d2} = 🐸 +${rolled} ➜`;
+    showToast(`${T.icon} ${DICE_FACES[d1 - 1]} ${d1} + ${DICE_FACES[d2 - 1]} ${d2}  ➜  🐸 +${rolled}`);
     updateHud();
   }
 
@@ -950,49 +1066,50 @@
       return;
     }
     boardTile = Math.min(100, boardTile + 1);
-    const pos = getTileCenter(boardTile);
+    const pos = frogSpot(boardTile);
     animateFrogTo(pos.x, pos.y, 0.13);
     playTone(500 + boardTile * 4, 0.05, 'sine', 0.05);
-    addPopup(pos.x, pos.y - 8, `${boardTile}`, '#6ee7b7');
+    addPopup(pos.x, pos.y - 8, `${player.lap * 100 + boardTile}`, TEAMS[turn].light);
+    collectStarAt(boardTile);   // ⭐ landed on or hopped over
 
     if (stepQueue === 0 || boardTile >= 100) {
-      coach('steer', isTouch ? '👆 🐸  ➜  💎 = +1' : '⬅ ⬆ ➡ ⬇  ➜  💎 = +1');
-      checkTileBoardEffect(boardTile);
-      checkTens();
-      saveActiveRun();
+      stepQueue = 0;
+      if (checkTileBoardEffect(boardTile)) collectStarAt(boardTile);   // a ladder top / snake tail star counts too
       if (boardTile >= 100) {
         score += 1000;
-        finishSummitRun();
+        reachHundred();
       }
+      turnEndPending = true;   // the dice passes to the other frog once this move has landed
+      saveActiveRun();
     }
     updateHud();
   }
 
   // Frog moves land on a felt beat: tween position (straight or along a curve), chained in order
-  function animateFrogTo(x, y, dur, curve = null) {
-    player.animQueue.push({ tx: x, ty: y, dur, cx: curve ? curve.x : null, cy: curve ? curve.y : null });
-    if (!player.anim) startNextFrogAnim();
+  function animateFrogTo(x, y, dur, curve = null, f = player) {
+    f.animQueue.push({ tx: x, ty: y, dur, cx: curve ? curve.x : null, cy: curve ? curve.y : null });
+    if (!f.anim) startNextFrogAnim(f);
   }
-  function startNextFrogAnim() {
-    const n = player.animQueue.shift();
-    player.anim = n ? Object.assign({ fx: player.x, fy: player.y, t: 0 }, n) : null;
+  function startNextFrogAnim(f = player) {
+    const n = f.animQueue.shift();
+    f.anim = n ? Object.assign({ fx: f.x, fy: f.y, t: 0 }, n) : null;
   }
-  function stepFrogAnim(dt) {
-    const a = player.anim;
+  function stepFrogAnim(dt, f = player) {
+    const a = f.anim;
     if (!a) return;
     a.t += dt;
     const k = Math.min(1, a.t / a.dur);
     const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     if (a.cx !== null) {
       const u = 1 - e;
-      player.x = u * u * a.fx + 2 * u * e * a.cx + e * e * a.tx;
-      player.y = u * u * a.fy + 2 * u * e * a.cy + e * e * a.ty;
+      f.x = u * u * a.fx + 2 * u * e * a.cx + e * e * a.tx;
+      f.y = u * u * a.fy + 2 * u * e * a.cy + e * e * a.ty;
     } else {
-      player.x = a.fx + (a.tx - a.fx) * e;
-      player.y = a.fy + (a.ty - a.fy) * e;
+      f.x = a.fx + (a.tx - a.fx) * e;
+      f.y = a.fy + (a.ty - a.fy) * e;
     }
-    player.vx = 0; player.vy = 0;
-    if (k >= 1) startNextFrogAnim();
+    f.vx = 0; f.vy = 0;
+    if (k >= 1) startNextFrogAnim(f);
   }
 
   // Second chance (Stratos Coins 'continue'): offered once per climb after a big drop; the player chooses
@@ -1006,8 +1123,8 @@
   }
   function offerSecondChance(fromTile, scoreBefore) {
     if (secondChanceUsed || fromTile - boardTile < 10 || !SC()) return;
-    pendingRevert = { tile: fromTile, score: scoreBefore };
-    secondChanceBtn.textContent = `↩ 🐸 ${fromTile}`;
+    pendingRevert = { idx: turn, tile: fromTile, score: scoreBefore };
+    secondChanceBtn.textContent = `↩ ${TEAMS[turn].icon}🐸 ${player.lap * 100 + fromTile}`;
     secondChanceBtn.classList.add('show');
     trackEvent('reward_offered', { item: 'continue', tile: fromTile });
     clearTimeout(secondChanceTimer);
@@ -1023,22 +1140,26 @@
     const done = () => {
       clearTimeout(fallback);
       secondChanceUsed = true;
-      boardTile = r.tile;
-      score = r.score;
-      const pos = getTileCenter(boardTile);
-      animateFrogTo(pos.x, pos.y, 0.5);
+      // the frog that fell goes back up (it may no longer be its turn)
+      storeTurn();
+      const f = frogs[r.idx];
+      f.tile = r.tile;
+      f.score = r.score;
+      loadTurn(turn);
+      const pos = frogSpot(r.tile, r.idx);
+      animateFrogTo(pos.x, pos.y, 0.5, null, f);
       spawnBurst(pos.x, pos.y, '#6ee7b7', 18);
       sfxLadderBoost();
-      showToast(`↩ 🐸 ${boardTile}`);
+      showToast(`↩ ${TEAMS[r.idx].icon}🐸 ${f.lap * 100 + r.tile}`);
       saveActiveRun();
-      trackEvent('reward_taken', { item: 'continue', tile: boardTile });
+      trackEvent('reward_taken', { item: 'continue', tile: r.tile });
       resume();
       updateHud();
     };
     const coins = SC();
     try {
       if (coins && typeof coins.offer === 'function') {
-        coins.offer('continue', done, { title: '↩ 🐸 ?', what: `↩ 🐸 ${r.tile}`, onCancel: () => { clearTimeout(fallback); resume(); } });
+        coins.offer('continue', done, { title: '↩ 🐸 ?', what: `↩ ${TEAMS[r.idx].icon}🐸 ${r.tile}`, onCancel: () => { clearTimeout(fallback); resume(); } });
         return;
       }
     } catch {}
@@ -1086,10 +1207,9 @@
     if (state !== 'PLAYING' && state !== 'PAUSED') return;
     hideSecondChance();
     stepQueue = 0;
-    player.anim = null;
-    player.animQueue = [];
+    for (const f of frogs) { f.anim = null; f.animQueue = []; }
     saveActiveRun();
-    trackEvent('game_over', { level: 1, seconds: runSeconds(), score, tile: boardTile });
+    trackEvent('game_over', { level: player.lap + 1, seconds: runSeconds(), score, tile: frogAt(player) });
     state = 'MENU';
     ovTitle.textContent = '🐍 🪜 🐸';
     ovSub.innerHTML = ovSubDefault;
@@ -1102,35 +1222,47 @@
   }
   btnHome.addEventListener('click', goHome);
 
-  function nudgeSnakeAway(dist = 42) {
-    const awayAngle = Math.atan2(snake.y - player.y, snake.x - player.x);
-    snake.x = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, snake.x + Math.cos(awayAngle) * dist));
-    snake.y = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, snake.y + Math.sin(awayAngle) * dist));
-    snake.wanderAngle = awayAngle + (Math.random() - 0.5) * 1.2;
-    for (let i = 0; i < snake.segments.length; i++) {
-      snake.segments[i].x -= Math.cos(awayAngle) * dist * (1 - i / snake.segments.length);
-      snake.segments[i].y -= Math.sin(awayAngle) * dist * (1 - i / snake.segments.length);
+  // 🔄 Reset: a fresh game on a new snake and ladder board, both frogs back on square 1, scores kept.
+  // First tap arms it (🔄❓ for 2.5 s), the second tap resets, so a stray tap never wipes the board.
+  const btnReset = document.getElementById('btn-reset');
+  let resetArmed = 0;
+  btnReset.addEventListener('click', () => {
+    if (state !== 'PLAYING' && state !== 'PAUSED') return;
+    if (!resetArmed) {
+      btnReset.textContent = '🔄❓';
+      resetArmed = setTimeout(() => { resetArmed = 0; btnReset.textContent = '🔄'; }, 2500);
+      return;
     }
-  }
-
-  function triggerHop() {
-    if (player.hopCooldown <= 0 && player.hopTimer <= 0) {
-      player.hopTimer = 0.45;
-      player.hopCooldown = 0.85;
-      sfxHop();
-      spawnBurst(player.x, player.y, '#fde68a', 12);
-
-      const distToSnake = Math.hypot(snake.x - player.x, snake.y - player.y);
-      if (distToSnake < 90) {
-        nudgeSnakeAway(48);
-        score += 120;
-        sfxLadderBoost();
-        showToast('⤴ 🐍  ⭐ +120');
-        hunterSegments = Math.max(10, hunterSegments - 3);
-        coach('grow', '🐍💥🐸 = 🐍➕     ⤴ = 🐍➖');
-        addPopup(snake.x, snake.y - 12, '⤴ +120', '#fde68a');
-      }
-    }
+    clearTimeout(resetArmed); resetArmed = 0; btnReset.textContent = '🔄';
+    resetGameKeepScores();
+  });
+  function resetGameKeepScores() {
+    hideSecondChance();
+    storeTurn();
+    stepQueue = 0;
+    turnEndPending = false;
+    for (const f of frogs) { f.tile = 1; f.lap = 0; f.anim = null; f.animQueue = []; }
+    loadTurn(0);   // red rolls first; scores stay in the frogs
+    boardSeed = (Math.random() * 1e9) >>> 0;
+    newHundredBoard(0);
+    teamSnakeLen[0] = 22; teamSnakeLen[1] = 22;
+    chainCount = 0; chainTimer = 0;
+    stars = [];
+    while (stars.length < STAR_COUNT) spawnStar();
+    frogs.forEach((f, i) => {
+      const pos = frogSpot(1, i);
+      animateFrogTo(pos.x, pos.y, 0.6, { x: (f.x + pos.x) / 2, y: Math.min(f.y, pos.y) - getTileCellRect(1).h * 2 }, f);
+      spawnBurst(pos.x, pos.y, TEAMS[i].light, 18);
+    });
+    spawnHunterBehind();
+    paintTurnUi();
+    diceSubEl.textContent = `${TEAMS[0].icon}🐸 🎲🎲  ·  ${TEAMS[1].icon}🐍`;
+    sfxLadderBoost();
+    showToast(`🔄 🔴🐸 1 · 🔵🐸 1   ⭐ ${frogs[0].score} · ${frogs[1].score}`);
+    if (state === 'PAUSED') { state = 'PLAYING'; btnPause.textContent = '⏸'; }
+    trackEvent('level_start', { level: 1, players: 2, tile: 1, reset: true });
+    saveActiveRun();
+    updateHud();
   }
 
   function showToast(text) {
@@ -1165,44 +1297,59 @@
     floatingPopups.push({ x, y, text, color, life: 0.85, maxLife: 0.85 });
   }
 
-  function safeSpawnCoords(minDistFromPlayer = 90) {
-    const pad = 18;
-    const bw = Math.max(20, BOARD.right - BOARD.left - pad * 2);
-    const bh = Math.max(20, BOARD.bottom - BOARD.top - pad * 2);
-    const minD = Math.min(minDistFromPlayer, Math.min(bw, bh) * 0.35);
-    for (let attempt = 0; attempt < 25; attempt++) {
-      const x = BOARD.left + pad + Math.random() * bw;
-      const y = BOARD.top + pad + Math.random() * bh;
-      if (Math.hypot(x - player.x, y - player.y) >= minD) {
-        return { x, y };
-      }
+  // ⭐ Bonus stars: colourful stars worth 1 to 6 sit on random squares. A frog that lands on or hops over
+  // a star during its dice move scores value x 100 (more stars in one move = 🔗 chain bonus); a new star appears.
+  const STAR_COUNT = 8;
+  function spawnStar() {
+    const busy = new Set([1, 100, ...frogTiles(), ...stars.map((s) => s.tile)]);
+    for (let tries = 0; tries < 200; tries++) {
+      const tile = 2 + Math.floor(Math.random() * 98);   // 2..99
+      if (busy.has(tile)) continue;
+      stars.push({ tile, value: 1 + Math.floor(Math.random() * 6), hue: Math.floor(Math.random() * 360), born: timeElapsed });
+      return;
     }
-    return { x: (BOARD.left + BOARD.right) * 0.5, y: (BOARD.top + BOARD.bottom) * 0.5 };
   }
-
-  function spawnGem() {
-    const pos = safeSpawnCoords(90);
-    gems.push({
-      x: pos.x, y: pos.y,
-      pulse: Math.random() * Math.PI * 2,
-      ladder: Math.random() < 0.28
-    });
-    const g = gems[gems.length - 1];
-    if (fluteCharge === 0 && !gems.some((o) => o.flute) && Math.random() < 0.12) {
-      g.flute = true;
-      g.ladder = false;
-    }
+  function collectStarAt(tile) {
+    const i = stars.findIndex((s) => s.tile === tile);
+    if (i < 0) return;
+    const s = stars[i];
+    stars.splice(i, 1);
+    if (chainTimer > 0) chainCount++;
+    else chainCount = 1;
+    chainTimer = 1.4;
+    const mult = 1 + (chainCount - 1) * 0.25;
+    const pts = Math.round(s.value * 100 * mult);
+    score += pts;
+    const pos = getTileCenter(tile);
+    const col = `hsl(${s.hue}, 95%, 65%)`;
+    sfxGem(s.value);
+    spawnBurst(pos.x, pos.y, col, 12 + s.value * 3);
+    addPopup(pos.x, pos.y - 14, chainCount >= 2 ? `⭐${s.value} 🔗x${chainCount} +${pts}` : `⭐${s.value} +${pts}`, col);
+    if (chainCount >= 3) triggerShake(0.14, 2.5);
+    coach('stars', '⭐1 … ⭐6  =  +100 … +600');
+    spawnStar();
   }
 
   function startGame(resumeSaved = false) {
     initAudio();
     const saved = resumeSaved ? checkSavedRun() : null;
-    score = saved ? saved.score : 0;
-    boardTile = saved ? saved.boardTile : 1;
-    lastDice = saved && saved.lastDice ? saved.lastDice : null;
-    fluteCharge = saved && saved.flute ? 1 : 0;
-    hunterSegments = 22;
-    tensAwarded.clear();
+    lastDice = saved && Array.isArray(saved.lastDice) ? saved.lastDice : null;
+    turnEndPending = false;
+    frogs.forEach((f, i) => {
+      const s = saved ? saved.frogs[i] : null;
+      f.tile = s ? s.tile : 1;
+      f.lap = s && s.lap > 0 ? Math.floor(s.lap) : 0;
+      f.score = s ? s.score : 0;
+      f.flute = s && s.flute ? 1 : 0;
+    });
+    runId = saved && saved.runId ? saved.runId : Date.now().toString(36);
+    // the board belongs to the furthest hundred either frog has reached
+    const lapNow = Math.max(frogs[0].lap, frogs[1].lap);
+    boardSeed = saved && Number.isFinite(saved.boardSeed) ? saved.boardSeed : DAY_SEED;
+    boardLap = lapNow;
+    makeDailyBoard(lapNow);
+    loadTurn(saved && saved.turn === 1 ? 1 : 0);
+    teamSnakeLen[0] = 22; teamSnakeLen[1] = 22;
     snakeMoveTimer = SNAKE_MOVE_EVERY;
     ladderMoveTimer = LADDER_MOVE_EVERY;
     stepQueue = 0;
@@ -1214,44 +1361,35 @@
     timeElapsed = 0;
     particles = [];
     floatingPopups = [];
-    gems = [];
-
-    const startPos = getTileCenter(boardTile);
-    player.x = startPos.x;
-    player.y = startPos.y;
-    player.vx = 0;
-    player.vy = 0;
-    player.angle = 0;
-    player.hopTimer = 0;
-    player.hopCooldown = 0;
-    player.anim = null;
-    player.animQueue = [];
-    player.tailHistory = [];
-    for (let i = 0; i < 20; i++) {
-      player.tailHistory.push({ x: player.x - i * 3, y: player.y });
-    }
+    // stars: the saved ones come back on Continue, otherwise 8 new ones
+    stars = saved && Array.isArray(saved.stars)
+      ? saved.stars.filter((s) => s && s.tile > 1 && s.tile < 100 && s.value >= 1 && s.value <= 6)
+        .map((s) => ({ tile: s.tile, value: s.value, hue: s.hue || 0, born: -1 }))
+      : [];
+    while (stars.length < STAR_COUNT) spawnStar();
 
     layoutBoard();
-    snake.x = BOARD.left + (BOARD.right - BOARD.left) * 0.78;
-    snake.y = BOARD.top + (BOARD.bottom - BOARD.top) * 0.54;
-    snake.wanderAngle = Math.PI * 0.75;
-    snake.angle = snake.wanderAngle;
-    snake.wanderTimer = 1.5;
-    snake.segmentCount = 22;
-    snake.segments = [];
-    for (let i = 0; i < snake.segmentCount; i++) {
-      snake.segments.push({ x: snake.x + i * snake.segmentSpacing, y: snake.y });
-    }
+    frogs.forEach((f, i) => {
+      const startPos = frogSpot(f.tile, i);
+      f.x = startPos.x;
+      f.y = startPos.y;
+      f.vx = 0;
+      f.vy = 0;
+      f.angle = -Math.PI / 2;   // facing up the board
+      f.hopTimer = 0;
+      f.hopCooldown = 0;
+      f.anim = null;
+      f.animQueue = [];
+      f.tailHistory = [];
+      for (let k = 0; k < 20; k++) f.tailHistory.push({ x: f.x, y: f.y + k * 2 });
+    });
 
-    for (let i = 0; i < 5; i++) spawnGem();
+    // the opponent's live snake starts behind the frog whose turn it is
+    spawnHunterBehind();
 
-    if (lastDice) {
-      diceNumEl.textContent = `${DICE_FACES[lastDice - 1]} ${lastDice}`;
-      diceSubEl.textContent = `🎲 ${lastDice} • 🐸 ${boardTile}`;
-    } else {
-      diceNumEl.textContent = '🎲 -';
-      diceSubEl.textContent = '🐸 +1 … +6';
-    }
+    paintTurnUi();
+    diceNumEl.textContent = lastDice ? diceText(lastDice) : '🎲 -';
+    diceSubEl.textContent = `${TEAMS[turn].icon}🐸 🎲🎲  ·  ${TEAMS[1 - turn].icon}🐍`;
 
     overlay.classList.add('hidden');
     finalStats.style.display = 'none';
@@ -1261,67 +1399,72 @@
     secondChanceUsed = false;
     hideSecondChance();
     runStartedAt = Date.now();
-    trackEvent('level_start', { level: 1, tile: boardTile, resumed: Boolean(saved) });
-    if (!tipsSeen.roll) {
+    trackEvent('level_start', { level: lapNow + 1, players: 2, tile: frogAt(player), resumed: Boolean(saved) });
+    if (!tipsSeen.roll2p) {
       btnRoll.classList.add('pulse');
       mobileDice.classList.add('pulse');
     }
-    coach('roll', isTouch ? '👉 🎲  =  +1 … +6' : 'R  /  🎲  =  +1 … +6');
+    const me = TEAMS[turn].icon, rival = TEAMS[1 - turn].icon;
+    coach('roll2p', isTouch ? `${me}🐸 👉 🎲  =  🎲🎲  +2 … +12` : `${me}🐸  R / ␣ / 🎲  =  🎲🎲  +2 … +12`);
+    coach('steer2p', isTouch ? `${rival}🐍 = 👆 ➜ ${me}🐸` : `${rival}🐍 = ⬅ ⬆ ➡ ⬇ / W A S D ➜ ${me}🐸`);
   }
 
   btnStart.addEventListener('click', () => startGame(false));
   btnContinue.addEventListener('click', () => startGame(true));
 
-  function finishSummitRun() {
-    state = 'GAMEOVER';
-    hideSecondChance();
-    clearSavedRun();
-    sfxLadderBoost();
+  // Endless: a frog on 100 gets +1000, celebrates, and starts the next hundred on square 1 (101, 201 …).
+  // The first frog into a new hundred brings a fresh snake and ladder board for both frogs. No game over.
+  function reachHundred() {
+    const T = TEAMS[turn];
     const top = getTileCenter(100);
+    const done = (player.lap + 1) * 100;
+    sfxLadderBoost();
     spawnBurst(top.x, top.y, '#fbbf24', 36);
-    setTimeout(() => spawnBurst(top.x, top.y, '#6ee7b7', 30), 350);
+    setTimeout(() => spawnBurst(top.x, top.y, T.light, 30), 350);
     setTimeout(() => spawnBurst(top.x, top.y, '#fde68a', 30), 700);
     triggerShake(0.3, 3);
-    addPopup(top.x + 40, top.y + 10, '🏁 100!', '#fde68a');
-    ovTitle.textContent = '🏁 100 🎉';
-    ovSub.textContent = '🐸 🏆';
-    trackEvent('level_complete', { level: 1, seconds: runSeconds(), score, tile: boardTile });
-    saveScoreToTop5(score, boardTile);
+    addPopup(top.x, top.y + 10, `${T.icon} 🏁 ${done}  +1000`, '#fde68a');
+    showToast(`${T.icon}🐸 🏁 ${done} 🎉  ➜  ${done + 1}`);
+    coach('hundreds', `🏁 100 ➜ 101 … 200 ➜ 201 … ♾️`);
+    player.lap += 1;
+    boardTile = 1;
+    storeTurn();
+    trackEvent('level_complete', { level: player.lap, players: 2, team: turn + 1, seconds: runSeconds(), score, tile: frogAt(player) });
+    saveScoreToTop5(score, frogAt(player) - 1, `${runId}-${turn}`);
     renderTop5();
-    const summitScore = score;
-    setTimeout(() => { if (state === 'GAMEOVER') showSummitCard(summitScore); }, 1400);
+    // the frog hops down from the top square to square 1 of the new hundred
+    const start = frogSpot(1);
+    const mid = getTileCenter(50);
+    animateFrogTo(start.x, start.y, 0.9, { x: mid.x, y: mid.y - getTileCellRect(1).h * 3 });
+    if (player.lap > boardLap) newHundredBoard(player.lap);
   }
-
-  function showSummitCard(summitScore) {
-    finalStats.style.display = 'flex';
-    finalStats.innerHTML = `<span>🐸 <strong style="color:#6ee7b7">${boardTile}/100</strong></span>
-                            <span>⭐ <strong style="color:#fde68a">${summitScore}</strong></span>`;
-    btnStart.textContent = '🔁';
-    overlay.classList.remove('hidden');
+  // swap in the next hundred's snakes and ladders; they grow in on the board
+  function newHundredBoard(lap) {
+    boardLap = lap;
+    makeDailyBoard(lap);
+    for (const k of Object.keys(SNAKE_RISE)) delete SNAKE_RISE[k];
+    for (const k of Object.keys(LADDER_RISE)) delete LADDER_RISE[k];
+    for (const h of SNAKE_HEADS) SNAKE_RISE[h] = 0;
+    for (const b of LADDER_BASES) LADDER_RISE[b] = 0;
+    snakeMoveTimer = SNAKE_MOVE_EVERY;
+    ladderMoveTimer = LADDER_MOVE_EVERY;
   }
 
   function updateHud() {
-    hudTile.textContent = `${boardTile}/100`;
+    storeTurn();
+    frogs.forEach((f, i) => {
+      if (hudTeam[i].tile.textContent !== String(frogAt(f))) hudTeam[i].tile.textContent = frogAt(f);
+      if (hudTeam[i].score.textContent !== String(f.score)) hudTeam[i].score.textContent = f.score;
+      hudTeam[i].pill.classList.toggle('turn', i === turn);
+    });
     updateFluteHud();
-    hudDice.textContent = lastDice ? `${DICE_FACES[lastDice - 1]} ${lastDice}` : '-';
-    hudScore.textContent = score;
+    hudDice.textContent = diceText(lastDice);
 
     if (chainCount >= 2 && chainTimer > 0) {
       hudCombo.classList.add('active');
       hudComboVal.textContent = `x${chainCount}`;
     } else {
       hudCombo.classList.remove('active');
-    }
-
-    if (player.hopTimer > 0) {
-      hudHop.textContent = '⤴';
-      hudHop.style.color = '#fde68a';
-    } else if (player.hopCooldown > 0) {
-      hudHop.textContent = `⏳${player.hopCooldown.toFixed(1)}`;
-      hudHop.style.color = '#d6c3b3';
-    } else {
-      hudHop.textContent = '✅';
-      hudHop.style.color = '#6ee7b7';
     }
   }
 
@@ -1391,14 +1534,6 @@
       }
     }
 
-    const progressFactor = 1 + (boardTile - 1) * 0.003;
-    const baseSpeed = 165 * progressFactor;
-    const manualSteerSpeed = baseSpeed * 1.45;
-    const snakeSpeed = manualSteerSpeed / 20; // frog : live snake speed = 20 : 1
-    const hopMult = player.hopTimer > 0 ? 1.2 : 1.0;
-
-    if (player.hopTimer > 0) player.hopTimer = Math.max(0, player.hopTimer - dt);
-    if (player.hopCooldown > 0) player.hopCooldown = Math.max(0, player.hopCooldown - dt);
     if (bumpCooldown > 0) bumpCooldown = Math.max(0, bumpCooldown - dt);
     if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
 
@@ -1407,66 +1542,49 @@
       if (chainTimer === 0) chainCount = 0;
     }
 
+    // Frogs move only with the dice: each one just plays its own hop animation
+    for (const f of frogs) {
+      const fx = f.x, fy = f.y;
+      stepFrogAnim(dt, f);
+      if (Math.hypot(f.x - fx, f.y - fy) > 0.3) f.angle = Math.atan2(f.y - fy, f.x - fx);
+      f.tailHistory.unshift({ x: f.x, y: f.y });
+      while (f.tailHistory.length > 18) f.tailHistory.pop();
+    }
+
+    // The move has landed (steps, ladder or snake slide done): the dice passes to the other frog
+    if (turnEndPending && stepQueue === 0 && !player.anim) {
+      turnEndPending = false;
+      switchTurn();
+    }
+
+    // Live team snake: the OTHER player steers it (arrow keys / WASD, or drag on the board) to catch the frog
+    // whose turn it is. It moves at the frog's own speed: one square per dice step.
     let ix = 0, iy = 0;
     if (keys['ArrowLeft'] || keys['KeyA']) ix -= 1;
     if (keys['ArrowRight'] || keys['KeyD']) ix += 1;
     if (keys['ArrowUp'] || keys['KeyW']) iy -= 1;
     if (keys['ArrowDown'] || keys['KeyS']) iy += 1;
-
-    if (player.anim) {
-      stepFrogAnim(dt);
-    } else if (ix !== 0 || iy !== 0) {
-      const len = Math.hypot(ix, iy);
-      ix /= len; iy /= len;
-      player.vx = ix * manualSteerSpeed * hopMult;
-      player.vy = iy * manualSteerSpeed * hopMult;
-      player.angle = Math.atan2(iy, ix);
-    } else if (pointerActive) {
-      const dx = pointerX - player.x;
-      const dy = pointerY - player.y;
-      const dist = Math.hypot(dx, dy);
-      if (dist > 5) {
-        const factor = Math.min(1, dist / 36);
-        player.vx = (dx / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
-        player.vy = (dy / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
-        player.angle = Math.atan2(dy, dx);
-      } else {
-        player.vx *= 0.8;
-        player.vy *= 0.8;
-      }
-    } else {
-      player.vx *= 0.82;
-      player.vy *= 0.82;
+    if (ix === 0 && iy === 0 && pointerActive) {
+      const dx = pointerX - snake.x, dy = pointerY - snake.y;
+      if (Math.hypot(dx, dy) > 4) { ix = dx; iy = dy; }
     }
-
-    player.x += player.vx * dt;
-    player.y += player.vy * dt;
-
-    const margin = 8;
-    player.x = Math.max(BOARD.left + margin, Math.min(BOARD.right - margin, player.x));
-    player.y = Math.max(BOARD.top + margin, Math.min(BOARD.bottom - margin, player.y));
-
-    const desiredTailLen = Math.min(28, 16 + Math.floor(boardTile * 0.1));
-    player.tailHistory.unshift({ x: player.x, y: player.y });
-    while (player.tailHistory.length > desiredTailLen) player.tailHistory.pop();
-
-    // Only one snake moves: it always hunts the frog (20x slower than the frog)
-    snake.wanderAngle = Math.atan2(player.y - snake.y, player.x - snake.x);
-    if (Math.hypot(player.x - snake.x, player.y - snake.y) < 150) {
-      coach('hunter', '🐍 ➜ 🐸💤 = ⬇10    🐸🏃 / ⤴ = ✅');
-    }
-
-    let diff = snake.wanderAngle - snake.angle;
-    while (diff > Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
-    snake.angle += Math.sign(diff) * Math.min(Math.abs(diff), 1.4 * dt);
-
     snake.wavePhase += dt * 4.2;
-    const moveAngle = snake.angle + Math.sin(snake.wavePhase) * 0.25;
-    snake.x += Math.cos(moveAngle) * snakeSpeed * dt;
-    snake.y += Math.sin(moveAngle) * snakeSpeed * dt;
+    if (ix !== 0 || iy !== 0) {
+      const len = Math.hypot(ix, iy);
+      let stepLen = snakeSpeed() * dt;
+      if (pointerActive && !keys['ArrowLeft'] && !keys['ArrowRight'] && !keys['ArrowUp'] && !keys['ArrowDown'] &&
+          !keys['KeyA'] && !keys['KeyD'] && !keys['KeyW'] && !keys['KeyS']) {
+        stepLen = Math.min(stepLen, len);   // a finger target: stop on it, don't overshoot
+      }
+      snake.angle = Math.atan2(iy, ix);
+      const wiggle = Math.sin(snake.wavePhase) * 0.18;
+      snake.x += Math.cos(snake.angle + wiggle) * stepLen;
+      snake.y += Math.sin(snake.angle + wiggle) * stepLen;
+      snake.x = Math.max(BOARD.left + 6, Math.min(BOARD.right - 6, snake.x));
+      snake.y = Math.max(BOARD.top + 6, Math.min(BOARD.bottom - 6, snake.y));
+    }
 
-    const desiredSegments = hunterSegments;
+    const desiredSegments = teamSnakeLen[snakeOwner()];
     while (snake.segments.length > desiredSegments) snake.segments.pop();
     while (snake.segments.length < desiredSegments) {
       const last = snake.segments[snake.segments.length - 1];
@@ -1487,111 +1605,37 @@
       }
     }
 
-    for (let i = gems.length - 1; i >= 0; i--) {
-      const g = gems[i];
-      g.pulse += dt * 4.5;
-      if (Math.hypot(player.x - g.x, player.y - g.y) < player.radius + 13) {
-        gems.splice(i, 1);
 
-        if (g.flute) {
-          fluteCharge = 1;
-          spawnBurst(g.x, g.y, '#c084fc', 18);
-          addPopup(g.x, g.y - 10, '🎶', '#e9d5ff');
-          [659.25, 783.99, 987.77].forEach((n, k) => setTimeout(() => playTone(n, 0.18, 'sine', 0.08), k * 110));
-          coach('flute', '🎶  ➜  🐍💤');
-          saveActiveRun();
-          spawnGem();
-          continue;
-        }
-
-        if (chainTimer > 0) chainCount++;
-        else chainCount = 1;
-        chainTimer = 1.4;
-
-        const mult = 1 + (chainCount - 1) * 0.25;
-        const basePts = g.ladder ? 250 : 100;
-        const pts = Math.round(basePts * mult);
-        score += pts;
-
-        const tileJump = g.ladder ? 4 : 1;
-        boardTile = Math.min(100, boardTile + tileJump);
-
-        if (g.ladder) {
-          sfxLadderBoost();
-          showToast(`🪜 🐸 +${tileJump}  ⭐ +${pts}`);
-          spawnBurst(g.x, g.y, '#f59e0b', 18);
-          addPopup(g.x, g.y - 10, `🪜 +${tileJump}`, '#fde68a');
-        } else {
-          sfxGem(chainCount);
-          spawnBurst(g.x, g.y, '#10b981', 14);
-          if (chainCount >= 2) {
-            addPopup(g.x, g.y - 10, `🔗x${chainCount} +${pts}`, '#fde68a');
-          } else {
-            addPopup(g.x, g.y - 10, `+${pts}`, '#6ee7b7');
-          }
-        }
-
-        checkTileBoardEffect(boardTile);
-        checkTens();
-        saveActiveRun();
-
-        if (chainCount >= 4) triggerShake(0.16, 3);
-
-        if (boardTile >= 100) {
-          score += 1000;
-          finishSummitRun();
-          return;
-        }
-
-        spawnGem();
-      }
-    }
-
-    // Hunting snake: its head occasionally catches a frog that is standing still (not moving, not hopping).
-    // A catch sends the frog down one row (10 tiles) and takes 25 points per tile lost; the run keeps going.
-    const frogMoving = Math.hypot(player.vx, player.vy) > 25;
-    if (bumpCooldown <= 0 && !frogMoving && !player.anim && stepQueue === 0 && player.hopTimer <= 0 && boardTile > 1 &&
-        Math.hypot(player.x - snake.x, player.y - snake.y) < player.radius + 5.5) {
+    // Catch: the opponent's snake head reaches the frog (standing or hopping). The frog drops one row
+    // (10 tiles, -25 points per tile), its move stops, the snake grows by 3 and the dice passes on.
+    const catchR = Math.max(10, Math.min(getTileCellRect(1).w, getTileCellRect(1).h) * 0.3);
+    if (bumpCooldown <= 0 && !turnEndPending && boardTile > 1 &&
+        Math.hypot(player.x - snake.x, player.y - snake.y) < catchR) {
+      const owner = snakeOwner();
       const fromTile = boardTile;
       const toTile = Math.max(1, boardTile - 10);
       const tilesDown = fromTile - toTile;
       const penalty = Math.min(score, tilesDown * 25);
       const scoreBefore = score;
+      stepQueue = 0;
+      player.anim = null;
+      player.animQueue = [];
       boardTile = toTile;
       score -= penalty;
       bumpCooldown = 2.5;
       sfxSnakeSlide();
       triggerShake(0.18, 3);
-      spawnBurst(player.x, player.y, '#fca5a5', 16);
-      const pos = getTileCenter(boardTile);
-      player.vx = 0; player.vy = 0;
-      nudgeSnakeAway(60);
+      spawnBurst(player.x, player.y, TEAMS[owner].light, 16);
+      addPopup(player.x, player.y - 12, `${TEAMS[owner].icon}🐍 ⬇${tilesDown}  -${penalty}`, TEAMS[owner].light);
+      const pos = frogSpot(boardTile);
       animateFrogTo(pos.x, pos.y, 0.5);
-      addPopup(player.x, player.y - 12, `🐍 ⬇${tilesDown}  -${penalty}`, '#fca5a5');
-      hunterSegments = Math.min(46, hunterSegments + 3);
-      addPopup(snake.x, snake.y - 14, '🐍 ➕', '#fca5a5');
-      coach('grow', '🐍💥🐸 = 🐍➕     ⤴ = 🐍➖');
-      showToast(`🐍💥🐸 ${fromTile} ➜ ${boardTile}  ⭐ -${penalty}`);
+      teamSnakeLen[owner] = Math.min(46, teamSnakeLen[owner] + 3);
+      addPopup(snake.x, snake.y - 14, '🐍 ➕', TEAMS[owner].light);
+      showToast(`${TEAMS[owner].icon}🐍💥${TEAMS[turn].icon}🐸 ${player.lap * 100 + fromTile} ➜ ${player.lap * 100 + boardTile}  ⭐ -${penalty}`);
+      coach('grow', '🐍💥🐸 = ⬇10   🐍➕');
       saveActiveRun();
       offerSecondChance(fromTile, scoreBefore);
-    }
-
-    // Gentle stress-free bounce when the frog runs into the hunting snake
-    if (bumpCooldown <= 0) {
-      for (let i = 0; i < snake.segments.length; i++) {
-        const seg = snake.segments[i];
-        const segRadius = i === 0 ? 5.5 : Math.max(1.8, 4.2 * (1 - i / (snake.segments.length * 1.15)));
-        if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + segRadius) {
-          bumpCooldown = 0.9;
-          nudgeSnakeAway(36);
-          score += 50;
-          sfxGem(1);
-          spawnBurst(seg.x, seg.y, '#fde68a', 12);
-          addPopup(seg.x, seg.y - 10, '💫 +50', '#fde68a');
-          showToast('🐸💫🐍  ⭐ +50');
-          break;
-        }
-      }
+      turnEndPending = true;   // a caught frog's turn is over
     }
 
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -1654,8 +1698,8 @@
     drawHole(x, y, rx, ry, false);
 
     const n = 11;
-    const len = sz * (isHead ? 0.7 : 0.55) * Math.max(0.05, rise);
-    const baseR = sz * (isHead ? 0.085 : 0.075);
+    const len = sz * (isHead ? 0.7 : 0.72) * Math.max(0.05, rise);
+    const baseR = sz * (isHead ? 0.085 : 0.095);
     const pts = [];
     for (let i = 0; i <= n; i++) {
       const k = i / n; // 0 = inside the hole, 1 = head / tail tip
@@ -1672,7 +1716,7 @@
 
     for (let i = 0; i <= n; i++) {
       const p = pts[i];
-      const r = isHead ? baseR * (0.85 + 0.25 * p.k) : baseR * (1 - 0.7 * p.k) + 0.7;
+      const r = isHead ? baseR * (0.85 + 0.25 * p.k) : baseR * (1 - 0.55 * p.k) + 0.9;
       const hue = (seed * 40 + i * 32 + t * 140) % 360;
       const g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
       g.addColorStop(0, `hsl(${hue}, 95%, 80%)`);
@@ -1710,11 +1754,11 @@
       ctx.fill();
       ctx.shadowBlur = FX(0);
 
-      // fangs
+      // small fangs
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.moveTo(-hr * 0.42, hr * 0.62); ctx.lineTo(-hr * 0.22, hr * 0.62); ctx.lineTo(-hr * 0.32, hr * 1.15);
-      ctx.moveTo(hr * 0.22, hr * 0.62); ctx.lineTo(hr * 0.42, hr * 0.62); ctx.lineTo(hr * 0.32, hr * 1.15);
+      ctx.moveTo(-hr * 0.38, hr * 0.62); ctx.lineTo(-hr * 0.26, hr * 0.62); ctx.lineTo(-hr * 0.32, hr * 0.9);
+      ctx.moveTo(hr * 0.26, hr * 0.62); ctx.lineTo(hr * 0.38, hr * 0.62); ctx.lineTo(hr * 0.32, hr * 0.9);
       ctx.fill();
 
       // eyes with slit pupils
@@ -1746,12 +1790,18 @@
       }
     } else {
       // tail tip: small bright rattle beads
+      ctx.shadowBlur = FX(8);
+      ctx.shadowColor = '#fde68a';
       ctx.fillStyle = '#fde68a';
-      for (let b = 0; b < 2; b++) {
+      ctx.strokeStyle = '#7c2d12';
+      ctx.lineWidth = 0.8;
+      for (let b = 0; b < 3; b++) {
         ctx.beginPath();
-        ctx.arc(tip.x, tip.y - 1.5 - b * 2.4, Math.max(0.8, baseR * 0.4 - b * 0.4), 0, Math.PI * 2);
+        ctx.arc(tip.x, tip.y - 2 - b * 3.2, Math.max(1.2, baseR * 0.62 - b * 0.5), 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
       }
+      ctx.shadowBlur = FX(0);
     }
     ctx.restore();
 
@@ -1766,23 +1816,28 @@
     const bw = right - left, bh = bottom - top;
     const cols = 10, rows = 10;
     const cw = bw / cols, ch = bh / rows;
+    const cellRef = getTileCellRect(1);
+    const tilesNow = state === 'MENU' ? [0, 0] : frogTiles();
 
-    // 1-100 numbered squares
+    // numbered squares: 1-100, then 101-200 … for the hundred the frog whose turn it is stands in
     ctx.save();
-    const fontSize = Math.max(9, Math.min(13, Math.floor(Math.min(cw, ch) * 0.24)));
+    const lapBase = state === 'MENU' ? 0 : player.lap * 100;
+    const fontSize = Math.max(9, Math.min(13, Math.floor(Math.min(cw, ch) * (lapBase >= 900 ? 0.2 : 0.24))));
     ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
     for (let tileNum = 1; tileNum <= 100; tileNum++) {
       const cell = getTileCellRect(tileNum);
-      const isCurrent = tileNum === boardTile;
+      // a frog's square is tinted in its team colour (the frog whose turn it is wins a shared square)
+      const frogHere = tilesNow[turn] === tileNum ? turn : (tilesNow[1 - turn] === tileNum ? 1 - turn : -1);
+      const isCurrent = frogHere >= 0;
       const isLadderBase = LADDER_BASES.has(tileNum);
       const isLadderTop = LADDER_TOPS.has(tileNum);
       const isSnakeHead = SNAKE_HEADS.has(tileNum);
 
       if (isCurrent) {
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.24)';
+        ctx.fillStyle = TEAMS[frogHere].tint;
       } else if (isLadderBase) {
         ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
       } else if (isSnakeHead) {
@@ -1795,7 +1850,7 @@
       ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
 
       if (isCurrent) {
-        ctx.fillStyle = '#fde68a';
+        ctx.fillStyle = TEAMS[frogHere].light;
       } else if (isLadderBase) {
         ctx.fillStyle = 'rgba(110, 231, 183, 0.78)';
       } else if (isSnakeHead) {
@@ -1805,13 +1860,7 @@
       } else {
         ctx.fillStyle = 'rgba(214, 195, 179, 0.36)';
       }
-      ctx.fillText(String(tileNum), cell.x + 4, cell.y + 3);
-      if (tileNum % 10 === 0 && tileNum < 100 && !tensAwarded.has(tileNum)) {
-        ctx.save();
-        ctx.globalAlpha = 0.55 + Math.sin(timeElapsed * 3 + tileNum) * 0.2;
-        ctx.fillText('⭐', cell.x + cell.w - fontSize - 6, cell.y + 3);
-        ctx.restore();
-      }
+      ctx.fillText(String(lapBase + tileNum), cell.x + 4, cell.y + 3);
     }
     ctx.restore();
 
@@ -1826,10 +1875,15 @@
       const b = { x: a.x + (bFull.x - a.x) * lr + wob, y: a.y + (bFull.y - a.y) * lr };
       const angle = Math.atan2(b.y - a.y, b.x - a.x);
       const perp = angle + Math.PI / 2;
-      const halfW = 5;
+      const halfW = Math.max(5, Math.min(cellRef.w, cellRef.h) * 0.16);
 
-      ctx.strokeStyle = 'rgba(253, 230, 138, 0.36)';
-      ctx.lineWidth = 1.8;
+      // dark outline under the ladder so it reads on every square
+      ctx.lineCap = 'round';
+      for (const pass of [0, 1]) {
+      ctx.strokeStyle = pass === 0 ? 'rgba(40, 20, 6, 0.85)' : '#f5c16c';
+      ctx.lineWidth = pass === 0 ? 5 : 2.6;
+      ctx.shadowBlur = pass === 1 ? FX(8) : 0;
+      ctx.shadowColor = '#fbbf24';
       ctx.beginPath();
       ctx.moveTo(a.x + Math.cos(perp) * halfW, a.y + Math.sin(perp) * halfW);
       ctx.lineTo(b.x + Math.cos(perp) * halfW, b.y + Math.sin(perp) * halfW);
@@ -1846,35 +1900,33 @@
         ctx.lineTo(rx - Math.cos(perp) * halfW, ry - Math.sin(perp) * halfW);
       }
       ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+      // green foot ring with an up arrow: step here to climb
+      const pulse = 0.6 + Math.sin(timeElapsed * 4 + baseTile) * 0.3;
+      ctx.strokeStyle = `rgba(52, 211, 153, ${pulse})`;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, halfW * 1.9, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = `700 ${Math.round(halfW * 2)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⬆', a.x + halfW * 2.4, a.y);
     }
     ctx.restore();
 
-    // Idle snakes in 3D: half of each body is underground; the head (with fangs) twists out of a hole
-    // on the head square and the tail twists out of a hole on the tail square
-    const cellRef = getTileCellRect(1);
+    // Idle snakes in 3D: an enemy of both frogs. Only the head (small fangs) twists out of a hole on the head square
     const snakeSz = Math.max(18, Math.min(cellRef.w, cellRef.h));
-    for (const [headStr, tailTile] of Object.entries(STATIONARY_SNAKES)) {
+    for (const headStr of Object.keys(STATIONARY_SNAKES)) {
       const headTile = Number(headStr);
       const hp = getTileCenter(headTile);
-      const tp = getTileCenter(tailTile);
-      const midX = (hp.x + tp.x) * 0.5 + Math.sin(timeElapsed * 2.2 + headTile) * 14;
-      const midY = (hp.y + tp.y) * 0.5 + Math.cos(timeElapsed * 2.2 + headTile) * 14;
 
-      // underground tunnel (dotted soil line) shows where a slide goes
-      ctx.save();
-      ctx.setLineDash([3, 6]);
-      ctx.strokeStyle = 'rgba(190, 130, 85, 0.32)';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(hp.x, hp.y);
-      ctx.quadraticCurveTo(midX, midY, tp.x, tp.y);
-      ctx.stroke();
-      ctx.restore();
-
+      // Step 2: only the small head shows, on its own square; the body and tail stay hidden underground.
+      // Either frog landing here slides down to the tail square.
       const rise = SNAKE_RISE[headTile] !== undefined ? SNAKE_RISE[headTile] : 1;
-      drawSnakeFromHole(tp.x, tp.y + snakeSz * 0.2, snakeSz, headTile * 1.7, false, rise);
-      drawSnakeFromHole(hp.x, hp.y + snakeSz * 0.2, snakeSz, headTile, true, rise);
+      drawSnakeFromHole(hp.x, hp.y + snakeSz * 0.22, snakeSz * 0.72, headTile, true, rise);
     }
 
     ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
@@ -1882,75 +1934,65 @@
     ctx.strokeRect(left, top, bw, bh);
   }
 
-  function drawGems() {
-    const ladderGlowBoost = Math.min(12, boardTile * 0.1);
-    for (const g of gems) {
-      const r = 7 + Math.sin(g.pulse) * 1.4;
+  // ⭐ Bonus stars: a glowing 5-point star in its own colour with its value (1-6) in the middle;
+  // a bigger value draws a bigger star. New stars pop in with a little grow.
+  function drawStars() {
+    if (state === 'MENU') return;
+    const cellNow = getTileCellRect(1);
+    const base = Math.max(8, Math.min(cellNow.w, cellNow.h) * 0.26);
+    for (const s of stars) {
+      const c = getTileCellRect(s.tile);
+      const grow = s.born < 0 ? 1 : Math.min(1, (timeElapsed - s.born) / 0.4);
+      const R = base * (0.8 + s.value * 0.06) * grow * (1 + Math.sin(timeElapsed * 3 + s.tile) * 0.06);
+      if (R < 1) continue;
+      const x = c.cx, y = c.cy - c.h * 0.08;
       ctx.save();
-      ctx.translate(g.x, g.y);
-
-      if (g.flute) {
-        ctx.rotate(-0.6 + Math.sin(g.pulse) * 0.12);
-        ctx.shadowBlur = FX(16);
-        ctx.shadowColor = '#c084fc';
-        const fg = ctx.createLinearGradient(0, -3, 0, 3);
-        fg.addColorStop(0, '#fcd34d');
-        fg.addColorStop(1, '#92400e');
-        ctx.fillStyle = fg;
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(-12, -2.8, 24, 5.6, 2.8); else ctx.rect(-12, -2.8, 24, 5.6);
-        ctx.fill();
-        ctx.shadowBlur = FX(0);
-        ctx.fillStyle = '#3b1d0a';
-        for (let h = 0; h < 4; h++) {
-          ctx.beginPath();
-          ctx.arc(-5 + h * 4.2, 0, 1.1, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = '#e9d5ff';
-        ctx.font = '700 10px system-ui, sans-serif';
-        ctx.fillText('♪', 9, -6 - Math.abs(Math.sin(g.pulse)) * 3);
-      } else if (g.ladder) {
-        const rungScale = 1 + Math.min(0.25, boardTile * 0.002);
-        ctx.scale(rungScale, rungScale);
-        ctx.shadowBlur = FX(14 + ladderGlowBoost);
-        ctx.shadowColor = '#fbbf24';
-        ctx.strokeStyle = '#fef08a';
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(-4.5, -8); ctx.lineTo(-4.5, 8);
-        ctx.moveTo(4.5, -8); ctx.lineTo(4.5, 8);
-        ctx.moveTo(-4.5, -4); ctx.lineTo(4.5, -4);
-        ctx.moveTo(-4.5, 0); ctx.lineTo(4.5, 0);
-        ctx.moveTo(-4.5, 4); ctx.lineTo(4.5, 4);
-        ctx.stroke();
-      } else {
-        ctx.shadowBlur = FX(12 + ladderGlowBoost * 0.5);
-        ctx.shadowColor = '#10b981';
-        ctx.fillStyle = '#34d399';
-        ctx.beginPath();
-        ctx.moveTo(0, -r);
-        ctx.lineTo(r * 0.85, 0);
-        ctx.lineTo(0, r);
-        ctx.lineTo(-r * 0.85, 0);
-        ctx.closePath();
-        ctx.fill();
+      ctx.translate(x, y);
+      ctx.rotate(Math.sin(timeElapsed * 1.5 + s.tile) * 0.15);
+      ctx.shadowBlur = FX(14);
+      ctx.shadowColor = `hsl(${s.hue}, 95%, 60%)`;
+      const g = ctx.createRadialGradient(-R * 0.25, -R * 0.3, R * 0.1, 0, 0, R);
+      g.addColorStop(0, `hsl(${s.hue}, 100%, 85%)`);
+      g.addColorStop(0.6, `hsl(${s.hue}, 92%, 58%)`);
+      g.addColorStop(1, `hsl(${(s.hue + 30) % 360}, 88%, 38%)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const r = k % 2 === 0 ? R : R * 0.47;
+        const a = -Math.PI / 2 + (k * Math.PI) / 5;
+        if (k === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+        else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
       }
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.stroke();
+      ctx.fillStyle = '#1b0f08';
+      ctx.font = `900 ${Math.max(8, Math.round(R * 0.82))}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(s.value), 0, R * 0.08);
       ctx.restore();
     }
   }
 
+  // live snake colours stay close to its team colour (red team = reds, blue team = blues), with a gentle shimmer
   function getSnakeHue(index) {
-    return Math.round((timeElapsed * 24 + boardTile * 3 + index * 5) % 360);
+    const base = TEAMS[snakeOwner()].hue;
+    return Math.round((base + Math.sin(timeElapsed * 2 + index * 0.5) * 18 + 360) % 360);
   }
 
   function drawSnake() {
-    if (!snake.segments.length) return;
+    if (!snake.segments.length || state === 'MENU') return;
+    const cellNow = getTileCellRect(1);
+    const sk = Math.max(1.2, Math.min(2.4, Math.min(cellNow.w, cellNow.h) / 26));   // grows with the squares
     ctx.save();
     for (let i = snake.segments.length - 1; i >= 0; i--) {
       const seg = snake.segments[i];
       const ratio = 1 - i / snake.segments.length;
-      const radius = i === 0 ? 5.5 : Math.max(1.8, 4.2 * ratio);
+      const radius = (i === 0 ? 5.5 : Math.max(1.8, 4.2 * ratio)) * sk;
 
       ctx.beginPath();
       ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
@@ -1965,6 +2007,7 @@
     const head = snake.segments[0];
     ctx.translate(head.x, head.y);
     ctx.rotate(snake.angle);
+    ctx.scale(sk, sk);
 
     const tongueLen = 8 + Math.sin(timeElapsed * 18) * 3;
     ctx.strokeStyle = '#fde68a';
@@ -1990,13 +2033,31 @@
     ctx.restore();
   }
 
-  function drawPlayer() {
-    const hopScale = player.hopTimer > 0
-      ? 1 + Math.sin((player.hopTimer / 0.45) * Math.PI) * 0.45
-      : 1;
+  // Both frogs, each in its team colour; the frog whose turn it is wears a pulsing ring
+  function drawFrogs() {
+    if (state === 'MENU') return;
+    frogs.forEach((f, i) => { if (i !== turn) drawPlayer(f, i); });
+    drawPlayer(frogs[turn], turn);   // the frog to move is drawn on top
+  }
+  function drawPlayer(player, idx) {
+    const isTurn = idx === turn && state === 'PLAYING';
+    const hopScale = player.anim ? 1.18 : 1;   // a frog in mid-hop looks a little bigger
 
-    const climberHue = (38 + boardTile * 1.4 + timeElapsed * 12) % 360;
-    const eyeGlowing = player.hopTimer > 0 || boardTile >= 10;
+    const climberHue = TEAMS[idx].hue;
+    const eyeGlowing = true;
+
+    if (isTurn) {
+      ctx.save();
+      ctx.strokeStyle = TEAMS[idx].light;
+      ctx.globalAlpha = 0.55 + Math.sin(timeElapsed * 6) * 0.35;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      const ringCell = getTileCellRect(1);
+      const ringR = Math.max(13, Math.min(ringCell.w, ringCell.h) * 0.36);
+      ctx.arc(player.x, player.y, ringR + Math.sin(timeElapsed * 6) * 1.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     ctx.save();
     for (let i = player.tailHistory.length - 1; i >= 1; i--) {
@@ -2017,7 +2078,10 @@
 
     ctx.save();
     ctx.translate(player.x, player.y);
-    ctx.scale(hopScale, hopScale);
+    // frogs grow with the square size so both are easy to spot on a phone and a laptop
+    const cellNow = getTileCellRect(1);
+    const sizeK = Math.max(1.3, Math.min(2.6, Math.min(cellNow.w, cellNow.h) / 26));
+    ctx.scale(hopScale * sizeK, hopScale * sizeK);
 
     if (player.hopTimer > 0) {
       ctx.beginPath();
@@ -2106,9 +2170,9 @@
       ctx.translate(sx, sy);
     }
     drawBoard();
-    drawGems();
+    drawStars();
     drawSnake();
-    drawPlayer();
+    drawFrogs();
     drawParticlesAndPopups();
     ctx.restore();
 

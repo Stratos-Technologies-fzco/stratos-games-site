@@ -3,25 +3,29 @@
   "maker": "Saiqul Modi",
   "github": "saiqulmodi",
   "category": "arcade",
-  "how_to_play": "Roll the dice (R or the 🎲 button) to step 1 to 6 tiles toward Tile 100, steer the frog to gems, climb ladders, and keep moving so the slow hunting snake never catches you standing still.",
-  "description": "Snake Ladder is the classic 1 to 100 board game turned into a calm, child-friendly climb. A small frog starts on Tile 1 of a numbered 10 by 10 board that zig-zags up to Tile 100. Roll the dice to hop forward one to six tiles, and watch the frog step tile by tile so every move is easy to follow.\n\nEvery day brings a new board: today's date sets where the seven ladders and seven snakes go, the same for every player, so each day is a fresh daily challenge. Ladders lift you up and add 200 points, and now and then one ladder wobbles to a new spot. The snakes peek out of holes in the board, and every three seconds one of them slips underground and pops up somewhere new: land on a snake head and the frog slides down to its tail, losing 25 points for every tile it falls. A golden flute gem charms the next snake head so it cannot hurt you. One rainbow snake is alive and slowly hunts the frog, twenty times slower than you: it only catches a frog that stands still, grows longer each time it does, and shrinks when you hop over it. Landing on 10, 20, 30 and every tens tile pays a bright +10 star burst, quiet counting practice for young players.\n\nBetween rolls you can steer the frog anywhere on the board to collect green gems (one tile forward) and golden ladder rungs (four tiles forward), and chain pickups quickly for a bigger score multiplier. Short picture tips teach each new move the first time it happens. Your climb saves by itself, so Continue takes you back to the same tile, and a Top 5 table and a daily streak give you a reason to come back and beat your best.",
+  "how_to_play": "Two players share one screen: the red and blue frogs take turns rolling two dice, while the other player steers their own live snake to catch the frog that is moving. Climb ladders, dodge snake heads, grab the numbered stars, and keep going past 100, 200, 300 and on.",
+  "description": "Snake Ladder is the classic 1 to 100 board game rebuilt as a two-player duel on one phone or computer. The red team and the blue team each have a frog and a live snake. The frogs only move with the dice: roll two dice and your frog steps forward 2 to 12 squares, one square at a time, so every move is easy to follow.\n\nThe twist is that the hands swap after every roll. While the red player rolls for the red frog, the blue player steers the blue snake with a finger, the mouse or the arrow keys, and tries to catch the red frog before its move is over. Then the dice passes: blue rolls, red hunts. The snake moves at the same speed as a hopping frog, starts just behind it, and if its head reaches the frog, the frog drops ten squares and the snake grows longer.\n\nThe board has its own dangers and helpers for both teams. Seven idle snakes peek out of holes with small fangs: land on a snake head and you slide down to its tail. Seven ladders lift any frog up and pay 200 points. Colourful stars worth 1 to 6 are scattered on random squares; land on one or hop over it for 100 to 600 points, and collect several in one move for a chain bonus.\n\nThere is no game over. Reaching 100 pays 1000 points and the frog carries straight on to 101 on a fresh board of snakes and ladders, then 201, 301 and onward for as long as you both want to play. The Reset button starts a new game on a new board with both frogs back on square 1 while keeping both scores. Your game saves after every move, so Continue brings both frogs, the board and the stars back exactly where you left them.",
   "controls": [
-    "Roll: R key, the ROLL button, or the 🎲 button on a phone",
-    "Steer: drag on the board, or Arrow keys / WASD",
-    "Hop: Space, Shift, or the HOP button on a phone (pushes the hunting snake away)",
-    "P to pause, M to mute sound and vibration, H or 🏠 to save and go home"
+    "Roll the dice for the frog whose turn it is: R or Space, the 🎲 button, or the round dice button on a phone",
+    "Steer your team's live snake while the other frog moves: hold a finger or the mouse on the board, or use the Arrow keys / WASD",
+    "🔄 Reset (tap twice): both frogs back to square 1 on a new board, scores kept",
+    "P to pause, M to mute, H or 🏠 to save and go home"
   ],
   "tips": [
-    "Keep the frog moving: the hunting snake only catches a frog that stands still.",
-    "Hop when the hunting snake is close to push it away for +120 points.",
-    "Golden ladder rungs move you four tiles at once; chain pickups within 1.4 seconds for a bigger multiplier.",
-    "Grab the golden flute: it makes the next snake head harmless.",
-    "Visit every tens tile (10, 20, 30 ...) for +10 stars each.",
-    "Hop over the hunting snake to make it shorter."
+    "Each turn one player rolls and the other player hunts: the snake starts right behind the frog, so steer it fast.",
+    "A caught frog drops ten squares, so a long roll is the safest roll.",
+    "Big stars are worth more: a ⭐6 pays 600 points, and two or more stars in one move earn a chain bonus.",
+    "Ladders help both teams and snake heads hurt both teams, so read the board before you roll.",
+    "Reaching 100 pays 1000 points and brings a new board for the next hundred.",
+    "Use 🔄 Reset for a fresh board when you want a new game without losing your scores."
   ],
-  "story": "Inspired by childhood evenings playing Snakes and Ladders on a wooden board, rebuilt as a gentle climb where a little frog keeps going no matter how many snakes it meets.",
+  "faq": [
+    {"q": "Can two people play on one phone?", "a": "Yes. It is made for two players on one screen: one rolls for their frog while the other steers their snake, and the roles swap after every roll."},
+    {"q": "Does the game end at 100?", "a": "No. Reaching 100 pays 1000 points and the frog goes on to 101 on a new board, then 200, 300 and onward with no limit."}
+  ],
+  "story": "Inspired by childhood evenings playing Snakes and Ladders on a wooden board, rebuilt so two friends can race their frogs and hunt each other with their own snakes.",
   "resume": {
     "native": true,
-    "how": "Your climb (score, board tile and last dice roll) saves automatically after every move; the home screen's Continue button takes you back to the same tile."
+    "how": "Both frogs' squares, hundreds and scores, the turn, the board and the stars save automatically after every move; the home screen's Continue button takes you straight back."
   }
 }
