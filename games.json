@@ -120,19 +120,6 @@
    "soon": false
   },
   {
-   "slug": "nikhatenglish89-crystal-quest",
-   "title": "CRYSTAL QUEST \u2013 THE LOST KINGDOM",
-   "maker": "Nikhat Sultana",
-   "one_line": "A Match-3 fantasy adventure: restore the Lost Kingdom with a short, satisfying daily session.",
-   "category": "puzzle",
-   "url": "play/crystal-quest/",
-   "thumb": "games/nikhatenglish89-crystal-quest/thumbnail.png",
-   "added": "2026-11-08",
-   "github": "nikhatenglish89",
-   "kind": "family",
-   "soon": false
-  },
-  {
    "slug": "im-mohua-liza-ink-velocity",
    "title": "Ink Velocity",
    "maker": "Mohua Liza",
@@ -427,7 +414,7 @@
    "url": "play/racing-mania/",
    "thumb": "games/Mdsadee527/thumbnail.png",
    "added": "2026-09-29",
-   "github": "im-mohua-liza",
+   "github": "Mdsadee527",
    "kind": "family",
    "soon": false
   },
