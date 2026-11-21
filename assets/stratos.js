@@ -2,7 +2,7 @@
 (function(w,d){
 if(w.Stratos)return;
 try{if(w.parent!==w&&w.parent.Stratos){w.Stratos=w.parent.Stratos;return}}catch(e){}
-var C={"apiKey": "AIzaSyAtSE-_XuCMwgmFUIpp__Ue3Sui2kq3sjI", "authDomain": "stratos-analytics-497908.firebaseapp.com", "projectId": "stratos-analytics-497908", "storageBucket": "stratos-analytics-497908.firebasestorage.app", "messagingSenderId": "960886305896", "appId": "1:960886305896:web:c34f68575c9328cfb277dd", "measurementId": "G-VD9H9GF5XJ"},m=location.pathname.match(/\/(?:play|games)\/([^\/]+)\//),gm=d.querySelector('meta[name="stratos-game"]'),game=gm&&gm.content?gm.content:(m?m[1]:"");
+var C={"apiKey": "", "authDomain": "", "projectId": "", "storageBucket": "", "messagingSenderId": "", "appId": "", "measurementId": ""},m=location.pathname.match(/\/(?:play|games)\/([^\/]+)\//),gm=d.querySelector('meta[name="stratos-game"]'),game=gm&&gm.content?gm.content:(m?m[1]:"");
 function gtag(){(w.dataLayer=w.dataLayer||[]).push(arguments)}
 if(d.querySelector('meta[name="stratos-kids"]'))C={};   /* Kids section: no analytics, no ads */
 var live=/(^|\.)stratos\.games$/.test(location.hostname);   /* staging and test copies: nothing is counted, track() shows in the console instead */
@@ -229,6 +229,8 @@ init();
 rdy=w.Promise?new Promise(function(res){fetchCfg(res)}):null;
 w.addEventListener("storage",function(e){   /* another tab changed the wallet */
  if(e.key&&e.key!=WK&&e.key!=LK)return;refresh();notify({balance:bal(),delta:0,type:"sync"})});
+w.addEventListener("pageshow",function(e){   /* Back from a game: a page the browser kept in its back-forward cache missed what that game earned */
+ if(e.persisted){refresh();notify({balance:bal(),delta:0,type:"sync"})}});
 if(!live){   /* test helpers for coins-test.html; not on stratos.games */
  K._test={dump:function(){return{wallet:clone(W),ledger:clone(L),persistent:persistent}},
   reset:function(){try{w.localStorage.removeItem(WK);w.localStorage.removeItem(LK)}catch(e){}mem={};W=newW();L=newL(W.deviceId);save();notify({balance:0,delta:0,type:"sync"})},
