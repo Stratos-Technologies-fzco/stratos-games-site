@@ -72,6 +72,8 @@ export function attempt(r, dockId) {
 }
 export function nextCrate(r) { r.idx++; r.tries = 0; r.ruled = []; }
 
+export function hintOptions(r) { const crate = cur(r); return r.docks.filter((d) => d.owner !== crate.id && !r.sorted[d.id] && !r.ruled.includes(d.id)); }
+
 export function useHint(r) {
   refreshHints();
   if (S.progress.hints.left <= 0) return null;

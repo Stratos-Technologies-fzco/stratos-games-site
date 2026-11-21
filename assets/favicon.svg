@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><text x="32" y="44" text-anchor="middle" font-family="Nunito,Arial,sans-serif" font-size="36" font-weight="900" fill="#fff">S</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5.5 1.5 214 214"><title>Stratos Games</title>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round">
+<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#2A1060" stroke-width="64" transform="translate(5 9)"/>
+<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#0B0614" stroke-width="64"/>
+<path d="M142 62 C136 32 60 30 60 72 C60 110 142 96 142 136 C142 178 64 176 56 146" stroke="#8B5CF6" stroke-width="44"/>
+<path d="M118 44 C102 36 76 42 72 66" stroke="#C4B0FF" stroke-width="10"/>
+<path d="M74 92 C96 106 128 104 132 120" stroke="#C4B0FF" stroke-width="10" opacity=".7"/>
+
+</g>
+<g class="sn-eye"><circle cx="130" cy="58" r="15" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="132" data-y="59" cx="132" cy="59" r="6.5" fill="#0B0614"/></g>
+<g class="sn-eye"><circle cx="158" cy="64" r="13" fill="#fff" stroke="#0B0614" stroke-width="5"/><circle class="sn-pupil" data-x="159" data-y="65" cx="159" cy="65" r="5.8" fill="#0B0614"/></g>
+</svg>

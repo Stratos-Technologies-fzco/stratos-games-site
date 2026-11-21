@@ -228,7 +228,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 'use strict';
 /* ================= Stratos hooks (ads + analytics switch on later) ================= */
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
-function offerReward(onDone) { track('reward_offered'); onDone(); track('reward_taken'); }
+function offerRewardAs(kind, onDone) { track('reward_offered'); var go = function () { onDone(); track('reward_taken'); }; try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer(kind, go); return; } } catch (e) {} go(); }
+function offerReward(onDone) { offerRewardAs('hint', onDone); }
 
 /* ================= helpers ================= */
 const $ = s => document.querySelector(s);
@@ -985,6 +986,36 @@ const par = cfg => cfg.diffs * 12;
 const G = { cfg: null, diffs: [], hearts: 0, mistakes: 0, t: 0, playing: false, combo: 0, lastFind: 0, lastMiss: 0, saved: false, vb: { x: 0, y: 0, w: W, h: H } };
 let tick = null;
 
+/* ---------- Resume (Stratos.resume): the episode in progress. Levels are generated from a seed, so a snapshot is only which episode, what was found, hearts and time. ---------- */
+function SR() { try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+function resumeClear() { var R = SR(); if (R) R.clear(); }
+function resumeSave() {
+  var R = SR(); if (!R || !G.cfg || !G.playing) return;
+  var f = []; G.diffs.forEach(function (d, i) { if (d.found) f.push(i); });
+  if (!f.length && !G.mistakes) return;   // nothing to lose yet
+  R.save({ n: G.cfg.n, daily: !!G.cfg.daily, date: G.cfg.date || '', found: f, sig: G.diffs.map(function (d) { return Math.round(d.cx); }), hearts: G.hearts, mistakes: G.mistakes, t: Math.round(G.t), saved: !!G.saved },
+    { ver: 1, label: (G.cfg.daily ? 'Daily Drama' : 'Episode ' + G.cfg.n) + ', ' + f.length + ' of ' + G.diffs.length + ' differences found' });
+}
+function resumeLevel(sv) {
+  if (!sv || typeof sv.n !== 'number' || !Array.isArray(sv.found) || typeof sv.hearts !== 'number') return false;
+  if (sv.daily && sv.date !== today()) return false;   // yesterday's drama is gone
+  var cfg = sv.daily ? dailyCfg() : levelCfg(sv.n);
+  if (!sv.daily && sv.n > S.unlocked) return false;
+  startLevel(cfg);
+  var same = Array.isArray(sv.sig) && sv.sig.length === G.diffs.length && G.diffs.every(function (d, i) { return Math.round(d.cx) === sv.sig[i]; });
+  if (!same) { startLevel(cfg); resumeClear(); return true; }   // the level changed since: just start it fresh
+  G.t = sv.t || 0; G.mistakes = sv.mistakes || 0; G.saved = !!sv.saved; G.hearts = sv.hearts;
+  sv.found.forEach(function (i) { var d = G.diffs[i]; if (d) { d.found = true; mark('circle', { cx: d.cx, cy: d.cy, r: d.r * .85 }, 'ring'); } });
+  drawHearts(); drawFound(); begin();
+  toast('Welcome back. Your episode continues.');
+  return true;
+}
+function resumeOffer(tries) {
+  tries = tries || 0; var R = SR();
+  if (!R) { if (tries < 40) setTimeout(function () { resumeOffer(tries + 1); }, 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || G.cfg) return;   // nothing saved, or the player already started an episode
+  R.offer(function (sv) { if (!resumeLevel(sv)) resumeClear(); }, function () { }, { ver: 1 });
+}
 function startLevel(cfg) {
   G.cfg = cfg;
   const sc = buildScene(cfg.setting, cfg.seed);
@@ -1141,7 +1172,7 @@ function tap(panel, cx, cy) {
   if (onFound) return; // tapped one already found: no penalty
   const now = performance.now(); if (now - G.lastMiss < 300) return; G.lastMiss = now;
   // wrong tap
-  G.hearts--; G.mistakes++; G.combo = 0; SFX.miss(); drawHearts();
+  G.hearts--; G.mistakes++; G.combo = 0; SFX.miss(); drawHearts(); resumeSave();
   if (!S.seenMiss) { S.seenMiss = true; save(); toast('Not that one. A wrong tap costs a heart ❤'); }
   const s = 16 * G.vb.w / W;
   document.querySelectorAll('.panel .marks').forEach(g => { const el = document.createElementNS(NS, 'path'); el.setAttribute('d', `M${p.x - s} ${p.y - s} L${p.x + s} ${p.y + s} M${p.x + s} ${p.y - s} L${p.x - s} ${p.y + s}`); el.setAttribute('class', 'miss'); g.append(el); setTimeout(() => el.remove(), 1400); });
@@ -1162,6 +1193,7 @@ function found(d, panel) {
   G.lastFindT = G.t;
   if (G.guide && !last) { G.guide = false; setTimeout(() => toast('Great! Now find the rest on your own 🔍'), 900); }
   drawFound();
+  resumeSave();
   if (G.diffs.every(x => x.found)) setTimeout(win, 650);
 }
 
@@ -1189,12 +1221,13 @@ $('#hintBtn').onclick = () => {
     SFX.hint(); G.combo = 0;
   };
   if (S.hints > 0) { if (S.hints === 3) S.hintAt = Date.now(); S.hints--; save(); refreshHints(); useHint(); }
-  else offerReward(() => { toast('Free hint!'); useHint(); });
+  else offerRewardAs('hint', () => { toast('Hint!'); useHint(); });
 };
 
 /* ----- end of an episode ----- */
 function stopPlay() { G.playing = false; clearInterval(tick); tick = setInterval(onTick, 1000); }
 function win() {
+  resumeClear();
   G.t = (performance.now() - G.t0) / 1000; $('#timer').textContent = fmt(G.t);
   stopPlay();
   const cfg = G.cfg, t = G.t, p = par(cfg);
@@ -1227,13 +1260,13 @@ function win() {
   setTimeout(() => { ov('win', true); SFX.win(); confetti(); }, 200);
 }
 function lose() {
-  stopPlay(); SFX.lose();
+  stopPlay(); SFX.lose(); resumeClear();
   track('game_over', { level: G.cfg.n, daily: G.cfg.daily, found: G.diffs.filter(d => d.found).length });
   $('#loseSave').classList.toggle('hidden', G.saved);
   $('#loseCap').textContent = G.diffs.filter(d => !d.found).length + ' differences still hiding. The drama isn\'t over yet.';
   setTimeout(() => ov('lose', true), 500);
 }
-$('#loseSave').onclick = () => offerReward(() => { G.saved = true; G.hearts = 2; drawHearts(); ov('lose', false); G.playing = true; G.t0 = performance.now() - G.t * 1000; clearInterval(tick); tick = setInterval(onTick, 250); });
+$('#loseSave').onclick = () => offerRewardAs('continue', () => { G.saved = true; G.hearts = 2; drawHearts(); ov('lose', false); G.playing = true; G.t0 = performance.now() - G.t * 1000; clearInterval(tick); tick = setInterval(onTick, 250); });
 $('#loseRetry').onclick = () => { ov('lose', false); startLevel(G.cfg); };
 $('#loseMenu').onclick = () => { ov('lose', false); goHome(); };
 $('#winNext').onclick = () => { ov('win', false); if (G.cfg.daily) startLevel(levelCfg(S.unlocked)); else startLevel(levelCfg(G.cfg.n + 1)); };
@@ -1283,7 +1316,7 @@ $('#inGo').onclick = e => { e.stopPropagation(); SFX.click(); begin(); };
   requestAnimationFrame(f);
 })();
 
-syncSound(); syncMusic(); refreshHints(); goHome(); Music.start();
+syncSound(); syncMusic(); refreshHints(); goHome(); Music.start(); resumeOffer();
 window.__pt = { Music, G, S, startLevel, levelCfg, dailyCfg, buildScene, makeDiffs, tap, layout, sceneSVG };
 </script>
 </body>

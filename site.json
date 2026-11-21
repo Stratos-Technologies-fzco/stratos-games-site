@@ -5,7 +5,7 @@
   "description": "Stratos Games is an indie game studio and a game portal. Play free casual, puzzle, word and party games in your browser, made by the Stratos family and the studio. Humans test, AI builds, games ship.",
   "about_home": [
     "Stratos Games is an indie game studio and a game portal. Every game here is free to play in your browser, on a phone or a computer, with nothing to install and no sign-up.",
-    "The games come from two places. Studio titles such as Bloxplode, Arrow Puzzle, Word Quest and House Mafia are made by the Stratos studio. Family games are made by people from the Stratos family, each building their own game with an AI partner.",
+    "The games come from two places. Studio titles, Bloxplode and Arrow Rush, are made by the Stratos studio. Family games are made by people from the Stratos family, each building their own game with an AI partner.",
     "Our rule is: humans test, AI builds, games ship. AI writes the code, and people play every game before it goes live. New family games go to a test site first and join stratos.games at the weekly release once they pass the checks."
   ],
   "contact": "admin@stratos.games",
@@ -15,7 +15,7 @@
       "id": "new",
       "label": "New",
       "icon": "sparkle",
-      "mood": "Fresh this week",
+      "mood": "Just landed this week", "color": "#B6FF3B",
       "emoji": "✨",
       "hue": 190,
       "intro": "The newest games on Stratos Games, freshest first. Family makers send their games to a test site during the week; the ones that pass the checks (a real cover, a game that fits the screen, no crashes) go live at the weekly release and show up here first."
@@ -24,7 +24,7 @@
       "id": "arcade",
       "label": "Arcade",
       "icon": "joystick",
-      "mood": "Adrenaline rush",
+      "mood": "Fast hands, big scores", "color": "#FF5A6E",
       "emoji": "🕹️",
       "hue": 335,
       "intro": "Quick action games: dodge, jump, fly and race. Rounds are short, so you can play one in a minute or chase a high score for longer. Every game runs in your browser and fits a phone screen."
@@ -33,7 +33,7 @@
       "id": "puzzle",
       "label": "Puzzle",
       "icon": "puzzle",
-      "mood": "Train your brain",
+      "mood": "Think it through", "color": "#33C9F0",
       "emoji": "🧩",
       "hue": 180,
       "intro": "Games that make you think: clear the board, find the right order, plan a few moves ahead. Many start easy and get harder level by level, so there is always one more puzzle to solve."
@@ -42,7 +42,7 @@
       "id": "word",
       "label": "Word",
       "icon": "word",
-      "mood": "Word nerds",
+      "mood": "Play with letters", "color": "#5B8CFF",
       "emoji": "🔤",
       "hue": 45,
       "intro": "Games for word lovers: find words in a letter grid, build words from letters, and test your vocabulary. Good for a short break."
@@ -51,25 +51,34 @@
       "id": "party",
       "label": "Party",
       "icon": "party",
-      "mood": "With friends",
+      "mood": "Better together", "color": "#FFA530",
       "emoji": "🎉",
       "hue": 140,
-      "intro": "Games to play with friends. House Mafia, our multiplayer party game, takes 4 to 8 players and runs on any phone from a link, with no install."
+      "intro": "Games to play with friends and family: card games and quick party rounds that run in the browser on any phone, with no install."
     },
     {
       "id": "sports",
       "label": "Sports",
       "icon": "ball",
-      "mood": "Get moving",
+      "mood": "Race, kick, score", "color": "#33DD88",
       "emoji": "⚽",
       "hue": 25,
       "intro": "Sports and racing games you can play in a few minutes: matches, stunts and races, right in your browser."
     },
     {
+      "id": "adventure",
+      "label": "Adventure",
+      "icon": "compass",
+      "mood": "Explore and discover", "color": "#E8A33D",
+      "emoji": "🧭",
+      "hue": 38,
+      "intro": "Games about exploring: wander new places, find hidden things, solve little mysteries and follow a story. Take your time, every game runs in your browser and fits a phone screen."
+    },
+    {
       "id": "kids",
       "label": "Kids",
       "icon": "star",
-      "mood": "For the kids",
+      "mood": "Safe, simple fun", "color": "#FF6EC7",
       "emoji": "🧸",
       "hue": 95,
       "intro": "Simple, friendly games for younger players. Games in the kids section run with no ads and no analytics."
@@ -78,17 +87,28 @@
       "id": "studio",
       "label": "Studio titles",
       "icon": "studio",
-      "mood": "Stratos originals",
+      "mood": "Made by Stratos", "color": "#8B5CF6",
       "emoji": "🚀",
       "hue": 265,
-      "intro": "Games made by the Stratos studio: Bloxplode, Arrow Puzzle, Word Quest and House Mafia. AI writes the code, and a person plays every build on a real phone before it ships."
+      "intro": "Games made by the Stratos studio: Bloxplode and Arrow Rush. AI writes the code, and a person plays every build on a real phone before it ships."
     }
   ],
+  "featured": ["sksarfarajali-stratos-drop-zone", "im-mohua-liza-momo-run", "im-mohua-liza-chroma-clash", "im-mohua-liza-plot-twist", "sksarfarajali-moto-rush"],
   "studio_games": [
+    {
+      "slug": "arrow-rush",
+      "family": "mody-sahariar1",
+      "title": "Arrow Rush",
+      "category": "puzzle",
+      "kicker": "Maze · Puzzle · Escape",
+      "cta": "Play now",
+      "featured": true
+    },
     {
       "slug": "bloxplode",
       "title": "BLOXPLODE",
       "category": "puzzle",
+      "kicker": "Combo block puzzle",
       "one_line": "Combo block puzzle. Clear lines, chain combos, survive the 10-level Adventure.",
       "play_url": "",
       "store_url": "https://play.google.com/store/apps/details?id=com.stratos.bloxplode",
@@ -96,42 +116,6 @@
       "image": "assets/covers/bloxplode.png",
       "page": "games-bloxplode/",
       "featured": true
-    },
-    {
-      "slug": "arrow-puzzle",
-      "title": "Arrow Puzzle",
-      "category": "puzzle",
-      "one_line": "Every arrow points somewhere. Clear the board without a collision.",
-      "play_url": "",
-      "store_url": "",
-      "cta": "Coming soon",
-      "image": "assets/covers/arrow-puzzle.svg",
-      "page": "games-arrow-puzzle/",
-      "featured": false
-    },
-    {
-      "slug": "house-mafia",
-      "title": "House Mafia",
-      "category": "party",
-      "one_line": "Mafia and Werewolf, set at a house party. 4 to 8 players, 3 to 5 minute rounds.",
-      "play_url": "",
-      "store_url": "",
-      "cta": "Coming soon",
-      "image": "assets/covers/house-mafia.svg",
-      "page": "games-house-mafia/",
-      "featured": false
-    },
-    {
-      "slug": "word-quest",
-      "title": "Word Quest",
-      "category": "word",
-      "one_line": "Drag across the grid, find the words, win the minute.",
-      "play_url": "",
-      "store_url": "",
-      "cta": "Coming soon",
-      "image": "assets/covers/word-quest.svg",
-      "page": "games-word-quest/",
-      "featured": false
     }
   ],
   "nav": [
@@ -184,5 +168,41 @@
     "saiqulmodi-domino-wonder-dash": "Domino Game: no menu, no goal, nothing to tap",
     "saiqulmodi-ecos-synthetica": "Ecos-Synthetica: blank on phone, scrolls on computer",
     "saiqulmodi-stratos-poker": "Poker Arena: asks for email and phone; sign-in must come from Stratos centrally"
+  },
+  "links": {
+    "Mdsadee527": "racing-mania",
+    "Mdsadee527-mega-ramp-stunt-racer": "mega-ramp-stunt-racer",
+    "im-mohua-liza": "magic-shot",
+    "im-mohua-liza-aetherhold": "aetherhold",
+    "im-mohua-liza-ashgrove-extraction": "ashgrove-extraction",
+    "im-mohua-liza-cargo-climb": "cargo-climb",
+    "im-mohua-liza-chroma-clash": "chroma-clash",
+    "im-mohua-liza-ink-velocity": "ink-velocity",
+    "im-mohua-liza-momo-run": "momo-run",
+    "im-mohua-liza-plot-twist": "plot-twist",
+    "im-mohua-liza-wordbloom": "wordbloom",
+    "im-mohua-liza-zest-strike": "zest-strike",
+    "mody-sahariar1": "arrow-rush",
+    "nikhatenglish89": "mystery-island",
+    "nikhatenglish89-crystal-quest": "crystal-quest",
+    "saiqulmodi": "fighter",
+    "saiqulmodi-bridge-genius": "bridgeworks-campus",
+    "saiqulmodi-domino-wonder-dash": "domino-game",
+    "saiqulmodi-ecos-synthetica": "ecos-synthetica",
+    "saiqulmodi-failspan": "failspan",
+    "saiqulmodi-skyforge": "skyforge",
+    "saiqulmodi-stratos-poker": "stratos-poker-arena",
+    "shoaibul0926": "skyfall-armada",
+    "sksarfarajali": "echo-island",
+    "sksarfarajali-babel-harbour": "babel-harbour",
+    "sksarfarajali-brainrush": "brainrush-daily",
+    "sksarfarajali-dino-frontier": "dino-frontier",
+    "sksarfarajali-domino-classic": "domino-classic",
+    "sksarfarajali-moto-rush": "moto-rush",
+    "sksarfarajali-stratos-29-card-game": "stratos-29-card-game",
+    "sksarfarajali-stratos-drop-zone": "stratos-drop-zone",
+    "sumaiyahsultana821-sys": "island-match-quest",
+    "sumaiyahsultana821-sys-the-missing-minute": "the-missing-minute",
+    "tamannamody": "toot-raft"
   }
 }

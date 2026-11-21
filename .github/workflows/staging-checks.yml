@@ -4,7 +4,7 @@ name: staging checks
 on:
   push:
     branches: [staging]
-    paths: ["games/**"]
+    paths: ["games/**", "assets/coins-config.json"]
   workflow_dispatch:
 permissions:
   contents: read

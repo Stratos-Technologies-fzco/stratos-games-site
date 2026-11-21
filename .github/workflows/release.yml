@@ -15,15 +15,15 @@ concurrency:
   group: build-main
   cancel-in-progress: false
 env:
-  RELEASERS: " sahilmodi1965 mody-sahariar1 im-mohua-liza "
+  RELEASERS: " sahilmodi1965 mody-sahariar1 sksarfarajali im-mohua-liza "
   REPORT_ISSUE: "33"
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: only Sahil, Sahariar or Mohua can release
+      - name: only Sahil, Sahariar, Sarfaraj or Mohua can release
         run: |
-          case "$RELEASERS" in *" ${{ github.actor }} "*) echo "ok: ${{ github.actor }}";; *) echo "::error::Only Sahil, Sahariar or Mohua can put games live."; exit 1;; esac
+          case "$RELEASERS" in *" ${{ github.actor }} "*) echo "ok: ${{ github.actor }}";; *) echo "::error::Only Sahil, Sahariar, Sarfaraj or Mohua can put games live."; exit 1;; esac
       - uses: actions/checkout@v4
         with: { ref: staging, fetch-depth: 0, ssh-key: "${{ secrets.RELEASE_KEY }}" }
       - uses: actions/setup-python@v5

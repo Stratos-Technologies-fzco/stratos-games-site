@@ -1,0 +1,714 @@
+{
+ "maxLevel": 3,
+ "buildings": [
+  {
+   "id": "chicken_coop",
+   "kind": "habitat",
+   "name": "Chicken Coop",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "chicken_coop"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 60,
+   "unlockLevel": 1,
+   "animal": "chicken",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    120,
+    300
+   ]
+  },
+  {
+   "id": "duck_pond",
+   "kind": "habitat",
+   "name": "Duck Pond",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "duck_pond"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 90,
+   "unlockLevel": 2,
+   "animal": "duck",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    180,
+    450
+   ]
+  },
+  {
+   "id": "cow_pasture",
+   "kind": "habitat",
+   "name": "Cow Pasture",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "cow_pasture"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 160,
+   "unlockLevel": 3,
+   "animal": "cow",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    320,
+    800
+   ]
+  },
+  {
+   "id": "sheep_pen",
+   "kind": "habitat",
+   "name": "Sheep Pen",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "sheep_pen"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 220,
+   "unlockLevel": 4,
+   "animal": "sheep",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    440,
+    1100
+   ]
+  },
+  {
+   "id": "goat_yard",
+   "kind": "habitat",
+   "name": "Goat Yard",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "goat_yard"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 280,
+   "unlockLevel": 5,
+   "animal": "goat",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    560,
+    1400
+   ]
+  },
+  {
+   "id": "pig_pen",
+   "kind": "habitat",
+   "name": "Pig Pen",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "pig_pen"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 340,
+   "unlockLevel": 6,
+   "animal": "pig",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    680,
+    1700
+   ]
+  },
+  {
+   "id": "turkey_pen",
+   "kind": "habitat",
+   "name": "Turkey Pen",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "turkey_pen"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 400,
+   "unlockLevel": 7,
+   "animal": "turkey",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    800,
+    2000
+   ]
+  },
+  {
+   "id": "rabbit_hutch",
+   "kind": "habitat",
+   "name": "Rabbit Hutch",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "rabbit_hutch"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 440,
+   "unlockLevel": 8,
+   "animal": "rabbit",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    880,
+    2200
+   ]
+  },
+  {
+   "id": "horse_stable",
+   "kind": "habitat",
+   "name": "Horse Stable",
+   "atlas": "atlas_habitats",
+   "frames": [
+    "horse_stable"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 800,
+   "unlockLevel": 11,
+   "animal": "horse",
+   "capacity": [
+    4,
+    6,
+    8
+   ],
+   "upgradeCost": [
+    0,
+    1600,
+    4000
+   ]
+  },
+  {
+   "id": "flour_mill",
+   "kind": "production",
+   "name": "Flour Mill",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "flour_mill_0",
+    "flour_mill_1",
+    "flour_mill_2",
+    "flour_mill_3"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 120,
+   "unlockLevel": 1,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    240,
+    600
+   ]
+  },
+  {
+   "id": "feed_mill",
+   "kind": "production",
+   "name": "Feed Mill",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "feed_mill"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 150,
+   "unlockLevel": 1,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    300,
+    750
+   ]
+  },
+  {
+   "id": "bakery",
+   "kind": "production",
+   "name": "Bakery",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "bakery"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 250,
+   "unlockLevel": 2,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    500,
+    1250
+   ]
+  },
+  {
+   "id": "dairy",
+   "kind": "production",
+   "name": "Dairy",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "dairy"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 350,
+   "unlockLevel": 3,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    700,
+    1750
+   ]
+  },
+  {
+   "id": "sugar_mill",
+   "kind": "production",
+   "name": "Sugar Mill",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "sugar_mill"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 400,
+   "unlockLevel": 4,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    800,
+    2000
+   ]
+  },
+  {
+   "id": "juice_press",
+   "kind": "production",
+   "name": "Juice Press",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "juice_press"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 450,
+   "unlockLevel": 4,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    900,
+    2250
+   ]
+  },
+  {
+   "id": "textile_mill",
+   "kind": "production",
+   "name": "Textile Mill",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "textile_mill"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 600,
+   "unlockLevel": 5,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    1200,
+    3000
+   ]
+  },
+  {
+   "id": "jam_kitchen",
+   "kind": "production",
+   "name": "Jam Kitchen",
+   "atlas": "atlas_buildings",
+   "frames": [
+    "jam_kitchen"
+   ],
+   "w": 2,
+   "h": 2,
+   "cost": 700,
+   "unlockLevel": 6,
+   "slots": [
+    2,
+    3,
+    4
+   ],
+   "upgradeCost": [
+    0,
+    1400,
+    3500
+   ]
+  },
+  {
+   "id": "decor_bench",
+   "kind": "decor",
+   "name": "Garden bench",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bench"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 25,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_lamp_post",
+   "kind": "decor",
+   "name": "Lamp post",
+   "atlas": "atlas_decor",
+   "frames": [
+    "lamp_post"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 30,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_flowers",
+   "kind": "decor",
+   "name": "Flower bed",
+   "atlas": "atlas_decor",
+   "frames": [
+    "flowers"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 10,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_bush",
+   "kind": "decor",
+   "name": "Bush",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bush"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 12,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_bush_berry",
+   "kind": "decor",
+   "name": "Berry bush",
+   "atlas": "atlas_decor",
+   "frames": [
+    "bush_berry"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_signpost",
+   "kind": "decor",
+   "name": "Signpost",
+   "atlas": "atlas_decor",
+   "frames": [
+    "signpost"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_fence_x",
+   "kind": "decor",
+   "name": "Fence",
+   "atlas": "atlas_decor",
+   "frames": [
+    "fence_x"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 8,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_fence_y",
+   "kind": "decor",
+   "name": "Fence (turned)",
+   "atlas": "atlas_decor",
+   "frames": [
+    "fence_y"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 8,
+   "unlockLevel": 1,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_oak",
+   "kind": "decor",
+   "name": "Oak tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_oak"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 40,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_pine",
+   "kind": "decor",
+   "name": "Pine tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_pine"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 40,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_hay_bale",
+   "kind": "decor",
+   "name": "Hay bale",
+   "atlas": "atlas_decor",
+   "frames": [
+    "hay_bale"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 20,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_mailbox",
+   "kind": "decor",
+   "name": "Mailbox",
+   "atlas": "atlas_decor",
+   "frames": [
+    "mailbox"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 25,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_log_pile",
+   "kind": "decor",
+   "name": "Log pile",
+   "atlas": "atlas_decor",
+   "frames": [
+    "log_pile"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 15,
+   "unlockLevel": 2,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_apple",
+   "kind": "decor",
+   "name": "Apple tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_apple"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 55,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_tree_autumn",
+   "kind": "decor",
+   "name": "Autumn tree",
+   "atlas": "atlas_decor",
+   "frames": [
+    "tree_autumn"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 55,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_scarecrow",
+   "kind": "decor",
+   "name": "Scarecrow",
+   "atlas": "atlas_decor",
+   "frames": [
+    "scarecrow"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 45,
+   "unlockLevel": 3,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "decor_well",
+   "kind": "decor",
+   "name": "Stone well",
+   "atlas": "atlas_decor",
+   "frames": [
+    "well"
+   ],
+   "w": 1,
+   "h": 1,
+   "cost": 80,
+   "unlockLevel": 4,
+   "upgradeCost": [
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}

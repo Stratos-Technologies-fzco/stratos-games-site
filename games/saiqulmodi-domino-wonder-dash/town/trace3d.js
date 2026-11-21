@@ -4,6 +4,19 @@
 // within 24 px, 95% completes, only the first picture of a visit speaks. tools/export_trace3d.py writes the data.
 import * as THREE from 'three';
 
+// Stratos analytics + Stratos Coins: a picture starts (level_start) and is finished (level_complete). `stage` is a
+// stable number per picture, so its first finish pays once as a new level. Does nothing outside stratos.games.
+let tracedAt = 0;
+function track(name, details) {
+  try {
+    if (name === 'level_start') tracedAt = Date.now();
+    else if (tracedAt) details.seconds = Math.round((Date.now() - tracedAt) / 1000);
+    const S = window.Stratos || (window.parent !== window ? window.parent.Stratos : null);
+    if (S) S.track(name, details);
+  } catch (e) { /* never break the game */ }
+}
+function picNo(key) { let h = 5381; for (const ch of String(key)) h = (h * 33 + ch.charCodeAt(0)) % 2147483647; return h % 9999 + 1; }
+
 const S = 0.1;                                  // 1 px of the 440 box = 0.1 world units; the table top is y = 0
 const X = (x) => (x - 220) * S, Z = (y) => (y - 220) * S;
 const RADIUS = 2.4, DONE_SHARE = 0.95, LETTER_SPACING = 34 * S;
@@ -295,9 +308,11 @@ class Play {
   }
 
   load() {
+    try { if (this.cfg.onPicture) this.cfg.onPicture(this.i); } catch (e) { /* never break the game */ }
     const it = this.rows[this.i];
     this.it = it;
     this.stage = 'trace';
+    track('level_start', { picture: String(it.key) });
     this.t = 0;
     this.lastCover = -1; this.down = false; this.last = null; this.lastPop = 0;
     this.touched = 0;
@@ -471,6 +486,8 @@ class Play {
     this.stage = 'done';
     this.doneAt = this.t;
     markDone(this.it.key);
+    track('level_complete', { picture: String(this.it.key), stage: picNo(this.it.key) });
+    try { window.dispatchEvent(new CustomEvent('domino-picture-done')); } catch (e) { /* the town's star counter */ }
     const r = this.it.rect || [20, 20, 400, 400];
     const pw = r[2] * S, ph = r[3] * S;
     st.pic.scale.set(pw, ph, 1);
@@ -602,7 +619,7 @@ export async function openTrace(cfg) {
   const index = await (await fetch('trace/index.json')).json();
   const rows = await (await fetch(`trace/${index[cfg.cat]}.json`)).json();
   st.ui.wait.hidden = true;
-  current = new Play(cfg, rows, 0);
+  current = new Play(cfg, rows, Math.max(0, Math.min(rows.length - 1, cfg.start | 0)));   // start: Stratos Resume reopens that picture
   if (new URLSearchParams(location.search).has('test')) window.__trace = { get play() { return current; }, st };
   return current;
 }

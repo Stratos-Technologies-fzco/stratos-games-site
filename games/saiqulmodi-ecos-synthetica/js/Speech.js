@@ -4,7 +4,7 @@ import { LANGS, getLang } from './i18n.js';
 
 const strip = (s) => String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 // Short pieces avoid browsers cutting long utterances off part-way.
-const sentences = (s) => strip(s).split(/(?<=[.!?।])\s+/).filter(Boolean);
+const sentences = (s) => strip(s).replace(/([.!?।])\s+/g, '$1\n').split('\n').filter(Boolean); // no look-behind: older iPhone Safari cannot read it
 
 export class Speech {
   constructor() {

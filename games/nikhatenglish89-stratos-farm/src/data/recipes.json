@@ -1,0 +1,214 @@
+{
+ "recipes": [
+  {
+   "id": "flour",
+   "building": "flour_mill",
+   "name": "Flour",
+   "inputs": {
+    "wheat": 3
+   },
+   "output": "flour",
+   "seconds": 300,
+   "xp": 2,
+   "unlockLevel": 1
+  },
+  {
+   "id": "animal_feed_wheat",
+   "building": "feed_mill",
+   "name": "Starter feed",
+   "inputs": {
+    "wheat": 3
+   },
+   "output": "animal_feed",
+   "seconds": 240,
+   "xp": 1,
+   "unlockLevel": 1
+  },
+  {
+   "id": "animal_feed",
+   "building": "feed_mill",
+   "name": "Animal feed",
+   "inputs": {
+    "corn": 2,
+    "wheat": 1
+   },
+   "output": "animal_feed",
+   "seconds": 300,
+   "xp": 2,
+   "unlockLevel": 3
+  },
+  {
+   "id": "animal_feed_sunflower",
+   "building": "feed_mill",
+   "name": "Sunflower feed",
+   "inputs": {
+    "sunflower": 2
+   },
+   "output": "animal_feed",
+   "seconds": 300,
+   "xp": 2,
+   "unlockLevel": 7
+  },
+  {
+   "id": "bread",
+   "building": "bakery",
+   "name": "Bread",
+   "inputs": {
+    "flour": 2
+   },
+   "output": "bread",
+   "seconds": 600,
+   "xp": 4,
+   "unlockLevel": 2
+  },
+  {
+   "id": "cake",
+   "building": "bakery",
+   "name": "Cake",
+   "inputs": {
+    "flour": 1,
+    "egg": 1,
+    "sugar": 1
+   },
+   "output": "cake",
+   "seconds": 900,
+   "xp": 8,
+   "unlockLevel": 4
+  },
+  {
+   "id": "pumpkin_pie",
+   "building": "bakery",
+   "name": "Pumpkin Pie",
+   "inputs": {
+    "pumpkin": 1,
+    "flour": 1,
+    "egg": 1
+   },
+   "output": "pumpkin_pie",
+   "seconds": 1200,
+   "xp": 10,
+   "unlockLevel": 8
+  },
+  {
+   "id": "cheese",
+   "building": "dairy",
+   "name": "Cheese",
+   "inputs": {
+    "milk": 2
+   },
+   "output": "cheese",
+   "seconds": 900,
+   "xp": 5,
+   "unlockLevel": 3
+  },
+  {
+   "id": "butter",
+   "building": "dairy",
+   "name": "Butter",
+   "inputs": {
+    "milk": 2
+   },
+   "output": "butter",
+   "seconds": 900,
+   "xp": 5,
+   "unlockLevel": 3
+  },
+  {
+   "id": "sugar",
+   "building": "sugar_mill",
+   "name": "Sugar",
+   "inputs": {
+    "sugarcane": 2
+   },
+   "output": "sugar",
+   "seconds": 600,
+   "xp": 5,
+   "unlockLevel": 4
+  },
+  {
+   "id": "tomato_juice",
+   "building": "juice_press",
+   "name": "Tomato Juice",
+   "inputs": {
+    "tomato": 3
+   },
+   "output": "tomato_juice",
+   "seconds": 900,
+   "xp": 5,
+   "unlockLevel": 4
+  },
+  {
+   "id": "carrot_juice",
+   "building": "juice_press",
+   "name": "Carrot Juice",
+   "inputs": {
+    "carrot": 3
+   },
+   "output": "carrot_juice",
+   "seconds": 600,
+   "xp": 3,
+   "unlockLevel": 4
+  },
+  {
+   "id": "sunflower_oil",
+   "building": "juice_press",
+   "name": "Sunflower Oil",
+   "inputs": {
+    "sunflower": 3
+   },
+   "output": "sunflower_oil",
+   "seconds": 1200,
+   "xp": 6,
+   "unlockLevel": 7
+  },
+  {
+   "id": "fabric",
+   "building": "textile_mill",
+   "name": "Fabric",
+   "inputs": {
+    "cotton": 3
+   },
+   "output": "fabric",
+   "seconds": 1200,
+   "xp": 8,
+   "unlockLevel": 5
+  },
+  {
+   "id": "sweater",
+   "building": "textile_mill",
+   "name": "Sweater",
+   "inputs": {
+    "wool": 2
+   },
+   "output": "sweater",
+   "seconds": 1500,
+   "xp": 9,
+   "unlockLevel": 5
+  },
+  {
+   "id": "strawberry_jam",
+   "building": "jam_kitchen",
+   "name": "Strawberry Jam",
+   "inputs": {
+    "strawberry": 3,
+    "sugar": 1
+   },
+   "output": "strawberry_jam",
+   "seconds": 1500,
+   "xp": 10,
+   "unlockLevel": 6
+  },
+  {
+   "id": "popcorn",
+   "building": "jam_kitchen",
+   "name": "Popcorn",
+   "inputs": {
+    "corn": 2
+   },
+   "output": "popcorn",
+   "seconds": 600,
+   "xp": 3,
+   "unlockLevel": 6
+  }
+ ]
+}

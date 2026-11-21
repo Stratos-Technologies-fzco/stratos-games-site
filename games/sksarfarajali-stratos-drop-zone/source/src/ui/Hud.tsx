@@ -19,6 +19,12 @@ function Icon({ name, size }: { name: string; size?: number }) {
   return src ? <img src={src} alt="" style={size ? { width: size, height: size } : undefined} /> : <div style={{ height: 30 }} />;
 }
 
+const RARE = ['#9CA3AF', '#4EA8FF', '#A78BFA', '#FFB020'];
+/** What to do first: shown for your first matches, right after landing. */
+function Tutorial({ touch }: { touch: boolean }) {
+  const rows = touch ? [['Move', 'left stick'], ['Look', 'drag the right side'], ['Shoot', 'FIRE button'], ['Loot', 'tap the prompt'], ['Sprint', 'push the stick far']] : [['Move', 'W A S D'], ['Look', 'mouse'], ['Shoot', 'left click'], ['Aim', 'right click'], ['Loot', 'F'], ['Sprint / crouch', 'Shift / C'], ['Map', 'M']];
+  return <div class="tut glass"><b class="t">CONTROLS</b>{rows.map(([a, b]) => <div key={a}><span>{a}</span><kbd>{b}</kbd></div>)}<small>If the mouse does nothing, click the game once</small></div>;
+}
 function drawMap(c: HTMLCanvasElement, hud: Hud, big: boolean) {
   const ctx = c.getContext('2d')!; const S = c.width; const k = S / MAP; const tx = (x: number) => (x + HALF) * k, tz = (z: number) => (z + HALF) * k;
   ctx.clearRect(0, 0, S, S); ctx.fillStyle = '#1e7fa8'; ctx.fillRect(0, 0, S, S);
@@ -31,6 +37,8 @@ function drawMap(c: HTMLCanvasElement, hud: Hud, big: boolean) {
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tx(hud.zone.cx), tz(hud.zone.cz), hud.zone.r * k, 0, 7); ctx.stroke();
     ctx.setLineDash([5, 4]); ctx.strokeStyle = '#A78BFA'; ctx.beginPath(); ctx.arc(tx(hud.zone.nx), tz(hud.zone.nz), hud.zone.nr * k, 0, 7); ctx.stroke(); ctx.setLineDash([]);
   }
+  for (const p of POIS) { const col = p.tier === 'top' ? '#FFB020' : p.tier === 'high' ? '#A78BFA' : '#fff'; ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(tx(p.x), tz(p.z), big ? 7 : 3.5, 0, 7); ctx.stroke(); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(tx(p.x), tz(p.z), big ? 2.5 : 1.4, 0, 7); ctx.fill(); } // loot places
+  for (const l of hud.loot) { ctx.fillStyle = RARE[l.r] ?? '#fff'; ctx.fillRect(tx(l.x) - 1.5, tz(l.z) - 1.5, 3, 3); } // loot on the ground near you
   ctx.fillStyle = '#FF4D5E'; for (const s of hud.shots) { ctx.globalAlpha = Math.min(1, s.t); ctx.beginPath(); ctx.arc(tx(s.x), tz(s.z), 3, 0, 7); ctx.fill(); } ctx.globalAlpha = 1;
   if (hud.marker) { ctx.fillStyle = '#4ADE80'; ctx.beginPath(); ctx.arc(tx(hud.marker.x), tz(hud.marker.z), 5, 0, 7); ctx.fill(); }
   if (hud.phase === 'flight') { ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(tx(hud.planeX - hud.planeDir[0] * 500), tz(hud.planeZ - hud.planeDir[1] * 500)); ctx.lineTo(tx(hud.planeX + hud.planeDir[0] * 500), tz(hud.planeZ + hud.planeDir[1] * 500)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(tx(hud.planeX), tz(hud.planeZ), 5, 0, 7); ctx.fill(); }
@@ -65,7 +73,7 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
     <div class="layer hud">
       {hud.scope > 0 && <div class="scope" />}
       <div class={`vig ${hud.hp < 35 || hud.dmgArc.length ? 'on' : ''}`} /><div class={`vig storm ${hud.inZoneDanger ? 'on' : ''}`} />
-      {hud.phase === 'flight' && !hud.eliminated ? (
+      {hud.phase === 'flight' && !hud.eliminated && hud.airborne ? (
         <div class="flight">
           <div class="info panel"><span>ALT {hud.alt || '—'} m</span><span>{hud.alive} aboard</span>{hud.canJump && <span class="pill">AUTO-JUMP {Math.ceil(hud.autoJumpIn)}s</span>}</div>
           {hud.landing && <div class="banner panel" style="top:58px;color:var(--amber);border-color:var(--amber);font-size:15px;white-space:nowrap;padding:6px 14px">LANDING · {hud.landing.name} · {hud.landing.dist} m · {hud.landing.secs}s</div>}
@@ -122,6 +130,10 @@ export function Hud({ g, hud, onPause, onLobby, onAgain }: { g: Game; hud: Hud; 
           )}
         </>
       )}
+      {hud.shield > 0 && <div class="shield-pill">LANDING PROTECTION · {Math.ceil(hud.shield)}s</div>}
+      {hud.objective && <div class="objective">{hud.objective}</div>}
+      {hud.toasts.length > 0 && <div class="toasts">{hud.toasts.map((t) => <div key={t.id} class="toast" style={{ borderColor: t.color, color: t.color }}>{t.text}</div>)}</div>}
+      {hud.tutorial && <Tutorial touch={touchUI} />}
       {hud.demo && <div class="banner panel" style="top:10px;left:auto;right:10px;transform:none;font-size:15px;max-width:300px;color:var(--text);border-color:var(--amber);text-align:left"><div class="t" style="color:var(--amber)">DEMO · step {Math.min(hud.demo.step + 1, hud.demo.total)} of {hud.demo.total}</div>{hud.demo.text}{hud.demo.step >= hud.demo.total && <div><button class="btn primary" style="margin-top:8px;font-size:16px" onClick={onLobby}>Back to lobby</button></div>}</div>}
       <button class="tb" style="left:12px;bottom:6px;width:40px;height:40px;pointer-events:auto" aria-label="Music" onClick={() => { settings.musicOn = !settings.musicOn; audio.setMusicOn(settings.musicOn); force((n) => n + 1); }}>{settings.musicOn ? '♪' : '♪̸'}</button>
       {settings.fps && <div class="fps">{hud.fps} FPS · {hud.quality} · anim {hud.animMs} ms</div>}

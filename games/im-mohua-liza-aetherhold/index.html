@@ -210,7 +210,9 @@ main{position:relative;min-height:0;overflow:hidden}
   .brand{font-size:18px}
   .might{display:none}
   .team{grid-template-columns:1fr}
-  .tab span{font-size:10px}
+  .tab span{font-size:12px}
+  .btn.sm{min-height:40px;padding:8px 14px}
+  .sheet .x,.modal .x{min-width:44px;min-height:44px;top:4px;right:4px}
   .hud .panel{min-width:0}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
@@ -631,7 +633,7 @@ function summon(kind){
 
 /* ---------- Stratos hooks: no-ops until the site turns on analytics and rewarded ads ---------- */
 function track(name,details){try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {}}
-function offerReward(onDone){onDone()}
+function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', onDone); return; } } catch (e) {} onDone(); }
 let lastLost={};
 
 /* ---------- sound: everything is synthesized live with Web Audio ---------- */

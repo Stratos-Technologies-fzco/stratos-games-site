@@ -1,11 +1,34 @@
 // Builds the island scene: coloured terrain, water, merged static chunks, sun, fog and the storm wall.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { settings } from '../input';
 import { modelGeometry, sharedMaterial } from './assets';
+import { makeWindMaterial, swayWeights, windUniforms } from './wind';
 import { CELL, GRID, HALF, MAP, RIVER, RIVER_WIDTH, coastDist, roadDist, type Placement, type WorldData, baseHeight } from '../core/world';
 
 const C = (hex: number) => new THREE.Color(hex);
-const SAND = C(0xe8c98b), LOW = C(0x3e9b5f), HILL = C(0x2f7d4a), ROCK = C(0x8a7f6a), ROAD = C(0xc9a66b), LATERITE = C(0xb5543a), SEABED = C(0x1e7fa8);
+const SAND = C(0xe8c98b), LOW = C(0x3e9b5f), HILL = C(0x2f7d4a), ROCK = C(0x8a7f6a), ROAD = C(0xc9a66b), LATERITE = C(0xb5543a), SEABED = C(0x2f93b3);
+
+const DRY = new THREE.Color(0x8aa84a);
+const hash2 = (x: number, y: number) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
+/** Smooth value noise, 0..1. */
+function vnoise(x: number, y: number) { const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy); return (hash2(ix, iy) * (1 - u) + hash2(ix + 1, iy) * u) * (1 - v) + (hash2(ix, iy + 1) * (1 - u) + hash2(ix + 1, iy + 1) * u) * v; }
+
+/** A sunset sky dome (follows the camera, ignores fog), a sun disc, and one merged mesh of low-poly clouds at 250-340 m. */
+function buildSky(): { sky: THREE.Group; mat: THREE.MeshBasicMaterial; clouds: THREE.Mesh } {
+  const sky = new THREE.Group(); const R = 1000; const geo = new THREE.SphereGeometry(R, 28, 18); const pos = geo.getAttribute('position'); const col = new Float32Array(pos.count * 3);
+  const stops: [number, number][] = [[0, 0xf6c58a], [0.1, 0xf1b58f], [0.28, 0xdc8fa0], [0.55, 0x9a78b8], [1, 0x413d86]]; const c0 = new THREE.Color(), c1 = new THREE.Color(), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) { const y = Math.max(0, pos.getY(i) / R); let k = 0; while (k < stops.length - 2 && y > stops[k + 1][0]) k++; const t = Math.min(1, Math.max(0, (y - stops[k][0]) / (stops[k + 1][0] - stops[k][0]))); c0.setHex(stops[k][1]); c1.setHex(stops[k + 1][1]); c.copy(c0).lerp(c1, t); col.set([c.r, c.g, c.b], i * 3); }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }); const dome = new THREE.Mesh(geo, mat); dome.renderOrder = -10; dome.frustumCulled = false; sky.add(dome);
+  const sun = new THREE.Mesh(new THREE.CircleGeometry(34, 24), new THREE.MeshBasicMaterial({ color: 0xffe3b0, fog: false, depthWrite: false })); sun.position.set(-120, 140, -80).normalize().multiplyScalar(R * 0.92); sun.lookAt(0, 0, 0); sun.renderOrder = -9; sky.add(sun);
+  const parts: THREE.BufferGeometry[] = []; let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }; const top = new THREE.Color(0xfff1e6), bot = new THREE.Color(0xe3b0b8);
+  for (let i = 0; i < 26; i++) { const ang = rnd() * Math.PI * 2, dist = 300 + rnd() * 600, cx = Math.cos(ang) * dist, cz = Math.sin(ang) * dist, cy = 250 + rnd() * 90, puffs = 4 + Math.floor(rnd() * 4);
+    for (let p = 0; p < puffs; p++) { const g = new THREE.IcosahedronGeometry(1, 1); const s = 9 + rnd() * 9; g.scale(s * (1.2 + rnd() * 0.6), s * 0.38, s * (0.9 + rnd() * 0.5)); g.translate(cx + (p - puffs / 2) * s * 1.1 + (rnd() - 0.5) * 6, cy + (rnd() - 0.5) * 4, cz + (rnd() - 0.5) * s * 0.8);
+      const gp = g.getAttribute('position'), gc = new Float32Array(gp.count * 3); for (let v = 0; v < gp.count; v++) { const k = Math.min(1, Math.max(0, (gp.getY(v) - (cy - 5)) / 10)); c.copy(bot).lerp(top, k); gc.set([c.r, c.g, c.b], v * 3); } g.setAttribute('color', new THREE.BufferAttribute(gc, 3)); parts.push(g); } }
+  const clouds = new THREE.Mesh(mergeGeometries(parts, false)!, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.94, depthWrite: false })); clouds.frustumCulled = false; clouds.renderOrder = -5;
+  return { sky, mat, clouds };
+}
 
 export function buildTerrainMesh(w: WorldData): THREE.Mesh {
   const g = new THREE.PlaneGeometry(MAP, MAP, GRID - 1, GRID - 1); g.rotateX(-Math.PI / 2);
@@ -18,6 +41,7 @@ export function buildTerrainMesh(w: WorldData): THREE.Mesh {
     else tmp.copy(LOW).lerp(HILL, Math.min(1, h / 24));
     if (slope > 0.45) tmp.lerp(slope > 0.8 ? ROCK : LATERITE, Math.min(1, (slope - 0.45) * 1.6));
     if (d > 0 && roadDist(x, z) < 3.2) tmp.lerp(ROAD, 0.85);
+    if (d > 0) { const n = vnoise(x * 0.018, z * 0.018) * 0.6 + vnoise(x * 0.09, z * 0.09) * 0.4; tmp.offsetHSL((n - 0.5) * 0.05, 0, (n - 0.5) * 0.1); if (h > 1.2 && n > 0.6) tmp.lerp(DRY, Math.min(0.55, (n - 0.6) * 2)); } // patches of dry and lush grass
     colors.set([tmp.r, tmp.g, tmp.b], i * 3);
   }
   g.setAttribute('color', new THREE.BufferAttribute(colors, 3)); g.computeVertexNormals();
@@ -26,7 +50,7 @@ export function buildTerrainMesh(w: WorldData): THREE.Mesh {
 
 function buildWater(): THREE.Group {
   const grp = new THREE.Group();
-  const sea = new THREE.Mesh(new THREE.PlaneGeometry(MAP * 3, MAP * 3, 1, 1).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x1e7fa8, transparent: true, opacity: 0.82, flatShading: true }));
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(MAP * 10, MAP * 10, 1, 1).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x1e7fa8, transparent: true, opacity: 0.82, flatShading: true }));
   sea.position.y = -0.05; sea.name = 'sea'; grp.add(sea);
   // river ribbon following the centre line at the local bank height
   const pts: THREE.Vector3[] = []; const left: number[] = [], right: number[] = [], idx: number[] = [];
@@ -52,7 +76,8 @@ function bankLevel(x: number, z: number) {
 
 const CHUNK = 80;
 const VEG = new Set(['palm_tree', 'broadleaf_tree', 'bush', 'grass_clump', 'rock_small', 'rock_medium']);
-export interface Chunk { mesh: THREE.Mesh; cx: number; cz: number; center: THREE.Vector3; hasTall: boolean }
+/** `mesh` holds buildings, rocks and props; `trees` (when the area has any) holds trees, bushes and grass, which sway in the wind. A tree-only area has just `mesh`, with userData.tree set. */
+export interface Chunk { mesh: THREE.Mesh; trees?: THREE.Mesh; cx: number; cz: number; center: THREE.Vector3; hasTall: boolean }
 
 /** Merge every static model into one mesh per 80 m cell: a handful of draw calls instead of thousands. */
 export async function buildStaticChunks(list: Placement[]): Promise<Chunk[]> {
@@ -61,19 +86,21 @@ export async function buildStaticChunks(list: Placement[]): Promise<Chunk[]> {
   const cells = new Map<string, Placement[]>();
   for (const p of list) { const k = `${Math.floor((p.x + HALF) / CHUNK)},${Math.floor((p.z + HALF) / CHUNK)}`; (cells.get(k) ?? cells.set(k, []).get(k)!).push(p); }
   const out: Chunk[] = []; const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+  const windMat = makeWindMaterial(sharedMaterial);
   for (const [k, ps] of cells) {
-    const parts: THREE.BufferGeometry[] = [];
+    const parts: THREE.BufferGeometry[] = [], plantParts: THREE.BufferGeometry[] = [];
     for (const p of ps) {
       const g = geos.get(p.model)!.clone(); const hsh = (Math.abs(Math.sin(p.x * 12.9898 + p.z * 78.233)) * 43758.5453) % 1, veg = VEG.has(p.model), sc = veg ? 0.85 + hsh * 0.4 : 1;
       q.setFromAxisAngle(up, p.yaw); m.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(sc, veg ? sc * (0.9 + ((hsh * 7) % 1) * 0.3) : 1, sc)); g.applyMatrix4(m);
       const col = g.getAttribute('color') as THREE.BufferAttribute, f = veg ? 0.82 + ((hsh * 13) % 1) * 0.36 : 0.9 + ((hsh * 13) % 1) * 0.2, tr = veg && p.model.includes('tree'), tn = tr ? [f * 0.95, f, f * 0.9] : [f, f, f];
       for (let i = 0; i < col.count; i++) col.setXYZ(i, Math.min(1, col.getX(i) * tn[0]), Math.min(1, col.getY(i) * tn[1]), Math.min(1, col.getZ(i) * tn[2]));
-      parts.push(g);
+      if (/tree|bush|grass/.test(p.model)) { const gp = g.getAttribute('position'); const ys = new Float32Array(gp.count); for (let i = 0; i < gp.count; i++) ys[i] = gp.getY(i); g.setAttribute('sway', new THREE.BufferAttribute(swayWeights(ys), 1)); plantParts.push(g); } else parts.push(g);
     }
-    const merged = mergeGeometries(parts, false); if (!merged) continue; merged.computeVertexNormals();
-    const mesh = new THREE.Mesh(merged, sharedMaterial); mesh.matrixAutoUpdate = false; mesh.frustumCulled = true; mesh.castShadow = false;
-    merged.computeBoundingSphere(); const [cx, cz] = k.split(',').map(Number);
-    out.push({ mesh, cx, cz, center: merged.boundingSphere!.center.clone(), hasTall: ps.some((p) => p.model.includes('tree')) });
+    const solid = parts.length ? mergeGeometries(parts, false) : null, plants = plantParts.length ? mergeGeometries(plantParts, false) : null; if (!solid && !plants) continue;
+    const make = (geo: THREE.BufferGeometry, mat: THREE.Material) => { geo.computeVertexNormals(); geo.computeBoundingSphere(); const me = new THREE.Mesh(geo, mat); me.matrixAutoUpdate = false; me.frustumCulled = true; me.castShadow = false; return me; };
+    const mesh = solid ? make(solid, sharedMaterial) : make(plants!, windMat); const trees = solid && plants ? make(plants, windMat) : undefined; if (!solid) mesh.userData.tree = true;
+    const [cx, cz] = k.split(',').map(Number);
+    out.push({ mesh, trees, cx, cz, center: (solid ?? plants)!.boundingSphere!.center.clone(), hasTall: ps.some((p) => p.model.includes('tree')) });
   }
   return out;
 }
@@ -87,12 +114,13 @@ export interface WorldView {
 export async function buildWorldView(w: WorldData): Promise<WorldView> {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf4c58a); scene.fog = new THREE.Fog(0xf0c898, 140, 520);
+  const { sky, mat: skyMat, clouds } = buildSky(); scene.add(sky); scene.add(clouds);
   scene.add(new THREE.HemisphereLight(0xfff0d8, 0x6b5a8a, 1.05));
   const sun = new THREE.DirectionalLight(0xffd9a0, 2.1); sun.position.set(-120, 140, -80); scene.add(sun); scene.add(sun.target);
   scene.add(buildTerrainMesh(w));
   const water = buildWater(); scene.add(water);
   const chunks = await buildStaticChunks([...w.placements, ...w.vegetation, ...w.lights]);
-  for (const c of chunks) scene.add(c.mesh);
+  for (const c of chunks) { scene.add(c.mesh); if (c.trees) scene.add(c.trees); }
 
   // storm wall: violet cylinder with a scrolling noise shader
   const stormMat = new THREE.ShaderMaterial({
@@ -117,14 +145,18 @@ export async function buildWorldView(w: WorldData): Promise<WorldView> {
   return {
     scene, sun, chunks, storm, stormNext, water,
     update(cam, t, low) {
+      sky.position.copy(cam); skyMat.color.setRGB(1 - 0.45 * outK, 1 - 0.5 * outK, 1 - 0.2 * outK); // the sky darkens to violet inside the storm
       (storm.material as THREE.ShaderMaterial).uniforms.uTime.value = t;
       const d = Math.hypot(cam.x - storm.position.x, cam.z - storm.position.z); (storm.material as THREE.ShaderMaterial).uniforms.uInside.value = d < storm.scale.x ? 1 : 0;
       const far = low ? 260 : 420;
-      for (const c of chunks) c.mesh.visible = Math.hypot(c.center.x - cam.x, c.center.z - cam.z) < far + 60;
+      for (const c of chunks) { c.mesh.visible = Math.hypot(c.center.x - cam.x, c.center.z - cam.z) < far + 60; if (c.trees) c.trees.visible = c.mesh.visible; }
+      windUniforms.uTime.value = t; windUniforms.uWind.value = low || settings.reduceMotion ? 0 : 1; // still on Low quality and with Reduce motion
+      // the sun and its shadow follow the camera, so shadows work everywhere on the island, not just near the middle
+      { const sx = Math.round(cam.x * 4) / 4, sz = Math.round(cam.z * 4) / 4; sun.target.position.set(sx, 0, sz); sun.position.set(sx - 120, 140, sz - 80); }
       water.children[0].position.x = cam.x; water.children[0].position.z = cam.z;
       // atmosphere
       const dz = Math.hypot(cam.x - zone.cx, cam.z - zone.cz), wallOn = storm.visible && zone.r > 0; outK += ((wallOn && dz > zone.r ? 1 : 0) - outK) * 0.04;
-      const fog = scene.fog as THREE.Fog; fog.color.copy(fogIn).lerp(fogOut, outK); fog.near = 140 - 80 * outK; fog.far = 520 - 240 * outK; (scene.background as THREE.Color).copy(bgIn).lerp(bgOut, outK);
+      const fog = scene.fog as THREE.Fog; fog.color.copy(fogIn).lerp(fogOut, outK); const alt = Math.max(0, cam.y - 15); fog.near = 140 - 80 * outK + alt * 0.7; fog.far = 520 - 240 * outK + alt * 2.4; // high up the fog thins, so the island and sea show from the plane (scene.background as THREE.Color).copy(bgIn).lerp(bgOut, outK);
       motes.visible = wallOn && Math.abs(dz - zone.r) < 110;
       if (motes.visible) {
         const pos = moteGeo.getAttribute('position') as THREE.BufferAttribute, a0 = Math.atan2(cam.z - zone.cz, cam.x - zone.cx), arc = 140 / Math.max(zone.r, 40), n = low ? 160 : MOTES; moteGeo.setDrawRange(0, n);

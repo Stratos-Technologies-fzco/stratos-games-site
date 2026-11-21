@@ -228,6 +228,15 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
 #sx-about-btn{display:none!important}
 #game{overflow:hidden}
 @media (max-height:430px){#rack{padding:4px 12px 8px;min-height:0}.hud{min-height:32px;padding:2px 10px 0}.rowtop{min-height:44px;padding-top:4px}.mebar .av{width:28px;height:28px;font-size:16px}}
+.ib{position:relative}.ib[hidden]{display:none}
+.badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#e53935;color:#fff;font:700 11px/18px system-ui,sans-serif;text-align:center;font-style:normal;padding:0 4px}
+.badge[hidden]{display:none}
+.clog{height:clamp(110px,30vh,230px);overflow-y:auto;background:rgba(0,0,0,.25);border-radius:12px;padding:8px 10px;margin:10px 0 8px;text-align:left;font-size:14px;-webkit-user-select:text;user-select:text}
+.cl{margin:5px 0;line-height:1.3;word-break:break-word}.cl b{color:var(--gold)}.cl.me{text-align:right}.cl.me b{color:#9fe3c8}
+.cq{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.cq button{padding:7px 11px;border-radius:99px;background:rgba(255,255,255,.1);font-size:13px}
+.cq button:active{background:rgba(244,197,66,.3)}
+.cform{display:grid;grid-template-columns:1fr auto;gap:8px}
 </style>
 </head>
 <body>
@@ -365,8 +374,8 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
 <h3>Teams (4 players)</h3><p>You and the player opposite you are a team. Your team's pips are added together and scores are shared.</p>
 <h3>Winning the game</h3><p>Reach the target score (100, 150 or 200) first.</p></div>
    <div class="hp"><h3>Daily challenge</h3><p>One hard match a day with the same deal for everyone. Play on back-to-back days to build your streak (one missed day is forgiven).</p>
-<h3>Play a friend online</h3><p>Tap PLAY A FRIEND ONLINE, then CREATE A ROOM and send the invite link or the 5-letter code. Your friend taps JOIN. The room creator's device runs the game, so keep that page open. In a 4-player room, empty seats are played by the computer and are marked CPU. If someone drops out, a computer takes their seat. Hints and undo are switched off online.</p>
-<h3>Hints</h3><p>You get 3 hints per game. A hint shows the move the computer would make.</p></div>
+<h3>Play a friend online</h3><p>Tap PLAY A FRIEND ONLINE, then CREATE A ROOM and send the invite link or the 5-letter code. Your friend taps JOIN. The room creator's device runs the game, so keep that page open. In a 4-player room, empty seats are played by the computer and are marked CPU. If someone drops out, a computer takes their seat. Hints and undo are switched off online. Tap the chat bubble at the top to talk with the other players (quick phrases or your own words); you can switch chat off in Settings.</p>
+<h3>Hints</h3><p>You get 3 hints and 2 undos per game. A hint shows the move the computer would make. Out of them? Spend Stratos Coins for more. Win matches to earn coins.</p></div>
    <div class="hnav"><button class="btn" id="hPrev">‹ BACK</button><span class="hdots" id="hDots"></span><button class="btn sec" id="hNext">NEXT ›</button></div>
   </div></div>
  </section>
@@ -375,6 +384,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
   <div class="gtop">
    <button class="ib" id="gPause" aria-label="Menu">☰</button>
    <div class="mid"><b id="gTitle">Draw Dominoes</b><span id="gSub">Round 1</span></div>
+   <button class="ib" id="gChat" aria-label="Chat" hidden>💬<i class="badge" id="chatBadge" hidden>0</i></button>
    <button class="ib" id="gSound" aria-label="Toggle sound">🔊</button>
   </div>
   <div class="scorebar" id="scorebar"></div>
@@ -407,6 +417,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
   <div class="tgl"><span>Music</span><button class="sw" id="tMusic" aria-label="Music"></button></div>
   <div class="tgl"><span>Reduce motion</span><button class="sw" id="tMotion" aria-label="Reduce motion"></button></div>
   <div class="tgl"><span>Auto-play when only one move</span><button class="sw" id="tAuto1" aria-label="Auto-play when only one move"></button></div>
+  <div class="tgl"><span>Chat in online games</span><button class="sw" id="tChat" aria-label="Chat in online games"></button></div>
   <div class="tgl"><span>Colour-blind pips</span><button class="sw" id="tCb" aria-label="Colour-blind pips"></button></div>
   <div style="padding:12px 0 2px"><span>Table colour</span><div class="seg" id="sTheme" style="margin-top:8px"><button data-v="green">Emerald</button><button data-v="blue">Midnight</button><button data-v="red">Burgundy</button></div></div>
   <div style="padding:14px 0 4px"><span>Volume</span><input type="range" id="rVol" min="0" max="100"></div>
@@ -425,6 +436,15 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
   </div>
  </div></div>
 
+ <div class="modal" id="mChat"><div class="sheet" style="padding:14px 14px 16px">
+  <h2 style="font-size:20px">CHAT</h2>
+  <div class="sub" style="margin-bottom:0">Only the people in this room can read it. Be kind.</div>
+  <div class="clog" id="chatLog"></div>
+  <div class="cq" id="chatQuick"></div>
+  <form class="cform" id="chatForm" autocomplete="off"><input class="txt" id="chatIn" maxlength="80" placeholder="Type a message" autocomplete="off"><button class="btn sec" type="submit" style="width:auto;padding:12px 18px">SEND</button></form>
+  <button class="btn line" id="chatClose" type="button" style="margin-top:10px;padding:11px">CLOSE</button>
+ </div></div>
+
  <div class="modal" id="mTips"><div class="sheet"><h2>QUICK TIPS</h2><div class="sub">Three things to know</div>
   <div class="stack" style="text-align:left">
    <div class="card"><b>1. Tap a glowing tile</b><div class="sub">Gold glow means it fits an open end of the chain.</div></div>
@@ -433,6 +453,13 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
    <button class="btn pri" id="tipsOk" style="font-size:16px;padding:15px">LET'S PLAY</button>
   </div></div></div>
 
+ <div class="modal" id="mBuy"><div class="sheet">
+  <h2 id="buyH">GET ANOTHER HINT?</h2><div class="sub" id="buySub"></div>
+  <div class="stack">
+   <button class="btn pri" id="buyYes" style="font-size:16px;padding:15px">SPEND COINS</button>
+   <button class="btn line" id="buyNo">NO THANKS</button>
+  </div>
+ </div></div>
  <div class="modal" id="mResult"><div class="conf" id="conf"></div><div class="sheet" id="resSheet"></div></div>
 </div>
 
@@ -601,12 +628,80 @@ function $(id){return document.getElementById(id);}
 function track(name,details){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);if(S)S.track(name,details);}catch(e){}}
 /* Ads are not live yet: the reward is given straight away. Later this will show a rewarded ad first. */
 function offerReward(kind,onDone){track('reward_offered',{kind:kind});onDone();track('reward_taken',{kind:kind});}
+/* ---------- Stratos Coins: the shared site wallet (earn by winning, spend on extra hints and undos) ----------
+   This game keeps no Stratos Coins of its own. Opened on its own (no Stratos page around it) it plays exactly as before. */
+var GAME_ID='sksarfarajali-domino-classic',firstTried=false;
+function SC(){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);return S&&S.coins?S.coins:null;}catch(e){return null;}}
+/* ---------- Resume (Stratos.resume): the match in progress. Saved at the start of every turn, offered when the game opens. Offline matches only. ---------- */
+function SR(){try{var S=window.Stratos||(window.parent&&window.parent.Stratos);return S&&S.resume?S.resume:null;}catch(e){return null;}}
+function resumeClear(){var R=SR();if(R)R.clear();}
+function saveMatch(phase){
+ var R=SR();if(!R||G.online||AUTO||DEMO||!G.cfg)return;
+ if(phase==='turn'&&!G.S)return;
+ R.save({phase:phase,cfg:G.cfg,daily:G.daily,day:today(),scores:G.scores,round:G.round,hints:G.hints,undos:G.undos,mid:G.mid,myPts:G.myPts,S:phase==='turn'?G.S:null},
+  {ver:1,label:(G.daily?'Daily challenge':(G.cfg.mode==='draw'?'Draw':'Block')+' game')+', round '+G.round+', '+G.scores[0]+' to '+G.scores[1]});
+}
+function matchOk(sv){
+ if(!sv||!sv.cfg||(sv.cfg.players!==2&&sv.cfg.players!==4)||(sv.cfg.mode!=='draw'&&sv.cfg.mode!=='block')||!sv.cfg.target)return false;
+ if(!Array.isArray(sv.scores)||sv.scores.length!==2||typeof sv.round!=='number')return false;
+ if(sv.daily&&sv.day!==today())return false;   /* yesterday's daily deal is not today's */
+ if(sv.phase==='between')return true;
+ var S=sv.S;return !!(S&&Array.isArray(S.hands)&&S.hands.length===sv.cfg.players&&Array.isArray(S.chain)&&typeof S.turn==='number'&&!S.over);
+}
+function resumeMatch(sv){
+ if(!matchOk(sv))return false;
+ G.online=null;G.epoch++;G.cfg=Object.assign({},sv.cfg);G.daily=!!sv.daily;G.scores=sv.scores.slice();G.round=sv.round;G.hints=sv.hints;G.undos=sv.undos;
+ if(typeof G.hints!=='number')G.hints=3;if(typeof G.undos!=='number')G.undos=2;
+ G.snap=null;G.paused=false;G.over=false;G.myPts=sv.myPts||0;G.coinGain=0;G.mid=sv.mid||Date.now().toString(36);G.sel=null;G.hintId=null;G.hintEnd=null;G.pend=null;G.lastMsg='';G.lastId=null;G.recent=[];G.fresh={};
+ show('game');setupTable();
+ if(sv.phase==='between'){startRound();return true;}   /* the round was over: deal the next one (G.round is the finished round, startRound adds one) */
+ G.S=sv.S;board.querySelectorAll('.tile').forEach(function(t){t.remove();});G.els={};
+ renderScores();renderSeats();renderRack();layoutBoard();updateControls();
+ toast('Welcome back. Your match continues.',1800);scheduleTurn();return true;
+}
+function resumeOffer(tries){
+ if(AUTO||DEMO)return;tries=tries||0;var R=SR();
+ if(!R){if(tries<40)setTimeout(function(){resumeOffer(tries+1);},100);return;}   /* the site script loads a moment after the game: wait up to 4 s */
+ if(!R.has({ver:1})||!$('menu').classList.contains('on')||G.S)return;   /* nothing saved, or a match was already started */
+ R.offer(function(sv){if(!resumeMatch(sv)){resumeClear();show('menu');}},function(){},{ver:1});
+}
+function earnFirstPlay(){
+ if(firstTried||AUTO||DEMO)return;firstTried=true;var C=SC();if(!C)return;
+ var r=C.earn('game_first_play',{game:GAME_ID});if(r&&r.ok)toast('+'+r.amount+' Stratos Coins: welcome!',2200);
+}
+function earnMatchWin(){   /* called once when the player wins a whole match against the computer; returns coins paid */
+ var C=SC();if(!C||AUTO||DEMO||G.online)return 0;
+ var paid=0,r=C.earn('match_win',{game:GAME_ID,level:({easy:1,medium:2,hard:3})[G.cfg.ai]||1,ref:G.mid});
+ if(r&&r.ok)paid+=r.amount;
+ var dc=C.dailyChallenge();   /* the site picks one game a day: winning here that day also completes it */
+ if(dc&&dc.game===GAME_ID&&!dc.done){r=C.earn('daily_challenge',{game:GAME_ID,ref:dc.ref});if(r&&r.ok)paid+=r.amount;}
+ return paid;
+}
+function coinLine(){
+ var C=SC();if(!C||!G.coinGain)return'';
+ return'<div class="sub" style="color:var(--gold);font-weight:700">+'+G.coinGain+' Stratos Coins · you have '+C.balance()+'</div>';
+}
+/* Out of free hints/undos: spend Stratos Coins (price and balance shown, one tap to confirm). */
+function askBuy(kind,noun,onDone){
+ var C=SC();
+ if(!C||C.price(kind)===null){offerReward(kind,onDone);return;}   /* no coins around the game: the old free reward */
+ var p=C.price(kind),bal=C.balance(),yes=$('buyYes');
+ $('buyH').textContent='GET ANOTHER '+noun.toUpperCase()+'?';
+ $('buySub').textContent=bal>=p?'One '+noun+' costs '+p+' Stratos Coins. You have '+bal+'.':'One '+noun+' costs '+p+' Stratos Coins. You have '+bal+'. Win games to earn more.';
+ yes.textContent=bal>=p?'SPEND '+p+' COINS':'NEED '+(p-bal)+' MORE COINS';yes.disabled=bal<p;
+ yes.onclick=function(){
+  var r=C.spend(kind,{game:GAME_ID,ref:'round'+G.round});modal('mBuy',false);
+  if(r&&r.ok)onDone();else toast('Could not spend coins');
+ };
+ $('buyNo').onclick=function(){modal('mBuy',false);};
+ modal('mBuy',true);
+}
 var Q=new URLSearchParams(location.search),AUTO=Q.has('auto'),DEMO=Q.has('demo');
 
 /* ---------- storage ---------- */
 function load(k,def){try{var v=localStorage.getItem(k);return v?Object.assign({},def,JSON.parse(v)):Object.assign({},def);}catch(e){return Object.assign({},def);}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-var settings=load('sdc_settings',{sfx:true,music:false,volume:70,motion:false,tipsSeen:false,theme:'green',cb:false,auto1:false});
+var settings=load('sdc_settings',{sfx:true,music:false,volume:70,motion:false,tipsSeen:false,theme:'green',cb:false,auto1:false,chat:true});
 var stats=load('sdc_stats',{played:0,won:0,lost:0,points:0,streak:0,best:0,dLast:'',dStreak:0,dBest:0,dWins:0});
 var lastCfg=load('sdc_cfg',{mode:'draw',players:2,ai:'medium',target:100});
 var RM=false;
@@ -731,7 +826,7 @@ function renderStats(){setTimeout(fitAll,0);
  $('statgrid').innerHTML=items.map(function(i){return '<div class="stat"><b>'+i[0]+'</b><span>'+i[1]+'</span></div>';}).join('');
 }
 function renderSettings(){
- $('tSfx').classList.toggle('on',settings.sfx);$('tMusic').classList.toggle('on',settings.music);$('tMotion').classList.toggle('on',settings.motion);$('tCb').classList.toggle('on',settings.cb);$('tAuto1').classList.toggle('on',settings.auto1);segSet('sTheme',settings.theme);$('rVol').value=settings.volume;
+ $('tSfx').classList.toggle('on',settings.sfx);$('tMusic').classList.toggle('on',settings.music);$('tMotion').classList.toggle('on',settings.motion);$('tCb').classList.toggle('on',settings.cb);$('tAuto1').classList.toggle('on',settings.auto1);$('tChat').classList.toggle('on',settings.chat!==false);segSet('sTheme',settings.theme);$('rVol').value=settings.volume;
  $('mSound').textContent=settings.sfx?'🔊':'🔇';$('gSound').textContent=settings.sfx?'🔊':'🔇';
 }
 function setSetting(k,v){settings[k]=v;save('sdc_settings',settings);applyMotion();Snd.ensure();Snd.vol();renderSettings();}
@@ -741,6 +836,7 @@ $('tMotion').onclick=function(){setSetting('motion',!settings.motion);};
 $('rVol').oninput=function(){setSetting('volume',+this.value);};
 $('rVol').onchange=function(){sfx('place');};
 $('tAuto1').onclick=function(){setSetting('auto1',!settings.auto1);};
+$('tChat').onclick=function(){setSetting('chat',settings.chat===false);updateChatBtn();};
 $('tCb').onclick=function(){setSetting('cb',!settings.cb);renderRack();};
 $('sTheme').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;sfx('click');setSetting('theme',b.getAttribute('data-v'));});
 var fromPause=false,tipsCb=null;
@@ -772,9 +868,9 @@ function teamName(t){
 }
 function startMatch(c,daily){
  var keepOn=!!(G.online&&G.online.keep);if(!keepOn)G.online=null;
- G.epoch++;G.cfg=Object.assign({},c);G.daily=!!daily;G.scores=G.cfg.players===4?[0,0]:[0,0];G.round=0;G.hints=3;G.undos=2;G.snap=null;G.paused=false;G.over=false;G.myPts=0;
+ G.epoch++;G.cfg=Object.assign({},c);G.daily=!!daily;G.scores=G.cfg.players===4?[0,0]:[0,0];G.round=0;G.hints=3;G.undos=2;G.snap=null;G.paused=false;G.over=false;G.myPts=0;G.coinGain=0;G.mid=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
  if(!daily&&!AUTO&&!G.online){lastCfg=Object.assign({},c);save('sdc_cfg',lastCfg);}
- show('game');setupTable();
+ show('game');setupTable();earnFirstPlay();
  if(G.online&&G.online.role==='host')Net.sendStart();
  if(!settings.tipsSeen&&!AUTO&&!DEMO&&!G.online){openTips(function(){settings.tipsSeen=true;save('sdc_settings',settings);startRound();});}else startRound();
 }
@@ -788,7 +884,7 @@ function setupTable(){
  }
  $('gTitle').textContent=(G.daily?'Daily · ':'')+(G.cfg.mode==='draw'?'Draw Dominoes':'Block Dominoes');
  $('mebar').querySelector('.av').textContent=seatAv(0);
- renderScores();
+ updateChatBtn();renderScores();
 }
 function renderScores(bumpTeam){
  var sb=$('scorebar');sb.innerHTML='';
@@ -1017,6 +1113,7 @@ function afterMove(){
 function scheduleTurn(){
  var S=G.S;if(!S)return;
  if(S.over){endRound();return;}
+ saveMatch('turn');
  setTurnUI();var seat=S.turn;
  if(isRemote(seat)){G.busy=true;updateControls();setStatus((G.lastMsg?G.lastMsg+' ':'')+seatName(seat)+' is thinking…');thinking(seat,true);return;}
  if(seat===0&&!AUTO){G.busy=false;humanTurn();return;}
@@ -1091,7 +1188,7 @@ $('bHint').onclick=function(){
   G.hints--;G.sel=m.tile.id;G.hintId=m.tile.id;G.hintEnd=m.end;sfx('select');renderRack();showGhosts();updateControls();
   setStatus('Hint: play the highlighted tile on the '+(m.end==='L'?'left':'right')+' end ('+(m.end==='L'?S.chain[0].a:S.chain[S.chain.length-1].b)+').');
  };
- if(G.hints>0)run();else offerReward('hint',function(){G.hints=1;run();});
+ if(G.hints>0)run();else askBuy('hint','hint',function(){G.hints=1;run();});
 };
 function doUndo(){
  if(!G.snap)return;
@@ -1101,7 +1198,7 @@ function doUndo(){
 }
 $('bUndo').onclick=function(){
  if(G.busy||!G.snap||G.S.turn!==0)return;
- if(G.undos>0)doUndo();else offerReward('undo',function(){G.undos=1;doUndo();});
+ if(G.undos>0)doUndo();else askBuy('undo','undo',function(){G.undos=1;doUndo();});
 };
 
 /* ---------- round / match end ---------- */
@@ -1112,6 +1209,7 @@ function endRound(){
  if(onHost())Net.push({type:'over'});
  if(win){G.myPts+=r.points;stats.points+=r.points;}
  var mw=E.matchWinner(G.scores,G.cfg.target),matchOver=mw!==null;
+ if(!G.online){if(matchOver)resumeClear();else saveMatch('between');}
  setStatus(draw?'Blocked. Nobody scores.':(win?'You win the round!':teamName(r.winnerTeam)+' win the round'));
  if(win)track('level_complete',{round:G.round,points:r.points,mode:G.cfg.mode,daily:G.daily});
  later(function(){renderScores(r.winnerTeam);},400);
@@ -1132,6 +1230,8 @@ function showResult(r,win,draw,matchOver,mw){
  html+='<div class="sub">Round '+G.round+' · '+(G.cfg.mode==='draw'?'Draw':'Block')+' · '+G.cfg.players+' players · '+G.cfg.ai+' level</div>';
  if(matchOver){
   updateMatchStats(mw===0);
+  if(mw===0)G.coinGain=earnMatchWin();
+  html+=coinLine();
   html+='<div class="stack" style="margin-top:14px">'+(onGuest()?'<div class="sub">Waiting for the host to play again…</div>':'<button class="btn pri" id="rAgain" style="font-size:16px;padding:15px">PLAY AGAIN</button>')+'<button class="btn sec" id="rShare">SHARE RESULT</button>'+(G.online?'<button class="btn line" id="rMenu">LEAVE ROOM</button>':'<div class="row2"><button class="btn" id="rNew">NEW GAME</button><button class="btn" id="rMenu">MAIN MENU</button></div>')+'</div>';
  }else{
   html+='<div class="stack" style="margin-top:14px">'+(onGuest()?'<div class="sub">Waiting for the host to start the next round…</div>':'<button class="btn pri" id="rNext" style="font-size:16px;padding:15px">NEXT ROUND</button>')+'<button class="btn line" id="rMenu">'+(G.online?'LEAVE ROOM':'MAIN MENU')+'</button></div>';
@@ -1286,6 +1386,7 @@ var Net={
   G.online.seats.forEach(function(st,i){if(i>0&&st.pid)self.sendView(st.pid,i,evt);});
  },
  pushTo:function(pid,evt){var i=seatByPid(pid);if(i>0&&G.S)this.sendView(pid,i,evt);},
+ sendRaw:function(pid,obj){var k=this.keys[pid];if(!k)return;CR.enc(k,obj).then(function(e){Net.send({t:'enc',to:pid,iv:e.iv,ct:e.ct},1);}).catch(function(){});},
  sendView:function(pid,seat,evt){
   var k=this.keys[pid];if(!k)return;var m=hostViewMsg(seat,evt);
   CR.enc(k,m).then(function(e){Net.send({t:'enc',to:pid,iv:e.iv,ct:e.ct},1);}).catch(function(){});
@@ -1352,7 +1453,7 @@ var Net={
     this.started=true;onlineStartGuest(d);break;
    case 'enc':
     if(this.isHost||d.to!==this.me||d.from!==this.hostPid||!this.hkey)return;
-    this.pq=this.pq.then(function(){return CR.dec(self.hkey,d).then(function(m){onGuestView(m);}).catch(function(){});});
+    this.pq=this.pq.then(function(){return CR.dec(self.hkey,d).then(function(m){if(m&&m.k==='chat')onChatMsg(m);else onGuestView(m);}).catch(function(){});});
     break;
    case 'act':
     if(!this.isHost||!this.started)return;
@@ -1383,7 +1484,7 @@ var Net={
 window.addEventListener('pagehide',function(){if(Net.client)Net.close();});
 
 function leaveOnline(msg){
- Net.close();G.online=null;G.epoch++;G.S=null;G.paused=false;
+ Net.close();G.online=null;chatLog=[];chatUnread=0;updateChatBtn();G.epoch++;G.S=null;G.paused=false;
  modal('mResult',false);modal('mPause',false);modal('mSettings',false);$('conf').innerHTML='';
  show('menu');
  if(msg){$('menuNote').textContent=msg;setTimeout(function(){$('menuNote').textContent='';},7000);}
@@ -1407,7 +1508,9 @@ function hostViewMsg(seat,evt){
 }
 /* ----- host: a guest asked to do something ----- */
 function hostAct(pid,o){
- var on=G.online,S=G.S;if(!on||!S||S.over||!o)return;
+ var on=G.online,S=G.S;if(!on||!o)return;
+ if(o.a==='chat'){var cs=seatByPid(pid);if(cs>0)hostChat(cs,o.text);return;}
+ if(!S||S.over)return;
  var seat=seatByPid(pid);if(!(seat>0))return;
  if(o.v!==Net.ver||S.turn!==seat||on.seats[seat].away){Net.pushTo(pid,{type:'sync'});return;}
  if(o.a==='move'){
@@ -1552,6 +1655,45 @@ $('inviteBtn').onclick=function(){
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt+' '+url).then(done,function(){fallbackCopy(txt+' '+url,done);});else fallbackCopy(txt+' '+url,done);
 };
 
+/* ---------- chat (online games only) ----------
+   A guest's message goes to the host inside the same encrypted channel as moves, so it cannot be faked.
+   The host limits each person to one message a second and relays it to everyone in the room. */
+var chatLog=[],chatUnread=0,chatLast={};
+var QUICK=['Good luck! 🍀','Nice move! 👏','Good game!','Your turn ⏰','Thanks!','Oops 😅'];
+function cleanChat(t){return String(t||'').replace(/[\u0000-\u001f\u007f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,80);}
+function chatOn(){return !!G.online&&settings.chat!==false;}
+function updateChatBtn(){var b=$('gChat'),c=$('chatBadge');b.hidden=!chatOn();c.hidden=!(chatUnread>0&&chatOn());c.textContent=chatUnread>9?'9+':String(chatUnread);}
+function renderChat(){
+ var l=$('chatLog');l.innerHTML='';
+ chatLog.forEach(function(m){var d=document.createElement('div');d.className='cl'+(m.me?' me':'');var b=document.createElement('b');b.textContent=m.n+': ';d.appendChild(b);d.appendChild(document.createTextNode(m.t));l.appendChild(d);});
+ l.scrollTop=l.scrollHeight;
+}
+function addChat(ls,text){
+ var mine=ls===0;chatLog.push({n:seatName(ls),t:text,me:mine});if(chatLog.length>50)chatLog.shift();
+ var open=$('mChat').classList.contains('on');
+ if(open)renderChat();
+ else if(!mine){chatUnread++;updateChatBtn();say(ls,text.length>22?text.slice(0,21)+'…':text);sfx('turn');}
+}
+function hostChat(seat,text){
+ var on=G.online;if(!on||on.role!=='host')return;
+ var now=Date.now();if(now-(chatLast[seat]||0)<1000)return;chatLast[seat]=now;
+ text=cleanChat(text);if(!text)return;
+ if(chatOn())addChat(seat,text);
+ on.seats.forEach(function(st,i){if(i>0&&st.pid&&!st.away)Net.sendRaw(st.pid,{k:'chat',seat:seat,text:text});});
+}
+function onChatMsg(m){
+ var on=G.online;if(!on||on.role!=='guest'||!chatOn()||typeof m.seat!=='number')return;
+ var n=on.seats.length,ls=(((m.seat-on.mySeat)%n)+n)%n,t=cleanChat(m.text);if(t)addChat(ls,t);
+}
+function sendChat(text){
+ text=cleanChat(text);if(!text||!chatOn())return;
+ if(onHost())hostChat(0,text);else if(onGuest())Net.act({a:'chat',text:text});
+}
+QUICK.forEach(function(q){var b=document.createElement('button');b.type='button';b.textContent=q;b.onclick=function(){sfx('click');sendChat(q);};$('chatQuick').appendChild(b);});
+$('chatForm').onsubmit=function(e){e.preventDefault();var v=$('chatIn').value;$('chatIn').value='';sendChat(v);};
+$('gChat').onclick=function(){sfx('click');chatUnread=0;updateChatBtn();renderChat();modal('mChat',true);};
+$('chatClose').onclick=function(){sfx('click');modal('mChat',false);};
+
 /* ---------- buttons ---------- */
 document.addEventListener('click',function(e){
  var b=e.target.closest('[data-act]');if(!b)return;sfx('click');
@@ -1576,6 +1718,7 @@ $('pHow').onclick=function(){sfx('click');openFromPause('mTips');};
 $('pRestart').onclick=function(){sfx('click');fromPause=false;modal('mPause',false);startMatch(G.cfg,G.daily);};
 $('pQuit').onclick=function(){sfx('click');fromPause=false;G.paused=false;modal('mPause',false);if(G.online){leaveOnline();return;}G.epoch++;G.S=null;show('menu');};
 window.addEventListener('keydown',function(e){if(e.key!=='Escape')return;
+ if($('mChat').classList.contains('on')){modal('mChat',false);return;}
  if($('mTips').classList.contains('on')){$('tipsOk').click();return;}
  if($('mSettings').classList.contains('on')){closeOverlay('mSettings');return;}
  if($('mPause').classList.contains('on'))$('pResume').click();});
@@ -1608,6 +1751,7 @@ function boot(){
     show('menu');
     var rmq=Q.get('room');if(rmq&&!AUTO){openOnline();$('codeIn').value=rmq.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);Net.status('Type your name, then tap JOIN.');}
     if(AUTO)startMatch({mode:Q.get('mode')||'draw',players:+(Q.get('players')||2),ai:Q.get('ai')||'hard',target:+(Q.get('target')||100)},false);
+    else if(!rmq)resumeOffer();
    },200);return;}
   $('lmsg').textContent=steps[i][0];steps[i][1]();$('lbar').style.width=((i+1)*100/steps.length)+'%';i++;setTimeout(next,DEMO?10:260);
  })();

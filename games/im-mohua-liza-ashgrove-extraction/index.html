@@ -354,6 +354,7 @@ body.touch .coach .ct{font-size:13px}body.touch .coach b{font-size:12px}body.tou
     <p class="lede" id="endText"></p>
     <dl class="stats" id="endStats"></dl>
     <div class="actions">
+      <button type="button" class="btn pri" id="btnFightOn" hidden>Fight on: get up where you fell</button>
       <button type="button" class="btn pri" id="btnRetry">Retry from checkpoint</button>
       <button type="button" class="btn" id="btnRestart">Restart mission</button>
       <button type="button" class="btn" id="btnTitle">Title screen</button>
@@ -1817,7 +1818,7 @@ function firePlayer(w) {
   makeNoise(P.x, P.z, w.noise, 'shot');
 }
 function hurt(t, dmg, src) {
-  if (t.dead) return;
+  if (t.dead || (t.shield && S.t < t.shield)) return;
   t.hp -= dmg; if (S.demo) t.hp = Math.max(t.hp, 45); t.lastHurt = S.t; t.flinch = 1;
   if (t === P) {
     sfxHurt(); CAM.shake = Math.min(1, CAM.shake + 0.5); hurtFlash = Math.min(1, hurtFlash + 0.5); dmgIndicator(src.x, src.z);
@@ -2366,9 +2367,28 @@ function switchWeapon(n) { if (n !== P.w) { P.w = n; P.reloading = 0; P.fireCD =
 function useMedkit() { if (P.medkits > 0 && P.hp < 100 && P.healing <= 0) { P.medkits--; P.healing = 2.2; P.reloading = 0; } else if (P.medkits <= 0) toast('No medkits'); else if (P.hp >= 100) toast('Health is full'); }
 function toggleMara() { if (!MA.joined || MA.dead) return; if (MA.mode === 'follow') { MA.mode = 'hold'; MA.hold = { x: MA.x, z: MA.z }; say('mara', 'Okay. I’ll wait here. Don’t be long.'); } else { MA.mode = 'follow'; MA.hold = null; say('mara', 'Coming. I’m right behind you.'); } }
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+// Stratos Coins: "Fight on" on the Mission failed screen, once per mission. The free checkpoint retry stays.
+function SC() { try { var St = window.Stratos || parent.Stratos; return St && St.coins ? St.coins : null; } catch (e) { return null; } }
+function fightOnReady() { const C = SC(); try { return !S.demo && !S.fightOnUsed && !!(C && C.offer && C.price && C.price('continue') != null); } catch (e) { return false; } }
+function fightOn() {
+  if (!fightOnReady()) return;
+  track('reward_offered', { item: 'continue' });
+  SC().offer('continue', reviveHere, { title: 'Fight on?', what: 'A second chance: you and Mara get up with full health and ammo' });
+}
+function reviveHere() {
+  S.fightOnUsed = true; track('reward_taken', { item: 'continue' });
+  Object.assign(P, { dead: false, hp: 100, shield: S.t + 3, reloading: 0, healing: 0 }); P.model.dt = 0;
+  if (MA.dead) { MA.dead = false; MA.model.dt = 0; if (MA.joined) { MA.mode = 'follow'; MA.hold = null; MA.status = 'Following'; } }
+  MA.hp = 100; MA.shield = S.t + 3;
+  for (const w of P.weapons) { w.mag = w.size; w.res = Math.max(w.res, w === P.weapons[0] ? 90 : 24); }
+  S.over = false; S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0; canvas.focus();
+  if (TOUCH.on) goFullscreen(); else toast('Click the game to take control');
+  say('mara', 'We’re still breathing. Let’s go!');
+}
 function begin(fromCheckpoint, afterIntro) {
   initAudio(); loadVO(); applyGfx();
   track('level_start', { difficulty: S.diffKey, from_checkpoint: !!(fromCheckpoint && CP) });
+  if (!fromCheckpoint) S.fightOnUsed = false;
   if (fromCheckpoint && CP) restoreCheckpoint(); else { CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {} resetMission(); }
   S.running = true; S.paused = false; showPanel(null); hud.hidden = false; $('fade').style.opacity = 0; canvas.focus();
   COACH.start(!(fromCheckpoint && CP));
@@ -2387,6 +2407,7 @@ function endGame(won, text) {
     $('endText').textContent = text;
     const acc = M.shots ? Math.round(M.hits / M.shots * 100) : 0, mm = Math.floor(S.t / 60), ss = Math.floor(S.t % 60);
     $('endStats').innerHTML = [['Time', `${mm}:${String(ss).padStart(2, '0')}`], ['Militia down', M.kills], ['Accuracy', acc + '%'], ['Mara health', Math.ceil(Math.max(0, MA.hp))], ['Difficulty', S.D.label]].map(s => `<div><dt>${s[0]}</dt><dd>${s[1]}</dd></div>`).join('');
+    $('btnFightOn').hidden = won || !fightOnReady();
     $('btnRetry').hidden = won || !CP; if (won) { CP = null; try { localStorage.removeItem(CP_KEY); } catch (e) {} }
     hud.hidden = true; showPanel('endPanel'); heliSound(false);
   }, won ? 1300 : 1600);
@@ -2416,6 +2437,7 @@ $('btnResume').addEventListener('click', resume);
 $('btnCheckpoint').addEventListener('click', () => { if (CP) restoreCheckpoint(); else resetMission(); resume(); });
 $('btnQuit').addEventListener('click', toTitle);
 $('btnRetry').addEventListener('click', () => begin(true));
+$('btnFightOn').addEventListener('click', fightOn);
 $('btnRestart').addEventListener('click', () => begin(false));
 $('btnTitle').addEventListener('click', toTitle);
 $('btnSettings').addEventListener('click', () => showPanel('setPanel'));
@@ -2818,7 +2840,7 @@ function updateEnemyIdle(e, dt) { if (!e.alive) return; const wp = e.route[e.ri]
 frame();
 function tick(dt){ if (INTRO.on) { S.t += dt; updateIntro(dt); updateFX(dt); updateWeather(dt); return; } S.t += dt; S.menuT += dt; pathBudget = 3; if (DEMO.on) updateDemo(dt); if (!S.running) return; updatePlayer(dt); updateMara(dt); for (const e of enemies) updateEnemy(e, dt); separate(); updateInteract(dt); updateMission(dt); updateCamera(dt); if (DEMO.on) demoCamera(dt); updateHUD(dt); if (!DEMO.on) COACH.update(dt); updateFX(dt); updateWeather(dt); }
 function renderNow() { renderer.render(scene, camera); }
-window.__ash = { setSize: (w, h) => { renderer.setPixelRatio(1); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }, renderNow, startDemo, startIntro, finishIntro, INTRO, DEMO, AU, canvas, tick, camera, CAM, S, P, MA, M, get enemies() { return enemies; }, completeStage, begin, IA, HELI };
+window.__ash = { setSize: (w, h) => { renderer.setPixelRatio(1); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }, renderNow, startDemo, startIntro, finishIntro, INTRO, DEMO, AU, canvas, tick, camera, CAM, S, P, MA, M, get enemies() { return enemies; }, completeStage, begin, IA, HELI, hurt };
 })();
 </script>
 

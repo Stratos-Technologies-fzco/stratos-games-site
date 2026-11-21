@@ -5054,7 +5054,7 @@ function splash(x, y, n) {
    Checkpoint: popping after halfway can continue from there (once per river, solo only)
    ========================================================= */
 // Stratos rewarded ads are not live yet: the reward is free for now (see stratos-games-site CLAUDE.md)
-function offerReward(onDone) { onDone(); }
+function offerReward(onDone) { try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer('continue', onDone); return; } } catch (e) {} onDone(); }
 // halfway, nudged back so the raft never lands on a hazard
 function checkpointD() {
   const T = G.track;

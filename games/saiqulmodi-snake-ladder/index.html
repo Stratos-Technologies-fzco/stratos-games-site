@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Snake Ladder | Stratos.games</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23231712'/%3E%3Cpath d='M20 50V14M44 50V14M20 22h24M20 32h24M20 42h24' stroke='%23f59e0b' stroke-width='4.5' stroke-linecap='round'/%3E%3Cpath d='M14 44c8-12 28-12 36-24' stroke='%23ef4444' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg-deep: #18100c;
+      --bg-card: rgba(34, 22, 16, 0.92);
+      --border-amber: rgba(245, 158, 11, 0.35);
+      --amber: #f59e0b;
+      --amber-light: #fde68a;
+      --terracotta: #ef4444;
+      --emerald: #10b981;
+      --cream: #fef3c7;
+      --muted: #d6c3b3;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body {
+      width: 100%; height: 100dvh; overflow: hidden;
+      background: var(--bg-deep); color: var(--cream);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      touch-action: none;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    #hud {
+      position: fixed; top: 6px; left: 8px; right: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      pointer-events: none; z-index: 10; gap: 5px; flex-wrap: wrap;
+    }
+    .hud-group { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+    .pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-amber);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+      padding: 4px 9px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 700; letter-spacing: 0.25px;
+      display: flex; align-items: center; gap: 4px;
+      color: var(--muted);
+    }
+    .pill span.val { color: var(--amber-light); font-variant-numeric: tabular-nums; }
+    .pill.emerald span.val { color: #6ee7b7; }
+    .pill.dice-pill { border-color: #fbbf24; background: rgba(58, 34, 14, 0.95); }
+    .pill.dice-pill span.val { color: #ffffff; font-size: 13px; }
+    .pill.combo {
+      border-color: #fbbf24;
+      background: rgba(120, 53, 15, 0.9);
+      opacity: 0; transform: scale(0.9);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .pill.combo.active { opacity: 1; transform: scale(1); }
+
+    .btn-action, .btn-icon {
+      pointer-events: auto; cursor: pointer;
+      background: var(--bg-card);
+      border: 1px solid var(--border-amber);
+      color: var(--cream); border-radius: 999px;
+      padding: 4px 11px; font-size: 11.5px; font-weight: 800;
+      transition: transform 0.12s, border-color 0.15s;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+      border-color: var(--amber-light);
+      color: #18100c;
+    }
+    .btn-action:hover, .btn-icon:hover { transform: scale(1.05); }
+
+    #dice-badge {
+      position: fixed; bottom: 18px; left: 18px;
+      background: rgba(34, 22, 16, 0.94);
+      border: 2px solid var(--amber);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+      border-radius: 14px; padding: 6px 12px;
+      display: flex; align-items: center; gap: 8px;
+      z-index: 12; pointer-events: none;
+    }
+    #dice-num {
+      font-size: 22px; font-weight: 900; color: #fde68a;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    #dice-sub {
+      font-size: 11px; font-weight: 700; color: #d6c3b3;
+      text-align: left; line-height: 1.25; white-space: pre-line; max-width: 150px;
+    }
+
+    #toast {
+      position: fixed; top: 44px; left: 50%; transform: translateX(-50%) translateY(-6px);
+      background: rgba(41, 24, 16, 0.95);
+      border: 1px solid var(--amber);
+      box-shadow: 0 6px 22px rgba(245, 158, 11, 0.3);
+      color: var(--amber-light); font-weight: 800; font-size: 12.5px; letter-spacing: 0.5px;
+      padding: 5px 16px; border-radius: 999px;
+      opacity: 0; pointer-events: none; z-index: 15;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      white-space: nowrap; max-width: calc(100vw - 24px); overflow: hidden; text-overflow: ellipsis;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #overlay {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at center, rgba(28, 18, 13, 0.84), rgba(14, 9, 6, 0.95));
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 14px; z-index: 20;
+    }
+    #overlay.hidden { display: none; }
+    .card {
+      background: rgba(32, 20, 14, 0.95);
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
+      border-radius: 22px; padding: 18px 18px;
+      max-width: 420px; width: 100%;
+      max-height: calc(100dvh - 20px); overflow-y: auto; scrollbar-width: none;
+    }
+    .card::-webkit-scrollbar { display: none; }
+    .top-badges { display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+    .badge {
+      font-size: 10.5px; font-weight: 800; letter-spacing: 1.2px;
+      color: var(--amber); text-transform: uppercase;
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 3px 10px; border-radius: 999px;
+    }
+    h1 {
+      font-size: clamp(28px, 5.5vw, 40px); font-weight: 900;
+      background: linear-gradient(135deg, #fde68a 0%, #f59e0b 55%, #ef4444 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 6px; letter-spacing: -0.5px;
+    }
+    p.sub { color: var(--muted); font-size: 13px; line-height: 1.42; margin-bottom: 10px; }
+    .controls-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 6px; margin-bottom: 10px; text-align: left;
+    }
+    .ctrl-card {
+      background: rgba(20, 12, 9, 0.78);
+      border: 1px solid rgba(245, 158, 11, 0.18);
+      border-radius: 10px; padding: 6px 9px; font-size: 11px; color: var(--muted);
+    }
+    .ctrl-card strong { display: block; color: var(--amber-light); font-size: 11.5px; margin-bottom: 1px; }
+
+    .lb-box {
+      background: rgba(20, 12, 9, 0.78);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 12px; padding: 7px 11px; margin-bottom: 12px;
+      text-align: left; font-size: 11.5px;
+    }
+    .lb-title {
+      font-weight: 800; color: var(--amber); letter-spacing: 0.7px;
+      text-transform: uppercase; font-size: 10px; margin-bottom: 4px;
+      display: flex; justify-content: space-between;
+    }
+    .lb-row {
+      display: flex; justify-content: space-between; padding: 2px 0;
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.12);
+      color: var(--cream); font-variant-numeric: tabular-nums;
+    }
+    .lb-row:last-child { border-bottom: none; }
+
+    .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .btn-play {
+      cursor: pointer; border: none; border-radius: 999px;
+      padding: 11px 22px; font-size: 15px; font-weight: 800; letter-spacing: 0.4px;
+      color: #18100c;
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+      transition: transform 0.14s;
+      flex: 1; min-width: 140px;
+    }
+    .btn-play:hover { transform: scale(1.03); }
+    .btn-secondary {
+      cursor: pointer; border-radius: 999px;
+      padding: 10px 14px; font-size: 12px; font-weight: 700;
+      color: var(--amber-light);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      transition: transform 0.14s;
+    }
+    .btn-secondary:hover { transform: scale(1.03); }
+
+    #final-stats {
+      margin-bottom: 8px; font-size: 13px; color: var(--cream);
+      display: none; gap: 12px; justify-content: center; flex-wrap: wrap;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 10px; padding: 6px 10px;
+    }
+
+    .mobile-controls {
+      position: fixed; bottom: 16px; right: 16px;
+      display: none; gap: 10px; align-items: center;
+      z-index: 12; touch-action: manipulation;
+    }
+    #mobile-dice, #mobile-hop {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: rgba(245, 158, 11, 0.25);
+      border: 2px solid rgba(253, 230, 138, 0.85);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+      color: var(--cream); font-weight: 800; font-size: 11.5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #coach {
+      position: fixed; left: 50%; top: 80px; transform: translateX(-50%) scale(0.92);
+      background: rgba(16, 60, 44, 0.96); border: 2px solid #6ee7b7;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
+      color: #ecfdf5; font-weight: 800; font-size: 17px; letter-spacing: 0.5px;
+      padding: 8px 18px; border-radius: 16px; white-space: nowrap;
+      max-width: calc(100vw - 24px); overflow: hidden;
+      opacity: 0; pointer-events: none; z-index: 14;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #coach.show { opacity: 1; transform: translateX(-50%) scale(1); }
+    #second-chance {
+      position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+      display: none; z-index: 16; cursor: pointer; touch-action: manipulation;
+      background: linear-gradient(135deg, #6ee7b7, #10b981); color: #052e1f;
+      border: 2px solid #ecfdf5; border-radius: 999px;
+      padding: 10px 20px; font-size: 18px; font-weight: 900;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+      animation: sl-pulse 1s ease-in-out infinite;
+    }
+    #second-chance.show { display: block; }
+    .goal { font-size: 22px; font-weight: 900; color: #fde68a; margin-bottom: 6px; letter-spacing: 1px; }
+    @keyframes sl-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(253, 230, 138, 0.75); }
+      50% { box-shadow: 0 0 0 10px rgba(253, 230, 138, 0); }
+    }
+    .pulse { animation: sl-pulse 1s ease-in-out infinite; }
+    @media (pointer: coarse) {
+      .mobile-controls { display: flex; }
+      .btn-action, .btn-icon { padding: 6px 12px; min-height: 30px; }
+    }
+    @media (max-width: 520px) {
+      #hud { top: 4px; left: 4px; right: 4px; gap: 4px; }
+      .hud-group { gap: 4px; }
+      .pill { padding: 3px 7px; font-size: 10.5px; }
+      .pill.dice-pill span.val { font-size: 12px; }
+      .btn-action, .btn-icon { font-size: 10.5px; padding: 5px 9px; }
+      #dice-badge { left: 8px; bottom: 10px; padding: 5px 9px; gap: 6px; }
+      #dice-num { font-size: 19px; }
+      #dice-sub { font-size: 10px; max-width: 118px; }
+      .mobile-controls { right: 8px; bottom: 10px; gap: 8px; }
+      #mobile-dice, #mobile-hop { width: 54px; height: 54px; }
+    }
+    @media (max-height: 560px) {
+      .card { padding: 10px 14px; }
+      h1 { font-size: 24px; margin-bottom: 2px; }
+      p.sub { font-size: 11.5px; margin-bottom: 6px; }
+      .controls-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 6px; }
+      .ctrl-card { padding: 4px 6px; font-size: 10px; }
+      .lb-box { margin-bottom: 6px; padding: 5px 9px; }
+      .btn-play { padding: 8px 16px; font-size: 13px; }
+      #dice-badge { bottom: 8px; padding: 3px 8px; }
+      #dice-num { font-size: 16px; }
+      #dice-sub { font-size: 9.5px; }
+      .mobile-controls { bottom: 8px; }
+      #mobile-dice, #mobile-hop { width: 46px; height: 46px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div class="hud-group">
+      <div class="pill emerald">🐸 <span class="val" id="hud-tile">1/100</span></div>
+      <div class="pill dice-pill">🎲 <span class="val" id="hud-dice">-</span></div>
+      <div class="pill">⭐ <span class="val" id="hud-score">0</span></div>
+      <div class="pill">🏆 <span class="val" id="hud-best">0</span></div>
+      <div class="pill combo" id="hud-combo">🔗 <span class="val" id="hud-combo-val">x2</span></div>
+    </div>
+    <div class="hud-group">
+      <button class="btn-action" id="btn-roll" title="R">🎲 R</button>
+      <div class="pill" id="hop-pill">⤴ <span class="val" id="hud-hop">✅</span></div>
+      <div class="pill" id="flute-pill" style="display:none; border-color:#c084fc">🎶 <span class="val">1</span></div>
+      <button class="btn-icon" id="btn-flute" style="display:none" title="Flute">🎶+</button>
+      <button class="btn-icon" id="btn-home" title="Home (H)">🏠</button>
+      <button class="btn-icon" id="btn-mute" title="Toggle Audio & Haptics (M)">🔊</button>
+      <button class="btn-icon" id="btn-pause" title="Pause (P)">⏸</button>
+    </div>
+  </div>
+
+  <div id="dice-badge">
+    <div id="dice-num">🎲 -</div>
+    <div id="dice-sub">🐸 +1 … +6</div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="coach"></div>
+  <button id="second-chance" title="Second chance">↩</button>
+
+  <div id="overlay">
+    <div class="card">
+      <div class="top-badges">
+                <span class="badge" id="streak-badge">🔥 1</span>
+        <span class="badge" id="day-badge">🗓</span>
+      </div>
+      <h1 id="ov-title">🐍 🪜 🐸</h1>
+      <div class="goal">🐸 1 ➜ 🏁 100</div>
+      <p class="sub" id="ov-sub" style="font-size:20px">🎲 ➜ 🐸 ➜ 🏁 &nbsp; 🪜 ⬆ &nbsp; 🐍 ⬇</p>
+      <div id="final-stats"></div>
+      <div class="controls-grid" style="text-align:center;font-size:16px">
+        <div class="ctrl-card">🎲 = R</div>
+        <div class="ctrl-card">🐍 ➜ 🐸💤 = ⬇</div>
+        <div class="ctrl-card">👆 / ⬅ ⬆ ➡ ⬇</div>
+        <div class="ctrl-card">⤴ = ␣</div>
+      </div>
+      <div class="lb-box">
+        <div class="lb-title"><span>🏆 5</span><span>⭐ • 🐸</span></div>
+        <div id="lb-list"></div>
+      </div>
+      <div class="actions">
+        <button class="btn-play" id="btn-continue" style="display:none; background:linear-gradient(135deg,#6ee7b7,#10b981);">▶</button>
+        <button class="btn-play" id="btn-start" title="Play">▶</button>
+        <button class="btn-secondary" id="btn-test-av">🔔</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-controls">
+    <button id="mobile-dice" style="font-size:24px">🎲</button>
+    <button id="mobile-hop" style="font-size:24px">⤴</button>
+  </div>
+  <canvas id="game"></canvas>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  // Traditional board ladders: base tile -> top tile
+  const BOARD_LADDERS = {
+    4: 25,
+    13: 46,
+    33: 49,
+    42: 63,
+    50: 69,
+    62: 81,
+    74: 92
+  };
+  const LADDER_BASES = new Set(Object.keys(BOARD_LADDERS).map(Number));
+  const LADDER_TOPS = new Set(Object.values(BOARD_LADDERS));
+
+  // Stationary live snakes placed across different board squares: headTile -> tailTile
+  const STATIONARY_SNAKES = {
+    16: 6,
+    47: 26,
+    49: 11,
+    56: 53,
+    64: 19,
+    87: 24,
+    98: 78
+  };
+  const SNAKE_HEADS = new Set(Object.keys(STATIONARY_SNAKES).map(Number));
+  const SNAKE_RISE = {};          // head tile -> 0..1 while a moved snake rises out of its new holes
+  const SNAKE_MOVE_EVERY = 3;     // seconds between moves, one snake at a time
+  let snakeMoveTimer = SNAKE_MOVE_EVERY;
+  const LADDER_RISE = {};         // base tile -> 0..1 while a moved ladder grows into place
+  const LADDER_MOVE_EVERY = 7;    // seconds: now and then one ladder wobbles to a new spot
+  let ladderMoveTimer = LADDER_MOVE_EVERY;
+
+  // Daily board: today's date picks the snake and ladder layout, the same for every player
+  const TODAY = new Date();
+  const DAY_SEED = TODAY.getFullYear() * 10000 + (TODAY.getMonth() + 1) * 100 + TODAY.getDate();
+  function seededRng(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  (function makeDailyBoard() {
+    const rnd = seededRng(DAY_SEED);
+    const used = new Set([1, 100]);
+    const ladders = {}, snakes = {};
+    let guard = 0;
+    while (Object.keys(ladders).length < 7 && guard++ < 3000) {
+      const base = 2 + Math.floor(rnd() * 88);          // 2..89
+      const top = base + 10 + Math.floor(rnd() * 26);  // 10..35 tiles up
+      if (top > 98 || used.has(base) || used.has(top)) continue;
+      ladders[base] = top; used.add(base); used.add(top);
+    }
+    guard = 0;
+    while (Object.keys(snakes).length < 7 && guard++ < 3000) {
+      const head = 12 + Math.floor(rnd() * 88);          // 12..99
+      const tail = head - (8 + Math.floor(rnd() * 38));  // 8..45 tiles down
+      if (tail < 2 || used.has(head) || used.has(tail)) continue;
+      snakes[head] = tail; used.add(head); used.add(tail);
+    }
+    if (Object.keys(ladders).length !== 7 || Object.keys(snakes).length !== 7) return; // keep the classic board
+    for (const k of Object.keys(BOARD_LADDERS)) delete BOARD_LADDERS[k];
+    for (const k of Object.keys(STATIONARY_SNAKES)) delete STATIONARY_SNAKES[k];
+    Object.assign(BOARD_LADDERS, ladders);
+    Object.assign(STATIONARY_SNAKES, snakes);
+    LADDER_BASES.clear(); LADDER_TOPS.clear(); SNAKE_HEADS.clear();
+    for (const [b, t] of Object.entries(ladders)) { LADDER_BASES.add(Number(b)); LADDER_TOPS.add(t); }
+    for (const h of Object.keys(snakes)) SNAKE_HEADS.add(Number(h));
+  })();
+  const DICE_FACES = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+  function trackEvent(name, data = {}) {
+    try {
+      let S = window.Stratos;
+      try { if (!S && window.parent && window.parent !== window) S = window.parent.Stratos; } catch {}
+      if (S && typeof S.track === 'function') {
+        S.track(name, Object.assign({ game: 'saiqulmodi-snake-ladder' }, data));
+      }
+    } catch {}
+  }
+
+  // Stratos Coins wallet (null when the game runs on its own)
+  function SC() { try { const S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
+
+  // Weak phones: glow effects switch off by themselves if frames get slow
+  let lowFx = false;
+  let fxFrames = 0, fxTime = 0;
+  function FX(v) { return lowFx ? 0 : v; }
+
+  const coachEl = document.getElementById('coach');
+  const secondChanceBtn = document.getElementById('second-chance');
+  const btnHome = document.getElementById('btn-home');
+  const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+
+  // One-time picture tips (tutorial while playing)
+  const TIPS_KEY = 'stratos_snake_ladder_tips_v1';
+  let tipsSeen = {};
+  try { tipsSeen = JSON.parse(localStorage.getItem(TIPS_KEY) || '{}') || {}; } catch {}
+  const coachQueue = [];
+  let coachBusy = false;
+  function coach(id, text) {
+    if (tipsSeen[id]) return;
+    tipsSeen[id] = 1;
+    try { localStorage.setItem(TIPS_KEY, JSON.stringify(tipsSeen)); } catch {}
+    coachQueue.push(text);
+    if (!coachBusy) nextCoach();
+  }
+  function nextCoach() {
+    const t = coachQueue.shift();
+    if (!t) { coachBusy = false; coachEl.classList.remove('show'); return; }
+    coachBusy = true;
+    coachEl.textContent = t;
+    coachEl.classList.add('show');
+    setTimeout(() => { coachEl.classList.remove('show'); setTimeout(nextCoach, 350); }, 3800);
+  }
+
+  const hudTile = document.getElementById('hud-tile');
+  const hudDice = document.getElementById('hud-dice');
+  const diceNumEl = document.getElementById('dice-num');
+  const diceSubEl = document.getElementById('dice-sub');
+  const hudScore = document.getElementById('hud-score');
+  const hudBest = document.getElementById('hud-best');
+  const hudCombo = document.getElementById('hud-combo');
+  const hudComboVal = document.getElementById('hud-combo-val');
+  const hudHop = document.getElementById('hud-hop');
+  const toastEl = document.getElementById('toast');
+  const overlay = document.getElementById('overlay');
+  const ovTitle = document.getElementById('ov-title');
+  const ovSub = document.getElementById('ov-sub');
+  const finalStats = document.getElementById('final-stats');
+  const streakBadge = document.getElementById('streak-badge');
+  const lbList = document.getElementById('lb-list');
+  const btnContinue = document.getElementById('btn-continue');
+  const btnStart = document.getElementById('btn-start');
+  const btnTestAv = document.getElementById('btn-test-av');
+  const btnRoll = document.getElementById('btn-roll');
+  const btnMute = document.getElementById('btn-mute');
+  const btnPause = document.getElementById('btn-pause');
+  const mobileDice = document.getElementById('mobile-dice');
+  const mobileHop = document.getElementById('mobile-hop');
+
+  const SCORE_KEY = 'stratos_snake_ladder_top5_v2';
+  const STREAK_KEY = 'stratos_snake_ladder_streak_v2';
+  const SAVE_KEY = 'stratos_snake_ladder_save_v2';
+
+  function loadTop5() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SCORE_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch { return []; }
+  }
+
+  function saveScoreToTop5(newScore, reachedTile) {
+    if (newScore <= 0) return;
+    const list = loadTop5();
+    list.push({ score: newScore, tile: reachedTile, date: new Date().toLocaleDateString() });
+    list.sort((a, b) => b.score - a.score);
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify(list.slice(0, 5))); } catch {}
+  }
+
+  function renderTop5() {
+    const list = loadTop5();
+    hudBest.textContent = list.length ? list[0].score : 0;
+    if (!list.length) {
+      lbList.innerHTML = `<div class="lb-row"><span>—</span><span>—</span></div>`;
+      return;
+    }
+    lbList.innerHTML = list.map((item, idx) =>
+      `<div class="lb-row"><span>${idx + 1}. ${item.date}</span><span>⭐ <strong>${item.score}</strong> • 🐸 ${item.tile}</span></div>`
+    ).join('');
+  }
+
+  function updateDailyStreak() {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    let data = { count: 1, last: today };
+    try {
+      const saved = JSON.parse(localStorage.getItem(STREAK_KEY) || 'null');
+      if (saved) {
+        if (saved.last === today) data = saved;
+        else if (saved.last === yesterday) data = { count: saved.count + 1, last: today };
+      }
+    } catch {}
+    try { localStorage.setItem(STREAK_KEY, JSON.stringify(data)); } catch {}
+    streakBadge.textContent = `🔥 ${data.count}`;
+  }
+
+  function saveActiveRun() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ score, boardTile, lastDice, flute: fluteCharge }));
+    } catch {}
+  }
+
+  function clearSavedRun() {
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+    btnContinue.style.display = 'none';
+  }
+
+  function checkSavedRun() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      if (saved && saved.boardTile > 1 && saved.boardTile < 100) {
+        btnContinue.style.display = 'inline-block';
+        btnContinue.textContent = `▶ 🐸 ${saved.boardTile}`;
+        return saved;
+      }
+    } catch {}
+    btnContinue.style.display = 'none';
+    return null;
+  }
+
+  renderTop5();
+  updateDailyStreak();
+  document.getElementById('day-badge').textContent = `🗓 ${TODAY.getDate()}/${TODAY.getMonth() + 1}`;
+  checkSavedRun();
+
+  let W = 0, H = 0, DPR = 1;
+  var gameObjectsReady = false; // set once player/snake/state exist
+  // Board area: below the HUD and above the dice badge / mobile buttons, so no tile is hidden
+  const BOARD = { left: 4, top: 34, right: 0, bottom: 0 };
+  const hudEl = document.getElementById('hud');
+  const diceBadgeEl = document.getElementById('dice-badge');
+  const mobileControlsEl = document.querySelector('.mobile-controls');
+  function layoutBoard() {
+    const hudBottom = hudEl.getBoundingClientRect().bottom;
+    BOARD.left = 4;
+    BOARD.right = W - 4;
+    BOARD.top = Math.ceil(Math.max(30, hudBottom + 4));
+    let reserve = 0;
+    for (const el of [diceBadgeEl, mobileControlsEl]) {
+      const r = el.getBoundingClientRect();
+      if (r.height > 0) reserve = Math.max(reserve, H - r.top);
+    }
+    BOARD.bottom = Math.floor(H - Math.max(4, reserve + 4));
+    if (BOARD.bottom - BOARD.top < 200) BOARD.bottom = Math.min(H - 4, BOARD.top + 200);
+    toastEl.style.top = (BOARD.top + 6) + 'px';
+    coachEl.style.top = (BOARD.top + 44) + 'px';
+    secondChanceBtn.style.bottom = (H - BOARD.bottom + 14) + 'px';
+  }
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    layoutBoard();
+    if (gameObjectsReady) onBoardResized();
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+  resize();
+
+  let audioCtx = null;
+  let muted = false;
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function haptic(ms = 16) {
+    if (!muted && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch {}
+    }
+  }
+
+  function playTone(freq, duration, type = 'sine', vol = 0.08, slideTo = null) {
+    if (muted || !audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+    gain.gain.setValueAtTime(vol, now);
+    gain.gain.exponentialRampToValueAtTime(0.0008, now + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  function sfxGem(chainCount = 1) {
+    const pitchBoost = Math.min(1.6, 1 + (chainCount - 1) * 0.08);
+    playTone(523.25 * pitchBoost, 0.1, 'triangle', 0.11, 783.99 * pitchBoost);
+    haptic(14);
+  }
+  function sfxHop() {
+    playTone(280, 0.2, 'sine', 0.11, 620);
+    haptic(16);
+  }
+  function sfxLadderBoost() {
+    [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => {
+      setTimeout(() => playTone(n, 0.16, 'triangle', 0.1), i * 60);
+    });
+    haptic([20, 25, 30]);
+  }
+  function sfxSnakeSlide() {
+    playTone(420, 0.26, 'sine', 0.09, 210);
+    haptic(20);
+  }
+
+  btnMute.addEventListener('click', () => {
+    muted = !muted;
+    btnMute.textContent = muted ? '🔇' : '🔊';
+  });
+
+  btnTestAv.addEventListener('click', () => {
+    initAudio();
+    sfxLadderBoost();
+  });
+
+  let state = 'MENU';
+  let score = 0;
+  let boardTile = 1;
+  let lastDice = null;
+  let stepQueue = 0;
+  let stepTimer = 0;
+  let bumpCooldown = 0;
+  let chainCount = 0;
+  let chainTimer = 0;
+  let shakeTimer = 0;
+  let shakeIntensity = 0;
+  let timeElapsed = 0;
+  let toastTimeout = null;
+  let runStartedAt = 0;
+  let fluteCharge = 0;              // 1 = the next snake head is harmless
+  let hunterSegments = 22;          // grows when it catches the frog, shrinks when hopped
+  const tensAwarded = new Set();
+  const ovSubDefault = ovSub.innerHTML;
+
+  // Frog / Climber sprite
+  const player = {
+    x: 0, y: 0, vx: 0, vy: 0,
+    angle: 0, radius: 7,
+    hopTimer: 0, hopCooldown: 0,
+    anim: null, animQueue: [],
+    tailHistory: []
+  };
+
+  // Single slow-wandering live snake
+  const snake = {
+    x: 0, y: 0, angle: 0,
+    wanderAngle: 0,
+    wanderTimer: 0,
+    wavePhase: 0,
+    segments: [],
+    segmentCount: 22,
+    segmentSpacing: 5
+  };
+
+  let gems = [];
+  let particles = [];
+  let floatingPopups = [];
+  gameObjectsReady = true;
+
+  const keys = {};
+  let pointerActive = false;
+  let pointerX = 0, pointerY = 0;
+
+  const GAME_KEYS = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  window.addEventListener('keydown', (e) => {
+    if (GAME_KEYS.has(e.code)) e.preventDefault(); // no page scroll, no re-clicking a focused button
+    keys[e.code] = true;
+    if (e.repeat) return;
+    if (e.code === 'KeyR' && state === 'PLAYING') {
+      rollDice();
+    }
+    if (e.code === 'Space' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+      if (state === 'PLAYING') triggerHop();
+      else if ((state === 'MENU' || state === 'GAMEOVER') && !overlay.classList.contains('hidden')) startGame(state === 'MENU' && btnContinue.style.display !== 'none');
+    }
+    if (e.code === 'KeyP') togglePause();
+    if (e.code === 'KeyH' || e.code === 'Escape') goHome();
+    if (e.code === 'KeyM') btnMute.click();
+  });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+  window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; pointerActive = false; });
+  // buttons drop keyboard focus after a click, so Space/Enter can't re-trigger them
+  document.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => b.blur()));
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (state !== 'PLAYING') return;
+    e.preventDefault();
+    pointerActive = true;
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (pointerActive) {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+    }
+  });
+  window.addEventListener('pointerup', () => { pointerActive = false; });
+  window.addEventListener('pointercancel', () => { pointerActive = false; });
+
+  btnRoll.addEventListener('click', () => {
+    if (state === 'PLAYING') rollDice();
+  });
+  mobileDice.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (state === 'PLAYING') rollDice();
+  }, { passive: false });
+  mobileDice.addEventListener('click', () => {
+    if (state === 'PLAYING') rollDice();
+  });
+
+  mobileHop.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (state === 'PLAYING') triggerHop();
+  }, { passive: false });
+  mobileHop.addEventListener('click', () => {
+    if (state === 'PLAYING') triggerHop();
+  });
+
+  function togglePause() {
+    if (state === 'OFFER') return;
+    if (state === 'PLAYING') {
+      state = 'PAUSED';
+      btnPause.textContent = '▶';
+    } else if (state === 'PAUSED') {
+      state = 'PLAYING';
+      btnPause.textContent = '⏸';
+    }
+  }
+  btnPause.addEventListener('click', togglePause);
+
+  function getTileCellRect(tileNum) {
+    const { left, top, right, bottom } = BOARD;
+    const bw = right - left, bh = bottom - top;
+    const cw = bw / 10, ch = bh / 10;
+    const idx = Math.max(0, Math.min(99, tileNum - 1));
+    const rowFromBottom = Math.floor(idx / 10);
+    const colInRow = rowFromBottom % 2 === 0 ? (idx % 10) : (9 - (idx % 10));
+    const drawRow = 9 - rowFromBottom;
+    return {
+      x: left + colInRow * cw,
+      y: top + drawRow * ch,
+      w: cw,
+      h: ch,
+      cx: left + (colInRow + 0.5) * cw,
+      cy: top + (drawRow + 0.5) * ch
+    };
+  }
+
+  // keep frog, gems and snake on the board after a resize / phone rotation
+  function onBoardResized() {
+    if (state === 'MENU') return;
+    player.anim = null;
+    player.animQueue = [];
+    const pos = getTileCenter(boardTile);
+    player.x = pos.x; player.y = pos.y;
+    player.tailHistory = player.tailHistory.map(() => ({ x: pos.x, y: pos.y }));
+    for (const g of gems) {
+      if (g.x < BOARD.left + 14 || g.x > BOARD.right - 14 || g.y < BOARD.top + 14 || g.y > BOARD.bottom - 14) {
+        const p = safeSpawnCoords(90); g.x = p.x; g.y = p.y;
+      }
+    }
+    const sx = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, snake.x));
+    const sy = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, snake.y));
+    const ddx = sx - snake.x, ddy = sy - snake.y;
+    snake.x = sx; snake.y = sy;
+    for (const seg of snake.segments) { seg.x += ddx; seg.y += ddy; }
+  }
+
+  function getTileCenter(tileNum) {
+    const rect = getTileCellRect(tileNum);
+    return { x: rect.cx, y: rect.cy };
+  }
+
+  function checkTileBoardEffect(tileNum) {
+    if (BOARD_LADDERS[tileNum]) {
+      const destTile = Math.min(100, BOARD_LADDERS[tileNum]);
+      boardTile = destTile;
+      score += 200;
+      const pos = getTileCenter(boardTile);
+      animateFrogTo(pos.x, pos.y, 0.55);
+      sfxLadderBoost();
+      spawnBurst(pos.x, pos.y, '#fde68a', 20);
+      addPopup(pos.x, pos.y - 12, `🪜 ${boardTile}  +200`, '#fde68a');
+      showToast(`🪜 ${tileNum} ➜ ${boardTile}  ⭐ +200`);
+      coach('ladder', '🪜 = ⬆ ⬆   +200');
+      return true;
+    }
+
+    // If frog reaches a square where a snake head is placed, slide to the snake's tail end
+    if (STATIONARY_SNAKES[tileNum] && fluteCharge > 0) {
+      fluteCharge = 0;
+      const pos = getTileCenter(tileNum);
+      spawnBurst(pos.x, pos.y, '#c084fc', 22);
+      addPopup(pos.x, pos.y - 14, '🎶 🐍💤', '#e9d5ff');
+      showToast('🎶 🐍💤');
+      [783.99, 659.25, 523.25].forEach((n, k) => setTimeout(() => playTone(n, 0.2, 'sine', 0.08), k * 120));
+      return true;
+    }
+    if (STATIONARY_SNAKES[tileNum]) {
+      const tailTile = Math.max(1, STATIONARY_SNAKES[tileNum]);
+      // Score drops by how far the frog slid: 25 points per tile lost (same value a dice step earns per tile)
+      const tilesDown = tileNum - tailTile;
+      const penalty = Math.min(score, tilesDown * 25);
+      const scoreBefore = score;
+      boardTile = tailTile;
+      score -= penalty;
+      const headPos = getTileCenter(tileNum);
+      const pos = getTileCenter(boardTile);
+      // slide along the drawn snake body (same curve the board draws)
+      animateFrogTo(pos.x, pos.y, 0.6, {
+        x: (headPos.x + pos.x) * 0.5 + Math.sin(timeElapsed * 2.2 + tileNum) * 14,
+        y: (headPos.y + pos.y) * 0.5 + Math.cos(timeElapsed * 2.2 + tileNum) * 14
+      });
+      sfxSnakeSlide();
+      spawnBurst(pos.x, pos.y, '#fca5a5', 14);
+      addPopup(pos.x, pos.y - 12, `🐍 ⬇${tilesDown}  -${penalty}`, '#fca5a5');
+      coach('snakesq', '🐍 = ⬇   −25 × ▦');
+      offerSecondChance(tileNum, scoreBefore);
+      showToast(`🐍 ${tileNum} ➜ ${boardTile}  ⭐ -${penalty}`);
+      return true;
+    }
+
+    return false;
+  }
+
+  function moveRandomLadder() {
+    const bases = Object.keys(BOARD_LADDERS).map(Number);
+    if (!bases.length) return;
+    const oldBase = bases[Math.floor(Math.random() * bases.length)];
+    const oldTop = BOARD_LADDERS[oldBase];
+    const len = oldTop - oldBase;
+    const used = new Set([1, 100, boardTile]);
+    for (const [b, t] of Object.entries(BOARD_LADDERS)) {
+      if (Number(b) !== oldBase) { used.add(Number(b)); used.add(t); }
+    }
+    for (const [h, t] of Object.entries(STATIONARY_SNAKES)) { used.add(Number(h)); used.add(t); }
+    for (let tries = 0; tries < 80; tries++) {
+      const base = 2 + Math.floor(Math.random() * (98 - len - 1)); // top <= 98
+      const top = base + len;
+      if (base === oldBase || used.has(base) || used.has(top)) continue;
+      delete BOARD_LADDERS[oldBase];
+      LADDER_BASES.delete(oldBase);
+      LADDER_TOPS.delete(oldTop);
+      delete LADDER_RISE[oldBase];
+      BOARD_LADDERS[base] = top;
+      LADDER_BASES.add(base);
+      LADDER_TOPS.add(top);
+      LADDER_RISE[base] = 0;
+      const bp = getTileCenter(base);
+      spawnBurst(bp.x, bp.y, '#fde68a', 10);
+      return;
+    }
+  }
+
+  // 5. Counting tiles: landing on 10, 20, 30 ... pays a +10 star burst once per climb
+  function checkTens() {
+    if (boardTile % 10 !== 0 || boardTile >= 100 || tensAwarded.has(boardTile)) return;
+    tensAwarded.add(boardTile);
+    score += 10;
+    const pos = getTileCenter(boardTile);
+    spawnBurst(pos.x, pos.y, '#fde047', 22);
+    addPopup(pos.x, pos.y - 16, `⭐ ${boardTile}  +10`, '#fde047');
+    playTone(880, 0.12, 'triangle', 0.09, 1320);
+    coach('tens', '10 · 20 · 30 …  =  ⭐ +10');
+  }
+
+  function moveRandomIdleSnake() {
+    const heads = Object.keys(STATIONARY_SNAKES).map(Number);
+    if (!heads.length) return;
+    const oldHead = heads[Math.floor(Math.random() * heads.length)];
+    const drop = oldHead - STATIONARY_SNAKES[oldHead];
+    const used = new Set([1, 100, boardTile]);
+    for (const [b, t] of Object.entries(BOARD_LADDERS)) { used.add(Number(b)); used.add(t); }
+    for (const [h, t] of Object.entries(STATIONARY_SNAKES)) {
+      if (Number(h) !== oldHead) { used.add(Number(h)); used.add(t); }
+    }
+    for (let tries = 0; tries < 80; tries++) {
+      const head = drop + 2 + Math.floor(Math.random() * (99 - drop - 1)); // tail >= 2, head <= 99
+      const tail = head - drop;
+      if (head === oldHead || used.has(head) || used.has(tail)) continue;
+      delete STATIONARY_SNAKES[oldHead];
+      SNAKE_HEADS.delete(oldHead);
+      delete SNAKE_RISE[oldHead];
+      STATIONARY_SNAKES[head] = tail;
+      SNAKE_HEADS.add(head);
+      SNAKE_RISE[head] = 0;
+      const hp = getTileCenter(head), tp = getTileCenter(tail);
+      spawnBurst(hp.x, hp.y, '#b07a4a', 8);
+      spawnBurst(tp.x, tp.y, '#b07a4a', 6);
+      return;
+    }
+  }
+
+  function rollDice() {
+    if (stepQueue > 0) return;
+    initAudio();
+    btnRoll.classList.remove('pulse');
+    mobileDice.classList.remove('pulse');
+    const rolled = 1 + Math.floor(Math.random() * 6);
+    lastDice = rolled;
+    stepQueue = rolled;
+    stepTimer = 0.04;
+    score += rolled * 25;
+    playTone(440 + rolled * 45, 0.14, 'triangle', 0.1, 660 + rolled * 50);
+    haptic(15);
+
+    diceNumEl.textContent = `${DICE_FACES[rolled - 1]} ${rolled}`;
+    diceSubEl.textContent = `🐸 +${rolled} ➜`;
+    showToast(`🎲 ${rolled}  ➜  🐸 +${rolled}`);
+    updateHud();
+  }
+
+  function stepOneTileForward() {
+    if (boardTile >= 100) {
+      stepQueue = 0;
+      return;
+    }
+    boardTile = Math.min(100, boardTile + 1);
+    const pos = getTileCenter(boardTile);
+    animateFrogTo(pos.x, pos.y, 0.13);
+    playTone(500 + boardTile * 4, 0.05, 'sine', 0.05);
+    addPopup(pos.x, pos.y - 8, `${boardTile}`, '#6ee7b7');
+
+    if (stepQueue === 0 || boardTile >= 100) {
+      coach('steer', isTouch ? '👆 🐸  ➜  💎 = +1' : '⬅ ⬆ ➡ ⬇  ➜  💎 = +1');
+      checkTileBoardEffect(boardTile);
+      checkTens();
+      saveActiveRun();
+      if (boardTile >= 100) {
+        score += 1000;
+        finishSummitRun();
+      }
+    }
+    updateHud();
+  }
+
+  // Frog moves land on a felt beat: tween position (straight or along a curve), chained in order
+  function animateFrogTo(x, y, dur, curve = null) {
+    player.animQueue.push({ tx: x, ty: y, dur, cx: curve ? curve.x : null, cy: curve ? curve.y : null });
+    if (!player.anim) startNextFrogAnim();
+  }
+  function startNextFrogAnim() {
+    const n = player.animQueue.shift();
+    player.anim = n ? Object.assign({ fx: player.x, fy: player.y, t: 0 }, n) : null;
+  }
+  function stepFrogAnim(dt) {
+    const a = player.anim;
+    if (!a) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / a.dur);
+    const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    if (a.cx !== null) {
+      const u = 1 - e;
+      player.x = u * u * a.fx + 2 * u * e * a.cx + e * e * a.tx;
+      player.y = u * u * a.fy + 2 * u * e * a.cy + e * e * a.ty;
+    } else {
+      player.x = a.fx + (a.tx - a.fx) * e;
+      player.y = a.fy + (a.ty - a.fy) * e;
+    }
+    player.vx = 0; player.vy = 0;
+    if (k >= 1) startNextFrogAnim();
+  }
+
+  // Second chance (Stratos Coins 'continue'): offered once per climb after a big drop; the player chooses
+  let secondChanceUsed = false;
+  let secondChanceTimer = null;
+  let pendingRevert = null;
+  function hideSecondChance() {
+    clearTimeout(secondChanceTimer);
+    secondChanceBtn.classList.remove('show');
+    pendingRevert = null;
+  }
+  function offerSecondChance(fromTile, scoreBefore) {
+    if (secondChanceUsed || fromTile - boardTile < 10 || !SC()) return;
+    pendingRevert = { tile: fromTile, score: scoreBefore };
+    secondChanceBtn.textContent = `↩ 🐸 ${fromTile}`;
+    secondChanceBtn.classList.add('show');
+    trackEvent('reward_offered', { item: 'continue', tile: fromTile });
+    clearTimeout(secondChanceTimer);
+    secondChanceTimer = setTimeout(hideSecondChance, 5000);
+  }
+  secondChanceBtn.addEventListener('click', () => {
+    if (!pendingRevert || state !== 'PLAYING') return;
+    const r = pendingRevert;
+    hideSecondChance();
+    state = 'OFFER';
+    const resume = () => { if (state === 'OFFER') state = 'PLAYING'; };
+    const fallback = setTimeout(resume, 30000);
+    const done = () => {
+      clearTimeout(fallback);
+      secondChanceUsed = true;
+      boardTile = r.tile;
+      score = r.score;
+      const pos = getTileCenter(boardTile);
+      animateFrogTo(pos.x, pos.y, 0.5);
+      spawnBurst(pos.x, pos.y, '#6ee7b7', 18);
+      sfxLadderBoost();
+      showToast(`↩ 🐸 ${boardTile}`);
+      saveActiveRun();
+      trackEvent('reward_taken', { item: 'continue', tile: boardTile });
+      resume();
+      updateHud();
+    };
+    const coins = SC();
+    try {
+      if (coins && typeof coins.offer === 'function') {
+        coins.offer('continue', done, { title: '↩ 🐸 ?', what: `↩ 🐸 ${r.tile}`, onCancel: () => { clearTimeout(fallback); resume(); } });
+        return;
+      }
+    } catch {}
+    done();
+  });
+
+  const flutePill = document.getElementById('flute-pill');
+  const btnFlute = document.getElementById('btn-flute');
+  function updateFluteHud() {
+    const showPill = fluteCharge > 0 ? '' : 'none';
+    if (flutePill.style.display !== showPill) flutePill.style.display = showPill;
+    const showBtn = (fluteCharge === 0 && state === 'PLAYING' && SC()) ? '' : 'none';
+    if (btnFlute.style.display !== showBtn) btnFlute.style.display = showBtn;
+  }
+  btnFlute.addEventListener('click', () => {
+    if (fluteCharge > 0 || state !== 'PLAYING') return;
+    state = 'OFFER';
+    const resume = () => { if (state === 'OFFER') state = 'PLAYING'; };
+    const fallback = setTimeout(resume, 30000);
+    trackEvent('reward_offered', { item: 'boost', what: 'flute' });
+    const done = () => {
+      clearTimeout(fallback);
+      fluteCharge = 1;
+      spawnBurst(player.x, player.y, '#c084fc', 18);
+      showToast('🎶 🐍💤');
+      trackEvent('reward_taken', { item: 'boost', what: 'flute' });
+      saveActiveRun();
+      resume();
+      updateHud();
+    };
+    const coins = SC();
+    try {
+      if (coins && typeof coins.offer === 'function') {
+        coins.offer('boost', done, { title: '🎶 ?', what: '🎶 🐍💤', onCancel: () => { clearTimeout(fallback); resume(); } });
+        return;
+      }
+    } catch {}
+    done();
+  });
+
+  function runSeconds() { return runStartedAt ? Math.round((Date.now() - runStartedAt) / 1000) : 0; }
+
+  // Home: saves the climb and goes back to the home screen (Continue resumes it)
+  function goHome() {
+    if (state !== 'PLAYING' && state !== 'PAUSED') return;
+    hideSecondChance();
+    stepQueue = 0;
+    player.anim = null;
+    player.animQueue = [];
+    saveActiveRun();
+    trackEvent('game_over', { level: 1, seconds: runSeconds(), score, tile: boardTile });
+    state = 'MENU';
+    ovTitle.textContent = '🐍 🪜 🐸';
+    ovSub.innerHTML = ovSubDefault;
+    finalStats.style.display = 'none';
+    btnStart.textContent = '🆕 ▶';
+    btnPause.textContent = '⏸';
+    renderTop5();
+    checkSavedRun();
+    overlay.classList.remove('hidden');
+  }
+  btnHome.addEventListener('click', goHome);
+
+  function nudgeSnakeAway(dist = 42) {
+    const awayAngle = Math.atan2(snake.y - player.y, snake.x - player.x);
+    snake.x = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, snake.x + Math.cos(awayAngle) * dist));
+    snake.y = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, snake.y + Math.sin(awayAngle) * dist));
+    snake.wanderAngle = awayAngle + (Math.random() - 0.5) * 1.2;
+    for (let i = 0; i < snake.segments.length; i++) {
+      snake.segments[i].x -= Math.cos(awayAngle) * dist * (1 - i / snake.segments.length);
+      snake.segments[i].y -= Math.sin(awayAngle) * dist * (1 - i / snake.segments.length);
+    }
+  }
+
+  function triggerHop() {
+    if (player.hopCooldown <= 0 && player.hopTimer <= 0) {
+      player.hopTimer = 0.45;
+      player.hopCooldown = 0.85;
+      sfxHop();
+      spawnBurst(player.x, player.y, '#fde68a', 12);
+
+      const distToSnake = Math.hypot(snake.x - player.x, snake.y - player.y);
+      if (distToSnake < 90) {
+        nudgeSnakeAway(48);
+        score += 120;
+        sfxLadderBoost();
+        showToast('⤴ 🐍  ⭐ +120');
+        hunterSegments = Math.max(10, hunterSegments - 3);
+        coach('grow', '🐍💥🐸 = 🐍➕     ⤴ = 🐍➖');
+        addPopup(snake.x, snake.y - 12, '⤴ +120', '#fde68a');
+      }
+    }
+  }
+
+  function showToast(text) {
+    toastEl.textContent = text;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2100);
+  }
+
+  function triggerShake(duration = 0.16, intensity = 3) {
+    shakeTimer = duration;
+    shakeIntensity = intensity;
+  }
+
+  function spawnBurst(x, y, color, count = 14) {
+    for (let i = 0; i < count; i++) {
+      const a = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const spd = 50 + Math.random() * 140;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * spd,
+        vy: Math.sin(a) * spd,
+        life: 0.4 + Math.random() * 0.25,
+        maxLife: 0.65,
+        size: 2 + Math.random() * 2.2,
+        color
+      });
+    }
+  }
+
+  function addPopup(x, y, text, color = '#fde68a') {
+    floatingPopups.push({ x, y, text, color, life: 0.85, maxLife: 0.85 });
+  }
+
+  function safeSpawnCoords(minDistFromPlayer = 90) {
+    const pad = 18;
+    const bw = Math.max(20, BOARD.right - BOARD.left - pad * 2);
+    const bh = Math.max(20, BOARD.bottom - BOARD.top - pad * 2);
+    const minD = Math.min(minDistFromPlayer, Math.min(bw, bh) * 0.35);
+    for (let attempt = 0; attempt < 25; attempt++) {
+      const x = BOARD.left + pad + Math.random() * bw;
+      const y = BOARD.top + pad + Math.random() * bh;
+      if (Math.hypot(x - player.x, y - player.y) >= minD) {
+        return { x, y };
+      }
+    }
+    return { x: (BOARD.left + BOARD.right) * 0.5, y: (BOARD.top + BOARD.bottom) * 0.5 };
+  }
+
+  function spawnGem() {
+    const pos = safeSpawnCoords(90);
+    gems.push({
+      x: pos.x, y: pos.y,
+      pulse: Math.random() * Math.PI * 2,
+      ladder: Math.random() < 0.28
+    });
+    const g = gems[gems.length - 1];
+    if (fluteCharge === 0 && !gems.some((o) => o.flute) && Math.random() < 0.12) {
+      g.flute = true;
+      g.ladder = false;
+    }
+  }
+
+  function startGame(resumeSaved = false) {
+    initAudio();
+    const saved = resumeSaved ? checkSavedRun() : null;
+    score = saved ? saved.score : 0;
+    boardTile = saved ? saved.boardTile : 1;
+    lastDice = saved && saved.lastDice ? saved.lastDice : null;
+    fluteCharge = saved && saved.flute ? 1 : 0;
+    hunterSegments = 22;
+    tensAwarded.clear();
+    snakeMoveTimer = SNAKE_MOVE_EVERY;
+    ladderMoveTimer = LADDER_MOVE_EVERY;
+    stepQueue = 0;
+    stepTimer = 0;
+    bumpCooldown = 0;
+    chainCount = 0;
+    chainTimer = 0;
+    shakeTimer = 0;
+    timeElapsed = 0;
+    particles = [];
+    floatingPopups = [];
+    gems = [];
+
+    const startPos = getTileCenter(boardTile);
+    player.x = startPos.x;
+    player.y = startPos.y;
+    player.vx = 0;
+    player.vy = 0;
+    player.angle = 0;
+    player.hopTimer = 0;
+    player.hopCooldown = 0;
+    player.anim = null;
+    player.animQueue = [];
+    player.tailHistory = [];
+    for (let i = 0; i < 20; i++) {
+      player.tailHistory.push({ x: player.x - i * 3, y: player.y });
+    }
+
+    layoutBoard();
+    snake.x = BOARD.left + (BOARD.right - BOARD.left) * 0.78;
+    snake.y = BOARD.top + (BOARD.bottom - BOARD.top) * 0.54;
+    snake.wanderAngle = Math.PI * 0.75;
+    snake.angle = snake.wanderAngle;
+    snake.wanderTimer = 1.5;
+    snake.segmentCount = 22;
+    snake.segments = [];
+    for (let i = 0; i < snake.segmentCount; i++) {
+      snake.segments.push({ x: snake.x + i * snake.segmentSpacing, y: snake.y });
+    }
+
+    for (let i = 0; i < 5; i++) spawnGem();
+
+    if (lastDice) {
+      diceNumEl.textContent = `${DICE_FACES[lastDice - 1]} ${lastDice}`;
+      diceSubEl.textContent = `🎲 ${lastDice} • 🐸 ${boardTile}`;
+    } else {
+      diceNumEl.textContent = '🎲 -';
+      diceSubEl.textContent = '🐸 +1 … +6';
+    }
+
+    overlay.classList.add('hidden');
+    finalStats.style.display = 'none';
+    state = 'PLAYING';
+    btnPause.textContent = '⏸';
+    updateHud();
+    secondChanceUsed = false;
+    hideSecondChance();
+    runStartedAt = Date.now();
+    trackEvent('level_start', { level: 1, tile: boardTile, resumed: Boolean(saved) });
+    if (!tipsSeen.roll) {
+      btnRoll.classList.add('pulse');
+      mobileDice.classList.add('pulse');
+    }
+    coach('roll', isTouch ? '👉 🎲  =  +1 … +6' : 'R  /  🎲  =  +1 … +6');
+  }
+
+  btnStart.addEventListener('click', () => startGame(false));
+  btnContinue.addEventListener('click', () => startGame(true));
+
+  function finishSummitRun() {
+    state = 'GAMEOVER';
+    hideSecondChance();
+    clearSavedRun();
+    sfxLadderBoost();
+    const top = getTileCenter(100);
+    spawnBurst(top.x, top.y, '#fbbf24', 36);
+    setTimeout(() => spawnBurst(top.x, top.y, '#6ee7b7', 30), 350);
+    setTimeout(() => spawnBurst(top.x, top.y, '#fde68a', 30), 700);
+    triggerShake(0.3, 3);
+    addPopup(top.x + 40, top.y + 10, '🏁 100!', '#fde68a');
+    ovTitle.textContent = '🏁 100 🎉';
+    ovSub.textContent = '🐸 🏆';
+    trackEvent('level_complete', { level: 1, seconds: runSeconds(), score, tile: boardTile });
+    saveScoreToTop5(score, boardTile);
+    renderTop5();
+    const summitScore = score;
+    setTimeout(() => { if (state === 'GAMEOVER') showSummitCard(summitScore); }, 1400);
+  }
+
+  function showSummitCard(summitScore) {
+    finalStats.style.display = 'flex';
+    finalStats.innerHTML = `<span>🐸 <strong style="color:#6ee7b7">${boardTile}/100</strong></span>
+                            <span>⭐ <strong style="color:#fde68a">${summitScore}</strong></span>`;
+    btnStart.textContent = '🔁';
+    overlay.classList.remove('hidden');
+  }
+
+  function updateHud() {
+    hudTile.textContent = `${boardTile}/100`;
+    updateFluteHud();
+    hudDice.textContent = lastDice ? `${DICE_FACES[lastDice - 1]} ${lastDice}` : '-';
+    hudScore.textContent = score;
+
+    if (chainCount >= 2 && chainTimer > 0) {
+      hudCombo.classList.add('active');
+      hudComboVal.textContent = `x${chainCount}`;
+    } else {
+      hudCombo.classList.remove('active');
+    }
+
+    if (player.hopTimer > 0) {
+      hudHop.textContent = '⤴';
+      hudHop.style.color = '#fde68a';
+    } else if (player.hopCooldown > 0) {
+      hudHop.textContent = `⏳${player.hopCooldown.toFixed(1)}`;
+      hudHop.style.color = '#d6c3b3';
+    } else {
+      hudHop.textContent = '✅';
+      hudHop.style.color = '#6ee7b7';
+    }
+  }
+
+  function updateFx(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pt = particles[i];
+      pt.x += pt.vx * dt; pt.y += pt.vy * dt;
+      pt.vx *= 0.94; pt.vy *= 0.94;
+      pt.life -= dt;
+      if (pt.life <= 0) particles.splice(i, 1);
+    }
+    for (let i = floatingPopups.length - 1; i >= 0; i--) {
+      const fp = floatingPopups[i];
+      fp.y -= 30 * dt;
+      fp.life -= dt;
+      if (fp.life <= 0) floatingPopups.splice(i, 1);
+    }
+  }
+
+  function update(dt) {
+    if (state === 'GAMEOVER') {
+      timeElapsed += dt;
+      stepFrogAnim(dt);
+      if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
+      updateFx(dt);
+      return;
+    }
+    if (state !== 'PLAYING') return;
+    timeElapsed += dt;
+
+    snakeMoveTimer -= dt;
+    if (snakeMoveTimer <= 0) {
+      snakeMoveTimer = SNAKE_MOVE_EVERY;
+      moveRandomIdleSnake();
+    }
+    ladderMoveTimer -= dt;
+    if (ladderMoveTimer <= 0) {
+      ladderMoveTimer = LADDER_MOVE_EVERY;
+      moveRandomLadder();
+    }
+    for (const b in LADDER_RISE) {
+      LADDER_RISE[b] = Math.min(1, LADDER_RISE[b] + dt / 0.7);
+      if (LADDER_RISE[b] >= 1) delete LADDER_RISE[b];
+    }
+    for (const h in SNAKE_RISE) {
+      SNAKE_RISE[h] = Math.min(1, SNAKE_RISE[h] + dt / 0.6);
+      if (SNAKE_RISE[h] >= 1) delete SNAKE_RISE[h];
+    }
+
+    // weak phone check: average frame over ~3 s of play
+    if (!lowFx) {
+      fxFrames++; fxTime += dt;
+      if (fxFrames >= 180) {
+        if (fxTime / fxFrames > 0.028) lowFx = true;
+        fxFrames = 0; fxTime = 0;
+      }
+    }
+
+    // Step through rolled dice tiles visibly one step at a time
+    if (stepQueue > 0) {
+      stepTimer -= dt;
+      if (stepTimer <= 0) {
+        stepQueue--;
+        stepTimer = 0.16;
+        stepOneTileForward();
+        if (state !== 'PLAYING') return;
+      }
+    }
+
+    const progressFactor = 1 + (boardTile - 1) * 0.003;
+    const baseSpeed = 165 * progressFactor;
+    const manualSteerSpeed = baseSpeed * 1.45;
+    const snakeSpeed = manualSteerSpeed / 20; // frog : live snake speed = 20 : 1
+    const hopMult = player.hopTimer > 0 ? 1.2 : 1.0;
+
+    if (player.hopTimer > 0) player.hopTimer = Math.max(0, player.hopTimer - dt);
+    if (player.hopCooldown > 0) player.hopCooldown = Math.max(0, player.hopCooldown - dt);
+    if (bumpCooldown > 0) bumpCooldown = Math.max(0, bumpCooldown - dt);
+    if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
+
+    if (chainTimer > 0) {
+      chainTimer = Math.max(0, chainTimer - dt);
+      if (chainTimer === 0) chainCount = 0;
+    }
+
+    let ix = 0, iy = 0;
+    if (keys['ArrowLeft'] || keys['KeyA']) ix -= 1;
+    if (keys['ArrowRight'] || keys['KeyD']) ix += 1;
+    if (keys['ArrowUp'] || keys['KeyW']) iy -= 1;
+    if (keys['ArrowDown'] || keys['KeyS']) iy += 1;
+
+    if (player.anim) {
+      stepFrogAnim(dt);
+    } else if (ix !== 0 || iy !== 0) {
+      const len = Math.hypot(ix, iy);
+      ix /= len; iy /= len;
+      player.vx = ix * manualSteerSpeed * hopMult;
+      player.vy = iy * manualSteerSpeed * hopMult;
+      player.angle = Math.atan2(iy, ix);
+    } else if (pointerActive) {
+      const dx = pointerX - player.x;
+      const dy = pointerY - player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 5) {
+        const factor = Math.min(1, dist / 36);
+        player.vx = (dx / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
+        player.vy = (dy / dist) * manualSteerSpeed * hopMult * Math.max(0.45, factor);
+        player.angle = Math.atan2(dy, dx);
+      } else {
+        player.vx *= 0.8;
+        player.vy *= 0.8;
+      }
+    } else {
+      player.vx *= 0.82;
+      player.vy *= 0.82;
+    }
+
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+
+    const margin = 8;
+    player.x = Math.max(BOARD.left + margin, Math.min(BOARD.right - margin, player.x));
+    player.y = Math.max(BOARD.top + margin, Math.min(BOARD.bottom - margin, player.y));
+
+    const desiredTailLen = Math.min(28, 16 + Math.floor(boardTile * 0.1));
+    player.tailHistory.unshift({ x: player.x, y: player.y });
+    while (player.tailHistory.length > desiredTailLen) player.tailHistory.pop();
+
+    // Only one snake moves: it always hunts the frog (20x slower than the frog)
+    snake.wanderAngle = Math.atan2(player.y - snake.y, player.x - snake.x);
+    if (Math.hypot(player.x - snake.x, player.y - snake.y) < 150) {
+      coach('hunter', '🐍 ➜ 🐸💤 = ⬇10    🐸🏃 / ⤴ = ✅');
+    }
+
+    let diff = snake.wanderAngle - snake.angle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    snake.angle += Math.sign(diff) * Math.min(Math.abs(diff), 1.4 * dt);
+
+    snake.wavePhase += dt * 4.2;
+    const moveAngle = snake.angle + Math.sin(snake.wavePhase) * 0.25;
+    snake.x += Math.cos(moveAngle) * snakeSpeed * dt;
+    snake.y += Math.sin(moveAngle) * snakeSpeed * dt;
+
+    const desiredSegments = hunterSegments;
+    while (snake.segments.length > desiredSegments) snake.segments.pop();
+    while (snake.segments.length < desiredSegments) {
+      const last = snake.segments[snake.segments.length - 1];
+      snake.segments.push({ x: last.x, y: last.y });
+    }
+
+    snake.segments[0].x = snake.x;
+    snake.segments[0].y = snake.y;
+    for (let i = 1; i < snake.segments.length; i++) {
+      const prev = snake.segments[i - 1];
+      const curr = snake.segments[i];
+      const dx = prev.x - curr.x;
+      const dy = prev.y - curr.y;
+      const d = Math.hypot(dx, dy) || 1;
+      if (d > snake.segmentSpacing) {
+        curr.x = prev.x - (dx / d) * snake.segmentSpacing;
+        curr.y = prev.y - (dy / d) * snake.segmentSpacing;
+      }
+    }
+
+    for (let i = gems.length - 1; i >= 0; i--) {
+      const g = gems[i];
+      g.pulse += dt * 4.5;
+      if (Math.hypot(player.x - g.x, player.y - g.y) < player.radius + 13) {
+        gems.splice(i, 1);
+
+        if (g.flute) {
+          fluteCharge = 1;
+          spawnBurst(g.x, g.y, '#c084fc', 18);
+          addPopup(g.x, g.y - 10, '🎶', '#e9d5ff');
+          [659.25, 783.99, 987.77].forEach((n, k) => setTimeout(() => playTone(n, 0.18, 'sine', 0.08), k * 110));
+          coach('flute', '🎶  ➜  🐍💤');
+          saveActiveRun();
+          spawnGem();
+          continue;
+        }
+
+        if (chainTimer > 0) chainCount++;
+        else chainCount = 1;
+        chainTimer = 1.4;
+
+        const mult = 1 + (chainCount - 1) * 0.25;
+        const basePts = g.ladder ? 250 : 100;
+        const pts = Math.round(basePts * mult);
+        score += pts;
+
+        const tileJump = g.ladder ? 4 : 1;
+        boardTile = Math.min(100, boardTile + tileJump);
+
+        if (g.ladder) {
+          sfxLadderBoost();
+          showToast(`🪜 🐸 +${tileJump}  ⭐ +${pts}`);
+          spawnBurst(g.x, g.y, '#f59e0b', 18);
+          addPopup(g.x, g.y - 10, `🪜 +${tileJump}`, '#fde68a');
+        } else {
+          sfxGem(chainCount);
+          spawnBurst(g.x, g.y, '#10b981', 14);
+          if (chainCount >= 2) {
+            addPopup(g.x, g.y - 10, `🔗x${chainCount} +${pts}`, '#fde68a');
+          } else {
+            addPopup(g.x, g.y - 10, `+${pts}`, '#6ee7b7');
+          }
+        }
+
+        checkTileBoardEffect(boardTile);
+        checkTens();
+        saveActiveRun();
+
+        if (chainCount >= 4) triggerShake(0.16, 3);
+
+        if (boardTile >= 100) {
+          score += 1000;
+          finishSummitRun();
+          return;
+        }
+
+        spawnGem();
+      }
+    }
+
+    // Hunting snake: its head occasionally catches a frog that is standing still (not moving, not hopping).
+    // A catch sends the frog down one row (10 tiles) and takes 25 points per tile lost; the run keeps going.
+    const frogMoving = Math.hypot(player.vx, player.vy) > 25;
+    if (bumpCooldown <= 0 && !frogMoving && !player.anim && stepQueue === 0 && player.hopTimer <= 0 && boardTile > 1 &&
+        Math.hypot(player.x - snake.x, player.y - snake.y) < player.radius + 5.5) {
+      const fromTile = boardTile;
+      const toTile = Math.max(1, boardTile - 10);
+      const tilesDown = fromTile - toTile;
+      const penalty = Math.min(score, tilesDown * 25);
+      const scoreBefore = score;
+      boardTile = toTile;
+      score -= penalty;
+      bumpCooldown = 2.5;
+      sfxSnakeSlide();
+      triggerShake(0.18, 3);
+      spawnBurst(player.x, player.y, '#fca5a5', 16);
+      const pos = getTileCenter(boardTile);
+      player.vx = 0; player.vy = 0;
+      nudgeSnakeAway(60);
+      animateFrogTo(pos.x, pos.y, 0.5);
+      addPopup(player.x, player.y - 12, `🐍 ⬇${tilesDown}  -${penalty}`, '#fca5a5');
+      hunterSegments = Math.min(46, hunterSegments + 3);
+      addPopup(snake.x, snake.y - 14, '🐍 ➕', '#fca5a5');
+      coach('grow', '🐍💥🐸 = 🐍➕     ⤴ = 🐍➖');
+      showToast(`🐍💥🐸 ${fromTile} ➜ ${boardTile}  ⭐ -${penalty}`);
+      saveActiveRun();
+      offerSecondChance(fromTile, scoreBefore);
+    }
+
+    // Gentle stress-free bounce when the frog runs into the hunting snake
+    if (bumpCooldown <= 0) {
+      for (let i = 0; i < snake.segments.length; i++) {
+        const seg = snake.segments[i];
+        const segRadius = i === 0 ? 5.5 : Math.max(1.8, 4.2 * (1 - i / (snake.segments.length * 1.15)));
+        if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + segRadius) {
+          bumpCooldown = 0.9;
+          nudgeSnakeAway(36);
+          score += 50;
+          sfxGem(1);
+          spawnBurst(seg.x, seg.y, '#fde68a', 12);
+          addPopup(seg.x, seg.y - 10, '💫 +50', '#fde68a');
+          showToast('🐸💫🐍  ⭐ +50');
+          break;
+        }
+      }
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pt = particles[i];
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+      pt.vx *= 0.94;
+      pt.vy *= 0.94;
+      pt.life -= dt;
+      if (pt.life <= 0) particles.splice(i, 1);
+    }
+
+    for (let i = floatingPopups.length - 1; i >= 0; i--) {
+      const fp = floatingPopups[i];
+      fp.y -= 30 * dt;
+      fp.life -= dt;
+      if (fp.life <= 0) floatingPopups.splice(i, 1);
+    }
+
+    updateHud();
+  }
+
+  // 3D hole in the board: dark pit with a soil rim; the front lip is drawn last, over the body
+  function drawHole(x, y, rx, ry, front) {
+    ctx.save();
+    if (!front) {
+      const g = ctx.createRadialGradient(x, y + ry * 0.3, 0.5, x, y, rx);
+      g.addColorStop(0, '#000000');
+      g.addColorStop(0.6, '#140a05');
+      g.addColorStop(1, '#6b4426');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(110, 72, 44, 0.95)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, Math.PI, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = '#9a6538';
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(253, 230, 138, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(x, y + 1.6, rx, ry, 0, 0.25, Math.PI - 0.25);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // One end of an idle snake rising out of its hole: round 3D segments, rainbow colours that run along
+  // the body, a twisting stripe on every segment, and a head with eyes, fangs and a flicking tongue
+  function drawSnakeFromHole(x, y, sz, seed, isHead, rise = 1) {
+    const t = timeElapsed;
+    const rx = sz * 0.26, ry = sz * 0.1;
+    drawHole(x, y, rx, ry, false);
+
+    const n = 11;
+    const len = sz * (isHead ? 0.7 : 0.55) * Math.max(0.05, rise);
+    const baseR = sz * (isHead ? 0.085 : 0.075);
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const k = i / n; // 0 = inside the hole, 1 = head / tail tip
+      const sway = Math.sin(t * 2.6 + seed + k * 3.2) * sz * 0.17 * k;
+      pts.push({ x: x + sway, y: y - k * len, k });
+    }
+
+    ctx.save();
+    // only the part above the hole is visible; the rest of the body is underground
+    ctx.beginPath();
+    ctx.rect(x - sz * 1.5, y - sz * 2, sz * 3, sz * 2);
+    ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI);
+    ctx.clip();
+
+    for (let i = 0; i <= n; i++) {
+      const p = pts[i];
+      const r = isHead ? baseR * (0.85 + 0.25 * p.k) : baseR * (1 - 0.7 * p.k) + 0.7;
+      const hue = (seed * 40 + i * 32 + t * 140) % 360;
+      const g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
+      g.addColorStop(0, `hsl(${hue}, 95%, 80%)`);
+      g.addColorStop(0.55, `hsl(${hue}, 88%, 52%)`);
+      g.addColorStop(1, `hsl(${(hue + 40) % 360}, 85%, 24%)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // twisting stripe: a band that rolls round the segment
+      const tw = Math.sin(t * 6 + i * 0.9 + seed);
+      ctx.strokeStyle = `hsla(${(hue + 180) % 360}, 95%, 62%, 0.85)`;
+      ctx.lineWidth = Math.max(1, r * 0.32);
+      ctx.beginPath();
+      if (tw >= 0) ctx.ellipse(p.x, p.y, Math.max(0.3, r * tw * 0.9), r * 0.9, 0, -Math.PI / 2, Math.PI / 2);
+      else ctx.ellipse(p.x, p.y, Math.max(0.3, -r * tw * 0.9), r * 0.9, 0, Math.PI / 2, Math.PI * 1.5);
+      ctx.stroke();
+    }
+
+    const tip = pts[n];
+    if (isHead) {
+      const hr = baseR * 1.55;
+      const hue = (seed * 40 + n * 32 + t * 140) % 360;
+      ctx.translate(tip.x, tip.y - hr * 0.3);
+      ctx.rotate(Math.sin(t * 2.6 + seed + 3.2) * 0.35);
+      ctx.shadowBlur = FX(10);
+      ctx.shadowColor = `hsl(${hue}, 95%, 60%)`;
+      const hg = ctx.createRadialGradient(-hr * 0.3, -hr * 0.4, hr * 0.1, 0, 0, hr * 1.2);
+      hg.addColorStop(0, `hsl(${hue}, 95%, 78%)`);
+      hg.addColorStop(1, `hsl(${(hue + 50) % 360}, 85%, 30%)`);
+      ctx.fillStyle = hg;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, hr * 1.2, hr * 0.95, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = FX(0);
+
+      // fangs
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(-hr * 0.42, hr * 0.62); ctx.lineTo(-hr * 0.22, hr * 0.62); ctx.lineTo(-hr * 0.32, hr * 1.15);
+      ctx.moveTo(hr * 0.22, hr * 0.62); ctx.lineTo(hr * 0.42, hr * 0.62); ctx.lineTo(hr * 0.32, hr * 1.15);
+      ctx.fill();
+
+      // eyes with slit pupils
+      ctx.fillStyle = '#fef9c3';
+      ctx.beginPath();
+      ctx.arc(-hr * 0.48, -hr * 0.2, hr * 0.27, 0, Math.PI * 2);
+      ctx.arc(hr * 0.48, -hr * 0.2, hr * 0.27, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#111111';
+      ctx.beginPath();
+      ctx.ellipse(-hr * 0.48, -hr * 0.2, hr * 0.07, hr * 0.2, 0, 0, Math.PI * 2);
+      ctx.ellipse(hr * 0.48, -hr * 0.2, hr * 0.07, hr * 0.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // flicking forked tongue
+      const flick = Math.sin(t * 9 + seed);
+      if (flick > 0) {
+        const tl = hr * (0.6 + flick * 0.9);
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = Math.max(1, hr * 0.12);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, hr * 0.8);
+        ctx.lineTo(0, hr * 0.8 + tl);
+        ctx.lineTo(-hr * 0.22, hr * 0.8 + tl + hr * 0.25);
+        ctx.moveTo(0, hr * 0.8 + tl);
+        ctx.lineTo(hr * 0.22, hr * 0.8 + tl + hr * 0.25);
+        ctx.stroke();
+      }
+    } else {
+      // tail tip: small bright rattle beads
+      ctx.fillStyle = '#fde68a';
+      for (let b = 0; b < 2; b++) {
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y - 1.5 - b * 2.4, Math.max(0.8, baseR * 0.4 - b * 0.4), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    drawHole(x, y, rx, ry, true);
+  }
+
+  function drawBoard() {
+    ctx.fillStyle = '#18100c';
+    ctx.fillRect(0, 0, W, H);
+
+    const { left, top, right, bottom } = BOARD;
+    const bw = right - left, bh = bottom - top;
+    const cols = 10, rows = 10;
+    const cw = bw / cols, ch = bh / rows;
+
+    // 1-100 numbered squares
+    ctx.save();
+    const fontSize = Math.max(9, Math.min(13, Math.floor(Math.min(cw, ch) * 0.24)));
+    ctx.font = `700 ${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    for (let tileNum = 1; tileNum <= 100; tileNum++) {
+      const cell = getTileCellRect(tileNum);
+      const isCurrent = tileNum === boardTile;
+      const isLadderBase = LADDER_BASES.has(tileNum);
+      const isLadderTop = LADDER_TOPS.has(tileNum);
+      const isSnakeHead = SNAKE_HEADS.has(tileNum);
+
+      if (isCurrent) {
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.24)';
+      } else if (isLadderBase) {
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      } else if (isSnakeHead) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.13)';
+      } else if (isLadderTop) {
+        ctx.fillStyle = 'rgba(253, 230, 138, 0.09)';
+      } else {
+        ctx.fillStyle = (tileNum % 2 === 0) ? 'rgba(245, 158, 11, 0.035)' : 'rgba(255, 255, 255, 0.012)';
+      }
+      ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
+
+      if (isCurrent) {
+        ctx.fillStyle = '#fde68a';
+      } else if (isLadderBase) {
+        ctx.fillStyle = 'rgba(110, 231, 183, 0.78)';
+      } else if (isSnakeHead) {
+        ctx.fillStyle = 'rgba(252, 165, 165, 0.85)';
+      } else if (isLadderTop || tileNum === 100) {
+        ctx.fillStyle = 'rgba(253, 230, 138, 0.65)';
+      } else {
+        ctx.fillStyle = 'rgba(214, 195, 179, 0.36)';
+      }
+      ctx.fillText(String(tileNum), cell.x + 4, cell.y + 3);
+      if (tileNum % 10 === 0 && tileNum < 100 && !tensAwarded.has(tileNum)) {
+        ctx.save();
+        ctx.globalAlpha = 0.55 + Math.sin(timeElapsed * 3 + tileNum) * 0.2;
+        ctx.fillText('⭐', cell.x + cell.w - fontSize - 6, cell.y + 3);
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+
+    // Traditional board ladders (base -> top)
+    ctx.save();
+    for (const [baseStr, topTile] of Object.entries(BOARD_LADDERS)) {
+      const baseTile = Number(baseStr);
+      const a = getTileCenter(baseTile);
+      const bFull = getTileCenter(topTile);
+      const lr = LADDER_RISE[baseTile] !== undefined ? LADDER_RISE[baseTile] : 1;
+      const wob = lr < 1 ? Math.sin(timeElapsed * 30) * 4 * (1 - lr) : 0;
+      const b = { x: a.x + (bFull.x - a.x) * lr + wob, y: a.y + (bFull.y - a.y) * lr };
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
+      const perp = angle + Math.PI / 2;
+      const halfW = 5;
+
+      ctx.strokeStyle = 'rgba(253, 230, 138, 0.36)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(a.x + Math.cos(perp) * halfW, a.y + Math.sin(perp) * halfW);
+      ctx.lineTo(b.x + Math.cos(perp) * halfW, b.y + Math.sin(perp) * halfW);
+      ctx.moveTo(a.x - Math.cos(perp) * halfW, a.y - Math.sin(perp) * halfW);
+      ctx.lineTo(b.x - Math.cos(perp) * halfW, b.y - Math.sin(perp) * halfW);
+
+      const dist = Math.hypot(b.x - a.x, b.y - a.y);
+      const rungs = Math.max(3, Math.floor(dist / 16));
+      for (let r = 1; r < rungs; r++) {
+        const t = r / rungs;
+        const rx = a.x + (b.x - a.x) * t;
+        const ry = a.y + (b.y - a.y) * t;
+        ctx.moveTo(rx + Math.cos(perp) * halfW, ry + Math.sin(perp) * halfW);
+        ctx.lineTo(rx - Math.cos(perp) * halfW, ry - Math.sin(perp) * halfW);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Idle snakes in 3D: half of each body is underground; the head (with fangs) twists out of a hole
+    // on the head square and the tail twists out of a hole on the tail square
+    const cellRef = getTileCellRect(1);
+    const snakeSz = Math.max(18, Math.min(cellRef.w, cellRef.h));
+    for (const [headStr, tailTile] of Object.entries(STATIONARY_SNAKES)) {
+      const headTile = Number(headStr);
+      const hp = getTileCenter(headTile);
+      const tp = getTileCenter(tailTile);
+      const midX = (hp.x + tp.x) * 0.5 + Math.sin(timeElapsed * 2.2 + headTile) * 14;
+      const midY = (hp.y + tp.y) * 0.5 + Math.cos(timeElapsed * 2.2 + headTile) * 14;
+
+      // underground tunnel (dotted soil line) shows where a slide goes
+      ctx.save();
+      ctx.setLineDash([3, 6]);
+      ctx.strokeStyle = 'rgba(190, 130, 85, 0.32)';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(hp.x, hp.y);
+      ctx.quadraticCurveTo(midX, midY, tp.x, tp.y);
+      ctx.stroke();
+      ctx.restore();
+
+      const rise = SNAKE_RISE[headTile] !== undefined ? SNAKE_RISE[headTile] : 1;
+      drawSnakeFromHole(tp.x, tp.y + snakeSz * 0.2, snakeSz, headTile * 1.7, false, rise);
+      drawSnakeFromHole(hp.x, hp.y + snakeSz * 0.2, snakeSz, headTile, true, rise);
+    }
+
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(left, top, bw, bh);
+  }
+
+  function drawGems() {
+    const ladderGlowBoost = Math.min(12, boardTile * 0.1);
+    for (const g of gems) {
+      const r = 7 + Math.sin(g.pulse) * 1.4;
+      ctx.save();
+      ctx.translate(g.x, g.y);
+
+      if (g.flute) {
+        ctx.rotate(-0.6 + Math.sin(g.pulse) * 0.12);
+        ctx.shadowBlur = FX(16);
+        ctx.shadowColor = '#c084fc';
+        const fg = ctx.createLinearGradient(0, -3, 0, 3);
+        fg.addColorStop(0, '#fcd34d');
+        fg.addColorStop(1, '#92400e');
+        ctx.fillStyle = fg;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(-12, -2.8, 24, 5.6, 2.8); else ctx.rect(-12, -2.8, 24, 5.6);
+        ctx.fill();
+        ctx.shadowBlur = FX(0);
+        ctx.fillStyle = '#3b1d0a';
+        for (let h = 0; h < 4; h++) {
+          ctx.beginPath();
+          ctx.arc(-5 + h * 4.2, 0, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#e9d5ff';
+        ctx.font = '700 10px system-ui, sans-serif';
+        ctx.fillText('♪', 9, -6 - Math.abs(Math.sin(g.pulse)) * 3);
+      } else if (g.ladder) {
+        const rungScale = 1 + Math.min(0.25, boardTile * 0.002);
+        ctx.scale(rungScale, rungScale);
+        ctx.shadowBlur = FX(14 + ladderGlowBoost);
+        ctx.shadowColor = '#fbbf24';
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(-4.5, -8); ctx.lineTo(-4.5, 8);
+        ctx.moveTo(4.5, -8); ctx.lineTo(4.5, 8);
+        ctx.moveTo(-4.5, -4); ctx.lineTo(4.5, -4);
+        ctx.moveTo(-4.5, 0); ctx.lineTo(4.5, 0);
+        ctx.moveTo(-4.5, 4); ctx.lineTo(4.5, 4);
+        ctx.stroke();
+      } else {
+        ctx.shadowBlur = FX(12 + ladderGlowBoost * 0.5);
+        ctx.shadowColor = '#10b981';
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.85, 0);
+        ctx.lineTo(0, r);
+        ctx.lineTo(-r * 0.85, 0);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function getSnakeHue(index) {
+    return Math.round((timeElapsed * 24 + boardTile * 3 + index * 5) % 360);
+  }
+
+  function drawSnake() {
+    if (!snake.segments.length) return;
+    ctx.save();
+    for (let i = snake.segments.length - 1; i >= 0; i--) {
+      const seg = snake.segments[i];
+      const ratio = 1 - i / snake.segments.length;
+      const radius = i === 0 ? 5.5 : Math.max(1.8, 4.2 * ratio);
+
+      ctx.beginPath();
+      ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
+      const hue = getSnakeHue(i);
+      const light = i === 0 ? 64 : (i % 3 === 0 ? 54 : 44);
+      ctx.fillStyle = `hsl(${hue}, 86%, ${light}%)`;
+      ctx.shadowBlur = FX(i < 5 ? 12 : 6);
+      ctx.shadowColor = `hsl(${hue}, 90%, 58%)`;
+      ctx.fill();
+    }
+
+    const head = snake.segments[0];
+    ctx.translate(head.x, head.y);
+    ctx.rotate(snake.angle);
+
+    const tongueLen = 8 + Math.sin(timeElapsed * 18) * 3;
+    ctx.strokeStyle = '#fde68a';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(5.5, 0);
+    ctx.lineTo(5.5 + tongueLen * 0.7, 0);
+    ctx.lineTo(7.5 + tongueLen * 0.7, -1.6);
+    ctx.moveTo(5.5 + tongueLen * 0.7, 0);
+    ctx.lineTo(7.5 + tongueLen * 0.7, 1.6);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.shadowBlur = FX(14);
+    ctx.shadowColor = '#fef08a';
+    ctx.fillStyle = '#fffbeb';
+    ctx.beginPath();
+    ctx.arc(2.4, -2.4, 1.5, 0, Math.PI * 2);
+    ctx.arc(2.4, 2.4, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function drawPlayer() {
+    const hopScale = player.hopTimer > 0
+      ? 1 + Math.sin((player.hopTimer / 0.45) * Math.PI) * 0.45
+      : 1;
+
+    const climberHue = (38 + boardTile * 1.4 + timeElapsed * 12) % 360;
+    const eyeGlowing = player.hopTimer > 0 || boardTile >= 10;
+
+    ctx.save();
+    for (let i = player.tailHistory.length - 1; i >= 1; i--) {
+      const pt = player.tailHistory[i];
+      const t = 1 - i / player.tailHistory.length;
+      const sway = Math.sin(timeElapsed * 12 + i * 0.45) * 4 * (1 - t);
+      const r = (1.6 + Math.sin(t * Math.PI) * 3.4) * hopScale;
+      const segHue = (climberHue + i * 4) % 360;
+
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y + sway, r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${segHue}, 92%, 58%, 0.42)`;
+      ctx.shadowBlur = FX(12);
+      ctx.shadowColor = `hsl(${segHue}, 95%, 60%)`;
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.scale(hopScale, hopScale);
+
+    if (player.hopTimer > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 11 + Math.sin(timeElapsed * 12) * 1.5, 0, Math.PI * 2);
+      ctx.strokeStyle = '#fde68a';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = FX(14);
+      ctx.shadowColor = '#f59e0b';
+      ctx.stroke();
+    }
+
+    ctx.rotate(player.angle);
+    ctx.shadowBlur = FX(14);
+    ctx.shadowColor = `hsl(${climberHue}, 95%, 56%)`;
+    ctx.fillStyle = `hsl(${climberHue}, 92%, 54%)`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7.5, 5.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fef3c7';
+    ctx.beginPath();
+    ctx.arc(2.4, -4.2, 1.9, 0, Math.PI * 2);
+    ctx.arc(2.4, 4.2, 1.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.shadowBlur = FX(eyeGlowing ? 14 : 8);
+    ctx.shadowColor = '#fef08a';
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(4, -2, 1.6, 0, Math.PI * 2);
+    ctx.arc(4, 2, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  function drawParticlesAndPopups() {
+    for (const pt of particles) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+      ctx.fillStyle = pt.color;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    for (const fp of floatingPopups) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, fp.life / fp.maxLife);
+      ctx.fillStyle = fp.color;
+      ctx.font = '800 13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(fp.text, fp.x, fp.y);
+      ctx.restore();
+    }
+  }
+
+  function drawPausedBanner() {
+    if (state !== 'PAUSED') return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(24, 16, 12, 0.72)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fde68a';
+    ctx.font = `800 ${W < 520 ? 20 : 26}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⏸', W * 0.5, H * 0.5 - 14);
+    ctx.font = `700 ${W < 520 ? 13 : 16}px system-ui, sans-serif`;
+    ctx.fillText('P  /  ▶', W * 0.5, H * 0.5 + 16);
+    ctx.restore();
+  }
+
+  let lastTime = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    update(dt);
+
+    ctx.save();
+    if (shakeTimer > 0) {
+      const sx = (Math.random() - 0.5) * shakeIntensity * 2;
+      const sy = (Math.random() - 0.5) * shakeIntensity * 2;
+      ctx.translate(sx, sy);
+    }
+    drawBoard();
+    drawGems();
+    drawSnake();
+    drawPlayer();
+    drawParticlesAndPopups();
+    ctx.restore();
+
+    drawPausedBanner();
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

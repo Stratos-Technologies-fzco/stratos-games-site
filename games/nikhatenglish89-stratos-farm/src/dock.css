@@ -1,0 +1,54 @@
+/* ---- pop-ups dock on the left so the farm stays visible, and never scroll ---- */
+:root { --top-h: 78px; --nav-h: 92px; --gap: 10px; }
+@media (max-height: 520px) { :root { --top-h: 62px; --nav-h: 70px; } }
+
+.info-panel {
+  position: absolute; left: calc(var(--gap) + var(--safe-l)); right: auto; top: calc(var(--top-h) + var(--gap)); bottom: auto; transform: none;
+  width: min(430px, 42vw); max-height: calc(100vh - var(--top-h) - var(--nav-h) - var(--gap) * 2);
+  overflow: hidden; z-index: 20; border-width: 26px; border-image: var(--skin-panel) 32 fill / 26px stretch; padding: 0; touch-action: auto;
+}
+.info-panel.two { width: min(540px, 46vw); }
+.panel-fit { transform-origin: top left; }
+.panel-body { max-height: none; overflow: visible; margin-bottom: 8px; padding: 0; }
+.panel-body p { margin: 0 0 6px; }
+.ribbon { margin: 0 auto 8px; font-size: 18px; padding: 8px 0 12px; }
+.panel-fit { padding-top: 4px; }
+
+/* on the home screen the same panels open in the middle */
+.info-panel.center { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100vh - 32px); z-index: 60; }
+
+/* compact rows so a docked panel shows plenty */
+.info-panel .rows { gap: 5px; }
+.info-panel .row { padding: 4px 8px; gap: 8px; }
+.rows.cols2 { grid-template-columns: 1fr 1fr; }
+.rows.cols2 .row { min-width: 0; }
+.rows.cols2 .row small { font-size: 11px; }
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; font-weight: 800; }
+.tabs { margin-bottom: 6px; }
+.tabs button { padding: 6px 4px; font-size: 13px; }
+.panel-actions { gap: 8px; }
+
+/* a portrait phone has no room beside the farm: the pop-up sits low, under the farm */
+@media (max-aspect-ratio: 1/1) and (max-width: 700px) {
+  .info-panel, .info-panel.two { left: var(--gap); right: var(--gap); width: auto; top: auto; bottom: calc(var(--nav-h) + var(--gap)); max-height: 52vh; }
+  .info-panel.center { left: 50%; right: auto; top: 50%; bottom: auto; width: min(460px, calc(100vw - 24px)); max-height: calc(100vh - 32px); }
+  .rows.cols2 { grid-template-columns: 1fr 1fr; }
+}
+
+.about-cols p, .about-cols dd { font-size: 13px; line-height: 1.35; }
+.about-cols dt { margin-top: 4px; font-size: 13px; }
+.tips li { font-size: 14px; margin-bottom: 6px; }
+
+/* credits tab: the small logo must not eat the window */
+.info-panel .logo.small { max-height: 64px; width: auto; }
+/* a short landscape screen (phone on its side): three columns and a wider panel so long lists still fit without shrinking too far */
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .info-panel.two { width: min(620px, 62vw); }
+  .rows.cols2 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* the placing / moving bar docks on the left like every other panel, so it never covers the lower farm */
+.placement-bar { left: calc(var(--gap) + var(--safe-l)); transform: none; top: calc(var(--top-h) + var(--gap)); bottom: auto; width: min(300px, 38vw); }
+@media (max-aspect-ratio: 1/1) and (max-width: 700px) {
+  .placement-bar { left: 50%; transform: translateX(-50%); top: auto; bottom: calc(var(--nav-h) + var(--gap)); width: min(420px, calc(100vw - 16px)); }
+}

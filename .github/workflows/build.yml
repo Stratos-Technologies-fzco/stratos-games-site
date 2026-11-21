@@ -3,7 +3,7 @@ name: build the site
 on:
   push:
     branches: [main, staging]
-    paths: ["games/**", "tools/**", "templates/**", "site.json"]
+    paths: ["games/**", "tools/**", "templates/**", "site.json", "assets/coins-config.json"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -36,7 +36,7 @@ jobs:
             git fetch origin $BR
             git reset --hard origin/$BR
             python3 tools/build.py
-            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers assets/stratos.js
+            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c coins assets/covers assets/stratos.js
             if git diff --cached --quiet; then echo "site already up to date"; exit 0; fi
             git commit -m "build: site pages [skip ci]"
             if git push origin HEAD:$BR; then echo "pushed"; exit 0; fi

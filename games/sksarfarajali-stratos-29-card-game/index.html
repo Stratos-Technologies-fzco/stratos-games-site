@@ -127,6 +127,30 @@ var $stage = document.getElementById('stage'), $main = document.getElementById('
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
 function offerReward(onDone) { track('reward_offered', { kind: 'hint' }); onDone(); track('reward_taken', { kind: 'hint' }); }
 
+/* ---------- Stratos Coins: the shared site wallet (earn by winning, spend on extra hints) ----------
+   This game keeps no Stratos Coins of its own. Opened without the Stratos page around it, it plays exactly as before. */
+var GAME_ID = 'sksarfarajali-stratos-29-card-game', firstTried = false;
+function SC() { try { var P = window.Stratos || parent.Stratos; return P && P.coins ? P.coins : null; } catch (e) { return null; } }
+function earnFirstPlay() {
+  if (firstTried) return; firstTried = true; var C = SC(); if (!C) return;
+  var r = C.earn('game_first_play', { game: GAME_ID }); if (r && r.ok) toast('+' + r.amount + ' Stratos Coins: welcome!', 2200);
+}
+function earnWin(level, ref) {   /* a won match (or the day's daily deal); level 1 to 4 = Easy to Expert; returns the coins paid */
+  var C = SC(); if (!C) return 0;
+  var paid = 0, r = C.earn('match_win', { game: GAME_ID, level: Math.max(1, level), ref: ref });
+  if (r && r.ok) paid += r.amount;
+  var dc = C.dailyChallenge();   /* the site picks one game a day: winning here that day also completes it */
+  if (dc && dc.game === GAME_ID && !dc.done) { r = C.earn('daily_challenge', { game: GAME_ID, ref: dc.ref }); if (r && r.ok) paid += r.amount; }
+  return paid;
+}
+function hintPrice() { var C = SC(); return C ? C.price('hint') : null; }
+function askBuy(kind, noun, done) {   /* out of free hints: price and balance shown, one tap to confirm */
+  var C = SC(), p = C ? C.price(kind) : null; if (p === null) { offerReward(done); return; }
+  var bal = C.balance(), ok = bal >= p;
+  A.buy = { kind: kind, done: done, ok: ok, yes: ok ? 'Spend ' + p + ' coins' : 'Need ' + (p - bal) + ' more coins', msg: 'One ' + noun + ' costs ' + p + ' Stratos Coins. You have ' + bal + '.' + (ok ? '' : ' Win games to earn more.') };
+  A.ui.modal = 'buy'; render();
+}
+
 /* ---------- storage ---------- */
 function load(k, d) { try { var v = JSON.parse(localStorage.getItem('s29_' + k)); return v == null ? d : v; } catch (e) { return d; } }
 function save(k, v) { try { localStorage.setItem('s29_' + k, JSON.stringify(v)); } catch (e) {} }
@@ -573,8 +597,8 @@ function footHTML() {
   var showPlay = G.phase === 'play' && A.mode !== 'demo';
   var last = G.tricks.length > 0, canPair = obs && obs.canPair && my, canAsk = obs && obs.canReveal && my;
   var btns = '';
-  var hintOK = my && A.ui.hintsLeft !== 0 && A.mode !== 'online';
-  btns += '<button class="btn" data-act="hint" ' + (hintOK ? '' : 'disabled') + ' title="Suggest a card">' + (m ? '' : 'Hint' + (A.mode === 'practice' ? '' : ' (' + (A.ui.hintsLeft || 0) + ')')) + (m ? '<span style="width:20px;height:20px;display:inline-block;vertical-align:middle">' + icon('bulb') + '</span>' : '') + '</button>';
+  var hintOK = my && (A.ui.hintsLeft !== 0 || hintPrice() !== null) && A.mode !== 'online';
+  btns += '<button class="btn" data-act="hint" ' + (hintOK ? '' : 'disabled') + ' title="Suggest a card">' + (m ? '' : 'Hint' + (A.mode === 'practice' ? '' : ' (' + ((A.ui.hintsLeft || 0) === 0 && hintPrice() !== null ? hintPrice() + ' coins' : (A.ui.hintsLeft || 0)) + ')')) + (m ? '<span style="width:20px;height:20px;display:inline-block;vertical-align:middle">' + icon('bulb') + '</span>' : '') + '</button>';
   btns += '<button class="btn" data-act="lasttrick" ' + (last ? '' : 'disabled') + '>' + (m ? 'Last' : 'Last trick') + '</button>';
   if (canAsk) btns += '<button class="btn" data-act="ask" style="border-color:var(--gold);color:var(--gold)">Ask trump</button>';
   btns += '<button class="btn" data-act="pair" ' + (canPair ? '' : 'disabled') + '>' + (m ? 'Pair' : 'Declare pair') + '</button>';
@@ -715,6 +739,7 @@ function modalHTML() {
       '<div class="row mute" style="gap:16px;font-size:13px"><span>Vs AI: <b style="color:var(--ink)">' + ST.byMode.play.w + 'W ' + ST.byMode.play.l + 'L</b></span><span>Daily Deal: <b style="color:var(--ink)">' + ST.byMode.daily.w + 'W ' + ST.byMode.daily.l + 'L</b></span><span>Best streak: <b style="color:var(--ink)">' + DAILY.best + '</b></span></div>' +
       '<div class="col" style="gap:6px"><span class="lbl">Recent games</span>' + hist + '</div><div class="mute" style="font-size:11px">Stats are kept on this device. Practice games are not counted.</div>');
   }
+  if (md === 'buy' && A.buy) return wrap('<h2 class="hf" style="margin:0;font-size:24px">Get another hint?</h2><p style="margin:0;color:var(--mute)">' + A.buy.msg + '</p><div class="row" style="gap:10px"><button class="btn" data-act="closemodal" style="flex:1">No thanks</button><button class="btn pri" data-act="buyyes" ' + (A.buy.ok ? '' : 'disabled ') + 'style="flex:1">' + A.buy.yes + '</button></div>', m ? 330 : 460);
   if (md === 'leave') return wrap('<h2 class="hf" style="margin:0;font-size:24px">Leave this game?</h2><p style="margin:0;color:var(--mute)">Your progress in this game will be lost.</p><div class="row" style="gap:10px"><button class="btn" data-act="closemodal" style="flex:1">Keep playing</button><button class="btn pri" data-act="leaveyes" style="flex:1">Leave</button></div>', m ? 330 : 460);
   if (md === 'last') {
     var lt = G && G.lastTrick;
@@ -739,6 +764,7 @@ function resultHTML() {
   var sub = teamName(r.bidTeam) + ' bid ' + r.bid + (r.target !== r.bid ? ' (target ' + r.target + ' after pair)' : '') + ' with trump ' + sym(r.trump) + ' ' + E.SUIT_NAME[r.trump] + ' and collected ' + r.points[r.bidTeam] + ' points' + (r.mult > 1 ? ' · stakes ×' + r.mult : '');
   var conf = ''; var nconf = A.mode === 'demo' ? 0 : over ? (won ? 30 : 0) : (mine ? 18 : 0); if (nconf && S.anim !== 'Off') for (var i = 0; i < nconf; i++) conf += '<i class="cf" style="left:' + (i * 100 / nconf) + '%;background:' + ['#E9C46A', '#5AA9E6', '#F29E4C', '#6FC3A0'][i % 4] + ';animation-delay:' + ((i * 0.37) % 2.5) + 's"></i>';
   var lvlup = '';
+  var coins = A.coinGain && SC() ? '<div class="row" style="justify-content:center;gap:8px;padding:10px;border-radius:12px;background:#1B3A2E;color:var(--gold);font-weight:600">+' + A.coinGain + ' Stratos Coins · you have ' + SC().balance() + '</div>' : '';
   if (A.mode === 'play' && !M.over && mine && G.teamPts[0] >= 20 && !A.ui.lvlDone && E.LEVELS.indexOf(A.level) < E.LEVELS.length - 1) {
     var nx = E.LEVELS[E.LEVELS.indexOf(A.level) + 1];
     lvlup = '<div class="row" style="justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;background:#1B3A2E;border:1px solid var(--gold)"><span style="font-size:' + (m ? 12 : 13) + 'px">You are winning easily on ' + esc(A.level) + '. Ready for a tougher table?</span><button class="btn" data-act="levelup" style="height:38px;padding:0 14px;flex:none">Try ' + nx + '</button></div>';
@@ -749,7 +775,7 @@ function resultHTML() {
     '<div class="row" style="gap:12px;' + (m ? 'flex-direction:column' : '') + '">' + tm(0) + tm(1) + '</div>' +
     '<div class="col" style="gap:6px"><span class="lbl">Trick by trick</span><div class="row" style="gap:5px;flex-wrap:wrap">' + tricks + '</div></div>' +
     (A.mode === 'demo' ? '' : A.mode === 'daily' ? daily : '<div class="row" style="justify-content:space-between;padding:12px 16px;border-radius:14px;background:#12201B;border:1px solid var(--line)"><span class="lbl">Game score · first to ' + M.rules.targetScore + '</span><b class="hf" style="font-size:' + (m ? 18 : 22) + 'px"><span style="color:#9CCBF0">Team A ' + M.scores[0] + '</span> — <span style="color:#F6B97C">' + M.scores[1] + ' Team B</span></b><span class="gold" style="font-size:13px;font-weight:600">' + (r.delta > 0 ? '+' : '') + r.delta + ' to ' + teamName(r.bidTeam) + '</span></div>') +
-    lvlup + (isGuest() ? '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Leave</button><button class="btn" disabled style="flex:2;height:54px">Waiting for the host…</button></div>' : A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
+    coins + lvlup + (isGuest() ? '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Leave</button><button class="btn" disabled style="flex:2;height:54px">Waiting for the host…</button></div>' : A.mode === 'demo' ? '<div class="row" style="gap:10px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn" data-act="demo" style="flex:1;height:54px">Watch again</button><button class="btn pri" data-act="play" style="flex:2;height:54px;font-size:18px">Play a real game</button></div>' : '<div class="row" style="gap:12px"><button class="btn" data-act="lobby" style="flex:1;height:54px">Back to lobby</button><button class="btn pri" data-act="' + (over || A.mode === 'daily' ? 'again' : 'next') + '" style="flex:2;height:54px;font-size:18px">' + (A.mode === 'daily' ? 'Practice this deal again' : over ? 'Play again' : 'Next round') + '</button></div>') + '</section></div>';
 }
 
 /* ===================== ONLINE: up to 4 real players, no game server =====================
@@ -1175,6 +1201,35 @@ function dayNum(k) { var p = k.split('-'); return Math.floor(Date.UTC(+p[0], +p[
 function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function ruleSet() { return { hiddenTrump: !!S.hidden, doubling: !!S.dbl, pair: !!S.pair }; }
 
+/* ---------- Resume (Stratos.resume): the match in progress, saved at every deal and offered when the game opens. Offline matches against the computer only. ---------- */
+function SR() { try { var P = window.Stratos || parent.Stratos; return P && P.resume ? P.resume : null; } catch (e) { return null; } }
+function resumeClear29() { var R = SR(); if (R) R.clear(); }
+function saveMatch29() {
+  var R = SR(); if (!R || (A.mode !== 'play' && A.mode !== 'practice') || !A.G || A.G.phase !== 'bidding') return;
+  R.save({ mode: A.mode, aiLevel: A.aiLevel, M: A.M, G: A.G, mid: A.mid },
+    { ver: 1, label: (A.mode === 'practice' ? 'Practice game' : 'Game against the computer') + ', round ' + (A.M.round + 1) + ', ' + A.M.scores[0] + ' to ' + A.M.scores[1] });
+}
+function resumeOk29(sv) {
+  return !!(sv && (sv.mode === 'play' || sv.mode === 'practice') && E.LEVELS.indexOf(sv.aiLevel) >= 0 && sv.M && sv.M.rules && typeof sv.M.round === 'number' &&
+    Array.isArray(sv.M.scores) && sv.M.scores.length === 2 && typeof sv.M.dealer === 'number' && sv.G && sv.G.phase === 'bidding' && Array.isArray(sv.G.hands) && sv.G.hands.length === 4);
+}
+function resumeMatch29(sv) {
+  if (!resumeOk29(sv)) return false;
+  clearTimers(); ac();
+  A.mode = sv.mode; A.screen = 'table'; A.M = sv.M; A.aiLevel = sv.aiLevel; A.rng = E.secureRng();
+  A.mid = sv.mid || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)); A.coinGain = 0; A.cache = {};
+  A.G = sv.G; A.G.gid = (A.gidc = (A.gidc || 0) + 1);
+  A.ui = { hintsLeft: A.mode === 'practice' ? -1 : 1, dealt: dealMap(A.G.hands[0], []), tags: {} };
+  sfx('deal'); coachMaybe('bid'); render(); sched(step, 700);
+  toast('Welcome back. Your game continues.', 1800);
+  return true;
+}
+function resumeOffer29(tries) {
+  tries = tries || 0; var R = SR();
+  if (!R) { if (tries < 40) setTimeout(function () { resumeOffer29(tries + 1); }, 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || A.screen !== 'lobby' || A.G) return;   // nothing saved, or a game was already started
+  R.offer(function (sv) { if (!resumeMatch29(sv)) resumeClear29(); }, function () { }, { ver: 1 });
+}
 function startGame(mode) {
   clearTimers(); ac();
   A.mode = mode; A.screen = 'table'; A.ui = { hintsLeft: mode === 'practice' ? -1 : 1 };
@@ -1182,8 +1237,10 @@ function startGame(mode) {
   A.M.dealer = Math.floor(Math.random() * 4);
   A.aiLevel = mode === 'daily' ? 'Hard' : mode === 'demo' ? 'Expert' : A.level;
   A.rng = E.secureRng();
+  A.mid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); A.coinGain = 0;
   track('game_start', { mode: mode, ai: A.aiLevel });
   newRound();
+  if (mode !== 'demo') earnFirstPlay();
 }
 function newRound(replayDaily) {
   clearTimers(); A.cache = {};
@@ -1193,6 +1250,7 @@ function newRound(replayDaily) {
   A.G = E.newRound(opts); A.G.gid = (A.gidc = (A.gidc || 0) + 1);
   A.ui = { hintsLeft: A.mode === 'practice' ? -1 : 1, dealt: dealMap(A.G.hands[0], []), tags: {} };
   track('level_start', { mode: A.mode, round: M.round + 1, ai: A.aiLevel });
+  saveMatch29();
   sfx('deal'); coachMaybe('bid');
   render(); sched(step, 700);
 }
@@ -1323,7 +1381,7 @@ function finishRound() {
     A.ui.modal = 'result'; render(); return;
   }
   if (A.mode === 'demo') { track('demo_complete', { made: r.success }); sfx('trick'); A.ui.modal = 'result'; render(); return; }
-  A.ui.sel = null;
+  A.ui.sel = null; A.coinGain = 0;
   E.applyRound(M, r);
   var myTeamPts = G.teamPts[0], over = M.over, won = over && M.winner === 0;
   var roundWon = r.success === (r.bidTeam === 0);
@@ -1343,12 +1401,15 @@ function finishRound() {
     }
     M.over = true; M.winner = dw ? 0 : 1; sfx(dw ? 'win' : 'lose');
     track('game_over', { mode: 'daily', won: dw, my_points: myTeamPts });
+    if (dw && first) A.coinGain = earnWin(3, 'daily-' + k);
   } else if (over) {
+    resumeClear29();
     sfx(won ? 'win' : 'lose');
     if (A.mode === 'play') {
       ST.played++; won ? (ST.wins++, ST.byMode.play.w++) : (ST.losses++, ST.byMode.play.l++);
       ST.history.push({ date: dayKey(), mode: 'Vs AI', ai: A.aiLevel, won: won, score: M.scores[0] + '–' + M.scores[1] }); ST.history = ST.history.slice(-30);
     }
+    if (A.mode === 'play' && won) A.coinGain = earnWin(E.LEVELS.indexOf(A.aiLevel) + 1, A.mid);
     track('game_over', { mode: A.mode, won: won, score_a: M.scores[0], score_b: M.scores[1] });
   } else sfx(roundWon ? 'rwin' : 'lose');
   save('stats', ST);
@@ -1407,6 +1468,11 @@ var H = {
   leave: function () { A.ui.modal = 'leave'; render(); },
   leaveyes: function () { H.lobby(); },
   closemodal: function () { A.ui.modal = null; render(); if (A.screen === 'table') step(); },
+  buyyes: function () {
+    var B = A.buy, C = SC(); A.buy = null; A.ui.modal = null;
+    if (B && C && B.ok) { var r = C.spend(B.kind, { game: GAME_ID, ref: 'round' + (A.M ? A.M.round : 0) }); if (r && r.ok) B.done(); else toast('Could not spend coins', 1500); }
+    render(); if (A.screen === 'table') step();
+  },
   modalbg: function (d, e) { if (e.target === e.currentTarget && A.ui.modal !== 'result') H.closemodal(); },
   next: function () { A.ui.modal = null; A.M.dealer = (A.M.dealer + 1) % 4; newRound(); },
   again: function () { if (A.mode === 'online') { A.ui.modal = null; if (Net.role === 'host') startOnlineMatch(); return; } var md = A.mode === 'daily' ? 'practice' : A.mode; A.ui.modal = null; startGame(md); },
@@ -1436,7 +1502,7 @@ var H = {
   hint: function () {
     var G = A.G; if (A.mode === 'online') return; if (!(G.phase === 'play' && hu(G.turn))) return;
     var run = function () { var o = E.observe(G, 0); A.ui.hint = E.ai.play(o, 'Expert', Math.random); A.ui.sel = A.ui.hint; A.ui.hintWhy = hintWhy(G, A.ui.hint); if (A.ui.hintsLeft > 0) A.ui.hintsLeft--; render(); };
-    if (A.mode === 'practice') run(); else offerReward(run);
+    if (A.mode === 'practice') run(); else if (A.ui.hintsLeft === 0) askBuy('hint', 'hint', run); else offerReward(run);
   },
   lasttrick: function () { A.ui.modal = 'last'; render(); },
   ask: function () { var G = A.G; if (isGuest()) { netAct({ a: 'ask' }); return; } if (E.revealTrump(G, 0).ok) { sfx('trump'); announce('Trump is<br><span style="font-size:42px">' + sym(G.trump) + '</span> ' + E.SUIT_NAME[G.trump], 1500); render(); } },
@@ -1462,6 +1528,7 @@ window.addEventListener('orientationchange', fit);
 $stage.className = 'd'; fit(); render();
 if (S.music) document.addEventListener('pointerdown', function once() { musicOn(true); document.removeEventListener('pointerdown', once); });
 try { Net.pending = loadNet(); var rq = new URLSearchParams(location.search).get('room'); if (rq) { Net.codeText = String(rq).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); A.ui.modal = 'online'; render(); } else if (Net.pending) { A.ui.modal = 'online'; render(); } } catch (e) {}
+try { if (!new URLSearchParams(location.search).get('room') && !Net.pending) resumeOffer29(); } catch (e) {}
 window.__S29 = { A: A, E: E, Net: Net, TURN: TURN }; // for automated checks
 })();
 </script>

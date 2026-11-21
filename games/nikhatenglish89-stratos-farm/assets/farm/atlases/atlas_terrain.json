@@ -1,0 +1,575 @@
+{
+ "frames": {
+  "grass_1": {
+   "frame": {
+    "x": 260,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "grass_2": {
+   "frame": {
+    "x": 0,
+    "y": 98,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "grass_3": {
+   "frame": {
+    "x": 130,
+    "y": 98,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "grass_flowers": {
+   "frame": {
+    "x": 260,
+    "y": 98,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "dirt": {
+   "frame": {
+    "x": 0,
+    "y": 164,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "field_plowed": {
+   "frame": {
+    "x": 130,
+    "y": 164,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "field_paddy": {
+   "frame": {
+    "x": 260,
+    "y": 164,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "path_stone": {
+   "frame": {
+    "x": 0,
+    "y": 230,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "path_dirt": {
+   "frame": {
+    "x": 130,
+    "y": 230,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "sand": {
+   "frame": {
+    "x": 260,
+    "y": 230,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "water_0": {
+   "frame": {
+    "x": 0,
+    "y": 296,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "water_1": {
+   "frame": {
+    "x": 130,
+    "y": 296,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "water_2": {
+   "frame": {
+    "x": 260,
+    "y": 296,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "locked_land": {
+   "frame": {
+    "x": 0,
+    "y": 362,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "edge_left": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 96
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "edge_right": {
+   "frame": {
+    "x": 130,
+    "y": 0,
+    "w": 128,
+    "h": 96
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 96
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 96
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "cursor_select": {
+   "frame": {
+    "x": 130,
+    "y": 362,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "place_ok": {
+   "frame": {
+    "x": 260,
+    "y": 362,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "place_bad": {
+   "frame": {
+    "x": 0,
+    "y": 428,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  },
+  "cursor_hover": {
+   "frame": {
+    "x": 130,
+    "y": 428,
+    "w": 128,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 64
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.0
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.0
+   }
+  }
+ },
+ "meta": {
+  "app": "stratos-farm asset-gen",
+  "version": "1.0",
+  "image": "atlas_terrain.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 512,
+   "h": 494
+  },
+  "scale": "1"
+ }
+}

@@ -38,7 +38,7 @@ jobs:
             # if live and staging changed the same lines, staging (the newer work) wins
             git merge -q --no-edit -X ours origin/main -m "sync: bring live into staging [skip ci]"
             python3 tools/build.py
-            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c assets/covers assets/stratos.js
+            git add -A -- index.html games.json sitemap.xml robots.txt llms.txt 404.html play c coins assets/covers assets/stratos.js
             git diff --cached --quiet || git commit -q -m "build: staging pages [skip ci]"
             if git push -q origin HEAD:staging; then echo "staging synced"; exit 0; fi
             sleep $((i * 3))

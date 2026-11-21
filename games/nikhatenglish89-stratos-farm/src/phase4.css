@@ -1,0 +1,21 @@
+/* ---- phase 4: market, orders, quests, tutorial, expansion ---- */
+.order { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: #fff9e8; border: 2px solid #e6d3a3; }
+.order .npc { border-radius: 50%; background: #fff; border: 2px solid #e0c98c; flex: none; }
+.order .grow { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.order-actions { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wants { display: flex; flex-wrap: wrap; gap: 8px; }
+.want { display: inline-flex; align-items: center; gap: 2px; font-weight: 800; font-size: 14px; color: #a23b2a; }
+.want.ok { color: #2f7a1c; }
+.rewards { display: inline-flex; gap: 8px; }
+.tag.bad { color: #a23b2a; }
+.link { font-size: 12px; font-weight: 700; text-decoration: underline; opacity: .8; padding: 2px 4px; }
+.quest .quest-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.bar { display: block; height: 8px; border-radius: 4px; background: #e8dcc0; overflow: hidden; margin: 3px 0 1px; }
+.bar > span { display: block; height: 100%; background: #5cae3b; }
+.tutorial { position: absolute; z-index: 12; left: 50%; transform: translateX(-50%); top: calc(110px + var(--safe-t)); width: min(440px, calc(100vw - 16px)); display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: #fff6df; border: 3px solid #e8a21a; border-radius: 14px; box-shadow: 0 3px 0 #0003; }
+.tutorial .grow { flex: 1; display: flex; flex-direction: column; font-size: 13px; line-height: 1.25; min-width: 0; }
+.tutorial small { font-weight: 800; color: #b27500; }
+.badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #e4472f; color: #fff; font-size: 11px; font-weight: 900; display: grid; place-items: center; border: 2px solid #fff; }
+.round-btn { position: relative; }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+@media (max-height: 480px) { .tutorial { top: calc(62px + var(--safe-t)); } }

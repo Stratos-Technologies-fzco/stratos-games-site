@@ -1,0 +1,514 @@
+[
+ {
+  "cat": "crops",
+  "name": "onion_0",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "planted",
+  "svg": "svg/crops/onion_0.svg",
+  "png": "png/crops/onion_0.png"
+ },
+ {
+  "cat": "crops",
+  "name": "onion_1",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "sprout",
+  "svg": "svg/crops/onion_1.svg",
+  "png": "png/crops/onion_1.png"
+ },
+ {
+  "cat": "crops",
+  "name": "onion_2",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "growing",
+  "svg": "svg/crops/onion_2.svg",
+  "png": "png/crops/onion_2.png"
+ },
+ {
+  "cat": "crops",
+  "name": "onion_3",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "ready",
+  "svg": "svg/crops/onion_3.svg",
+  "png": "png/crops/onion_3.png"
+ },
+ {
+  "cat": "crops",
+  "name": "blueberry_0",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "planted",
+  "svg": "svg/crops/blueberry_0.svg",
+  "png": "png/crops/blueberry_0.png"
+ },
+ {
+  "cat": "crops",
+  "name": "blueberry_1",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "sprout",
+  "svg": "svg/crops/blueberry_1.svg",
+  "png": "png/crops/blueberry_1.png"
+ },
+ {
+  "cat": "crops",
+  "name": "blueberry_2",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "growing",
+  "svg": "svg/crops/blueberry_2.svg",
+  "png": "png/crops/blueberry_2.png"
+ },
+ {
+  "cat": "crops",
+  "name": "blueberry_3",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "ready",
+  "svg": "svg/crops/blueberry_3.svg",
+  "png": "png/crops/blueberry_3.png"
+ },
+ {
+  "cat": "crops",
+  "name": "peanut_0",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "planted",
+  "svg": "svg/crops/peanut_0.svg",
+  "png": "png/crops/peanut_0.png"
+ },
+ {
+  "cat": "crops",
+  "name": "peanut_1",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "sprout",
+  "svg": "svg/crops/peanut_1.svg",
+  "png": "png/crops/peanut_1.png"
+ },
+ {
+  "cat": "crops",
+  "name": "peanut_2",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "growing",
+  "svg": "svg/crops/peanut_2.svg",
+  "png": "png/crops/peanut_2.png"
+ },
+ {
+  "cat": "crops",
+  "name": "peanut_3",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "ready",
+  "svg": "svg/crops/peanut_3.svg",
+  "png": "png/crops/peanut_3.png"
+ },
+ {
+  "cat": "crops",
+  "name": "lavender_0",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "planted",
+  "svg": "svg/crops/lavender_0.svg",
+  "png": "png/crops/lavender_0.png"
+ },
+ {
+  "cat": "crops",
+  "name": "lavender_1",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "sprout",
+  "svg": "svg/crops/lavender_1.svg",
+  "png": "png/crops/lavender_1.png"
+ },
+ {
+  "cat": "crops",
+  "name": "lavender_2",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "growing",
+  "svg": "svg/crops/lavender_2.svg",
+  "png": "png/crops/lavender_2.png"
+ },
+ {
+  "cat": "crops",
+  "name": "lavender_3",
+  "w": 128,
+  "h": 128,
+  "anchor": [
+   64,
+   64
+  ],
+  "note": "ready",
+  "svg": "svg/crops/lavender_3.svg",
+  "png": "png/crops/lavender_3.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_onion",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_onion.svg",
+  "png": "png/icons/item_onion.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_blueberry",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_blueberry.svg",
+  "png": "png/icons/item_blueberry.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_peanut",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_peanut.svg",
+  "png": "png/icons/item_peanut.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_lavender",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_lavender.svg",
+  "png": "png/icons/item_lavender.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_fluff",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_fluff.svg",
+  "png": "png/icons/item_fluff.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_big_egg",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_big_egg.svg",
+  "png": "png/icons/item_big_egg.png"
+ },
+ {
+  "cat": "icons",
+  "name": "item_horsehair",
+  "w": 64,
+  "h": 64,
+  "anchor": null,
+  "note": "",
+  "svg": "svg/icons/item_horsehair.svg",
+  "png": "png/icons/item_horsehair.png"
+ },
+ {
+  "cat": "animals",
+  "name": "turkey_idle_0",
+  "w": 80,
+  "h": 72,
+  "anchor": [
+   40,
+   64
+  ],
+  "note": "idle_0",
+  "svg": "svg/animals/turkey_idle_0.svg",
+  "png": "png/animals/turkey_idle_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "turkey_idle_1",
+  "w": 80,
+  "h": 72,
+  "anchor": [
+   40,
+   64
+  ],
+  "note": "idle_1",
+  "svg": "svg/animals/turkey_idle_1.svg",
+  "png": "png/animals/turkey_idle_1.png"
+ },
+ {
+  "cat": "animals",
+  "name": "turkey_eat",
+  "w": 80,
+  "h": 72,
+  "anchor": [
+   40,
+   64
+  ],
+  "note": "eat",
+  "svg": "svg/animals/turkey_eat.svg",
+  "png": "png/animals/turkey_eat.png"
+ },
+ {
+  "cat": "animals",
+  "name": "turkey_walk_0",
+  "w": 80,
+  "h": 72,
+  "anchor": [
+   40,
+   64
+  ],
+  "note": "walk_0",
+  "svg": "svg/animals/turkey_walk_0.svg",
+  "png": "png/animals/turkey_walk_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "turkey_walk_1",
+  "w": 80,
+  "h": 72,
+  "anchor": [
+   40,
+   64
+  ],
+  "note": "walk_1",
+  "svg": "svg/animals/turkey_walk_1.svg",
+  "png": "png/animals/turkey_walk_1.png"
+ },
+ {
+  "cat": "animals",
+  "name": "rabbit_idle_0",
+  "w": 72,
+  "h": 64,
+  "anchor": [
+   36,
+   56
+  ],
+  "note": "idle_0",
+  "svg": "svg/animals/rabbit_idle_0.svg",
+  "png": "png/animals/rabbit_idle_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "rabbit_idle_1",
+  "w": 72,
+  "h": 64,
+  "anchor": [
+   36,
+   56
+  ],
+  "note": "idle_1",
+  "svg": "svg/animals/rabbit_idle_1.svg",
+  "png": "png/animals/rabbit_idle_1.png"
+ },
+ {
+  "cat": "animals",
+  "name": "rabbit_eat",
+  "w": 72,
+  "h": 64,
+  "anchor": [
+   36,
+   56
+  ],
+  "note": "eat",
+  "svg": "svg/animals/rabbit_eat.svg",
+  "png": "png/animals/rabbit_eat.png"
+ },
+ {
+  "cat": "animals",
+  "name": "rabbit_walk_0",
+  "w": 72,
+  "h": 64,
+  "anchor": [
+   36,
+   56
+  ],
+  "note": "walk_0",
+  "svg": "svg/animals/rabbit_walk_0.svg",
+  "png": "png/animals/rabbit_walk_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "rabbit_walk_1",
+  "w": 72,
+  "h": 64,
+  "anchor": [
+   36,
+   56
+  ],
+  "note": "walk_1",
+  "svg": "svg/animals/rabbit_walk_1.svg",
+  "png": "png/animals/rabbit_walk_1.png"
+ },
+ {
+  "cat": "animals",
+  "name": "horse_idle_0",
+  "w": 120,
+  "h": 104,
+  "anchor": [
+   60,
+   96
+  ],
+  "note": "idle_0",
+  "svg": "svg/animals/horse_idle_0.svg",
+  "png": "png/animals/horse_idle_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "horse_idle_1",
+  "w": 120,
+  "h": 104,
+  "anchor": [
+   60,
+   96
+  ],
+  "note": "idle_1",
+  "svg": "svg/animals/horse_idle_1.svg",
+  "png": "png/animals/horse_idle_1.png"
+ },
+ {
+  "cat": "animals",
+  "name": "horse_eat",
+  "w": 120,
+  "h": 104,
+  "anchor": [
+   60,
+   96
+  ],
+  "note": "eat",
+  "svg": "svg/animals/horse_eat.svg",
+  "png": "png/animals/horse_eat.png"
+ },
+ {
+  "cat": "animals",
+  "name": "horse_walk_0",
+  "w": 120,
+  "h": 104,
+  "anchor": [
+   60,
+   96
+  ],
+  "note": "walk_0",
+  "svg": "svg/animals/horse_walk_0.svg",
+  "png": "png/animals/horse_walk_0.png"
+ },
+ {
+  "cat": "animals",
+  "name": "horse_walk_1",
+  "w": 120,
+  "h": 104,
+  "anchor": [
+   60,
+   96
+  ],
+  "note": "walk_1",
+  "svg": "svg/animals/horse_walk_1.svg",
+  "png": "png/animals/horse_walk_1.png"
+ },
+ {
+  "cat": "habitats",
+  "name": "turkey_pen",
+  "w": 272,
+  "h": 234,
+  "anchor": [
+   136,
+   98
+  ],
+  "note": "footprint 2x2; animal habitat",
+  "svg": "svg/habitats/turkey_pen.svg",
+  "png": "png/habitats/turkey_pen.png"
+ },
+ {
+  "cat": "habitats",
+  "name": "rabbit_hutch",
+  "w": 272,
+  "h": 234,
+  "anchor": [
+   136,
+   98
+  ],
+  "note": "footprint 2x2; animal habitat",
+  "svg": "svg/habitats/rabbit_hutch.svg",
+  "png": "png/habitats/rabbit_hutch.png"
+ },
+ {
+  "cat": "habitats",
+  "name": "horse_stable",
+  "w": 272,
+  "h": 234,
+  "anchor": [
+   136,
+   98
+  ],
+  "note": "footprint 2x2; animal habitat",
+  "svg": "svg/habitats/horse_stable.svg",
+  "png": "png/habitats/horse_stable.png"
+ }
+]

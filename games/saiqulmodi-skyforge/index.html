@@ -1074,7 +1074,10 @@
       if (!flightStartedAt) return;
       const seconds = Math.round((Date.now() - flightStartedAt) / 1000);
       flightStartedAt = 0;
-      track(landed ? 'level_complete' : 'game_over', Object.assign({ level: currentAircraft, seconds }, extra));
+      // Stratos Coins: a landing on a runway sends the airport's number (1-29) as `level`, so the first landing at
+      // each airport pays once as a new level and repeat landings pay a small replay. `aircraft` keeps the type.
+      const apt = landed && extra.airport ? airports.list.findIndex((a) => a.icao === extra.airport) : -1;
+      track(landed ? 'level_complete' : 'game_over', Object.assign({ level: apt >= 0 ? apt + 1 : currentAircraft, aircraft: currentAircraft, seconds }, extra));
     }
 
     // A reason to come back: stars for every landing (smooth = 3), a running total, and a daily streak. No words.
@@ -1150,6 +1153,7 @@
       const grade = fpm < 240 ? 'SMOOTH' : fpm < 600 ? 'NORMAL' : 'FIRM';
       awardLanding(grade === 'SMOOTH' ? 3 : grade === 'NORMAL' ? 2 : 1);
       const arrived = destEnd && rwy.icao === destEnd.icao && rwy.icao !== landing.depIcao;
+      window.dispatchEvent(new CustomEvent('skyforge-landed', { detail: { dep: landing.depIcao, dest: rwy.icao, arrived, stars: grade === 'SMOOTH' ? 3 : grade === 'NORMAL' ? 2 : 1 } })); // missions
       const trip = arrived && landing.depMs ? ` - ARRIVED from ${landing.depIcao}, flight time ${Math.round((performance.now() - landing.depMs) / 60000)} min` : '';
       flightMsg(`${grade} LANDING - ${fpm} FPM, ${rwy.icao} RWY ${rwy.ident}, ${rwy.distPast} M past threshold${trip}. Brakes: B / L3`, '#4ade80', 9000);
       flightEnd(true, { fpm, airport: rwy.icao });
@@ -2009,6 +2013,80 @@
 
     animate();
   </script>
+<script>
+  // Missions (16-Nov-2026): real routes from short to long. Picking one sets the start runway and the route; landing
+  // at the destination gives 1-3 stars by landing quality (smooth = 3), kept per mission; the next mission opens once
+  // this one has a star. A reason to come back: a route to finish and stars to improve.
+  (function missions() {
+    const CITY = { VOBL: 'Bengaluru', VOMY: 'Mysuru', VOPN: 'Puttaparthi', VOMM: 'Chennai', VOPC: 'Puducherry', VOCI: 'Kochi', VOTV: 'Thiruvananthapuram', VOMD: 'Madurai', VOTR: 'Tiruchirappalli', VOHS: 'Hyderabad', VOBZ: 'Vijayawada', VOML: 'Mangaluru', VOKN: 'Kannur' };
+    const M = [['VOBL', 'VOMY'], ['VOBL', 'VOPN'], ['VOBL', 'VOMM'], ['VOMM', 'VOPC'], ['VOCI', 'VOTV'], ['VOMD', 'VOTR'], ['VOHS', 'VOBZ'], ['VOML', 'VOKN']];
+    const KEY = 'skyforge.missions';
+    let best = [];
+    try { best = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { best = []; }
+    let active = null;
+    // A 🎯 icon at the top left (not in the bottom bar: that bar shows only its first two tabs, user 03-Nov) opens
+    // the mission list next to it, never in the centre of the screen.
+    const css = document.createElement('style');
+    css.textContent = '#mission-btn{position:fixed;left:10px;top:calc(96px + env(safe-area-inset-top,0px));z-index:10003;width:40px;height:40px;border-radius:10px;'
+      + 'border:1px solid #38bdf8;background:rgba(15,23,42,.92);font-size:20px;line-height:1;cursor:pointer;padding:0}'
+      + '#mission-pop{position:fixed;left:10px;top:calc(142px + env(safe-area-inset-top,0px));z-index:10004;display:none;flex-direction:column;gap:4px;padding:6px;'
+      + 'max-height:calc(100vh - 200px);overflow:auto;background:rgba(15,23,42,.96);border:1px solid #38bdf8;border-radius:10px;width:min(320px,calc(100vw - 20px));box-sizing:border-box}'
+      + '#mission-pop.open{display:flex}#mission-pop button{text-align:left;font:12px monospace;padding:7px 10px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px;cursor:pointer}'
+      + '#mission-pop button.active{border-color:#fde047}#mission-now{font:11px monospace;color:#fde047;padding:2px 4px}';
+    document.head.appendChild(css);
+    const btn = document.createElement('button'); btn.id = 'mission-btn'; btn.type = 'button'; btn.textContent = '🎯'; btn.setAttribute('aria-label', 'Missions');
+    const pop = document.createElement('nav'); pop.id = 'mission-pop';
+    pop.innerHTML = '<div id="mission-now"></div><div id="mission-list" style="display:flex;flex-direction:column;gap:4px"></div>';
+    document.body.append(btn, pop);
+    btn.onclick = () => pop.classList.toggle('open');
+    document.addEventListener('pointerdown', (e) => { if (!pop.contains(e.target) && e.target !== btn) pop.classList.remove('open'); });
+    const list = document.getElementById('mission-list'), now = document.getElementById('mission-now');
+    const stars = (n) => '★'.repeat(n || 0) + '☆'.repeat(3 - (n || 0));
+    // the buttons are made once: the bottom bar moves them into its pop-up list, so later we only update them
+    list.innerHTML = M.map((m, i) => '<button data-m="' + i + '"></button>').join('');
+    list.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => start(Number(b.dataset.m)); });
+    function render() {
+      document.querySelectorAll('[data-m]').forEach((b) => {
+        const i = Number(b.dataset.m), m = M[i], open = i === 0 || (best[i - 1] || 0) > 0;
+        b.textContent = (i + 1) + '. ' + CITY[m[0]] + ' > ' + CITY[m[1]] + ' ' + stars(best[i]);
+        b.disabled = !open;
+        b.style.opacity = open ? '' : '0.45';
+        b.classList.toggle('active', i === active);
+      });
+    }
+    function optionFor(sel, icao) {
+      const s = document.getElementById(sel);
+      const o = s && Array.from(s.options).find((x) => x.value.split(' ')[0] === icao);
+      if (o) s.value = o.value;
+      return o ? o.value : null;
+    }
+    function start(i) {
+      const [dep, dst] = M[i];
+      const a = optionFor('apt-select', dep), b = optionFor('dst-select', dst);
+      if (!a || !b || !window.selectRunway || !window.selectDestination) return;
+      window.selectRunway(a);
+      window.startAtRunway();
+      window.selectDestination(b);
+      active = i;
+      now.textContent = 'MISSION ' + (i + 1) + ': take off at ' + CITY[dep] + ', land at ' + CITY[dst] + '. Smooth landing = 3 stars.';
+      render();
+      pop.classList.remove('open');
+    }
+    window.addEventListener('skyforge-landed', (e) => {
+      const d = e.detail || {};
+      if (active === null || !d.arrived || d.dep !== M[active][0] || d.dest !== M[active][1]) return;
+      const i = active;
+      const better = (d.stars || 0) > (best[i] || 0);
+      if (better) { best[i] = d.stars; try { localStorage.setItem(KEY, JSON.stringify(best)); } catch (x) { /* storage blocked */ } }
+      active = null;
+      now.textContent = 'MISSION ' + (i + 1) + ' DONE ' + stars(d.stars) + (better ? ' (new best)' : '') + (i + 1 < M.length ? '. Mission ' + (i + 2) + ' is open.' : '. All missions flown!');
+      render();
+      pop.classList.add('open');   // show the result beside the icon
+    });
+    now.textContent = 'Pick a route: fly it and land smoothly for 3 stars.';
+    render();
+  })();
+</script>
 </body>
 </html>
 

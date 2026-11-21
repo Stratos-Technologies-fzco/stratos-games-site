@@ -1,3 +1,4 @@
+import { getStats } from '../progress';
 import { LobbyBg, Pic } from './art';
 import type { Outfit } from './outfits';
 
@@ -20,7 +21,10 @@ export function Avatar({ outfit, cls }: { outfit: Outfit; cls?: string }) {
   );
 }
 
+const toggleFullscreen = () => { try { const d = document as Document & { exitFullscreen?: () => Promise<void> }; if (d.fullscreenElement) void d.exitFullscreen?.(); else void document.documentElement.requestFullscreen?.().catch(() => {}); } catch { /* blocked inside an embed without the permission */ } };
+
 export function Lobby(p: LobbyProps) {
+  const rookie = getStats().matches < 2;
   const sel = (m: 'solo' | 'training') => p.mode === m && !p.demo;
   return (
     <div class="lobby2">
@@ -34,6 +38,7 @@ export function Lobby(p: LobbyProps) {
           <button class="glass ib" aria-label={p.musicOn ? 'Music on' : 'Music off'} title="Music" onClick={p.onMusic}>{p.musicOn ? '♪' : '♪̸'}</button>
           <button class="glass ib" aria-label="How to play" title="How to play" onClick={() => p.onInfo('how')}>?</button>
           <button class="glass ib" aria-label="About" title="About" onClick={() => p.onInfo('about')}>i</button>
+          <button class="glass ib" aria-label="Full screen" title="Full screen" onClick={toggleFullscreen}>⛶</button>
           <button class="glass ib" aria-label="Settings" title="Settings" onClick={p.onSettings}>⚙</button>
         </div>
       </div>
@@ -42,12 +47,11 @@ export function Lobby(p: LobbyProps) {
         <span class="lbl">MODE</span>
         <div class="modes">
           <button class={`mode ${sel('solo') ? 'sel' : ''}`} onClick={() => p.onMode('solo')} aria-label="Solo, 24 players"><Pic name="cards/modes/mode_solo_600x800" cls="mode-img" /><span class="mode-name">SOLO</span></button>
-          <button class={`mode ${sel('training') ? 'sel' : ''}`} onClick={() => p.onMode('training')} aria-label="Training"><Pic name="cards/modes/mode_training_600x800" cls="mode-img" /><span class="mode-name">TRAINING</span></button>
-          <button class="mode locked" disabled aria-label="Squad, coming soon"><Pic name="cards/modes/mode_squad_locked_600x800" cls="mode-img" /><span class="mode-name two">SQUAD<small>Coming soon</small></span></button>
+          <button class={`mode ${sel('training') ? 'sel' : ''}${rookie ? ' hot' : ''}`} onClick={() => p.onMode('training')} aria-label="Training"><Pic name="cards/modes/mode_training_600x800" cls="mode-img" />{rookie && <span class="start-here">NEW? START HERE</span>}<span class="mode-name">TRAINING</span></button>
         </div>
         <span class="lbl">EVENT</span>
         <button class="event" onClick={p.onTeaser} aria-label="Season 2 teaser: Ember Isle"><Pic name="loading/teaser_season2_ember_isle" cls="event-img" /><span class="event-txt"><small>SEASON 2 TEASER</small><b class="t">EMBER ISLE</b></span></button>
-        <button class={`pill ${p.demo ? 'on' : ''}`} onClick={p.onDemo}><span>▶ Demo · learn in 1 minute</span></button>
+        <button class={`pill demo-btn ${p.demo ? 'on' : ''}${rookie ? ' hot' : ''}`} onClick={p.onDemo}><span>▶ Quick tutorial · learn in 1 minute</span></button>
       </div>
 
       <div class="lb-right">

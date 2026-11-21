@@ -32,7 +32,7 @@ async function startScientist(profile) {
     watchPerformance(game.renderer);
     track('level_start', { tier: 'scientist', form: game.tier });
     const evolve = game.evolve.bind(game);
-    game.evolve = () => { const from = game.tier; evolve(); if (game.tier !== from) { track('level_complete', { tier: 'scientist', form: from }); track('level_start', { tier: 'scientist', form: game.tier }); } };
+    game.evolve = () => { const from = game.tier; evolve(); if (game.tier !== from) { track('level_complete', { tier: 'scientist', form: from, level: 21 + from }); /* level 21+ = Stratos Coins once per form */ track('level_start', { tier: 'scientist', form: game.tier }); } };
     window.ecosUI = ui;
     loadBank(game.tier);
     for (const fn of scientistAddOns) await fn(game, ui, profile);
@@ -56,11 +56,19 @@ const shell = new Shell(tiers);
 // The living 3D world behind the path screen; it stops while a tier is being played
 const backdrop = new Backdrop3D();
 const showShell = shell.show.bind(shell), hideShell = shell.hide.bind(shell);
-shell.show = () => { showShell(); backdrop.start(); document.body.classList.toggle('has-3d', !!backdrop.renderer); };
-shell.hide = () => { hideShell(); backdrop.stop(); document.body.classList.remove('has-3d'); };
+shell.show = () => { showShell(); backdrop.start(); document.body.classList.toggle('has-3d', !!backdrop.renderer); document.body.classList.add('on-paths'); };
+shell.hide = () => { hideShell(); backdrop.stop(); document.body.classList.remove('has-3d', 'on-paths'); };
 addShareButtons(shell);
-addServerButton(shell);
+// Stratos rule (kids section): nothing about the child leaves the device, so the optional school server / live AI
+// tutor is offered only when the game is opened on its own, never inside stratos.games.
+const onStratos = window.self !== window.top || /stratos/i.test(location.hostname);
+if (!onStratos) addServerButton(shell);
+// Inside stratos.games the old corner "Q/A Bank / Quit Game" buttons are not shown: they covered each path's own
+// top bar, and every path already has its own way back. The Q/A Bank stays in the path screen's bottom row.
+if (onStratos) document.body.classList.add('on-stratos');
 addDaily(shell);
+// The Q/A Bank sits with the other extras at the bottom of the path screen (not over the language buttons).
+shell.addFooter((foot) => foot.insertAdjacentHTML('beforeend', '<a class="btn" href="qa-bank.html" target="_blank" rel="noopener">📚 Q/A Bank</a>'));
 window.ecosApp = { shell, tiers, scientistAddOns, llm };
 shell.show();
 

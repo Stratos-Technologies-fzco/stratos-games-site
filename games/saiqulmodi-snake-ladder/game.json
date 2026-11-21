@@ -1,0 +1,27 @@
+{
+  "title": "Snake Ladder",
+  "maker": "Saiqul Modi",
+  "github": "saiqulmodi",
+  "category": "arcade",
+  "how_to_play": "Roll the dice (R or the 🎲 button) to step 1 to 6 tiles toward Tile 100, steer the frog to gems, climb ladders, and keep moving so the slow hunting snake never catches you standing still.",
+  "description": "Snake Ladder is the classic 1 to 100 board game turned into a calm, child-friendly climb. A small frog starts on Tile 1 of a numbered 10 by 10 board that zig-zags up to Tile 100. Roll the dice to hop forward one to six tiles, and watch the frog step tile by tile so every move is easy to follow.\n\nEvery day brings a new board: today's date sets where the seven ladders and seven snakes go, the same for every player, so each day is a fresh daily challenge. Ladders lift you up and add 200 points, and now and then one ladder wobbles to a new spot. The snakes peek out of holes in the board, and every three seconds one of them slips underground and pops up somewhere new: land on a snake head and the frog slides down to its tail, losing 25 points for every tile it falls. A golden flute gem charms the next snake head so it cannot hurt you. One rainbow snake is alive and slowly hunts the frog, twenty times slower than you: it only catches a frog that stands still, grows longer each time it does, and shrinks when you hop over it. Landing on 10, 20, 30 and every tens tile pays a bright +10 star burst, quiet counting practice for young players.\n\nBetween rolls you can steer the frog anywhere on the board to collect green gems (one tile forward) and golden ladder rungs (four tiles forward), and chain pickups quickly for a bigger score multiplier. Short picture tips teach each new move the first time it happens. Your climb saves by itself, so Continue takes you back to the same tile, and a Top 5 table and a daily streak give you a reason to come back and beat your best.",
+  "controls": [
+    "Roll: R key, the ROLL button, or the 🎲 button on a phone",
+    "Steer: drag on the board, or Arrow keys / WASD",
+    "Hop: Space, Shift, or the HOP button on a phone (pushes the hunting snake away)",
+    "P to pause, M to mute sound and vibration, H or 🏠 to save and go home"
+  ],
+  "tips": [
+    "Keep the frog moving: the hunting snake only catches a frog that stands still.",
+    "Hop when the hunting snake is close to push it away for +120 points.",
+    "Golden ladder rungs move you four tiles at once; chain pickups within 1.4 seconds for a bigger multiplier.",
+    "Grab the golden flute: it makes the next snake head harmless.",
+    "Visit every tens tile (10, 20, 30 ...) for +10 stars each.",
+    "Hop over the hunting snake to make it shorter."
+  ],
+  "story": "Inspired by childhood evenings playing Snakes and Ladders on a wooden board, rebuilt as a gentle climb where a little frog keeps going no matter how many snakes it meets.",
+  "resume": {
+    "native": true,
+    "how": "Your climb (score, board tile and last dice roll) saves automatically after every move; the home screen's Continue button takes you back to the same tile."
+  }
+}

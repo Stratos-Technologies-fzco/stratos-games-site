@@ -252,6 +252,8 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stro
 // ---------- Stratos hooks (site-wide ads + analytics plug in here later) ----------
 function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) { } }
 function offerReward(onDone) { track('reward_offered'); onDone(); track('reward_taken'); }
+function stratosPrice(k) { try { var S = window.Stratos || parent.Stratos; return S && S.coins && S.coins.offer && S.coins.enabled() ? S.coins.price(k) : null; } catch (e) { return null; } }
+function offerRewardAs(kind, onDone) { track('reward_offered'); var go = function () { onDone(); track('reward_taken'); }; try { var S = window.Stratos || parent.Stratos; if (S && S.coins && S.coins.offer) { S.coins.offer(kind, go); return; } } catch (e) {} go(); }
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -604,7 +606,20 @@ function build(data, id) {
   buildWheel(); renderWord(); updSub(); updJar(); setArmed(false); resetIdle();
   requestAnimationFrame(() => { renderBoard(); layoutWheel(); });
 }
-function saveProg() { S.prog = { id: P.id, found: P.words.filter(w => w.found).map(w => w.w), rev: [...P.cells].filter(([, c]) => c.hint).map(([k]) => k), bonus: P.bonusFound, hints: P.hints }; save(); }
+/* Resume (Stratos.resume): the game saves the board itself (S.prog); the shared layer remembers WHICH level or daily puzzle was open, so coming back can offer to continue it. */
+function SR() { try { var X = window.Stratos || parent.Stratos; return X && X.resume ? X.resume : null; } catch (e) { return null; } }
+function resumeNote() { const R = SR(); if (!R || !P) return; const n = P.words.filter(w => w.found).length; R.save({ mode, idx: curIdx, id: P.id }, { ver: 1, label: (mode === 'daily' ? 'Daily puzzle' : 'Level ' + (curIdx + 1)) + ', ' + n + ' of ' + P.words.length + ' words found' }); }
+function resumeOffer(tries = 0) {
+  const R = SR();
+  if (!R) { if (tries < 40) setTimeout(() => resumeOffer(tries + 1), 100); return; }   // the site script loads a moment after the game: wait up to 4 s
+  if (!R.has({ ver: 1 }) || !$('#home').classList.contains('on')) return;   // nothing saved, or the player already started something
+  R.offer(st => {
+    if (st && st.mode === 'daily' && st.id === 'D' + today() && S.prog && S.prog.id === st.id) { audio(); startDaily(); }
+    else if (st && st.mode === 'level' && S.prog && S.prog.id === 'L' + st.idx) { audio(); startLevel(st.idx); }
+    else R.clear();   // that level is already done, or it was another day's puzzle
+  }, () => { S.prog = null; save(); }, { ver: 1 });   // Start new: forget the half-finished level too
+}
+function saveProg() { S.prog = { id: P.id, found: P.words.filter(w => w.found).map(w => w.w), rev: [...P.cells].filter(([, c]) => c.hint).map(([k]) => k), bonus: P.bonusFound, hints: P.hints }; save(); resumeNote(); }
 function updSub() { const n = P.words.filter(w => w.found).length; $('#gSub').textContent = (mode === 'daily' ? '🔥 ' + S.daily.streak + ' · ' : WORLDS[curWorld].name + ' · ') + n + ' / ' + P.words.length + ' words'; }
 
 // ---- layout ----
@@ -758,10 +773,11 @@ function smartHintCell() {
   return best && best.k;
 }
 function reveal(k, anim = 'pop') { const c = P.cells.get(k); if (!c || c.on) return; c.on = true; c.hint = true; paintCell(k, anim); const r = c.el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 10, ['#ffd23f', '#fff'], .4, .3); }
-function pay(cost, fn, label) {
+function pay(cost, fn, label, kind = 'hint') {
   if (busy) return; audio();
   if (S.coins >= cost) { S.coins -= cost; updCoins(); P.hints++; S.stats.hints++; fn(); sfx.hint(); afterChange(); save(); return; }
-  modal('Need more coins', `<p>${label} costs <b>${cost}</b> <i class="coin"></i>. You have ${S.coins}.</p><p class="sub">Watch a short ad to use it for free.</p>`, [['Not now'], ['Watch ad', () => offerReward(() => { P.hints++; fn(); sfx.hint(); afterChange(); }), 'big']]);
+  const sp = stratosPrice(kind);
+  modal('Need more coins', `<p>${label} costs <b>${cost}</b> <i class="coin"></i>. You have ${S.coins}.</p><p class="sub">${sp ? 'Or use ' + sp + ' Stratos Coins.' : 'Watch a short ad to use it for free.'}</p>`, [['Not now'], [sp ? 'Use Stratos Coins' : 'Watch ad', () => offerRewardAs(kind, () => { P.hints++; fn(); sfx.hint(); afterChange(); }), 'big']]);
 }
 $('#bHint').onclick = () => { const k = smartHintCell(); if (!k) return; pay(COST.hint, () => reveal(k), 'A hint'); resetIdle(); };
 $('#bBloom').onclick = () => {
@@ -771,7 +787,7 @@ $('#bBloom').onclick = () => {
     const picks = [], open = P.words.filter(w => !w.found);
     for (let round = 0; picks.length < 5 && round < 6; round++) for (const W of open.sort(() => Math.random() - .5)) { const h = W.cells.filter(k => !P.cells.get(k).on && !picks.includes(k)); if (h.length && picks.length < 5) picks.push(h[Math.floor(Math.random() * h.length)]); }
     busy = true; picks.forEach((k, i) => setTimeout(() => { reveal(k); if (i === picks.length - 1) { busy = false; afterChange(); } }, i * 140));
-  }, 'Bloom');
+  }, 'Bloom', 'boost');
 };
 $('#bSpark').onclick = () => { audio(); if (busy) return; if (sparkArmed) { setArmed(false); return; } if (!hidden().length) return; setArmed(true); toast('Tap any empty square to reveal it'); };
 function setArmed(on) { sparkArmed = on; $('#bSpark').classList.toggle('armed', on); markAim(on); }
@@ -827,7 +843,7 @@ function win() {
     if ((curIdx + 1) % PER_WORLD === 0 && first) extra = '🎉 ' + WORLDS[worldOf(curIdx)].name + ' complete!' + (curIdx + 1 < LEVELS.length ? ' Next: ' + WORLDS[worldOf(curIdx + 1)].name : '');
   }
   if (P.bonusFound.length) extra += (extra ? ' · ' : '') + P.bonusFound.length + ' bonus word' + (P.bonusFound.length > 1 ? 's' : '');
-  S.coins += coins; S.prog = null; save(); updCoins();
+  S.coins += coins; S.prog = null; save(); updCoins(); { const R = SR(); if (R) R.clear(); }
   lastWin = { coins, doubled: false };
   track('level_complete', { level: mode === 'daily' ? 'daily' : curIdx + 1, stars });
   sfx.win(); vib([30, 60, 30]); rain(themeCols()); const r = $('#boardWrap').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 60, themeCols(), 1.2);
@@ -885,6 +901,7 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 
 bgResize(); setWorld(worldOf(Math.min(S.lvl, LEVELS.length - 1)), true); statics = {}; requestAnimationFrame(bgLoop);
 renderHome();
+resumeOffer();
 if (!S.lvl && !S.stats.words) track('game_open', { first: true });
 // test hook
 window.__wb = { S, get P() { return P; }, submitWord(w) { sel = []; for (const ch of w) { const L = letters.find(L => L.ch === ch && !sel.includes(L.i)); if (!L) return false; sel.push(L.i); } submit(); return true; }, startLevel, startDaily, setWorld, renderMap, win: () => win() };

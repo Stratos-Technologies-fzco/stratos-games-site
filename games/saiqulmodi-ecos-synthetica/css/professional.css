@@ -69,3 +69,107 @@
 #pro .mono { font-family: var(--mono); }
 #pro .ok { color: var(--green); }
 .row-in { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* Stratos (#40): the track list fits the screen with no scrolling. Each track shows icon, name, progress and Play;
+   its one-line description is left out here so the list stays on one screen. */
+.pro-track > p:not(.path-prog):not(.path-note) { display: none; }
+.pro-tracks { gap: 8px; }
+.pro-track { padding: 10px 14px; gap: 2px; }
+@media (max-width: 640px) {
+  .pro-tracks { grid-template-columns: minmax(0, 1fr); }
+  .pro-track { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+  .pro-track .pro-ico { grid-row: 1 / span 2; }
+  .pro-track h3 { margin: 0; grid-column: 2; }
+  .pro-track .path-prog, .pro-track .path-note { grid-column: 2; }
+  .pro-track .btn { grid-column: 3; grid-row: 1 / span 2; margin: 0; align-self: center; }
+}
+/* a case in four steps (#40) */
+.pro-steps { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 10px; }
+.pro-steps .tab { margin: 0; font-size: 13px; padding: 5px 10px; }
+#pro .pro-steps .tab.on { background: var(--paccent); color: #fff; border-color: transparent; }
+.pro-steps .tab:disabled { opacity: 0.45; }
+.pro-step[hidden] { display: none; }
+/* the case list of a track fits the screen too: title, stars and Open (#40) */
+.pro-case > p:not(.path-prog) { display: none; }
+.pro-cases { gap: 8px; }
+.pro-case { padding: 10px 14px; gap: 4px; }
+#pro .pro-main > .lead { margin: 0 0 8px; }
+@media (max-width: 640px) {
+  .pro-cases { grid-template-columns: minmax(0, 1fr); }
+  .pro-case { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+  .pro-case h3, .pro-case .path-prog { grid-column: 1; margin: 0; }
+  .pro-case .btn { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+}
+/* decide step: the options of each question sit side by side as chips, so the step fits (#40) */
+.pro-dec { padding: 6px 10px 8px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.pro-dec legend { font-size: 14px; }
+.pro-opt { padding: 4px 10px; min-height: 32px; align-items: center; border: 1px solid var(--pline); border-radius: 999px; font-size: 13.5px; gap: 6px; }
+.pro-opt:has(input:checked) { border-color: var(--paccent); background: rgba(31, 122, 134, 0.08); }
+.pro-opt input { margin-top: 0; width: 16px; height: 16px; }
+.pro-sec { padding: 10px 12px; margin-bottom: 8px; }
+.pro-chart .chart { max-height: 34vh; }
+/* fit on every screen (#40): less padding everywhere, and on phones a one-line top bar and numbered steps */
+.pro-main { padding: 10px 14px 14px; }
+.pro-main h2 { font-size: clamp(18px, 3.2vh, 26px); margin: 2px 0 6px; }
+@media (max-width: 640px) {
+  .pro-top { flex-wrap: nowrap; gap: 6px; padding: calc(6px + env(safe-area-inset-top, 0px)) 10px 6px; }
+  .pro-top h1 { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .pro-top .btn { min-height: 32px; padding: 4px 8px; font-size: 13px; }
+  .pro-impact { font-size: 11px; white-space: nowrap; }
+  .pro-steps { flex-wrap: nowrap; gap: 4px; }
+  .pro-steps .tab { font-size: 0; padding: 4px 9px; }
+  .pro-steps .tab::first-letter { font-size: 13px; }
+  .pro-steps .tab.on { font-size: 12.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pro-opt { font-size: 12.5px; padding: 3px 8px; min-height: 28px; }
+  .pro-dec legend { font-size: 13px; }
+  .pro-sec h3 { font-size: 15px; margin-bottom: 4px; }
+  .pro-sec p { font-size: 14px; }
+}
+/* wider screens: decision questions in two columns, outcome table and charts side by side (#40) */
+@media (min-width: 641px) {
+  .pro-step[data-s="2"] .pro-sec { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 10px; align-items: start; }
+  .pro-step[data-s="2"] .pro-sec > :not(.pro-dec) { grid-column: 1 / -1; }
+  .pro-step[data-s="2"] #proRun { justify-self: start; }
+  .pro-sec.out { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; }
+  .pro-sec.out > h3, .pro-sec.out > .pro-score { flex-basis: 100%; margin: 0; }
+  .pro-sec.out > .pro-table { flex: 1 1 300px; width: auto; margin: 0; }
+  .pro-sec.out > .pro-chart { flex: 1 1 280px; margin: 0; min-width: 0; }
+  .pro-sec.out .chart { max-height: 30vh; }
+}
+@media (max-width: 640px) {
+  .pro-main > .eyebrow { display: none; }
+  .pro-main h2 { font-size: 17px; }
+  .pro-dec { padding: 4px 8px 6px; margin-bottom: 6px; gap: 4px; }
+  .pro-sec { padding: 8px 10px; }
+  .pro-sec.out .chart { max-height: 24vh; }
+  .pro-table th, .pro-table td { padding: 3px 6px; font-size: 12.5px; }
+}
+@media (max-height: 700px) {
+  .pro-main > .eyebrow { display: none; }
+  .pro-top { padding-top: calc(5px + env(safe-area-inset-top, 0px)); padding-bottom: 5px; }
+  .pro-steps { margin: 2px 0 6px; }
+}
+/* wide data tables (water quality) fit a phone's width instead of scrolling sideways (#40) */
+@media (max-width: 640px) {
+  .pro-scroll .pro-table { font-size: 10.5px; table-layout: fixed; }
+  .pro-scroll .pro-table th, .pro-scroll .pro-table td { padding: 2px 3px; overflow-wrap: anywhere; }
+}
+/* Research mode: shorter intro line and charts no taller than half the screen (#40) */
+#pro .rs-tabs { margin: 4px 0 8px; }
+#pro .pro-main .chart { max-height: 46vh; }
+@media (max-height: 700px) { #pro .pro-main > .lead { display: none; } #pro .pro-main .chart { max-height: 34vh; } #rsBody > .lead { font-size: 13px; margin: 0 0 4px; } }
+/* Research > Diversity: the sample plots sit side by side (two on a phone) with small count boxes (#40) */
+.rs-plots { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.rs-plots .pro-sec { margin: 0; }
+.rs-plots .pro-table { margin: 2px 0; font-size: 12.5px; }
+.rs-plots .pro-table th, .rs-plots .pro-table td { padding: 2px 4px; }
+#pro .rs-count { width: 58px; padding: 2px 6px; }
+@media (max-width: 640px) {
+  .rs-plots { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+  .rs-plots .pro-sec { padding: 6px; }
+  .rs-plots h3 { font-size: 13px; }
+  .rs-plots .pro-table { font-size: 11px; }
+  #pro .rs-count { width: 44px; padding: 1px 4px; font-size: 12px; }
+}
+/* the dataset picker never runs past a phone's edge (#40) */
+.rs-field { max-width: 100%; box-sizing: border-box; margin-right: 0; }
+.rs-field select { min-width: 0; width: 100%; box-sizing: border-box; }

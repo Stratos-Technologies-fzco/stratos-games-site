@@ -39,12 +39,15 @@ Say "publish" when you are happy. About a minute later it is on staging (https:/
     games/<your-username>/
         index.html      the game (or the placeholder), one file if you can, everything it needs inside the folder
         game.json       {"title": "...", "maker": "Your Name", "one_line": "what it is", "category": "arcade", "github": "your-username", "how_to_play": "Tap to jump"}
-                        "status": "coming_soon" while it is a placeholder; optional "description" (150 to 250 words for the
-                        play page, a blank line between paragraphs), "controls" and "tips" (a line or a list), "story" (why and
-                        how you made it, in your own words). Google needs this writing before it will show ads on the site.
+                        "status": "coming_soon" while it is a placeholder; "description" (150 to 250 words for the play page,
+                        a blank line between paragraphs), "controls" and "tips" (a line or a list), "story" (why and how you
+                        made it, in your own words), "faq" (your own questions: [{"q": "...", "a": "..."}]). Google needs this
+                        writing before it will show ads on the site: a game without 150+ words, controls and tips waits on staging.
         thumbnail.png   a picture of it, 16:10, about 800 by 500 (if you skip it, the site makes a cover from the title)
+        preview.mp4     6 seconds of real play, silent, 480 by 300: plays when a mouse rests on the tile. Make it with
+                        python3 tools/make_clip.py <your-folder> --steps "click:PLAY; wait:1500; mark; hold:ArrowUp:6000"
 
-Categories: arcade, puzzle, word, party, sports, kids.
+Categories: arcade, puzzle, word, party, sports, adventure, kids.
 
 ## Rules
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import B from '../balance.json';
-import { Inventory, BarrierState, applyArmour, baseDamage, fallDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime } from './rules';
+import { Inventory, invFromJSON, invToJSON, BarrierState, applyArmour, baseDamage, fallDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime } from './rules';
 import { mulberry32 } from './world';
 
 describe('damage', () => {
@@ -76,3 +76,22 @@ describe('monsoon wall', () => {
 });
 
 describe('xp', () => { it('adds kills, damage and placement', () => expect(xpFor(3, 250, 1)).toBe(30 + 4 + 150)); });
+
+describe('resume: inventory as plain data', () => {
+  it('round-trips weapons, stacks, backpack, barriers and tokens', () => {
+    const a = new Inventory(); a.main[0] = { id: 'monsoon_ar', rarity: 2, mag: 11 }; a.pistol = { id: 'kestrel_p9', rarity: 0, mag: 5 };
+    a.stacks.set('light', 36); a.stacks.set('bandage', 2); a.backpackLv = 1; a.barriers = 1; a.tokens = 40;
+    const b = invFromJSON(JSON.parse(JSON.stringify(invToJSON(a))));
+    expect(b.main[0]).toEqual({ id: 'monsoon_ar', rarity: 2, mag: 11 }); expect(b.main[1]).toBeNull(); expect(b.pistol).toEqual({ id: 'kestrel_p9', rarity: 0, mag: 5 });
+    expect([...b.stacks]).toEqual([['light', 36], ['bandage', 2]]); expect(b.backpackLv).toBe(1); expect(b.barriers).toBe(1); expect(b.tokens).toBe(40);
+  });
+  it('turns hostile or broken data into a safe empty inventory, never an exception', () => {
+    for (const bad of [null, undefined, 5, 'x', [], {}, { main: 'no', stacks: 7 }, { main: [{ id: 'nuke', rarity: 9, mag: -1 }], pistol: { id: 1 }, stacks: [['light', 'many'], [3, 4], null], backpackLv: 99, barriers: -4, tokens: NaN }]) {
+      const inv = invFromJSON(bad); expect(inv.main[0]).toBeNull(); expect(inv.pistol).toBeNull(); expect(inv.stacks.size).toBe(0); expect(inv.backpackLv).toBeLessThanOrEqual(3); expect(inv.barriers).toBeGreaterThanOrEqual(0); expect(Number.isFinite(inv.tokens)).toBe(true);
+    }
+  });
+  it('clamps quantities to the stack cap and the magazine to its size', () => {
+    const inv = invFromJSON({ main: [{ id: 'monsoon_ar', rarity: 1, mag: 9999 }, null], stacks: [['bandage', 500]], tokens: 5 });
+    expect(inv.stacks.get('bandage')).toBe(10); expect(inv.main[0]!.mag).toBe(B.weapons.monsoon_ar.mag);
+  });
+});

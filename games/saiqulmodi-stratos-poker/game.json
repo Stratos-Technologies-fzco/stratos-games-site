@@ -17,5 +17,7 @@
     "Watch the 60-second clock: running out folds your hand.",
     "Collect the daily bonus to grow your streak."
   ],
-  "story": "I built it so family and friends in different cities can sit at one table and play the way we play at home, without anyone risking real money."
+  "story": "I built it so family and friends in different cities can sit at one table and play the way we play at home, without anyone risking real money.",
+  "coins": { "spend": false, "why": "Online rebuy needs the server to check balances, which comes with accounts later." },
+  "resume": {"supported": false, "why": "an online table game: the server holds the hand, a player who leaves folds"}
 }

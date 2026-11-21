@@ -11,7 +11,7 @@ import { Rig } from '../anim/rig';
 import { wrap } from '../anim/facing';
 import { settings } from '../input';
 import { cloneModel } from './assets';
-import type { AnimState, Avatar, Survivor } from './character';
+import { SURVIVORS, type AnimState, type Avatar, type Survivor } from './character';
 
 interface WeaponEntry { hold: Hold; socket_grip: number[]; socket_left_hand: number[] | null; muzzle: number[] | null; recoil: number }
 const WEAPONS = weaponSockets as unknown as Record<string, WeaponEntry>;
@@ -26,6 +26,17 @@ function atlasTexture(size: number): THREE.Texture {
 }
 const atlasSize = () => (settings.quality === 'low' || (settings.quality === 'auto' && matchMedia('(pointer: coarse)').matches) ? 512 : 1024);
 
+/** Parachute: a striped dome tilted slightly back, with 12 lines from its rim to the two shoulders. The group's origin is the shoulders, so it opens by growing out of the character. */
+function buildCanopy(color: string): THREE.Group {
+  const g = new THREE.Group(); const R = 2.4, H = 1.0, N = 12;
+  const dome = new THREE.SphereGeometry(R, N, 7, 0, Math.PI * 2, 0, Math.PI * 0.5).scale(1, H / R, 1).toNonIndexed(); const pos = dome.getAttribute('position'); const col = new Float32Array(pos.count * 3); const a = new THREE.Color(color), b = new THREE.Color(0xf4f1ff);
+  for (let t = 0; t < pos.count; t += 3) { const cx = (pos.getX(t) + pos.getX(t + 1) + pos.getX(t + 2)) / 3, cz = (pos.getZ(t) + pos.getZ(t + 1) + pos.getZ(t + 2)) / 3; const panel = Math.floor(((Math.atan2(cz, cx) + Math.PI) / (Math.PI * 2)) * N); const c = panel % 2 ? a : b; for (let k = 0; k < 3; k++) col.set([c.r, c.g, c.b], (t + k) * 3); }
+  dome.setAttribute('color', new THREE.BufferAttribute(col, 3)); dome.computeVertexNormals();
+  const canopy = new THREE.Mesh(dome, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, flatShading: true })); canopy.position.set(0, 3.1, -0.35); canopy.rotation.x = -0.18; g.add(canopy);
+  const pts: THREE.Vector3[] = []; for (let i = 0; i < N; i++) { const ang = (i / N) * Math.PI * 2, rim = new THREE.Vector3(Math.cos(ang) * R * 0.97, 3.1 + 0.02, -0.35 + Math.sin(ang) * R * 0.97); pts.push(rim, new THREE.Vector3(Math.cos(ang) > 0 ? 0.2 : -0.2, 0.05, 0)); }
+  const lines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x3a3347 })); lines.frustumCulled = false; g.add(lines); g.visible = false; return g;
+}
+
 export class Humanoid implements Avatar {
   /** Set by the game: height of the ground (terrain or a floor) at a world position, for foot placement. */
   static ground: Ground | null = null;
@@ -36,7 +47,7 @@ export class Humanoid implements Avatar {
   private bones: THREE.Bone[] = []; private pelvisBone!: THREE.Bone; private meshes: THREE.SkinnedMesh[] = []; private mat!: THREE.MeshLambertMaterial;
   private handSock!: THREE.Object3D; private hold: Hold = 'none'; private recoil = 0; private muzzleLocal: THREE.Vector3 | null = null;
   private inp: AnimInput = defaultInput(); private acc = 0; private tDead = 0; private wantWing = false; private wingK = 0; private flashT = 0; private isFar = false; private distance = 0;
-  private static blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 });
+  static blobMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3 });
   private blob: THREE.Mesh;
   constructor(public model: Survivor) {
     this.root.add(this.body); this.blob = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16).rotateX(-Math.PI / 2), Humanoid.blobMat); this.blob.position.y = 0.05; this.blob.renderOrder = 1; this.root.add(this.blob);
@@ -63,7 +74,7 @@ export class Humanoid implements Avatar {
     w.position.set(-e!.socket_grip[0], -e!.socket_grip[1], -e!.socket_grip[2]); this.handSock.add(w); this.weapon = w;
   }
   async setWing(on: boolean) {
-    this.wantWing = on; if (on && !this.wing) { const w = await cloneModel('personal_glider_wing'); if (!this.wing) { this.wing = w; w.position.set(0, 1.5, -0.1); w.scale.setScalar(0.01); this.root.add(w); } }
+    this.wantWing = on; if (on && !this.wing) { const w = buildCanopy(SURVIVORS.find((s) => s.id === this.model)?.color ?? '#FFB020'); w.position.set(0, 1.45, -0.05); w.scale.setScalar(0.01); this.root.add(w); this.wing = w; }
     if (this.wing && on) this.wing.visible = true;
   }
   setLod(l: number) { this.lod = l; this.meshes.forEach((m, i) => { if (m) m.visible = i === l; }); if (this.animator) this.animator.lod = l; }

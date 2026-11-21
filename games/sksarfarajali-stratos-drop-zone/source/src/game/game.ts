@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import B from '../balance.json';
 import { Colliders, rayBox, stepBody, type Body } from '../core/collision';
-import { Inventory, BarrierState, applyArmour, baseDamage, fallDamage, fireInterval, grenadeDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime, type Armour, type GunSlot, type Item, type Rarity, type WeaponId, type ZonePlan, type ZoneState } from '../core/rules';
+import { Inventory, invFromJSON, invToJSON, type InvJSON, BarrierState, applyArmour, baseDamage, fallDamage, fireInterval, grenadeDamage, planZone, purchase, xpFor, zoneAt, zoneDamage, zoneTotalTime, type Armour, type GunSlot, type Item, type Rarity, type WeaponId, type ZonePlan, type ZoneState } from '../core/rules';
 import { POIS, buildWorld, generateLoot, mulberry32, HALF, inRiver, coastDist, modelSize, type WorldData, type LootSpawn } from '../core/world';
 import { audio, type SoundId } from '../audio';
 import { clearLook, input, pollInput, settings, touch, exitPointerLock, spec } from '../input';
@@ -12,9 +12,10 @@ import { cloneModel, preload, MODEL_INFO, sharedMaterial } from '../render/asset
 import { buildWorldView, type WorldView } from '../render/worldView';
 import { BotBrain, NavGrid, type BotEnv, type Cmd } from './bots';
 import { crateContents, itemLabel, itemModel, rollItem } from './loot';
-import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, SmokeCloud } from './types';
+import type { Actor, BarrierObj, Dummy, FeedRow, GroundItem, Grenade, Hud, Mode, Projectile, Result, ResumeSnap, SmokeCloud } from './types';
 import { track } from '../analytics';
-import { recordMatch } from '../progress';
+import { getStats, recordMatch } from '../progress';
+type ResumeApi = { save: (s: unknown, o: unknown) => void; clear: () => void; has: (o: unknown) => boolean; offer: (a: (s: unknown) => void, b: () => void, o: unknown) => void };
 const isTouchDevice = () => matchMedia('(pointer: coarse)').matches;
 
 const W = B.weapons as Record<string, { label: string; class: string; damage: number; pellets: number; headshot: number; rpm?: number; swing?: number; mag: number; range: number; ammo: string | null; reload: number; reloadPerShell?: boolean; spread: number; recoil: number; auto: boolean; scope: number; projectileSpeed?: number; drop?: number }>;
@@ -27,14 +28,14 @@ const ringMat = (r: number) => (RING_MATS[r] ??= new THREE.MeshBasicMaterial({ c
 const SMOKE_GEO = new THREE.SphereGeometry(1, 10, 8); const SMOKE_MAT = new THREE.MeshLambertMaterial({ color: 0xd8d4e8, transparent: true, opacity: 0.8 });
 
 export class Game {
-  renderer: THREE.WebGLRenderer; camera = new THREE.PerspectiveCamera(70, 1, 0.1, 700);
+  renderer: THREE.WebGLRenderer; camera = new THREE.PerspectiveCamera(70, 1, 0.1, 1400);
   world!: WorldData; colliders!: Colliders; view!: WorldView; nav!: NavGrid; spawns: LootSpawn[] = [];
   actors: Actor[] = []; player!: Actor; items: GroundItem[] = []; dummies: Dummy[] = []; projectiles: Projectile[] = []; grenades: Grenade[] = []; smokes: SmokeCloud[] = []; barriers: BarrierObj[] = [];
   phase: 'menu' | 'flight' | 'playing' | 'ended' = 'menu'; mode: Mode = 'solo'; time = 0; matchT = 0; flightT = 0; zonePlan!: ZonePlan; zone: ZoneState | null = null; lastPhase = 0;
   rand = mulberry32(1); plane!: THREE.Object3D; planeStart = V(); planeDir = V(); planeSpeed = 0; kiosks: { x: number; z: number; y: number; last: { lastAt: number } }[] = [];
   hud: Hud; feed: FeedRow[] = []; private fx!: { tracers: THREE.Line[]; flashes: THREE.Mesh[]; puffs: THREE.Mesh[] }; private ghost: THREE.Object3D | null = null; placing = false;
   private raf = 0; private last = 0; private hudT = 0; private lootT = 0; private botT = 0; private bushT = 0; private fpsAcc = 0; private fpsN = 0; fps = 60; private lowFpsT = 0; private res = 1;
-  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; animMs = 0; private animMsAcc = 0; elimRes: Result | null = null; deadT = 0; diedMatchT = 0; specYaw = 0; specPitch = 0; landInfo: { x: number; z: number; secs: number; dist: number } | null = null; private landMark!: THREE.Group; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
+  survivor: Survivor = 'survivor_kiran'; spectateTarget: Actor | null = null; animMs = 0; private animMsAcc = 0; rookie = false; tutT = 0; toasts: { id: number; text: string; color: string; t: number }[] = []; private toastId = 0; private lootMapT = 0; private lootMap: { x: number; z: number; r: number }[] = []; elimRes: Result | null = null; revived = false; shieldT = 0; deadT = 0; diedMatchT = 0; specYaw = 0; specPitch = 0; landInfo: { x: number; z: number; secs: number; dist: number } | null = null; private landMark!: THREE.Group; env: BotEnv; botCount = 0; botsInTraining = false; bushes: { x: number; z: number }[] = []; marker: { x: number; z: number } | null = null;
   private footT = 0; private chat = ''; private chatT = 0; private shake = 0; private numbers: Hud['numbers'] = []; private shotsHeard: { x: number; z: number; t: number; id?: number }[] = []; private dmgArcs: { a: number; t: number }[] = [];
   private hitT = 0; private hitHead = false; private bannerT = 0; private banner = ''; private paused = false; kioskOpen = false; inventoryOpen = false; mapOpen = false; private endT = 0; private difficulty: 'easy' | 'normal' | 'hard' = 'normal';
   private canopies: { x: number; y: number; z: number; r: number }[] = []; private canopyCells = new Map<number, number[]>(); private camDist = 3.2;
@@ -80,7 +81,7 @@ export class Game {
     for (let i = 0; i < 32; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0xc9b38a, transparent: true })); m.visible = false; m.userData.t = 0; scene.add(m); this.fx.puffs.push(m); }
   }
   private applyResolution() {
-    const q = settings.quality; const dpr = Math.min(devicePixelRatio || 1, matchMedia('(pointer: coarse)').matches ? 1.5 : 2);
+    const q = settings.quality; const eq = this.effQuality, coarse = matchMedia('(pointer: coarse)').matches; const dpr = Math.min(devicePixelRatio || 1, coarse ? (eq === 'low' ? 1 : 1.25) : eq === 'high' ? 1.5 : 1);
     this.res = settings.resScale * (q === 'low' ? 0.75 : 1) * this.dynRes; this.renderer.setPixelRatio(Math.max(0.4, dpr * this.res)); this.renderer.setSize(innerWidth, innerHeight, false);
     this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix();
   }
@@ -90,27 +91,33 @@ export class Game {
   effQuality: 'low' | 'medium' | 'high' | 'auto' = 'medium';
   /** Re-reads the graphics setting: resolution, and real shadows on High only. */
   applyQuality() {
-    this.autoQuality(); this.applyResolution(); const high = this.effQuality === 'high';
-    if (this.renderer.shadowMap.enabled !== high) { this.renderer.shadowMap.enabled = high; sharedMaterial.needsUpdate = true; }
-    if (!this.view) return; this.view.sun.castShadow = high;
-    if (high) { const s = this.view.sun.shadow, c = s.camera as THREE.OrthographicCamera; s.mapSize.set(1024, 1024); c.left = -45; c.right = 45; c.top = 45; c.bottom = -45; c.near = 1; c.far = 280; c.updateProjectionMatrix(); s.bias = -0.0006; }
-    for (const ch of this.view.chunks) { ch.mesh.castShadow = high; ch.mesh.receiveShadow = high; }
-    for (const a of this.actors) a.char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = high; });
+    this.autoQuality(); this.applyResolution(); const high = this.effQuality === 'high', shadows = high || this.effQuality === 'medium';
+    if (this.renderer.shadowMap.enabled !== shadows) { this.renderer.shadowMap.enabled = shadows; sharedMaterial.needsUpdate = true; }
+    Humanoid.blobMat.opacity = shadows ? 0.16 : 0.32; // the simple blob under each survivor fades when real shadows are on
+    if (!this.view) return; const sun = this.view.sun; sun.castShadow = shadows;
+    if (shadows) { // Medium: 1024 map over 64 m, casters are survivors and plants. High: 2048 map over 90 m, buildings cast too
+      const sh = sun.shadow, c = sh.camera as THREE.OrthographicCamera, size = high ? 2048 : 1024, half = high ? 45 : 32;
+      if (sh.mapSize.x !== size) { sh.mapSize.set(size, size); sh.map?.dispose(); sh.map = null; }
+      c.left = -half; c.right = half; c.top = half; c.bottom = -half; c.near = 1; c.far = 320; c.updateProjectionMatrix(); sh.bias = -0.0006; sh.normalBias = 0.03;
+    }
+    for (const ch of this.view.chunks) { ch.mesh.castShadow = high || (shadows && !!ch.mesh.userData.tree); ch.mesh.receiveShadow = shadows; if (ch.trees) { ch.trees.castShadow = shadows; ch.trees.receiveShadow = shadows; } }
+    for (const a of this.actors) a.char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = shadows; });
   }
 
   // ------------------------------------------------------------------ match lifecycle
-  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean } = {}) {
+  async start(mode: Mode, survivor: Survivor, opts: { bots?: boolean; difficulty?: 'easy' | 'normal' | 'hard'; demo?: boolean; restore?: ResumeSnap } = {}) {
     this.demo = !!opts.demo; this.demoStep = 0; this.demoFlags = { reloaded: false, healed: false }; if (this.demo) track('demo_start');
-    this.cleanup(); this.mode = mode; this.survivor = survivor; this.rand = mulberry32((Math.random() * 1e9) | 0); this.difficulty = opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots;
-    this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
+    this.cleanup(); this.mode = mode; this.survivor = survivor; this.matchSeed = opts.restore ? opts.restore.seed : (Math.random() * 1e9) | 0; this.rand = mulberry32(this.matchSeed); this.rookie = !opts.demo && mode === 'solo' && getStats().matches < 3; this.difficulty = this.rookie && (opts.difficulty ?? 'normal') === 'normal' ? 'easy' : opts.difficulty ?? 'normal'; this.botsInTraining = !!opts.bots; this.tutT = 0; this.toasts = [];
+    this.time = 0; this.matchT = 0; this.flightT = 0; this.elimRes = null; this.revived = false; this.shieldT = 0; this.deadT = 0; this.diedMatchT = 0; this.specYaw = 0; this.specPitch = 0; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); this.lastPhase = 0; this.feed = []; this.numbers = []; this.hud.result = null; this.spectateTarget = null; this.endT = 0; this.kioskOpen = this.inventoryOpen = this.mapOpen = false; this.marker = null;
     this.zonePlan = planZone(this.rand); this.zone = null; this.env.zone = null;
     this.player = await this.makeActor(settings ? 'You' : 'You', false, true, survivor);
+    if (!this.demo) { const p0 = this.player; p0.inv.pistol = { id: 'kestrel_p9', rarity: 0, mag: W.kestrel_p9.mag }; p0.inv.stacks.set('light', 36); p0.inv.stacks.set('bandage', 2); p0.slot = 2; }
     const bots = mode === 'solo' ? B.match.players - 1 : opts.bots ? B.bots.trainingCount : 0;
     for (let i = 0; i < bots; i++) await this.makeActor('', true, false, SURVIVORS[i % 4].id);
     for (const k of this.kiosks) k.last.lastAt = -99;
     await this.spawnGroundLoot();
-    if (mode === 'solo') this.beginFlight(); else this.beginTraining();
-    audio.startMusic('match'); track('level_start', { mode });
+    if (opts.restore && mode === 'solo') { this.applyResume(opts.restore); this.rookie = !!opts.restore.rookie; } else { this.resumeClear(); if (mode === 'solo') this.beginFlight(); else this.beginTraining(); }
+    audio.startMusic('match'); track('level_start', opts.restore ? { mode, resumed: true } : { mode }); if (mode === 'training' && !this.demo) this.tutT = 14;
     this.onChange();
   }
   private gen = 0;
@@ -121,6 +128,7 @@ export class Game {
     for (const d of this.dummies) scene.remove(d.mesh);
     for (const b of this.barriers) { scene.remove(b.mesh); this.colliders.remove(b.box); }
     for (const p of this.projectiles) scene.remove(p.mesh); for (const g of this.grenades) scene.remove(g.mesh); for (const s of this.smokes) scene.remove(s.mesh);
+    this.lootJson = []; this.lootCount = 0;
     this.actors.length = 0; this.items.length = 0; this.dummies.length = 0; this.barriers.length = 0; this.projectiles.length = 0; this.grenades.length = 0; this.smokes.length = 0;
     this.plane.visible = false; this.view.storm.visible = false; this.view.stormNext.visible = false;
   }
@@ -135,16 +143,16 @@ export class Game {
       kills: 0, damage: 0, headshots: 0, slideT: 0, slideCd: 0, slideDx: 0, slideDz: 0, prevCrouch: false, tokensEarned: 0, hitFlash: 0, placement: 0, killer: '', diedAt: 0, hidden: false, lastHitBy: null, lastHitAt: -99, speedNow: 0, vx: 0, vz: 0, fireHeld: false, coyote: 0, jumpBuf: 0, fallStartY: 0, survivor, bot: brain,
     };
     if (isBot) { const names = this.actors.map((x) => x.name); while (names.filter((n) => n === a.name).length) a.name += 'x'; }
-    void char.setWeapon('tide_machete'); if (this.effQuality === 'high') char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = true; }); this.actors.push(a); return a;
+    void char.setWeapon('tide_machete'); if (this.effQuality !== 'low') char.root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.castShadow = true; }); this.actors.push(a); return a;
   }
   private async spawnGroundLoot() {
     let n = 0;
     for (const s of this.spawns) {
       if (this.mode === 'training') break;
       if (this.rand() > B.loot.tiers[s.tier].chance) continue;
-      const it = rollItem(s.tier, this.rand); this.addGroundItem(s.x, s.y, s.z, [it], it.rarity, false); n++;
+      const it = rollItem(s.tier, this.rand); const g = this.addGroundItem(s.x, s.y, s.z, [it], it.rarity, false); g.ix = n; this.lootJson[n] = JSON.stringify(g.items); n++;
     }
-    void n;
+    this.lootCount = n;
   }
   addGroundItem(x: number, y: number, z: number, items: Item[], rarity: Rarity, crate: boolean, model?: string): GroundItem {
     const g: GroundItem = { id: nextId++, x, y, z, items, rarity, mesh: new THREE.Group(), ring: null, crate, spin: this.rand() * 6, taken: false };
@@ -219,7 +227,7 @@ export class Game {
     pollInput(); if (!this.paused && this.phase !== 'menu') this.update(dt);
     // in the lobby the picture is drawn by HTML on top, so the 3D view is not rendered at all (saves battery)
     if (this.phase !== 'menu') { this.updateEffects(dt); this.render(dt); } clearLook();
-    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.onChange(); }
+    this.hudT += dt; if (this.hudT > 0.1) { this.hudT = 0; if (this.demo && this.phase === 'playing') this.updateDemo(); else this.hud.demo = null; this.snapshot(); this.resumeTick(); this.onChange(); }
   };
   setPaused(p: boolean) { this.paused = p; if (p) audio.stopEngine(); if (p) exitPointerLock(); }
   private adaptResolution() {
@@ -265,6 +273,7 @@ export class Game {
     this.bushT += dt; if (this.bushT > 0.3) { this.bushT = 0; for (const a of this.actors) a.hidden = a.alive && a.body.crouch && this.bushes.some((b) => Math.abs(b.x - a.body.x) < 1.4 && Math.abs(b.z - a.body.z) < 1.4); }
     this.lootT += dt; if (this.lootT > 0.25) { this.lootT = 0; this.updateLootVisibility(); }
     if (this.phase === 'flight' && this.plane.visible) audio.setEngine(this.player.mode === 'plane' ? 1 : Math.max(0, 1 - this.camera.position.distanceTo(this.plane.position) / 500)); else audio.stopEngine();
+    if (this.shieldT > 0) this.shieldT -= dt;
     // ---- win / end checks
     if (this.mode === 'solo' && (this.phase === 'playing' || this.phase === 'flight')) { // a player can be eliminated while the last bots are still gliding down
       const alive = this.actors.filter((a) => a.alive);
@@ -278,6 +287,7 @@ export class Game {
       spec.prev = false; spec.next = false;
     }
     for (const f of this.feed) f.t -= dt; this.feed = this.feed.filter((f) => f.t > 0);
+    if (this.tutT > 0) this.tutT -= dt; for (const t of this.toasts) t.t -= dt; if (this.toasts.length) this.toasts = this.toasts.filter((t) => t.t > 0);
     this.dropT = Math.max(0, this.dropT - dt); this.hitT = Math.max(0, this.hitT - dt); this.elimT = Math.max(0, this.elimT - dt); this.shake = Math.max(0, this.shake - dt * 4); this.bannerT = Math.max(0, this.bannerT - dt); this.chatT = Math.max(0, this.chatT - dt);
     this.numbers = this.numbers.filter((n) => (n.y -= dt * 40) > -120); this.dmgArcs = this.dmgArcs.filter((d) => (d.t -= dt) > 0); { const keep = this.shotsHeard.filter((s) => (s.t -= dt) > 0); this.shotsHeard.length = 0; this.shotsHeard.push(...keep); }
     audio.setTension(!!this.zone && this.zone.stage !== 'done' && this.zone.timeLeft < 20);
@@ -348,7 +358,7 @@ export class Game {
         const lim2 = HALF + B.match.softWallMeters, lx = Math.max(-lim2, Math.min(lim2, a.body.x + ux * reach)), lz = Math.max(-lim2, Math.min(lim2, a.body.z + uz * reach)); this.landInfo = { x: lx, z: lz, secs: tS + tG, dist: Math.hypot(lx - a.body.x, lz - a.body.z) };
       }
       if (a.mode === 'skydive' && alt <= B.match.gliderOpenAltitude) { a.mode = 'glide'; void a.char.setWing(true); if (a.isPlayer) { this.shake = Math.max(this.shake, 0.4); audio.play('chute'); } }
-      if (a.body.y <= gnd + 0.2) { a.body.y = gnd; a.mode = 'ground'; a.body.onGround = true; a.body.vy = 0; void a.char.setWing(false); an.fallLanded = 3; if (a.isPlayer) this.shake = Math.max(this.shake, 0.25); if (this.phase === 'flight') { /* landed */ } if (a.isPlayer) { this.showBanner('Landed. Find a weapon!'); } }
+      if (a.body.y <= gnd + 0.2) { a.body.y = gnd; a.mode = 'ground'; a.body.onGround = true; a.body.vy = 0; void a.char.setWing(false); an.fallLanded = 3; if (a.isPlayer) this.shake = Math.max(this.shake, 0.25); if (this.phase === 'flight') { /* landed */ } if (a.isPlayer) { this.showBanner(this.rookie ? 'Landed! Rookie match: bots are easier, and you are protected for 8 s' : 'Landed! You are protected for 8 s. Find a weapon'); this.shieldT = Math.max(this.shieldT, 8); if (!this.demo && (getStats().matches < 3 || this.rookie)) this.tutT = 14; } }
       an.mode = a.mode === 'skydive' ? 'skydive' : 'glide'; an.speed = 0; this.poseActor(a, dt); return;
     }
     // ---- ground
@@ -530,7 +540,7 @@ export class Game {
 
   // ------------------------------------------------------------------ damage, kills
   hurt(v: Actor, by: Actor | null, raw: number, head: boolean, source: string, ignoreArmour = false) {
-    if (!v.alive || v.mode !== 'ground' && v.mode !== 'plane' && false) return; if (this.phase === 'ended') return;
+    if (!v.alive || v.mode !== 'ground' && v.mode !== 'plane' && false) return; if (this.phase === 'ended') return; if (v.isPlayer && this.shieldT > 0) return;   // protection after a Stratos Coins revive
     let hp = raw; if (!ignoreArmour) { const r = applyArmour(raw, head, v.armour); hp = r.hp; v.armour.vestDur = Math.max(0, v.armour.vestDur - r.vestDamage); if (v.armour.vestDur <= 0) v.armour.vestLv = v.armour.vestDur > 0 ? v.armour.vestLv : v.armour.vestLv; }
     v.hp -= hp; v.hitFlash = 1; v.anim.hit = 1; if (by && by !== v) v.anim.hitFrom = Math.atan2(by.body.x - v.body.x, by.body.z - v.body.z); v.char.flash(0.12); if (by && by !== v) { v.lastHitBy = by; v.lastHitAt = this.time; } if (by && by !== v) { by.damage += hp; if (head) by.headshots++; }
     if (v.isPlayer && by) { const a = Math.atan2(by.body.x - v.body.x, by.body.z - v.body.z) - v.yaw; this.dmgArcs.push({ a, t: 1.2 }); this.shake = Math.max(this.shake, 0.25); }
@@ -563,6 +573,14 @@ export class Game {
   private respawnTraining(v: Actor) { v.alive = true; v.hp = 100; v.anim.dead = 0; v.char.resetDeath(); const f = POIS[4]; this.placeActor(v, f.x, f.z + 27); }
   /** The player's result. Stats are recorded here, once, so Lobby / Play Again while spectating still count the match. */
   private buildResult(win: boolean): Result { const p = this.player; const placement = win ? 1 : p.placement || this.actors.filter((a) => a.alive).length + 1; const res: Result = { win, placement, total: B.match.players, kills: p.kills, damage: Math.round(p.damage), time: Math.round(p.alive ? this.matchT : this.diedMatchT), headshots: p.headshots, tokens: p.tokensEarned, xp: xpFor(p.kills, p.damage, placement), killer: p.killer }; res.outcome = recordMatch(res); return res; }
+  /** Second chance (Stratos Coins): once per solo match, on the spot, half health and 3 s of protection. The death crate with the old loot is at your feet. */
+  reviveCan(): boolean { return this.mode === 'solo' && !this.revived && !this.player.alive && !!this.elimRes && (this.phase === 'playing' || this.phase === 'flight') && this.actors.some((a) => a.alive && !a.isPlayer); }
+  revive() {
+    if (!this.reviveCan()) return; const v = this.player; this.revived = true;
+    v.alive = true; v.hp = 50; v.healT = 0; v.anim.dead = 0; v.char.resetDeath(); v.placement = 0; v.killer = '';
+    this.elimRes = null; this.hud.eliminated = null; this.deadT = 0; this.spectateTarget = null; this.shieldT = 3;
+    this.addFeed('You are back in the fight', true); track('revive_used', { placement: this.actors.filter((a) => a.alive).length }); this.onChange();
+  }
   skipToResults() { if ((this.phase === 'playing' || this.phase === 'flight') && !this.player.alive) this.finish(null); }
   private buildLandMark() { const g = new THREE.Group(); const ring = new THREE.Mesh(new THREE.RingGeometry(2.4, 3.3, 28), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 60, 6, 1, true), new THREE.MeshBasicMaterial({ color: 0xffb020, transparent: true, opacity: 0.35, depthWrite: false })); beam.position.y = 30; g.add(ring, beam); g.visible = false; this.view.scene.add(g); this.landMark = g; }
   private finish(winner: Actor | null) {
@@ -576,12 +594,13 @@ export class Game {
     let best: GroundItem | null = null, bd = B.loot.pickupRange; for (const g of this.items) { if (g.taken || g.mesh.userData.drop) continue; const d = Math.hypot(g.x - a.body.x, g.z - a.body.z); if (d < bd && Math.abs(g.y - a.body.y) < 2.5) { bd = d; best = g; } } return best;
   }
   nearestKiosk(a: Actor) { for (const k of this.kiosks) if (Math.hypot(k.x - a.body.x, k.z - a.body.z) < 3.2 && Math.abs(k.y - a.body.y) < 2.5) return k; return null; }
+  private toast(text: string, color: string) { this.toasts.push({ id: ++this.toastId, text, color, t: 2.4 }); if (this.toasts.length > 4) this.toasts.shift(); }
   pickup(a: Actor, g: GroundItem) {
-    if (g.taken) return; const left: Item[] = []; let any = false; let legend = false;
-    for (const it of g.items) { const r = this.give(a, it); if (r < it.qty || it.kind !== 'ammo' && it.kind !== 'heal' && it.kind !== 'tokens') { /* handled below */ } if (r > 0) { any = true; if (it.rarity === 3) legend = true; } if (r < it.qty && (it.kind === 'ammo' || it.kind === 'heal' || it.kind === 'throwable')) left.push({ ...it, qty: it.qty - r }); }
+    if (g.taken) return; const left: Item[] = []; let any = false; let legend = false; const got: { text: string; color: string }[] = [];
+    for (const it of g.items) { const r = this.give(a, it); if (r < it.qty || it.kind !== 'ammo' && it.kind !== 'heal' && it.kind !== 'tokens') { /* handled below */ } if (r > 0) { any = true; if (it.rarity === 3) legend = true; got.push({ text: it.kind === 'weapon' ? W[it.id].label : it.id.replace(/_/g, ' ') + (r > 1 ? ' x' + r : ''), color: B.rarity.colors[it.rarity] ?? '#fff' }); } if (r < it.qty && (it.kind === 'ammo' || it.kind === 'heal' || it.kind === 'throwable')) left.push({ ...it, qty: it.qty - r }); }
     if (!any) { if (a.isPlayer) this.showChat('Backpack full'); return; }
     if (left.length) g.items = left; else { g.taken = true; this.view.scene.remove(g.mesh); if (g.ring) this.view.scene.remove(g.ring); if (g.beam) this.view.scene.remove(g.beam); }
-    if (a.isPlayer) audio.play(legend ? 'legend' : 'pickup');
+    if (a.isPlayer) { audio.play(legend ? 'legend' : 'pickup'); for (const x of got.slice(0, 3)) this.toast('+ ' + x.text, x.color); }
   }
   /** Put one item to use. Returns how many units were taken. */
   give(a: Actor, it: Item): number {
@@ -702,19 +721,19 @@ export class Game {
   private headBob(a: Actor, dt: number): number { const hc = a.char.headCam; if (!hc || settings.reduceMotion) return 0; if (this.bobFor !== a) { this.bobFor = a; this.bobBase = hc.y; } this.bobBase += (hc.y - this.bobBase) * (1 - Math.exp(-dt / 0.25)); return Math.max(-0.02, Math.min(0.02, (hc.y - this.bobBase) * 0.7)); }
   private updateCamera(dt: number) {
     let a = this.player; if (!a.alive && this.spectateTarget?.alive) a = this.spectateTarget; else if (!a.alive && this.phase === 'ended') a = this.spectateTarget ?? a;
-    if (this.phase === 'flight' && a.mode === 'plane') { const p = this.plane.position; const ft = this.flightT; this.camera.position.set(p.x - 30 + Math.sin(ft * 0.25) * 7, p.y + 14 + Math.sin(ft * 0.4) * 1.6, p.z - 30 + Math.cos(ft * 0.2) * 6).add(this.planeDir.clone().multiplyScalar(-10)); this.camera.lookAt(p.clone().addScaledVector(this.planeDir, 14)); this.plane.rotation.z = Math.sin(ft * 0.6) * 0.06; this.camera.fov = 70; this.camera.updateProjectionMatrix(); return; }
+    if (this.phase === 'flight' && a.mode === 'plane') { const p = this.plane.position; const ft = this.flightT, pd = this.planeDir; this.camera.position.set(p.x - pd.x * 26 + pd.z * 11 + Math.sin(ft * 0.25) * 3, p.y + 4 + Math.sin(ft * 0.4) * 0.8, p.z - pd.z * 26 - pd.x * 11 + Math.cos(ft * 0.2) * 3); this.camera.lookAt(p.x + pd.x * 10, p.y - 12, p.z + pd.z * 10); this.plane.rotation.z = Math.sin(ft * 0.6) * 0.06; this.camera.fov = 70; this.camera.updateProjectionMatrix(); return; }
     const scoped = a === this.player && this.scoped(); const g = this.gun(a); const targetFov = a === this.player && input.aim && g ? (W[g.id].scope === 2 ? 35 : W[g.id].scope === 4 ? 20 : 55) : a.mode === 'skydive' ? 85 : 70;
     this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, dt / 0.16 * 1); this.camera.updateProjectionMatrix();
     const spectating = a !== this.player, yw = a.yaw + (spectating ? this.specYaw : 0), pt = spectating ? Math.max(-1.1, Math.min(1, a.pitch * 0.5 + this.specPitch)) : a.pitch;
     const head = V(a.body.x, a.body.y + (a.body.crouch ? 1.15 : 1.65) + this.headBob(a, dt), a.body.z), f = V(Math.sin(yw) * Math.cos(pt), Math.sin(pt), Math.cos(yw) * Math.cos(pt)), r = V(-Math.cos(yw), 0, Math.sin(yw));
     if (scoped) { this.camera.position.copy(head).addScaledVector(f, 0.3); }
     else {
-      const sk = a.mode === 'skydive' ? 1.6 : 1; const back = 3.2 * sk, side = 0.6; const want = head.clone().addScaledVector(r, side).addScaledVector(f, -back);
-      const dir = want.clone().sub(head), dist = dir.length(); dir.normalize(); const hit = this.colliders.raycast(head.x, head.y, head.z, dir.x, dir.y, dir.z, dist), canopy = this.canopyHit(head, dir, dist); const allowed = Math.max(0.5, Math.min(dist, hit < dist ? hit - 0.3 : dist, canopy < dist ? canopy - 0.5 : dist));
+      const sk = a.mode === 'skydive' ? 1.6 : 1; const back = (spectating ? 2.6 : 3.2) * sk, side = 0.6; const want = head.clone().addScaledVector(r, side).addScaledVector(f, -back);
+      const dir = want.clone().sub(head), dist = dir.length(); dir.normalize(); const hit = this.colliders.raycast(head.x, head.y, head.z, dir.x, dir.y, dir.z, dist), canopy = this.canopyHit(head, dir, dist); const hit2 = spectating ? Math.min(this.colliders.raycast(head.x + r.x * 0.5, head.y, head.z + r.z * 0.5, dir.x, dir.y, dir.z, dist), this.colliders.raycast(head.x - r.x * 0.5, head.y, head.z - r.z * 0.5, dir.x, dir.y, dir.z, dist)) : dist; const mg = spectating ? 0.9 : 0.3, cm = spectating ? 1.3 : 0.5; const allowed = Math.max(0.5, Math.min(dist, Math.min(hit, hit2) < dist ? Math.min(hit, hit2) - mg : dist, canopy < dist ? canopy - cm : dist));
       // snap in quickly when something gets in the way, ease back out slowly
       this.camDist += (allowed - this.camDist) * (1 - Math.exp(-dt * (allowed < this.camDist ? 22 : 3))); const d = Math.min(this.camDist, dist);
       this.camera.position.copy(head).addScaledVector(dir, d);
-      const gh = this.world.terrain.height(this.camera.position.x, this.camera.position.z) + 0.3; if (this.camera.position.y < gh) this.camera.position.y = gh;
+      const gh = this.world.terrain.height(this.camera.position.x, this.camera.position.z) + (spectating ? 0.9 : 0.3); if (this.camera.position.y < gh) this.camera.position.y = gh;
     }
     const sh = this.shake * (settings.reduceMotion ? 0 : 1); this.camera.position.x += (Math.random() - 0.5) * sh * 0.3; this.camera.position.y += (Math.random() - 0.5) * sh * 0.3;
     this.camera.lookAt(head.clone().addScaledVector(r, scoped ? 0 : 0.6).addScaledVector(f, 40));
@@ -726,7 +745,7 @@ export class Game {
   showChat(t: string) { this.chat = t; this.chatT = 2; }
   addFeed(text: string, mine: boolean) { this.feed.push({ id: nextId++, text, t: 4, mine }); if (this.feed.length > 4) this.feed.shift(); }
   private blankHud(): Hud {
-    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, dropCard: null, weaponClass: '', zoneWarn: null, result: null, eliminated: null, landing: null, animMs: 0, quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
+    return { phase: 'menu', mode: 'solo', hp: 100, vest: 0, vestMax: 1, helmet: 0, alive: 0, kills: 0, tokens: 0, ammoMag: 0, ammoReserve: 0, weaponName: '', slots: [], heals: { bandage: 0, medkit: 0, repair: 0, barriers: 0, frag: 0, smoke: 0 }, prompt: null, feed: [], banner: null, zone: null, px: 0, pz: 0, yaw: 0, alt: 0, hitT: 0, hitHead: false, dmgArc: [], reloading: 0, healing: 0, scope: 0, aim: false, spread: 0, fps: 60, numbers: [], shots: [], marker: null, planeX: 0, planeZ: 0, planeDir: [1, 0], canJump: false, autoJumpIn: 0, kioskNear: false, kioskOpen: false, inventoryOpen: false, mapOpen: false, stack: [], capacity: 6, chat: '', demo: null, elim: null, dropCard: null, weaponClass: '', zoneWarn: null, result: null, eliminated: null, landing: null, animMs: 0, airborne: false, shield: 0, tutorial: false, objective: '', toasts: [], loot: [], quality: 'auto', shake: 0, inBush: false, inZoneDanger: false, spectating: null };
   }
   private snapshot() {
     const h = this.hud, p = this.player; if (!p) return; h.phase = this.phase; h.mode = this.mode; h.hp = Math.max(0, Math.round(p.hp)); h.vest = Math.round(p.armour.vestDur); h.vestMax = p.armour.vestLv ? B.armour.vest.durability[p.armour.vestLv - 1] : 1; h.helmet = p.armour.helmetLv;
@@ -746,14 +765,67 @@ export class Game {
     h.dropCard = this.dropT > 0 ? this.dropCard : null;
     h.elim = this.elimT > 0 ? { text: this.elimText, t: this.elimT } : null; h.weaponClass = g ? W[g.id].class : ''; h.zoneWarn = this.zone && p.alive && this.phase === 'playing' ? { dist: Math.hypot(p.body.x - this.zone.cx, p.body.z - this.zone.cz) - this.zone.radius, dps: this.zone.dps } : null;
     h.kioskNear = !!kiosk; h.kioskOpen = this.kioskOpen; h.inventoryOpen = this.inventoryOpen; h.mapOpen = this.mapOpen; h.stack = [...p.inv.stacks].map(([id, qty]) => ({ id, qty })); h.capacity = p.inv.capacity; h.chat = this.chatT > 0 ? this.chat : '';
-    h.shake = this.shake; h.inBush = p.hidden; h.inZoneDanger = !!this.zone && zoneDamage(this.zone, p.body.x, p.body.z) > 0; h.spectating = !p.alive ? this.spectateTarget?.name ?? null : null; h.quality = this.effQuality;
+    h.shake = this.shake; h.inBush = p.hidden; h.inZoneDanger = !!this.zone && zoneDamage(this.zone, p.body.x, p.body.z) > 0; h.spectating = !p.alive ? this.spectateTarget?.name ?? null : null; h.quality = this.effQuality; h.airborne = p.mode !== 'ground'; h.shield = Math.max(0, this.shieldT); h.tutorial = this.tutT > 0 && p.alive; h.toasts = this.toasts.map((t) => ({ id: t.id, text: t.text, color: t.color }));
+    { const hasGun = !!(p.inv.main[0] || p.inv.main[1]); h.objective = !p.alive ? '' : p.mode !== 'ground' ? (this.phase === 'flight' ? 'Pick your landing spot: the ring on the ground is where you will land' : '') : h.inZoneDanger ? 'Run into the safe circle' : !hasGun ? 'Find a better gun: follow the glowing rings' : 'Outlast the other players'; }
+    if (--this.lootMapT <= 0) { this.lootMapT = 30; this.lootMap = this.items.filter((g) => !g.taken && (g.crate || g.rarity >= 1)).sort((u, v) => Math.hypot(u.x - p.body.x, u.z - p.body.z) - Math.hypot(v.x - p.body.x, v.z - p.body.z)).slice(0, 36).map((g) => ({ x: g.x, z: g.z, r: g.rarity })); } h.loot = this.lootMap;
     const li = this.landInfo; this.landInfo = null; this.landMark.visible = !!li; h.eliminated = this.hud.eliminated;
     if (li) { this.landMark.position.set(li.x, this.world.terrain.height(li.x, li.z) + 0.3, li.z); const np = POIS.reduce((b, q) => Math.hypot(q.x - li.x, q.z - li.z) < Math.hypot(b.x - li.x, b.z - li.z) ? q : b); h.landing = { dist: Math.round(li.dist), secs: Math.ceil(li.secs), name: Math.hypot(np.x - li.x, np.z - li.z) < 110 ? np.name : 'open ground' }; } else h.landing = null;
   }
   spectate(dir: 1 | -1) { const l = this.actors.filter((a) => a.alive && !a.isPlayer); if (!l.length) return; const i = l.indexOf(this.spectateTarget!); this.spectateTarget = l[i < 0 ? (dir > 0 ? 0 : l.length - 1) : (i + dir + l.length) % l.length]; this.specYaw = 0; this.specPitch = 0; }
   spectatePrev() { this.spectate(-1); }
   spectateNext() { this.spectate(1); }
-  toLobby() { this.cleanup(); this.phase = 'menu'; this.hud.result = null; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); audio.startMusic('lobby'); this.onChange(); }
+  toLobby() { this.resumeClear(); this.cleanup(); this.phase = 'menu'; this.hud.result = null; this.hud.eliminated = null; spec.active = false; audio.stopEngine(); audio.startMusic('lobby'); this.onChange(); }
+  // ------------------------------------------------------------------ resume (Stratos.resume)
+  // A match in progress, saved every 2 s once everyone has landed. The island, the starting loot, the storm plan and the bots are all made from the match seed,
+  // so the snapshot only holds the seed and what has changed since: where everyone is, health, weapons, loot taken, the storm clock.
+  // Not saved (a small loss on purpose): grenades and smoke in the air, placed barriers, and the plane flight and skydive (a match left before everyone has landed starts new).
+  private matchSeed = 0; private lootJson: string[] = []; private lootCount = 0; private resumeLast = -99; private resumeHas = false;
+  private stratos(): { resume?: ResumeApi } | undefined {
+    try { const w = window as unknown as { Stratos?: { resume?: ResumeApi } }; return w.Stratos || (window.parent as unknown as typeof w)?.Stratos; } catch { return undefined; }
+  }
+  private resumeApi(): ResumeApi | null { return this.stratos()?.resume ?? null; }
+  private resumeClear() { if (!this.resumeHas) return; this.resumeHas = false; try { this.resumeApi()?.clear(); } catch { /* ignore */ } }
+  private resumeTick() {
+    const R = this.resumeApi(); if (!R || this.mode !== 'solo' || this.demo || !this.player) return;
+    if (this.phase === 'ended' || (this.phase === 'playing' && !this.player.alive)) { this.resumeClear(); return; }
+    if (this.phase !== 'playing' || this.time - this.resumeLast < 2) return; this.resumeLast = this.time;
+    const r2 = (n: number) => Math.round(n * 100) / 100;
+    const actors = this.actors.map((a) => ({ alive: a.alive, x: r2(a.body.x), y: r2(a.body.y), z: r2(a.body.z), crouch: a.body.crouch, yaw: r2(a.yaw), pitch: r2(a.pitch), hp: Math.round(a.hp), armour: { ...a.armour, vestDur: Math.round(a.armour.vestDur) }, inv: invToJSON(a.inv), slot: a.slot, kills: a.kills, damage: Math.round(a.damage), headshots: a.headshots, tokensEarned: a.tokensEarned, placement: a.placement, killer: a.killer, diedAt: r2(a.diedAt), dead: a.alive ? 0 : a.anim.dead || 1 }));
+    const present = new Map<number, GroundItem>(); const extra: ResumeSnap['extra'] = [];
+    for (const g of this.items) { if (g.ix !== undefined) present.set(g.ix, g); else if (!g.taken && extra.length < 80) extra.push({ x: r2(g.x), y: r2(g.y), z: r2(g.z), items: g.items, rarity: g.rarity, crate: g.crate, model: (g.mesh.userData as { model?: string }).model }); }
+    const taken: number[] = []; const left: [number, Item[]][] = [];
+    for (let i = 0; i < this.lootCount; i++) { const g = present.get(i); if (!g || g.taken) taken.push(i); else if (JSON.stringify(g.items) !== this.lootJson[i]) left.push([i, g.items]); }
+    const alive = this.actors.filter((a) => a.alive).length;
+    const snap: ResumeSnap = { seed: this.matchSeed, difficulty: this.difficulty, rookie: this.rookie, survivor: this.survivor, matchT: r2(this.matchT), time: r2(this.time), lastPhase: this.lastPhase, revived: this.revived, actors, taken, left, extra };
+    R.save(snap, { ver: 1, label: `Solo match, ${alive} of ${this.actors.length} survivors left, ${this.player.kills} ${this.player.kills === 1 ? 'elimination' : 'eliminations'}` }); this.resumeHas = true;
+  }
+  /** Only a snapshot that fits this game build is accepted: same player count, plausible numbers, known survivor. */
+  private resumeOk(s: ResumeSnap | null | undefined): s is ResumeSnap {
+    return !!s && typeof s.seed === 'number' && isFinite(s.seed) && Array.isArray(s.actors) && s.actors.length === B.match.players && s.actors.every((a) => a && isFinite(a.x) && isFinite(a.y) && isFinite(a.z) && isFinite(a.hp) && typeof a.alive === 'boolean') &&
+      s.actors[0].alive && Array.isArray(s.taken) && Array.isArray(s.left) && Array.isArray(s.extra) && isFinite(s.matchT) && isFinite(s.time) && ['easy', 'normal', 'hard'].includes(s.difficulty) && SURVIVORS.some((v) => v.id === s.survivor);
+  }
+  /** Ask "Continue where you left off?" (waits up to 4 s for the site script) and hand the snapshot to the lobby. */
+  offerResume(onResume: (s: ResumeSnap) => void, tries = 0) {
+    const R = this.resumeApi(); if (!R) { if (tries < 40) setTimeout(() => this.offerResume(onResume, tries + 1), 100); return; }
+    if (!R.has({ ver: 1 }) || this.phase !== 'menu') return; this.resumeHas = true;
+    this.stratos()?.resume?.offer((s) => { if (this.resumeOk(s as ResumeSnap)) onResume(s as ResumeSnap); else this.resumeClear(); }, () => { this.resumeHas = false; }, { ver: 1 });
+  }
+  private applyResume(s: ResumeSnap) {
+    this.matchT = s.matchT; this.time = s.time; this.lastPhase = s.lastPhase; this.revived = !!s.revived; this.flightT = B.match.flightSeconds;
+    for (const i of s.taken) { const g = this.items.find((q) => q.ix === i); if (g) { g.taken = true; this.view.scene.remove(g.mesh); } }
+    for (const [i, items] of s.left) { const g = this.items.find((q) => q.ix === i); if (g && Array.isArray(items) && items.length) g.items = items; }
+    for (const e of s.extra) this.addGroundItem(e.x, e.y, e.z, e.items, e.rarity, e.crate, e.model);
+    s.actors.forEach((d, i) => {
+      const a = this.actors[i]; if (!a) return;
+      a.body.x = d.x; a.body.y = d.y; a.body.z = d.z; a.body.vy = 0; a.body.onGround = true; a.body.crouch = !!d.crouch; a.yaw = d.yaw; a.pitch = d.pitch; a.mode = 'ground';
+      a.hp = Math.max(0, Math.min(B.player.hp, d.hp)); a.armour = { vestLv: Math.max(0, Math.min(3, d.armour?.vestLv | 0)), vestDur: Math.max(0, d.armour?.vestDur || 0), helmetLv: Math.max(0, Math.min(3, d.armour?.helmetLv | 0)) };
+      a.inv = invFromJSON(d.inv as InvJSON); a.slot = d.slot >= 0 && d.slot <= 3 ? d.slot : 3; if (a.slot === 2 && !a.inv.pistol) a.slot = 3; if (a.slot < 2 && !a.inv.main[a.slot]) { const f = a.inv.main.findIndex((m) => m); a.slot = f >= 0 ? f : 3; }
+      a.kills = d.kills | 0; a.damage = d.damage || 0; a.headshots = d.headshots | 0; a.tokensEarned = d.tokensEarned | 0; a.placement = d.placement | 0; a.killer = d.killer || ''; a.diedAt = d.diedAt || 0;
+      a.alive = !!d.alive; if (!a.alive) { a.hp = 0; a.anim.dead = d.dead === 2 ? 2 : 1; a.char.resetDeath(); }
+    });
+    this.phase = 'playing'; this.plane.visible = false; this.resumeLast = this.time; this.resumeHas = true;
+    this.showBanner('Welcome back. Your match continues.');
+  }
   dispose() { cancelAnimationFrame(this.raf); }
 }
 function a11() { /* placeholder to keep kill() readable */ }

@@ -12,6 +12,9 @@ export const saveSettings = () => { try { localStorage.setItem('sdz-settings', J
 /** Spectator controls: Q / E / arrows switch player, drag orbits the camera. `active` is set by the game while the player is eliminated. */
 export const spec = { prev: false, next: false, active: false };
 let dragOn = false;
+/** Set when the browser refuses pointer lock (an embed without the permission): mouse look and fire then work without it. */
+let soft = false;
+function askLock(canvas: HTMLElement) { try { const r = canvas.requestPointerLock?.() as unknown; if (r && typeof (r as Promise<void>).catch === 'function') (r as Promise<void>).catch(() => { soft = true; }); } catch { soft = true; } }
 export const isTouch = () => matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const keys = new Set<string>();
 const edge = { jump: false, reload: false, interact: false, heal: false, grenade: false, barrier: false, map: false, inventory: false, pause: false, marker: false };
@@ -34,13 +37,14 @@ export function initInput(canvas: HTMLElement, getOverlayActive: () => boolean) 
   canvas.addEventListener('mousedown', (e) => {
     if (isTouch() || getOverlayActive()) return;
     if (spec.active) { dragOn = true; return; }
-    if (!locked) { canvas.requestPointerLock?.(); return; }
+    if (!locked && !soft) { askLock(canvas); return; }
     if (e.button === 0) mouse.fire = true; if (e.button === 2) mouse.aim = true;
   });
   addEventListener('mouseup', (e) => { dragOn = false; if (e.button === 0) mouse.fire = false; if (e.button === 2) mouse.aim = false; });
   addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('pointerlockerror', () => { soft = true; });
   document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; if (!locked) { mouse.fire = false; mouse.aim = false; } });
-  addEventListener('mousemove', (e) => { if (locked || dragOn) { input.lookDX += e.movementX; input.lookDY += e.movementY; } });
+  addEventListener('mousemove', (e) => { if (locked || dragOn || (soft && !getOverlayActive())) { input.lookDX += e.movementX; input.lookDY += e.movementY; } });
   initTouch(canvas);
 }
 const mouse = { fire: false, aim: false };

@@ -1,0 +1,435 @@
+{
+ "frames": {
+  "farmhouse": {
+   "frame": {
+    "x": 402,
+    "y": 0,
+    "w": 400,
+    "h": 372
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 400,
+    "h": 372
+   },
+   "sourceSize": {
+    "w": 400,
+    "h": 372
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4624
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4624
+   }
+  },
+  "barn": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 400,
+    "h": 382
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 400,
+    "h": 382
+   },
+   "sourceSize": {
+    "w": 400,
+    "h": 382
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4764
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4764
+   }
+  },
+  "silo": {
+   "frame": {
+    "x": 822,
+    "y": 1378,
+    "w": 96,
+    "h": 200
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 200
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 200
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.68
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.68
+   }
+  },
+  "flour_mill_0": {
+   "frame": {
+    "x": 0,
+    "y": 384,
+    "w": 272,
+    "h": 354
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 354
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 354
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.6158
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.6158
+   }
+  },
+  "flour_mill_1": {
+   "frame": {
+    "x": 274,
+    "y": 384,
+    "w": 272,
+    "h": 354
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 354
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 354
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.6158
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.6158
+   }
+  },
+  "flour_mill_2": {
+   "frame": {
+    "x": 548,
+    "y": 384,
+    "w": 272,
+    "h": 354
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 354
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 354
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.6158
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.6158
+   }
+  },
+  "flour_mill_3": {
+   "frame": {
+    "x": 0,
+    "y": 740,
+    "w": 272,
+    "h": 354
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 354
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 354
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.6158
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.6158
+   }
+  },
+  "bakery": {
+   "frame": {
+    "x": 274,
+    "y": 740,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "feed_mill": {
+   "frame": {
+    "x": 548,
+    "y": 740,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "dairy": {
+   "frame": {
+    "x": 0,
+    "y": 1096,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "sugar_mill": {
+   "frame": {
+    "x": 274,
+    "y": 1096,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "textile_mill": {
+   "frame": {
+    "x": 548,
+    "y": 1096,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "juice_press": {
+   "frame": {
+    "x": 0,
+    "y": 1378,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "jam_kitchen": {
+   "frame": {
+    "x": 274,
+    "y": 1378,
+    "w": 272,
+    "h": 280
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 280
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 280
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.5143
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5143
+   }
+  },
+  "construction_2x2": {
+   "frame": {
+    "x": 548,
+    "y": 1378,
+    "w": 272,
+    "h": 264
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 264
+   },
+   "sourceSize": {
+    "w": 272,
+    "h": 264
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.4848
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.4848
+   }
+  }
+ },
+ "meta": {
+  "app": "stratos-farm asset-gen",
+  "version": "1.0",
+  "image": "atlas_buildings.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1024,
+   "h": 1660
+  },
+  "scale": "1"
+ }
+}

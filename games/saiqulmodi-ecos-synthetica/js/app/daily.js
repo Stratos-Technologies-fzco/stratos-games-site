@@ -42,15 +42,30 @@ function state(p) {
 export function addDaily(shell) {
   shell.addFooter(async (foot, p) => {
     if (!p) return;
-    const box = document.createElement('section');
-    box.className = 'daily';
-    foot.parentElement.insertBefore(box, foot.parentElement.querySelector('.path-cards'));
+    // Stratos (#40): the path screen must fit with no scrolling, so the daily question is one button in the
+    // bottom row (with the streak on it) that opens the question in a panel.
     const s = state(p);
     const today = dayKey();
+    const btn = document.createElement('button');
+    btn.className = 'btn daily-btn';
+    const label = () => `${s.last === today ? '✅' : '❓'} ${tr('dy.title')}${s.streak ? ` · ${tr('dy.streak', { n: s.streak })}` : ''}`;
+    btn.textContent = label();
+    foot.prepend(btn);
+    btn.onclick = () => openDaily(shell, p, s, today, btn, label);
+    // no question pack for this class (Class 1-7 Q/A were removed 08-Nov): no button, as before
+    if (s.last !== today) questionFor(p).then((q) => { if (!q) btn.remove(); });
+  });
+}
+
+async function openDaily(shell, p, s, today, btn, label) {
+  {
     const head = () => `<div class="daily-head"><h2>${esc(tr('dy.title'))}</h2>${s.streak ? `<span class="daily-streak">${esc(tr('dy.streak', { n: s.streak }))} · ${esc(tr('dy.best', { n: s.best }))}</span>` : ''}</div>`;
+    shell.openModal('<section class="daily" id="dailyBox"></section><div class="sheet-actions"><button class="btn" id="dailyClose">✕</button></div>');
+    const box = document.getElementById('dailyBox');
+    document.getElementById('dailyClose').onclick = () => shell.closeModal();
     if (s.last === today) { box.innerHTML = `${head()}<p>${esc(tr('dy.done'))}</p>`; return; }
     const q = await questionFor(p);
-    if (!q) { box.remove(); return; }
+    if (!q) { box.innerHTML = `${head()}<p>${esc(tr('dy.done'))}</p>`; return; }
     box.innerHTML = `${head()}<p class="daily-q" lang="en">${esc(q.q)} <span class="path-note small">${getLang() !== 'en' ? esc(tr('dy.en')) : ''}</span></p>
       <div class="daily-opts">${q.opts.map((o, i) => `<button class="btn" data-i="${i}" lang="en">${esc(o)}</button>`).join('')}</div><p class="path-note small">${esc(tr('dy.come'))}</p>`;
     track('level_start', { mode: 'daily' });
@@ -62,9 +77,10 @@ export function addDaily(shell) {
         s.last = today;
         saveProgress(p);
         track('level_complete', { mode: 'daily', correct: i === q.ans, streak: s.streak });
+        btn.textContent = label();
         box.innerHTML = `${head()}<p class="daily-q" lang="en">${esc(q.q)}</p>
           <p class="feedback ${i === q.ans ? 'good' : 'bad'}">${esc(i === q.ans ? tr('dy.right') : tr('dy.wrong', { a: q.opts[q.ans] }))}${q.why ? ` <span lang="en">${esc(q.why)}</span>` : ''}</p><p>${esc(tr('dy.done'))}</p>`;
       };
     });
-  });
+  }
 }

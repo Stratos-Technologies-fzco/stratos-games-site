@@ -16,5 +16,6 @@
     "If a word looks like English, stop and check twice. It might be a false friend.",
     "You get 3 hints a day, so save them for the crates that really stump you.",
     "Play the Daily Harbour every day. The streak bonus grows with each day and gives you more coins."
-  ]
+  ],
+  "resume": {"native": true, "how": "a ship in progress is saved after every crate; the home screen shows \"Continue your ship\""}
 }

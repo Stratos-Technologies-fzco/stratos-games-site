@@ -49,9 +49,10 @@ export class Shell {
           <div class="lang-row" id="pathLang">${langs}</div>
           <div class="who">${who} <button class="mini-btn" id="btnWho">${esc(tr('shell.switch'))}</button></div>
         </div>
-        <div class="paths-emblem" aria-hidden="true">${ecosEmblem(true)}</div>
-        <h1 class="paths-title">Ecos-Synthetica<span>${esc(tr('shell.tag'))}</span></h1>
-        <p class="thesis">${esc(tr('shell.lead'))}</p>
+        <div class="paths-head">
+          <div class="paths-emblem" aria-hidden="true">${ecosEmblem(true)}</div>
+          <h1 class="paths-title">Ecos-Synthetica<span>${esc(tr('shell.tag'))}</span></h1>
+        </div>
         <div class="path-cards">${['explorer', 'scientist', 'professional'].map((k) => this.card(k, p)).join('<div class="path-arrow" aria-hidden="true">→</div>')}</div>
         <div class="paths-foot" id="pathsFoot"></div>
       </div>`;
@@ -85,15 +86,14 @@ export class Shell {
     if (!t.available) action = `<p class="path-note">${esc(tr('shell.soon'))}</p>`;
     else if (open) action = `<button class="btn primary path-play" data-play="${k}">${esc(prog ? tr('shell.continue') : tr('shell.play'))}</button>`;
     else {
+      // Stratos (#40): play first, few words; the longer "why" sits in the button's tooltip
       action = `<p class="path-note">🔒 ${esc(tr(k === 'scientist' ? 'tier.unlockScientist' : 'tier.unlockProfessional'))}</p>
-        <p class="path-note small">${esc(tr('shell.placementWhy'))}</p>
-        <button class="btn" data-place="${k}">${esc(tr('shell.placement'))}</button>`;
+        <button class="btn" data-place="${k}" title="${esc(tr('shell.placementWhy'))}">${esc(tr('shell.placement'))}</button>`;
     }
-    return `<article class="path-card ${open ? '' : 'locked'}" data-tier="${k}">
+    return `<article class="path-card ${open ? '' : 'locked'}" data-tier="${k}" title="${esc(tr(`tier.${k}Text`))}">
       <div class="path-icon" aria-hidden="true">${ICON[k]}</div>
       <p class="eyebrow">${esc(tr(`tier.${k}Age`))}</p>
       <h2>${esc(tr(`tier.${k}`))}</h2>
-      <p>${esc(tr(`tier.${k}Text`))}</p>
       ${prog ? `<p class="path-prog">${esc(prog)}</p>` : ''}
       ${action}
     </article>`;

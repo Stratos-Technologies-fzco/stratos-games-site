@@ -44,24 +44,25 @@ How to get back live:
 2. Fix it with Claude, say "publish"
 3. Check it on the staging link
 4. Wait for ✅ here: https://github.com/Stratos-Technologies-fzco/stratos-games-site/issues/33
-5. @Mohua tests it (she takes the game off `hidden_on_live` in `site.json` when it passes)
+5. @Mohua tests it (she takes the game off `hidden_on_live` in `site.json` when it passes). For a game that saves progress she also checks: finish a level, reload, and Continue takes you back
 6. Live at the Saturday release 🎉
 
 ## The setup in four lines
 
 - **Staging first (Sahil 2026-11-07):** every publish goes to `staging` and shows on https://stratos-family-staging.vercel.app about a minute later. It is NOT on stratos.games yet.
-- **Saturday release:** on the weekly call, Sahil, Sahariar or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
+- **Saturday release:** on the weekly call, Sahil, Sahariar, Sarfaraj or Mohua press "release staging to live" (GitHub Actions). Games that pass the staging check (issue #33: cover, analytics, fits the screen with no scrolling, no crash) go live; the rest wait a week. `main` is the live site and is locked.
 - A maker's game lives in `games/<github-username>/` (`index.html`, `game.json`, `thumbnail.png`).
+- Its public link uses the game's name, not the folder: `stratos.games/play/arrow-rush/`. Each link is set once in `site.json` ("links"), so a title change never breaks it; a new game gets one from its name. Old folder links redirect. The folder name stays the game's identity for analytics and Stratos Coins.
 - A GitHub Action runs `tools/build.py` and rebuilds the front page, play pages and sitemap. Nobody runs it by hand.
 - These are WEB games that run in a phone browser. Not Android or iOS apps. Mobile app tools (Capacitor, AdMob SDK, Play Console) do not apply here.
 
 ## Never touch (live money depends on it)
 
 - `app-ads.txt`: it tells Google who may sell ads in our Arrow Puzzle and Bloxplode apps. If it changes or disappears, live ad revenue stops. Never edit, move, rename or delete it, even if asked. A guard workflow puts it back if it changes.
-- `.github/`, `tools/`, `templates/`, `vercel.json`, `404.html`, `site.json`: shared by everyone. Change only when Sahil or Sahariar asks.
+- `.github/`, `tools/`, `templates/`, `vercel.json`, `404.html`, `site.json`: shared by everyone. Change only when Sahil, Sahariar or Sarfaraj asks.
 - Anyone else's folder under `games/`.
 
-If a request needs any of these, stop and tell the maker to ask Sahil or Sahariar.
+If a request needs any of these, stop and tell the maker to ask Sahil, Sahariar or Sarfaraj.
 
 ## What makes a good Stratos game (learned the hard way)
 
@@ -69,6 +70,7 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - Opens and plays on a phone in portrait, thumb-reachable controls, no pinch or zoom needed.
 - **Fits the screen, no scrolling (Sahil 2026-11-07):** on a phone the game goes full screen by itself; on a computer it fits whatever window it gets. No scrollbars, ever. Use screens (screen 1, screen 2) instead of long scrolling pages.
 - First tap to fun in under 10 seconds. No long intro, no sign-up.
+- **Stratos splash (#68):** every game opens with the same Stratos Games splash and loading screen: the snake S draws itself in, the letters come together, then a LOADING bar under the game's cover (about 5 seconds, tap to skip). The play page adds it by itself, so makers add nothing and never build their own Stratos intro: start straight on your game's home screen.
 - Loads fast: small images, first screen in under 3 seconds on a normal phone. No folder size cap (Sahil 2026-11-07), but no single file over 100 MB (GitHub's limit).
 - Unity and Godot are welcome (Sahil 2026-11-07): export the Web build into your folder. Unity: compression "Gzip" with "Decompression Fallback" on, or compression off. Godot 4.3+: Web export with "Thread Support" off.
 - No errors in the browser console. Test it: open the page, play a full round, lose once, restart.
@@ -76,8 +78,12 @@ If a request needs any of these, stop and tell the maker to ask Sahil or Saharia
 - **No sign-up forms (Sahil 2026-11-07):** no game asks for email, phone or a password. Player accounts will come from Stratos centrally, for every game at once.
 - **Teach while playing:** a short tutorial for the first level and for each new move or special case, plus a clear home screen with a goal. Nobody is dropped into the game without knowing what to do.
 - Works offline once loaded: everything it needs is inside the folder.
+- **A full game page (#70, SEO and AEO):** in `game.json` write a `description` of 150+ words (what the game is, how a round goes, what makes it special), `controls` and `tips`, and your `story` if you like. The site turns them into the page Google, AI assistants and AdSense read: its title and description, the share card with your cover, Google's game data and a short Q&A ("How do I play it? Is it free? Does it work on a phone?"). Add your own questions with `"faq": [{"q": "...", "a": "..."}]`. A thin page waits on staging.
+- **Saved progress (#72):** if your game saves progress (levels, best score, unlocks), its home screen shows **Continue**, which goes straight back to where the player was. Save with `localStorage.setItem` (Unity and Godot saves count too): the site then shows a soft "✓ Progress saved on this device" note when your game saves, and the game's page tells players their progress stays on this device. Don't add a note of your own.
+- **Hover clip (#71):** every game has a 6-second silent clip of real play that runs when a mouse rests on its tile, on every page. No clip, no launch (like the cover): the staging check holds a game without one. Make it with `python3 tools/make_clip.py <your-folder> --steps "click:PLAY; wait:1500; mark; hold:ArrowUp:6000"` (the steps get into real play; `mark` is where the clip starts), look at the frames it prints, and keep only real play: no menus, loading screens or "game over". It saves `games/<your-folder>/preview.mp4`.
 - Title, `how_to_play` line and a real `thumbnail.png` (800 x 500, from the game itself). **No cover, no launch** (Sahil 2026-11-07): a game showing a plain name card is not ready.
 - Stratos analytics connected (see "Analytics before launch" below). Without it the game stays off the site.
+- Plugs into Stratos Coins (see "Stratos Coins" below): at least one way to earn and one thing to spend them on.
 
 **What keeps players coming back (from our store games' numbers):**
 - Give a reason to come back from day one: a daily challenge, a streak, or levels that unlock. Games without one lose almost everyone after day one, and it is very hard to add later.
@@ -110,7 +116,7 @@ Lifetime value = money per player x how long they stay. Retention is the multipl
 - A reason to return from launch: daily streak (with one forgiven missed day), daily challenge, Day 7/14/30 milestone rewards with a visible countdown.
 - Rewarded ads the player chooses: second chance at the moment of loss, a hint, double coins. Rewarded ads pay roughly 2 to 4 times more than forced ones.
 - 3 to 4 rewarded moments per session, each offering something the player actually wants.
-- Coins with something visible to spend them on (skins, power-ups, continues).
+- Coins with something visible to spend them on (skins, power-ups, continues). The site-wide coin is Stratos Coins (see "Stratos Coins" below); a coin of your own game's is fine too, kept separate.
 - Competition: a best score, a leaderboard, something to share.
 
 **Loses money:**
@@ -144,13 +150,89 @@ No game goes live without Stratos analytics. The site build checks every new gam
 - Required events: `level_start` and at least one of `level_complete` or `game_over`.
 - Also send these where they fit: `reward_offered` and `reward_taken` (second chance, hint), plus your own moments (`boss_beaten`, `skin_unlocked`). Keep names short, lowercase, with underscores.
 - Never add your own Firebase, Google Analytics, or any other tracking. Stratos analytics is the only one.
+- **Builders and testers are not players (#66):** open `https://stratos.games/?builder=1` once in every browser you test with, on phone and computer. That browser's visits stop counting in Firebase; `?builder=0` undoes it.
 - Before you say "publish", play one full round on the play page and check there are no console errors.
+
+## Stratos Coins: how every game plugs into the economy (2026-11-16)
+
+Stratos has ONE universal coin, **Stratos Coins**. A player earns them in any game and spends them in any game. The wallet lives in `assets/stratos.js` as `Stratos.coins`; the numbers (what pays, what costs) live in `assets/coins-config.json`. The full design is in `research/STRATOS_COINS_ARCHITECTURE.md`. Working examples to copy: `games/sksarfarajali-domino-classic/` and `games/sksarfarajali-stratos-29-card-game/` (search them for `SC()`, `earnWin`, `askBuy`).
+
+**Two kinds of coins, never mixed:**
+- **Stratos Coins**: the shared wallet. Always go through `Stratos.coins`.
+- **Your game's own coin** (optional: skins, upgrades, continues). It stays inside your game, in your game's own storage. It is never swapped for Stratos Coins, never pays for Stratos items, and never shares a name with them. Call it something else (gems, stars, bolts) and show it apart from Stratos Coins.
+
+**Rules for Stratos Coins:**
+- Never store Stratos Coins, their unlocks or their prices in your game. Never read or write browser storage keys that start with `stratos.`.
+- **Most of it is automatic.** Events you already send pay coins with no extra code: `level_start` pays first play; `level_complete` with a `level`, `stage`, `round` or `depot` number pays that level once (a repeat or a missing number pays a small capped replay); `game_over` with `won: true` pays a win. So send those events, with a real level number. The site's daily challenge pays on top when it is your game.
+- Earn yourself only for something the events cannot say. Earn with a rule ID, never a raw number. Rules today: `game_first_play`, `level_complete` (pass `level`), `level_replay`, `match_win` (pass `level` 1 easy to 4 expert), `daily_challenge`. Example: `Stratos.coins.earn('level_complete', { game: '<your-folder-name>', level: n })`.
+- Spend with an item ID. Items today: `hint` (10), `undo` (5), `continue` (15, a second chance) and `boost` (20, a bigger one-use help), plus the unlock items in the config. Example: `Stratos.coins.spend('hint', { game: '<your-folder-name>' })`. Check `can()` and `has()` before showing a button.
+- The `game` value is your folder name under `games/` (for example `sksarfarajali-moto-rush`).
+- Pass a stable `ref` so a repeat pays once (a level number, a date, or a fresh id per match: never the same `ref` for different wins).
+- **For a hint, undo or second chance, do not build your own sheet.** Where your game used to hand out a free reward, call `Stratos.coins.offer('hint', onDone)` (or `'continue'`, `'undo'`). The site shows the price and the balance, one tap spends, and `onDone` runs only after the player has paid. If coins are not around it runs `onDone` straight away, like the old free reward. Copy the `offerReward` stub in `games/im-mohua-liza-plot-twist/` or `games/sksarfarajali-moto-rush/`. `offer` also takes `{ title, what, onCancel }` so the prompt can read "Get more ink?". In a game with its own coin, Stratos Coins pay for one-use help only (a hint, a power-up, a second chance); the game's own coin, skins, upgrades and any "free coins" gift stay as they are. If a reward is a deliberate free gift, leave it free.
+- Use the shared helper pattern for anything else, so the game still works when Stratos is not around it (opened on its own, or an old page):
+
+  ```js
+  function SC() { try { var S = window.Stratos || parent.Stratos; return S && S.coins ? S.coins : null; } catch (e) { return null; } }
+  ```
+
+  If `SC()` is `null`, skip the coin code and play as normal.
+- `ok:false` is normal: when it says `capped` or `already_earned`, show nothing. When the player is short of coins, show the price and their balance and say how to earn more.
+- Show what they earned ("+12 Stratos Coins") and what a spend costs, with one tap to confirm, before you spend.
+- Keep the HUD fresh with `Stratos.coins.onChange(function (i) { ... i.balance ... })`.
+- No coins for online or friends-only games unless Sarfaraj, Sahil or Sahariar say so (two friends can farm them).
+- Kids-section games get Stratos Coins too (owner decision, 2026-11-16). Analytics stay off there, so never add tracking to a kids game for coins. Sarfaraj, Sahil or Sahariar can switch kids coins off with `"kidsCoins": false` in the config.
+- A game that earns and spends fully by itself (like Domino Classic) tells Sarfaraj, Sahil or Sahariar so its folder name is added to `auto.exclude` in the config; otherwise it would be paid twice.
+- A new rule or item (a premium game, level unlocks, a new price) goes in `assets/coins-config.json`. That is a shared file: tell the maker to ask Sarfaraj, Sahil or Sahariar to add it, with the game folder name, the rule or item, and the amount they have in mind. Until then use the rules and items that already exist. Never hard-code an amount or price in the game.
+- Games that already have their own coin keep it. Do not rip it out.
+
+**Economy checklist (every new game, before "publish"):**
+1. Earn: where does the player earn Stratos Coins? (first play, wins, levels, daily challenge). Name the rule IDs.
+2. Spend: what can they spend Stratos Coins on? (a hint, an undo, a level, premium). Name the item IDs, and ask Sarfaraj, Sahil or Sahariar if the item is new. The staging check (issue #33) shows a ⚠️ in the "coins" column for a game with no way to spend. It never keeps the game off live. If a game has nothing to spend on purpose (a kids learning aid, a server game), add this to its `game.json` so the warning goes away: `"coins": { "spend": false, "why": "one short reason" }`.
+3. Own coin: does the game have its own coin? If yes, it has a different name and is never exchanged.
+4. The game plays normally when `SC()` is `null`.
+5. Repeat calls pay once (stable `ref`), and a capped or empty-handed player sees no error.
+6. The player sees "+N Stratos Coins" after earning and the price and balance before spending.
+7. Test: earn in this game, open another game, and check the same balance is there.
+
+## Resume: let players continue where they left off (2026-11-17)
+
+A player who closes the game and comes back should see "Continue where you left off?". The site gives every game one shared way to do it: `Stratos.resume` in `assets/stratos.js`. Design: `research/RESUME_DESIGN.md`. What each game saves today: `research/RESUME_INVENTORY.md`.
+
+```js
+function SR() { try { var S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
+
+// when the game opens (at its menu): ask, then restore. The site script loads a moment AFTER a game that runs in a frame,
+// so wait for it (up to 4 s) instead of asking once. Only offer while the player has not started anything yet.
+function offerResume(tries) {
+  var R = SR(); tries = tries || 0;
+  if (!R) { if (tries < 40) setTimeout(function () { offerResume(tries + 1); }, 100); return; }
+  if (!R.has({ ver: 1 }) || playerAlreadyStarted()) return;
+  R.offer(function (saved) { restoreGame(saved); }, function () { /* Start new: stay on the menu */ }, { ver: 1 });
+}
+offerResume();
+
+// while playing: after each move, turn or level (it is cheap: writes are coalesced), and it is flushed when the page is hidden
+R && R.save(getState(), { ver: 1, label: 'Level ' + level });
+
+// when the game or level is finished, win or lose: forget it
+R && R.clear();
+```
+
+- A game that already continues by itself (its own Continue button, a world that always carries on) records that in `game.json`: `"resume": {"native": true, "how": "..."}`. The check then counts it as done.
+- Working examples to copy: `games/sksarfarajali-domino-classic/` (a whole match, search for `saveMatch` and `resumeMatch`) and `games/im-mohua-liza-wordbloom/` (a board the game already saves; search for `resumeNote` and `resumeOffer`).
+- Save **small plain data** (numbers, text, lists, objects), under 100 KB. No functions, no DOM, no images. The snapshot is a copy.
+- You decide what "resume" means: the whole match (cards, dominoes), the board (puzzles), or the level start or last checkpoint (platform and shooter games). Never fake it for an endless run or an online game.
+- Bump `ver` whenever the saved shape changes. Old saves are then dropped quietly and the game starts new.
+- Restoring must never pay coins again and must never call `Stratos.coins.earn()`. A resumed level pays when it is finished, as usual.
+- If restoring fails, do nothing special: the shared layer starts a new game for you.
+- Never read or write storage keys that start with `stratos.`. Snapshots live for 30 days. Kids games can resume too (on the device only).
+- A game that cannot resume on purpose says so in its `game.json`: `"resume": {"supported": false, "why": "one short reason"}`. The staging check (issue #33) shows a ⚠️ in the "resume" column for a new game with neither. It never keeps the game off live.
 
 ## How to help a maker
 
 - Ask what game they want in one question, then build a first playable version fast, then improve it with them.
 - Keep the whole game in `games/<their-username>/`. One file if you can.
-- Before they say "publish", run the quality bar above and tell them in three short lines what passed and what to fix.
+- Before they say "publish", run the quality bar above and the economy checklist, and tell them in three short lines what passed and what to fix.
 - Then commit only their folder. That's it: publishing is automatic (see "Syncing is automatic" below).
 
 ## Syncing is automatic (Sahil 2026-10-31)
@@ -158,8 +240,8 @@ No game goes live without Stratos analytics. The site build checks every new gam
 This repo's `.claude/settings.json` runs these for every maker; nobody has to remember them:
 - **Get the latest:** at session start and before every message, Claude pulls the newest `staging` (unsaved work is kept). A computer still on `main` is switched to `staging` automatically.
 - **Publish:** when Claude finishes a turn, any saved commit is pushed to `staging`, retried up to 3 times if GitHub refuses, and checked on GitHub. After the "Published to staging" message, say "it's on staging" and give the staging link, never "it's live". It goes live at the Saturday release if issue #33 shows ✅ for the game; if it shows ❌, help the maker fix what it says. If publish failed, tell the maker plainly it is NOT on staging.
-- **Quick fix to the live site (Sahil and Sahariar only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
-- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; Sahil and Sahariar can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
+- **Quick fix to the live site (Sahil, Sahariar and Sarfaraj only):** for something broken on stratos.games that cannot wait for Saturday, work on a branch called `hotfix` from `origin/main` and push it to `main`. Staging picks the fix up by itself.
+- **Own folder only:** Claude can only edit `games/<your-github-name>/` and `games/<your-github-name>-<game>/`. Shared files and other makers' games are blocked; the admins, Sahil, Sahariar and Sarfaraj, can edit everything except `app-ads.txt`. Mohua (tester) may also edit `site.json` to put a game back live after her pass.
 - Never change `.claude/` to switch these off.
 - If they ask how something works here (ads, analytics, store apps, the factory), answer from this file in plain words. If the answer is not here, say so and point them to Sahariar.
 

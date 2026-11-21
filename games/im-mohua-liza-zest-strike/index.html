@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Zest Strike</title>
 <style>
 @font-face{font-family:Bungee;src:url(fonts/bungee.woff2) format('woff2')}
@@ -37,7 +37,7 @@ input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1px soli
 .row{display:flex;align-items:center;gap:10px;margin:8px 0}
 .row span{flex:0 0 120px;font-size:14px}.row output{flex:0 0 44px;text-align:right;font-variant-numeric:tabular-nums;color:var(--acc2)}
 input[type=range]{flex:1;accent-color:var(--acc)}
-.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:8px;min-height:40px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt)}
 .seg button.on{background:var(--acc);color:#1a1006;border-color:var(--acc);font-weight:700}
 .big{display:block;width:100%;margin-top:18px;padding:15px;font-family:Bungee,sans-serif;font-size:22px;border:0;border-radius:14px;color:#1a1006;background:linear-gradient(180deg,#ffd23a,#ff8a1f);box-shadow:0 5px 0 #b65a0c}
 .big:active{transform:translateY(3px);box-shadow:0 2px 0 #b65a0c}
@@ -45,6 +45,10 @@ input[type=range]{flex:1;accent-color:var(--acc)}
 .keys{font-size:13px;color:var(--dim);line-height:1.9;columns:2;margin-top:8px}
 kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:5px;background:rgba(255,255,255,.12);border-bottom:2px solid rgba(0,0,0,.4);color:var(--txt);font-family:inherit;font-size:12px;text-align:center}
 .note{font-size:12px;color:var(--dim);margin-top:10px}
+.online{margin-top:10px;font-size:15px;color:var(--acc2);text-align:center}
+em.bot{font-style:normal;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:0 5px;margin-left:6px}
+.big:disabled{opacity:.6}
+.ghost.wa{background:#25d366;color:#06301a;border-color:#25d366;font-weight:700}
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:5}
 #cross{position:absolute;left:50%;top:50%}
@@ -97,11 +101,44 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:5px;backgrou
 #death h2{font-family:Bungee;font-size:36px;margin:0;color:#ffb37a;text-shadow:0 3px 0 #000}
 #death p{margin:6px 0 14px;font-size:16px}
 #picks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}#picks div{background:rgba(10,13,20,.75);border:2px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px}#picks div.on{border-color:var(--acc)}
+#revive{pointer-events:auto;margin:0 0 14px;padding:10px 22px;border:0;border-radius:14px;color:#1a1006;background:linear-gradient(180deg,#ffd23a,#ff8a1f);box-shadow:0 4px 0 #b65a0c;font-size:16px;text-align:center}
+#revive span{font-size:13px}#revive small{display:block;font-size:12px;opacity:.8;margin-top:2px}
 #board{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9;min-width:min(440px,92vw)}
 table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:7px 10px;text-align:left}th{color:var(--dim);font-weight:400;font-size:12px;text-transform:uppercase;letter-spacing:1px}
 tr.me td{color:var(--acc2);font-weight:700}tbody tr:nth-child(odd){background:rgba(255,255,255,.04)}
 td.n{text-align:right;font-variant-numeric:tabular-nums}
 .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+/* ---------- phone controls ---------- */
+#touch{position:fixed;inset:0;z-index:6;touch-action:none;-webkit-touch-callout:none}
+#stick{position:absolute;width:120px;height:120px;margin:-60px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(10,13,20,.25);opacity:0;transition:opacity .15s;pointer-events:none}
+#stick.on{opacity:1}
+#stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px;border-radius:50%;background:rgba(255,210,58,.75);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+#sticktip{position:absolute;left:12%;bottom:16%;width:110px;height:110px;border-radius:50%;border:2px dashed rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:rgba(255,255,255,.6);pointer-events:none}
+.tb{position:absolute;width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(10,13,20,.45);color:#fff;font:700 12px Outfit,sans-serif;letter-spacing:.5px;padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
+.tb.on{background:rgba(255,138,31,.75);border-color:#ffd23a}
+#tFire{width:96px;height:96px;right:calc(28px + env(safe-area-inset-right));bottom:30px;background:rgba(255,90,58,.55);font-size:16px}
+#tAim{right:calc(140px + env(safe-area-inset-right));bottom:26px}
+#tJump{right:calc(44px + env(safe-area-inset-right));bottom:142px}
+#tReload{right:calc(140px + env(safe-area-inset-right));bottom:104px;width:52px;height:52px}
+#tSwap{right:calc(206px + env(safe-area-inset-right));bottom:70px;width:52px;height:52px}
+#tNade{right:calc(118px + env(safe-area-inset-right));bottom:172px;width:52px;height:52px}
+#tCrouch{right:calc(206px + env(safe-area-inset-right));bottom:10px;width:52px;height:52px}
+#tZin,#tZout{width:46px;height:46px;font-size:22px;right:calc(260px + env(safe-area-inset-right))}
+#tZin{bottom:118px}#tZout{bottom:64px}
+#tPause,#tBoard{width:42px;height:42px;top:10px;font-size:15px}
+#tPause{right:calc(12px + env(safe-area-inset-right))}#tBoard{right:calc(62px + env(safe-area-inset-right))}
+body.touch #mini{width:96px;height:96px;left:calc(10px + env(safe-area-inset-left));top:10px}
+body.touch #top{top:8px;font-size:12px;padding:6px 10px;gap:8px}body.touch #timer{font-size:15px}
+body.touch #feed{right:calc(12px + env(safe-area-inset-right));top:60px}body.touch #feed div{font-size:11px;padding:3px 7px}
+body.touch #hpbox{left:calc(10px + env(safe-area-inset-left));top:114px;bottom:auto;width:140px;padding:6px 10px}body.touch #hpbox .n{font-size:18px}body.touch #hpbar{height:6px}body.touch #nades{display:none}
+body.touch #ammobox{right:auto;left:calc(10px + env(safe-area-inset-left));top:176px;bottom:auto;min-width:0;text-align:left;padding:6px 10px}body.touch #ammo{font-size:20px}body.touch #ammo small{font-size:12px}body.touch #wname{font-size:11px}body.touch #slots{display:none}
+body.touch #msg{font-size:22px}body.touch #hint{bottom:auto;top:44%;font-size:14px;color:#fff;background:rgba(10,13,20,.6);padding:6px 12px;border-radius:10px;white-space:nowrap}body.touch #hint:empty{display:none}
+body.touch #scope .tip,body.touch #scope .side{display:none}
+body.touch #death{padding-bottom:4vh}body.touch #picks{pointer-events:auto}body.touch #picks div{padding:10px 14px;font-size:14px}
+body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
+.touchonly{display:none}body.touch .touchonly{display:block}body.touch #sets{display:none}body.touch.sets-open #sets{display:block}
+#rotate{z-index:40}#rotate .panel{max-width:320px;text-align:center}#rotate .ph{font-size:56px;display:inline-block;animation:turn 1.6s ease-in-out infinite}
+@keyframes turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
 #touchnote{z-index:30}#touchnote .panel{max-width:360px;text-align:center}#touchnote p{color:var(--dim);line-height:1.5;margin:14px 0 0}
 </style>
 </head>
@@ -141,7 +178,23 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div id="hint"></div>
 </div>
 
-<div id="death" class="hide"><h2 id="dtitle">Squeezed!</h2><p id="dsub"></p><div id="picks"></div></div>
+<div id="touch" class="hide">
+  <div id="sticktip">move<br>here</div>
+  <div id="stick"><i></i></div>
+  <button class="tb" id="tFire">FIRE</button>
+  <button class="tb" id="tAim">AIM</button>
+  <button class="tb" id="tJump">JUMP</button>
+  <button class="tb" id="tReload">RELOAD</button>
+  <button class="tb" id="tSwap">SWAP</button>
+  <button class="tb" id="tNade">BOMB</button>
+  <button class="tb" id="tCrouch">DUCK</button>
+  <button class="tb hide" id="tZin">+</button>
+  <button class="tb hide" id="tZout">&minus;</button>
+  <button class="tb" id="tBoard">&#9776;</button>
+  <button class="tb" id="tPause">II</button>
+</div>
+<div id="rotate" class="screen hide"><div class="panel"><div class="ph">&#128241;</div><h1 class="logo" style="font-size:30px;margin-top:10px">TURN SIDEWAYS</h1><p class="tag" style="margin:10px 0 0">Zest Strike plays with your phone held sideways.</p></div></div>
+<div id="death" class="hide"><h2 id="dtitle">Squeezed!</h2><p id="dsub"></p><button id="revive" class="hide"><b>Another go</b><span class="deskonly"> &middot; press E or click</span><small>Back right now with full health, once per match</small></button><div id="picks"></div></div>
 <div id="board" class="panel hide"><table><thead><tr><th>Fruit</th><th class="n">Kills</th><th class="n">Deaths</th></tr></thead><tbody id="boardb"></tbody></table></div>
 
 <!-- MENU -->
@@ -151,7 +204,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
     <div class="tag">A juicy free-for-all arena shooter. Pick your fruit, pick your gun, be the last one unsqueezed.</div>
     <div class="grid">
       <div>
-        <div class="lbl">Your name</div>
+        <div class="lbl">Your nickname (others see it online)</div>
         <input type="text" id="name" maxlength="14">
         <div class="lbl">Your fruit</div>
         <div class="fruits" id="fruits"></div>
@@ -159,15 +212,19 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         <div class="weps" id="weps"></div>
       </div>
       <div>
-        <div class="lbl">Match</div>
+        <button class="ghost touchonly" id="setsBtn" style="width:100%;margin-top:12px">&#9881; Bots &amp; settings</button>
+        <div id="sets">
+        <div class="lbl">Practice with bots</div>
         <div class="row"><span>Bots</span><input type="range" id="bots" min="2" max="9" step="1"><output id="botsv"></output></div>
         <div class="row"><span>Bot skill</span><div class="seg" id="diff" style="flex:1"><button data-v="0">Easy</button><button data-v="1">Normal</button><button data-v="2">Hard</button></div></div>
         <div class="lbl">Settings</div>
-        <div class="row"><span>Mouse speed</span><input type="range" id="sens" min="0.2" max="3" step="0.05"><output id="sensv"></output></div>
-        <div class="row"><span>Scope speed</span><input type="range" id="ssens" min="0.3" max="2" step="0.05"><output id="ssensv"></output></div>
-        <div class="row"><span>Field of view</span><input type="range" id="fov" min="70" max="110" step="1"><output id="fovv"></output></div>
+        <div class="row"><span>Look speed</span><input type="range" id="sens" min="0.2" max="3" step="0.05"><output id="sensv"></output></div>
+        <div class="row deskonly"><span>Scope speed</span><input type="range" id="ssens" min="0.3" max="2" step="0.05"><output id="ssensv"></output></div>
+        <div class="row deskonly"><span>Field of view</span><input type="range" id="fov" min="70" max="110" step="1"><output id="fovv"></output></div>
         <div class="row"><span>Volume</span><input type="range" id="vol" min="0" max="1" step="0.05"><output id="volv"></output></div>
+        </div>
         <div class="lbl">Controls</div>
+        <div class="touchonly note" style="font-size:14px;line-height:1.6;color:var(--txt)">Left thumb: move (push far to run).<br>Right thumb: drag to look.<br>Hold <b>FIRE</b> to shoot, tap <b>AIM</b> to aim or open the scope.</div>
         <div class="keys">
           <div><kbd>W A S D</kbd> move</div><div><kbd>Mouse</kbd> look</div>
           <div><kbd>Left click</kbd> shoot</div><div><kbd>Right click</kbd> aim / scope</div>
@@ -179,16 +236,18 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
         </div>
       </div>
     </div>
-    <button class="big" id="play">PLAY</button>
-    <div class="note">First to 25 squeezes, or the most when the 6 minute timer runs out, wins.</div>
+    <button class="big" id="play">PLAY ONLINE</button>
+    <div class="online" id="netstatus">Connecting to the arena…</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="ghost" id="practice">Practice with bots</button><button class="ghost wa" id="waInvite">📲 Invite friends</button></div>
+    <div class="note">Online: one big arena for everyone, no room code. Most squeezes when the 6 minute timer ends wins, then a new match starts. Practice: first to 25 squeezes wins.</div>
   </div>
 </div>
 
 <div id="pause" class="screen hide"><div class="panel" style="max-width:380px;text-align:center">
-  <h1 class="logo" style="font-size:44px">PAUSED</h1>
+  <h1 class="logo" style="font-size:44px" id="ptitle">PAUSED</h1>
   <button class="big" id="resume">RESUME</button>
   <div style="display:flex;gap:10px;margin-top:12px;justify-content:center"><button class="ghost" id="quit">Quit to menu</button></div>
-  <div class="note">Settings are on the menu screen.</div>
+  <div class="note" id="pnote">Settings are on the menu screen.</div>
 </div></div>
 
 <div id="end" class="screen hide"><div class="panel" style="max-width:520px;text-align:center">
@@ -196,11 +255,13 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
   <div class="tag" id="esub"></div>
   <table><thead><tr><th>#</th><th>Fruit</th><th class="n">Kills</th><th class="n">Deaths</th></tr></thead><tbody id="endb"></tbody></table>
   <button class="big" id="again">PLAY AGAIN</button>
+  <div class="online hide" id="nextin"></div>
   <div style="margin-top:10px"><button class="ghost" id="tomenu">Change fruit or gun</button></div>
 </div></div>
 
 <div id="touchnote" class="screen hide"><div class="panel"><h1 class="logo" style="font-size:46px">ZEST<br>STRIKE</h1><p>This fruit shooter needs a keyboard and a mouse. Open it on a laptop or computer to play.</p><p>Pick a fruit, grab the Rind Ranger and zoom its scope from 2&times; to 12&times;.</p></div></div>
 
+<script src="vendor/mqtt.min.js"></script>
 <script type="module" src="game.js"></script>
 </body>
 </html>

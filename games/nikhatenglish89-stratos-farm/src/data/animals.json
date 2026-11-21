@@ -1,0 +1,97 @@
+{
+ "feedItem": "animal_feed",
+ "hungryGraceSeconds": 1800,
+ "happinessMin": 50,
+ "animals": [
+  {
+   "id": "chicken",
+   "name": "Chicken",
+   "cost": 50,
+   "product": "egg",
+   "productSeconds": 300,
+   "habitat": "chicken_coop",
+   "unlockLevel": 1,
+   "xp": 1
+  },
+  {
+   "id": "duck",
+   "name": "Duck",
+   "cost": 80,
+   "product": "feather",
+   "productSeconds": 600,
+   "habitat": "duck_pond",
+   "unlockLevel": 2,
+   "xp": 2
+  },
+  {
+   "id": "cow",
+   "name": "Cow",
+   "cost": 150,
+   "product": "milk",
+   "productSeconds": 1200,
+   "habitat": "cow_pasture",
+   "unlockLevel": 3,
+   "xp": 3
+  },
+  {
+   "id": "sheep",
+   "name": "Sheep",
+   "cost": 200,
+   "product": "wool",
+   "productSeconds": 1500,
+   "habitat": "sheep_pen",
+   "unlockLevel": 4,
+   "xp": 4
+  },
+  {
+   "id": "goat",
+   "name": "Goat",
+   "cost": 260,
+   "product": "goat_milk",
+   "productSeconds": 1800,
+   "habitat": "goat_yard",
+   "unlockLevel": 5,
+   "xp": 5
+  },
+  {
+   "id": "pig",
+   "name": "Pig",
+   "cost": 320,
+   "product": "truffle",
+   "productSeconds": 2100,
+   "habitat": "pig_pen",
+   "unlockLevel": 6,
+   "xp": 6
+  },
+  {
+   "id": "turkey",
+   "name": "Turkey",
+   "cost": 380,
+   "product": "big_egg",
+   "productSeconds": 2400,
+   "habitat": "turkey_pen",
+   "unlockLevel": 7,
+   "xp": 6
+  },
+  {
+   "id": "rabbit",
+   "name": "Rabbit",
+   "cost": 420,
+   "product": "fluff",
+   "productSeconds": 2700,
+   "habitat": "rabbit_hutch",
+   "unlockLevel": 8,
+   "xp": 6
+  },
+  {
+   "id": "horse",
+   "name": "Horse",
+   "cost": 700,
+   "product": "horsehair",
+   "productSeconds": 3600,
+   "habitat": "horse_stable",
+   "unlockLevel": 11,
+   "xp": 9
+  }
+ ]
+}

@@ -43,6 +43,7 @@ export const RESEARCH = {
     main.querySelectorAll('[data-rt]').forEach((b) => { b.onclick = () => { this.tab = b.dataset.rt; this.render(main, game); }; });
     const body = main.querySelector('#rsBody');
     this[VIEWS[this.tab]](body);
+    if (game && game.fit) game.fit();   // Stratos (#40): fit the screen once the data and charts are drawn
   },
 
   meta(id) { return this.pack.datasets.find((d) => d.id === id); },

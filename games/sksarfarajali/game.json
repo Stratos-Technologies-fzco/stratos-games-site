@@ -16,5 +16,7 @@
     "Open the Journal (J) when you are not sure what to do next. It shows your quest.",
     "Feed a creature Glow Berries from the forest bushes again and again until it trusts you.",
     "Check what a building costs before you start. A house needs 8 Wood and 4 Stone."
-  ]
+  ],
+  "coins": { "spend": false, "why": "Kids game: all help stays free by design." },
+  "resume": {"native": true, "how": "the main menu has Continue (day and island level) for the saved island"}
 }

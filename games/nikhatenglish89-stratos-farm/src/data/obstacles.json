@@ -1,0 +1,103 @@
+{
+ "types": [
+  {
+   "id": "rock_large",
+   "name": "Big rock",
+   "frame": "rock_large",
+   "cost": 40,
+   "unlockLevel": 1,
+   "reward": {
+    "stone": 3
+   },
+   "xp": 3
+  },
+  {
+   "id": "rock_small",
+   "name": "Small rock",
+   "frame": "rock_small",
+   "cost": 15,
+   "unlockLevel": 1,
+   "reward": {
+    "stone": 1
+   },
+   "xp": 1
+  },
+  {
+   "id": "tree_stump",
+   "name": "Old stump",
+   "frame": "tree_stump",
+   "cost": 20,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 1
+   },
+   "xp": 1
+  },
+  {
+   "id": "bush",
+   "name": "Bush",
+   "frame": "bush",
+   "cost": 10,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 1
+   },
+   "xp": 1
+  },
+  {
+   "id": "bush_berry",
+   "name": "Berry bush",
+   "frame": "bush_berry",
+   "cost": 12,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 1
+   },
+   "xp": 1
+  },
+  {
+   "id": "tree_oak",
+   "name": "Oak tree",
+   "frame": "tree_oak",
+   "cost": 35,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 3
+   },
+   "xp": 3
+  },
+  {
+   "id": "tree_pine",
+   "name": "Pine tree",
+   "frame": "tree_pine",
+   "cost": 35,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 3
+   },
+   "xp": 3
+  },
+  {
+   "id": "tree_autumn",
+   "name": "Autumn tree",
+   "frame": "tree_autumn",
+   "cost": 35,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 3
+   },
+   "xp": 3
+  },
+  {
+   "id": "tree_apple",
+   "name": "Apple tree",
+   "frame": "tree_apple",
+   "cost": 45,
+   "unlockLevel": 1,
+   "reward": {
+    "wood": 2
+   },
+   "xp": 3
+  }
+ ]
+}

@@ -3,7 +3,25 @@
 // glowing fungal network that links tiny microbes; a golden energy stream circles from the sun through all
 // life (energy flows); a ladybird on a leaf and a mushroom at the soil edge; the rim is a living cell membrane.
 // Used on the path screen (animated) and for the app icons (static: tools/make_icons.mjs).
-export function ecosEmblem(animated = true) {
+// 08-Nov-2026 (user: "clear icon / logo to identify clear mission"): five badges on the rim show the learning path,
+// still with no words: atom = Physics, flask = Chemistry, DNA = Biology, leaf = Botany, and at the bottom the goal,
+// a stethoscope = NEET / MBBS. badges = false keeps the plain emblem for tiny sizes (browser tab icon).
+const BADGE_POS = { phy: [67, 147], chem: [445, 147], bio: [67, 365], bot: [445, 365], med: [256, 472] };
+const badge = (k, ring, art) => {
+  const [x, y] = BADGE_POS[k];
+  return `<g transform="translate(${x} ${y})"><circle r="38" fill="#06181c"/><circle r="33" fill="#0d3236" stroke="${ring}" stroke-width="5"/>${art}</g>`;
+};
+function badges() {
+  return [
+    badge('phy', '#7fd7ff', `<g fill="none" stroke="#7fd7ff" stroke-width="3"><ellipse rx="23" ry="8"/><ellipse rx="23" ry="8" transform="rotate(60)"/><ellipse rx="23" ry="8" transform="rotate(120)"/></g><circle r="5" fill="#fff3b0"/>`),
+    badge('chem', '#ff9f6a', `<path d="M-7 -21 H7 M-5 -21 V-8 L-18 14 Q-20 20 -13 20 H13 Q20 20 18 14 L5 -8 V-21" fill="none" stroke="#ffd9c2" stroke-width="3" stroke-linejoin="round"/><path d="M-11 4 H11 L16 14 Q17 17 13 17 H-13 Q-17 17 -16 14 Z" fill="#ff9f6a"/><circle cx="-3" cy="-1" r="2.4" fill="#ffd9c2"/><circle cx="4" cy="-6" r="1.8" fill="#ffd9c2"/>`),
+    badge('bio', '#e46b86', `<g fill="none" stroke-width="3.4" stroke-linecap="round"><path d="M-10 -22 C 14 -12, 14 -2, -10 8 C -30 16, 8 20, 10 22" stroke="#ff9fb4"/><path d="M10 -22 C -14 -12, -14 -2, 10 8 C 30 16, -8 20, -10 22" stroke="#9b7be0"/></g><g stroke="#ffe0e8" stroke-width="2"><path d="M-6 -16 H6"/><path d="M-8 -3 H8"/><path d="M-6 13 H6"/></g>`),
+    badge('bot', '#84c96b', `<path d="M-16 16 C -18 -8, 2 -22, 20 -20 C 20 2, 4 18, -16 16 Z" fill="#8fe06a"/><path d="M-16 16 C -4 4, 6 -6, 16 -16" fill="none" stroke="#2f6f2a" stroke-width="2.4"/><path d="M-4 4 L-10 -4 M4 -4 L2 -12 M2 -4 L10 -4" stroke="#2f6f2a" stroke-width="1.8"/>`),
+    badge('med', '#ffd36a', `<g fill="none" stroke="#e8f4f0" stroke-width="3.2" stroke-linecap="round"><path d="M-13 -22 V-10 Q -13 2 -1 2 Q 11 2 11 -10 V-22"/><path d="M-1 2 V10 Q -1 20 9 20 Q 17 20 17 12"/></g><circle cx="-13" cy="-23" r="2.6" fill="#e8f4f0"/><circle cx="11" cy="-23" r="2.6" fill="#e8f4f0"/><circle cx="17" cy="7" r="7" fill="#ffd36a" stroke="#e8f4f0" stroke-width="2.4"/>`),
+  ].join('');
+}
+
+export function ecosEmblem(animated = true, withBadges = true) {
   const a = (s) => (animated ? s : '');
   return `
 <svg class="ecos-emblem" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ecos-Synthetica">
@@ -122,5 +140,6 @@ export function ecosEmblem(animated = true) {
   <circle cx="256" cy="256" r="236" fill="none" stroke="#9b7be0" stroke-width="5"/>
   <circle cx="256" cy="256" r="230" fill="none" stroke="#5fc4d0" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"${a(' class="ee-membrane"')}/>
   <circle cx="256" cy="256" r="243" fill="none" stroke="#06181c" stroke-width="3"/>
+  ${withBadges ? badges() : ''}
 </svg>`;
 }

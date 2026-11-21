@@ -1,0 +1,108 @@
+import { useFarm } from '../state/store';
+import { farm, formatDuration } from '../game/controller';
+import { CROPS, ITEMS } from '../services/data';
+import { Icon, ItemIcon } from './Icon';
+import { SellRow } from './SellRow';
+import { PanelShell } from './PanelShell';
+import { Paged } from './Paged';
+
+export { PanelShell };
+
+/** Seed picker for one empty plot. Locked crops are shown with the level that unlocks them. */
+export function SeedPanel() {
+  const plotId = useFarm((s) => s.seedPlot);
+  const level = useFarm((s) => s.player.level);
+  const coins = useFarm((s) => s.player.coins);
+  const setSeedPlot = useFarm((s) => s.setSeedPlot);
+  if (!plotId) return null;
+  return (
+    <PanelShell title={plotId === '*' ? 'Change seed' : 'Plant a seed'} testId="seed-panel" onClose={() => setSeedPlot(null)} wide>
+      <ul className="rows cols2">
+        {CROPS.map((c) => {
+          const locked = c.unlockLevel > level;
+          const poor = !locked && coins < c.seedCost;
+          return (
+            <li key={c.id}>
+              <button className={`row ${locked || poor ? 'dim' : ''}`} disabled={locked} data-testid={`seed-${c.id}`}
+                onClick={() => (poor ? useFarm.getState().showToast('Not enough coins') : farm.pickSeed(plotId, c.id))}>
+                <ItemIcon id={c.id} size={40} />
+                <span className="grow">
+                  <b>{c.name}</b>
+                  <small>{formatDuration(c.growSeconds * 1000)} · {c.yield} per harvest · {c.xp} XP</small>
+                </span>
+                {locked ? <span className="tag"><Icon name="lock" size={18} /> Lv {c.unlockLevel}</span>
+                  : <span className="tag"><Icon name="coin" size={20} /> {c.seedCost}</span>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {plotId !== '*' && (() => { const [x, y] = plotId.split(',').map(Number); const f = farm.fieldIdAt(x, y); return f ? (
+        <div className="panel-actions" style={{ marginTop: 6 }}><button className="btn small" onClick={() => farm.startMoveObject(f)} data-testid="move-field">Move field</button></div>
+      ) : null; })()}
+    </PanelShell>
+  );
+}
+
+/** What the player has harvested, with selling (the full market comes later). */
+export function InventoryPanel() {
+  const open = useFarm((s) => s.inventoryOpen);
+  const inv = useFarm((s) => s.inventory);
+  const setOpen = useFarm((s) => s.setInventoryOpen);
+  if (!open) return null;
+  const items = ITEMS.filter((c) => (inv[c.id] ?? 0) > 0);
+  return (
+    <PanelShell title="Inventory" testId="inventory-panel" onClose={() => setOpen(false)}>
+      {items.length === 0 ? (
+        <p className="empty" data-testid="inventory-empty">Nothing here yet. Plant a seed and harvest it to fill your barn.</p>
+      ) : (
+        <Paged items={items} perPage={5} testId="inv-pager">
+          {(page) => (
+            <ul className="rows">
+              {page.map((c) => (
+                <li key={c.id}>
+                  <SellRow item={c} have={inv[c.id]} testId={`inv-${c.id}`} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Paged>
+      )}
+    </PanelShell>
+  );
+}
+
+/** Shows only while at least one crop is ready. */
+export function HarvestAllButton() {
+  useFarm((s) => s.tick); // re-check every second
+  useFarm((s) => s.plots);
+  const n = farm.readyCount();
+  if (n === 0) return null;
+  return (
+    <button className="harvest-all" onClick={() => farm.harvestAll()} data-testid="harvest-all">
+      <Icon name="check" size={26} /> Harvest all ({n})
+    </button>
+  );
+}
+
+/** Shown while a seed is picked: every tap on an empty field plants it. */
+export function PlantingBar() {
+  const seed = useFarm((s) => s.plantSeed);
+  const coins = useFarm((s) => s.player.coins);
+  const open = useFarm((s) => !!s.seedPlot);
+  if (!seed || open) return null;
+  const crop = CROPS.find((c) => c.id === seed)!;
+  return (
+    <div className="placement-bar planting-bar" data-testid="planting-bar">
+      <span className="planting-line">
+        <ItemIcon id={seed} size={34} />
+        <span className="planting-text"><b>Planting {crop.name}</b><span>{crop.seedCost} coins each · you have {coins}</span></span>
+      </span>
+      <small>Tap empty fields to plant. Tap a ripe crop to pick it.</small>
+      <div className="panel-actions">
+        <button className="btn small" onClick={() => useFarm.getState().setSeedPlot('*')} data-testid="planting-change">Change seed</button>
+        <button className="btn small red" onClick={() => farm.cancelPlanting()} data-testid="planting-done">Done</button>
+      </div>
+    </div>
+  );
+}
