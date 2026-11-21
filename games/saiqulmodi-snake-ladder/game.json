@@ -3,27 +3,25 @@
   "maker": "Saiqul Modi",
   "github": "saiqulmodi",
   "category": "arcade",
-  "how_to_play": "Steer with Arrow keys, WASD, or touch drag to collect emerald gems and golden ladder rungs while pressing Space or HOP to vault safely over the chasing snake.",
-  "description": "Snake Ladder reimagines the classic 1 to 100 board climb as a fast, tactile arcade chase inspired by Chai & Chakkar. You guide a nimble climber with a glowing amber tail across a warm, spiced-amber 10x10 neon board, racing from Tile 1 all the way to the Tile 100 summit while a coiled crimson snake hunts your trail.\n\nEvery emerald gem advances your position along the numbered board and adds to your score, while golden mini-ladder rungs launch you four tiles higher in a single burst. Collect gems within 1.4 seconds of each other to build a live chain multiplier that adds twenty-five percent per link, complete with floating combo popups, subtle board shake on high chains, and crisp synthesized chimes.\n\nTiming your Ladder Hop is the key to survival. Pressing Space, Shift, or the on-screen HOP button launches your climber airborne with a burst of speed, letting you vault cleanly right over the snake's body and tail without taking a bite. Amber Shield orbs appear along the climb to stun the snake and protect your streak. Your active climb saves automatically so you can close the browser and hit Continue anytime, alongside a Top 5 climber leaderboard and daily play streak tracker.",
+  "how_to_play": "Roll the dice (R or the 🎲 button) to step 1 to 6 tiles toward Tile 100, steer the frog to gems, climb ladders, and keep moving so the slow hunting snake never catches you standing still.",
+  "description": "Snake Ladder is the classic 1 to 100 board game turned into a calm, child-friendly climb. A small frog starts on Tile 1 of a numbered 10 by 10 board that zig-zags up to Tile 100. Roll the dice to hop forward one to six tiles, and watch the frog step tile by tile so every move is easy to follow.\n\nEvery day brings a new board: today's date sets where the seven ladders and seven snakes go, the same for every player, so each day is a fresh daily challenge. Ladders lift you up and add 200 points, and now and then one ladder wobbles to a new spot. The snakes peek out of holes in the board, and every three seconds one of them slips underground and pops up somewhere new: land on a snake head and the frog slides down to its tail, losing 25 points for every tile it falls. A golden flute gem charms the next snake head so it cannot hurt you. One rainbow snake is alive and slowly hunts the frog, twenty times slower than you: it only catches a frog that stands still, grows longer each time it does, and shrinks when you hop over it. Landing on 10, 20, 30 and every tens tile pays a bright +10 star burst, quiet counting practice for young players.\n\nBetween rolls you can steer the frog anywhere on the board to collect green gems (one tile forward) and golden ladder rungs (four tiles forward), and chain pickups quickly for a bigger score multiplier. Short picture tips teach each new move the first time it happens. Your climb saves by itself, so Continue takes you back to the same tile, and a Top 5 table and a daily streak give you a reason to come back and beat your best.",
   "controls": [
-    "Mouse or Touch: Click and drag anywhere on the board to steer smoothly",
-    "Keyboard: Arrow keys or WASD to steer; Space or Shift to trigger Ladder Hop",
-    "Mobile: Tap the on-screen HOP button to vault over the chasing snake",
-    "Quick Keys: Press P to Pause or M to mute synthesized audio and vibration"
+    "Roll: R key, the ROLL button, or the 🎲 button on a phone",
+    "Steer: drag on the board, or Arrow keys / WASD",
+    "Hop: Space, Shift, or the HOP button on a phone (pushes the hunting snake away)",
+    "P to pause, M to mute sound and vibration, H or 🏠 to save and go home"
   ],
   "tips": [
-    "Trigger Ladder Hop right before crossing the snake's tail to vault safely over it.",
-    "Chain emerald gems within 1.4 seconds to stack your combo multiplier.",
-    "Prioritize golden mini-ladder rungs to jump four tiles closer to Tile 100.",
-    "Grab Amber Shield orbs to stun the snake and clear tight corners."
+    "Keep the frog moving: the hunting snake only catches a frog that stands still.",
+    "Hop when the hunting snake is close to push it away for +120 points.",
+    "Golden ladder rungs move you four tiles at once; chain pickups within 1.4 seconds for a bigger multiplier.",
+    "Grab the golden flute: it makes the next snake head harmless.",
+    "Visit every tens tile (10, 20, 30 ...) for +10 stars each.",
+    "Hop over the hunting snake to make it shorter."
   ],
-  "story": "Inspired by childhood evenings playing Snakes & Ladders on a warm wooden board, Snake Ladder turns every climb into an agile reflex chase where one well-timed hop saves your run.",
+  "story": "Inspired by childhood evenings playing Snakes and Ladders on a wooden board, rebuilt as a gentle climb where a little frog keeps going no matter how many snakes it meets.",
   "resume": {
     "native": true,
-    "how": "Your active climb (score, current board tile, and shield state) saves automatically to localStorage after every pickup and restores via the Continue button on the home screen."
-  },
-  "coins": {
-    "spend": false,
-    "why": "Pure skill-based arcade climb with all features unlocked from the first run."
+    "how": "Your climb (score, board tile and last dice roll) saves automatically after every move; the home screen's Continue button takes you back to the same tile."
   }
 }
