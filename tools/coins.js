@@ -195,6 +195,8 @@ init();
 rdy=w.Promise?new Promise(function(res){fetchCfg(res)}):null;
 w.addEventListener("storage",function(e){   /* another tab changed the wallet */
  if(e.key&&e.key!=WK&&e.key!=LK)return;refresh();notify({balance:bal(),delta:0,type:"sync"})});
+w.addEventListener("pageshow",function(e){   /* Back from a game: a page the browser kept in its back-forward cache missed what that game earned */
+ if(e.persisted){refresh();notify({balance:bal(),delta:0,type:"sync"})}});
 if(!live){   /* test helpers for coins-test.html; not on stratos.games */
  K._test={dump:function(){return{wallet:clone(W),ledger:clone(L),persistent:persistent}},
   reset:function(){try{w.localStorage.removeItem(WK);w.localStorage.removeItem(LK)}catch(e){}mem={};W=newW();L=newL(W.deviceId);save();notify({balance:0,delta:0,type:"sync"})},
