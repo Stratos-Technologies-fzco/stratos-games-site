@@ -2,7 +2,7 @@
 
 **Play (phone):** https://stratos-family-staging.vercel.app/play/snake-ladder/
 **Folder:** `stratos-games-site/games/saiqulmodi-snake-ladder/`
-**Version:** commit `d4bdd6b` on `staging` (22 Nov 2026). It goes live on stratos.games at the Saturday release if issue #33 shows ✅.
+**Version:** game commit `21f5d87` on `staging` (22 Nov 2026). It goes live on stratos.games at the Saturday release if issue #33 shows ✅.
 
 ---
 
@@ -96,7 +96,7 @@
 - Every Stratos game must have a **6-second silent clip of real play** (`preview.mp4`, 480 × 300). It plays when a mouse rests on the game's tile on stratos.games.
 - **No clip, no launch:** the staging check holds back a game without one.
 - The clip must show **only real play**: no menus, loading screens or "game over".
-- Snake Ladder's clip shows both frogs rolling and the team snakes hunting. It was made with:
+- Snake Ladder's clip shows both frogs rolling and the team snakes hunting, with the short faint ladders (remade 22 Nov 2026). It was made with:
   `python tools/make_clip.py saiqulmodi-snake-ladder --steps "click:▶; wait:3000; key:r; hold:ArrowUp:1300; mark; …"`
   (`mark` = where the 6 seconds start; it was moved later so the menu is not in it).
 - Remake the clip after any big change to how the game looks.
@@ -107,3 +107,11 @@
 - Glow effects switch off on slow phones.
 - Real cover (800 × 500, from play), the 6-second clip, and a 300-word page text in `game.json`.
 - `tools/check_games.py`: **✅ goes live**, every column ✅.
+
+## 17. Change history
+| Date | Commit | What changed |
+|---|---|---|
+| 21 Nov 2026 | `2a94fe0` | One frog, steering, hop, gems, hunting snake (the old single-player game) |
+| 22 Nov 2026 | `d4bdd6b` | Two-player redesign: 🔴/🔵 frogs, two dice, live team snakes (hands swap every roll), idle snake heads only, ⭐1-6 stars, endless hundreds, 🔄 Reset with scores kept, new page text, cover and clip |
+| 22 Nov 2026 | `30a727f` | This features file added to the game folder |
+| 22 Nov 2026 | `21f5d87` | Ladders short (10-20 squares) and faint thin lines; idle snake heads bigger, outlined and on the square centre with a faded body; new cover and clip |
