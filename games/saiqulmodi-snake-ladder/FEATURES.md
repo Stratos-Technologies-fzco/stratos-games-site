@@ -33,12 +33,13 @@
 - The snake takes its team's colour (a red or blue rainbow).
 
 ## 5. Idle snakes: enemies of both frogs
-- **7 snakes** show only a **small head with small fangs** coming out of a hole. The body and tail are hidden.
+- **7 snakes** show a **clear, outlined head with eyes and small fangs** in the middle of their square; the short body under it is faded and the tail is hidden.
 - Landing on a snake head **slides the frog down to the tail square** (−25 points per square lost).
 - **Moving snakes:** every **3 seconds**, one snake sinks and pops up somewhere new.
 
 ## 6. Ladders: friends of both frogs
-- Landing on a ladder's foot **climbs it** with a chime and **+200 points**.
+- Ladders are **short (10 to 20 squares, 1 to 2 rows)** and drawn as a **faint thin sketch**, so they never cover the board.
+- Landing on a ladder's foot (green ring with ⬆) **climbs it** with a chime and **+200 points**.
 - **Wobbly ladder:** every **7 seconds**, one ladder grows into a new spot.
 
 ## 7. ⭐ Bonus stars 1 to 6
