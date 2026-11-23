@@ -1,20 +1,7 @@
 {
  "site": "https://stratos.games",
- "count": 38,
+ "count": 37,
  "games": [
-  {
-   "slug": "saiqulmodi-snake-ladder",
-   "title": "Snake Ladder",
-   "maker": "Saiqul Modi",
-   "one_line": null,
-   "category": "arcade",
-   "url": "play/snake-ladder/",
-   "thumb": "games/saiqulmodi-snake-ladder/thumbnail.png",
-   "added": "2026-11-21",
-   "github": "saiqulmodi",
-   "kind": "family",
-   "soon": false
-  },
   {
    "slug": "nikhatenglish89-stratos-farm",
    "title": "STRATOS FARM \u2014 MY DREAM VILLAGE",
