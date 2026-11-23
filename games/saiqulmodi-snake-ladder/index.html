@@ -201,6 +201,13 @@
       display: none; gap: 10px; align-items: center;
       z-index: 12; touch-action: manipulation;
     }
+    #mobile-swap {
+      height: 46px; padding: 0 12px; border-radius: 999px;
+      background: rgba(245, 158, 11, 0.25);
+      border: 2px solid rgba(253, 230, 138, 0.85);
+      color: var(--cream); font-weight: 800; font-size: 15px; white-space: nowrap;
+    }
+    @media (pointer: coarse) { #btn-swap { display: none !important; } }
     #mobile-dice, #mobile-hop {
       width: 58px; height: 58px; border-radius: 50%;
       background: rgba(245, 158, 11, 0.25);
@@ -281,6 +288,7 @@
       <button class="btn-action" id="btn-roll" title="R / Space">🔴 🎲 R</button>
       <div class="pill" id="flute-pill" style="display:none; border-color:#c084fc">🎶 <span class="val">1</span></div>
       <button class="btn-icon" id="btn-flute" style="display:none" title="Flute">🎶+</button>
+      <button class="btn-icon" id="btn-swap" style="display:none" title="Steer the next live snake (Q)">🐍⇄</button>
       <button class="btn-icon" id="btn-reset" title="Reset: both frogs to 1 on a new board, scores kept">🔄</button>
       <button class="btn-icon" id="btn-home" title="Home (H)">🏠</button>
       <button class="btn-icon" id="btn-mute" title="Toggle Audio & Haptics (M)">🔊</button>
@@ -330,6 +338,7 @@
   </div>
 
   <div class="mobile-controls">
+    <button id="mobile-swap" style="display:none" title="Steer the next live snake">🐍⇄</button>
     <button id="mobile-dice" style="font-size:24px">🎲</button>
   </div>
   <canvas id="game"></canvas>
@@ -338,6 +347,11 @@
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+
+  // Extra live snakes: for every LIVE_SNAKE_EVERY points the frog's team has, the hunting team gets one more
+  // live snake (500 = 2, 1000 = 3 …), never more than LIVE_SNAKE_MAX. Q / 🐍⇄ switches which one is steered.
+  const LIVE_SNAKE_EVERY = 500;
+  const LIVE_SNAKE_MAX = 5;
 
   // Traditional board ladders: base tile -> top tile
   const BOARD_LADDERS = {
@@ -769,8 +783,46 @@
     const c = getTileCellRect(1);
     return ((c.w + c.h) * 0.5) / 0.16;
   }
-  // Put the opponent's snake on the board behind the frog whose turn it is, tail trailing further back
-  function spawnHunterBehind() {
+  // How many live snakes hunt a frog: 1, plus 1 for every LIVE_SNAKE_EVERY points that frog's team has, up to LIVE_SNAKE_MAX
+  function liveSnakeCountFor(frogScore) {
+    return Math.min(LIVE_SNAKE_MAX, 1 + Math.floor(Math.max(0, frogScore) / LIVE_SNAKE_EVERY));
+  }
+  function liveSnakeCount() { return liveSnakeCountFor(score); }
+  const huntersShown = [1, 1];   // per hunting team: how many live snakes it has been shown, so each new one is announced once
+  function syncHuntersShown() {
+    storeTurn();
+    for (let o = 0; o < 2; o++) huntersShown[o] = liveSnakeCountFor(frogs[1 - o].score);
+  }
+  // Where extra live snake k (1 …) starts, in squares from the frog: spread behind and ahead of it
+  const HUNTER_OFFSETS = [-2, -6, 8, -10, 14];
+  // Put one live snake with its head on a board point, tail trailing back away from the frog
+  function placeHunter(s, hx, hy) {
+    const c = getTileCellRect(1);
+    hx = Math.max(BOARD.left + 6, Math.min(BOARD.right - 6, hx));
+    hy = Math.max(BOARD.top + 6, Math.min(BOARD.bottom - 6, hy));
+    s.x = hx; s.y = hy;
+    s.angle = Math.atan2(player.y - hy, player.x - hx);
+    s.segmentSpacing = Math.max(4, Math.min(c.w, c.h) * 0.09);
+    s.segments = [];
+    for (let i = 0; i < teamSnakeLen[snakeOwner()]; i++) {
+      s.segments.push({   // the tail trails back from the head but always stays on the board
+        x: Math.max(BOARD.left + 4, Math.min(BOARD.right - 4, hx - Math.cos(s.angle) * i * s.segmentSpacing)),
+        y: Math.max(BOARD.top + 4, Math.min(BOARD.bottom - 4, hy - Math.sin(s.angle) * i * s.segmentSpacing))
+      });
+    }
+    spawnBurst(hx, hy, TEAMS[snakeOwner()].light, 12);
+  }
+  // Extra snake k starts a few squares behind or ahead of the frog (flipped to the other side near 1 or 100)
+  function placeExtraHunter(s, k) {
+    const off = HUNTER_OFFSETS[k % HUNTER_OFFSETS.length];
+    let t = boardTile + off;
+    if (t < 1 || t > 100) t = boardTile - off;
+    t = Math.max(1, Math.min(100, t));
+    const p = getTileCenter(t);
+    placeHunter(s, p.x, p.y);
+  }
+  // Put the opponent's snakes on the board around the frog whose turn it is (the first one just behind it)
+  function spawnHunterBehind(quiet = false) {
     const c = getTileCellRect(1);
     const behind = Math.max(1, boardTile - 2);
     let hx, hy;
@@ -780,31 +832,79 @@
     } else {
       hx = player.x - c.w * 1.4; hy = player.y + c.h * 0.6;
     }
-    hx = Math.max(BOARD.left + 6, Math.min(BOARD.right - 6, hx));
-    hy = Math.max(BOARD.top + 6, Math.min(BOARD.bottom - 6, hy));
-    snake.x = hx; snake.y = hy;
-    snake.angle = Math.atan2(player.y - hy, player.x - hx);
-    snake.segmentSpacing = Math.max(4, Math.min(c.w, c.h) * 0.09);
-    snake.segments = [];
-    for (let i = 0; i < teamSnakeLen[snakeOwner()]; i++) {
-      snake.segments.push({   // the tail trails back from the head but always stays on the board
-        x: Math.max(BOARD.left + 4, Math.min(BOARD.right - 4, hx - Math.cos(snake.angle) * i * snake.segmentSpacing)),
-        y: Math.max(BOARD.top + 4, Math.min(BOARD.bottom - 4, hy - Math.sin(snake.angle) * i * snake.segmentSpacing))
-      });
+    const n = liveSnakeCount();
+    hunters.length = 0;
+    for (let k = 0; k < n; k++) {
+      const s = makeHunter();
+      if (k === 0) placeHunter(s, hx, hy); else placeExtraHunter(s, k);
+      hunters.push(s);
     }
+    activeHunter = 0;
+    snake = hunters[0];
     pointerActive = false;
     bumpCooldown = 1.2;   // a short head start for the frog at the start of its turn
-    spawnBurst(hx, hy, TEAMS[snakeOwner()].light, 12);
+    if (quiet) syncHuntersShown(); else announceNewHunters();
+    paintSwapButtons();
   }
-  const snake = {
-    x: 0, y: 0, angle: 0,
-    wanderAngle: 0,
-    wanderTimer: 0,
-    wavePhase: 0,
-    segments: [],
-    segmentCount: 22,
-    segmentSpacing: 5
-  };
+  // A frog's team score crossed the next 500 during its move: the hunting team gets its new snake straight away
+  function addHuntersIfDue() {
+    const n = liveSnakeCount();
+    if (n <= hunters.length) return;
+    while (hunters.length < n) {
+      const s = makeHunter();
+      placeExtraHunter(s, hunters.length);
+      hunters.push(s);
+    }
+    announceNewHunters();
+    paintSwapButtons();
+  }
+  // "🔴🐍 ➕1 ➜ 🐍×3": shown once each time a team gets a new live snake
+  function announceNewHunters() {
+    const owner = snakeOwner();
+    const n = hunters.length;
+    if (n > huntersShown[owner]) {
+      const T = TEAMS[owner];
+      showToast(`${T.icon}🐍 ➕${n - huntersShown[owner]}  ➜  ${T.icon}🐍×${n}`);
+      const h = hunters[n - 1];
+      addPopup(h.x, h.y - 14, `${T.icon}🐍 ➕`, T.light);
+      sfxLadderBoost();
+      coach('morehunters', `⭐${LIVE_SNAKE_EVERY} ➜ 🐍➕   Q / 🐍⇄`);
+    }
+    huntersShown[owner] = n;
+  }
+  // Q key / 🐍⇄ button: steer the next live snake
+  function switchHunter() {
+    if (state !== 'PLAYING' || hunters.length < 2) return;
+    activeHunter = (activeHunter + 1) % hunters.length;
+    snake = hunters[activeHunter];
+    spawnBurst(snake.x, snake.y, TEAMS[snakeOwner()].light, 10);
+  }
+  function paintSwapButtons() {
+    const show = hunters.length > 1 ? '' : 'none';
+    const T = TEAMS[snakeOwner()];
+    for (const b of [btnSwap, mobileSwap]) {
+      if (!b) continue;
+      b.style.display = show;
+      b.textContent = `${T.icon}🐍⇄ ${hunters.length}`;
+    }
+    if (mobileSwap) { mobileSwap.style.borderColor = T.light; mobileSwap.style.background = T.tint; }
+  }
+  function makeHunter() {
+    return {
+      x: 0, y: 0, angle: 0,
+      wanderAngle: 0,
+      wanderTimer: 0,
+      wavePhase: 0,
+      segments: [],
+      segmentCount: 22,
+      segmentSpacing: 5
+    };
+  }
+  const hunters = [makeHunter()];   // the hunting team's live snakes this turn
+  let activeHunter = 0;
+  let snake = hunters[0];           // the one being steered
+  const btnSwap = document.getElementById('btn-swap');
+  const mobileSwap = document.getElementById('mobile-swap');
 
   let stars = [];   // ⭐ 1-6 bonus stars: { tile, value, hue }
   let particles = [];
@@ -827,6 +927,7 @@
       if (state === 'PLAYING') rollDice();
       else if ((state === 'MENU' || state === 'GAMEOVER') && !overlay.classList.contains('hidden')) startGame(state === 'MENU' && btnContinue.style.display !== 'none');
     }
+    if (e.code === 'KeyQ') switchHunter();
     if (e.code === 'KeyP') togglePause();
     if (e.code === 'KeyH' || e.code === 'Escape') goHome();
     if (e.code === 'KeyM') btnMute.click();
@@ -866,6 +967,9 @@
   mobileDice.addEventListener('click', () => {
     if (state === 'PLAYING') rollDice();
   });
+  btnSwap.addEventListener('click', switchHunter);
+  mobileSwap.addEventListener('touchstart', (e) => { e.preventDefault(); switchHunter(); }, { passive: false });
+  mobileSwap.addEventListener('click', switchHunter);
 
   function togglePause() {
     if (state === 'OFFER') return;
@@ -919,11 +1023,13 @@
       f.x = pos.x; f.y = pos.y;
       f.tailHistory = f.tailHistory.map(() => ({ x: pos.x, y: pos.y }));
     });
-    const sx = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, snake.x));
-    const sy = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, snake.y));
-    const ddx = sx - snake.x, ddy = sy - snake.y;
-    snake.x = sx; snake.y = sy;
-    for (const seg of snake.segments) { seg.x += ddx; seg.y += ddy; }
+    for (const h of hunters) {
+      const sx = Math.max(BOARD.left + 20, Math.min(BOARD.right - 20, h.x));
+      const sy = Math.max(BOARD.top + 20, Math.min(BOARD.bottom - 20, h.y));
+      const ddx = sx - h.x, ddy = sy - h.y;
+      h.x = sx; h.y = sy;
+      for (const seg of h.segments) { seg.x += ddx; seg.y += ddy; }
+    }
   }
 
   function getTileCenter(tileNum) {
@@ -1257,7 +1363,7 @@
       animateFrogTo(pos.x, pos.y, 0.6, { x: (f.x + pos.x) / 2, y: Math.min(f.y, pos.y) - getTileCellRect(1).h * 2 }, f);
       spawnBurst(pos.x, pos.y, TEAMS[i].light, 18);
     });
-    spawnHunterBehind();
+    spawnHunterBehind(true);
     paintTurnUi();
     diceSubEl.textContent = `${TEAMS[0].icon}🐸 🎲🎲  ·  ${TEAMS[1].icon}🐍`;
     sfxLadderBoost();
@@ -1387,8 +1493,8 @@
       for (let k = 0; k < 20; k++) f.tailHistory.push({ x: f.x, y: f.y + k * 2 });
     });
 
-    // the opponent's live snake starts behind the frog whose turn it is
-    spawnHunterBehind();
+    // the opponent's live snakes start around the frog whose turn it is
+    spawnHunterBehind(true);
 
     paintTurnUi();
     diceNumEl.textContent = lastDice ? diceText(lastDice) : '🎲 -';
@@ -1587,33 +1693,39 @@
       snake.y = Math.max(BOARD.top + 6, Math.min(BOARD.bottom - 6, snake.y));
     }
 
-    const desiredSegments = teamSnakeLen[snakeOwner()];
-    while (snake.segments.length > desiredSegments) snake.segments.pop();
-    while (snake.segments.length < desiredSegments) {
-      const last = snake.segments[snake.segments.length - 1];
-      snake.segments.push({ x: last.x, y: last.y });
-    }
+    // a frog whose team just passed the next 500 points brings the hunting team one more live snake
+    if (state === 'PLAYING' && !turnEndPending) addHuntersIfDue();
 
-    snake.segments[0].x = snake.x;
-    snake.segments[0].y = snake.y;
-    for (let i = 1; i < snake.segments.length; i++) {
-      const prev = snake.segments[i - 1];
-      const curr = snake.segments[i];
-      const dx = prev.x - curr.x;
-      const dy = prev.y - curr.y;
-      const d = Math.hypot(dx, dy) || 1;
-      if (d > snake.segmentSpacing) {
-        curr.x = prev.x - (dx / d) * snake.segmentSpacing;
-        curr.y = prev.y - (dy / d) * snake.segmentSpacing;
+    const desiredSegments = teamSnakeLen[snakeOwner()];
+    for (const h of hunters) {
+      if (!h.segments.length) continue;
+      while (h.segments.length > desiredSegments) h.segments.pop();
+      while (h.segments.length < desiredSegments) {
+        const last = h.segments[h.segments.length - 1];
+        h.segments.push({ x: last.x, y: last.y });
+      }
+
+      h.segments[0].x = h.x;
+      h.segments[0].y = h.y;
+      for (let i = 1; i < h.segments.length; i++) {
+        const prev = h.segments[i - 1];
+        const curr = h.segments[i];
+        const dx = prev.x - curr.x;
+        const dy = prev.y - curr.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d > h.segmentSpacing) {
+          curr.x = prev.x - (dx / d) * h.segmentSpacing;
+          curr.y = prev.y - (dy / d) * h.segmentSpacing;
+        }
       }
     }
 
 
-    // Catch: the opponent's snake head reaches the frog (standing or hopping). The frog drops one row
+    // Catch: any of the opponent's live snake heads reaches the frog (standing or hopping). The frog drops one row
     // (10 tiles, -25 points per tile), its move stops, the snake grows by 3 and the dice passes on.
     const catchR = Math.max(10, Math.min(getTileCellRect(1).w, getTileCellRect(1).h) * 0.3);
-    if (bumpCooldown <= 0 && !turnEndPending && boardTile > 1 &&
-        Math.hypot(player.x - snake.x, player.y - snake.y) < catchR) {
+    const catcher = hunters.find((h) => h.segments.length && Math.hypot(player.x - h.x, player.y - h.y) < catchR);
+    if (bumpCooldown <= 0 && !turnEndPending && boardTile > 1 && catcher) {
       const owner = snakeOwner();
       const fromTile = boardTile;
       const toTile = Math.max(1, boardTile - 10);
@@ -1633,7 +1745,7 @@
       const pos = frogSpot(boardTile);
       animateFrogTo(pos.x, pos.y, 0.5);
       teamSnakeLen[owner] = Math.min(46, teamSnakeLen[owner] + 3);
-      addPopup(snake.x, snake.y - 14, '🐍 ➕', TEAMS[owner].light);
+      addPopup(catcher.x, catcher.y - 14, '🐍 ➕', TEAMS[owner].light);
       showToast(`${TEAMS[owner].icon}🐍💥${TEAMS[turn].icon}🐸 ${player.lap * 100 + fromTile} ➜ ${player.lap * 100 + boardTile}  ⭐ -${penalty}`);
       coach('grow', '🐍💥🐸 = ⬇10   🐍➕');
       saveActiveRun();
@@ -1993,10 +2105,26 @@
     return Math.round((base + Math.sin(timeElapsed * 2 + index * 0.5) * 18 + 360) % 360);
   }
 
+  // all the hunting team's live snakes; the steered one is drawn on top with a ring when there are several
   function drawSnake() {
-    if (!snake.segments.length || state === 'MENU') return;
+    if (state === 'MENU') return;
+    for (const h of hunters) if (h !== snake) drawOneHunter(h, false);
+    drawOneHunter(snake, hunters.length > 1);
+  }
+  function drawOneHunter(snake, marked) {
+    if (!snake.segments.length) return;
     const cellNow = getTileCellRect(1);
     const sk = Math.max(1.2, Math.min(2.4, Math.min(cellNow.w, cellNow.h) / 26));   // grows with the squares
+    if (marked) {   // the snake you steer now: a pulsing ring around its head
+      ctx.save();
+      ctx.strokeStyle = TEAMS[snakeOwner()].light;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.55 + 0.35 * Math.sin(timeElapsed * 6);
+      ctx.beginPath();
+      ctx.arc(snake.x, snake.y, 10 * sk, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();
     for (let i = snake.segments.length - 1; i >= 0; i--) {
       const seg = snake.segments[i];

@@ -31,6 +31,9 @@
 - **Catch:** if the head reaches the frog during its move, the frog **drops 10 squares** (−25 points per square). Its move stops and the dice passes on.
 - Each catch makes that team's snake **3 pieces longer** (it starts at 22 and can reach up to 46).
 - The snake takes its team's colour (a red or blue rainbow).
+- **More snakes with more points:** for every **500 points** the moving frog's team has, the hunting team gets **1 more live snake** (500 = 2, 1000 = 3 …, at most **5**). Extra snakes start a few squares behind and ahead of the frog. A new one shows **🔴🐍 ➕1 ➜ 🔴🐍×N**, even in the middle of a move.
+- **Steering several snakes:** one is steered at a time (a pulsing ring around its head). **Q** or the **🐍⇄** button switches to the next one. Any of them catches the frog.
+- The 500 and the 5 are `LIVE_SNAKE_EVERY` and `LIVE_SNAKE_MAX` at the top of the script.
 
 ## 5. Idle snakes: enemies of both frogs
 - **9 snakes** show a **clear, outlined head with eyes and small fangs** in the middle of their square; the short body under it is faded and the tail is hidden.
@@ -69,6 +72,7 @@
 |---|---|---|
 | Roll dice (active frog) | R / Space or 🎲 R | 🎲 button |
 | Steer your snake (other player) | Arrow keys / WASD or mouse | Hold a finger on the board |
+| Switch to your next live snake | Q or 🐍⇄ | 🐍⇄ button (next to 🎲) |
 | Reset (scores kept) | 🔄 twice | 🔄 twice |
 | Pause | P or ⏸ | ⏸ |
 | Mute | M or 🔊 | 🔊 |
@@ -115,4 +119,5 @@
 | 22 Nov 2026 | `d4bdd6b` | Two-player redesign: 🔴/🔵 frogs, two dice, live team snakes (hands swap every roll), idle snake heads only, ⭐1-6 stars, endless hundreds, 🔄 Reset with scores kept, new page text, cover and clip |
 | 22 Nov 2026 | `30a727f` | This features file added to the game folder |
 | 22 Nov 2026 | `21f5d87` | Ladders short (10-20 squares) and faint thin lines; idle snake heads bigger, outlined and on the square centre with a faded body; new cover and clip |
-| 23 Nov 2026 | (this commit) | 9 idle snakes instead of 7 (`IDLE_SNAKE_COUNT`); a moving snake never lands on a star |
+| 23 Nov 2026 | `a7b37f5` | 9 idle snakes instead of 7 (`IDLE_SNAKE_COUNT`); a moving snake never lands on a star |
+| 23 Nov 2026 | (this commit) | Extra live snakes: +1 per 500 points of the moving frog's team, max 5; Q / 🐍⇄ switches the steered snake |
