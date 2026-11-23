@@ -33,7 +33,7 @@
 - The snake takes its team's colour (a red or blue rainbow).
 
 ## 5. Idle snakes: enemies of both frogs
-- **7 snakes** show a **clear, outlined head with eyes and small fangs** in the middle of their square; the short body under it is faded and the tail is hidden.
+- **9 snakes** show a **clear, outlined head with eyes and small fangs** in the middle of their square; the short body under it is faded and the tail is hidden.
 - Landing on a snake head **slides the frog down to the tail square** (−25 points per square lost).
 - **Moving snakes:** every **3 seconds**, one snake sinks and pops up somewhere new.
 
@@ -60,7 +60,7 @@
 - Both frogs go back to **square 1** on a **brand-new random board** with new stars. **Both scores are kept** and red rolls first.
 
 ## 10. Board
-- **Daily board:** today's date sets the 7 ladders and 7 snakes, the same for every player (each new hundred has its own daily layout).
+- **Daily board:** today's date sets the 7 ladders and 9 snakes, the same for every player (each new hundred has its own daily layout).
 - The board fills the screen on a phone and on a laptop, with **no scrolling**.
 - A frog's square is tinted in its team colour.
 
@@ -115,3 +115,4 @@
 | 22 Nov 2026 | `d4bdd6b` | Two-player redesign: 🔴/🔵 frogs, two dice, live team snakes (hands swap every roll), idle snake heads only, ⭐1-6 stars, endless hundreds, 🔄 Reset with scores kept, new page text, cover and clip |
 | 22 Nov 2026 | `30a727f` | This features file added to the game folder |
 | 22 Nov 2026 | `21f5d87` | Ladders short (10-20 squares) and faint thin lines; idle snake heads bigger, outlined and on the square centre with a faded body; new cover and clip |
+| 23 Nov 2026 | (this commit) | 9 idle snakes instead of 7 (`IDLE_SNAKE_COUNT`); a moving snake never lands on a star |

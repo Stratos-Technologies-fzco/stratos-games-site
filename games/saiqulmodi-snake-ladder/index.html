@@ -360,8 +360,11 @@
     56: 53,
     64: 19,
     87: 24,
-    98: 78
+    98: 78,
+    37: 21,
+    93: 68
   };
+  const IDLE_SNAKE_COUNT = 9;     // idle snakes on every board (was 7)
   const SNAKE_HEADS = new Set(Object.keys(STATIONARY_SNAKES).map(Number));
   const SNAKE_RISE = {};          // head tile -> 0..1 while a moved snake rises out of its new holes
   const SNAKE_MOVE_EVERY = 3;     // seconds between moves, one snake at a time
@@ -398,13 +401,13 @@
       ladders[base] = top; used.add(base); used.add(top);
     }
     guard = 0;
-    while (Object.keys(snakes).length < 7 && guard++ < 3000) {
+    while (Object.keys(snakes).length < IDLE_SNAKE_COUNT && guard++ < 3000) {
       const head = 12 + Math.floor(rnd() * 88);          // 12..99
       const tail = head - (8 + Math.floor(rnd() * 38));  // 8..45 tiles down
       if (tail < 2 || used.has(head) || used.has(tail)) continue;
       snakes[head] = tail; used.add(head); used.add(tail);
     }
-    if (Object.keys(ladders).length !== 7 || Object.keys(snakes).length !== 7) return; // keep the classic board
+    if (Object.keys(ladders).length !== 7 || Object.keys(snakes).length !== IDLE_SNAKE_COUNT) return; // keep the classic board
     for (const k of Object.keys(BOARD_LADDERS)) delete BOARD_LADDERS[k];
     for (const k of Object.keys(STATIONARY_SNAKES)) delete STATIONARY_SNAKES[k];
     Object.assign(BOARD_LADDERS, ladders);
@@ -1015,7 +1018,7 @@
     if (!heads.length) return;
     const oldHead = heads[Math.floor(Math.random() * heads.length)];
     const drop = oldHead - STATIONARY_SNAKES[oldHead];
-    const used = new Set([1, 100, ...frogTiles()]);
+    const used = new Set([1, 100, ...frogTiles(), ...stars.map((s) => s.tile)]);   // never onto a star
     for (const [b, t] of Object.entries(BOARD_LADDERS)) { used.add(Number(b)); used.add(t); }
     for (const [h, t] of Object.entries(STATIONARY_SNAKES)) {
       if (Number(h) !== oldHead) { used.add(Number(h)); used.add(t); }
