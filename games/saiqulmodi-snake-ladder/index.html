@@ -168,6 +168,21 @@
     .lb-row:last-child { border-bottom: none; }
 
     .actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    /* 🌐 online room: code to share / code to type */
+    #net-panel {
+      display: none; margin-top: 8px; padding: 8px 10px; border-radius: 12px; text-align: center;
+      background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(147, 197, 253, 0.45);
+    }
+    #net-panel.show { display: block; }
+    #net-code { font-size: 30px; font-weight: 900; letter-spacing: 6px; color: #fde68a; }
+    #net-join-row { display: none; gap: 8px; justify-content: center; align-items: center; }
+    #net-join-row.show { display: flex; }
+    #net-input {
+      width: 120px; font-size: 26px; font-weight: 900; letter-spacing: 6px; text-align: center;
+      padding: 4px 6px; border-radius: 10px; border: 2px solid #93c5fd;
+      background: rgba(0, 0, 0, 0.35); color: #fde68a;
+    }
+    #net-status { font-size: 22px; min-height: 28px; margin: 4px 0; }
     .btn-play {
       cursor: pointer; border: none; border-radius: 999px;
       padding: 11px 22px; font-size: 15px; font-weight: 800; letter-spacing: 0.4px;
@@ -333,6 +348,17 @@
         <button class="btn-play" id="btn-continue" style="display:none; background:linear-gradient(135deg,#6ee7b7,#10b981);">▶</button>
         <button class="btn-play" id="btn-start" title="Play">▶</button>
         <button class="btn-secondary" id="btn-test-av">🔔</button>
+        <button class="btn-secondary" id="btn-host" title="Online: make a room">🌐➕</button>
+        <button class="btn-secondary" id="btn-join" title="Online: join a room">🌐🔢</button>
+      </div>
+      <div id="net-panel">
+        <div id="net-code"></div>
+        <div id="net-join-row">
+          <input id="net-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="····" aria-label="Room code">
+          <button class="btn-secondary" id="btn-join-go" title="Join">▶</button>
+        </div>
+        <div id="net-status"></div>
+        <button class="btn-secondary" id="btn-net-cancel" title="Cancel">✖</button>
       </div>
     </div>
   </div>
@@ -352,6 +378,12 @@
   // live snake (500 = 2, 1000 = 3 …), never more than LIVE_SNAKE_MAX. Q / 🐍⇄ switches which one is steered.
   const LIVE_SNAKE_EVERY = 500;
   const LIVE_SNAKE_MAX = 5;
+
+  // 🌐 Online play (two phones): null = same-screen game. Otherwise { role: 'host' | 'guest', me: 0 (🔴 host) | 1 (🔵 guest), conn … }.
+  // The host's phone runs the whole game and sends the board ~20 times a second; the guest only sends its taps and steering.
+  let net = null;
+  function isHost() { return !!(net && net.role === 'host'); }
+  function isGuest() { return !!(net && net.role === 'guest'); }
 
   // Traditional board ladders: base tile -> top tile
   const BOARD_LADDERS = {
@@ -441,6 +473,8 @@
       let S = window.Stratos;
       try { if (!S && window.parent && window.parent !== window) S = window.parent.Stratos; } catch {}
       if (S && typeof S.track === 'function') {
+        // online games get their own event names, so they never pay Stratos Coins (Stratos rule: no coins in online play)
+        if (net) name = 'online_' + name;
         S.track(name, Object.assign({ game: 'saiqulmodi-snake-ladder' }, data));
       }
     } catch {}
@@ -466,6 +500,7 @@
   const coachQueue = [];
   let coachBusy = false;
   function coach(id, text) {
+    if (isHost()) netFx(['coach', id, text]);   // the other phone shows its own first-time tips
     if (tipsSeen[id]) return;
     tipsSeen[id] = 1;
     try { localStorage.setItem(TIPS_KEY, JSON.stringify(tipsSeen)); } catch {}
@@ -561,6 +596,7 @@
   }
 
   function saveActiveRun() {
+    if (net) return;   // an online game is never saved, so it never overwrites the same-screen Continue
     storeTurn();
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -655,6 +691,7 @@
   }
 
   function playTone(freq, duration, type = 'sine', vol = 0.08, slideTo = null) {
+    if (isHost()) netFx(['tone', freq, duration, type, vol, slideTo]);
     if (muted || !audioCtx) return;
     const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
@@ -760,6 +797,10 @@
     mobileDice.style.borderColor = T.light;
     mobileDice.style.background = T.tint;
     diceBadgeEl.style.borderColor = T.color;
+    // online: the dice is bright only on the phone whose frog is to roll
+    const mine = !net || turn === net.me ? '' : '0.35';
+    btnRoll.style.opacity = mine;
+    mobileDice.style.opacity = mine;
   }
   function switchTurn() {
     storeTurn();
@@ -880,7 +921,7 @@
     spawnBurst(snake.x, snake.y, TEAMS[snakeOwner()].light, 10);
   }
   function paintSwapButtons() {
-    const show = hunters.length > 1 ? '' : 'none';
+    const show = hunters.length > 1 && (!net || snakeOwner() === net.me) ? '' : 'none';   // online: only on the hunting phone
     const T = TEAMS[snakeOwner()];
     for (const b of [btnSwap, mobileSwap]) {
       if (!b) continue;
@@ -917,18 +958,19 @@
 
   const GAME_KEYS = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
   window.addEventListener('keydown', (e) => {
+    if (e.target && e.target.tagName === 'INPUT') return;   // typing a room code
     if (GAME_KEYS.has(e.code)) e.preventDefault(); // no page scroll, no re-clicking a focused button
     keys[e.code] = true;
     if (e.repeat) return;
     if (e.code === 'KeyR' && state === 'PLAYING') {
-      rollDice();
+      requestRoll();
     }
     if (e.code === 'Space') {
-      if (state === 'PLAYING') rollDice();
+      if (state === 'PLAYING') requestRoll();
       else if ((state === 'MENU' || state === 'GAMEOVER') && !overlay.classList.contains('hidden')) startGame(state === 'MENU' && btnContinue.style.display !== 'none');
     }
-    if (e.code === 'KeyQ') switchHunter();
-    if (e.code === 'KeyP') togglePause();
+    if (e.code === 'KeyQ') requestSwap();
+    if (e.code === 'KeyP' && !net) togglePause();
     if (e.code === 'KeyH' || e.code === 'Escape') goHome();
     if (e.code === 'KeyM') btnMute.click();
   });
@@ -958,18 +1000,31 @@
   window.addEventListener('pointercancel', endSteer);
 
   btnRoll.addEventListener('click', () => {
-    if (state === 'PLAYING') rollDice();
+    if (state === 'PLAYING') requestRoll();
   });
   mobileDice.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if (state === 'PLAYING') rollDice();
+    if (state === 'PLAYING') requestRoll();
   }, { passive: false });
   mobileDice.addEventListener('click', () => {
-    if (state === 'PLAYING') rollDice();
+    if (state === 'PLAYING') requestRoll();
   });
-  btnSwap.addEventListener('click', switchHunter);
-  mobileSwap.addEventListener('touchstart', (e) => { e.preventDefault(); switchHunter(); }, { passive: false });
-  mobileSwap.addEventListener('click', switchHunter);
+  btnSwap.addEventListener('click', requestSwap);
+  mobileSwap.addEventListener('touchstart', (e) => { e.preventDefault(); requestSwap(); }, { passive: false });
+  mobileSwap.addEventListener('click', requestSwap);
+  // Roll: same screen = always; online = only the phone whose frog is to move (the guest asks the host)
+  function requestRoll() {
+    if (state !== 'PLAYING') return;
+    if (!net) { rollDice(); return; }
+    if (turn !== net.me) return;
+    if (isHost()) rollDice(); else netSend({ t: 'roll' });
+  }
+  // Switch snake: online only on the phone whose team is hunting
+  function requestSwap() {
+    if (!net) { switchHunter(); return; }
+    if (snakeOwner() !== net.me) return;
+    if (isHost()) switchHunter(); else netSend({ t: 'swap' });
+  }
 
   function togglePause() {
     if (state === 'OFFER') return;
@@ -1231,6 +1286,7 @@
     pendingRevert = null;
   }
   function offerSecondChance(fromTile, scoreBefore) {
+    if (net) return;   // no Stratos Coins in online play
     if (secondChanceUsed || fromTile - boardTile < 10 || !SC()) return;
     pendingRevert = { idx: turn, tile: fromTile, score: scoreBefore };
     secondChanceBtn.textContent = `↩ ${TEAMS[turn].icon}🐸 ${player.lap * 100 + fromTile}`;
@@ -1280,7 +1336,7 @@
   function updateFluteHud() {
     const showPill = fluteCharge > 0 ? '' : 'none';
     if (flutePill.style.display !== showPill) flutePill.style.display = showPill;
-    const showBtn = (fluteCharge === 0 && state === 'PLAYING' && SC()) ? '' : 'none';
+    const showBtn = (fluteCharge === 0 && state === 'PLAYING' && !net && SC()) ? '' : 'none';   // no coins online
     if (btnFlute.style.display !== showBtn) btnFlute.style.display = showBtn;
   }
   btnFlute.addEventListener('click', () => {
@@ -1314,6 +1370,7 @@
   // Home: saves the climb and goes back to the home screen (Continue resumes it)
   function goHome() {
     if (state !== 'PLAYING' && state !== 'PAUSED') return;
+    if (net) { leaveOnline(); return; }   // 🏠 in an online game leaves the room
     hideSecondChance();
     stepQueue = 0;
     for (const f of frogs) { f.anim = null; f.animQueue = []; }
@@ -1343,7 +1400,7 @@
       return;
     }
     clearTimeout(resetArmed); resetArmed = 0; btnReset.textContent = '🔄';
-    resetGameKeepScores();
+    if (isGuest()) netSend({ t: 'reset' }); else resetGameKeepScores();
   });
   function resetGameKeepScores() {
     hideSecondChance();
@@ -1375,6 +1432,7 @@
   }
 
   function showToast(text) {
+    if (isHost()) netFx(['toast', text]);
     toastEl.textContent = text;
     toastEl.classList.add('show');
     clearTimeout(toastTimeout);
@@ -1382,11 +1440,13 @@
   }
 
   function triggerShake(duration = 0.16, intensity = 3) {
+    if (isHost()) netFx(['shake', duration, intensity]);
     shakeTimer = duration;
     shakeIntensity = intensity;
   }
 
   function spawnBurst(x, y, color, count = 14) {
+    if (isHost()) netFx(['burst', nX(x), nY(y), color, count]);
     for (let i = 0; i < count; i++) {
       const a = (Math.PI * 2 * i) / count + Math.random() * 0.4;
       const spd = 50 + Math.random() * 140;
@@ -1403,6 +1463,7 @@
   }
 
   function addPopup(x, y, text, color = '#fde68a') {
+    if (isHost()) netFx(['pop', nX(x), nY(y), text, color]);
     floatingPopups.push({ x, y, text, color, life: 0.85, maxLife: 0.85 });
   }
 
@@ -1440,6 +1501,7 @@
   }
 
   function startGame(resumeSaved = false) {
+    if (!net) cancelNetWait();   // ▶ on this phone while a room was waiting: drop the room
     initAudio();
     const saved = resumeSaved ? checkSavedRun() : null;
     lastDice = saved && Array.isArray(saved.lastDice) ? saved.lastDice : null;
@@ -1602,6 +1664,7 @@
       return;
     }
     if (state !== 'PLAYING') return;
+    if (isGuest()) { guestUpdate(dt); return; }   // the guest only shows what the host's phone sends
     timeElapsed += dt;
 
     snakeMoveTimer -= dt;
@@ -1668,21 +1731,22 @@
 
     // Live team snake: the OTHER player steers it (arrow keys / WASD, or drag on the board) to catch the frog
     // whose turn it is. It moves at the frog's own speed: one square per dice step.
+    // Online, the steering comes from the phone whose team is hunting (the guest's arrives over the network)
+    const sin = steerInput();
     let ix = 0, iy = 0;
-    if (keys['ArrowLeft'] || keys['KeyA']) ix -= 1;
-    if (keys['ArrowRight'] || keys['KeyD']) ix += 1;
-    if (keys['ArrowUp'] || keys['KeyW']) iy -= 1;
-    if (keys['ArrowDown'] || keys['KeyS']) iy += 1;
-    if (ix === 0 && iy === 0 && pointerActive) {
-      const dx = pointerX - snake.x, dy = pointerY - snake.y;
+    if (sin.l) ix -= 1;
+    if (sin.r) ix += 1;
+    if (sin.u) iy -= 1;
+    if (sin.d) iy += 1;
+    if (ix === 0 && iy === 0 && sin.pa) {
+      const dx = sin.px - snake.x, dy = sin.py - snake.y;
       if (Math.hypot(dx, dy) > 4) { ix = dx; iy = dy; }
     }
     snake.wavePhase += dt * 4.2;
     if (ix !== 0 || iy !== 0) {
       const len = Math.hypot(ix, iy);
       let stepLen = snakeSpeed() * dt;
-      if (pointerActive && !keys['ArrowLeft'] && !keys['ArrowRight'] && !keys['ArrowUp'] && !keys['ArrowDown'] &&
-          !keys['KeyA'] && !keys['KeyD'] && !keys['KeyW'] && !keys['KeyS']) {
+      if (sin.pa && !sin.l && !sin.r && !sin.u && !sin.d) {
         stepLen = Math.min(stepLen, len);   // a finger target: stop on it, don't overshoot
       }
       snake.angle = Math.atan2(iy, ix);
@@ -2293,12 +2357,345 @@
     ctx.restore();
   }
 
+  // ───────────── 🌐 Online play: two phones, one room code ─────────────
+  // PeerJS (peerjs.min.js in this folder, MIT licence) connects the two phones directly. Its free public server
+  // is only used to find the other phone by the room code. No account, no key, no sign-up.
+  const PEER_PREFIX = 'stratosgames-snakeladder-';
+  const NET_SEND_EVERY = 0.05;                 // seconds: board updates host ➜ guest, inputs guest ➜ host
+  const netPanel = document.getElementById('net-panel');
+  const netCodeEl = document.getElementById('net-code');
+  const netJoinRow = document.getElementById('net-join-row');
+  const netInput = document.getElementById('net-input');
+  const netStatus = document.getElementById('net-status');
+  const lbBox = document.querySelector('.lb-box');
+  const rulesGrid = document.querySelector('.controls-grid');   // hidden while the room panel is open, so it fits small phones
+  let netWait = null;                          // a room being made or joined, not connected yet
+  let netFxQueue = [];
+  let netSendTimer = 0;
+  let remoteIn = { l: 0, r: 0, u: 0, d: 0, pa: 0, px: 0, py: 0 };
+
+  // positions travel as 0..1 of the board, because the two phones have different screen sizes
+  function nX(x) { return Math.round(((x - BOARD.left) / Math.max(1, BOARD.right - BOARD.left)) * 10000) / 10000; }
+  function nY(y) { return Math.round(((y - BOARD.top) / Math.max(1, BOARD.bottom - BOARD.top)) * 10000) / 10000; }
+  function dX(n) { return BOARD.left + n * (BOARD.right - BOARD.left); }
+  function dY(n) { return BOARD.top + n * (BOARD.bottom - BOARD.top); }
+
+  function netSend(msg) {
+    try { if (net && net.conn && net.conn.open) net.conn.send(msg); } catch (e) {}
+  }
+  function netFx(ev) {
+    if (netFxQueue.length < 300) netFxQueue.push(ev);
+  }
+  // this phone's own keys / finger, for steering the snake
+  function localSteer() {
+    return {
+      l: !!(keys['ArrowLeft'] || keys['KeyA']), r: !!(keys['ArrowRight'] || keys['KeyD']),
+      u: !!(keys['ArrowUp'] || keys['KeyW']), d: !!(keys['ArrowDown'] || keys['KeyS']),
+      pa: pointerActive, px: pointerX, py: pointerY
+    };
+  }
+  // who steers the snake now: same screen = this phone; online = the phone whose team is hunting
+  function steerInput() {
+    if (!isHost() || snakeOwner() === net.me) return localSteer();
+    const r = remoteIn;
+    return { l: !!r.l, r: !!r.r, u: !!r.u, d: !!r.d, pa: !!r.pa, px: dX(r.px), py: dY(r.py) };
+  }
+
+  function loadPeerLib(onReady, onFail) {
+    if (window.Peer) { onReady(); return; }
+    const s = document.createElement('script');
+    s.src = 'peerjs.min.js';
+    s.onload = () => (window.Peer ? onReady() : onFail());
+    s.onerror = onFail;
+    document.head.appendChild(s);
+  }
+  function showNetPanel(mode) {
+    netPanel.classList.add('show');
+    lbBox.style.display = 'none';
+    rulesGrid.style.display = 'none';
+    netJoinRow.classList.toggle('show', mode === 'join');
+    netCodeEl.textContent = mode === 'host' ? '🌐 ⏳' : '🌐🔢';
+    netStatus.textContent = mode === 'host' ? '🔴🐸 = 📱 · 🔵🐸 = 📱 ⏳' : '🔵🐸 = 📱';
+  }
+  function hideNetPanel() {
+    netPanel.classList.remove('show');
+    lbBox.style.display = '';
+    rulesGrid.style.display = '';
+  }
+  function cancelNetWait() {
+    if (netWait && netWait.peer) { try { netWait.peer.destroy(); } catch (e) {} }
+    netWait = null;
+    hideNetPanel();
+  }
+  function netFail(sym) {
+    if (netWait && netWait.peer) { try { netWait.peer.destroy(); } catch (e) {} }
+    netWait = null;
+    netStatus.textContent = sym || '📶❌';
+  }
+
+  // 🌐➕ make a room: this phone is 🔴 and shows a 4-digit code for the other phone
+  function hostRoom(tries = 0) {
+    initAudio();
+    cancelNetWait();
+    showNetPanel('host');
+    loadPeerLib(() => {
+      const code = String(1000 + Math.floor(Math.random() * 9000));
+      const peer = new window.Peer(PEER_PREFIX + code, { debug: 0 });
+      const wait = netWait = { role: 'host', peer, code };
+      peer.on('open', () => { if (netWait === wait) netCodeEl.textContent = `🌐 ${code}`; });
+      peer.on('connection', (conn) => {
+        if (net || netWait !== wait) { try { conn.close(); } catch (e) {} return; }
+        conn.on('open', () => beginOnline('host', peer, conn, code));
+      });
+      peer.on('error', (err) => {
+        if (netWait !== wait) return;
+        if (err && err.type === 'unavailable-id' && tries < 5) { try { peer.destroy(); } catch (e) {} hostRoom(tries + 1); return; }
+        netFail();
+      });
+    }, () => netFail());
+  }
+  // 🌐🔢 join a room: this phone is 🔵
+  function joinRoom() {
+    const code = (netInput.value || '').replace(/\D/g, '').slice(0, 4);
+    if (code.length !== 4) { netStatus.textContent = '🔢 ····'; netInput.focus(); return; }
+    initAudio();
+    if (netWait && netWait.peer) { try { netWait.peer.destroy(); } catch (e) {} }
+    netStatus.textContent = `🌐 ${code} ⏳`;
+    loadPeerLib(() => {
+      const peer = new window.Peer({ debug: 0 });
+      const wait = netWait = { role: 'guest', peer, code };
+      const giveUp = setTimeout(() => { if (netWait === wait) netFail(); }, 15000);
+      peer.on('open', () => {
+        if (netWait !== wait) return;
+        const conn = peer.connect(PEER_PREFIX + code, { serialization: 'json', reliable: true });
+        conn.on('open', () => { clearTimeout(giveUp); if (netWait === wait) beginOnline('guest', peer, conn, code); });
+      });
+      peer.on('error', (err) => {
+        if (netWait !== wait) return;
+        clearTimeout(giveUp);
+        netFail(err && err.type === 'peer-unavailable' ? `🌐 ${code} ❌` : '📶❌');
+      });
+    }, () => netFail());
+  }
+  document.getElementById('btn-host').addEventListener('click', () => hostRoom());
+  document.getElementById('btn-join').addEventListener('click', () => {
+    cancelNetWait();
+    showNetPanel('join');
+    netInput.value = '';
+    setTimeout(() => netInput.focus(), 50);
+  });
+  document.getElementById('btn-join-go').addEventListener('click', joinRoom);
+  netInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
+  netInput.addEventListener('input', () => {
+    netInput.value = netInput.value.replace(/\D/g, '').slice(0, 4);
+    if (netInput.value.length === 4) joinRoom();
+  });
+  document.getElementById('btn-net-cancel').addEventListener('click', cancelNetWait);
+
+  // both phones are connected: the host starts a fresh game, the guest waits for the first board
+  function beginOnline(role, peer, conn, code) {
+    netWait = null;
+    net = { role, peer, conn, code, me: role === 'host' ? 0 : 1, got: false };
+    netFxQueue = [];
+    remoteIn = { l: 0, r: 0, u: 0, d: 0, pa: 0, px: 0, py: 0 };
+    conn.on('data', onNetData);
+    conn.on('close', () => netLost());
+    conn.on('error', () => netLost());
+    // once connected, the phones talk directly: a hiccup with the PeerJS lookup server does not end the game
+    peer.on('error', () => {});
+    hideNetPanel();
+    btnPause.style.display = 'none';
+    if (role === 'host') {
+      startGame(false);
+      showToast(`🌐 ${code}   🔴🐸 = 📱  ·  🔵🐸 = 📱`);
+    } else {
+      startGuest();
+    }
+  }
+  function startGuest() {
+    hideSecondChance();
+    overlay.classList.add('hidden');
+    finalStats.style.display = 'none';
+    layoutBoard();
+    particles = []; floatingPopups = [];
+    hunters.length = 0;
+    snake = makeHunter();
+    lastDice = null;
+    diceNumEl.textContent = '🎲 -';
+    state = 'PLAYING';
+    paintTurnUi();
+    paintSwapButtons();
+    updateHud();
+    showToast(`🌐 ${net.code}   🔵🐸 = 📱`);
+  }
+
+  // host ➜ guest: the whole board, ~20 times a second (positions as 0..1 of the board)
+  function netSnapshot() {
+    storeTurn();
+    return {
+      t: 's', turn,
+      f: frogs.map((f) => [f.tile, f.lap, f.score, nX(f.x), nY(f.y), Math.round(f.angle * 100) / 100, f.anim ? 1 : 0]),
+      d: lastDice, dn: diceNumEl.textContent, ds: diceSubEl.textContent,
+      h: hunters.map((h) => [nX(h.x), nY(h.y), Math.round(h.angle * 100) / 100, h.segments.map((s) => [nX(s.x), nY(s.y)])]),
+      a: activeHunter, sl: teamSnakeLen,
+      sn: STATIONARY_SNAKES, ld: BOARD_LADDERS, sr: SNAKE_RISE, lr: LADDER_RISE,
+      st: stars.map((s) => [s.tile, s.value, s.hue]),
+      bl: boardLap, cc: chainCount, ct: chainTimer,
+      fx: netFxQueue.splice(0)
+    };
+  }
+  function replaceMap(target, src, numVals = true) {
+    for (const k of Object.keys(target)) delete target[k];
+    for (const [k, v] of Object.entries(src || {})) target[k] = numVals ? Number(v) : v;
+  }
+  // guest: show the host's board
+  function applySnapshot(s) {
+    const first = !net.got;
+    net.got = true;
+    frogs.forEach((f, i) => {
+      const a = s.f[i];
+      f.tile = a[0]; f.lap = a[1]; f.score = a[2];
+      f.tx = dX(a[3]); f.ty = dY(a[4]); f.angle = a[5];
+      f.anim = a[6] ? { remote: true } : null;
+      if (first) { f.x = f.tx; f.y = f.ty; f.tailHistory = []; }
+    });
+    const turnChanged = s.turn !== turn;
+    loadTurn(s.turn);
+    lastDice = s.d;
+    if (diceNumEl.textContent !== s.dn) diceNumEl.textContent = s.dn;
+    if (diceSubEl.textContent !== s.ds) diceSubEl.textContent = s.ds;
+    const countChanged = s.h.length !== hunters.length;
+    while (hunters.length > s.h.length) hunters.pop();
+    s.h.forEach((a, i) => {
+      let h = hunters[i];
+      const fresh = !h || h.segments.length !== a[3].length;
+      if (!h) { h = makeHunter(); hunters.push(h); }
+      h.tx = dX(a[0]); h.ty = dY(a[1]); h.angle = a[2];
+      h.tsegs = a[3].map((p) => ({ x: dX(p[0]), y: dY(p[1]) }));
+      if (fresh || turnChanged || first) {
+        h.x = h.tx; h.y = h.ty;
+        h.segments = h.tsegs.map((p) => ({ x: p.x, y: p.y }));
+      }
+    });
+    activeHunter = Math.min(s.a, Math.max(0, hunters.length - 1));
+    snake = hunters[activeHunter] || makeHunter();
+    teamSnakeLen[0] = s.sl[0]; teamSnakeLen[1] = s.sl[1];
+    replaceMap(STATIONARY_SNAKES, s.sn);
+    replaceMap(BOARD_LADDERS, s.ld);
+    SNAKE_HEADS.clear(); for (const k of Object.keys(STATIONARY_SNAKES)) SNAKE_HEADS.add(Number(k));
+    LADDER_BASES.clear(); LADDER_TOPS.clear();
+    for (const [b, t] of Object.entries(BOARD_LADDERS)) { LADDER_BASES.add(Number(b)); LADDER_TOPS.add(t); }
+    replaceMap(SNAKE_RISE, s.sr);
+    replaceMap(LADDER_RISE, s.lr);
+    const oldStars = new Map(stars.map((x) => [x.tile, x]));
+    stars = s.st.map(([tile, value, hue]) => {
+      const o = oldStars.get(tile);
+      return { tile, value, hue, born: o && o.value === value ? o.born : (first ? -1 : timeElapsed) };
+    });
+    boardLap = s.bl; chainCount = s.cc; chainTimer = s.ct;
+    for (const ev of s.fx || []) playNetFx(ev);
+    if (turnChanged || first) paintTurnUi();
+    if (turnChanged || countChanged || first) paintSwapButtons();
+    updateHud();
+  }
+  function playNetFx(ev) {
+    switch (ev[0]) {
+      case 'toast': showToast(ev[1]); break;
+      case 'pop': addPopup(dX(ev[1]), dY(ev[2]), ev[3], ev[4]); break;
+      case 'burst': spawnBurst(dX(ev[1]), dY(ev[2]), ev[3], ev[4]); break;
+      case 'shake': triggerShake(ev[1], ev[2]); break;
+      case 'tone': playTone(ev[1], ev[2], ev[3], ev[4], ev[5]); break;
+      case 'coach': coach(ev[1], ev[2]); break;
+    }
+  }
+  // guest's frame: glide frogs and snakes towards the host's latest positions
+  function guestUpdate(dt) {
+    timeElapsed += dt;
+    const k = Math.min(1, dt * 16);
+    for (const f of frogs) {
+      if (f.tx === undefined) continue;
+      f.x += (f.tx - f.x) * k; f.y += (f.ty - f.y) * k;
+      f.tailHistory.unshift({ x: f.x, y: f.y });
+      while (f.tailHistory.length > 18) f.tailHistory.pop();
+    }
+    for (const h of hunters) {
+      if (h.tx === undefined) continue;
+      h.x += (h.tx - h.x) * k; h.y += (h.ty - h.y) * k;
+      if (h.tsegs && h.tsegs.length === h.segments.length) {
+        h.segments.forEach((p, i) => { p.x += (h.tsegs[i].x - p.x) * k; p.y += (h.tsegs[i].y - p.y) * k; });
+      }
+    }
+    if (shakeTimer > 0) shakeTimer = Math.max(0, shakeTimer - dt);
+    updateFx(dt);
+  }
+  // messages between the phones
+  function onNetData(m) {
+    if (!net || !m || typeof m !== 'object') return;
+    if (m.t === 'bye') { netLost(); return; }
+    if (isGuest()) {
+      if (m.t === 's' && state === 'PLAYING') applySnapshot(m);
+      return;
+    }
+    // host: what the guest's phone asks for
+    if (m.t === 'in') remoteIn = m;
+    else if (m.t === 'roll' && state === 'PLAYING' && turn === 1) rollDice();
+    else if (m.t === 'swap' && snakeOwner() === 1) switchHunter();
+    else if (m.t === 'reset' && (state === 'PLAYING' || state === 'PAUSED')) resetGameKeepScores();
+  }
+  // every frame: the host sends the board, the guest sends its steering
+  function netTick(dt) {
+    if (!net || state !== 'PLAYING') return;
+    netSendTimer -= dt;
+    if (netSendTimer > 0) return;
+    netSendTimer = NET_SEND_EVERY;
+    if (isHost()) netSend(netSnapshot());
+    else {
+      const s = localSteer();
+      netSend({ t: 'in', l: s.l ? 1 : 0, r: s.r ? 1 : 0, u: s.u ? 1 : 0, d: s.d ? 1 : 0, pa: s.pa ? 1 : 0, px: nX(s.px), py: nY(s.py) });
+    }
+  }
+  // the other phone left or the link broke: back to the home screen (same-screen ▶ still there)
+  function netLost() {
+    if (!net) return;
+    leaveOnline(true);
+    showNetPanel('lost');
+    netCodeEl.textContent = '🌐';
+    netStatus.textContent = '📶❌';
+  }
+  function leaveOnline(lost = false) {
+    if (!net) return;
+    if (!lost) netSend({ t: 'bye' });
+    trackEvent('game_over', { level: player.lap + 1, seconds: runSeconds(), score, tile: frogAt(player), role: net.role });
+    const n = net;
+    setTimeout(() => { try { n.conn.close(); } catch (e) {} try { n.peer.destroy(); } catch (e) {} }, 300);
+    net = null;
+    hideSecondChance();
+    stepQueue = 0;
+    turnEndPending = false;
+    for (const f of frogs) { f.anim = null; f.animQueue = []; }
+    hunters.length = 0;
+    snake = makeHunter();
+    hunters.push(snake);
+    btnPause.style.display = '';
+    btnRoll.style.opacity = ''; mobileDice.style.opacity = '';
+    paintSwapButtons();
+    state = 'MENU';
+    ovTitle.textContent = '🐍 🪜 🐸';
+    ovSub.innerHTML = ovSubDefault;
+    finalStats.style.display = 'none';
+    btnPause.textContent = '⏸';
+    renderTop5();
+    checkSavedRun();
+    overlay.classList.remove('hidden');
+  }
+
   let lastTime = performance.now();
   function loop(now) {
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
 
     update(dt);
+    netTick(dt);
 
     ctx.save();
     if (shakeTimer > 0) {

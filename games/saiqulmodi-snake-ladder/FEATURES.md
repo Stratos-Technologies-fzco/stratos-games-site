@@ -35,6 +35,17 @@
 - **Steering several snakes:** one is steered at a time (a pulsing ring around its head). **Q** or the **🐍⇄** button switches to the next one. Any of them catches the frog.
 - The 500 and the 5 are `LIVE_SNAKE_EVERY` and `LIVE_SNAKE_MAX` at the top of the script.
 
+## 4b. 🌐 Online: two phones, one room code
+- **Phone A** taps **🌐➕** on the home screen and gets a **4-digit room code** (for example 🌐 4821). Phone A is **🔴**.
+- **Phone B** taps **🌐🔢**, types the code, and the game starts on both phones. Phone B is **🔵**.
+- Each phone **rolls only for its own frog** (the dice is bright only on the phone whose turn it is) and **steers only its own team's snakes** (finger, arrows / WASD, Q / 🐍⇄).
+- Phone A runs the game and sends the board to phone B about 20 times a second; phone B sends its taps and steering. The two phones talk directly (PeerJS, file `peerjs.min.js` in this folder, MIT licence). The free PeerJS server is only used to find the other phone by its code. **No account, no key, no sign-up.**
+- **🏠** leaves the room; the other phone goes back to the home screen with **📶❌**. The same happens if the link breaks. Same-screen **▶** is always there.
+- **🔄 Reset** works from either phone. **⏸ Pause** is off online.
+- **No Stratos Coins online** (Stratos rule): no ↩ second chance and no 🎶 flute; the analytics events get an `online_` name (`online_level_start` …), so they never pay coins.
+- Online games are **not saved** for Continue, so they never overwrite the same-screen game.
+- A strict network (some offices / mobile carriers) can block a direct link between two phones; then 📶❌ shows and the players use same-screen play.
+
 ## 5. Idle snakes: enemies of both frogs
 - **9 snakes** show a **clear, outlined head with eyes and small fangs** in the middle of their square; the short body under it is faded and the tail is hidden.
 - Landing on a snake head **slides the frog down to the tail square** (−25 points per square lost).
@@ -73,6 +84,7 @@
 | Roll dice (active frog) | R / Space or 🎲 R | 🎲 button |
 | Steer your snake (other player) | Arrow keys / WASD or mouse | Hold a finger on the board |
 | Switch to your next live snake | Q or 🐍⇄ | 🐍⇄ button (next to 🎲) |
+| Online: make a room / join a room | 🌐➕ / 🌐🔢 on the home screen | same |
 | Reset (scores kept) | 🔄 twice | 🔄 twice |
 | Pause | P or ⏸ | ⏸ |
 | Mute | M or 🔊 | 🔊 |
@@ -120,4 +132,5 @@
 | 22 Nov 2026 | `30a727f` | This features file added to the game folder |
 | 22 Nov 2026 | `21f5d87` | Ladders short (10-20 squares) and faint thin lines; idle snake heads bigger, outlined and on the square centre with a faded body; new cover and clip |
 | 23 Nov 2026 | `a7b37f5` | 9 idle snakes instead of 7 (`IDLE_SNAKE_COUNT`); a moving snake never lands on a star |
-| 23 Nov 2026 | (this commit) | Extra live snakes: +1 per 500 points of the moving frog's team, max 5; Q / 🐍⇄ switches the steered snake |
+| 23 Nov 2026 | `a678262` | Extra live snakes: +1 per 500 points of the moving frog's team, max 5; Q / 🐍⇄ switches the steered snake |
+| 23 Nov 2026 | (this commit) | 🌐 Online on two phones with a 4-digit room code (PeerJS, no account); no coins and no save online; page text updated (9 snakes, extra snakes, online) |

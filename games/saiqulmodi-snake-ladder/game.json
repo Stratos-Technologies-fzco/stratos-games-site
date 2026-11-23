@@ -3,11 +3,13 @@
   "maker": "Saiqul Modi",
   "github": "saiqulmodi",
   "category": "arcade",
-  "how_to_play": "Two players share one screen: the red and blue frogs take turns rolling two dice, while the other player steers their own live snake to catch the frog that is moving. Climb ladders, dodge snake heads, grab the numbered stars, and keep going past 100, 200, 300 and on.",
-  "description": "Snake Ladder is the classic 1 to 100 board game rebuilt as a two-player duel on one phone or computer. The red team and the blue team each have a frog and a live snake. The frogs only move with the dice: roll two dice and your frog steps forward 2 to 12 squares, one square at a time, so every move is easy to follow.\n\nThe twist is that the hands swap after every roll. While the red player rolls for the red frog, the blue player steers the blue snake with a finger, the mouse or the arrow keys, and tries to catch the red frog before its move is over. Then the dice passes: blue rolls, red hunts. The snake moves at the same speed as a hopping frog, starts just behind it, and if its head reaches the frog, the frog drops ten squares and the snake grows longer.\n\nThe board has its own dangers and helpers for both teams. Seven idle snakes peek out of holes with small fangs: land on a snake head and you slide down to its tail. Seven ladders lift any frog up and pay 200 points. Colourful stars worth 1 to 6 are scattered on random squares; land on one or hop over it for 100 to 600 points, and collect several in one move for a chain bonus.\n\nThere is no game over. Reaching 100 pays 1000 points and the frog carries straight on to 101 on a fresh board of snakes and ladders, then 201, 301 and onward for as long as you both want to play. The Reset button starts a new game on a new board with both frogs back on square 1 while keeping both scores. Your game saves after every move, so Continue brings both frogs, the board and the stars back exactly where you left them.",
+  "how_to_play": "Two players share one screen or play online on two phones with a room code: the red and blue frogs take turns rolling two dice, while the other player steers their own live snake to catch the frog that is moving. Climb ladders, dodge snake heads, grab the numbered stars, and keep going past 100, 200, 300 and on.",
+  "description": "Snake Ladder is the classic 1 to 100 board game rebuilt as a two-player duel on one phone or computer. The red team and the blue team each have a frog and a live snake. The frogs only move with the dice: roll two dice and your frog steps forward 2 to 12 squares, one square at a time, so every move is easy to follow.\n\nThe twist is that the hands swap after every roll. While the red player rolls for the red frog, the blue player steers the blue snake with a finger, the mouse or the arrow keys, and tries to catch the red frog before its move is over. Then the dice passes: blue rolls, red hunts. The snake moves at the same speed as a hopping frog, starts just behind it, and if its head reaches the frog, the frog drops ten squares and the snake grows longer. The further a team pulls ahead, the harder it is hunted: for every 500 points a frog's team has, the other team gets one more live snake, up to five, and switches between them with Q or the snake button.\n\nThe board has its own dangers and helpers for both teams. Nine idle snakes peek out of holes with small fangs: land on a snake head and you slide down to its tail. Seven ladders lift any frog up and pay 200 points. Colourful stars worth 1 to 6 are scattered on random squares; land on one or hop over it for 100 to 600 points, and collect several in one move for a chain bonus.\n\nThere is no game over. Reaching 100 pays 1000 points and the frog carries straight on to 101 on a fresh board of snakes and ladders, then 201, 301 and onward for as long as you both want to play. You can also play online on two phones: one phone taps the globe-plus button and gets a four-digit room code, the other taps the globe-number button and types it. Each phone then rolls for its own frog and steers its own team's snakes, with no account and no sign-up.\n\nThe Reset button starts a new game on a new board with both frogs back on square 1 while keeping both scores. Your game saves after every move, so Continue brings both frogs, the board and the stars back exactly where you left them.",
   "controls": [
     "Roll the dice for the frog whose turn it is: R or Space, the 🎲 button, or the round dice button on a phone",
     "Steer your team's live snake while the other frog moves: hold a finger or the mouse on the board, or use the Arrow keys / WASD",
+    "Several live snakes: Q or the 🐍⇄ button switches which one you steer",
+    "Online on two phones: 🌐➕ makes a room and shows a 4-digit code, 🌐🔢 joins it; 🏠 leaves the room",
     "🔄 Reset (tap twice): both frogs back to square 1 on a new board, scores kept",
     "P to pause, M to mute, H or 🏠 to save and go home"
   ],
@@ -20,12 +22,22 @@
     "Use 🔄 Reset for a fresh board when you want a new game without losing your scores."
   ],
   "faq": [
-    {"q": "Can two people play on one phone?", "a": "Yes. It is made for two players on one screen: one rolls for their frog while the other steers their snake, and the roles swap after every roll."},
-    {"q": "Does the game end at 100?", "a": "No. Reaching 100 pays 1000 points and the frog goes on to 101 on a new board, then 200, 300 and onward with no limit."}
+    {
+      "q": "Can two people play on one phone?",
+      "a": "Yes. It is made for two players on one screen: one rolls for their frog while the other steers their snake, and the roles swap after every roll."
+    },
+    {
+      "q": "Can two people play online on two phones?",
+      "a": "Yes. One phone taps 🌐➕ and gets a four-digit room code, the other taps 🌐🔢 and types it. No account or sign-up is needed. Online games are not saved for Continue and do not use Stratos Coins."
+    },
+    {
+      "q": "Does the game end at 100?",
+      "a": "No. Reaching 100 pays 1000 points and the frog goes on to 101 on a new board, then 200, 300 and onward with no limit."
+    }
   ],
   "story": "Inspired by childhood evenings playing Snakes and Ladders on a wooden board, rebuilt so two friends can race their frogs and hunt each other with their own snakes.",
   "resume": {
     "native": true,
-    "how": "Both frogs' squares, hundreds and scores, the turn, the board and the stars save automatically after every move; the home screen's Continue button takes you straight back."
+    "how": "Both frogs' squares, hundreds and scores, the turn, the board and the stars save automatically after every move; the home screen's Continue button takes you straight back. Online games on two phones are not saved."
   }
 }
