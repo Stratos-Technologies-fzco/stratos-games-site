@@ -1605,7 +1605,7 @@ function buildBike() {
   var sph = new THREE.SphereGeometry(1, 16, 12), bx = new THREE.BoxGeometry(1, 1, 1), cy = new THREE.CylinderGeometry(1, 1, 1, 12), dome = new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
   var glowTex = radialTex('rgba(255,255,255,.9)', 'rgba(255,255,255,0)'), flTex = radialTex('rgba(160,220,255,1)', 'rgba(40,120,255,0)');
   var fg0 = new THREE.ConeGeometry(0.11, 1, 8); fg0.translate(0, 0.5, 0); fg0.rotateX(Math.PI / 2);
-  function mk(g, m, x, y, z, sx, sy, sz) { var o = new THREE.Mesh(g, m); o.position.set(x, y, z); if (sx != null) o.scale.set(sx, sy, sz == null ? sx : sz); return o; }
+  function mk(g, m, x, y, z, sx, sy, sz) { var o = new THREE.Mesh(g, m); o.position.set(x, y, z); if (sx != null) o.scale.set(sx, sy == null ? sx : sy, sz == null ? sx : sz); return o; }
   function limb(a, b, r, m) {
     var A = new THREE.Vector3(a[0], a[1], a[2]), B = new THREE.Vector3(b[0], b[1], b[2]), d = B.clone().sub(A), len = d.length();
     var o = new THREE.Mesh(cy, m); o.scale.set(r, len, r); o.position.copy(A.clone().add(B).multiplyScalar(0.5)); o.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); return o;

@@ -20,6 +20,7 @@ window.DF = window.DF || {};
     opts = opts || {};
     var st = UI.st; st.confirm = false; st.newConfirm = false; st.modal = false; st.restartConfirm = false;
     Nav.state = state;
+    if (DF.fit) DF.fit();
     var m = MUSIC[state]; if (m && !opts.keepMusic) A.play(m, 900);
     if (state === 'sanctuary' || state === 'missions') { if (DF.rollDaily(sv())) DF.Store.saveSoon(sv()); }
     if (state === 'sanctuary' && !DF.objectiveUnlocked(sv(), st.obj)) { st.obj = 'egg'; st.biome = 'verdant'; }
@@ -294,11 +295,28 @@ window.DF = window.DF || {};
   });
 
   /* ---------- focus, resize, visibility ---------- */
+  /* Phone held upright: the home screens (loading, privacy, title) have their own portrait layout.
+     Everything past them is the landscape game, so only then does it ask the player to rotate. */
+  var HOME = { loading: 1, privacy: 1, title: 1, error: 1 };
+  function isPortrait() { return window.innerHeight > window.innerWidth && window.innerWidth <= 700; }
   function fit() {
-    var iw = window.innerWidth, ih = window.innerHeight, sc = Math.min(iw / 844, ih / 390), st = document.getElementById('stage');
-    Nav.scale = sc; st.style.transform = 'translate(' + Math.round((iw - 844 * sc) / 2) + 'px,' + Math.round((ih - 390 * sc) / 2) + 'px) scale(' + sc + ')';
-    if (G.resize) G.resize(sc);
+    var iw = window.innerWidth, ih = window.innerHeight, st = document.getElementById('stage'), por = isPortrait();
+    var pm = por && !!HOME[Nav.state], was = !!DF.pm;
+    DF.pm = pm;
+    document.body.classList.toggle('pm', pm);
+    document.body.classList.toggle('needrot', por && !HOME[Nav.state]);
+    if (pm) {
+      Nav.scale = 1; st.style.width = iw + 'px'; st.style.height = ih + 'px'; st.style.transform = 'none';
+      if (G.resize) G.resize(1);
+    } else {
+      var sc = Math.min(iw / 844, ih / 390);
+      st.style.width = '844px'; st.style.height = '390px';
+      Nav.scale = sc; st.style.transform = 'translate(' + Math.round((iw - 844 * sc) / 2) + 'px,' + Math.round((ih - 390 * sc) / 2) + 'px) scale(' + sc + ')';
+      if (G.resize) G.resize(sc);
+    }
+    if (pm !== was && UI.cur && HOME[UI.cur]) UI.refresh(); // swap between portrait and landscape layout
   }
+  DF.fit = fit;
   window.addEventListener('resize', function () { fit(); if (Nav.state === 'hud') pause(); });
   window.addEventListener('orientationchange', function () { setTimeout(function () { fit(); if (Nav.state === 'hud') pause(); }, 200); });
   document.addEventListener('visibilitychange', function () { if (document.hidden && Nav.state === 'hud') pause(); });

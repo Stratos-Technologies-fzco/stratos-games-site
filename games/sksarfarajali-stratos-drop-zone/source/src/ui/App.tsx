@@ -36,6 +36,7 @@ export function App() {
     return () => g.dispose();
   }, []);
 
+  useEffect(() => { document.documentElement.dataset.screen = screen; }, [screen]);
   const g = game.current; const hud = g?.hud;
   const launch = async (m: 'solo' | 'training', d: boolean) => {
     if (!g) return; localStorage.setItem('sdz-sv', sv); setScreen('match'); setPause(false);

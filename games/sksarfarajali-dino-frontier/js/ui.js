@@ -25,15 +25,16 @@ window.DF = window.DF || {};
       : '<div class="col" style="gap:10px"><div class="row" style="justify-content:space-between;font-size:14px;font-weight:700"><span>' + L.title + '</span><span id="ld-pct">' + pct + '%</span></div>' +
         '<div role="progressbar" aria-label="Loading progress" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" id="ld-pb" style="height:10px;border-radius:99px;background:var(--line);overflow:hidden"><div id="ld-bar" style="height:100%;width:' + pct + '%;background:var(--gold);border-radius:99px;transition:width .2s"></div></div>' +
         '<div style="font-size:13.5px;color:var(--mut)"><b style="color:var(--gold)">' + L.tip + '</b> ' + tip + '</div></div>';
+    var pmL = DF.pm ? 'left:24px;right:24px;bottom:max(36px,env(safe-area-inset-bottom))' : 'left:48px;right:48px;bottom:36px';
     return '<div class="scr solid"><img class="bgimg" src="' + img('canyon_styracosaur') + '" alt="" style="opacity:.55"><div class="fill" style="background:linear-gradient(to top,rgba(14,23,18,.95) 30%,rgba(14,23,18,.2))"></div>' +
-      '<div class="col" style="position:absolute;left:48px;right:48px;bottom:36px;gap:14px"><div class="serif" style="font-size:34px;font-weight:700">' + S.game + '</div>' + body + '</div></div>';
+      '<div class="col" style="position:absolute;' + pmL + ';gap:14px"><div class="serif" style="font-size:34px;font-weight:700">' + S.game + '</div>' + body + '</div></div>';
   };
 
   /* ---------- SCR-16 Privacy ---------- */
   T.privacy = function () {
-    var P = S.privacy;
+    var P = S.privacy, pw = DF.pm ? 'width:100%;max-height:100%;overflow:auto;' : 'width:560px;';
     return '<div class="scr solid"><img class="bgimg" src="' + img('other_9') + '" alt="" style="opacity:.35">' +
-      '<div class="fill row" style="justify-content:center;padding:20px"><div role="dialog" aria-labelledby="pv-title" class="col" style="width:560px;padding:22px 26px;border-radius:18px;background:var(--card);border:1px solid var(--line);gap:12px">' +
+      '<div class="fill row" style="justify-content:center;padding:' + (DF.pm ? '14px' : '20px') + '"><div role="dialog" aria-labelledby="pv-title" class="col" style="' + pw + 'padding:22px 26px;border-radius:18px;background:var(--card);border:1px solid var(--line);gap:12px">' +
       '<h2 id="pv-title" class="serif" style="margin:0;font-size:22px">' + P.title + '</h2>' +
       '<p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--soft)">' + P.p1 + '</p>' +
       '<div class="row" style="gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:13.5px"><span style="flex:none;font-weight:800;padding:3px 8px;border-radius:8px;border:1.5px solid var(--gold);color:var(--gold2)">13+</span><span>' + P.age + '</span></div>' +
@@ -46,9 +47,24 @@ window.DF = window.DF || {};
     return '<div class="dialog"><div class="box" role="dialog" aria-label="' + title + '"><h2 class="serif" style="margin:0;font-size:20px">' + title + '</h2><p style="margin:0;font-size:14px;line-height:1.55;color:var(--soft)">' + body + '</p><button class="btn pri" data-act="closeModal" data-focus>OK</button></div></div>';
   }
 
+  function titlePortrait(has, sv, C) {
+    return '<div class="scr solid"><img class="bgimg" src="' + img('other_9') + '" alt="" style="object-position:68% 50%">' +
+      '<div class="fill" style="background:linear-gradient(to top,rgba(14,23,18,.97) 38%,rgba(14,23,18,.55) 62%,rgba(14,23,18,0) 85%)"></div>' +
+      '<button data-act="stratos" style="position:absolute;left:12px;top:max(12px,env(safe-area-inset-top));font-size:13px;font-weight:700;padding:10px 12px;border-radius:10px;background:rgba(14,23,18,.75);color:var(--text);border:0">' + C.stratos + '</button>' +
+      '<div class="col" style="position:absolute;left:22px;right:22px;bottom:max(22px,env(safe-area-inset-bottom));gap:12px">' +
+      '<h1 class="serif" style="margin:0;font-size:46px;font-weight:700;line-height:1">Dino<br>Frontier</h1>' +
+      '<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin-bottom:6px">' + S.tagline.replace('&', '&amp;') + '</div>' +
+      (has ? '<button class="btn pri" data-act="continue" data-focus style="justify-content:space-between;height:54px"><span>' + C.cont + '</span><span style="font-size:13px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
+      '<button class="btn ' + (has ? 'sec' : 'pri') + '" data-act="newGame" ' + (has ? '' : 'data-focus') + ' style="height:54px">' + C.newGame + '</button>' +
+      '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><button class="btn ghost" data-act="lore" aria-label="' + C.storyAria + '">' + C.story + '</button><button class="btn ghost" data-act="demo" aria-label="' + C.demoAria + '">' + C.demo + '</button><button class="btn ghost" data-act="settings">' + C.settings + '</button><button class="btn ghost" data-act="credits">' + C.credits + '</button></div>' +
+      '<div style="font-size:13px;color:var(--soft);text-align:center;line-height:1.4">' + (has ? C.replaceNote + '<br>' : '') + C.turn + '</div></div>' +
+      (UI.st.newConfirm ? '<div class="dialog" style="padding:16px"><div class="box" style="width:100%" role="dialog" aria-labelledby="nc"><h2 id="nc" class="serif" style="margin:0;font-size:22px">' + C.confirmTitle + '</h2><p style="margin:0;font-size:14px;line-height:1.5;color:var(--soft)">' + F(C.confirmBody, { lv: sv.player.level, tokens: sv.inventory.frontierTokens }) + '</p><button class="btn danger" data-act="newGameYes">' + C.confirmYes + '</button><button class="btn pri" data-act="newGameNo" data-focus style="height:44px;font-size:15px">' + C.confirmNo + '</button></div></div>' : '') + '</div>';
+  }
+
   /* ---------- SCR-03 Title ---------- */
   T.title = function () {
     var has = DF.hasSave, sv = DF.save, C = S.title;
+    if (DF.pm) return titlePortrait(has, sv, C);
     return '<div class="scr solid"><img class="bgimg" src="' + img('other_9') + '" alt="">' +
       '<div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,.94) 0%,rgba(14,23,18,.7) 42%,rgba(14,23,18,0) 75%)"></div>' +
       '<div class="col" style="position:absolute;left:44px;top:34px;bottom:28px;width:320px;gap:10px">' +

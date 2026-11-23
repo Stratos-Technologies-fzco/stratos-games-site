@@ -61,6 +61,7 @@ export function Lobby(p: LobbyProps) {
         <div class="lb-info">Vayu Island · 24 players · bots fill the empty slots</div>
         <button class="play pulse" onClick={p.onPlay}>PLAY</button>
         <div class="lb-hint">Tap SOLO or PLAY to start a match</div>
+        <div class="lb-rotate-note">Turn your phone sideways when the match starts.</div>
       </div>
 
       <nav class="lb-nav" aria-label="Menu">

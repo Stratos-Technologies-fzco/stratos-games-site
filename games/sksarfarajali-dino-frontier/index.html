@@ -67,7 +67,8 @@ a{color:var(--gold)}
 #rotate{position:fixed;inset:0;background:#060a08;color:var(--text);display:none;z-index:99;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;padding:24px;font-weight:800;font-size:18px}
 #rotate svg{animation:rot 2.4s ease-in-out infinite}
 @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-@media (orientation:portrait) and (max-width:700px){#rotate{display:flex}}
+body.needrot #rotate{display:flex}
+body.pm #stage{box-shadow:none}
 .rm #rotate svg{animation:none}
 input[type=range]{accent-color:var(--gold);flex:1;height:28px}
 input[type=checkbox]{width:22px;height:22px;accent-color:var(--gold);margin:0;flex:none}
