@@ -178,7 +178,7 @@ class FarmController {
     playSfx('harvest_pop');
     h.forEach((x, i) => {
       const plot = snap.plots.find((p) => p.id === x.plotId)!;
-      setTimeout(() => bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, cropFrame: `${x.cropId}_3`, lines: [`+${x.amount} ${x.cropId}`, `+${x.xp} XP`] }), i * 90);
+      setTimeout(() => bus.emit('fx:float', { gx: plot.gx, gy: plot.gy, cropFrame: CROP_BY_ID.get(x.cropId)?.bed /* a raised bed is too big to float up: use the small icon */ ? `item_${x.cropId}` : `${x.cropId}_3`, lines: [`+${x.amount} ${x.cropId}`, `+${x.xp} XP`] }), i * 90);
     });
   }
 

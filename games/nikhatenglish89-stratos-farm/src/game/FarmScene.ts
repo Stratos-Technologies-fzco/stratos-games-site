@@ -3,7 +3,7 @@ import { DEFAULT_ISO, depthKey, gridToScreen, rectBounds, screenToGrid } from '.
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
 import { farmLayout as L, fieldAtCell, isLive, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, placedAt, terrainFrameAt } from './layout';
-import { BUILDING_BY_ID, OBSTACLE_TYPE_BY_ID } from '../services/data';
+import { BUILDING_BY_ID, CROP_BY_ID, OBSTACLE_TYPE_BY_ID } from '../services/data';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
 import { farm } from './controller';
@@ -72,6 +72,7 @@ export class FarmScene extends Phaser.Scene {
       cam.pan(p.x, p.y - 40, effectsOn() ? 600 : 0, 'Sine.easeInOut');
     });
     this.buildPlots();
+    this.refreshPlots();   // crops (and raised beds) are right from the first frame
     this.layer = new BuildingsLayer(this, this.occ, (gx, gy) => isBuildableTile(L, gx, gy, useFarm.getState().expanded, useFarm.getState().moved));
     this.layer.sync();
     this.obstacles = new ObstaclesLayer(this, this.occ);
@@ -110,6 +111,7 @@ export class FarmScene extends Phaser.Scene {
     for (let gx = 0; gx < L.cols; gx++) for (let gy = 0; gy < L.rows; gy++) {
       const t = terrainFrameAt(L, gx, gy, expanded, moved);
       if (!t.frame) continue;
+      t.frame = this.tileFrame(gx, gy, t.frame);   // under a raised bed: grass, the bed picture is the soil
       this.land.add(`${gx},${gy}`);
       const k = `${gx},${gy}`, have = this.tiles.get(k);
       if (!have) {
@@ -174,6 +176,7 @@ export class FarmScene extends Phaser.Scene {
     }
     for (const sp of this.plotSprites.values()) { this.tweens.killTweensOf(sp.bubble); sp.crop.destroy(); sp.bubble.destroy(); }
     this.plotSprites.clear();
+    this.beds.clear();   // refreshPlots puts them back where the crops stand now
     this.buildPlots();
     this.refreshPlots();
   }
@@ -235,16 +238,34 @@ export class FarmScene extends Phaser.Scene {
     const plot = useFarm.getState().plots.find((p) => p.id === id);
     if (!sp || !plot) return;
     const stage = cropStage(plot, farm.now());
-    if (stage === null) { sp.crop.setVisible(false); sp.bubble.setVisible(false); return; }
-    const frame = `${plot.cropId}_${stage === 0 ? 1 : stage}`;   // the very first stage is only a few specks: show the young plant, a little smaller
+    if (stage === null) { sp.crop.setVisible(false); sp.bubble.setVisible(false); this.setBed(plot.gx, plot.gy, false); return; }
+    const bed = !!CROP_BY_ID.get(plot.cropId!)?.bed;    // a raised bed: its picture is the soil too, always shown whole and full size
+    this.setBed(plot.gx, plot.gy, bed);
+    const frame = `${plot.cropId}_${stage === 0 && !bed ? 1 : stage}`;   // the very first stage is only a few specks: show the young plant, a little smaller
     const changed = sp.crop.frame.name !== frame || !sp.crop.visible;
-    const rest = stage === 0 ? 0.8 : 1;                 // so a freshly planted field is obvious at a glance
+    const rest = stage === 0 && !bed ? 0.8 : 1;         // so a freshly planted field is obvious at a glance
     sp.crop.setFrame(frame).setOriginFromFrame().setVisible(true);
     sp.bubble.setVisible(stage === 3);
     if (pop && changed && effectsOn()) {
       sp.crop.setScale(0.6);
       this.tweens.add({ targets: sp.crop, scale: rest, duration: 260, ease: 'Back.easeOut' });
     } else if (!this.tweens.isTweening(sp.crop)) sp.crop.setScale(rest);
+  }
+
+  /** Tiles whose soil is hidden because a raised-bed crop (its own picture, wooden rim and all) stands on them. */
+  private beds = new Set<string>();
+  private grassAt(gx: number, gy: number) { return L.terrain.default[(gx * 7 + gy * 3) % L.terrain.default.length]; }
+  /** What a tile shows: plain grass under a raised bed (the bed picture replaces the soil), otherwise what the land is. */
+  private tileFrame(gx: number, gy: number, land: string) { return this.beds.has(`${gx},${gy}`) ? this.grassAt(gx, gy) : land; }
+  private setBed(gx: number, gy: number, on: boolean) {
+    const k = `${gx},${gy}`;
+    if (on === this.beds.has(k)) return;
+    if (on) this.beds.add(k); else this.beds.delete(k);
+    const img = this.tiles.get(k);
+    if (!img) return;
+    const { expanded, moved } = useFarm.getState();
+    const f = this.tileFrame(gx, gy, terrainFrameAt(L, gx, gy, expanded, moved).frame);
+    if (f && img.frame.name !== f) img.setFrame(f).setOriginFromFrame();
   }
 
   private refreshPlots() { for (const id of this.plotSprites.keys()) this.renderPlot(id); }
@@ -261,7 +282,7 @@ export class FarmScene extends Phaser.Scene {
     while (this.recentFloats.some((f) => Math.abs(f.x - p.x) < 80 && Math.abs(f.y - (p.y - lift)) < 32 * Math.max(1, lines.length))) lift += 32 * lines.length;
     this.recentFloats.push({ x: p.x, y: p.y - lift, until: now + 900 });
     if (cropFrame && fancy) {
-      const icon = this.add.image(p.x, p.y - lift, 'atlas_crops', cropFrame).setOriginFromFrame().setDepth(depth).setScale(0.8);
+      const icon = this.add.image(p.x, p.y - lift, ...(cropFrame.startsWith('item_') ? ['atlas_icons', cropFrame] : ['atlas_crops', cropFrame]) as [string, string]).setOriginFromFrame().setDepth(depth).setScale(0.8);
       this.tweens.add({ targets: icon, y: p.y - lift - 90, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => icon.destroy() });
     }
     lines.forEach((line, i) => {
@@ -614,6 +635,9 @@ export class FarmScene extends Phaser.Scene {
       },
       /** Fast-forward service time (debug only). */
       advance: (ms: number) => { farm.service.advance(ms); this.refreshPlots(); },
+      /** The picture a ground tile and a crop show right now, for tests. */
+      tileFrame: (gx: number, gy: number) => this.tiles.get(`${gx},${gy}`)?.frame.name ?? null,
+      crop: (id: string) => { const c = this.plotSprites.get(id)?.crop; return c && c.visible ? { frame: c.frame.name, scale: c.scale, depth: c.depth } : null; },
       zoom: () => this.cameras.main.zoom,
       scroll: () => ({ x: this.cameras.main.scrollX, y: this.cameras.main.scrollY }),
       canvasSize: () => ({ w: this.scale.width, h: this.scale.height }),

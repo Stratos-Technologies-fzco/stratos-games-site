@@ -20,7 +20,7 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | Key | Image | Size | Frames | KB |
 |---|---|---|---|---|
 | atlas_terrain | `assets/farm/atlases/atlas_terrain.png` | 512×494 | 20 | 32.1 |
-| atlas_crops | `assets/farm/atlases/atlas_crops.png` | 1024×1300 | 64 | 340.6 |
+| atlas_crops | `assets/farm/atlases/atlas_crops.png` | 1024×1300 | 64 | 359.2 |
 | atlas_animals | `assets/farm/atlases/atlas_animals.png` | 512×770 | 45 | 103.5 |
 | atlas_buildings | `assets/farm/atlases/atlas_buildings.png` | 1024×1660 | 15 | 185.4 |
 | atlas_habitats | `assets/farm/atlases/atlas_habitats.png` | 1024×708 | 9 | 125.1 |
@@ -98,10 +98,10 @@ Every asset that ships with the game. Produced to the art direction and asset po
 | sunflower_1 | `public/assets/farm/crops/sunflower_1.png` | 128×128 | sprout | 64,64 | atlas_crops | same | same | v1 |
 | sunflower_2 | `public/assets/farm/crops/sunflower_2.png` | 128×128 | growing | 64,64 | atlas_crops | same | same | v1 |
 | sunflower_3 | `public/assets/farm/crops/sunflower_3.png` | 128×128 | ready | 64,64 | atlas_crops | same | same | v1 |
-| tomato_0 | `public/assets/farm/crops/tomato_0.png` | 128×128 | planted | 64,64 | atlas_crops | same | same | v1 |
-| tomato_1 | `public/assets/farm/crops/tomato_1.png` | 128×128 | sprout | 64,64 | atlas_crops | same | same | v1 |
-| tomato_2 | `public/assets/farm/crops/tomato_2.png` | 128×128 | growing | 64,64 | atlas_crops | same | same | v1 |
-| tomato_3 | `public/assets/farm/crops/tomato_3.png` | 128×128 | ready | 64,64 | atlas_crops | same | same | v1 |
+| tomato_0 | `public/assets/farm/crops/tomato_0.png` | 128×128 | planted; raised bed, v1.1 | 64,64 | atlas_crops | same | same | v1.1 |
+| tomato_1 | `public/assets/farm/crops/tomato_1.png` | 128×128 | sprout; raised bed, v1.1 | 64,64 | atlas_crops | same | same | v1.1 |
+| tomato_2 | `public/assets/farm/crops/tomato_2.png` | 128×128 | growing; raised bed, v1.1 | 64,64 | atlas_crops | same | same | v1.1 |
+| tomato_3 | `public/assets/farm/crops/tomato_3.png` | 128×128 | ready; raised bed, v1.1 | 64,64 | atlas_crops | same | same | v1.1 |
 | wheat_0 | `public/assets/farm/crops/wheat_0.png` | 128×128 | planted | 64,64 | atlas_crops | same | same | v1 |
 | wheat_1 | `public/assets/farm/crops/wheat_1.png` | 128×128 | sprout | 64,64 | atlas_crops | same | same | v1 |
 | wheat_2 | `public/assets/farm/crops/wheat_2.png` | 128×128 | growing | 64,64 | atlas_crops | same | same | v1 |

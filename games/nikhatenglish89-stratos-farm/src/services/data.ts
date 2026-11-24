@@ -10,6 +10,8 @@ import obstaclesJson from '../data/obstacles.json';
 export interface CropDef {
   id: string; name: string; seedCost: number; growSeconds: number;
   yield: number; xp: number; unlockLevel: number; sellPrice: number;
+  /** the crop picture is a whole raised bed: it replaces the soil tile under it instead of standing on it */
+  bed?: boolean;
 }
 export interface ItemDef { id: string; name: string; sellPrice: number; kind: 'crop' | 'animal' | 'product' | 'material'; /** art that is not in the item icon atlas */ icon?: { atlas: string; frame: string } }
 export interface AnimalDef {

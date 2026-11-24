@@ -43,6 +43,7 @@
   {
    "id": "tomato",
    "name": "Tomato",
+   "bed": true,
    "seedCost": 12,
    "growSeconds": 1200,
    "yield": 3,
