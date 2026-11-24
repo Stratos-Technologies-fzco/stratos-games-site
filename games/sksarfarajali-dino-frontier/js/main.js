@@ -21,6 +21,7 @@ window.DF = window.DF || {};
     var st = UI.st; st.confirm = false; st.newConfirm = false; st.modal = false; st.restartConfirm = false;
     Nav.state = state;
     if (DF.fit) DF.fit();
+    if (state === 'title' && !Nav.offered && DF.hasSave) { Nav.offered = true; offerResume(); }
     var m = MUSIC[state]; if (m && !opts.keepMusic) A.play(m, 900);
     if (state === 'sanctuary' || state === 'missions') { if (DF.rollDaily(sv())) DF.Store.saveSoon(sv()); }
     if (state === 'sanctuary' && !DF.objectiveUnlocked(sv(), st.obj)) { st.obj = 'egg'; st.biome = 'verdant'; }
@@ -89,7 +90,43 @@ window.DF = window.DF || {};
   function reducedMotionPref() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
 
   /* ---------- run lifecycle ---------- */
+  /* the HUD refreshes ten times a second; the run in progress is saved every few seconds, so leaving at any moment loses almost nothing */
+  function saveRun() {
+    if (!G.isRunning() || !G.S || G.S.demo || G.S.tut) return;
+    var snap = G.runSnapshot();
+    if (snap) { var on = S.obj[snap.objective]; DF.Store.saveRun(snap, (on ? on.name : 'Expedition') + ' · ' + (snap.pct | 0) + '%'); } else if (G.S.ending > 0) DF.Store.clearRun();   // going down or won: nothing to resume
+  }
+  function startHudTimer() {
+    clearInterval(Nav.hudTimer);
+    Nav.hudTimer = setInterval(function () {
+      if (Nav.state === 'hud' && !G.isPaused()) { UI.hudTick(G.snapshot()); if (Date.now() - (Nav.runSaveAt || 0) > 3000) { Nav.runSaveAt = Date.now(); saveRun(); } }
+    }, 100);
+  }
+  /* Title screen: pick the unfinished expedition up again. It comes back on the pause menu, so it never carries on by itself. */
+  function resumeRun(given) {
+    var snap = given || DF.Store.loadRun(), s = sv();
+    if (!DF.Store.validRun(snap) || !DF.objectiveUnlocked(s, snap.objective)) { DF.Store.clearRun(); UI.refresh(); return; }
+    var objId = snap.objective, m = /-r(\d+)$/.exec(snap.runId);
+    Nav.restarts = m ? +m[1] : 0; Nav.run = { objId: objId, tutorial: false, runId: snap.runId };
+    A.setDuck(1); A.stopStinger && A.stopStinger(); A.play(M.hud, 900); A.preload('03-combat-raider-ambush');
+    if (B.objectives[objId] && B.objectives[objId].bossId) A.preload('04-boss-thornback');
+    go('hud', { tutorial: false, objId: objId }, { keepMusic: true }); G.resize(Nav.scale);
+    G.start({ objective: objId, tutorial: false, runId: snap.runId });
+    if (!G.restoreRun(snap)) { DF.Store.clearRun(); leaveRun(); go('title'); return; }
+    if (snap.boss && !snap.boss.asleep) A.play('04-boss-thornback', 700);
+    Nav.runSaveAt = Date.now(); startHudTimer(); DF.track('run_resumed', { objective: objId });
+    pause();
+  }
+  /* The site's shared prompt: when the game opens at its menu and an unfinished expedition is saved, ask "Continue where you left off?". The site script can load a moment after
+     the game, so wait for it for up to 4 seconds; only ask while the player has not started anything. Restoring never pays anything again. */
+  function offerResume(tries) {
+    var R = DF.Store.sharedResume(); tries = tries || 0;
+    if (!R) { if (tries < 40) setTimeout(function () { offerResume(tries + 1); }, 100); return; }
+    if (Nav.state !== 'title' || !R.has({ ver: 1 })) return;
+    R.offer(function (saved) { if (Nav.state === 'title') resumeRun(saved); }, function () { DF.Store.clearRun(); if (Nav.state === 'title') UI.refresh(); }, { ver: 1 });
+  }
   function startRun(objId, tutorial, restart) {
+    if (!tutorial) DF.Store.clearRun();   // starting a new expedition replaces an unfinished one
     var s = sv(), resumingTutorial = tutorial && s.progress.expeditions > 0 && !s.profile.tutorialCompleted;
     if (!restart && !resumingTutorial) { s.progress.expeditions++; refreshHasSave(); persist(); }
     var base = 'exp-' + s.progress.expeditions;
@@ -101,15 +138,14 @@ window.DF = window.DF || {};
     go('hud', { tutorial: !!tutorial, objId: objId }, { keepMusic: true });
     G.resize(Nav.scale);
     G.start({ objective: objId, tutorial: !!tutorial, runId: Nav.run.runId });
-    clearInterval(Nav.hudTimer);
-    Nav.hudTimer = setInterval(function () { if (Nav.state === 'hud' && !G.isPaused()) UI.hudTick(G.snapshot()); }, 100);
+    startHudTimer();
     DF.track('level_start', runInfo(objId, !!tutorial)); if (tutorial) DF.track('tutorial_start', {}); if (restart) DF.track('level_restart', { objective: objId });
   }
   /* the facts every run event carries, so the dashboard can slice by biome, level and form */
   function runInfo(objId, tutorial) { var s = sv(); return { objective: tutorial ? 'tutorial' : objId, biome: DF.biomeOf(objId) || '', level: s.player.level, form: s.profile.selectedEvolution || 'starter', tutorial: tutorial ? 1 : 0 }; }
   function pause() {
     if (Nav.state !== 'hud' || !G.isRunning()) return;
-    G.pause(); var snap = G.snapshot(); A.setDuck(0.3);
+    G.pause(); saveRun(); var snap = G.snapshot(); A.setDuck(0.3);
     UI.st.restartConfirm = false; go('pause', { snap: snap, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true });
   }
   function resume() { A.setDuck(1); go('hud', { tutorial: Nav.run.tutorial, objId: Nav.run.objId, demo: !!Nav.demo }, { keepMusic: true }); if (Nav.demo) UI.demoMode(); G.resume(); }
@@ -118,6 +154,7 @@ window.DF = window.DF || {};
   /* Commit rewards once, update progress, then show the summary (SCR-07). */
   function endRun(res) {
     if (Nav.demo) { endDemo(); return; }
+    DF.Store.clearRun();   // the expedition is over
     clearInterval(Nav.hudTimer);
     var s = sv(), ok = res.outcome === 'success', before = s.player.level;
     var o = res.tutorial ? B.objectives.egg : B.objectives[res.objectiveId], r = { food: res.gained.food, dna: res.gained.dna, tokens: res.gained.tokens, xp: res.gained.xp };
@@ -195,7 +232,7 @@ window.DF = window.DF || {};
     var old = sv(), fresh = DF.defaultSave();
     fresh.installId = old.installId; fresh.settings = old.settings; fresh.consent = old.consent;
     if (DF.hasSave) DF.Store.backupOf(old);
-    DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); DF.track('new_game', {}); go('story');
+    DF.Store.clearRun(); DF.save = fresh; DF.rollDaily(fresh); refreshHasSave(); persist(); DF.track('new_game', {}); go('story');
   }
   /* Back to the Stratos Games site: leave the play-page frame and load the full address (works on localhost too). */
   function toStratos() {
@@ -219,6 +256,7 @@ window.DF = window.DF || {};
     privacyFull: function () { UI.st.modal = true; UI.refresh(); },
     privacyView: function () { UI.st.modal = true; UI.refresh(); },
     closeModal: function () { UI.st.modal = false; UI.refresh(); },
+    resumeRun: function () { resumeRun(); },   // (the button passes its data; the shared prompt passes the saved run)
     continue: function () { var s = sv(); DF.rollDaily(s); if (!s.profile.tutorialCompleted) startRun('egg', true); else go('sanctuary'); },
     newGame: function () { if (DF.hasSave) { UI.st.newConfirm = true; UI.refresh(); } else newGameStart(); },
     newGameYes: function () { newGameStart(); },
@@ -322,7 +360,7 @@ window.DF = window.DF || {};
   document.addEventListener('visibilitychange', function () { if (document.hidden && Nav.state === 'hud') pause(); });
   window.addEventListener('blur', function () { if (Nav.state === 'hud') pause(); });
   window.addEventListener('offline', function () { UI.toast('You’re offline. Expeditions still work.', ''); });
-  window.addEventListener('pagehide', function () { if (DF.save && DF.hasSave) DF.Store.saveNow(DF.save); });
+  window.addEventListener('pagehide', function () { if (Nav.state === 'hud') saveRun(); if (DF.save && DF.hasSave) DF.Store.saveNow(DF.save); });
   document.addEventListener('contextmenu', function (e) { if (Nav.state === 'hud') e.preventDefault(); });
   setInterval(function () { if (Nav.state === 'missions') UI.missionClock(); }, 30000);
   document.getElementById('rotate-msg').textContent = S.rotate;

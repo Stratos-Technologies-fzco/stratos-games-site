@@ -185,6 +185,72 @@ window.DF = window.DF || {};
   G.press = press;
   G.hold = function (a, v) { if (a === 'attack') held.attack = v; };
   G.setMove = function (x, y) { mv.x = x; mv.y = y; };
+  /* ---------- an expedition that can be picked up again ----------
+     The world is rebuilt from the run id (it is seeded), so the snapshot only holds what changes during play: the player, who is still alive and where,
+     what has been eaten, picked up or killed, the boss, and the run's tallies. Hazard timers and weather start fresh. */
+  var ENEMY_KEEP = ['type', 'x', 'y', 'hp', 'maxHp', 'face', 'camo', 'rev', 'dmgMul'];
+  function r1(n) { return Math.round(n * 10) / 10; }
+  G.runSnapshot = function () {
+    if (!S || !running || S.demo || S.tut || S.ended || S.ending > 0 || !S.P || S.P.hp <= 0) return null;
+    var P = S.P, snap = {
+      v: 1, savedAt: Date.now(), objective: S.objId, runId: S.runId, t: Math.round(S.t), camX: r1(S.camX), pct: goalPct(), maxPct: S.maxPct || 0,
+      berries: S.berries, gained: { food: S.gained.food, dna: S.gained.dna, tokens: S.gained.tokens, xp: S.gained.xp }, kills: JSON.parse(JSON.stringify(S.kills)),
+      dodges: S.dodges, abilitiesUsed: S.abilitiesUsed, seen: JSON.parse(JSON.stringify(S.seen)), newEggs: S.newEggs.slice(0, 10), shown: JSON.parse(JSON.stringify(S.shown)), eggReady: !!S.eggReady,
+      P: { x: r1(P.x), y: r1(P.y), face: P.face, hp: r1(P.hp), en: r1(P.en), abCd: Math.round(P.abCd), dashCd: Math.round(P.dashCd), shield: Math.round(P.shield) },
+      enemies: [], bushes: S.bushes.map(function (b) { return { x: b.x, y: b.y, berries: b.berries, max: b.max }; }),
+      pickups: [], nests: S.nests.map(function (n) { return !!n.done; }), crystalUsed: !!(S.crystal && S.crystal.used), boss: null
+    };
+    S.enemies.forEach(function (e) {
+      if (e.state === 'dead' || snap.enemies.length >= 60) return; var o = {};
+      ENEMY_KEEP.forEach(function (k) { var v = e[k]; if (typeof v === 'number' ? isFinite(v) : (typeof v === 'string' || typeof v === 'boolean')) o[k] = typeof v === 'number' ? r1(v) : v; });
+      o.idle = e.state === 'idle'; snap.enemies.push(o);   // anything mid-attack comes back as chasing
+    });
+    S.pickups.forEach(function (p) {
+      if (p.got || snap.pickups.length >= 70) return; var o = {};
+      Object.keys(p).forEach(function (k) { if (['t', 'got', 'vx', 'vy', 'vz', 'z', 'age', 'rest'].indexOf(k) < 0 && (typeof p[k] === 'string' || typeof p[k] === 'boolean' || (typeof p[k] === 'number' && isFinite(p[k])))) o[k] = typeof p[k] === 'number' ? r1(p[k]) : p[k]; });
+      snap.pickups.push(o);
+    });
+    var b = S.boss; if (b && b.state !== 'dead') snap.boss = { x: r1(b.x), y: r1(b.y), hp: r1(b.hp), phase: b.phase, face: b.face, speedMul: b.speedMul, windMul: b.windMul, asleep: b.state === 'sleep' };
+    return snap;
+  };
+  /* Call right after G.start() for the same objective and run id. Leaves the run paused so it never carries on by itself. */
+  G.restoreRun = function (snap) {
+    if (!S || !snap || snap.runId !== S.runId || snap.objective !== S.objId) return false;
+    var P = S.P, num = function (v, lo, hi, d) { return typeof v === 'number' && isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d; };
+    S.t = num(snap.t, 0, 1e7, 0); S.camX = num(snap.camX, 0, S.worldW, 0); S.maxPct = num(snap.maxPct, 0, 100, 0);
+    S.berries = num(snap.berries, 0, 99, 0) | 0; S.dodges = num(snap.dodges, 0, 9999, 0) | 0; S.abilitiesUsed = num(snap.abilitiesUsed, 0, 9999, 0) | 0; S.eggReady = !!snap.eggReady;
+    ['food', 'dna', 'tokens', 'xp'].forEach(function (k) { S.gained[k] = num(snap.gained && snap.gained[k], 0, 1e6, 0) | 0; });
+    S.kills = {}; Object.keys(snap.kills || {}).forEach(function (k) { if (typeof snap.kills[k] === 'number') S.kills[String(k).slice(0, 20)] = snap.kills[k] | 0; });
+    S.seen = {}; Object.keys(snap.seen || {}).forEach(function (k) { if (snap.seen[k]) S.seen[String(k).slice(0, 20)] = 1; });
+    S.shown = {}; Object.keys(snap.shown || {}).forEach(function (k) { if (snap.shown[k] === true) S.shown[String(k).slice(0, 20)] = true; });
+    S.newEggs = (snap.newEggs || []).filter(function (x) { return typeof x === 'string'; }).slice(0, 10);
+    var sp = snap.P || {};
+    P.x = num(sp.x, 24, S.worldW - 24, P.x); P.y = num(sp.y, YMIN, YMAX, P.y); P.face = sp.face < 0 ? -1 : 1; P.fv = P.face; P.lastFace = P.face;
+    P.hp = num(sp.hp, 1, P.maxHp, P.maxHp); P.en = num(sp.en, 0, P.maxEn, P.maxEn); P.abCd = num(sp.abCd, 0, 20000, 0); P.dashCd = num(sp.dashCd, 0, 20000, 0); P.shield = num(sp.shield, 0, 20000, 0);
+    S.bushes = (snap.bushes || []).slice(0, 80).map(function (b) { return { x: num(b.x, 0, S.worldW, 0), y: num(b.y, YMIN, YMAX, 270), berries: num(b.berries, 0, 20, 1) | 0, max: num(b.max, 1, 20, 1) | 0, bob: S.rng.next() * 6 }; });
+    S.pickups = (snap.pickups || []).slice(0, 70).map(function (p) {
+      var o = mkPick(String(p.type || 'coin'), num(p.x, 0, S.worldW, 0), num(p.y, YMIN, YMAX, 270));
+      Object.keys(p).forEach(function (k) { if (['type', 'x', 'y'].indexOf(k) < 0) o[k] = p[k]; });
+      if (o.type === 'meat') { o.age = 0; o.rest = true; o.z = 0; o.vx = o.vy = o.vz = 0; } return o;
+    });
+    (snap.nests || []).forEach(function (d, i) { if (S.nests[i]) S.nests[i].done = !!d; });
+    if (S.crystal) S.crystal.used = !!snap.crystalUsed;
+    S.enemies = []; (snap.enemies || []).slice(0, 60).forEach(function (o) {
+      if (!B.enemies[o.type]) return;
+      var mods = { x: num(o.x, 0, S.worldW, 0), y: num(o.y, YMIN, YMAX, 270), face: o.face < 0 ? -1 : 1, state: o.idle ? 'idle' : 'chase', cd: 700 };
+      ['camo', 'rev', 'dmgMul'].forEach(function (k) { if (o[k] != null) mods[k] = o[k]; });
+      var e = addEnemy(o.type, mods.x, mods.y, mods); e.maxHp = num(o.maxHp, 1, 1e5, e.maxHp); e.hp = num(o.hp, 1, e.maxHp, e.maxHp);
+    });
+    var b = S.boss, sb = snap.boss;
+    if (b && sb) {
+      b.x = num(sb.x, 60, S.worldW - 60, b.x); b.y = num(sb.y, YMIN, YMAX, b.y); b.hp = num(sb.hp, 1, b.maxHp, b.maxHp); b.phase = sb.phase === 2 ? 2 : 1; b.face = sb.face < 0 ? -1 : 1;
+      b.speedMul = num(sb.speedMul, 0.5, 3, 1); b.windMul = num(sb.windMul, 0.4, 2, 1);
+      if (sb.asleep) { b.state = 'sleep'; } else { b.state = 'approach'; b.t = 1000; S.shown.boss = true; }
+    } else if (b && !sb) { b.state = 'dead'; b.hp = 0; S.bossDown = true; }
+    held.attack = false; queue.length = 0; keys = {}; mv.x = 0; mv.y = 0; P.ivx = 0; P.ivy = 0;
+    paused = true;   // the run waits on the pause screen until the player taps Resume
+    return true;
+  };
   G.pause = function () { paused = true; keys = {}; held.attack = false; mv.x = 0; mv.y = 0; queue.length = 0; };
   G.resume = function () { if (!running) return; paused = false; last = performance.now(); };
   G.isPaused = function () { return paused; };

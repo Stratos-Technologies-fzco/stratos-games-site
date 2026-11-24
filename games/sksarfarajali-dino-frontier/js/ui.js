@@ -47,14 +47,15 @@ window.DF = window.DF || {};
     return '<div class="dialog"><div class="box" role="dialog" aria-label="' + title + '"><h2 class="serif" style="margin:0;font-size:20px">' + title + '</h2><p style="margin:0;font-size:14px;line-height:1.55;color:var(--soft)">' + body + '</p><button class="btn pri" data-act="closeModal" data-focus>OK</button></div></div>';
   }
 
-  function titlePortrait(has, sv, C) {
+  function titlePortrait(has, sv, C, rs, rn) {
     return '<div class="scr solid"><img class="bgimg" src="' + img('other_9') + '" alt="" style="object-position:68% 50%">' +
       '<div class="fill" style="background:linear-gradient(to top,rgba(14,23,18,.97) 38%,rgba(14,23,18,.55) 62%,rgba(14,23,18,0) 85%)"></div>' +
       '<button data-act="stratos" style="position:absolute;left:12px;top:max(12px,env(safe-area-inset-top));font-size:13px;font-weight:700;padding:10px 12px;border-radius:10px;background:rgba(14,23,18,.75);color:var(--text);border:0">' + C.stratos + '</button>' +
       '<div class="col" style="position:absolute;left:22px;right:22px;bottom:max(22px,env(safe-area-inset-bottom));gap:12px">' +
       '<h1 class="serif" style="margin:0;font-size:46px;font-weight:700;line-height:1">Dino<br>Frontier</h1>' +
       '<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin-bottom:6px">' + S.tagline.replace('&', '&amp;') + '</div>' +
-      (has ? '<button class="btn pri" data-act="continue" data-focus style="justify-content:space-between;height:54px"><span>' + C.cont + '</span><span style="font-size:13px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
+      (rs ? '<button class="btn pri" data-act="resumeRun" data-focus style="justify-content:space-between;height:54px" aria-label="' + C.resumeRun + ': ' + rn + ', ' + (rs.pct | 0) + '%"><span>' + C.resumeRun + '</span><span style="font-size:13px;font-weight:700">' + rn + ' · ' + (rs.pct | 0) + '%</span></button>' : '') +
+      (has ? '<button class="btn ' + (rs ? 'sec' : 'pri') + '" data-act="continue" ' + (rs ? '' : 'data-focus') + ' style="justify-content:space-between;height:54px"><span>' + C.cont + '</span><span style="font-size:13px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
       '<button class="btn ' + (has ? 'sec' : 'pri') + '" data-act="newGame" ' + (has ? '' : 'data-focus') + ' style="height:54px">' + C.newGame + '</button>' +
       '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"><button class="btn ghost" data-act="lore" aria-label="' + C.storyAria + '">' + C.story + '</button><button class="btn ghost" data-act="demo" aria-label="' + C.demoAria + '">' + C.demo + '</button><button class="btn ghost" data-act="settings">' + C.settings + '</button><button class="btn ghost" data-act="credits">' + C.credits + '</button></div>' +
       '<div style="font-size:13px;color:var(--soft);text-align:center;line-height:1.4">' + (has ? C.replaceNote + '<br>' : '') + C.turn + '</div></div>' +
@@ -63,14 +64,15 @@ window.DF = window.DF || {};
 
   /* ---------- SCR-03 Title ---------- */
   T.title = function () {
-    var has = DF.hasSave, sv = DF.save, C = S.title;
-    if (DF.pm) return titlePortrait(has, sv, C);
+    var has = DF.hasSave, sv = DF.save, C = S.title, rs = has ? DF.Store.loadRun() : null, rn = rs && S.obj[rs.objective] ? S.obj[rs.objective].name : '';
+    if (DF.pm) return titlePortrait(has, sv, C, rs, rn);
     return '<div class="scr solid"><img class="bgimg" src="' + img('other_9') + '" alt="">' +
       '<div class="fill" style="background:linear-gradient(to right,rgba(14,23,18,.94) 0%,rgba(14,23,18,.7) 42%,rgba(14,23,18,0) 75%)"></div>' +
       '<div class="col" style="position:absolute;left:44px;top:34px;bottom:28px;width:320px;gap:10px">' +
       '<h1 class="serif" style="margin:0;font-size:40px;font-weight:700;line-height:1">Dino<br>Frontier</h1>' +
       '<div style="font-size:12.5px;font-weight:800;letter-spacing:.16em;color:var(--gold);margin-bottom:10px">' + S.tagline.replace('&', '&amp;') + '</div>' +
-      (has ? '<button class="btn pri" data-act="continue" data-focus style="justify-content:space-between"><span>' + C.cont + '</span><span style="font-size:12.5px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
+      (rs ? '<button class="btn pri" data-act="resumeRun" data-focus style="justify-content:space-between" aria-label="' + C.resumeRun + ': ' + rn + ', ' + (rs.pct | 0) + '%"><span>' + C.resumeRun + '</span><span style="font-size:12.5px;font-weight:700">' + rn + ' · ' + (rs.pct | 0) + '%</span></button>' : '') +
+      (has ? '<button class="btn ' + (rs ? 'sec' : 'pri') + '" data-act="continue" ' + (rs ? '' : 'data-focus') + ' style="justify-content:space-between"><span>' + C.cont + '</span><span style="font-size:12.5px;font-weight:700">Lv ' + sv.player.level + ' · Sanctuary</span></button>' : '') +
       '<button class="btn ' + (has ? 'sec' : 'pri') + '" data-act="newGame" ' + (has ? '' : 'data-focus') + ' style="justify-content:flex-start">' + C.newGame + '</button>' +
       '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"><button class="btn ghost" data-act="lore" aria-label="' + C.storyAria + '" style="padding:0">' + C.story + '</button><button class="btn ghost" data-act="demo" aria-label="' + C.demoAria + '" style="padding:0">' + C.demo + '</button><button class="btn ghost" data-act="settings" style="padding:0">' + C.settings + '</button><button class="btn ghost" data-act="credits" style="padding:0">' + C.credits + '</button></div>' +
       (has ? '<div style="font-size:12px;color:var(--mut2);line-height:1.4">' + C.replaceNote + '</div>' : '') + '</div>' +
@@ -214,7 +216,7 @@ window.DF = window.DF || {};
   /* ---------- SCR-06 Pause ---------- */
   T.pause = function (p) {
     var C = S.pause, g = p.snap || { food: 0, dna: 0, tokens: 0 }, o = S.obj[p.objId || 'egg'];
-    var bo = DF.balance.objectives[p.objId], objName = (bo && bo.berriesNeeded === 0) ? o.hud : o.hud.split(' ·')[0];
+    var bo = DF.balance.objectives[p.objId], objName = (bo && bo.berriesNeeded === 0) ? o.hud : F(o.hud, { b: Math.min(g.berries || 0, g.need || (bo && bo.berriesNeeded) || 0), n: g.need || (bo && bo.berriesNeeded) || 0 });
     var main = UI.st.restartConfirm
       ? '<p style="margin:0;font-size:14px;line-height:1.5;color:var(--soft);text-align:center">' + C.confirm + '</p><button class="btn danger" data-act="restartYes">' + C.yes + '</button><button class="btn pri" data-act="restartNo" data-focus style="height:44px;font-size:15px">' + C.keep + '</button>'
       : '<button class="btn pri" data-act="resume">' + C.resume + '</button><button class="btn dark" data-act="pauseSettings">' + C.settings + '</button>' + (p.demo ? '' : '<button class="btn dark" data-act="restartAsk">' + C.restart + '</button>') + '<button class="btn dark" data-act="exitTitle">' + (p.demo ? S.demo.skip : C.exit) + '</button>';

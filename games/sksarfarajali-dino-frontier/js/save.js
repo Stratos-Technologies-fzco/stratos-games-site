@@ -101,6 +101,31 @@ window.DF = window.DF || {};
     clearTimeout(timer);
     timer = setTimeout(function () { Store.saveNow(save); }, ms || 600);
   };
+  /* The expedition in progress lives in its own small slot (localStorage, written synchronously so it survives the page closing), apart from the campaign save,
+     so a problem with it can never touch the campaign. It is cleared when the expedition ends or a new game starts. */
+  var LS_RUN = 'df_run_v1';
+  /* the site's shared "Continue where you left off?" layer (Stratos.resume), when this page has it; the game works the same without it */
+  function SR() { try { var S = window.Stratos || parent.Stratos; return S && S.resume ? S.resume : null; } catch (e) { return null; } }
+  Store.sharedResume = SR;
+  Store.validRun = function (r) {
+    var ok = function (n) { return typeof n === 'number' && isFinite(n); };
+    return !!(r && typeof r === 'object' && r.v === 1 && typeof r.runId === 'string' && DF.balance.objectives[r.objective] && r.P && ok(r.P.x) && ok(r.P.y) && ok(r.P.hp) && ok(r.savedAt) && Date.now() - r.savedAt <= 7 * 864e5);
+  };
+  Store.saveRun = function (snap, label) {
+    var R = SR(); if (R) { try { R.save(snap, { ver: 1, label: label || 'Expedition' }); } catch (e) {} }
+    try { window.localStorage.setItem(LS_RUN, JSON.stringify({ v: 1, snap: snap })); return true; } catch (e) { return false; }
+  };
+  Store.clearRun = function () {
+    var R = SR(); if (R) { try { R.clear(); } catch (e) {} }
+    try { window.localStorage.removeItem(LS_RUN); } catch (e) {}
+  };
+  Store.loadRun = function () {
+    try {
+      var text = window.localStorage.getItem(LS_RUN); if (!text) return null;
+      var o = JSON.parse(text), r = o && o.v === 1 && o.snap;
+      return Store.validRun(r) ? r : null;
+    } catch (e) { return null; }
+  };
   /* Keep the previous game in its own slot when New Game replaces it, so it can be recovered. */
   Store.backupOf = function (save) { try { lsSet(LS_OLD, envelope(save)); } catch (e) {} };
 })(window.DF);
