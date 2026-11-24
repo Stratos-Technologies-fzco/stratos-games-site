@@ -5,12 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RAMA_BANA 3D Archery</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ccircle cx='44' cy='20' r='14' fill='none' stroke='%2338bdf8' stroke-width='3'/%3E%3Ccircle cx='44' cy='20' r='8' fill='none' stroke='%23ef4444' stroke-width='3'/%3E%3Ccircle cx='44' cy='20' r='3.5' fill='%23facc15'/%3E%3Cpath d='M14 14 Q 34 32 14 50' fill='none' stroke='%23f59e0b' stroke-width='4.5' stroke-linecap='round'/%3E%3Cline x1='10' y1='46' x2='41' y2='22' stroke='%23fde047' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/three@0.128.0/build/three.min.js';document.head.appendChild(s);"></script>
+  <link rel="stylesheet" href="vendor/tailwind.css" />
+  <script src="vendor/three.min.js"></script>
   <style>
     html, body { margin: 0; padding: 0; overflow: hidden; background: #070d19; touch-action: none; user-select: none; }
     canvas { display: block; width: 100vw; height: 100vh; }
     input[type=range] { accent-color: #f59e0b; }
+    /* Phone / touch: big thumb buttons on every orientation, canvas drag-to-aim without page scroll */
+    #canvas-wrap canvas { touch-action: none; }
+    @media (pointer: coarse) {
+      #mobile-touch-bar { display: flex !important; }
+      #mobile-touch-bar button { min-height: 56px; font-size: 0.85rem; }
+      aside { bottom: 84px !important; max-height: calc(100vh - 180px); overflow-y: auto; }
+    }
   </style>
 </head>
 <body class="text-slate-100 font-sans antialiased">
@@ -134,7 +141,7 @@
 
   <!-- Mobile 1-Thumb Touch Action Bar -->
   <div id="mobile-touch-bar" class="sm:hidden fixed bottom-2 inset-x-2 z-30 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md border border-slate-700/70 rounded-2xl p-1.5 shadow-2xl">
-    <button id="btn-touch-scope" type="button" class="flex-1 py-2.5 px-2 rounded-xl bg-slate-800 active:bg-slate-700 border border-cyan-500/40 text-xs font-bold text-cyan-200 touch-none">Scope 3.5×</button>
+    <button id="btn-touch-scope" type="button" class="flex-1 py-2.5 px-2 rounded-xl bg-slate-800 active:bg-slate-700 border border-cyan-500/40 text-xs font-bold text-cyan-200 touch-none">🔭 Scope</button>
     <button id="btn-touch-draw" type="button" class="flex-[1.5] py-2.5 px-3 rounded-xl bg-amber-400 active:bg-amber-300 text-xs font-black text-slate-950 uppercase tracking-wide shadow-lg touch-none">Hold &amp; Loose Arrow</button>
     <button id="btn-touch-mulligan" type="button" class="py-2.5 px-2.5 rounded-xl bg-emerald-900/90 active:bg-emerald-700 border border-emerald-400/50 text-xs font-extrabold text-emerald-200 touch-none">+1</button>
   </div>
@@ -316,6 +323,11 @@
         osc.connect(g); g.connect(state.audioCtx.destination);
         osc.start(t); osc.stop(t + dur + 0.02);
       }
+      // Stratos analytics (only analytics used): level_start / level_complete / game_over with seconds
+      function track(name, details) { try { var S = window.Stratos || parent.Stratos; if (S) S.track(name, details); } catch (e) {} }
+      let levelStartTs = performance.now();
+      function trackLevelStart(level) { levelStartTs = performance.now(); track('level_start', { level }); }
+      function levelSeconds() { return Math.round((performance.now() - levelStartTs) / 1000); }
       function triggerHaptic(ms = 30) {
         if (navigator.vibrate) navigator.vibrate(ms);
       }
@@ -471,6 +483,7 @@
       });
 
       const targetTex = new THREE.CanvasTexture(boardCanvas);
+      targetTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       const targetDisc = new THREE.Mesh(
         new THREE.CylinderGeometry(1.15, 1.15, 0.16, 40),
         [
@@ -595,15 +608,40 @@
       const weaponGroup = new THREE.Group();
       weaponGroup.position.set(0.36, 1.36, -0.62);
       weaponGroup.rotation.set(0.06, -0.38, 0.18); // ~22 deg oblique angle so full bow/pistol profile is clearly visible
-      scene.add(weaponGroup);
+      scene.add(weaponGroup); // world anchor = arrow/bullet launch point (physics unchanged)
 
+      // Visible weapon rides on the camera so it never drifts off-screen when aim turns the view.
+      // Bow: centred, just below the aim point. Pistol: same lower-right offset it had before.
+      scene.add(camera);
+      const weaponView = new THREE.Group();
+      const WEAPON_VIEW_ROT_X = 0.06;
+      if (GAME_MODE === 'pistol') {
+        weaponView.position.set(0.36, -0.26, -0.97);
+        weaponView.rotation.set(WEAPON_VIEW_ROT_X, -0.38, 0.18);
+      } else {
+        weaponView.position.set(0, -0.36, -1.0);
+        weaponView.rotation.set(WEAPON_VIEW_ROT_X, -0.38, 0.0);
+        weaponView.scale.setScalar(0.4);
+      }
+      camera.add(weaponView);
+      const WEAPON_BASE_POS = weaponView.position.clone();
+      let bowShake = 0, creakTimer = 0;
+      // Hollow "thunk" when an arrow strikes the target board
+      function playThunk() {
+        playTone(82, 0.16, 'sine', 0.32);
+        playTone(150, 0.06, 'square', 0.07);
+        playTone(240, 0.04, 'triangle', 0.05, 0.01);
+      }
+
+      let arrowView = null;
+      const ARROW_FWD = new THREE.Vector3(0, 0, -1), aimPointTmp = new THREE.Vector3();
       let bowLimbMesh = null, bowStringLine = null, nockedArrowGroup = null, pistolSlideMesh = null, muzzleFlashMesh = null;
       const weaponAura = new THREE.Mesh(
         new THREE.TorusGeometry(0.46, 0.009, 10, 48),
         new THREE.MeshBasicMaterial({ color: 0xe879f9, transparent: true, opacity: 0.42 })
       );
       weaponAura.visible = false;
-      weaponGroup.add(weaponAura);
+      weaponView.add(weaponAura);
 
       if (GAME_MODE === 'pistol') {
         // Ergonomic Grip + Trigger Guard + Frame + Vented Blowback Slide + Holographic Red-Dot Optic
@@ -673,7 +711,7 @@
         muzzleFlashMesh.position.set(0, 0.036, -0.28);
         muzzleFlashMesh.visible = false;
 
-        weaponGroup.add(grip, guardBottom, trigger, frame, barrel, pistolSlideMesh, muzzleFlashMesh);
+        weaponView.add(grip, guardBottom, trigger, frame, barrel, pistolSlideMesh, muzzleFlashMesh);
       } else {
         // Sculpted Recurve Bow: Riser Handle + Dual Curved Limbs + String + Nocked Fletched Arrow
         const curve = new THREE.CatmullRomCurve3([
@@ -725,7 +763,15 @@
         fletch2.position.set(0.014, 0, 0.20);
 
         nockedArrowGroup.add(aShaft, aTip, fletch1, fletch2);
-        weaponGroup.add(bowLimbMesh, riserGrip, bowStringLine, nockedArrowGroup);
+        weaponView.add(bowLimbMesh, riserGrip, bowStringLine);
+        // Nocked arrow gets its own holder that points straight down the aim line (screen centre = target),
+        // so the bow keeps its angled profile while the arrow faces the target.
+        arrowView = new THREE.Group();
+        arrowView.position.copy(weaponView.position);
+        arrowView.scale.set(1.6, 1.6, 1.0); // full-length arrow resting on the riser, shaft slightly thicker so it reads on screen
+        arrowView.rotation.set(Math.atan2(-weaponView.position.y, 60), 0, 0);
+        arrowView.add(nockedArrowGroup);
+        camera.add(arrowView);
       }
 
       // Dotted 3D Ballistic Trajectory Preview Arc
@@ -752,6 +798,42 @@
 
       const stuckGroup = new THREE.Group();
       targetGroup.add(stuckGroup);
+      // Ground / five-line landing markers live in world space; cleared together with stuckGroup
+      const landGroup = new THREE.Group();
+      scene.add(landGroup);
+      function makeShotMarkTexture(num, kind) {
+        const c = document.createElement('canvas');
+        c.width = 64; c.height = 64;
+        const g = c.getContext('2d');
+        g.fillStyle = kind === 'bull' ? '#facc15' : (kind === 'hit' ? '#22d3ee' : '#f43f5e');
+        g.beginPath(); g.arc(32, 32, 28, 0, Math.PI * 2); g.fill();
+        g.lineWidth = 5; g.strokeStyle = '#0f172a'; g.stroke();
+        g.fillStyle = '#0f172a';
+        g.font = '900 34px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(String(num), 32, 35);
+        return new THREE.CanvasTexture(c);
+      }
+      // Shows exactly where each arrow of the stage landed (hit, wide or ground) so the grouping is visible
+      function addLandingMarker(worldPos, num, kind, onGround) {
+        const mark = new THREE.Mesh(
+          new THREE.CircleGeometry(0.075, 24),
+          new THREE.MeshBasicMaterial({ map: makeShotMarkTexture(num, kind), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+        );
+        mark.renderOrder = 2;
+        if (onGround) {
+          mark.scale.setScalar(2.2);
+          mark.rotation.x = -Math.PI / 2;
+          mark.position.set(worldPos.x, 0.03, worldPos.z);
+          landGroup.add(mark);
+        } else if (targetGroup.visible) {
+          const local = targetGroup.worldToLocal(worldPos.clone());
+          mark.position.set(local.x, local.y, 0.095);
+          stuckGroup.add(mark);
+        } else {
+          mark.position.set(worldPos.x, worldPos.y, worldPos.z + 0.1);
+          landGroup.add(mark);
+        }
+      }
 
       const brassCasings = [];
       let recoilTimer = 0;
@@ -808,9 +890,10 @@
         document.getElementById('lbl-elev').textContent = fmtDeg(state.elevDeg);
         document.getElementById('lbl-yaw').textContent = fmtDeg(state.yawDeg);
         const scRead = document.getElementById('scope-readout');
-        if (scRead) scRead.textContent = `3.5× OPTIC · ${state.distance}m · EL ${fmtDeg(state.elevDeg)} · AZ ${fmtDeg(state.yawDeg)}`;
+        const scMag = (50 / Math.min(15, THREE.MathUtils.radToDeg(2 * Math.atan(1.15 / Math.max(10, state.distance))) / 0.25)).toFixed(1);
+        if (scRead) scRead.textContent = `${scMag}× OPTIC · ${state.distance}m · EL ${fmtDeg(state.elevDeg)} · AZ ${fmtDeg(state.yawDeg)}`;
         document.getElementById('lbl-weight').textContent = GAME_MODE === 'pistol' ? `${state.weight} gr` : `${state.weight} lbs`;
-        document.getElementById('scope-readout').textContent = `3.5× OPTIC · ${state.distance}m`;
+        document.getElementById('scope-readout').textContent = `${scMag}× OPTIC · ${state.distance}m`;
 
         const mSel = document.getElementById('sel-target-mode');
         if (mSel && mSel.value !== state.targetMode) mSel.value = state.targetMode;
@@ -881,6 +964,7 @@
         } else {
           playTone(190, 0.14, 'triangle', 0.2);
           playTone(440, 0.10, 'sine', 0.1);
+          bowShake = 0.32; // limbs snap forward and the bow shivers after release
         }
         triggerHaptic(35);
         state.drawCharge = 0;
@@ -938,17 +1022,22 @@
             pin.position.set(state.targetMode === 'five_line' ? projState.pos.x : dx, dy, 0.16);
             stuckGroup.add(pin);
             spawnImpactShockwave(projState.pos, astra.agniActive);
+            addLandingMarker(projState.pos, state.shotNum, ringPts === 10 ? 'bull' : 'hit', false);
+            playThunk();
 
             playTone(ringPts === 10 ? 880 : 620, 0.2, 'triangle', 0.18);
             triggerHaptic(50);
             banner.innerHTML = `<span class="text-amber-300 font-black">${ringPts === 10 ? 'BULLSEYE 10!' : ringPts + ' RING HIT!'}</span> +<b>${pts}</b> pts (${state.stageHits}/5 stage hits)`;
           } else {
             state.streak = 0;
+            addLandingMarker(projState.pos, state.shotNum, 'miss', false);
+            playThunk();
             playTone(130, 0.25, 'sawtooth', 0.14);
             banner.innerHTML = `<span class="text-rose-400 font-bold">Wide Shot!</span> Missed target rings.`;
           }
         } else {
           state.streak = 0;
+          if (projState.pos.y <= 0.05) addLandingMarker(projState.pos, state.shotNum, 'miss', true);
           playTone(120, 0.25, 'sawtooth', 0.14);
           banner.innerHTML = `<span class="text-rose-400 font-bold">Ground Impact!</span> Adjust elevation or windage.`;
         }
@@ -962,7 +1051,7 @@
         banner.innerHTML += ' · <span class="text-cyan-300 font-semibold">Sights reset — re-aim for next shot!</span>';
 
         if (state.stageHits >= 5) {
-          while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]);
+          while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]); while (landGroup.children.length) landGroup.remove(landGroup.children[0]);
           state.stageHits = 0;
           state.shotNum = 1;
           state.baseMaxShots++;
@@ -978,8 +1067,11 @@
           playTone(523, 0.15, 'triangle', 0.16, 0);
           playTone(659, 0.15, 'triangle', 0.16, 0.12);
           playTone(784, 0.25, 'triangle', 0.18, 0.24);
+          track('level_complete', { level: stage, seconds: levelSeconds(), score: state.score, distance: state.distance - 25 });
+          trackLevelStart(nextStage);
           banner.innerHTML = `<span class="text-emerald-300 font-black">STAGE ${stage} CLEARED (5/5)!</span> Advancing to <b>${state.distance}m</b> (+1 Reserve Shot)!`;
         } else if (state.shotNum > state.maxShots) {
+          track('game_over', { level: stage, won: false, seconds: levelSeconds(), score: state.score, distance: state.distance });
           saveLeaderboard(state.score, stage, state.distance);
           if (state.score > 0) {
             document.getElementById('sc-score').textContent = `${state.score.toLocaleString()} PTS`;
@@ -989,7 +1081,7 @@
             document.getElementById('sc-str').textContent = `${state.runBestStreak}×`;
             document.getElementById('scorecard-modal').classList.remove('hidden');
           }
-          while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]);
+          while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]); while (landGroup.children.length) landGroup.remove(landGroup.children[0]);
           state.score = 0;
           state.shotNum = 1;
           state.stageHits = 0;
@@ -1003,6 +1095,7 @@
           state.runBestStreak = 0;
           state.distance = state.startDistance;
           banner.innerHTML = `<span class="text-rose-400 font-bold">Stage Target Not Achieved!</span> Score reset to 0 · Back to <b>70m</b>.`;
+          trackLevelStart(1);
         }
         updateUI();
       }
@@ -1210,7 +1303,8 @@
       document.getElementById('btn-close-sc').addEventListener('click', () => document.getElementById('scorecard-modal').classList.add('hidden'));
 
       document.getElementById('btn-reset').addEventListener('click', () => {
-        while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]);
+        trackLevelStart(1);
+        while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]); while (landGroup.children.length) landGroup.remove(landGroup.children[0]);
         state.score = 0; state.shotNum = 1; state.stageHits = 0; state.totalHits = 0;
         state.baseMaxShots = 5; state.maxShots = 5; state.mulliganUsed = false; state.distance = state.startDistance; resetShotAim(); resetAstrasForStage(); activeLineIndex = 0; refreshFiveLineHighlight(); resetShotAim(); resetShotAim();
         updateUI();
@@ -1472,7 +1566,7 @@
         match2P.p1Score = 0; match2P.p2Score = 0;
         match2P.p1Hits = 0; match2P.p2Hits = 0;
         match2P.p1Shots = 0; match2P.p2Shots = 0;
-        while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]);
+        while (stuckGroup.children.length) stuckGroup.remove(stuckGroup.children[0]); while (landGroup.children.length) landGroup.remove(landGroup.children[0]);
         spotterHits.length = 0; drawSpotterCard();
         state.score = 0; state.shotNum = 1; state.stageHits = 0;
         resetShotAim();
@@ -1499,7 +1593,13 @@
 
         // Charge meter & bowstring pullback
         if (state.dragging && !state.flying) {
+          const prevCharge = state.drawCharge;
           state.drawCharge = Math.min(1, state.drawCharge + dt * 0.72);
+          creakTimer -= dt;
+          if (GAME_MODE !== 'pistol' && state.drawCharge > prevCharge && creakTimer <= 0) {
+            creakTimer = 0.1 + Math.random() * 0.05;
+            playTone(60 + state.drawCharge * 110, 0.07, 'sawtooth', 0.03 + state.drawCharge * 0.03);
+          }
           const pct = Math.round(state.drawCharge * 100);
           const eq = getEquipped();
           const pad = astra.drishtiTimer > 0 ? 0.14 : 0; const sweet = state.drawCharge >= (eq.sweetMin - pad) && state.drawCharge <= Math.min(0.99, eq.sweetMax + 0.02);
@@ -1528,11 +1628,45 @@
         }
 
         // Camera optical zoom & aim orientation
-        const targetFov = state.scoped ? 15 : 50;
+        // Scope zoom scales with range so the 10-8-6-4-2 rings stay large and readable at 70m, 100m and beyond
+        const scopeFov = Math.min(15, THREE.MathUtils.radToDeg(2 * Math.atan(1.15 / Math.max(10, state.distance))) / 0.25);
+        const targetFov = state.scoped ? scopeFov : 50;
         camera.fov += (targetFov - camera.fov) * 0.18;
         camera.updateProjectionMatrix();
+        weaponView.visible = camera.fov > 30; // bow/pistol out of the way while looking through the scope
+        if (arrowView) arrowView.visible = weaponView.visible;
         camera.rotation.y = THREE.MathUtils.degToRad(-state.yawDeg * 0.55);
         camera.rotation.x = THREE.MathUtils.degToRad((state.elevDeg - 4) * 0.35);
+
+        // Nocked arrow tip points where the current sight setting will land on the target plane
+        if (arrowView && arrowView.visible && !state.flying) {
+          const v0p = launchVelocity() * (state.dragging ? (0.6 + state.drawCharge * 0.45) : 1.0);
+          const elp = THREE.MathUtils.degToRad(state.elevDeg), ywp = THREE.MathUtils.degToRad(state.yawDeg);
+          const vzp = -Math.cos(ywp) * Math.cos(elp) * v0p;
+          const tp = Math.max(0.05, (-state.distance - weaponGroup.position.z) / Math.min(-0.01, vzp));
+          aimPointTmp.set(
+            weaponGroup.position.x + Math.sin(ywp) * Math.cos(elp) * v0p * tp + 0.5 * (state.wind * 0.65) * tp * tp,
+            weaponGroup.position.y + Math.sin(elp) * v0p * tp - 0.5 * 9.81 * tp * tp,
+            -state.distance
+          );
+          camera.updateMatrixWorld();
+          camera.worldToLocal(aimPointTmp);
+          aimPointTmp.sub(arrowView.position).normalize();
+          arrowView.quaternion.setFromUnitVectors(ARROW_FWD, aimPointTmp);
+        }
+
+        // Release shiver of the bow
+        if (bowShake > 0) {
+          bowShake = Math.max(0, bowShake - dt);
+          const k = bowShake / 0.32;
+          weaponView.position.set(
+            WEAPON_BASE_POS.x + Math.sin(ts * 0.09) * 0.012 * k,
+            WEAPON_BASE_POS.y + Math.sin(ts * 0.07) * 0.010 * k,
+            WEAPON_BASE_POS.z - 0.03 * k
+          );
+          weaponView.rotation.z = Math.sin(ts * 0.11) * 0.05 * k;
+          if (bowShake === 0) { weaponView.position.copy(WEAPON_BASE_POS); weaponView.rotation.z = 0; }
+        }
 
         // Wind pennants flutter
         windPennants.forEach((f, idx) => {
@@ -1597,11 +1731,11 @@
           recoilTimer -= dt;
           const kick = Math.sin((recoilTimer / 0.14) * Math.PI);
           if (pistolSlideMesh) pistolSlideMesh.position.z = -0.042 + kick * 0.045;
-          weaponGroup.rotation.x = kick * 0.16;
+          weaponView.rotation.x = WEAPON_VIEW_ROT_X + kick * 0.16;
           if (muzzleFlashMesh) muzzleFlashMesh.visible = recoilTimer > 0.09;
           if (recoilTimer <= 0) {
             if (pistolSlideMesh) pistolSlideMesh.position.z = -0.042;
-            weaponGroup.rotation.x = 0;
+            weaponView.rotation.x = WEAPON_VIEW_ROT_X;
             if (muzzleFlashMesh) muzzleFlashMesh.visible = false;
           }
         }
@@ -1662,6 +1796,7 @@
       }
 
       updateUI();
+      trackLevelStart(1);
       requestAnimationFrame(animate);
       }
       boot();

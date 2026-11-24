@@ -1,0 +1,30 @@
+{
+  "title": "RAMA_BANA 3D Archery",
+  "maker": "Md. Saiqul Haque Modi",
+  "category": "sports",
+  "github": "saiqulmodi",
+  "one_line": "A 3D archery range with real arrow drop and wind: set your sights, draw to the gold sweet spot and clear five hits to move the target 25 m further back.",
+  "how_to_play": "Drag (or WASD / arrow keys) to aim, hold Space or the big Hold & Loose button to draw, let go in the gold sweet spot. Hold Shift or Scope to zoom on the rings. Five hits clear the stage.",
+  "description": "RAMA_BANA is a 3D precision archery range where every arrow flies on real physics. Gravity pulls the arrow down over the distance, the draw weight of your bow sets its speed, and two winds, one near you and one near the target, push it sideways. You start at 70 metres with a golden recurve bow held in front of you and a classic five-ring target: 10 in the gold centre, then 8, 6, 4 and 2.\n\nA round is simple to learn and hard to master. Set your elevation and windage, either by dragging on the range or with fine click buttons of 0.002 and 0.050 degrees. The nocked arrow on your bow turns to show where the shot will land. Hold to draw: release inside the gold sweet spot for a steadier shot and 15 percent more points. Hold the scope to zoom in on the rings and read where your last arrows went, because every arrow leaves a numbered marker on the target. Hit the rings five times and the stage clears: the target moves 25 metres further back and you get an extra arrow in reserve. Run out of arrows before five hits and the run starts again from 70 metres.\n\nWhat makes it special: after every shot the sights drift a little, so you re-aim every arrow like a real archer. Four target modes change the challenge (still, sliding rail, swinging pendulum and a line of five targets), three Rama Astra powers help once per stage, four bows unlock as you improve, and a best score and top-five list give you something to beat every day.",
+  "controls": [
+    "Aim: drag on the range, or WASD / arrow keys",
+    "Fine sights: the -0.050, -0.002, +0.002, +0.050 buttons",
+    "Draw and release: hold and let go of Space, or the big Hold & Loose Arrow button on a phone",
+    "Zoom on the target: hold Shift, right mouse button or the Scope button",
+    "Powers: keys 1, 2 and 3 (Divya Drishti, Vayu Lock, Agni)"
+  ],
+  "tips": [
+    "Let go while the draw bar is in the gold sweet spot: steadier shot and 15% more points.",
+    "Hold the scope after a miss: the numbered markers show where each arrow landed, so you know which way to correct.",
+    "Watch the wind arrows: aim a little into the wind, more as the target moves back.",
+    "Each extra 25 m needs a little more elevation; the nocked arrow on the bow shows where the shot will land.",
+    "Use Vayu Lock on a windy stage: it stops the wind for two shots."
+  ],
+  "story": "Archery has been part of Indian stories for thousands of years. I wanted a range where the arrow really drops and drifts, so the skill is reading distance and wind, not luck, and where every stage pushes the target a little further away.",
+  "faq": [
+    { "q": "Why did my arrow miss when I aimed at the centre?", "a": "The arrow drops with gravity and is pushed by the wind. Aim a little higher and into the wind; the arrow on your bow points to where the shot will land." },
+    { "q": "What does the gold sweet spot do?", "a": "Releasing while the draw bar is in the gold zone gives a steadier shot and 15 percent more points." }
+  ],
+  "coins": { "spend": false, "why": "The only help is one free extra arrow per stage, part of the game's rules; there is no one-use help to sell." },
+  "resume": { "supported": false, "why": "a run is a short ladder of 5-arrow stages from 70 m; best score, best stage, unlocked bows and the top-five list are already kept on the device" }
+}
