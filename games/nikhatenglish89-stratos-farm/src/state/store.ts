@@ -31,7 +31,7 @@ interface FarmState {
   openPanel: string | null; // id of the building whose info panel is open
   seedPlot: string | null; // plot id whose seed picker is open
   inventoryOpen: boolean;
-  shopTab: 'habitats' | 'factories' | 'decor' | null; // shop panel open on this tab
+  shopTab: 'habitats' | 'factories' | 'decor' | 'fields' | null; // shop panel open on this tab
   obstaclePanel: string | null; // rock, tree or bush whose clear panel is open
   /** Planting mode: the crop picked in the seed list; every tap on an empty field plants it until the player is done. */
   plantSeed: string | null;
@@ -60,7 +60,7 @@ interface FarmState {
   setOpenPanel: (id: string | null) => void;
   setSeedPlot: (id: string | null) => void;
   setInventoryOpen: (open: boolean) => void;
-  setShopTab: (t: 'habitats' | 'factories' | 'decor' | null) => void;
+  setShopTab: (t: 'habitats' | 'factories' | 'decor' | 'fields' | null) => void;
   setObstaclePanel: (id: string | null) => void;
   setPlantSeed: (id: string | null) => void;
   closeScreens: () => void;

@@ -1,0 +1,37 @@
+import { test, expect } from '@playwright/test';
+
+test('buy a new field in the shop, carry it, plant on it', async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    const now = Date.now();
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 5, coins: 5000, gems: 5, xp: 40, level: 3, inventory: { wheat: 5 }, plots: [], buildings: [], animals: [], jobs: [],
+      orders: [], orderCooldowns: {}, orderCounter: 5, expanded: [], clearedObstacles: [], moved: {}, stats: {}, claimed: [],
+      daily: { day: -1, ids: [], base: {}, claimed: [] }, tutorialDone: true, nextId: 9, lastSeen: now, ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  await page.goto('/app.html?debug=1');
+  await page.getByTestId('play').click({ timeout: 30000 });
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId('nav-shop').click();
+  await page.getByTestId('tab-fields').click();
+  await expect(page.getByTestId('buy-field')).toContainText('250');
+  await page.getByTestId('buy-field').click();
+  await expect(page.getByTestId('placement-bar')).toContainText('Tap a new spot');
+  const m = await page.evaluate(() => (window as any).__farm.moved());
+  expect(m.field_d).toBeTruthy();
+  await page.getByTestId('place-cancel').click();                   // keep it where it landed
+  expect(await page.evaluate(() => (window as any).__farm.plot(`${(window as any).__farm.moved().field_d.gx},${(window as any).__farm.moved().field_d.gy}`))).not.toBeNull();
+  // plant on it
+  const q = await page.evaluate(() => { const f = (window as any).__farm; const d = f.moved().field_d; return f.tileClientPos(d.gx, d.gy); });
+  await page.mouse.click(q.x, q.y); await page.waitForTimeout(300);
+  await page.getByTestId('seed-wheat').click();
+  await page.waitForTimeout(300);
+  const d = await page.evaluate(() => (window as any).__farm.moved().field_d);
+  expect(await page.evaluate((id) => (window as any).__farm.plot(id)?.cropId, `${d.gx},${d.gy}`)).toBe('wheat');
+  expect(errors).toEqual([]);
+});

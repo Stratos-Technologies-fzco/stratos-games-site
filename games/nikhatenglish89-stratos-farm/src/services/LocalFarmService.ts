@@ -6,7 +6,7 @@ import {
 } from './data';
 import { QUEST_BY_ID, TUTORIAL, dayOf, isClaimed, pickDaily, questProgress } from './quests';
 import {
-  MoveObjectResult, AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
+  MoveObjectResult, BuyFieldResult, AnimalBuyResult, AnimalState, BuildingState, ClaimResult, CollectResult, ErrorCode, ExpandResult, ExpansionDef, FarmService, FarmSnapshot,
   FeedResult, HarvestResult, JobState, ObstacleDef, ClearResult, RotateResult, LedgerRow, MoveResult, OrderResult, OrderState, PlaceResult, PlantResult, PlotState, QueueResult,
   RemoveResult, SellResult, SimpleResult, SpeedKind, SpeedResult, UpgradeResult,
   animalHappiness, animalStatus, habitatCapacity, productionSlots,
@@ -33,8 +33,8 @@ export interface WorldConfig {
   cols: number; rows: number;
   plotCells: { gx: number; gy: number }[];
   /** The fields of the map (they also appear in staticObjects). When given, plots follow the fields when a field is moved. */
-  fields?: { id: string; gx: number; gy: number; w: number; h: number }[];
-  staticObjects: { id: string; gx: number; gy: number; w: number; h: number }[];
+  fields?: { id: string; gx: number; gy: number; w: number; h: number; extra?: boolean }[];
+  staticObjects: { id: string; gx: number; gy: number; w: number; h: number; extra?: boolean }[];
   isBuildable: (gx: number, gy: number, moved?: Record<string, { gx: number; gy: number }>) => boolean;
   expansions?: ExpansionDef[];
   /** Rocks, trees and bushes that can be cleared (some belong to a lot and only appear once it is cleared). */
@@ -46,6 +46,8 @@ export interface WorldConfig {
 export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
 const PREV_KEY = 'stratos_farm_save_prev_v1'; // the save before the latest one: a way back if the latest is damaged
 const VERSION = 5;
+/** What the 1st, 2nd, 3rd... extra field costs. */
+export const FIELD_PRICES = [250, 500, 900, 1500, 2400, 3500];
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -412,7 +414,7 @@ export class LocalFarmService implements FarmService {
   // ---------- buildings ----------
   private occupancy(): OccupancyMap {
     const occ = new OccupancyMap(this.world.cols, this.world.rows);
-    for (const o of this.world.staticObjects) { const p = this.state.moved[o.id] ?? o; occ.place(o.id, p.gx, p.gy, { w: o.w, h: o.h }); }
+    for (const o of this.world.staticObjects) { if (o.extra && !this.state.moved[o.id]) continue; const p = this.state.moved[o.id] ?? o; occ.place(o.id, p.gx, p.gy, { w: o.w, h: o.h }); }
     for (const o of this.activeObstacles()) occ.place(o.id, o.gx, o.gy, { w: 1, h: 1 });
     for (const b of this.state.buildings) {
       const d = BUILDING_BY_ID.get(b.type)!;
@@ -426,6 +428,7 @@ export class LocalFarmService implements FarmService {
     if (!this.world.fields) return this.world.plotCells;
     const out: { gx: number; gy: number }[] = [];
     for (const f of this.world.fields) {
+      if (f.extra && !moved[f.id]) continue;   // not bought yet
       const p = moved[f.id] ?? f;
       for (let dx = 0; dx < f.w; dx++) for (let dy = 0; dy < f.h; dy++) out.push({ gx: p.gx + dx, gy: p.gy + dy });
     }
@@ -775,12 +778,52 @@ export class LocalFarmService implements FarmService {
     });
   }
 
+  // ---------- more fields ----------
+  /** Buy one more 2x2 field. It appears on the first free spot; the player can move it afterwards. Each one costs more. */
+  buyField(key: string): Promise<BuyFieldResult> {
+    return this.tx(key, (): BuyFieldResult => {
+      const s = this.state;
+      const left = (this.world.fields ?? []).filter((f) => f.extra && !s.moved[f.id]);
+      if (!left.length) return fail('max_fields');
+      const bought = (this.world.fields ?? []).filter((f) => f.extra).length - left.length;
+      const cost = FIELD_PRICES[Math.min(bought, FIELD_PRICES.length - 1)];
+      if (s.coins < cost) return fail('insufficient_coins');
+      const f = left[0];
+      const occ = this.occupancy();
+      // the free spot closest to the fields you already have
+      const live = (this.world.fields ?? []).filter((q) => !q.extra || s.moved[q.id]).map((q) => s.moved[q.id] ?? q);
+      const cx = live.length ? live.reduce((a, q) => a + q.gx, 0) / live.length : this.world.cols / 2;
+      const cy = live.length ? live.reduce((a, q) => a + q.gy, 0) / live.length : this.world.rows / 2;
+      let spot: { gx: number; gy: number } | null = null, best = Infinity;
+      for (let gy = 0; gy < this.world.rows; gy++) for (let gx = 0; gx < this.world.cols; gx++) {
+        const d = (gx - cx) ** 2 + (gy - cy) ** 2;
+        if (d >= best) continue;
+        if (validatePlacement(occ, gx, gy, { w: f.w, h: f.h }, (x, y) => this.buildable(x, y)).valid) { spot = { gx, gy }; best = d; }
+      }
+      if (!spot) return fail('invalid_placement');
+      s.moved[f.id] = spot;
+      const have = new Set(s.plots.map((p) => p.id));
+      for (const c of this.cellsFor(s.moved)) if (!have.has(`${c.gx},${c.gy}`)) s.plots.push(emptyPlot(c));
+      this.spend(cost, `field:${f.id}`, 'field');
+      this.bump('buy_field');
+      return { ok: true as const, objectId: f.id, cost, snapshot: this.snapshot() };
+    });
+  }
+
+  /** What the next field costs, or null when there are no more to buy. */
+  nextFieldCost(): number | null {
+    const fs = (this.world.fields ?? []).filter((f) => f.extra);
+    const bought = fs.filter((f) => this.state.moved[f.id]).length;
+    return bought >= fs.length ? null : FIELD_PRICES[Math.min(bought, FIELD_PRICES.length - 1)];
+  }
+
   // ---------- moving the things that were already on the farm ----------
   /** Move a field, rock, tree, bush, lamp post, well, silo, farmhouse or barn. Free. A field takes its crops with it. */
   moveObject(objectId: string, gx: number, gy: number, key: string): Promise<MoveObjectResult> {
     return this.tx(key, (): MoveObjectResult => {
       const s = this.state;
       const stat = this.world.staticObjects.find((o) => o.id === objectId);
+      if (stat?.extra && !s.moved[objectId]) return fail('unknown_object');   // a field that is not bought yet
       const orig = stat ?? (this.world.obstacles ?? []).find((o) => o.id === objectId);
       const live = stat ?? this.activeObstacles().find((o) => o.id === objectId);
       if (!orig || !live) return fail('unknown_object');

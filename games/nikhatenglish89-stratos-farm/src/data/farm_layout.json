@@ -128,6 +128,66 @@
    "soil": "field_plowed"
   },
   {
+   "id": "field_d",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
+   "id": "field_e",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
+   "id": "field_f",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
+   "id": "field_g",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
+   "id": "field_h",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
+   "id": "field_i",
+   "kind": "field",
+   "gx": -10,
+   "gy": -10,
+   "w": 2,
+   "h": 2,
+   "soil": "field_plowed",
+   "extra": true
+  },
+  {
    "id": "well",
    "kind": "decor",
    "atlas": "atlas_decor",

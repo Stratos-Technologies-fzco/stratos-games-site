@@ -10,7 +10,7 @@ const atlasFrames = (key: string): Set<string> =>
 describe('farm layout data', () => {
   it('places every object without overlap or out-of-bounds', () => {
     const occ = new OccupancyMap(L.cols, L.rows);
-    for (const o of L.objects) expect(occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h }), o.id).toBe(true);
+    for (const o of L.objects.filter((x) => !x.extra)) expect(occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h }), o.id).toBe(true);
   });
   it('only uses frames that exist in the atlas JSON', () => {
     for (const o of L.objects) {

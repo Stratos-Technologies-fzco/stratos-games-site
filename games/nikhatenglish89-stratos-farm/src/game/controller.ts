@@ -35,6 +35,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   unknown_expansion: 'Unknown land',
   already_expanded: 'You already own this land',
   not_empty: 'Empty the building first (animals and queued recipes)',
+  max_fields: 'You have all the fields you can have',
   same_spot: 'Pick a different spot',
   already_ready: 'It is already ready',
   unknown_obstacle: 'That is already cleared',
@@ -249,6 +250,18 @@ class FarmController {
   }
 
   /** Fields, rocks, trees, lamp posts, the well, silo, farmhouse and barn can all be picked up and put somewhere else, free. */
+  /** Buy one more field: it appears on a free spot and you carry it where you want it. */
+  buyField() {
+    return this.act(() => this.service.buyField(newKey()), (r) => {
+      this.apply(r.snapshot);
+      playSfx('place_object');
+      useFarm.getState().showToast('New field! Drag it where you want it, then tap Move here');
+      this.startMoveObject(r.objectId);
+    });
+  }
+
+  nextFieldCost() { return this.service.nextFieldCost(); }
+
   startMoveObject(id: string) {
     const st = useFarm.getState();
     st.setPlantSeed(null); st.setShopTab(null); st.setBuildingPanel(null); st.setSeedPlot(null); st.setPlotInfo(null);
@@ -259,6 +272,7 @@ class FarmController {
 
   objectName(id: string) {
     const names: Record<string, string> = { farmhouse: 'farmhouse', barn: 'barn', silo: 'silo', well: 'well', lamp: 'lamp post', mailbox: 'mailbox', scarecrow: 'scarecrow', signpost: 'sign', hay: 'hay bale', flowers_1: 'flowers', field_a: 'field', field_b: 'field', field_c: 'field' };
+    if (id.startsWith('field_')) return 'field';
     if (names[id]) return names[id];
     const o = this.obstacles.get(id);
     return (o && OBSTACLE_TYPE_BY_ID.get(o.type)?.name.toLowerCase()) || 'object';

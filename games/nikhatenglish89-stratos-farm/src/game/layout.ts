@@ -13,6 +13,8 @@ export interface LayoutObject {
   soil?: string;
   /** a rock, tree or bush the player can pay to clear */
   clearable?: boolean;
+  /** a field the player can buy: it is on the map only once bought (its spot is then in `moved`) */
+  extra?: boolean;
 }
 export interface InfoEntry { title: string; text: string; lines: string[] }
 export interface FarmLayout {
@@ -101,6 +103,9 @@ export function placedAt<T extends { id: string; gx: number; gy: number }>(o: T,
   return m ? { ...o, gx: m.gx, gy: m.gy } : o;
 }
 
+/** Is this object on the map? Everything is, except a field that has not been bought yet. */
+export const isLive = (o: { id: string; extra?: boolean }, moved: Moved) => !o.extra || !!moved[o.id];
+
 export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: string[] = [], moved: Moved = {}): { frame: string; animate?: string[] } {
   const state = landState(l, gx, gy, expanded);
   if (state === 'sea') return { frame: '' };
@@ -112,7 +117,7 @@ export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: 
   // a cleared patch inside the island is plain grass, whatever the locked-land rectangle says
   const cleared = l.expansions.some((e) => !isLot(e.id) && expanded.includes(e.id) && inRect(e.rect, gx, gy));
   for (const f of l.objects) {
-    if (f.kind !== 'field') continue;
+    if (f.kind !== 'field' || !isLive(f, moved)) continue;
     const o = placedAt(f, moved);   // soil follows the field when it is moved
     if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return { frame: o.soil ?? 'dirt' };
   }
@@ -136,7 +141,7 @@ export function isBuildableTile(l: FarmLayout, gx: number, gy: number, expanded:
 export function plotCells(l: FarmLayout): { gx: number; gy: number }[] {
   const out: { gx: number; gy: number }[] = [];
   for (const o of l.objects) {
-    if (o.kind !== 'field') continue;
+    if (o.kind !== 'field' || o.extra) continue;
     for (let dx = 0; dx < o.w; dx++) for (let dy = 0; dy < o.h; dy++) out.push({ gx: o.gx + dx, gy: o.gy + dy });
   }
   return out;
@@ -164,9 +169,9 @@ export function obstacleList(l: FarmLayout): ObstacleDef[] {
 export function worldConfig(l: FarmLayout): WorldConfig {
   return {
     cols: l.cols, rows: l.rows, plotCells: plotCells(l),
-    staticObjects: l.objects.filter((o) => !o.clearable).map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    staticObjects: l.objects.filter((o) => !o.clearable).map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h, ...(o.extra ? { extra: true } : {}) })),
     obstacles: obstacleList(l),
-    fields: l.objects.filter((o) => o.kind === 'field').map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h })),
+    fields: l.objects.filter((o) => o.kind === 'field').map((o) => ({ id: o.id, gx: o.gx, gy: o.gy, w: o.w, h: o.h, ...(o.extra ? { extra: true } : {}) })),
     isBuildable: (gx, gy, moved) => isBuildableTile(l, gx, gy, [], moved),
     expansions: l.expansions,
     // a lot may only be cleared next to land you own
@@ -201,7 +206,7 @@ export function landBox(l: FarmLayout, expanded: string[], includeLocked = true)
 /** The field (if any) that covers this tile, where the fields stand now. */
 export function fieldAtCell(l: FarmLayout, moved: Moved, gx: number, gy: number): LayoutObject | null {
   for (const f of l.objects) {
-    if (f.kind !== 'field') continue;
+    if (f.kind !== 'field' || !isLive(f, moved)) continue;
     const o = placedAt(f, moved);
     if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return f;
   }

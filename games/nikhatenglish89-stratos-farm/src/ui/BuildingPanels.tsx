@@ -37,6 +37,25 @@ function useShopClick() {
   };
 }
 
+/** Buy another field to grow crops on. */
+function FieldShop({ coins }: { coins: number }) {
+  const cost = farm.nextFieldCost();
+  return (
+    <div data-testid="field-shop">
+      <p className="meta">Every field has 4 plots for your seeds. Buy one, then drag it wherever you like.</p>
+      <ul className="rows">
+        <li>
+          <button className={`row ${cost === null || coins < cost ? 'dim' : ''}`} disabled={cost === null} data-testid="buy-field" onClick={() => farm.buyField()}>
+            <Icon name="item_wheat" size={40} />
+            <span className="grow"><b>New field</b><small>{cost === null ? 'You have all the fields you can have' : '4 more plots for your crops'}</small></span>
+            {cost !== null && <span className="tag"><Icon name="coin" size={20} /> {cost}</span>}
+          </button>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 export function ShopPanel() {
   const click = useShopClick();
   const selected = useFarm((s) => s.selectedTile);
@@ -44,16 +63,19 @@ export function ShopPanel() {
   const level = useFarm((s) => s.player.level);
   const coins = useFarm((s) => s.player.coins);
   const setTab = useFarm((s) => s.setShopTab);
+  useFarm((s) => s.moved);
   if (!tab) return null;
-  const list = BUILDINGS.filter((b) => b.kind === (tab === 'habitats' ? 'habitat' : tab === 'factories' ? 'production' : 'decor'));
+  const list = tab === 'fields' ? [] : BUILDINGS.filter((b) => b.kind === (tab === 'habitats' ? 'habitat' : tab === 'factories' ? 'production' : 'decor'));
   return (
     <PanelShell title="Shop" testId="shop-panel" onClose={() => setTab(null)} wide>
       <div className="tabs" role="tablist">
         <button className={tab === 'habitats' ? 'on' : ''} onClick={() => setTab('habitats')} data-testid="tab-habitats">Animal homes</button>
         <button className={tab === 'factories' ? 'on' : ''} onClick={() => setTab('factories')} data-testid="tab-factories">Factories</button>
         <button className={tab === 'decor' ? 'on' : ''} onClick={() => setTab('decor')} data-testid="tab-decor">Decor</button>
+        <button className={tab === 'fields' ? 'on' : ''} onClick={() => setTab('fields')} data-testid="tab-fields">Fields</button>
       </div>
-      <p className="meta" data-testid="shop-hint">{selected ? `Selected spot: ${selected.gx}, ${selected.gy}. Double-click a building to put it there.` : 'Tip: tap a spot on the farm first, then double-click a building to put it there.'}</p>
+      {tab === 'fields' && <FieldShop coins={coins} />}
+      {tab !== 'fields' && <p className="meta" data-testid="shop-hint">{selected ? `Selected spot: ${selected.gx}, ${selected.gy}. Double-click a building to put it there.` : 'Tip: tap a spot on the farm first, then double-click a building to put it there.'}</p>}
       <ul className="rows cols2">
         {list.map((b) => {
           const locked = b.unlockLevel > level;

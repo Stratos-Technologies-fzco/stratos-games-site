@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEFAULT_ISO, depthKey, gridToScreen, rectBounds, screenToGrid } from '../iso/grid';
 import { OccupancyMap } from '../iso/occupancy';
 import { bus } from './eventBus';
-import { farmLayout as L, fieldAtCell, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, placedAt, terrainFrameAt } from './layout';
+import { farmLayout as L, fieldAtCell, isLive, isBuildableTile, landBox, landState, LayoutObject, lockedExpansionAt, placedAt, terrainFrameAt } from './layout';
 import { BUILDING_BY_ID, OBSTACLE_TYPE_BY_ID } from '../services/data';
 import { PlacementPreview } from './PlacementPreview';
 import { useFarm } from '../state/store';
@@ -138,7 +138,7 @@ export class FarmScene extends Phaser.Scene {
     const moved = useFarm.getState().moved;
     this.movedKey = JSON.stringify(moved);
     for (const base of L.objects) {
-      if (base.clearable) continue; // rocks, trees and bushes are drawn by the obstacles layer
+      if (base.clearable || !isLive(base, moved)) continue; // rocks, trees and bushes are drawn by the obstacles layer
       const o = placedAt(base, moved);
       if (!this.occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h })) {
         console.warn(`[layout] ${o.id} overlaps something or is out of bounds; skipped`);
@@ -165,6 +165,7 @@ export class FarmScene extends Phaser.Scene {
     const objs = L.objects.filter((o) => !o.clearable);
     for (const o of objs) this.occ.remove(o.id);
     for (const base of objs) {
+      if (!isLive(base, moved)) continue;   // a field that is not bought yet
       const o = placedAt(base, moved);
       this.occ.place(o.id, o.gx, o.gy, { w: o.w, h: o.h });
       const img = this.sprites.get(o.id)?.[0];
