@@ -35,7 +35,7 @@ const MESSAGES: Record<ErrorCode, string> = {
   unknown_expansion: 'Unknown land',
   already_expanded: 'You already own this land',
   not_empty: 'Empty the building first (animals and queued recipes)',
-  max_fields: 'You have all the fields you can have',
+  max_fields: 'You have all the extra plots you can have',
   same_spot: 'Pick a different spot',
   already_ready: 'It is already ready',
   unknown_obstacle: 'That is already cleared',
@@ -255,7 +255,7 @@ class FarmController {
     return this.act(() => this.service.buyField(newKey()), (r) => {
       this.apply(r.snapshot);
       playSfx('place_object');
-      useFarm.getState().showToast('New field! Drag it where you want it, then tap Move here');
+      useFarm.getState().showToast('New plot! Drag it where you want it, then tap Move here');
       this.startMoveObject(r.objectId);
     });
   }

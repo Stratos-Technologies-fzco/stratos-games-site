@@ -46,8 +46,8 @@ export interface WorldConfig {
 export const SAVE_KEY = 'stratos_farm_save_v1'; // not a "stratos." key, so it never touches the shared wallet
 const PREV_KEY = 'stratos_farm_save_prev_v1'; // the save before the latest one: a way back if the latest is damaged
 const VERSION = 5;
-/** What the 1st, 2nd, 3rd... extra field costs. */
-export const FIELD_PRICES = [250, 500, 900, 1500, 2400, 3500];
+/** What the 1st, 2nd, 3rd... extra plot costs (each one is a single tile). */
+export const FIELD_PRICES = [60, 90, 130, 180, 240, 310, 400, 500, 620, 760, 920, 1100];
 const IDEM_CAP = 200;
 const LEDGER_CAP = 500;
 
@@ -779,7 +779,7 @@ export class LocalFarmService implements FarmService {
   }
 
   // ---------- more fields ----------
-  /** Buy one more 2x2 field. It appears on the first free spot; the player can move it afterwards. Each one costs more. */
+  /** Buy one more single-tile field plot. It appears on the first free spot; the player can move it afterwards. Each one costs more. */
   buyField(key: string): Promise<BuyFieldResult> {
     return this.tx(key, (): BuyFieldResult => {
       const s = this.state;

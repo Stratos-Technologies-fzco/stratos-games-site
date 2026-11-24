@@ -129,8 +129,12 @@ export function Toast() {
 
 export function RecenterButton() {
   return (
+    <>
+      <button className="round-btn zoom-btn zoom-in" onClick={() => bus.emit('camera:zoom', { dir: 1 })} aria-label="Zoom in" data-testid="zoom-in">+</button>
+      <button className="round-btn zoom-btn zoom-out" onClick={() => bus.emit('camera:zoom', { dir: -1 })} aria-label="Zoom out" data-testid="zoom-out">−</button>
     <button className="round-btn recenter" onClick={() => bus.emit('camera:reset')} aria-label="Recenter farm" data-testid="recenter">
       <Icon name="expand" size={26} />
     </button>
+    </>
   );
 }

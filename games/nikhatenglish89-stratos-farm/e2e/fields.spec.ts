@@ -19,7 +19,7 @@ test('buy a new field in the shop, carry it, plant on it', async ({ page }) => {
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   await page.getByTestId('nav-shop').click();
   await page.getByTestId('tab-fields').click();
-  await expect(page.getByTestId('buy-field')).toContainText('250');
+  await expect(page.getByTestId('buy-field')).toContainText('60');
   await page.getByTestId('buy-field').click();
   await expect(page.getByTestId('placement-bar')).toContainText('Tap a new spot');
   const m = await page.evaluate(() => (window as any).__farm.moved());
@@ -34,4 +34,31 @@ test('buy a new field in the shop, carry it, plant on it', async ({ page }) => {
   const d = await page.evaluate(() => (window as any).__farm.moved().field_d);
   expect(await page.evaluate((id) => (window as any).__farm.plot(id)?.cropId, `${d.gx},${d.gy}`)).toBe('wheat');
   expect(errors).toEqual([]);
+});
+
+test('the map shows a bought field where it stands', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.addInitScript(() => {
+    if (localStorage.getItem('stratos_farm_save_v1')) return;
+    const now = Date.now();
+    localStorage.setItem('stratos_farm_save_v1', JSON.stringify({
+      version: 5, coins: 5000, gems: 5, xp: 40, level: 3, inventory: {}, plots: [], buildings: [], animals: [], jobs: [],
+      orders: [], orderCooldowns: {}, orderCounter: 5, expanded: [], clearedObstacles: [], moved: { field_a: { gx: 0, gy: 0 }, field_d: { gx: 9, gy: 11 } }, stats: {}, claimed: [],
+      daily: { day: -1, ids: [], base: {}, claimed: [] }, tutorialDone: true, nextId: 9, lastSeen: now, ledger: [], nextLedgerId: 1, idem: {}, idemOrder: [],
+    }));
+  });
+  await page.goto('/app.html?debug=1');
+  await page.getByTestId('play').click({ timeout: 30000 });
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId('nav-map').click();
+  const fills = async (gx: number, gy: number) => page.evaluate(([x, y]) => {
+    const r = [...document.querySelectorAll('[data-testid=minimap] rect')].filter((e) => Math.abs(+e.getAttribute('x')! - 0) >= 0);
+    const cell = +(document.querySelector('[data-testid=minimap] rect')!.getAttribute('width')!);
+    const hit = r.find((e) => +e.getAttribute('x')! === x * cell && +e.getAttribute('y')! === y * cell);
+    return hit?.getAttribute('fill') ?? null;
+  }, [gx, gy]);
+  const soil = await fills(7, 6);              // a field nobody moved
+  expect(await fills(0, 0)).toBe(soil);        // the moved field's soil is drawn at its new spot
+  expect(await fills(2, 6)).not.toBe(soil);    // and its old spot is grass again
+  expect(await fills(9, 11)).toBe(soil);       // the bought plot is on the map too
 });

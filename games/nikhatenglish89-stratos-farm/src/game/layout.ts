@@ -110,17 +110,18 @@ export function terrainFrameAt(l: FarmLayout, gx: number, gy: number, expanded: 
   const state = landState(l, gx, gy, expanded);
   if (state === 'sea') return { frame: '' };
   if (state === 'locked') return { frame: 'locked_land' };
+  // soil goes down first, so a field looks the same on the island and on land you bought; it follows the field when it is moved
+  for (const f of l.objects) {
+    if (f.kind !== 'field' || !isLive(f, moved)) continue;
+    const o = placedAt(f, moved);
+    if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return { frame: o.soil ?? 'dirt' };
+  }
   if (state === 'cleared') {
     if ((gx * 5 + gy) % l.terrain.flowerEvery === 0) return { frame: l.terrain.flowerFrame };
     return { frame: l.terrain.default[(gx * 7 + gy * 3) % l.terrain.default.length] };
   }
   // a cleared patch inside the island is plain grass, whatever the locked-land rectangle says
   const cleared = l.expansions.some((e) => !isLot(e.id) && expanded.includes(e.id) && inRect(e.rect, gx, gy));
-  for (const f of l.objects) {
-    if (f.kind !== 'field' || !isLive(f, moved)) continue;
-    const o = placedAt(f, moved);   // soil follows the field when it is moved
-    if (gx >= o.gx && gx < o.gx + o.w && gy >= o.gy && gy < o.gy + o.h) return { frame: o.soil ?? 'dirt' };
-  }
   for (let i = l.terrain.rects.length - 1; i >= 0; i--) {
     const r = l.terrain.rects[i];
     if (cleared && r.frame === 'locked_land') continue;

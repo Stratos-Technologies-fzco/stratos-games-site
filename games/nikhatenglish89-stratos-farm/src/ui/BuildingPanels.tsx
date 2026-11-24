@@ -42,12 +42,12 @@ function FieldShop({ coins }: { coins: number }) {
   const cost = farm.nextFieldCost();
   return (
     <div data-testid="field-shop">
-      <p className="meta">Every field has 4 plots for your seeds. Buy one, then drag it wherever you like.</p>
+      <p className="meta">Each one is a single plot for your seeds. Buy one, then drag it wherever you like. Put them side by side to make a bigger field.</p>
       <ul className="rows">
         <li>
           <button className={`row ${cost === null || coins < cost ? 'dim' : ''}`} disabled={cost === null} data-testid="buy-field" onClick={() => farm.buyField()}>
             <Icon name="item_wheat" size={40} />
-            <span className="grow"><b>New field</b><small>{cost === null ? 'You have all the fields you can have' : '4 more plots for your crops'}</small></span>
+            <span className="grow"><b>New plot</b><small>{cost === null ? 'You have all the plots you can have' : '1 more plot for your crops'}</small></span>
             {cost !== null && <span className="tag"><Icon name="coin" size={20} /> {cost}</span>}
           </button>
         </li>

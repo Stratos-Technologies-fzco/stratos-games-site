@@ -64,6 +64,7 @@ export class FarmScene extends Phaser.Scene {
     this.time.addEvent({ delay: 450, loop: true, callback: () => this.animateWater() });
     bus.on('ui:panelClosed', () => this.clearSelection());
     bus.on('camera:reset', () => this.fitCamera(true));
+    bus.on('camera:zoom', ({ dir }) => { const cam = this.cameras.main; this.zoomAt(cam.width / 2, cam.height / 2, cam.zoom * (dir > 0 ? 1.25 : 1 / 1.25)); });
     bus.on('camera:focus', ({ gx, gy }) => {
       const p = gridToScreen(gx + 1, gy + 1), cam = this.cameras.main;
       this.userMoved = true;

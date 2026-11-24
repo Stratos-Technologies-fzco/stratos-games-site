@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFarm } from '../state/store';
 import { farm } from '../game/controller';
 import { bus } from '../game/eventBus';
-import { farmLayout as L, isLot, landBox, landState, lotTouchesOwned, obstacleList, terrainFrameAt } from '../game/layout';
+import { farmLayout as L, isLot, landBox, landState, lotTouchesOwned, obstacleList, placedAt, terrainFrameAt } from '../game/layout';
 import { ANIMAL_BY_ID, BUILDING_BY_ID, ORDERS, RECIPES } from '../services/data';
 import { cropStage } from '../services/types';
 import { social } from '../services/social';
@@ -32,6 +32,7 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
   const buildings = useFarm((s) => s.buildings);
   const expanded = useFarm((s) => s.expanded);
   const plots = useFarm((s) => s.plots);
+  const moved = useFarm((s) => s.moved);   // the map shows things where they stand now
   useFarm((s) => s.tick);
   const now = farm.now();
   const tiles: JSX.Element[] = [];
@@ -39,16 +40,16 @@ function MiniMap({ onPick }: { onPick: (kind: 'static' | 'building' | 'expansion
   const cols = box.maxGx + 1, rows = box.maxGy + 1;
   for (let gx = 0; gx < cols; gx++) for (let gy = 0; gy < rows; gy++) {
     if (landState(L, gx, gy, expanded) === 'sea') continue; // open sea: just the blue background
-    tiles.push(<rect key={`t${gx},${gy}`} x={gx * CELL} y={gy * CELL} width={CELL} height={CELL} fill={tileColor(terrainFrameAt(L, gx, gy, expanded).frame)} stroke="#0001" />);
+    tiles.push(<rect key={`t${gx},${gy}`} x={gx * CELL} y={gy * CELL} width={CELL} height={CELL} fill={tileColor(terrainFrameAt(L, gx, gy, expanded, moved).frame)} stroke="#0001" />);
   }
   const plotRects = plots.map((p) => {
     const stage = cropStage(p, now);
     return <rect key={`p${p.id}`} x={p.gx * CELL + 1} y={p.gy * CELL + 1} width={CELL - 2} height={CELL - 2} rx={3}
       fill={stage === null ? COLORS.field : stage === 3 ? COLORS.fieldReady : COLORS.fieldGrow} />;
   });
-  const statics = L.objects.filter((o) => o.kind === 'building');
+  const statics = L.objects.filter((o) => o.kind === 'building').map((o) => placedAt(o, moved));
   const cleared = useFarm((s) => s.clearedObstacles);
-  const standing = obstacleList(L).filter((o) => !cleared.includes(o.id) && (!o.lot || expanded.includes(o.lot)));
+  const standing = obstacleList(L).filter((o) => !cleared.includes(o.id) && (!o.lot || expanded.includes(o.lot))).map((o) => placedAt(o, moved));
   return (
     <svg className="minimap" viewBox={`0 0 ${cols * CELL} ${rows * CELL}`} role="group" aria-label="Village map" data-testid="minimap">
       {tiles}
