@@ -1,7 +1,20 @@
 {
  "site": "https://stratos.games",
- "count": 37,
+ "count": 38,
  "games": [
+  {
+   "slug": "saiqulmodi-rama-bana",
+   "title": "RAMA_BANA 3D Archery",
+   "maker": "Md. Saiqul Haque Modi",
+   "one_line": "A 3D archery range with real arrow drop and wind: set your sights, draw to the gold sweet spot and clear five hits to move the target 25 m further back.",
+   "category": "sports",
+   "url": "play/rama-bana-3d-archery/",
+   "thumb": "games/saiqulmodi-rama-bana/thumbnail.png",
+   "added": "2026-11-24",
+   "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
   {
    "slug": "nikhatenglish89-stratos-farm",
    "title": "STRATOS FARM \u2014 MY DREAM VILLAGE",
