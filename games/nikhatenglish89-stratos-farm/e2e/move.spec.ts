@@ -139,7 +139,7 @@ test('hold and drag picks up a lamp post, a field and a building; the bar docks 
   expect(bar!.x).toBeLessThan(40);                                          // docked on the left
   await page.getByTestId('place-confirm').click();
   await expect.poll(() => moved(page)).toMatchObject({ lamp: { gx: 1, gy: 0 } });
-  await expect(page.getByTestId('tile-chip')).toHaveCount(0);               // the "Tile 4, 5 · Lamp" label is gone after the move
+  await expect(page.getByTestId('tile-chip')).toHaveCount(0);               // the spot label is gone after the move
 
   // a whole field
   await drag(await at(7, 6), await at(7, 4).then((q) => ({ x: q.x, y: q.y })));

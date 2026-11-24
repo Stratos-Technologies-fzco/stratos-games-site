@@ -62,3 +62,22 @@ test('the map shows a bought field where it stands', async ({ page }) => {
   expect(await fills(2, 6)).not.toBe(soil);    // and its old spot is grass again
   expect(await fills(9, 11)).toBe(soil);       // the bought plot is on the map too
 });
+
+test('a locked land tile says "locked land" and no tile numbers', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto('/app.html?debug=1');
+  await page.getByTestId('play').click({ timeout: 30000 });
+  await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
+  await page.waitForTimeout(600);
+  // the lots for sale start right of the island: tap tiles there until one answers
+  let found = false;
+  for (const [gx, gy] of [[12, 5], [12, 6], [12, 4], [13, 5], [12, 7], [13, 9], [12, 9]]) {
+    const q = await page.evaluate(([x, y]) => (window as any).__farm.tileClientPos(x, y), [gx, gy]);
+    if (q.x < 0 || q.x > 1270 || q.y < 80 || q.y > 640) continue;
+    await page.mouse.click(q.x, q.y); await page.waitForTimeout(300);
+    if (await page.getByTestId('tile-chip').count()) { found = true; break; }
+  }
+  expect(found).toBe(true);
+  await expect(page.getByTestId('tile-chip')).toHaveText(/^locked land$/i);
+  expect(await page.getByTestId('tile-chip').innerText()).not.toMatch(/\d/);
+});

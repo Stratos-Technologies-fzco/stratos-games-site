@@ -114,3 +114,4 @@ Owner asked: (1) zoom buttons: + and - on the right above the recenter button (k
 Tests: `e2e/zoom.spec.ts` (2), `e2e/fields.spec.ts` (map test fails without the fix), `tests/buyField.test.ts` updated.
 Also fixed the same day: a field placed on land you bought looked like grass, because the tile lookup returned grass for bought land before it looked for fields. Soil is now looked up first, so every field looks the same everywhere. Test added.
 Owner: a single plot should cost 30 coins. Every extra plot now costs a flat 30 (was 60 rising to 1100).
+Owner: tapping a spot showed "Tile 13, 9 · locked land". The label now shows only a plain name ("Locked land", "Field", "Grass", "Lamp post"...), never the tile numbers.

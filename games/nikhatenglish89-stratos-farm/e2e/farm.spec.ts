@@ -33,7 +33,7 @@ test('a tile can be selected', async ({ page }) => {
   await openFarm(page);
   const p = await tilePos(page, 6, 10); // (4,10) is an old stump you can clear, so pick plain grass
   await page.mouse.click(p.x, p.y);
-  await expect(page.getByTestId('tile-chip')).toContainText('Tile 6, 10');
+  await expect(page.getByTestId('tile-chip')).toHaveText(/^grass$/i);
 });
 
 test('clicking the farmhouse and the barn opens their panels', async ({ page }) => {
@@ -814,7 +814,7 @@ test('more to do on the land: clear a rock, buy decorations, turn a building aro
   // the tile is free now: a decoration fits right where the rock was (select it, double-click in the Decor tab)
   p = await tilePos(page, 10, 10);
   await page.mouse.click(p.x, p.y);
-  await expect(page.getByTestId('tile-chip')).toContainText('Tile 10, 10');
+  await expect(page.getByTestId('tile-chip')).toHaveText(/^(grass|flowers)$/i);
   await page.getByTestId('nav-shop').click();
   await page.getByTestId('tab-decor').click();
   await page.getByTestId('shop-decor_bench').dblclick();

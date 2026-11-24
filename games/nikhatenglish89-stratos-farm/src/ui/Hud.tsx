@@ -108,11 +108,17 @@ export function InfoPanel() {
   );
 }
 
+const TERRAIN_NAMES: Record<string, string> = { locked_land: 'locked land', field_plowed: 'field', dirt: 'field', grass_flowers: 'flowers', path_stone: 'path' };
+/** What the player reads when a spot is selected: a plain name, never the tile numbers. */
+export function tileLabel(terrain: string, objectId: string | null): string {
+  if (objectId) { const n = farm.objectName(objectId); if (n !== 'object') return n; }
+  return TERRAIN_NAMES[terrain] ?? terrain.replace(/_\d+$/, '').replace(/_/g, ' ');
+}
+
 export function TileChip() {
   const t = useFarm((s) => s.selectedTile);
   if (!t) return null;
-  const label = t.objectId ? t.objectId.replace(/_/g, ' ') : t.terrain.replace(/_/g, ' ');
-  return <div className="tile-chip" data-testid="tile-chip">Tile {t.gx}, {t.gy} · {label}</div>;
+  return <div className="tile-chip" data-testid="tile-chip">{tileLabel(t.terrain, t.objectId)}</div>;
 }
 
 export function Toast() {
