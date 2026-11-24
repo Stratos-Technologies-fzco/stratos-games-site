@@ -176,6 +176,15 @@ input[type=search] { font: inherit; background: var(--panel); color: var(--text)
   #toolbar { gap: 4px; } #toolbar button { min-height: 34px; padding: 4px 8px; font-size: 12.5px; }
 }
 </style>
+  <style>
+    /* report-print */
+    @media print {
+      body * { visibility: hidden !important; }
+      #modal, #modal * { visibility: visible !important; }
+      #modal { position: fixed !important; inset: 0 !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+      #modal button { display: none !important; }
+    }
+  </style>
 </head>
 <body>
 <div id="loading">Loading FAILSPAN…</div>
@@ -235,6 +244,8 @@ input[type=search] { font: inherit; background: var(--panel); color: var(--text)
 <script src="js/truss.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/intro.js"></script>
-<script src="js/game.js"></script>
+
+  <script src="js/game.js"></script>
+  <script src="js/ncert-hub-client.js"></script>
 </body>
 </html>
