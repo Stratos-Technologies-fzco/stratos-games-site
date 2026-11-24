@@ -227,6 +227,7 @@ body.cb .tile .half[data-v="6"] .pg i.p{background:#56B4E9}
 }
 #sx-about-btn{display:none!important}
 #game{overflow:hidden}
+@media (max-width:480px){.p4 .side{width:50px;padding:0 3px}.side .seat{width:46px}.side .av{width:36px;height:36px;font-size:20px}}
 @media (max-height:430px){#rack{padding:4px 12px 8px;min-height:0}.hud{min-height:32px;padding:2px 10px 0}.rowtop{min-height:44px;padding-top:4px}.mebar .av{width:28px;height:28px;font-size:16px}}
 .ib{position:relative}.ib[hidden]{display:none}
 .badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;background:#e53935;color:#fff;font:700 11px/18px system-ui,sans-serif;text-align:center;font-style:normal;padding:0 4px}
@@ -638,7 +639,7 @@ function resumeClear(){var R=SR();if(R)R.clear();}
 function saveMatch(phase){
  var R=SR();if(!R||G.online||AUTO||DEMO||!G.cfg)return;
  if(phase==='turn'&&!G.S)return;
- R.save({phase:phase,cfg:G.cfg,daily:G.daily,day:today(),scores:G.scores,round:G.round,hints:G.hints,undos:G.undos,mid:G.mid,myPts:G.myPts,S:phase==='turn'?G.S:null},
+ R.save({phase:phase,cfg:G.cfg,daily:G.daily,day:today(),scores:G.scores,round:G.round,hints:G.hints,undos:G.undos,mid:G.mid,myPts:G.myPts,cid:G.centerId,S:phase==='turn'?G.S:null},
   {ver:1,label:(G.daily?'Daily challenge':(G.cfg.mode==='draw'?'Draw':'Block')+' game')+', round '+G.round+', '+G.scores[0]+' to '+G.scores[1]});
 }
 function matchOk(sv){
@@ -650,6 +651,7 @@ function matchOk(sv){
 }
 function resumeMatch(sv){
  if(!matchOk(sv))return false;
+ G.centerId=(typeof sv.cid==='number')?sv.cid:null;
  G.online=null;G.epoch++;G.cfg=Object.assign({},sv.cfg);G.daily=!!sv.daily;G.scores=sv.scores.slice();G.round=sv.round;G.hints=sv.hints;G.undos=sv.undos;
  if(typeof G.hints!=='number')G.hints=3;if(typeof G.undos!=='number')G.undos=2;
  G.snap=null;G.paused=false;G.over=false;G.myPts=sv.myPts||0;G.coinGain=0;G.mid=sv.mid||Date.now().toString(36);G.sel=null;G.hintId=null;G.hintEnd=null;G.pend=null;G.lastMsg='';G.lastId=null;G.recent=[];G.fresh={};
@@ -1028,52 +1030,68 @@ $('gL').onclick=function(){if(G.sel!==null&&!G.busy)doMove(0,G.sel,'L');};
 $('gR').onclick=function(){if(G.sel!==null&&!G.busy)doMove(0,G.sel,'R');};
 
 /* ---------- board layout ---------- */
-function pack(items,L,aw){
- var gap=Math.max(2,L*0.06),rows=[],row={items:[],w:0,h:0};
- items.forEach(function(it){
-  var w,h;if(it.g){w=Math.max(40,L*0.62);h=Math.max(24,L*0.5);}else if(it.dbl){w=L*0.5;h=L;}else{w=L;h=L*0.5;}
-  it.w=w;it.h=h;
-  if(row.items.length&&row.w+gap+w>aw){rows.push(row);row={items:[],w:0,h:0};}
-  row.w+=(row.items.length?gap:0)+w;row.h=Math.max(row.h,h);row.items.push(it);
+/* Board layout: the chain grows outward from the opening tile (centre of the table), so tiles already on the
+   table stay where they are. Each arm runs along its row, turns at the table edge like a snake (right arm turns
+   down, left arm turns up), and the tiles on the way back are turned round. Doubles sit across the row. */
+function simulate(chain,ci,L,W,pad){
+ var g=Math.max(2,L*0.06),cx=W/2,left=pad,right=W-pad;
+ /* row spacing: wide next to the middle row (its crosswise doubles stick out), tight after that */
+ function yOf(r){return r===0?0:(r>0?1:-1)*(L*0.8+(Math.abs(r)-1)*L*0.6);}
+ var gw=Math.max(40,L*0.62),gh=Math.max(24,L*0.5);
+ var tiles=[],ghosts={},minT=1e9,maxB=-1e9;
+ function note(r,h){var y=yOf(r),t=y-h/2,b=y+h/2;if(t<minT)minT=t;if(b>maxB)maxB=b;}
+ /* a double stands across the row only in the middle row; in the other rows it lies flat like any tile */
+ function box(c,r){var v=c.a===c.b&&r===0;return {w:v?L*0.5:L,h:v?L:L*0.5,vert:v};}
+ var b0=box(chain[ci],0);
+ tiles.push({i:ci,x:cx-b0.w/2,r:0,w:b0.w,h:b0.h,vert:b0.vert,flip:false});note(0,b0.h);
+ [1,-1].forEach(function(sign){
+  var r=0,dir=sign,last=sign>0?cx+b0.w/2:cx-b0.w/2,items=[],k=ci+sign;
+  while(k>=0&&k<chain.length){items.push({i:k,c:chain[k]});k+=sign;}
+  items.push({ghost:true});
+  items.forEach(function(it){
+   function bx(row){return it.ghost?{w:gw,h:gh,vert:false}:box(it.c,row);}
+   var b=bx(r),x0;
+   if(dir>0){x0=last+g;if(x0+b.w>right+0.5){r+=sign>0?1:-1;dir=-1;b=bx(r);x0=last-b.w;}}
+   else{x0=last-g-b.w;if(x0<left-0.5){r+=sign>0?1:-1;dir=1;b=bx(r);x0=last;}}
+   last=dir>0?x0+b.w:x0;
+   if(it.ghost)ghosts[sign>0?'R':'L']={x:x0,r:r,w:gw,h:gh};
+   else tiles.push({i:it.i,x:x0,r:r,w:b.w,h:b.h,vert:b.vert,flip:it.c.a!==it.c.b&&((sign>0&&dir<0)||(sign<0&&dir>0))});
+   note(r,b.h);
+  });
  });
- rows.push(row);
- var tot=-gap;rows.forEach(function(r){tot+=r.h+gap;});
- return {rows:rows,h:tot,gap:gap};
+ return {tiles:tiles,ghosts:ghosts,minT:minT,maxB:maxB,yOf:yOf};
 }
 function layoutBoard(){
  var S=G.S;if(!S)return;
  var W=board.clientWidth,H=board.clientHeight;if(W<20||H<20)return;
- var pad=8,aw=W-pad*2,ah=H-pad*2,chain=S.chain,items=[];
+ var pad=8,aw=W-pad*2,ah=H-pad*2,chain=S.chain;
  var gl=$('gL'),gr=$('gR');
- if(!chain.length){gl.style.display='none';gr.style.display='none';return;}
+ if(!chain.length){G.centerId=null;gl.style.display='none';gr.style.display='none';for(var z in G.els){G.els[z].remove();delete G.els[z];}return;}
  gl.style.display='';gr.style.display='';
- items.push({g:'L'});chain.forEach(function(c){items.push({e:c,dbl:c.a===c.b});});items.push({g:'R'});
+ var ci=-1;
+ if(chain.length===1)G.centerId=chain[0].id;
+ chain.forEach(function(c,ix){if(c.id===G.centerId)ci=ix;});
+ if(ci<0){ci=Math.floor((chain.length-1)/2);G.centerId=chain[ci].id;}
  var L=Math.min(120,aw/3.4),res;
- for(;L>=18;L-=2){res=pack(items,L,aw);if(res.h<=ah)break;}
- res=pack(items,L,aw);
- var y=pad+Math.max(0,(ah-res.h)/2),newEl=null,newIt=null,keep={};
- var maxW=0;res.rows.forEach(function(r){if(r.w>maxW)maxW=r.w;});
- res.rows.forEach(function(r,ri){
-  var rtl=ri%2===1,base=pad+Math.max(0,(aw-maxW)/2),x=rtl?base+maxW-r.w:base;
-  (rtl?r.items.slice().reverse():r.items).forEach(function(it){
-   var top=y+(r.h-it.h)/2;
-   if(it.g){var g=it.g==='L'?gl:gr;g.style.left=x+'px';g.style.top=top+'px';g.style.width=it.w+'px';g.style.height=it.h+'px';g.style.fontSize=Math.max(11,Math.min(18,L*0.24))+'px';}
-   else{
-    var id=it.e.id;keep[id]=1;var el=G.els[id];
-    if(!el){el=tileEl(it.e.a,it.e.b,it.dbl,L);el.setAttribute('data-id',id);board.appendChild(el);G.els[id]=el;newEl=el;newIt=it;
-     el.style.transition='none';el.style.left=x+'px';el.style.top=top+'px';el.style.fontSize=L+'px';void el.offsetWidth;el.style.transition='';}
-    else{el.style.left=x+'px';el.style.top=top+'px';el.style.fontSize=L+'px';}
-    el.classList.toggle('flip',rtl&&!it.dbl);
-   }
-   x+=it.w+res.gap;
-  });
-  y+=r.h+res.gap;
+ for(;L>=18;L-=2){res=simulate(chain,ci,L,W,pad);if(res.maxB-res.minT<=ah)break;}
+ res=simulate(chain,ci,L,W,pad);
+ var oy=(H-(res.maxB-res.minT))/2-res.minT,newEl=null,newIt=null,keep={};
+ res.tiles.forEach(function(t){
+  var c=chain[t.i],id=c.id,top=oy+res.yOf(t.r)-t.h/2,el=G.els[id];keep[id]=1;
+  if(!el){el=tileEl(c.a,c.b,t.vert,L);el.setAttribute('data-id',id);board.appendChild(el);G.els[id]=el;newEl=el;newIt=t;
+   el.style.transition='none';el.style.left=t.x+'px';el.style.top=top+'px';el.style.fontSize=L+'px';void el.offsetWidth;el.style.transition='';}
+  else{el.style.left=t.x+'px';el.style.top=top+'px';el.style.fontSize=L+'px';}
+  el.classList.toggle('flip',t.flip);el.classList.toggle('v',t.vert);
+ });
+ [['L',gl],['R',gr]].forEach(function(pr){
+  var gh=res.ghosts[pr[0]],g=pr[1];if(!gh)return;
+  g.style.left=gh.x+'px';g.style.top=(oy+res.yOf(gh.r)-gh.h/2)+'px';g.style.width=gh.w+'px';g.style.height=gh.h+'px';g.style.fontSize=Math.max(11,Math.min(18,L*0.24))+'px';
  });
  for(var id in G.els)if(!keep[id]){G.els[id].remove();delete G.els[id];}
  for(var k in G.els){var kk=+k;G.els[k].classList.toggle('last',G.recent[0]===kk);G.els[k].classList.toggle('prev',G.recent[1]===kk||G.recent[2]===kk);}
  if(newEl&&G.pend&&G.pend.id===+newEl.getAttribute('data-id')&&!RM&&!DEMO&&newEl.animate){
   var r2=newEl.getBoundingClientRect(),p=G.pend,dx=p.x-(r2.left+r2.width/2),dy=p.y-(r2.top+r2.height/2);
-  var rot=(p.vert&&!newIt.dbl)?90:(!p.vert&&newIt.dbl)?-90:0;
+  var rot=(p.vert&&!newIt.vert)?90:(!p.vert&&newIt.vert)?-90:0;
   newEl.style.zIndex=6;
   var an=newEl.animate([{transform:'translate('+dx+'px,'+dy+'px) rotate('+rot+'deg) scale('+(p.scale||1)+')'},{transform:'translate(0,0) rotate(0deg) scale(1.06)',offset:0.8},{transform:'translate(0,0) rotate(0) scale(1)'}],{duration:480,easing:'cubic-bezier(.22,.9,.28,1)'});
   an.onfinish=function(){newEl.style.zIndex='';};
@@ -1768,6 +1786,7 @@ function demo(){
   if(!mv.length){if(E.canDraw(S,seat))E.drawTile(S,seat);else E.passTurn(S,seat);continue;}
   var m=E.chooseMove(E.viewFor(S,seat),'hard',Math.random);E.applyMove(S,seat,m.tile.id,m.end);
  }
+ var fp=S.history.filter(function(h){return h.type==='play';})[0];if(fp)G.centerId=fp.id;
  G.busy=false;renderScores();renderSeats();renderRack();layoutBoard();updateControls();setTurnUI();
  setStatus('Your turn. Tap a glowing tile.');
  [300,900,1800].forEach(function(ms){setTimeout(function(){renderRack();layoutBoard();},ms);});
