@@ -117,7 +117,7 @@
    "growSeconds": 7200,
    "yield": 4,
    "xp": 12,
-   "unlockLevel": 10,
+   "unlockLevel": 4,
    "sellPrice": 12
   },
   {
@@ -147,7 +147,7 @@
    "growSeconds": 10800,
    "yield": 4,
    "xp": 16,
-   "unlockLevel": 12,
+   "unlockLevel": 5,
    "sellPrice": 15
   },
   {

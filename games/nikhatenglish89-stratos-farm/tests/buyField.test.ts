@@ -85,3 +85,16 @@ describe('a field looks like a field wherever it stands', () => {
     expect(terrainFrameAt(L, 2, 6, [], { field_a: { gx: 0, gy: 0 } }).frame).not.toBe('field_plowed');
   });
 });
+
+import { BUILDING_BY_ID, CROP_BY_ID, RECIPES } from '../src/services/data';
+describe('what a factory needs is unlocked with the factory', () => {
+  it('every factory recipe input crop is unlocked no later than the factory', () => {
+    for (const r of RECIPES) {
+      const mill = BUILDING_BY_ID.get(r.building)!;
+      for (const item of Object.keys(r.inputs)) {
+        const crop = CROP_BY_ID.get(item);
+        if (crop) expect(crop.unlockLevel, `${item} for ${r.id}`).toBeLessThanOrEqual(Math.max(mill.unlockLevel, r.unlockLevel));
+      }
+    }
+  });
+});
