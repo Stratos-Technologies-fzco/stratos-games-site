@@ -132,7 +132,7 @@ h1,h2,h3{margin:0}
 .mebar .av{width:34px;height:34px;font-size:19px}
 .mebar b{font-weight:700}
 .mebar span{color:var(--mut)}
-#rack{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:12px 12px calc(18px + env(safe-area-inset-bottom));justify-content:safe center;min-height:calc(var(--rl,70px) + 28px);align-items:flex-end;scrollbar-width:none}
+#rack{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:12px 12px calc(18px + env(safe-area-inset-bottom));justify-content:safe center;min-height:calc(var(--rl,70px)*var(--rr,1) + 28px + (var(--rr,1) - 1)*6px);align-items:flex-end;align-content:flex-end;scrollbar-width:none}
 #rack::-webkit-scrollbar{display:none}
 #rack .tile{cursor:pointer;transition:transform .15s,filter .15s,box-shadow .15s;margin:0}
 #rack .tile.ok{box-shadow:0 0 0 .03em var(--gold),0 .035em .06em rgba(0,0,0,.5)}
@@ -949,16 +949,25 @@ function say(seat,t){var el=seatEls[seat];if(!el)return;var b=el.querySelector('
 function thinking(seat,on){if(seatEls[seat])seatEls[seat].classList.toggle('thinking',on);}
 
 /* ---------- rack ---------- */
-function rackL(n){
- var w=rack.clientWidth-24,L=2*(w/Math.max(n,7)-6),mx=Math.max(44,Math.min(80,window.innerHeight*0.14));
- return Math.max(44,Math.min(mx,L));
+/* The hand always fits: tiles shrink as the hand grows, and a very big hand (Draw mode can reach 20+ tiles)
+   goes onto two rows instead of scrolling sideways. */
+function rackLayout(n){
+ var w=Math.max(120,rack.clientWidth-24),g=n>9?3:6,mx=Math.max(44,Math.min(80,window.innerHeight*0.14));
+ function fit(k){return 2*(w/Math.max(k,1)-g);}
+ var L=Math.min(mx,fit(Math.max(n,7))),rows=1;
+ if(L<40&&n>8){
+  rows=2;var per=Math.ceil(n/2),capH=(window.innerHeight*0.3-30)/2;
+  L=Math.min(mx*0.9,fit(per),Math.max(24,capH));
+ }
+ return {L:Math.max(22,L),rows:rows,g:g};
 }
+function rackL(n){return rackLayout(n).L;}
 function legalIds(){
  var o={};if(G.S.turn!==0||G.S.over)return o;E.legalMoves(G.S,0).forEach(function(m){(o[m.tile.id]=o[m.tile.id]||[]).push(m.end);});return o;
 }
 function renderRack(){
- var S=G.S,hand=S.hands[0],L=rackL(hand.length),legal=(!G.busy||AUTO)?legalIds():{},any=Object.keys(legal).length>0;
- rack.style.setProperty('--rl',L+'px');rack.innerHTML='';
+ var S=G.S,hand=S.hands[0],lay=rackLayout(hand.length),L=lay.L,legal=(!G.busy||AUTO)?legalIds():{},any=Object.keys(legal).length>0;
+ rack.style.setProperty('--rl',L+'px');rack.style.setProperty('--rr',lay.rows);rack.style.flexWrap=lay.rows>1?'wrap':'nowrap';rack.style.gap=lay.g+'px';rack.innerHTML='';
  hand.forEach(function(t,i){
   var e=tileEl(t.a,t.b,true,L);e.setAttribute('data-id',t.id);e.setAttribute('role','button');e.setAttribute('tabindex','0');e.setAttribute('aria-label','Tile '+t.a+' '+t.b);
   if(any){e.classList.add(legal[t.id]?'ok':'no');}
