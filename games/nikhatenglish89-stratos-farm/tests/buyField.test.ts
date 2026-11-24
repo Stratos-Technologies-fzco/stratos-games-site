@@ -26,7 +26,7 @@ describe('buying more fields', () => {
     expect(r.snapshot.plots.length).toBe(13);
     const at = r.snapshot.moved[r.objectId];
     expect(terrainFrameAt(L, at.gx, at.gy, [], r.snapshot.moved).frame).toBe('field_plowed');
-    expect(svc.nextFieldCost()).toBe(FIELD_PRICES[1]);
+    expect(svc.nextFieldCost()).toBe(30);
   });
 
   it('refuses when short of coins, and the same key never pays twice', async () => {

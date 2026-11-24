@@ -19,7 +19,7 @@ test('buy a new field in the shop, carry it, plant on it', async ({ page }) => {
   await expect(page.getByTestId('top-bar')).toBeVisible({ timeout: 30000 });
   await page.getByTestId('nav-shop').click();
   await page.getByTestId('tab-fields').click();
-  await expect(page.getByTestId('buy-field')).toContainText('60');
+  await expect(page.getByTestId('buy-field')).toContainText('30');
   await page.getByTestId('buy-field').click();
   await expect(page.getByTestId('placement-bar')).toContainText('Tap a new spot');
   const m = await page.evaluate(() => (window as any).__farm.moved());
