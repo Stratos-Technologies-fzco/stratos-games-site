@@ -1,6 +1,6 @@
 {
  "site": "https://stratos.games",
- "count": 38,
+ "count": 39,
  "games": [
   {
    "slug": "saiqulmodi-rama-bana",
@@ -12,6 +12,19 @@
    "thumb": "games/saiqulmodi-rama-bana/thumbnail.png",
    "added": "2026-11-24",
    "github": "saiqulmodi",
+   "kind": "family",
+   "soon": false
+  },
+  {
+   "slug": "sksarfarajali-stratos-blitz-arena",
+   "title": "Stratos BLITZ ARENA",
+   "maker": "Sk Sarfaraj Ali",
+   "one_line": "A fast 6v6 team shooter: hold the hill, pick your loadout and win in about three minutes.",
+   "category": "arcade",
+   "url": "play/stratos-blitz-arena/",
+   "thumb": "games/sksarfarajali-stratos-blitz-arena/thumbnail.png",
+   "added": "2026-11-24",
+   "github": "sksarfarajali",
    "kind": "family",
    "soon": false
   },
