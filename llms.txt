@@ -4,7 +4,7 @@ Stratos Games is an indie game studio and a game portal. Play free casual, puzzl
 
 ## Play (free browser games)
 - [RAMA_BANA 3D Archery](https://stratos.games/play/rama-bana-3d-archery/): A 3D archery range with real arrow drop and wind: set your sights, draw to the gold sweet spot and clear five hits to move the target 25 m further back. Made by Md. Saiqul Haque Modi.
-- [Stratos BLITZ ARENA](https://stratos.games/play/stratos-blitz-arena/): A fast 6v6 team shooter: hold the hill, pick your loadout and win in about three minutes. Made by Sk Sarfaraj Ali.
+- [Stratos BLITZ ARENA](https://stratos.games/play/stratos-blitz-arena/): A fast 6v6 team shooter with two modes: hold the moving hill or first to 30 kills, in about three minutes. Made by Sk Sarfaraj Ali.
 - [STRATOS FARM — MY DREAM VILLAGE](https://stratos.games/play/stratos-farm-my-dream-village/): Grow a small neglected farm into a thriving dream village: crops, animals, factories and happy customers. Made by Nikhat Sultana.
 - [Chai & Chakkar](https://stratos.games/play/chai-chakkar/): Drop Indian snacks into the dabba, merge two of a kind into a bigger treat, and climb 14 tiers to the Royal Thali before the tilt spills you over. Made by Md. Saiqul Haque Modi.
 - [Stratos Drop Zone](https://stratos.games/play/stratos-drop-zone/): Drop onto Vayu Island, loot up and outlast 23 rivals before the Monsoon Wall closes in. Made by Sk Sarfaraj Ali.
