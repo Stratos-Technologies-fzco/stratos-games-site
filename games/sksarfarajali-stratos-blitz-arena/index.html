@@ -7,8 +7,8 @@
   <!-- Game server address for the static build, e.g. wss://stratos.games/blitz-arena-server. Empty = same host, port 2567. -->
   <meta name="sba-server" content="" />
   <title>Stratos Blitz Arena</title>
-  <script type="module" crossorigin src="./assets/index-DS2cN1_V.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BXRby6Hp.css">
+  <script type="module" crossorigin src="./assets/index-BbslrPmZ.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DPbY6TwA.css">
 </head>
 <body>
   <div id="app"></div>
@@ -139,7 +139,9 @@
           <div class="lvl" id="home-level">1</div>
           <div class="pc-text"><span id="home-player">Level 1</span><div class="bar"><i id="home-xp" style="width:0%"></i></div></div>
         </div>
-        <div class="kit-panel coin-chip"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="home-coins">0</span></div>
+        <div class="kit-panel coin-chip sc-chip" id="home-sc-chip" title="Stratos Coins: one wallet for every game on stratos.games" hidden><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#8B5CF6"/><circle cx="13" cy="13" r="7.5" fill="none" stroke="#C6F432" stroke-width="2"/><path d="M15.4 9.6c-.5-.9-1.5-1.3-2.6-1.3-1.5 0-2.5.8-2.5 2 0 2.8 5 1.6 5 4 0 1.1-1 1.9-2.6 1.9-1.2 0-2.2-.5-2.7-1.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg><span id="home-sc">0</span><small class="chip-label">Stratos Coins</small></div>
+        <div class="kit-panel coin-chip" title="Bolts: the coin of Blitz Arena, spent in the skins shop"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="home-coins">0</span><small class="chip-label">Bolts</small></div>
+        <button class="kit-panel icon-btn about-btn" data-go="about" aria-label="About the game" title="About the game"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
         <button class="kit-panel icon-btn" data-go="settings" aria-label="Settings"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>
       </header>
       <nav class="kit-menu">
@@ -217,7 +219,7 @@
           <button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
           <h2>SKINS SHOP</h2>
           <div class="kit-spacer"></div>
-          <div class="kit-panel coin-chip"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="shop-coins">0</span></div>
+          <div class="kit-panel coin-chip"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="shop-coins">0</span><small class="chip-label">Bolts</small></div>
         </header>
         <div class="seg shop-tabs" id="shop-tabs"></div>
         <div class="shop-grid" id="shop-grid"></div>
@@ -253,7 +255,21 @@
       <div class="sheet">
         <header class="sheet-head"><button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>DAILY CHALLENGES</h2></header>
         <div id="ch-list-full" class="ch-list"></div>
-        <p class="hint">Three new challenges every day, the same for everyone. Finish one in a match to earn its coins when the match ends.</p>
+        <p class="hint">Three new challenges every day, the same for everyone. Finish one in a match to earn its Bolts when the match ends.</p>
+      </div>
+    </section>
+
+    <section id="screen-about" class="screen kit-bg">
+      <div class="sheet about">
+        <header class="sheet-head"><button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>ABOUT THE GAME</h2></header>
+        <div class="about-grid">
+          <div class="about-card"><h3>The idea</h3><p>Stratos Blitz Arena is a fast, blocky 6v6 team shooter made for short matches. Two teams fight over one glowing hill. A match takes about three minutes, so you can play one in a break and still feel like you played a whole game.</p></div>
+          <div class="about-card"><h3>How a match works</h3><p><b>Hardpoint:</b> stand on the hill to score for your team. The hill moves every minute, so keep running. First team to 150 points, or the highest score when the clock ends, wins. Bots fill every empty slot, so a match starts in under 10 seconds.</p></div>
+          <div class="about-card"><h3>Your loadout</h3><p>Pick two weapons and two abilities before you play. Every weapon feels different. Abilities like the dash, shield, grapple and decoy help you escape, flank or win a close fight. Skins are only for looks and never change how you play.</p></div>
+          <div class="about-card"><h3>Keep coming back</h3><p>Earn XP and level up to unlock new weapons. Finish three new daily challenges. Spend <b>Bolts</b>, the coin of this game, on skins in the shop.</p></div>
+          <div class="about-card sc-about"><h3>Stratos Coins</h3><p>Stratos Coins are the shared coins of stratos.games. You earn them here when you play and win, and they work across the other Stratos games too. They are separate from Bolts, which stay inside Blitz Arena.</p></div>
+          <div class="about-card"><h3>Made by</h3><p>Sk Sarfaraj Ali, for Stratos Games. Works with a mouse and keyboard, or with touch controls on a phone held sideways.</p></div>
+        </div>
       </div>
     </section>
 
@@ -283,8 +299,9 @@
             <div class="rw-level"><div class="lvl" id="end-level">1</div><div class="rw-xp"><div class="rw-xp-row"><span id="end-xp-total">+0 XP</span><span class="muted" id="end-next"></span></div><div class="bar"><i id="end-xp-bar" style="width:0%"></i></div></div></div>
             <div id="end-extra" class="rw-extra"></div>
             <ul id="end-xp" class="rw-lines"></ul>
-            <div class="rw-coins"><svg width="30" height="30" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><b id="end-coins">+0</b><span class="muted">Stratos Coins</span></div>
-            <button id="btn-double" class="kit-btn rw-ad" type="button"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#FFC83D"/></svg><span>Watch an ad to double coins</span></button>
+            <div class="rw-coins"><svg width="30" height="30" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><b id="end-coins">+0</b><span class="muted">Bolts</span></div>
+            <div class="rw-coins rw-sc" id="end-sc-row" hidden><svg width="30" height="30" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#8B5CF6"/><circle cx="13" cy="13" r="7.5" fill="none" stroke="#C6F432" stroke-width="2"/><path d="M15.4 9.6c-.5-.9-1.5-1.3-2.6-1.3-1.5 0-2.5.8-2.5 2 0 2.8 5 1.6 5 4 0 1.1-1 1.9-2.6 1.9-1.2 0-2.2-.5-2.7-1.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg><b id="end-sc">+0</b><span class="muted">Stratos Coins · balance <span id="end-sc-bal">0</span></span></div>
+            <button id="btn-double" class="kit-btn rw-ad" type="button"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#FFC83D"/></svg><span>Watch an ad to double Bolts</span></button>
           </div>
         </div>
         <div class="res-actions">
