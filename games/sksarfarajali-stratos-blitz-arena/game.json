@@ -16,10 +16,6 @@
     "Use your dash or shield ability to escape or to win a close fight.",
     "Do the daily challenges for extra XP and coins."
   ],
-  "resume": {
-    "supported": false,
-    "why": "A match is a quick three-minute Hardpoint round, so a half-finished match is not worth resuming. XP, level, coins, skins and daily challenges are saved on this device."
-  },
   "coins": {
     "spend": false,
     "why": "The game has its own skins shop paid with its own coins. Stratos Coins are paid automatically from level_start and game_over, and are not spent in the game yet."
