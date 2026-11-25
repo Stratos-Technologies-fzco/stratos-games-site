@@ -7,8 +7,8 @@
   <!-- Game server address for the static build, e.g. wss://stratos.games/blitz-arena-server. Empty = same host, port 2567. -->
   <meta name="sba-server" content="" />
   <title>Stratos Blitz Arena</title>
-  <script type="module" crossorigin src="./assets/index-DFaAnMs0.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BRTK_5th.css">
+  <script type="module" crossorigin src="./assets/index-BB_HXgc0.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CH4yYMWY.css">
 </head>
 <body>
   <div id="app"></div>
@@ -28,7 +28,7 @@
       </div>
       <div class="tb-mid">
         <div id="clock">3:00</div>
-        <div class="tb-target">to <span id="score-limit">150</span></div>
+        <div class="tb-target" id="score-target">to 150</div>
       </div>
       <div class="tb-team b">
         <div class="tb-row"><b id="score-b">0</b><span id="team-b-name">Tide</span></div>
@@ -146,7 +146,8 @@
       </header>
       <nav class="kit-menu">
         <button id="btn-play" class="kit-play"><span>PLAY</span><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#1B2402"/></svg></button>
-        <div class="kit-modes"><span class="mode on">Hardpoint</span><span class="mode off">Team DM · soon</span></div>
+        <div class="kit-modes" role="group" aria-label="Game mode"><button type="button" class="mode" data-mode="hardpoint" aria-pressed="true"></button><button type="button" class="mode" data-mode="tdm" aria-pressed="false"></button></div>
+        <div class="mode-desc" id="mode-desc" aria-live="polite"></div>
         <button class="kit-btn" data-go="loadout"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 14l11-4 7 2v3H3zM8 17v3"/></svg>LOADOUT</button>
         <button class="kit-btn" data-go="challenges"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12v6a6 6 0 01-12 0zM9 21h6M12 15v6"/></svg>DAILY CHALLENGES<span class="badge">3</span></button>
         <button class="kit-btn" data-go="shop"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16l-1.5 12h-13zM8 8a4 4 0 018 0"/></svg>SKINS SHOP</button>
@@ -264,7 +265,7 @@
         <header class="sheet-head"><button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>ABOUT THE GAME</h2></header>
         <div class="about-grid">
           <div class="about-card"><h3>The idea</h3><p>Stratos Blitz Arena is a fast, blocky 6v6 team shooter made for short matches. Two teams fight over one glowing hill. A match takes about three minutes, so you can play one in a break and still feel like you played a whole game.</p></div>
-          <div class="about-card"><h3>How a match works</h3><p><b>Hardpoint:</b> stand on the hill to score for your team. The hill moves every minute, so keep running. First team to 150 points, or the highest score when the clock ends, wins. Bots fill every empty slot, so a match starts in under 10 seconds.</p></div>
+          <div class="about-card"><h3>How a match works</h3><p><b>Hardpoint:</b> stand on the hill to score for your team. The hill moves every minute, so keep running. First team to 150 points, or the highest score when the clock ends, wins. <b>Team DM:</b> no hill, every kill scores for your team, first to 30 kills wins. Bots fill every empty slot, so a match starts in under 10 seconds.</p></div>
           <div class="about-card"><h3>Your loadout</h3><p>Pick two weapons and two abilities before you play. Every weapon feels different. Abilities like the dash, shield, grapple and decoy help you escape, flank or win a close fight. Skins are only for looks and never change how you play.</p></div>
           <div class="about-card"><h3>Keep coming back</h3><p>Earn XP and level up to unlock new weapons. Finish three new daily challenges. Spend <b>Bolts</b>, the coin of this game, on skins in the shop.</p></div>
           <div class="about-card sc-about"><h3>Stratos Coins</h3><p>Stratos Coins are the shared coins of stratos.games. You earn them here when you play and win, and they work across the other Stratos games too. They are separate from Bolts, which stay inside Blitz Arena.</p></div>
