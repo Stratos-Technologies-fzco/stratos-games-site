@@ -1,20 +1,302 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stratos BLITZ ARENA</title>
-<style>
-html,body{margin:0;height:100%;overflow:hidden;background:#0b0d14;color:#fff;font-family:system-ui,sans-serif}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;box-sizing:border-box}
-h1{font-size:clamp(32px,9vw,80px);margin:0;letter-spacing:.04em}
-p{margin:12px 0 0;color:#aab}
-.soon{margin-top:24px;padding:8px 20px;border:1px solid #4af;border-radius:999px;color:#4af;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
-</style>
+<head><link rel="icon" href="data:,">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#140F2B" />
+  <!-- Game server address for the static build, e.g. wss://stratos.games/blitz-arena-server. Empty = same host, port 2567. -->
+  <meta name="sba-server" content="" />
+  <title>Stratos Blitz Arena</title>
+  <script type="module" crossorigin src="./assets/index-BCRu0VuL.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-B0-fyJ1u.css">
 </head>
 <body>
-<h1>Stratos BLITZ ARENA</h1>
-<p>by Sk Sarfaraj Ali</p>
-<div class="soon">coming soon</div>
+  <div id="app"></div>
+
+  <!-- ============ In-match HUD ============ -->
+  <div id="hud" class="hidden">
+    <div id="vignette"></div>
+    <div id="scope"><div class="scope-ring"></div><i class="sh"></i><i class="sv"></i></div>
+    <div id="fx"></div>
+    <div id="tags"></div>
+    <div id="hill-marker"><span class="hm-arrow"></span><span class="hm-diamond"><b id="hm-letter">A</b></span><span id="hm-dist">0 m</span></div>
+
+    <div id="topbar">
+      <div class="tb-team a">
+        <div class="tb-row"><span id="team-a-name">Comet</span><b id="score-a">0</b></div>
+        <div class="tb-bar"><i id="bar-a"></i></div>
+      </div>
+      <div class="tb-mid">
+        <div id="clock">3:00</div>
+        <div class="tb-target">to <span id="score-limit">150</span></div>
+      </div>
+      <div class="tb-team b">
+        <div class="tb-row"><b id="score-b">0</b><span id="team-b-name">Tide</span></div>
+        <div class="tb-bar"><i id="bar-b"></i></div>
+      </div>
+    </div>
+    <div id="hill-status"><span id="hill-state" class="chip">Neutral</span><span id="hill-name">A · Centre Court</span><span id="hill-timer">moves in 1:00</span></div>
+    <div id="banner"></div>
+
+    <canvas id="minimap" width="300" height="300"></canvas>
+
+    <div id="killfeed"></div>
+
+    <div id="crosshair"><i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="dot"></i></div>
+    <div id="hitmarker"><i></i><i></i><i></i><i></i></div>
+    <div id="protect">Spawn shield</div>
+
+    <div id="hp" class="panel">
+      <div class="hp-row"><span id="hp-num">100</span><span class="hp-label">health</span></div>
+      <div class="hp-bar"><div id="hp-fill"></div></div>
+    </div>
+
+    <div id="abilities">
+      <div class="ab" id="ab-0"><div class="ab-ring"></div><div class="ab-icon"></div><span class="ab-cd"></span><kbd>Q</kbd></div>
+      <div class="ab" id="ab-1"><div class="ab-ring"></div><div class="ab-icon"></div><span class="ab-cd"></span><kbd>E</kbd></div>
+    </div>
+
+    <div id="weapon" class="panel">
+      <div class="slots"><span id="slot-1" class="slot on">1</span><span id="slot-2" class="slot">2</span></div>
+      <div class="ammo-row"><span id="ammo-num">30</span><span id="ammo-mag">/ 30</span></div>
+      <div id="weapon-name">Assault</div>
+      <div class="reload-bar"><div id="reload-fill"></div></div>
+    </div>
+
+    <div id="respawn">
+      <div id="respawn-by"></div>
+      <div class="respawn-label">Back in the yard in</div>
+      <div id="respawn-num">3</div>
+      <div class="respawn-hint">Press Esc to change your loadout for the next life</div>
+    </div>
+
+    <div id="scoreboard">
+      <div class="sb-head"><span id="sb-mode">Hardpoint on Prototype Yard</span><span id="sb-clock"></span></div>
+      <div class="sb-teams"><div class="sb-team a" id="sb-a"></div><div class="sb-team b" id="sb-b"></div></div>
+    </div>
+
+    <div id="touch" class="hidden">
+      <div id="touch-surface"></div>
+      <div id="stick"><div id="stick-knob"></div></div>
+      <button id="btn-pause" class="tbtn small" aria-label="Pause">II</button>
+      <button id="btn-score" class="tbtn small" aria-label="Scoreboard">Score</button>
+      <button id="btn-fire" class="tbtn fire" aria-label="Fire">Fire</button>
+      <button id="btn-aim" class="tbtn" aria-label="Aim">Aim</button>
+      <button id="btn-jump" class="tbtn" aria-label="Jump">Jump</button>
+      <button id="btn-reload" class="tbtn small" aria-label="Reload">Reload</button>
+      <button id="btn-swap" class="tbtn small" aria-label="Switch weapon">Swap</button>
+    </div>
+    <div id="chat"><div id="chat-log"></div><input id="chat-input" maxlength="80" autocomplete="off" placeholder="Say something to everyone, Enter to send" aria-label="Chat message" /></div>
+    <div id="vitals"><span id="vt-hp">100</span><div class="vt-bar"><i id="vt-fill"></i></div><span id="vt-ammo">30<small> / 30</small></span></div>
+    <div id="net-badge"></div>
+    <div id="fps"></div>
+  </div>
+
+  <!-- ============ Screens (layout from design-ui-kit) ============ -->
+  <div id="screens">
+    <section id="screen-home" class="screen kit-bg">
+      <div class="kit-floor"></div>
+      <div class="kit-blocks" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+      <div class="blitzer big" aria-hidden="true">
+        <i style="left:98px;top:262px;width:50px;height:132px;background:#2B2F4A;border-radius:12px 12px 8px 8px;box-shadow:inset -8px 0 0 #1E2136"></i>
+        <i style="left:152px;top:262px;width:50px;height:132px;background:#2B2F4A;border-radius:12px 12px 8px 8px;box-shadow:inset -8px 0 0 #1E2136"></i>
+        <i style="left:90px;top:388px;width:64px;height:32px;background:#4A3426;border-radius:10px 14px 8px 8px"></i>
+        <i style="left:148px;top:388px;width:64px;height:32px;background:#4A3426;border-radius:10px 14px 8px 8px"></i>
+        <i style="left:84px;top:112px;width:132px;height:156px;background:#FF8A1F;border-radius:20px 20px 12px 12px;box-shadow:inset -16px 0 0 #D96E0A"></i>
+        <i style="left:96px;top:128px;width:108px;height:110px;background:#8B5CF6;border-radius:14px;box-shadow:inset -12px 0 0 #6D3FDB"></i>
+        <i style="left:112px;top:150px;width:76px;height:14px;background:#C6F432;border-radius:5px"></i>
+        <i style="left:84px;top:236px;width:132px;height:16px;background:#3A2418;border-radius:6px"></i>
+        <i style="left:140px;top:236px;width:20px;height:16px;background:#C6F432;border-radius:3px"></i>
+        <i style="left:128px;top:92px;width:44px;height:30px;background:#D9946A;border-radius:6px"></i>
+        <i style="left:100px;top:10px;width:100px;height:104px;background:#F2B38A;border-radius:24px 24px 28px 28px;box-shadow:inset -12px 0 0 #DDA075"></i>
+        <i style="left:92px;top:56px;width:12px;height:26px;background:#E5A47C;border-radius:6px"></i>
+        <i style="left:196px;top:56px;width:12px;height:26px;background:#E5A47C;border-radius:6px"></i>
+        <i style="left:94px;top:0;width:112px;height:44px;background:#2E1B12;border-radius:26px 26px 6px 6px"></i>
+        <i style="left:94px;top:30px;width:16px;height:30px;background:#2E1B12;border-radius:4px 4px 8px 8px"></i>
+        <i style="left:190px;top:30px;width:16px;height:30px;background:#2E1B12;border-radius:4px 4px 8px 8px"></i>
+        <i style="left:100px;top:34px;width:100px;height:12px;background:#FF8A1F;border-radius:4px"></i>
+        <i style="left:116px;top:58px;width:22px;height:6px;background:#2E1B12;border-radius:3px;transform:rotate(-6deg)"></i>
+        <i style="left:162px;top:58px;width:22px;height:6px;background:#2E1B12;border-radius:3px;transform:rotate(6deg)"></i>
+        <i style="left:116px;top:68px;width:22px;height:18px;background:#fff;border-radius:6px"></i>
+        <i style="left:162px;top:68px;width:22px;height:18px;background:#fff;border-radius:6px"></i>
+        <i style="left:124px;top:72px;width:11px;height:12px;background:#2A1A10;border-radius:4px"></i>
+        <i style="left:169px;top:72px;width:11px;height:12px;background:#2A1A10;border-radius:4px"></i>
+        <i style="left:144px;top:82px;width:12px;height:12px;background:#E5A47C;border-radius:4px"></i>
+        <i style="left:130px;top:100px;width:40px;height:9px;background:#B5473A;border-radius:3px 3px 10px 10px"></i>
+        <i style="left:44px;top:122px;width:42px;height:92px;background:#FF8A1F;border-radius:14px;box-shadow:inset -8px 0 0 #D96E0A"></i>
+        <i style="left:46px;top:206px;width:38px;height:30px;background:#F2B38A;border-radius:10px"></i>
+        <i style="left:210px;top:132px;width:42px;height:78px;background:#FF8A1F;border-radius:14px;box-shadow:inset -8px 0 0 #D96E0A"></i>
+        <i style="left:216px;top:202px;width:38px;height:30px;background:#F2B38A;border-radius:10px"></i>
+        <i style="left:170px;top:186px;width:128px;height:36px;background:#3B3466;border-radius:8px;box-shadow:inset 0 -8px 0 #2A2150"></i>
+        <i style="left:258px;top:176px;width:40px;height:16px;background:#C6F432;border-radius:5px"></i>
+        <i style="left:196px;top:216px;width:24px;height:40px;background:#2A2150;border-radius:6px"></i>
+        <i style="left:50px;top:440px;width:200px;height:28px;border-radius:50%;background:rgba(0,0,0,.35)"></i>
+      </div>
+      <header class="kit-top">
+        <h1 class="kit-logo"><span class="a">STRATOS</span> <span class="b">BLITZ ARENA</span></h1>
+        <div class="kit-spacer"></div>
+        <div class="kit-panel player-chip">
+          <div class="lvl" id="home-level">1</div>
+          <div class="pc-text"><span id="home-player">Level 1</span><div class="bar"><i id="home-xp" style="width:0%"></i></div></div>
+        </div>
+        <div class="kit-panel coin-chip"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="home-coins">0</span></div>
+        <button class="kit-panel icon-btn" data-go="settings" aria-label="Settings"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>
+      </header>
+      <nav class="kit-menu">
+        <button id="btn-play" class="kit-play"><span>PLAY</span><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#1B2402"/></svg></button>
+        <div class="kit-modes"><span class="mode on">Hardpoint</span><span class="mode off">Team DM · soon</span></div>
+        <button class="kit-btn" data-go="loadout"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 14l11-4 7 2v3H3zM8 17v3"/></svg>LOADOUT</button>
+        <button class="kit-btn" data-go="challenges"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12v6a6 6 0 01-12 0zM9 21h6M12 15v6"/></svg>DAILY CHALLENGES<span class="badge">3</span></button>
+        <button class="kit-btn" data-go="shop"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16l-1.5 12h-13zM8 8a4 4 0 018 0"/></svg>SKINS SHOP</button>
+        <button class="kit-btn" data-go="settings"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>SETTINGS</button>
+      </nav>
+      <aside class="kit-panel kit-challenges">
+        <div class="ch-head"><span>Daily challenges</span><span class="muted" id="ch-reset">resets in 00:00:00</span></div>
+        <div id="ch-list" class="ch-list"></div>
+        <p class="ch-note">Progress counts at the end of each match.</p>
+      </aside>
+      <footer class="kit-foot"><span>6v6 · bots fill empty slots · match starts in under 10 s</span><span>stratos.games</span></footer>
+    </section>
+
+    <section id="screen-loadout" class="screen kit-bg loadout-bg">
+      <div class="lo-wrap">
+        <header class="lo-head">
+          <button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <h2>LOADOUT</h2>
+          <div class="kit-spacer"></div>
+          <span class="lo-note">Changes apply on your next life</span>
+        </header>
+        <div class="lo-cols">
+          <div class="kit-panel lo-left">
+            <div class="blitzer small" aria-hidden="true">
+        <i style="left:24px;top:206px;width:32px;height:100px;background:#2B2F4A;border-radius:8px"></i>
+        <i style="left:62px;top:206px;width:32px;height:100px;background:#2B2F4A;border-radius:8px"></i>
+        <i style="left:18px;top:298px;width:42px;height:20px;background:#4A3426;border-radius:7px 10px 5px 5px"></i>
+        <i style="left:58px;top:298px;width:42px;height:20px;background:#4A3426;border-radius:7px 10px 5px 5px"></i>
+        <i style="left:14px;top:86px;width:92px;height:126px;background:#FF8A1F;border-radius:14px 14px 8px 8px;box-shadow:inset -10px 0 0 #D96E0A"></i>
+        <i style="left:22px;top:98px;width:76px;height:84px;background:#8B5CF6;border-radius:10px;box-shadow:inset -8px 0 0 #6D3FDB"></i>
+        <i style="left:14px;top:190px;width:92px;height:12px;background:#3A2418;border-radius:4px"></i>
+        <i style="left:46px;top:72px;width:28px;height:22px;background:#D9946A;border-radius:5px"></i>
+        <i style="left:24px;top:6px;width:72px;height:74px;background:#F2B38A;border-radius:18px 18px 20px 20px;box-shadow:inset -8px 0 0 #DDA075"></i>
+        <i style="left:20px;top:-4px;width:80px;height:32px;background:#2E1B12;border-radius:20px 20px 4px 4px"></i>
+        <i style="left:20px;top:20px;width:12px;height:22px;background:#2E1B12;border-radius:3px 3px 6px 6px"></i>
+        <i style="left:88px;top:20px;width:12px;height:22px;background:#2E1B12;border-radius:3px 3px 6px 6px"></i>
+        <i style="left:24px;top:24px;width:72px;height:9px;background:#FF8A1F;border-radius:3px"></i>
+        <i style="left:34px;top:40px;width:16px;height:13px;background:#fff;border-radius:4px"></i>
+        <i style="left:70px;top:40px;width:16px;height:13px;background:#fff;border-radius:4px"></i>
+        <i style="left:39px;top:43px;width:8px;height:9px;background:#2A1A10;border-radius:3px"></i>
+        <i style="left:73px;top:43px;width:8px;height:9px;background:#2A1A10;border-radius:3px"></i>
+        <i style="left:54px;top:54px;width:10px;height:9px;background:#E5A47C;border-radius:3px"></i>
+        <i style="left:46px;top:66px;width:28px;height:6px;background:#B5473A;border-radius:2px 2px 8px 8px"></i>
+        <i style="left:-6px;top:92px;width:22px;height:80px;background:#FF8A1F;border-radius:9px"></i>
+        <i style="left:-5px;top:166px;width:20px;height:20px;background:#F2B38A;border-radius:7px"></i>
+        <i style="left:104px;top:98px;width:22px;height:60px;background:#FF8A1F;border-radius:9px"></i>
+        <i style="left:104px;top:152px;width:20px;height:20px;background:#F2B38A;border-radius:7px"></i>
+        <i style="left:84px;top:132px;width:90px;height:24px;background:#3B3466;border-radius:6px"></i>
+        <i style="left:10px;top:312px;width:100px;height:18px;border-radius:50%;background:rgba(0,0,0,.35)"></i>
+      </div>
+            <div class="lo-slots" id="lo-slots"></div>
+          </div>
+          <div class="lo-mid">
+            <h3>WEAPONS</h3>
+            <div class="lo-weapons" id="lo-weapons"></div>
+            <h3>ABILITIES</h3>
+            <div class="lo-abilities" id="lo-abilities"></div>
+          </div>
+          <div class="lo-right">
+            <div class="kit-panel lo-stats" id="lo-stats"></div>
+            <button id="btn-deploy" class="kit-deploy">DEPLOY</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-shop" class="screen kit-bg">
+      <div class="shop-wrap">
+        <header class="lo-head">
+          <button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <h2>SKINS SHOP</h2>
+          <div class="kit-spacer"></div>
+          <div class="kit-panel coin-chip"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><span id="shop-coins">0</span></div>
+        </header>
+        <div class="seg shop-tabs" id="shop-tabs"></div>
+        <div class="shop-grid" id="shop-grid"></div>
+        <p class="hint" id="shop-msg" aria-live="polite"></p>
+        <p class="hint">Cosmetics only. Nothing here changes how a weapon or ability works.</p>
+      </div>
+    </section>
+
+    <section id="screen-settings" class="screen kit-bg">
+      <div class="sheet">
+        <header class="sheet-head"><button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>SETTINGS</h2></header>
+        <label class="field"><span>Display name</span><input id="name" type="text" maxlength="16" placeholder="Guest name" autocomplete="off" /></label>
+        <div class="field"><span>Play</span><div class="seg" id="online-seg"></div></div>
+        <div class="field"><span>Chat</span><div class="seg" id="chat-seg"></div></div>
+        <div class="field touch-only"><span>Hand</span><div class="seg" id="hand-seg"></div></div>
+        <div class="field"><span>Graphics</span><div class="seg" id="quality-seg"></div></div>
+        <div class="field"><span>Bot skill</span><div class="seg" id="bots-seg"></div></div>
+        <label class="field"><span>Look speed</span><input id="sens" type="range" min="0.2" max="3" step="0.05" /></label>
+        <label class="field"><span>Volume</span><input id="vol" type="range" min="0" max="1" step="0.05" /></label>
+        <div class="controls">
+          <h3>Controls</h3>
+          <ul>
+            <li><kbd>WASD</kbd> move, <kbd>Space</kbd> jump, <kbd>Shift</kbd> sprint</li>
+            <li><kbd>Mouse</kbd> look, <kbd>LMB</kbd> fire, <kbd>RMB</kbd> aim</li>
+            <li><kbd>R</kbd> reload, <kbd>1</kbd> <kbd>2</kbd> weapons, <kbd>Q</kbd> <kbd>E</kbd> or <kbd>3</kbd> <kbd>4</kbd> abilities</li>
+            <li><kbd>Tab</kbd> scoreboard, <kbd>Enter</kbd> chat, <kbd>Esc</kbd> pause</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-challenges" class="screen kit-bg">
+      <div class="sheet">
+        <header class="sheet-head"><button class="kit-back" data-back aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F1ECFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>DAILY CHALLENGES</h2></header>
+        <div id="ch-list-full" class="ch-list"></div>
+        <p class="hint">Three new challenges every day, the same for everyone. Finish one in a match to earn its coins when the match ends.</p>
+      </div>
+    </section>
+
+    <section id="screen-pause" class="screen kit-dim">
+      <div class="sheet narrow">
+        <h2>PAUSED</h2>
+        <button id="btn-resume" class="kit-play small"><span>RESUME</span></button>
+        <button class="kit-btn" data-go="loadout">LOADOUT</button>
+        <button class="kit-btn" data-go="settings">SETTINGS</button>
+        <button id="btn-leave" class="kit-btn danger">LEAVE MATCH</button>
+      </div>
+    </section>
+
+    <section id="screen-end" class="screen kit-bg results-bg">
+      <div class="res-wrap">
+        <div class="res-banner">
+          <div id="end-title" class="res-title">VICTORY</div>
+          <div id="end-sub" class="res-sub"></div>
+        </div>
+        <div class="res-cols">
+          <div class="kit-panel res-board">
+            <div class="res-row head"><span>PLAYER</span><span>K</span><span>D</span><span>A</span><span>SCORE</span></div>
+            <div id="end-rows" class="res-rows"></div>
+          </div>
+          <div class="kit-panel res-rewards">
+            <div class="rw-title">Rewards</div>
+            <div class="rw-level"><div class="lvl" id="end-level">1</div><div class="rw-xp"><div class="rw-xp-row"><span id="end-xp-total">+0 XP</span><span class="muted" id="end-next"></span></div><div class="bar"><i id="end-xp-bar" style="width:0%"></i></div></div></div>
+            <div id="end-extra" class="rw-extra"></div>
+            <ul id="end-xp" class="rw-lines"></ul>
+            <div class="rw-coins"><svg width="30" height="30" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="#FFC83D"/><circle cx="13" cy="13" r="7" fill="none" stroke="#B8860B" stroke-width="2.5"/></svg><b id="end-coins">+0</b><span class="muted">Stratos Coins</span></div>
+            <button id="btn-double" class="kit-btn rw-ad" type="button"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="#FFC83D"/></svg><span>Watch an ad to double coins</span></button>
+          </div>
+        </div>
+        <div class="res-actions">
+          <button id="btn-home" class="kit-btn big">HOME</button>
+          <button class="kit-btn big" data-go="loadout">LOADOUT</button>
+          <button id="btn-again" class="kit-play wide"><span>PLAY AGAIN</span></button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="rotate"><div class="rotate-card"><div class="rotate-phone"></div><p>Turn your phone sideways to play</p></div></div>
+
 </body>
 </html>
