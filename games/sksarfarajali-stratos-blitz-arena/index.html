@@ -7,8 +7,8 @@
   <!-- Game server address for the static build, e.g. wss://stratos.games/blitz-arena-server. Empty = same host, port 2567. -->
   <meta name="sba-server" content="" />
   <title>Stratos Blitz Arena</title>
-  <script type="module" crossorigin src="./assets/index-Cr724THd.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C21C9ydf.css">
+  <script type="module" crossorigin src="./assets/index-BsSbpJCI.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Bl75p5bc.css">
 </head>
 <body>
   <div id="app"></div>
@@ -152,7 +152,6 @@
         <div class="kit-modes" role="group" aria-label="Game mode"><button type="button" class="mode" data-mode="hardpoint" aria-pressed="true"></button><button type="button" class="mode" data-mode="tdm" aria-pressed="false"></button></div>
         <div class="mode-desc" id="mode-desc" aria-live="polite"></div>
         <button type="button" class="kit-btn continue-btn" id="btn-continue" hidden><span id="continue-text">CONTINUE MATCH</span><small id="continue-sub"></small></button>
-        <button type="button" class="pre-match" id="pre-match" data-go="loadout" aria-label="Open loadout"></button>
         <button class="kit-btn" data-go="loadout"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 14l11-4 7 2v3H3zM8 17v3"/></svg>LOADOUT</button>
         <button class="kit-btn" data-go="challenges"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12v6a6 6 0 01-12 0zM9 21h6M12 15v6"/></svg>DAILY CHALLENGES<span class="badge">3</span></button>
         <button class="kit-btn" data-go="shop"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B79CFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8h16l-1.5 12h-13zM8 8a4 4 0 018 0"/></svg>SKINS SHOP</button>
@@ -163,7 +162,7 @@
         <div id="ch-list" class="ch-list"></div>
         <p class="ch-note">Progress counts at the end of each match.</p>
       </aside>
-      <footer class="kit-foot"><span>6v6 · bots fill empty slots · match starts in under 10 s</span><span>stratos.games</span></footer>
+      <footer class="kit-foot"><button type="button" class="pre-match" id="pre-match" data-go="loadout" aria-label="Open loadout"></button><span>stratos.games</span></footer>
     </section>
 
     <section id="screen-loadout" class="screen kit-bg loadout-bg">
@@ -319,7 +318,7 @@
     </section>
   </div>
 
-  <div id="rotate"><div class="rotate-card"><div class="rotate-phone"></div><p>Turn your phone sideways to play</p></div></div>
+  <div id="rotate"><div class="rotate-card"><div class="rotate-phone"></div><p>Turn your phone sideways to play</p><p class="rotate-tap">or tap here for fullscreen</p></div></div>
 
 </body>
 </html>
