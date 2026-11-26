@@ -103,7 +103,7 @@ export class TargetDroneManager {
         return;
       }
 
-      if (t.type === 'AIR') {
+      if (t.type === 'AIR' && !t.ai) {   // ai: flown by src/combat/threats.js (phase 5)
         t.position.addScaledVector(t.velocity, deltaSec);
         t.mesh.position.copy(t.position);
         t.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), t.velocity.clone().normalize());

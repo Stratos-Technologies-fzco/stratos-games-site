@@ -10,6 +10,10 @@
 //   Share / View : ALT HOLD                      R3 : reset head view
 //   Options / Menu : start a final approach      L3 (hold) : wheel brakes
 //   Touchpad click : map size
+// Fighter in the air (phase 6, the game reads held / edges):
+//   Circle = fire the selected missile / drop a bomb    L3 = weapon select    R3 = radar lock (hold = unlock)
+//   D-pad left / right = flares / chaff (instead of changing aircraft)        Cross = gun (arms itself)
+//   hold L1 + R1: D-pad up / down / left / right = manoeuvres 1-4, Square / Triangle / Circle / Cross = 5-8, Options = RTB
 const DEADZONE = 0.12;
 
 const BUTTON_ACTIONS = {
@@ -104,7 +108,8 @@ export class GamepadInput {
   }
 
   // Returns null when no pad is connected, otherwise
-  // { pitch, roll, yaw (-1..1), throttleRate (-1..1), fire, brake (held), actions: [names pressed this frame] }
+  // { pitch, roll, yaw (-1..1), throttleRate (-1..1), fire, brake (held), actions: [names pressed this frame],
+  //   held: [bool x 18], edges: [indices pressed this frame], ups: [indices let go this frame] }
   poll() {
     const gp = this.pickPad();
     if (!gp) return null;
@@ -123,6 +128,11 @@ export class GamepadInput {
     for (const i in BUTTON_ACTIONS) {
       if (buttonsNow[i] && !this.prevButtons[i]) actions.push(BUTTON_ACTIONS[i]);
     }
+    const edges = [], ups = [];
+    for (let i = 0; i <= 17; i++) {
+      if (buttonsNow[i] && !this.prevButtons[i]) edges.push(i);
+      if (!buttonsNow[i] && this.prevButtons[i]) ups.push(i);
+    }
     this.prevButtons = buttonsNow;
 
     const yawStick = -axis(pad.lx);
@@ -134,7 +144,8 @@ export class GamepadInput {
       throttleRate: Math.max(-1, Math.min(1, -axis(pad.ly) + b(7) - b(6))),
       fire: pressed(0),
       brake: pressed(10),
-      actions
+      actions,
+      held: buttonsNow, edges, ups   // every button: held now, pressed this frame, let go this frame
     };
   }
 }

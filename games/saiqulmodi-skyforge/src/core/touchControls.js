@@ -3,7 +3,7 @@
 // flight logic in index.html is shared and nothing about the aircraft changes:
 //   stick (right)  : analog, finger down = nose up, up = nose down, left / right = roll (same sense as the keyboard and the pad)
 //   left group     : power Shift / Ctrl, rudder Q / E, wheel brakes B
-//   fighter only   : gun Space (held = 10 rounds a second, like the pad), missile F
+//   fighter only   : gun Space (held), missile F; phase 6: bomb, flares + chaff, radar lock (tap = lock / next), return to runway
 //   map            : tap it = M (size)
 
 const svg = (body) => `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
@@ -15,6 +15,10 @@ const ICONS = {
   rudderRight: svg('<path d="M15 7l5 5-5 5"/><path d="M20 12h-9a6 6 0 0 0-6 6v1"/>'),
   brake: svg('<circle cx="12" cy="12" r="5.5"/><path d="M4.5 6.5a10 10 0 0 0 0 11"/><path d="M19.5 6.5a10 10 0 0 1 0 11"/>'),
   gun: svg('<circle cx="12" cy="12" r="6"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/>'),
+  bomb: svg('<path d="M12 3c2.2 0 3.5 2.5 3.5 6v6.5L12 18l-3.5-2.5V9C8.5 5.5 9.8 3 12 3z"/><path d="M9 18.5l-1.5 3h9L15 18.5"/>'),
+  flare: svg('<circle cx="12" cy="9" r="3.2"/><path d="M12 2.5v1.8M12 13.7v1.8M5.5 9h1.8M16.7 9h1.8M7.4 4.4l1.3 1.3M15.3 12.3l1.3 1.3M16.6 4.4l-1.3 1.3M8.7 12.3l-1.3 1.3"/><path d="M8 21c1-2 2-3 4-4M16 21c-1-2-2-3-4-4"/>'),
+  lock: svg('<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><circle cx="12" cy="12" r="2.5"/>'),
+  rtb: svg('<path d="M9 7L4 12l5 5"/><path d="M4 12h10a5 5 0 0 1 5 5v3"/>'),
   missile: svg('<path d="M12 2.5c2.5 2.5 3 5 3 7.5v6H9v-6c0-2.5.5-5 3-7.5z"/><path d="M9 12l-3 4.5V19l3-1.5"/><path d="M15 12l3 4.5V19l-3-1.5"/><path d="M11 19.5v2M13 19.5v2"/>')
 };
 
@@ -58,11 +62,12 @@ const CSS = `
   #btn-cam + button + button { background-image: ${SYM.approach} !important; }
   #btn-sound { background-image: ${SYM.soundOff} !important; }
   #btn-sound.active { background-image: ${SYM.soundOn} !important; }
+  .no-touch { display: none !important; }   /* computer-only buttons (fly-by, missile camera, replay) */
   nav.tc { position: fixed; z-index: 10004; bottom: 66px; touch-action: none; user-select: none; -webkit-user-select: none;
     -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
   #tc-left { left: 8px; display: grid; gap: 6px; grid-template-columns: repeat(5, 54px); }
-  #tc-fire { right: 132px; display: none; flex-direction: column; gap: 6px; }
-  #tc-fire.show { display: flex; }
+  #tc-fire { right: 132px; display: none; grid-template-columns: repeat(2, 54px); gap: 6px; }
+  #tc-fire.show { display: grid; }
   html body nav.tc button { width: 54px !important; height: 54px !important; padding: 0 !important; display: flex; align-items: center;
     justify-content: center; border: 1px solid #38bdf8; border-radius: 12px; color: #e2e8f0; touch-action: none;
     background: rgba(15, 23, 42, 0.55) !important; }
@@ -144,6 +149,12 @@ export function initTouchControls(map) {
   };
   holdButton(fire, 'Missile', ICONS.missile, 'KeyF', 'tc-missile');
   holdButton(fire, 'Gun', ICONS.gun, 'Space', 'tc-gun', startGun, stopGun);
+  // phase 6: one tap each (the game's own functions, so phones and computers do the same thing)
+  const tap = (fn) => () => { if (typeof window[fn] === 'function') window[fn](); };
+  holdButton(fire, 'Bomb', ICONS.bomb, null, 'tc-bomb', tap('skyforgeBomb'), () => {});
+  holdButton(fire, 'Flares and chaff', ICONS.flare, null, 'tc-flare', () => { if (window.skyforgeDecoy) { window.skyforgeDecoy('FLARE'); window.skyforgeDecoy('CHAFF'); } }, () => {});
+  holdButton(fire, 'Radar lock', ICONS.lock, null, 'tc-lock', tap('skyforgeLockDown'), tap('skyforgeLockUp'));
+  holdButton(fire, 'Return to runway', ICONS.rtb, null, 'tc-rtb', tap('startRTB'), () => {});
   const fighterBtn = document.getElementById('btn-fighter');
   const showFire = () => fire.classList.toggle('show', !!fighterBtn && fighterBtn.classList.contains('active'));
   if (fighterBtn) new MutationObserver(showFire).observe(fighterBtn, { attributes: true, attributeFilter: ['class'] });

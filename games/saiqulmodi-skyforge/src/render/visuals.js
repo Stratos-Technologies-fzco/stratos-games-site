@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isTouchPlay } from '../core/touchControls.js';
 
 // SkyForge visual pipeline (2026-10-31): physical sky + matching haze, sky reflections (PMREM),
 // soft sun shadows that follow the aircraft, procedural surface detail (farmland, asphalt, concrete),
@@ -31,6 +32,12 @@ const QUALITY = {
   medium: { ratio: 1.5, shadows: true,  shadowSize: 2048, bloom: false },
   high:   { ratio: 2.0, shadows: true,  shadowSize: 4096, bloom: true }
 };
+// Phones (27-Nov-2026, user): Low draws at 1.25 instead of 1.5; the FPS guard steps down below 30 FPS (computers: 24)
+const PHONE_LOW_RATIO = 1.25;
+const PHONE_MIN_FPS = 30;
+const DESKTOP_MIN_FPS = 24;
+// a phone or tablet by its name, or by touch (finger, no mouse): catches iPads and Android "Desktop site"
+const isPhoneDevice = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || isTouchPlay();
 
 // ---------- GLSL helpers ----------
 const NOISE_GLSL = /* glsl */`
@@ -250,7 +257,7 @@ function detectQuality(renderer) {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     gpu = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
   } catch (e) { /* no info */ }
-  const mobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  const mobile = isPhoneDevice();
   const discrete = /NVIDIA|GeForce|RTX|GTX|Radeon RX|Radeon Pro|Arc A/i.test(gpu);
   // best picture first on every computer (user: best graphics); phones start light
   return { tier: mobile ? 'low' : 'high', manual: false, gpu, discrete, mobile };
@@ -263,6 +270,8 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const st = { time: 'noon', weather: 'clear', quality: 'medium', manual: false, envDirty: true };
+  const phone = isPhoneDevice();
+  let phoneLowRatio = PHONE_LOW_RATIO;   // the FPS guard lowers it to 1; kept when the screen turns or resizes
   const sunDir = new THREE.Vector3();
 
   // Sun shadow box that follows the aircraft (crisp aircraft shadow on the runway)
@@ -322,10 +331,12 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
       return false;
     }
   }
+  // height of the 3D view: the window minus the control bar under it on a computer (index.html sets skyforgeViewH)
+  function viewH() { return window.skyforgeViewH ? window.skyforgeViewH() : window.innerHeight; }
   window.addEventListener('resize', () => {
     if (composer) {
       composer.setPixelRatio(renderer.getPixelRatio());
-      composer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, viewH());
     }
   });
 
@@ -387,8 +398,9 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
       st.manual = true;
       try { localStorage.setItem('skyforge.quality', tier); } catch (e) { /* storage blocked */ }
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.ratio));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const ratio = phone && tier === 'low' ? phoneLowRatio : q.ratio;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ratio));
+    renderer.setSize(window.innerWidth, viewH());
     const shadowChange = renderer.shadowMap.enabled !== q.shadows;
     renderer.shadowMap.enabled = q.shadows;
     sunLight.castShadow = q.shadows;
@@ -400,7 +412,7 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
     st.bloom = q.bloom && await ensureComposer();
     if (composer) {
       composer.setPixelRatio(renderer.getPixelRatio());
-      composer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, viewH());
     }
     document.querySelectorAll('[data-gfx]').forEach((b) => b.classList.toggle('active', b.dataset.gfx === tier));
   }
@@ -470,12 +482,15 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
     const fps = fpsWin.frames * 1000 / (now - fpsWin.t0);
     fpsWin.t0 = now; fpsWin.frames = 0;
     if (st.manual || now - fpsWin.started < 8000 || document.hidden) return;
-    const floor = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) ? 'low' : 'medium';   // computers keep shadows
-    if (fps < 24 && st.quality !== 'low' && st.quality !== floor) {
+    const floor = phone ? 'low' : 'medium';   // computers keep shadows
+    const minFps = phone ? PHONE_MIN_FPS : DESKTOP_MIN_FPS;
+    if (fps < minFps && st.quality !== 'low' && st.quality !== floor) {
       const next = st.quality === 'high' ? 'medium' : 'low';
       console.info(`[visuals] ${fps.toFixed(0)} FPS - graphics ${st.quality} -> ${next}`);
       setQuality(next, false);
-    } else if (fps < 24 && st.quality === 'low' && renderer.getPixelRatio() > 1) {
+    } else if (fps < minFps && st.quality === 'low' && renderer.getPixelRatio() > 1) {
+      phoneLowRatio = 1;
+      console.info(`[visuals] ${fps.toFixed(0)} FPS - pixel ratio -> 1`);
       renderer.setPixelRatio(1);   // last step on a slow phone: softer picture, smoother flight
     }
   }
@@ -498,6 +513,17 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
     else renderer.render(scene, camera);
   }
 
+  // Compile every material in the scene once while loading (hidden and out-of-view ones too), so nothing compiles
+  // the first time it comes into view mid-flight (27-Nov-2026: up to 15 shaders did, ~3 FPS freezes on phones).
+  // Sky reflections first (they are part of the shader); with bloom the scene is drawn into the bloom buffer.
+  function precompile() {
+    if (st.envDirty) rebuildEnv();
+    const prev = renderer.getRenderTarget();
+    renderer.setRenderTarget(st.bloom && composer ? composer.readBuffer : null);
+    try { renderer.compile(scene, camera); } catch (e) { console.warn('[visuals] precompile skipped', e); }
+    renderer.setRenderTarget(prev);
+  }
+
   function setTime(name) {
     if (!TIMES[name]) return;
     st.time = name;
@@ -517,5 +543,5 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
   st.manual = q.manual;
   console.info(`[visuals] graphics ${q.tier}${q.manual ? ' (saved choice)' : ''}${q.gpu ? ' - ' + q.gpu : ''}`);
 
-  return { update, render, setTime, setWeather, setQuality, attachSea, enhanceAircraft, state: st, sky };
+  return { update, render, precompile, setTime, setWeather, setQuality, attachSea, enhanceAircraft, state: st, sky };
 }

@@ -1,5 +1,6 @@
 ﻿import * as THREE from 'three';
 import { CockpitMfdSet } from './cockpit_instruments.js';
+import { drawFighterHud, combinerLayout } from '../hud/fighterHud.js';
 
 export class FighterCockpitInterior {
   constructor(scene, camera) {
@@ -399,6 +400,7 @@ class CombinerHud {
   draw(d, nowMs) {
     if (nowMs - this.lastDrawMs < 1000 / HUD_HZ) return;
     this.lastDrawMs = nowMs;
+    if (d.fighterHud) { this.drawFighter(d); return; }
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
     const [bx, by] = this.toPx(0, 0);
     const k = this.pxPerRad;
@@ -489,6 +491,27 @@ class CombinerHud {
       ctx.textAlign = 'center';
       ctx.fillText(`${d.nav.name} ${d.nav.distNm.toFixed(1)}NM ${d.nav.targetAltFt}FT`, W / 2, H - 32);
     }
+    this.texture.needsUpdate = true;   // send the new picture to the GPU (it was drawn once and then never refreshed)
+  }
+
+  // Fighter (09-Nov-2026): the full fighter HUD (src/hud/fighterHud.js). World directions go into the body frame and
+  // through the eye onto the glass; the texture is sent to the GPU again after every redraw.
+  drawFighter(d) {
+    const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height;
+    if (!this.fighterLayout) {
+      this.fighterLayout = combinerLayout(W, H, HUD_GREEN);
+      this._qi = new THREE.Quaternion();
+      this._v = new THREE.Vector3();
+    }
+    const qi = this._qi.copy(d.q).invert(), v = this._v;
+    const proj = (dir) => {
+      v.copy(dir).applyQuaternion(qi);
+      if (v.z > -0.05) return null;
+      return this.toPx(Math.atan2(v.x, -v.z), Math.atan2(v.y, -v.z));
+    };
+    ctx.clearRect(0, 0, W, H);
+    drawFighterHud(ctx, this.fighterLayout, d, proj);
+    this.texture.needsUpdate = true;
   }
 
   drawTape(value, pxPerUnit, tickStep, labelStep, side, cy) {
@@ -744,7 +767,9 @@ function layoutFighter(g, mat, mfds) {
   addBox(g, mat.matte, 0.14, 0.03, 0.1, 0, -0.09, -0.53);
   addPanel(g, mat, mfds, {
     w: 0.62, h: 0.22, x: 0, y: -0.25, z: -0.6, tilt: -0.2,
-    screens: [{ page: 'pfd', x: -0.2, y: 0, size: 0.16 }, { page: 'nav', x: 0, y: 0, size: 0.16 }, { page: 'eng', x: 0.2, y: 0, size: 0.16 }]
+    // phase 4: radar picture and stores page join the flight, map and engine pages
+    screens: [{ page: 'pfd', x: -0.248, y: 0, size: 0.115 }, { page: 'radar', x: -0.124, y: 0, size: 0.115 }, { page: 'nav', x: 0, y: 0, size: 0.115 },
+      { page: 'sms', x: 0.124, y: 0, size: 0.115 }, { page: 'eng', x: 0.248, y: 0, size: 0.115 }]
   });
   addTub(g, mat, 0, 0.46, -0.42, -0.75, 0.3);
   addSeat(g, mat, 0, 0, 0, true);
@@ -844,7 +869,7 @@ function layoutAirliner(g, mat, mfds) {
 }
 
 const LAYOUTS = { fighter: layoutFighter, trainer: layoutTrainer, heli: layoutHeli, airliner: layoutAirliner };
-const MFD_PAGES = { fighter: ['pfd', 'nav', 'eng'], trainer: ['pfd', 'eng'], heli: ['pfd', 'eng'], airliner: ['pfd', 'nav', 'eng'] };
+const MFD_PAGES = { fighter: ['pfd', 'radar', 'nav', 'sms', 'eng'], trainer: ['pfd', 'eng'], heli: ['pfd', 'eng'], airliner: ['pfd', 'nav', 'eng'] };
 
 // eyeOffset (optional): the airframe's cockpitOffset; defaults to the spec offset
 export function buildCockpit(aircraftId, eyeOffset) {

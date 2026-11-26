@@ -18,8 +18,19 @@ export function runwayAt(x, z) {
   return null;
 }
 
+// One shared PlaneGeometry per size (27-Nov-2026): a runway repeats the same few sizes (centre-line dashes, threshold
+// and touchdown bars) over 100 times; sharing them saves the GPU uploads that froze a frame when an airport came
+// into range. Shared ones are never disposed (src/world/airports.js dispose skips userData.shared).
+const PLANE_GEOS = new Map();
+function planeGeo(w, l) {
+  const key = w + 'x' + l;
+  let g = PLANE_GEOS.get(key);
+  if (!g) { g = new THREE.PlaneGeometry(w, l); g.userData.shared = true; PLANE_GEOS.set(key, g); }
+  return g;
+}
+
 export function flatPlane(w, l, mat, x, y, z) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, l), mat);
+  const m = new THREE.Mesh(planeGeo(w, l), mat);
   m.rotation.x = -Math.PI / 2;
   m.position.set(x, y, z);
   m.receiveShadow = true;

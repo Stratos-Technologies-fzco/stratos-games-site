@@ -1,5 +1,6 @@
 ﻿import * as THREE from 'three';
 import { addSurface, addGearLeg, deflectSurfaces, disposeObject } from './airframeKit.js';
+import { makeStoreMesh, STATIONS as STORE_STATIONS } from '../combat/fighterWeapons.js';
 
 export function createFighter() {
   const fighterGroup = new THREE.Group();
@@ -166,6 +167,11 @@ export function createFighter() {
     color: 0xa8dcff, transparent: true, opacity: 0.8,
     blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
   });
+  const diamondGeo = new THREE.SphereGeometry(0.2, 10, 6);
+  diamondGeo.scale(1, 1, 0.55);
+  const diamondMat = new THREE.MeshBasicMaterial({
+    color: 0xfff1c4, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+  });
   const flameGeo = new THREE.ConeGeometry(0.4, 1, 14);
   flameGeo.rotateX(Math.PI / 2);   // tip points aft
   flameGeo.translate(0, 0, 0.5);
@@ -176,7 +182,14 @@ export function createFighter() {
     core.position.copy(flame.position);
     flame.visible = core.visible = false;
     mesh.add(flame, core);
-    return { flame, core };
+    // Shock diamonds (09-Nov-2026): bright knots in a full-afterburner flame, spaced along its length
+    const diamonds = [0.2, 0.4, 0.6, 0.8].map(() => {
+      const dm = new THREE.Mesh(diamondGeo, diamondMat);
+      dm.visible = false;
+      mesh.add(dm);
+      return dm;
+    });
+    return { flame, core, diamonds, x };
   });
 
   // Landing gear folds away after take-off and comes down low on approach
@@ -187,6 +200,29 @@ export function createFighter() {
   addGearLeg(gear, gearMat, 1.1, -0.1, 1.0, -1.2, 0.25);
   mesh.add(gear);
   let gearOut = 1, burn = 0;
+
+  // Stores under the wings (phase 4): heat seekers on the wing-tip rails, radar missiles on the outer pylons,
+  // four 500 lb bombs on the inner pylons. Each disappears when it is fired (setStores); the pylons stay.
+  const pylonMat = new THREE.MeshStandardMaterial({ color: 0x6f7a85, roughness: 0.55, metalness: 0.2 });
+  const stores = {};
+  ['IR', 'RDR', 'BOMB'].forEach((kind) => {
+    stores[kind] = STORE_STATIONS[kind].map(([x, y, z]) => {
+      const m = makeStoreMesh(kind);
+      m.position.set(x, y, z);
+      mesh.add(m);
+      if (kind !== 'IR') {
+        const top = -0.06, h = Math.max(0.05, top - (y + (kind === 'BOMB' ? 0.137 : 0.09)));
+        const pylon = new THREE.Mesh(new THREE.BoxGeometry(0.06, h, kind === 'BOMB' ? 0.9 : 1.4), pylonMat);
+        pylon.position.set(x, top - h / 2, z);
+        mesh.add(pylon);
+      } else {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 2.2), pylonMat);
+        rail.position.set(x, y + 0.08, z);
+        mesh.add(rail);
+      }
+      return m;
+    });
+  });
 
   return {
     id: 'fighter',
@@ -214,18 +250,31 @@ export function createFighter() {
     cockpitOffset: new THREE.Vector3(0, 0.62, -1.3), // pilot eye inside the canopy
     chaseOffset: new THREE.Vector3(0, 3.4, 14.0),
 
+    // loadout: { IR: [1, 0], RDR: [...], BOMB: [...] } (1 = still on the aircraft)
+    setStores(loadout) {
+      for (const kind in stores) stores[kind].forEach((m, i) => { m.visible = !!loadout[kind][i]; });
+    },
+
     update(dt, flightState) {
       deflectSurfaces(surfaces, flightState.input);
       // Nozzle glow follows engine power; the flame builds and dies over a moment past the afterburner gate
       burnerMat.opacity = 0.2 + 0.7 * flightState.power / 100;
       const burnGoal = flightState.throttle > 0.7 ? (flightState.power / 100 - 0.6) / 0.4 : 0;
       burn += (Math.max(0, burnGoal) - burn) * Math.min(1, 5 * dt);
-      flames.forEach(({ flame, core }) => {
+      const knots = Math.max(0, (burn - 0.45) / 0.55);   // diamonds only in a strong burner
+      diamondMat.opacity = 0.85 * knots;
+      flames.forEach(({ flame, core, diamonds }) => {
         flame.visible = core.visible = burn > 0.02;
+        diamonds.forEach((dm) => { dm.visible = flame.visible && knots > 0.02; });
         if (!flame.visible) return;
         const flicker = 1 + Math.random() * 0.12;
-        flame.scale.set(0.8 + 0.25 * burn, 0.8 + 0.25 * burn, (1.2 + 3.0 * burn) * flicker);
+        const len = (1.2 + 3.0 * burn) * flicker;
+        flame.scale.set(0.8 + 0.25 * burn, 0.8 + 0.25 * burn, len);
         core.scale.set(0.55, 0.55, (0.6 + 1.3 * burn) * flicker);
+        diamonds.forEach((dm, i) => {
+          dm.position.set(flame.position.x, flame.position.y, flame.position.z + len * (0.2 + 0.2 * i));
+          dm.scale.setScalar((1 - 0.18 * i) * (0.9 + Math.random() * 0.2));
+        });
       });
       const gearGoal = flightState.gearDown === false ? 0 : 1;
       gearOut += Math.max(-dt / 2.5, Math.min(dt / 2.5, gearGoal - gearOut));

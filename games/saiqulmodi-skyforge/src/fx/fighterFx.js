@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
-// Fighter air effects seen from outside: the vapor cone round Mach 1 and white trails off the wing tips in a hard pull.
+// Fighter air effects seen from outside: the vapor cone round Mach 1, white trails off the wing tips in a hard pull,
+// and (09-Nov-2026) vapour over the top of the wings at a high angle of attack in the lower, wetter air.
 const TIP = new THREE.Vector3(4.75, 0.05, 2.9);   // right wing tip in airframe axes
 const POINTS = 90;
 
@@ -31,6 +32,28 @@ export class FighterFx {
     this.cone.visible = false;
     parent.add(this.cone);
     this.trails = [makeTrail(scene, layer), makeTrail(scene, layer)];
+
+    // Wing vapour: soft white puffs over the upper surface of each wing, from the root to the tip
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d'), grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.5, 'rgba(255,255,255,0.45)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+    this.vapourMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+    this.vapour = [];
+    [-1, 1].forEach((side) => {
+      for (let i = 0; i < 5; i++) {
+        const k = i / 4;
+        const sp = new THREE.Sprite(this.vapourMat);
+        sp.position.set(side * (1.1 + 2.7 * k), 0.38 - 0.08 * k, -0.9 + 2.8 * k);
+        sp.userData.base = 2.4 - 0.9 * k;
+        sp.layers.set(layer);
+        sp.visible = false;
+        parent.add(sp);
+        this.vapour.push(sp);
+      }
+    });
+    this.vapourLevel = 0;
     this.tip = new THREE.Vector3();
     this.q = new THREE.Quaternion();
     this.gap = 0;
@@ -43,6 +66,19 @@ export class FighterFx {
     this.cone.material.opacity += (coneOpacity - this.cone.material.opacity) * Math.min(1, 8 * dt);
     this.cone.visible = this.cone.material.opacity > 0.01;
     if (this.cone.visible) this.cone.scale.setScalar(0.95 + Math.random() * 0.07);
+
+    // Wing vapour: angle of attack above 10 deg in a pull of more than 4 g, below about 4,500 m and below Mach 0.95
+    const aoaDeg = (state.aoa || 0) * 180 / Math.PI;
+    const low = 1 - Math.min(1, Math.max(0, ((state.hAmslM ?? 0) - 3000) / 1500));
+    const vapGoal = active && !state.onGround && state.mach < 0.95
+      ? Math.min(1, Math.max(0, (aoaDeg - 10) / 6)) * Math.min(1, Math.max(0, ((state.loadG || 1) - 4) / 2)) * low : 0;
+    this.vapourLevel += (vapGoal - this.vapourLevel) * Math.min(1, 6 * dt);
+    this.vapourMat.opacity = 0.42 * this.vapourLevel;
+    const vapOn = this.vapourLevel > 0.02;
+    this.vapour.forEach((sp) => {
+      sp.visible = vapOn;
+      if (vapOn) sp.scale.setScalar(sp.userData.base * (0.85 + Math.random() * 0.3));
+    });
 
     // Tip trails appear above 4 g and fade behind the aircraft
     const load = active && !state.onGround ? Math.min(1, Math.max(0, ((state.loadG || 1) - 4) / 3)) : 0;

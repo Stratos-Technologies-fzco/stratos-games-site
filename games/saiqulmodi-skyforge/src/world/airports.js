@@ -192,7 +192,7 @@ export class Airports {
     this.group.remove(entry.group);
     const materials = new Set();
     entry.group.traverse((o) => {
-      if (o.geometry) o.geometry.dispose();
+      if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose();   // shared ground pieces stay (voblAirport.js)
       if (o.material) materials.add(o.material);
     });
     materials.forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); });

@@ -1,4 +1,5 @@
 ﻿import * as THREE from 'three';
+import { drawRadarPage, drawStoresPage } from '../hud/radarScope.js';
 
 export class CockpitInstruments {
   constructor() {
@@ -381,6 +382,8 @@ export class CockpitMfdSet {
       const s = this.screens[page];
       if (page === 'pfd') this.drawPfd(s.ctx, d);
       else if (page === 'eng') this.drawEng(s.ctx, d);
+      else if (page === 'radar') { if (d.radarPic) drawRadarPage(s.ctx, 0, 0, MFD_SIZE, MFD_SIZE, d.radarPic); }
+      else if (page === 'sms') { if (d.sms) drawStoresPage(s.ctx, 0, 0, MFD_SIZE, MFD_SIZE, d.sms); }
       else this.drawNav(s.ctx, d);
       s.texture.needsUpdate = true;
     }
