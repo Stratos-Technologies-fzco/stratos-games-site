@@ -7,7 +7,7 @@ import { isTouchPlay } from '../core/touchControls.js';
 // Add-ons come from the official three.js examples of the same pinned version (0.160.0).
 // No cloud layers on purpose: the user wants clear, unobstructed views.
 
-export const gfx = { aniso: 8 }; // filled from the renderer; read by modules that make textures
+export const gfx = { aniso: 8, terrainRing: 3 }; // filled from the renderer; read by modules that make textures (terrainRing: src/world/terrain.js)
 
 // Sun azimuth matches the original light (2500, 3500, 1500)
 const SUN_AZ = Math.atan2(1500, 2500);
@@ -21,7 +21,10 @@ const TIMES = {
 
 // Existing weather presets (the user's own); none of them adds clouds
 const WEATHER = {
-  clear:     { fogDensity: 0.00003, sunK: 1.0,  turbidity: 2.0,  rayleigh: 2.0, mie: 0.003, overcast: 0.0,  fogTint: null },
+  // Clear Sky (27-Nov-2026): was 0.00003 (half faded by ~28 km). Now ~10 % at 20 km, ~34 % at 40 km; the terrain edge
+  // (72 km+ away) stays ~3/4 faded. Desktop High streams more ground and uses fogDensityHigh (edge 96 km+).
+  // hazeLift lightens the noon / morning haze toward a clean pale blue (golden hour and dusk keep their colour).
+  clear:     { fogDensity: 0.000016, fogDensityHigh: 0.000013, hazeLift: 0.35, sunK: 1.0,  turbidity: 2.0,  rayleigh: 2.0, mie: 0.003, overcast: 0.0,  fogTint: null },
   crosswind: { fogDensity: 0.0001,  sunK: 0.8,  turbidity: 5.0,  rayleigh: 1.4, mie: 0.006, overcast: 0.15, fogTint: 0x9aa9b6 },
   monsoon:   { fogDensity: 0.00035, sunK: 0.35, turbidity: 10.0, rayleigh: 0.5, mie: 0.01,  overcast: 0.75, fogTint: 0x5f6b77 },
   cat3:      { fogDensity: 0.003,   sunK: 0.18, turbidity: 12.0, rayleigh: 0.3, mie: 0.01,  overcast: 0.96, fogTint: 0x98a2ad }
@@ -37,6 +40,8 @@ const PHONE_LOW_RATIO = 1.25;
 const PHONE_MIN_FPS = 30;
 const DESKTOP_MIN_FPS = 24;
 // a phone or tablet by its name, or by touch (finger, no mouse): catches iPads and Android "Desktop site"
+const CLEAR_HAZE = 0xcfe2f0;  // Clear Sky: lighter horizon haze (noon / morning)
+const HIGH_RING = 4;          // terrain ring on desktop High (Clear Sky long view)
 const isPhoneDevice = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent) || isTouchPlay();
 
 // ---------- GLSL helpers ----------
@@ -360,8 +365,9 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
 
     const haze = new THREE.Color(t.fog);
     if (w.fogTint !== null) haze.lerp(new THREE.Color(w.fogTint), Math.min(1, w.overcast + 0.3)).multiplyScalar(st.time === 'dusk' ? 0.55 : 1);
+    if (w.hazeLift && (st.time === 'noon' || st.time === 'morning')) haze.lerp(new THREE.Color(CLEAR_HAZE), w.hazeLift);
     scene.fog.color.copy(haze);
-    scene.fog.density = w.fogDensity;
+    scene.fog.density = fogDensity();
     if (!sky) {
       if (!scene.background || !scene.background.isColor) scene.background = new THREE.Color();
       scene.background.copy(haze);
@@ -390,6 +396,13 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
     st.envDirty = true;
   }
 
+  // Desktop High (more terrain streamed) can see farther in Clear Sky; everything else uses the preset's density
+  const longView = () => !phone && st.quality === 'high';
+  function fogDensity() {
+    const w = WEATHER[st.weather];
+    return longView() && w.fogDensityHigh ? w.fogDensityHigh : w.fogDensity;
+  }
+
   async function setQuality(tier, manual = true) {
     if (!QUALITY[tier]) return;
     const q = QUALITY[tier];
@@ -398,6 +411,8 @@ export async function createVisuals({ renderer, scene, camera, sunLight, hemiLig
       st.manual = true;
       try { localStorage.setItem('skyforge.quality', tier); } catch (e) { /* storage blocked */ }
     }
+    gfx.terrainRing = longView() ? HIGH_RING : 3;   // phones and Low / Medium: never more ground than before
+    scene.fog.density = fogDensity();
     const ratio = phone && tier === 'low' ? phoneLowRatio : q.ratio;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, ratio));
     renderer.setSize(window.innerWidth, viewH());

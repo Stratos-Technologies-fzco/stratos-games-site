@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { worldToGeo, AIRPORT_ELEVATION_M } from '../environment/phase6/geo.js';
-import { addSurfaceDetail } from '../render/visuals.js';
+import { addSurfaceDetail, gfx } from '../render/visuals.js';
 
 // Real South India terrain (lat 8-19.5 N, lon 74-85 E) from assets/terrain/south_india.png
 // (built by tools/build_heightmap.py from SRTM / GMTED / ETOPO1 via Mapzen Terrain Tiles).
@@ -9,6 +9,9 @@ import { addSurfaceDetail } from '../render/visuals.js';
 const CHUNK_M = 24000;
 const CHUNK_SEG = 48;           // 500 m vertex spacing (data is ~1.2 km)
 const RING = 3;                 // chunks each side of the aircraft's chunk (7 x 7 visible, ~84 km)
+// Clear Sky view (27-Nov-2026): desktop High streams one ring more (9 x 9, ~108 km) so the longer view has ground
+// under it; phones and Low / Medium stay on RING. Set by setQuality in src/render/visuals.js.
+const ring = () => gfx.terrainRing || RING;
 const BUILDS_PER_FRAME = 2;
 const SEA_FLOOR_M = -25;        // grey level 0 (sea) is treated as this depth
 export const SEA_LEVEL_Y = -AIRPORT_ELEVATION_M;
@@ -160,7 +163,8 @@ export class Terrain {
   update(x, z) {
     const ccx = Math.round(x / CHUNK_M), ccz = Math.round(z / CHUNK_M);
     let built = 0;
-    for (let r = 0; r <= RING && built < BUILDS_PER_FRAME; r++) {
+    const R = ring();
+    for (let r = 0; r <= R && built < BUILDS_PER_FRAME; r++) {
       for (let i = -r; i <= r && built < BUILDS_PER_FRAME; i++) {
         for (let j = -r; j <= r && built < BUILDS_PER_FRAME; j++) {
           if (Math.max(Math.abs(i), Math.abs(j)) !== r) continue; // ring order: nearest first
@@ -173,9 +177,12 @@ export class Terrain {
         }
       }
     }
+    // one ring of slack stops tiles flickering at the edge; when the ring just shrank (High -> Low) drop the extra ring now
+    const keep = R < (this.lastRing || R) ? R : R + 1;
+    this.lastRing = R;
     for (const [key, mesh] of this.chunks) {
       const [kx, kz] = key.split(',').map(Number);
-      if (Math.max(Math.abs(kx - ccx), Math.abs(kz - ccz)) > RING + 1) {
+      if (Math.max(Math.abs(kx - ccx), Math.abs(kz - ccz)) > keep) {
         this.group.remove(mesh);
         mesh.geometry.dispose();
         this.chunks.delete(key);
@@ -187,6 +194,6 @@ export class Terrain {
 
   // Build every chunk of the starting ring at once (used before the first frame)
   prime(x, z) {
-    for (let k = 0; k < (RING * 2 + 1) ** 2; k += BUILDS_PER_FRAME) this.update(x, z);
+    for (let k = 0; k < (ring() * 2 + 1) ** 2; k += BUILDS_PER_FRAME) this.update(x, z);
   }
 }
