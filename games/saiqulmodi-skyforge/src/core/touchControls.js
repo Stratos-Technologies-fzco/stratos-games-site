@@ -170,9 +170,12 @@ export function initTouchControls(map) {
   let padPointer = null;
   // Analog: the further the finger moves, the stronger the control; fine near the centre for flying straight
   const stick = window.skyforgeTouchStick = { pitch: 0, roll: 0 };
+  // Small dead zone so a resting thumb gives nothing; rescaled so the edge still gives full deflection
+  const DEAD = 0.06;
+  const shape = (v) => { const a = Math.abs(v); if (a < DEAD) return 0; const s = (a - DEAD) / (1 - DEAD); return Math.sign(v) * s * s; };
   const setDirections = (x, y) => {   // x, y: -1..1
-    stick.roll = x * Math.abs(x);
-    stick.pitch = y * Math.abs(y);
+    stick.roll = shape(x);
+    stick.pitch = shape(y);
   };
   const movePad = (e) => {
     const r = pad.getBoundingClientRect();
