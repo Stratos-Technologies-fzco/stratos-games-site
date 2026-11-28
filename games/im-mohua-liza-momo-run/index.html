@@ -1177,7 +1177,7 @@ function startLevel(n) {
   breakT = n === 1 ? 0.5 : 1.2; nextSpawn = n === 1 ? 30 : 22;
   const w = WEATHERS[(n - 1) % WEATHERS.length];
   setWeather(w);
-  $('lvlNum').textContent = (daily ? '📅 DAILY · LEVEL ' : 'LEVEL ') + n; $('lvlName').textContent = w.icon + ' ' + w.name;
+  $('lvlNum').textContent = (daily ? '📅 LEVEL ' : 'LEVEL ') + n; $('lvlName').textContent = (daily ? 'Daily · ' : '') + w.icon + ' ' + w.name;
   showBanner('Level ' + n, w.icon + ' ' + w.name + (n > 1 ? ' · Speed up!' : ''));
   SND.levelStart(); SND.play(w.song);
   track('level_start', { level: n, weather: w.name, mode: daily ? 'daily' : 'solo' });
