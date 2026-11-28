@@ -115,6 +115,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 #stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px;border-radius:50%;background:rgba(255,210,58,.75);box-shadow:0 2px 6px rgba(0,0,0,.4)}
 #sticktip{position:absolute;left:12%;bottom:16%;width:110px;height:110px;border-radius:50%;border:2px dashed rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:rgba(255,255,255,.6);pointer-events:none}
 .tb{position:absolute;width:62px;height:62px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(10,13,20,.45);color:#fff;font:700 12px Outfit,sans-serif;letter-spacing:.5px;padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
+button.royale{background:linear-gradient(90deg,#ff6fb1,#ffb13b);color:#2a0b1e;border-color:transparent;font-weight:700}
 .tb.on{background:rgba(255,138,31,.75);border-color:#ffd23a}
 #tFire{width:96px;height:96px;right:calc(28px + env(safe-area-inset-right));bottom:30px;background:rgba(255,90,58,.55);font-size:16px}
 #tAim{right:calc(140px + env(safe-area-inset-right));bottom:26px}
@@ -123,6 +124,7 @@ td.n{text-align:right;font-variant-numeric:tabular-nums}
 #tSwap{right:calc(206px + env(safe-area-inset-right));bottom:70px;width:52px;height:52px}
 #tNade{right:calc(118px + env(safe-area-inset-right));bottom:172px;width:52px;height:52px}
 #tCrouch{right:calc(206px + env(safe-area-inset-right));bottom:10px;width:52px;height:52px}
+#tPick{right:calc(206px + env(safe-area-inset-right));bottom:132px;width:62px;height:62px;background:rgba(255,210,58,.75);color:#1a1006}
 #tZin,#tZout{width:46px;height:46px;font-size:22px;right:calc(260px + env(safe-area-inset-right))}
 #tZin{bottom:118px}#tZout{bottom:64px}
 #tPause,#tBoard{width:42px;height:42px;top:10px;font-size:15px}
@@ -190,6 +192,7 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
   <button class="tb" id="tCrouch">DUCK</button>
   <button class="tb hide" id="tZin">+</button>
   <button class="tb hide" id="tZout">&minus;</button>
+  <button class="tb hide" id="tPick">PICK</button>
   <button class="tb" id="tBoard">&#9776;</button>
   <button class="tb" id="tPause">II</button>
 </div>
@@ -238,8 +241,8 @@ body.touch .keys,body.touch .bars,body.touch .deskonly{display:none}
     </div>
     <button class="big" id="play">PLAY ONLINE</button>
     <div class="online" id="netstatus">Connecting to the arena…</div>
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="ghost" id="practice">Practice with bots</button><button class="ghost wa" id="waInvite">📲 Invite friends</button></div>
-    <div class="note">Online: one big arena for everyone, no room code. Most squeezes when the 6 minute timer ends wins, then a new match starts. Practice: first to 25 squeezes wins.</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button class="ghost" id="practice">Practice with bots</button><button class="ghost royale" id="royale">🎈 Juice Royale</button><button class="ghost wa" id="waInvite">📲 Invite friends</button></div>
+    <div class="note">Online: one big arena for everyone, no room code. Most squeezes when the 6 minute timer ends wins, then a new match starts. Practice: first to 25 squeezes wins. Juice Royale: float down on a balloon, grab guns from the loot, stay inside the shrinking circle, last fruit standing wins.</div>
   </div>
 </div>
 

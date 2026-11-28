@@ -152,10 +152,12 @@ function fruitTex(i) {
 }
 
 // ---------------------------------------------------------------- map
-const colliders = [];
+let colliders = [];
+const arenaCol = colliders, isleCol = [];
 const mapMeshes = [];
 const matCache = {};
 function matFor(kind, w, h, d, extra) {
+  if (kind === 'iwall') return matCache.iwall || (matCache.iwall = (() => { const t = TEX.wall.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.needsUpdate = true; return new THREE.MeshStandardMaterial({ map: t, roughness: .95 }); })());
   if (kind === 'wall') { const t = TEX.wall.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(Math.max(w, d) / 7, 1); t.needsUpdate = true; return new THREE.MeshStandardMaterial({ map: t, roughness: .95 }); }
   if (kind === 'container') { const k = 'c' + extra; return matCache[k] || (matCache[k] = new THREE.MeshStandardMaterial({ map: containerTex(extra), roughness: .7, metalness: .2 })); }
   return matCache[kind] || (matCache[kind] = new THREE.MeshStandardMaterial({ map: TEX[kind], roughness: kind === 'plat' ? .6 : .85, metalness: kind === 'plat' ? .3 : 0 }));
@@ -215,7 +217,188 @@ function buildMap() {
     t.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); scene.add(t);
   }
 }
+let _n0 = scene.children.length;
 buildMap();
+// the arena's things go in one group (the grass field stays for both maps), so it can be hidden on the island
+const arenaGroup = new THREE.Group();
+for (const c of scene.children.slice(_n0)) if (!(c.geometry && c.geometry.parameters && c.geometry.parameters.width === 800)) arenaGroup.add(c);
+scene.add(arenaGroup);
+
+// ---------------------------------------------------------------- Juice Royale island (practice battle royale)
+// A second, bigger map: an island out at sea, east of the arena. Same building blocks, laid out once from a fixed seed.
+const RX = 300, RZ = 0, ISLE_R = 78;
+let royale = false;
+const royaleWP = [], lootSpots = [];
+function srand(seed) { let x = seed >>> 0; return () => { x = (x + 0x6D2B79F5) >>> 0; let t = x; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function buildIsland() {
+  const rr = srand(7), rb = (a, b) => a + rr() * (b - a);
+  const disc = (r, color, y, rough = 1) => { const m = new THREE.Mesh(new THREE.CircleGeometry(r, 72), new THREE.MeshStandardMaterial({ color, roughness: rough })); m.rotation.x = -Math.PI / 2; m.position.set(RX, y, RZ); m.receiveShadow = true; scene.add(m); return m; };
+  disc(175, 0x3fa9d6, -0.012, .3); disc(ISLE_R + 7, 0xe9d39a, -0.006); disc(ISLE_R - 3, 0x86bf55, -0.003);
+  const inIsle = (x, z, m) => Math.hypot(x - RX, z - RZ) < ISLE_R - m;
+  // juice factory in the middle, with stairs up to a lookout roof
+  addBox(RX, RZ, 8, 8, 4, 'carton');
+  for (let k = 1; k <= 8; k++) addBox(RX + 4 + (8 - k) * 0.8 + 0.4, RZ, 0.8, 2.2, 0.5 * k, 'step');
+  addBox(RX - 3.7, RZ, 0.6, 8, 0.9, 'low', 4); addBox(RX, RZ - 3.7, 7, 0.6, 0.9, 'low', 4);
+  lootSpots.push([RX + 2, RZ + 2, 4], [RX - 7, RZ - 7, 0], [RX + 8, RZ + 7, 0]);
+  // fruit huts: three walls, a door facing the middle, a flat roof, loot inside
+  const huts = [];
+  for (let i = 0; i < 7; i++) {
+    const a = i / 7 * Math.PI * 2 + rb(-.2, .2), r = rb(36, 58);
+    huts.push([RX + Math.cos(a) * r, RZ + Math.sin(a) * r]);
+  }
+  for (const [cx, cz] of huts) {
+    const S2 = 3.5, H = 3, T = 0.5, dx = RX - cx, dz = RZ - cz, doorX = Math.abs(dx) > Math.abs(dz);
+    const side = doorX ? Math.sign(dx) : Math.sign(dz);
+    const wall = (x, z, w, d) => addBox(x, z, w, d, H, 'iwall');
+    for (const sg of [-1, 1]) {
+      if (doorX && sg === side) { wall(cx + sg * S2, cz - 2.3, T, 2.4); wall(cx + sg * S2, cz + 2.3, T, 2.4); }
+      else if (doorX) wall(cx + sg * S2, cz, T, 7);
+      if (!doorX && sg === side) { wall(cx - 2.3, cz + sg * S2, 2.4, T); wall(cx + 2.3, cz + sg * S2, 2.4, T); }
+      else if (!doorX) wall(cx, cz + sg * S2, 7, T);
+    }
+    addBox(cx, cz, 7.6, 7.6, 0.3, 'plat', H);
+    lootSpots.push([cx, cz, 0], [cx + (doorX ? side * 6 : 3), cz + (doorX ? 3 : side * 6), 0]);
+  }
+  // containers, cartons, crates, low walls and trees spread over the island (only where there is room)
+  const place = (w, d, h, kind, extra, margin = 1.2, tries = 40) => {
+    for (let t = 0; t < tries; t++) {
+      const a = rr() * Math.PI * 2, r = 12 + Math.sqrt(rr()) * (ISLE_R - 20), x = RX + Math.cos(a) * r, z = RZ + Math.sin(a) * r;
+      if (!inIsle(x, z, 6) || !pointFree(x, z, 0.1, Math.max(w, d) / 2 + margin, h + 1)) continue;
+      addBox(x, z, w, d, h, kind, 0, extra); return [x, z];
+    }
+    return null;
+  };
+  const cols = ['#2f7fb8', '#c0392b', '#27ae60', '#8e44ad', '#e67e22', '#16a085'];
+  for (let i = 0; i < 9; i++) { const p = rr() < .5 ? place(8, 2.6, 2.6, 'container', pick2(cols)) : place(2.6, 8, 2.6, 'container', pick2(cols)); if (p) lootSpots.push([p[0] + 2.5, p[1] + 2.5, 0]); }
+  function pick2(a) { return a[Math.floor(rr() * a.length)]; }
+  for (let i = 0; i < 8; i++) place(4, 4, 3, 'carton');
+  for (let i = 0; i < 26; i++) { const p = place(1.6, 1.6, 1.6, 'crate'); if (p && i % 2 === 0) lootSpots.push([p[0] + 1.6, p[1], 0]); }
+  for (let i = 0; i < 16; i++) rr() < .5 ? place(5, 0.6, 1, 'low') : place(0.6, 5, 1, 'low');
+  const trunkM = new THREE.MeshStandardMaterial({ color: 0x6b4a2b }), leafM2 = new THREE.MeshStandardMaterial({ color: 0x3f8f3a, roughness: .9 }), fruitM = new THREE.MeshStandardMaterial({ color: 0xffb13b });
+  const treeAt = [];
+  for (let i = 0; i < 34; i++) {
+    const p = place(0.8, 0.8, 3, 'crate', undefined, 1.6); if (!p) continue;
+    const box = mapMeshes.pop(); scene.remove(box); // the collider stays, the crate look is replaced by a tree
+    treeAt.push([p[0], p[1], rb(2.2, 3)]);
+  }
+  const n = treeAt.length, M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3();
+  const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(.35, .5, 3, 6), trunkM, n);
+  const crowns = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), leafM2, n);
+  const fruits = new THREE.InstancedMesh(new THREE.SphereGeometry(.28, 6, 5), fruitM, n * 4);
+  treeAt.forEach(([x, z, cr], i) => {
+    trunks.setMatrixAt(i, M.compose(V.set(x, 1.5, z), Q.identity(), SC.set(1, 1, 1)));
+    crowns.setMatrixAt(i, M.compose(V.set(x, 4.4, z), Q.identity(), SC.set(cr, cr, cr)));
+    for (let k = 0; k < 4; k++) { V.set(rb(-2, 2), rb(3.5, 5.3), rb(-2, 2)).normalize().multiplyScalar(cr * 0.95); fruits.setMatrixAt(i * 4 + k, M.compose(V.set(x + V.x, V.y + 4.2, z + V.z), Q.identity(), SC.set(1, 1, 1))); }
+  });
+  trunks.castShadow = crowns.castShadow = true;
+  scene.add(trunks, crowns, fruits);
+  // loot spots in the open too
+  for (let i = 0; i < 14; i++) { const a = rr() * Math.PI * 2, r = 8 + Math.sqrt(rr()) * (ISLE_R - 16); const x = RX + Math.cos(a) * r, z = RZ + Math.sin(a) * r; if (pointFree(x, z, 0.1, 1)) lootSpots.push([x, z, 0]); }
+  for (let x = RX - ISLE_R; x <= RX + ISLE_R; x += 5) for (let z = RZ - ISLE_R; z <= RZ + ISLE_R; z += 5) if (inIsle(x, z, 6) && pointFree(x, z, 0.1, 1.1)) royaleWP.push(new THREE.Vector3(x, 0, z));
+}
+colliders = isleCol; _n0 = scene.children.length;
+buildIsland();
+colliders = arenaCol;
+const isleGroup = new THREE.Group();
+for (const c of scene.children.slice(_n0)) isleGroup.add(c);
+isleGroup.visible = false; scene.add(isleGroup);
+function useMap(island) { colliders = island ? isleCol : arenaCol; isleGroup.visible = island; arenaGroup.visible = !island; }
+
+// loot lying around the island: guns, juice bomb packs and juice packs (heal)
+const loot = [];
+const LOOT_RING = { gun: 0xffd23a, bomb: 0x9be15d, heal: 0xff6fb1 };
+function addLoot(type, key, x, y, z) {
+  const g = new THREE.Group();
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(.7, .7, .06, 24), new THREE.MeshBasicMaterial({ color: LOOT_RING[type], transparent: true, opacity: .55 }));
+  ring.position.y = 0.04; g.add(ring);
+  const item = new THREE.Group(); item.position.y = 0.85; g.add(item);
+  if (type === 'gun') { const m = makeGun(key); m.scale.setScalar(1.7); m.rotation.y = Math.PI / 2; item.add(m); }
+  else if (type === 'bomb') { for (const dx of [-.14, .14]) { const n = new THREE.Mesh(nadeGeo, nadeMat); n.scale.setScalar(1.4); n.position.x = dx; item.add(n); } }
+  else { const c = new THREE.Mesh(new THREE.BoxGeometry(.32, .48, .32), matFor('carton')); item.add(c); }
+  g.position.set(x, y, z); scene.add(g);
+  const l = { type, key, pos: new THREE.Vector3(x, y, z), mesh: g, item, taken: false };
+  loot.push(l); return l;
+}
+function spawnLoot() {
+  const r = srand(Math.floor(Math.random() * 1e9));
+  for (const [x, z, y] of lootSpots) {
+    const k = r();
+    if (k < .55) addLoot('gun', PRIMARIES[Math.floor(r() * PRIMARIES.length)], x, y, z);
+    else if (k < .75) addLoot('bomb', null, x, y, z);
+    else addLoot('heal', null, x, y, z);
+  }
+}
+function clearLoot() { for (const l of loot) scene.remove(l.mesh); loot.length = 0; }
+function nearestLoot(pos, maxD, type) {
+  let best = null, bd = maxD;
+  for (const l of loot) { if (l.taken || (type && l.type !== type)) continue; const d = Math.hypot(l.pos.x - pos.x, l.pos.z - pos.z); if (d < bd) { bd = d; best = l; } }
+  return best;
+}
+
+// the juice storm: a circle that shrinks in steps. Outside it you lose health.
+const ZONE_PHASES = [{ wait: 35, shrink: 25, r: 52, dps: 3 }, { wait: 25, shrink: 20, r: 32, dps: 5 }, { wait: 20, shrink: 18, r: 16, dps: 8 }, { wait: 15, shrink: 15, r: 6, dps: 12 }, { wait: 15, shrink: 15, r: 0, dps: 18 }];
+const zone = { x: RX, z: RZ, r: ISLE_R + 12, fx: RX, fz: RZ, fr: ISLE_R + 12, tx: RX, tz: RZ, tr: 52, phase: 0, t: 0, shrinking: false, dps: 2 };
+const zoneMesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 70, 72, 1, true), new THREE.MeshBasicMaterial({ color: 0xff5fa2, transparent: true, opacity: .22, side: THREE.DoubleSide, depthWrite: false }));
+zoneMesh.visible = false; scene.add(zoneMesh);
+function zoneTarget() {
+  const ph = ZONE_PHASES[zone.phase]; if (!ph) return;
+  const room = Math.max(0, zone.r - ph.r), a = Math.random() * Math.PI * 2, d = Math.random() * room * 0.8;
+  zone.fx = zone.x; zone.fz = zone.z; zone.fr = zone.r;
+  zone.tx = zone.x + Math.cos(a) * d; zone.tz = zone.z + Math.sin(a) * d; zone.tr = ph.r;
+}
+function resetZone() { Object.assign(zone, { x: RX, z: RZ, r: ISLE_R + 12, phase: 0, t: 0, shrinking: false, dps: 2 }); zoneTarget(); }
+function updateZone(dt) {
+  const ph = ZONE_PHASES[zone.phase];
+  if (ph) {
+    zone.t += dt;
+    if (!zone.shrinking && zone.t >= ph.wait) { zone.shrinking = true; zone.t = 0; zone.dps = ph.dps; showMsg('The juice storm is moving!'); SND.zoom && SND.zoom(); }
+    else if (zone.shrinking) {
+      const k = Math.min(1, zone.t / ph.shrink);
+      zone.x = zone.fx + (zone.tx - zone.fx) * k; zone.z = zone.fz + (zone.tz - zone.fz) * k; zone.r = zone.fr + (zone.tr - zone.fr) * k;
+      if (k >= 1) { zone.phase++; zone.t = 0; zone.shrinking = false; zoneTarget(); }
+    }
+  }
+  zoneMesh.position.set(zone.x, 30, zone.z); zoneMesh.scale.set(Math.max(zone.r, 0.05), 1, Math.max(zone.r, 0.05));
+  for (const b of bodies) {
+    if (!b.alive || b.remote || b.drop) continue;
+    if (Math.hypot(b.pos.x - zone.x, b.pos.z - zone.z) > zone.r) {
+      damage(b, zone.dps * dt, null, false, 'Juice Storm');
+      if (b.isPlayer && time - (b.stormHintT || -99) > 3) { b.stormHintT = time; hud.hint.textContent = 'You are in the juice storm! Get inside the circle.'; clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 2500); }
+    }
+  }
+}
+function zoneLabel() {
+  const ph = ZONE_PHASES[zone.phase]; if (!ph) return 'Final circle';
+  const left = Math.max(0, Math.ceil((zone.shrinking ? ph.shrink : ph.wait) - zone.t));
+  return `${zone.shrinking ? 'Storm moving' : 'Storm in'} ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+}
+const aliveCount = () => bodies.filter(b => b.alive).length;
+// a random free spot inside the circle, away from the others
+function royaleSpot(inZone) {
+  let best = null, bd = -1;
+  for (let i = 0; i < 30; i++) {
+    const a = Math.random() * Math.PI * 2, cx = inZone ? zone.x : RX, cz = inZone ? zone.z : RZ, rad = inZone ? Math.max(2, zone.r * 0.7) : ISLE_R - 12;
+    const r = Math.sqrt(Math.random()) * rad, x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
+    if (Math.hypot(x - RX, z - RZ) > ISLE_R - 6 || !pointFree(x, z, 0.1, 0.8)) continue;
+    let md = 1e9; for (const o of bodies) if (o.alive) md = Math.min(md, Math.hypot(o.pos.x - x, o.pos.z - z));
+    if (md > bd) { bd = md; best = [x, z]; }
+  }
+  return best || [RX + 10, RZ + 10];
+}
+// float down on a fruit balloon at the start
+const balloonGeo = new THREE.SphereGeometry(1, 18, 14), stringGeo = new THREE.CylinderGeometry(.015, .015, 2.2, 4);
+function addBalloon(b) {
+  const g = new THREE.Group();
+  const ball = new THREE.Mesh(balloonGeo, new THREE.MeshStandardMaterial({ color: FRUITS[b.fruit].juice, roughness: .35 })); ball.scale.set(1.1, 1.3, 1.1); ball.position.y = 4.4; ball.castShadow = true; g.add(ball);
+  const st = new THREE.Mesh(stringGeo, blackM); st.position.y = 2.6; g.add(st);
+  scene.add(g); b.balloon = g;
+}
+function popBalloon(b) {
+  if (!b.balloon) return;
+  _v.copy(b.balloon.position); _v.y += 4.4; burst(_v, FRUITS[b.fruit].juice, 26, 5, .5);
+  scene.remove(b.balloon); b.balloon = null;
+  if (b.isPlayer) { SND.jump(); showMsg('Find a gun, fast!'); }
+}
 
 const SPAWNS = [[-35, 0], [35, 0], [0, -35], [0, 35], [-35, 35], [35, -35], [-20, -35], [20, 35], [-35, 22], [35, -22], [12, -35], [-12, 35], [-8, 6], [8, -6]]
   .filter(([x, z]) => pointFree(x, z, 0.1, 0.8));
@@ -439,10 +622,11 @@ class Body {
     this.equip(primary);
   }
   equip(primary) {
-    this.primary = primary; this.slots = [primary, 'peeler'];
-    this.mag = { [primary]: WEAPONS[primary].mag, peeler: WEAPONS.peeler.mag };
-    this.cur = 0; this.fireT = 0; this.reloadT = 0; this.swapT = 0; this.bloom = 0; this.nades = 2; this.hp = 100;
-    if (this.model) { const ud = this.model.userData; ud.inner.remove(ud.gun); ud.gun = makeGun(primary); ud.gun.scale.setScalar(.9); ud.gun.position.set(.12, .7, -.62); ud.inner.add(ud.gun); }
+    // Juice Royale: everyone lands with only the Peeler pistol and finds the rest
+    this.primary = primary; this.slots = royale ? ['peeler'] : [primary, 'peeler'];
+    this.mag = royale ? { peeler: WEAPONS.peeler.mag } : { [primary]: WEAPONS[primary].mag, peeler: WEAPONS.peeler.mag };
+    this.cur = 0; this.fireT = 0; this.reloadT = 0; this.swapT = 0; this.bloom = 0; this.nades = royale ? 1 : 2; this.hp = 100;
+    if (this.model) setModelGun(this, this.slots[0]);
   }
   get wkey() { return this.slots[this.cur]; }
   get w() { return WEAPONS[this.wkey]; }
@@ -451,6 +635,37 @@ class Body {
   dir(out) { const cp = Math.cos(this.pitch); return out.set(-Math.sin(this.yaw) * cp, Math.sin(this.pitch), -Math.cos(this.yaw) * cp); }
 }
 
+function setModelGun(b, key) { const ud = b.model.userData; ud.inner.remove(ud.gun); ud.gun = makeGun(key); ud.gun.scale.setScalar(.9); ud.gun.position.set(.12, .7, -.62); ud.inner.add(ud.gun); }
+// pick up a gun from the loot: the old one is dropped where you stand
+function giveGun(b, key) {
+  if (b.slots.length > 1) { const old = b.slots[0]; addLoot('gun', old, b.pos.x + rand(-.6, .6), b.pos.y, b.pos.z + rand(-.6, .6)); b.slots[0] = key; }
+  else b.slots = [key, 'peeler'];
+  b.primary = key; b.mag[key] = WEAPONS[key].mag; b.cur = 0; b.reloadT = 0; b.swapT = 0.4;
+  if (b.model) setModelGun(b, key);
+  if (b.isPlayer) { SND.swap(); showWeapon(); showMsg(`${WEAPONS[key].name}!`); }
+}
+let nearGun = null;
+function updateLoot(dt) {
+  nearGun = null;
+  for (const l of loot) if (!l.taken) { l.mesh.visible = Math.hypot(l.pos.x - camera.position.x, l.pos.z - camera.position.z) < 55; if (l.mesh.visible) l.item.rotation.y += dt * 1.6; }
+  for (const b of bodies) {
+    if (!b.alive || b.remote || b.drop) continue;
+    for (const l of loot) {
+      if (l.taken || Math.abs(l.pos.y - b.pos.y) > 1.6 || Math.hypot(l.pos.x - b.pos.x, l.pos.z - b.pos.z) > 1.3) continue;
+      let take = false;
+      if (l.type === 'heal' && b.hp < 100) { b.hp = Math.min(100, b.hp + 50); take = true; if (b.isPlayer) showMsg('+50 juice'); }
+      else if (l.type === 'bomb' && b.nades < 4) { b.nades = Math.min(4, b.nades + 2); take = true; if (b.isPlayer) showMsg('+2 juice bombs'); }
+      else if (l.type === 'gun') {
+        if (b.slots.length < 2) { giveGun(b, l.key); take = true; }
+        else if (b.isPlayer && l.key !== b.slots[0]) nearGun = l;
+      }
+      if (take) { l.taken = true; scene.remove(l.mesh); if (b.isPlayer && l.type !== 'gun') SND.reload(); }
+    }
+  }
+  if (nearGun && player && player.alive) { hud.hint.textContent = `${TOUCH ? 'Tap PICK' : 'Press F'} to swap to ${WEAPONS[nearGun.key].name}`; nearGun.shown = true; }
+  else if (hud.hint.textContent.startsWith(TOUCH ? 'Tap PICK' : 'Press F')) hud.hint.textContent = '';
+}
+function pickNearGun() { if (!nearGun || !player || !player.alive) return; const l = nearGun; l.taken = true; scene.remove(l.mesh); giveGun(player, l.key); nearGun = null; }
 function overlaps(b, c, px, py, pz) { return px + R > c.min.x && px - R < c.max.x && pz + R > c.min.z && pz - R < c.max.z && py + b.h > c.min.y && py < c.max.y; }
 function moveBody(b, dt) {
   b.vel.y -= G * dt;
@@ -469,7 +684,9 @@ function moveBody(b, dt) {
     if (b.vel.y <= 0 && c.max.y - p.y <= STEP + 0.35) { p.y = c.max.y; b.vel.y = 0; b.grounded = true; }
     else if (b.vel.y > 0) { p.y = c.min.y - b.h - 1e-4; b.vel.y = 0; }
   }
-  p.x = clamp(p.x, -39.5, 39.5); p.z = clamp(p.z, -39.5, 39.5);
+  if (royale) { const dx = p.x - RX, dz = p.z - RZ, d = Math.hypot(dx, dz), m = ISLE_R + 5; if (d > m) { p.x = RX + dx / d * m; p.z = RZ + dz / d * m; } }
+  else { p.x = clamp(p.x, -39.5, 39.5); p.z = clamp(p.z, -39.5, 39.5); }
+  if (b.drop) { b.vel.y = Math.max(b.vel.y, -4.5); if (b.balloon) b.balloon.position.copy(p); }
 }
 function setCrouch(b, want, dt) {
   if (!want && b.crouch && !pointFree(b.pos.x, b.pos.z, b.pos.y, R - 0.05, STAND_H)) want = true;
@@ -522,6 +739,7 @@ function fire(b, origin, aim, muzzle) {
       const dist = best, fall = dist > w.range ? Math.max(0.35, w.range / dist) : 1;
       let dmg = w.dmg * fall * (head ? w.head : 1);
       if (!b.human && who.human) dmg *= [0.5, 0.75, 0.95][DI];
+      if (royale && !b.human && !who.human) dmg *= 0.22;
       burst(_hit, FRUITS[who.fruit].juice, head ? 12 : 7, 4, 0.5);
       if (who.remote) {
         // the other device owns that fruit: tell it, and it takes the damage
@@ -549,7 +767,7 @@ function fire(b, origin, aim, muzzle) {
   return hitBody;
 }
 function damage(v, amt, src, head, wname) {
-  if (!v.alive || v.protect > 0) return;
+  if (!v.alive || v.protect > 0 || v.drop) return;
   v.hp -= amt; v.lastHurt = time;
   if (v.isPlayer) {
     hurtFlash = Math.min(1, hurtFlash + amt / 60); SND.hurt();
@@ -564,7 +782,8 @@ function damage(v, amt, src, head, wname) {
 function kill(v, src, head, wname, fromNet) {
   if (online && !fromNet && !v.remote) Net.send({ t: 'kill', v: v.id, by: src ? src.id : '', hd: head ? 1 : 0, w: wname }, 1);
   if (v.remote) v.deadUntil = time + 1;
-  v.alive = false; v.hp = 0; v.deaths++; v.streak = 0; v.respawnT = RESPAWN; v.killer = src; v.killedWith = wname;
+  v.alive = false; v.hp = 0; v.deaths++; v.streak = 0; v.respawnT = royale ? 1e9 : RESPAWN; v.killer = src; v.killedWith = wname;
+  if (royale) { v.place = aliveCount() + 1; if (v.slots.length > 1) addLoot('gun', v.slots[0], v.pos.x, v.pos.y, v.pos.z); }
   v.center(_cen);
   const juice = FRUITS[v.fruit].juice;
   burst(_cen, juice, 70, 7, 0.9, 14, 0.6); burst(_cen, 0xffffff, 12, 4, .5, 10, .5);
@@ -583,14 +802,26 @@ function kill(v, src, head, wname, fromNet) {
   }
   addFeed(src && src !== v ? src : null, v, wname, head);
   if (v.isPlayer) {
-    $('dtitle').textContent = src && src !== v ? `Squeezed by ${src.name}` : 'You squeezed yourself';
-    $('dsub').textContent = src && src !== v ? `${wname}${head ? ' (zest shot)' : ''}. They have ${src.hp > 0 ? Math.ceil(src.hp) : 0} health left.` : 'Careful with juice bombs.';
+    $('dtitle').textContent = src && src !== v ? `Squeezed by ${src.name}` : wname === 'Juice Storm' ? 'Caught in the juice storm' : 'You squeezed yourself';
+    $('dsub').textContent = royale ? `You came ${v.place}${ordinal(v.place)} of ${bodies.length}.` : src && src !== v ? `${wname}${head ? ' (zest shot)' : ''}. They have ${src.hp > 0 ? Math.ceil(src.hp) : 0} health left.` : 'Careful with juice bombs.';
     renderPicks(); $('death').classList.remove('hide'); aimT = 0; mouseL = false;
     $('revive').classList.toggle('hide', !reviveReady());
+    if (royale) royaleOutT = 4;
   }
-  if (!online && src && src.kills >= KILL_TARGET) endMatch();
+  if (!online && !royale && src && src.kills >= KILL_TARGET) endMatch();
 }
+const ordinal = n => ['st', 'nd', 'rd'][n - 1] || 'th';
+let royaleOutT = 0, royaleEndT = 0;
 function respawn(b) {
+  if (royale) {
+    // only the "Another go" second chance brings a fruit back in Juice Royale: same guns, inside the circle
+    const [x, z] = royaleSpot(true);
+    b.pos.set(x, 0, z); b.vel.set(0, 0, 0); b.yaw = Math.atan2(x - zone.x, z - zone.z); b.pitch = 0;
+    b.alive = true; b.hp = 100; b.protect = 1.5; b.crouch = false; b.h = STAND_H; b.place = 0;
+    if (b.model) { b.model.visible = true; b.ai.target = null; b.ai.wp = null; }
+    if (b.isPlayer) { $('death').classList.add('hide'); $('revive').classList.add('hide'); showWeapon(); royaleOutT = 0; }
+    return;
+  }
   let best = null, bd = -1;
   for (const [x, z] of SPAWNS) {
     let md = 1e9; for (const o of bodies) if (o !== b && o.alive) md = Math.min(md, Math.hypot(o.pos.x - x, o.pos.z - z));
@@ -646,6 +877,7 @@ function explode(p, owner) {
     if (rayScene(_o, _d, dl) < dl - 0.1) continue;
     let dmg = 120 * (1 - d / 6); if (o === owner) dmg *= 0.5;
     if (!owner.human && o.human) dmg *= [0.5, 0.75, 0.95][DI];
+    if (royale && !owner.human && !o.human) dmg *= 0.22;
     o.vel.addScaledVector(_d, 9 * (1 - d / 6)); o.vel.y += 4 * (1 - d / 6);
     damage(o, dmg, owner, false, 'Juice Bomb');
   }
@@ -664,6 +896,7 @@ function botUpdate(b, dt) {
     for (const o of bodies) {
       if (o === b || !o.alive) continue;
       _v.subVectors(o.pos, b.pos); const d = _v.length(); _v.y = 0; _v.normalize();
+      if (royale && o !== ai.target && (d > 38 || (b.slots.length < 2 && d > 10) || (!o.human && d > 12))) continue;
       const inView = _v.dot(_w) > DIFF.fov[DI] || d < 7 || o === ai.target;
       const score = d * (o.human ? 0.9 : 1) - (o === ai.target ? 6 : 0);
       if (inView && score < bd && canSee(b, o)) { bd = score; best = o; }
@@ -692,10 +925,11 @@ function botUpdate(b, dt) {
     ai.aiming = false;
     if (ai.seenPos && time - ai.seenT < 5) { _v.subVectors(ai.seenPos, b.pos); _v.y = 0; if (_v.length() < 1.5) ai.seenPos = null; else wish.copy(_v.normalize()); }
     else {
-      if (!ai.wp || b.pos.distanceTo(ai.wp) < 2) ai.wp = pick(WAYPOINTS);
+      if (!ai.wp || b.pos.distanceTo(ai.wp) < 2) ai.wp = pickWP();
       _v.subVectors(ai.wp, b.pos); _v.y = 0; wish.copy(_v.normalize());
     }
   }
+  if (royale) royaleSteer(b, wish, !!t);
   if (wish.lengthSq() > 0.01) {
     wish.normalize();
     // feelers: steer around boxes
@@ -744,6 +978,16 @@ function botUpdate(b, dt) {
   if (b.mag[b.wkey] <= 0 && b.reloadT <= 0) b.reloadT = w.reload;
   else if (!t && b.mag[b.wkey] < w.mag * 0.5 && b.reloadT <= 0) b.reloadT = w.reload;
 }
+function pickWP() {
+  if (!royale) return pick(WAYPOINTS);
+  for (let i = 0; i < 14; i++) { const w = pick(royaleWP); if (Math.hypot(w.x - zone.x, w.z - zone.z) < zone.r * 0.8) return w; }
+  return new THREE.Vector3(zone.x, 0, zone.z);
+}
+function royaleSteer(b, wish, hasT) {
+  const dx = zone.x - b.pos.x, dz = zone.z - b.pos.z, d = Math.hypot(dx, dz);
+  if (d > zone.r - 2 && d > 0.5) { wish.set(dx / d, 0, dz / d); b.ai.wp = null; return; }
+  if (!hasT && b.slots.length < 2) { const l = nearestLoot(b.pos, 45, 'gun'); if (l) wish.set(l.pos.x - b.pos.x, 0, l.pos.z - b.pos.z); }
+}
 function updateModel(b, dt) {
   const m = b.model, ud = m.userData;
   m.position.copy(b.pos); m.rotation.y = b.yaw;
@@ -774,7 +1018,7 @@ function changeZoom(dirn) {
 }
 function renderZoomSteps() { if (!player) return; $('zsteps').innerHTML = player.w.zooms.map((z, i) => `<b class="${i === zoomIdx ? 'on' : ''}">${z}&times;</b>`).join(''); }
 function swapTo(i) {
-  const p = player; if (!p.alive || i === p.cur || i < 0 || i > 1) return;
+  const p = player; if (!p.alive || i === p.cur || i < 0 || i >= p.slots.length) return;
   p.cur = i; p.swapT = 0.4; p.reloadT = 0; SND.swap(); showWeapon();
 }
 function startReload(b) { if (b.reloadT > 0 || b.mag[b.wkey] >= b.w.mag) return; b.reloadT = b.w.reload; if (b.isPlayer) SND.reload(); }
@@ -810,7 +1054,7 @@ function playerUpdate(dt) {
   if (p.swapT > 0) p.swapT -= dt;
   p.fireT -= dt;
   p.bloom = Math.max(0, p.bloom - dt * 0.12);
-  if (mouseL && p.fireT <= 0 && p.reloadT <= 0 && p.swapT <= 0 && !sprint) {
+  if (mouseL && p.fireT <= 0 && p.reloadT <= 0 && p.swapT <= 0 && !sprint && !p.drop) {
     if (p.mag[p.wkey] <= 0) { if (!firedSince) { SND.empty(); startReload(p); } firedSince = true; }
     else if (w.auto || !firedSince) {
       camera.getWorldDirection(_dir);
@@ -823,7 +1067,7 @@ function playerUpdate(dt) {
   }
   if (!mouseL) firedSince = false;
   zoomCur += (curZoomTarget() - zoomCur) * Math.min(1, dt * 14);
-  if (p.hp < 100 && time - p.lastHurt > 5) p.hp = Math.min(100, p.hp + dt * 12);
+  if (p.hp < 100 && time - p.lastHurt > (royale ? 8 : 5)) p.hp = Math.min(100, p.hp + dt * (royale ? 3 : 12));
   if (p.protect > 0) p.protect -= dt;
 }
 
@@ -855,7 +1099,7 @@ function updateCamera(dt) {
   camera.updateProjectionMatrix();
   sky.position.copy(camera.position);
   sunSprite.position.copy(camera.position).add(_v.set(30, 50, 20).normalize().multiplyScalar(300));
-  sun.position.set(camera.position.x * 0 + 30, 50, 20);
+  sun.position.set(camera.position.x + 30, 50, camera.position.z + 20); sun.target.position.set(camera.position.x, 0, camera.position.z);
 }
 function updateViewmodel(dt) {
   const p = player; vm.visible = p.alive && !(p.w.scope && aimT > 0.9);
@@ -902,6 +1146,7 @@ function showWeapon() {
   clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 4000);
 }
 function renderPicks() {
+  if (royale) { $('picks').innerHTML = ''; return; }
   $('picks').innerHTML = PRIMARIES.map((k, i) => `<div data-k="${k}" class="${player.nextPrimary === k ? 'on' : ''}">${TOUCH ? '' : i + 1 + ' '}${WEAPONS[k].name}</div>`).join('') + `<div style="border:0;background:none;color:#a9b0bd">${TOUCH ? 'tap a gun to change' : 'press 1-4 to change gun'}</div>`;
 }
 function updateHUD(dt) {
@@ -946,27 +1191,40 @@ function updateHUD(dt) {
   }
   // timer and score
   const left = Math.max(0, MATCH_TIME - matchT);
-  hud.timer.textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
-  const sorted = [...bodies].sort((a, b) => b.kills - a.kills);
-  const lead = sorted[0];
-  hud.score.innerHTML = `You <b style="color:#ffd23a">${p.kills}</b> &nbsp;&middot;&nbsp; ${lead === p ? 'You lead' : 'Leader ' + esc(lead.name) + ' <b>' + lead.kills + '</b>'} &nbsp;&middot;&nbsp; ${online ? `${Net.humans()} online` : 'first to ' + KILL_TARGET}`;
+  if (royale) {
+    hud.timer.textContent = zoneLabel();
+    hud.score.innerHTML = `Alive <b style="color:#ffd23a">${aliveCount()}</b> &nbsp;&middot;&nbsp; You <b>${p.kills}</b> squeezes`;
+  } else {
+    hud.timer.textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
+    const sorted = [...bodies].sort((a, b) => b.kills - a.kills);
+    const lead = sorted[0];
+    hud.score.innerHTML = `You <b style="color:#ffd23a">${p.kills}</b> &nbsp;&middot;&nbsp; ${lead === p ? 'You lead' : 'Leader ' + esc(lead.name) + ' <b>' + lead.kills + '</b>'} &nbsp;&middot;&nbsp; ${online ? `${Net.humans()} online` : 'first to ' + KILL_TARGET}`;
+  }
   if (!$('death').classList.contains('hide')) $('dsub').dataset.t = Math.ceil(p.respawnT);
-  if (!p.alive) $('dtitle').dataset.n = 1, $('death').querySelector('p').textContent = $('dsub').textContent.replace(/ Back in \d+\.\.\.$/, '') + ` Back in ${Math.ceil(p.respawnT)}...`;
+  if (!p.alive && !royale) $('dtitle').dataset.n = 1, $('death').querySelector('p').textContent = $('dsub').textContent.replace(/ Back in \d+\.\.\.$/, '') + ` Back in ${Math.ceil(p.respawnT)}...`;
   if (!$('board').classList.contains('hide')) renderBoard();
   drawMini();
 }
 function drawMini() {
-  const g = mini, W = 170, sc = W / 2 / 30, p = player;
+  const g = mini, W = 170, sc = W / 2 / (royale ? 55 : 30), p = player;
   g.clearRect(0, 0, W, W);
   g.save(); g.beginPath(); g.arc(W / 2, W / 2, W / 2 - 1, 0, 7); g.clip();
   g.translate(W / 2, W / 2); g.rotate(p.yaw); g.translate(-p.pos.x * sc, -p.pos.z * sc);
-  g.fillStyle = 'rgba(201,180,143,.25)'; g.fillRect(-40 * sc, -40 * sc, 80 * sc, 80 * sc);
+  if (royale) {
+    g.fillStyle = 'rgba(63,169,214,.35)'; g.fillRect((RX - 200) * sc, (RZ - 200) * sc, 400 * sc, 400 * sc);
+    g.fillStyle = 'rgba(134,191,85,.45)'; g.beginPath(); g.arc(RX * sc, RZ * sc, ISLE_R * sc, 0, 7); g.fill();
+    for (const l of loot) if (!l.taken && l.type === 'gun') { g.fillStyle = '#ffd23a'; g.fillRect(l.pos.x * sc - 1.5, l.pos.z * sc - 1.5, 3, 3); }
+  } else { g.fillStyle = 'rgba(201,180,143,.25)'; g.fillRect(-40 * sc, -40 * sc, 80 * sc, 80 * sc); }
   for (const c of colliders) { g.fillStyle = c.max.y > 2 ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.28)'; g.fillRect(c.min.x * sc, c.min.z * sc, (c.max.x - c.min.x) * sc, (c.max.z - c.min.z) * sc); }
   for (const o of bodies) {
     if (o === p || !o.alive) continue;
     const loud = time - o.lastShot < 1.6;
     if (!loud) continue;
     g.fillStyle = '#ff4b3a'; g.globalAlpha = 1 - (time - o.lastShot) / 1.6; g.beginPath(); g.arc(o.pos.x * sc, o.pos.z * sc, 4, 0, 7); g.fill(); g.globalAlpha = 1;
+  }
+  if (royale) {
+    g.lineWidth = 2; g.strokeStyle = '#ff5fa2'; g.beginPath(); g.arc(zone.x * sc, zone.z * sc, Math.max(zone.r, .1) * sc, 0, 7); g.stroke();
+    if (!zone.shrinking && ZONE_PHASES[zone.phase]) { g.setLineDash([4, 4]); g.strokeStyle = '#fff'; g.beginPath(); g.arc(zone.tx * sc, zone.tz * sc, Math.max(zone.tr, .1) * sc, 0, 7); g.stroke(); g.setLineDash([]); }
   }
   g.restore();
   g.fillStyle = '#ffd23a'; g.beginPath(); g.moveTo(W / 2, W / 2 - 8); g.lineTo(W / 2 + 6, W / 2 + 6); g.lineTo(W / 2 - 6, W / 2 + 6); g.closePath(); g.fill();
@@ -978,7 +1236,8 @@ function renderBoard() {
 
 // ---------------------------------------------------------------- match flow
 function clearArena() {
-  for (const b of bodies) if (b.model) scene.remove(b.model);
+  for (const b of bodies) { if (b.model) scene.remove(b.model); if (b.balloon) scene.remove(b.balloon); }
+  clearLoot(); zoneMesh.visible = false; royaleOutT = royaleEndT = 0;
   for (const n of nades) scene.remove(n.m); nades.length = 0;
   bodies = []; byId.clear();
 }
@@ -988,9 +1247,11 @@ function removeBody(b) {
   const i = bodies.indexOf(b); if (i >= 0) bodies.splice(i, 1);
   if (byId.get(b.id) === b) byId.delete(b.id);
 }
-function startMatch(isOnline) {
+function startMatch(isOnline, isRoyale) {
   online = !!isOnline; DI = online ? 1 : S.diff;
   clearArena();
+  royale = !online && !!isRoyale;
+  useMap(royale);
   parts.length = 0;
   buildViewmodel();
   // online, nobody is called "You": pick a fruity nickname if the player kept the default
@@ -998,12 +1259,22 @@ function startMatch(isOnline) {
   player = new Body(true, S.name || 'You', S.fruit, S.weapon); player.id = Net.me; addBody(player);
   if (!online) {
     const names = [...BOT_NAMES].sort(() => Math.random() - .5);
-    for (let i = 0; i < S.bots; i++) {
+    for (let i = 0; i < (royale ? (TOUCH ? 9 : 11) : S.bots); i++) {
       let fi = (S.fruit + 1 + i) % FRUITS.length;
       addBody(new Body(false, names[i], fi, pick(PRIMARIES)));
     }
   }
-  bodies.forEach(b => respawn(b));
+  if (royale) {
+    // everyone floats down onto the island on a balloon
+    resetZone(); spawnLoot(); zoneMesh.visible = true;
+    for (const b of bodies) {
+      const [x, z] = royaleSpot(false);
+      b.pos.set(x, 34 + rand(0, 8), z); b.vel.set(0, 0, 0); b.yaw = Math.atan2(x - RX, z - RZ); b.pitch = -0.5;
+      b.alive = true; b.drop = true; b.protect = 0; b.place = 0;
+      if (b.model) b.model.visible = true;
+      addBalloon(b); b.balloon.position.copy(b.pos);
+    }
+  } else bodies.forEach(b => respawn(b));
   matchT = 0; aimT = 0; zoomIdx = 1; $('feed').innerHTML = ''; reviveUsed = false;
   $('pname').textContent = player.name;
   $('death').classList.add('hide');
@@ -1013,7 +1284,8 @@ function startMatch(isOnline) {
     const c = roundClock(); curRound = c.r; matchT = c.t;
     Net.tick(); // say hello right away, so nobody waits to see us
   }
-  track('level_start', online ? { mode: 'online', gun: S.weapon, players: Net.humans() } : { mode: 'practice', gun: S.weapon, bots: S.bots, skill: ['easy', 'normal', 'hard'][S.diff] });
+  track('level_start', online ? { mode: 'online', gun: S.weapon, players: Net.humans() } : royale ? { mode: 'royale', bots: bodies.length - 1, skill: ['easy', 'normal', 'hard'][S.diff] } : { mode: 'practice', gun: S.weapon, bots: S.bots, skill: ['easy', 'normal', 'hard'][S.diff] });
+  if (royale) { hud.hint.textContent = TOUCH ? 'Steer with your left thumb while you float down. Grab a gun when you land!' : 'Steer with W A S D while you float down. Grab a gun when you land!'; clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 6000); }
   ['menu', 'pause', 'end'].forEach(id => $(id).classList.add('hide'));
   $('hud').classList.remove('hide');
   $('board').classList.add('hide');
@@ -1023,18 +1295,20 @@ function startMatch(isOnline) {
 function endMatch() {
   if (state === 'end') return;
   state = 'end'; document.exitPointerLock?.();
-  const sorted = [...bodies].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
-  const place = sorted.indexOf(player) + 1;
-  const info = { mode: online ? 'online' : 'practice', place, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT), players: online ? Net.humans() : 1 };
+  const sorted = royale ? [...bodies].sort((a, b) => (a.alive ? 0 : a.place || 99) - (b.alive ? 0 : b.place || 99) || b.kills - a.kills) : [...bodies].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+  const place = royale ? (player.alive ? 1 : player.place) : sorted.indexOf(player) + 1;
+  const info = { mode: online ? 'online' : royale ? 'royale' : 'practice', place, kills: player.kills, deaths: player.deaths, seconds: Math.round(matchT), players: online ? Net.humans() : 1 };
   if (online) track('game_over', Object.assign(info, { top: place === 1 })); // online pays no coins: no level number, no "won"
   else {
     S.matches = (S.matches || 0) + 1; save();
     track('level_complete', Object.assign({ level: S.matches }, info));
     track('game_over', Object.assign({ won: place === 1 }, info));
   }
-  $('etitle').textContent = place === 1 ? 'YOU WIN!' : 'MATCH OVER';
-  $('esub').textContent = place === 1 ? `Freshest fruit in the arena. ${player.kills} squeezes.` : `${sorted[0].name} won. You came ${place}${['st', 'nd', 'rd'][place - 1] || 'th'} with ${player.kills} squeezes.`;
+  $('etitle').textContent = royale ? (place === 1 ? 'LAST FRUIT STANDING!' : `YOU CAME ${place}${ordinal(place).toUpperCase()}`) : place === 1 ? 'YOU WIN!' : 'MATCH OVER';
+  $('esub').textContent = royale ? (place === 1 ? `You outlasted ${bodies.length - 1} fruits with ${player.kills} squeezes.` : `${place - 1} fruit${place > 2 ? 's' : ''} lasted longer. You made ${player.kills} squeezes. Try again?`)
+    : place === 1 ? `Freshest fruit in the arena. ${player.kills} squeezes.` : `${sorted[0].name} won. You came ${place}${ordinal(place)} with ${player.kills} squeezes.`;
   $('endb').innerHTML = sorted.map((b, i) => `<tr class="${b === player ? 'me' : ''}"><td>${i + 1}</td><td><span class="dot" style="background:${b.color}"></span>${esc(b.name)}${botTag(b)}</td><td class="n">${b.kills}</td><td class="n">${b.deaths}</td></tr>`).join('');
+  zoneMesh.visible = false;
   $('again').classList.toggle('hide', online); $('nextin').classList.toggle('hide', !online);
   ['end'].forEach(id => $(id).classList.remove('hide'));
   ['death', 'board', 'pause'].forEach(id => $(id).classList.add('hide'));
@@ -1211,7 +1485,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) Net.l
 function showHelp() {
   if (S.seenHelp) return;
   S.seenHelp = 1; save();
-  hud.hint.textContent = TOUCH ? 'Left thumb moves, right thumb looks. Hold FIRE to squeeze!' : online ? 'Squeeze as many fruits as you can. Most squeezes when the timer ends wins!' : 'Squeeze the other fruits. First to 25 wins!';
+  hud.hint.textContent = royale ? (TOUCH ? 'Left thumb moves, right thumb looks. Grab a gun and stay inside the circle!' : 'Grab a gun, stay inside the circle, be the last fruit standing!') : TOUCH ? 'Left thumb moves, right thumb looks. Hold FIRE to squeeze!' : online ? 'Squeeze as many fruits as you can. Most squeezes when the timer ends wins!' : 'Squeeze the other fruits. First to 25 wins!';
   clearTimeout(showWeapon.t); showWeapon.t = setTimeout(() => hud.hint.textContent = '', 6000);
 }
 function lock() { if (TEST || TOUCH) { locked = true; return; } try { const r = canvas.requestPointerLock({ unadjustedMovement: true }); if (r && r.catch) r.catch(() => { try { const r2 = canvas.requestPointerLock(); if (r2 && r2.catch) r2.catch(() => { }); } catch (e2) { } }); } catch (e) { try { canvas.requestPointerLock(); } catch (e2) { } } }
@@ -1248,11 +1522,12 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   const p = player;
   if (!p.alive && e.code === 'KeyE' && reviveReady()) { askRevive(); return; }
-  if (!p.alive) { const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code); if (n >= 0) { p.nextPrimary = PRIMARIES[n]; S.weapon = PRIMARIES[n]; save(); renderPicks(); } return; }
+  if (!p.alive && !royale) { const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code); if (n >= 0) { p.nextPrimary = PRIMARIES[n]; S.weapon = PRIMARIES[n]; save(); renderPicks(); } return; }
   if (e.code === 'KeyR') startReload(p);
   if (e.code === 'KeyQ') swapTo(1 - p.cur);
   if (e.code === 'Digit1') swapTo(0); if (e.code === 'Digit2') swapTo(1);
   if (e.code === 'KeyZ') changeZoom(1); if (e.code === 'KeyX') changeZoom(-1);
+  if (e.code === 'KeyF' && royale) pickNearGun();
   if (e.code === 'KeyG' && !e.repeat) { camera.getWorldDirection(_dir); throwNade(p, _dir.clone()); }
   if (e.code === 'Tab') { renderBoard(); $('board').classList.remove('hide'); }
 });
@@ -1301,6 +1576,7 @@ function pressBtn(id, down) {
   else if (id === 'tSwap') swapTo(1 - p.cur);
   else if (id === 'tNade') { camera.getWorldDirection(_dir); throwNade(p, _dir.clone()); }
   else if (id === 'tCrouch') touchCrouch = !touchCrouch;
+  else if (id === 'tPick') pickNearGun();
   else if (id === 'tZin') changeZoom(1);
   else if (id === 'tZout') changeZoom(-1);
 }
@@ -1355,6 +1631,7 @@ function updateTouchUI() {
   $('tAim').textContent = p.w.scope ? 'SCOPE' : 'AIM';
   $('tZin').classList.toggle('hide', !scoped); $('tZout').classList.toggle('hide', !scoped);
   $('tNade').textContent = `BOMB ${p.nades}`;
+  $('tPick').classList.toggle('hide', !(royale && nearGun));
 }
 // gentle aim help on phones: when a fruit is right next to the crosshair, the view drifts onto it
 function aimAssist(dt) {
@@ -1403,17 +1680,24 @@ function step(dt) {
     for (const b of bodies) if (b.remote) updateRemote(b, dt);
     if (matchT >= MATCH_TIME) { endMatch(); $('nextin').textContent = `Next match starts in ${Math.ceil(ROUND - matchT)}s. Stay here and you are in.`; return; }
     if (state === 'paused' && player.alive) player.protect = Math.max(player.protect, 0.3);
+  } else if (royale) {
+    updateZone(dt); updateLoot(dt);
+    if (royaleOutT > 0) { royaleOutT -= dt; if (royaleOutT <= 0) { endMatch(); return; } }
+    if (player.alive && aliveCount() <= 1) { royaleEndT += dt; if (royaleEndT > 1.5) { endMatch(); return; } }
+    if (matchT > 900) { endMatch(); return; }
   } else if (matchT >= MATCH_TIME) { endMatch(); return; }
   for (const b of bodies) {
     if (b.remote) continue;
     if (!b.alive) { b.respawnT -= dt; if (b.respawnT <= 0) respawn(b); continue; }
+    if (b.drop && b.grounded) { b.drop = false; popBalloon(b); }
     if (b.isPlayer) { if (state === 'play') aimAssist(dt); playerUpdate(dt); }
+    else if (b.drop) { b.vel.x *= 0.95; b.vel.z *= 0.95; moveBody(b, dt); }
     else {
       botUpdate(b, dt); moveBody(b, dt);
       if (b.reloadT > 0) { b.reloadT -= dt; if (b.reloadT <= 0) b.mag[b.wkey] = b.w.mag; }
       if (b.swapT > 0) b.swapT -= dt; b.fireT -= dt; b.bloom = Math.max(0, b.bloom - dt * .12);
       if (b.protect > 0) b.protect -= dt;
-      if (b.hp < 100 && time - b.lastHurt > 6) b.hp = Math.min(100, b.hp + dt * 10);
+      if (b.hp < 100 && time - b.lastHurt > (royale ? 8 : 6)) b.hp = Math.min(100, b.hp + dt * (royale ? 3 : 10));
     }
   }
   // soft push between fruits
@@ -1470,6 +1754,7 @@ $('play').onclick = async () => {
   if (Net.c) startMatch(true);
 };
 $('practice').onclick = () => { audio(); goFull(); startMatch(false); };
+$('royale').onclick = () => { audio(); goFull(); startMatch(false, true); };
 // invite friends to the arena on WhatsApp, with the Stratos play page link (no room code needed)
 $('waInvite').onclick = () => {
   let link = location.origin + location.pathname;
@@ -1477,11 +1762,11 @@ $('waInvite').onclick = () => {
   window.open('https://wa.me/?text=' + encodeURIComponent('Jump into Zest Strike with me! 🍊🔫 One live arena, no room code: ' + link), '_blank', 'noopener');
   track('invite_sent', { via: 'whatsapp' });
 };
-$('again').onclick = () => { audio(); startMatch(false); };
+$('again').onclick = () => { audio(); startMatch(false, royale); };
 $('resume').onclick = () => { audio(); state = 'play'; $('pause').classList.add('hide'); if (player && player.alive) player.protect = Math.min(player.protect, 0.3); lock(); };
 $('quit').onclick = $('tomenu').onclick = () => {
   Net.leave(); online = false;
-  state = 'menu'; clearArena(); player = null;
+  state = 'menu'; clearArena(); player = null; royale = false; useMap(false);
   ['pause', 'end', 'death'].forEach(id => $(id).classList.add('hide')); $('hud').classList.add('hide'); $('menu').classList.remove('hide'); initMenu();
   showOnlineCount();
 };
@@ -1508,5 +1793,5 @@ fitPanels();
 $('setsBtn').addEventListener('click', () => { document.body.classList.toggle('sets-open'); fitPanels(); });
 
 // test hooks
-window.__zs = { get player() { return player; }, get bodies() { return bodies; }, get state() { return state; }, rayScene, raySphere, colliders, burst, tracer, splat, set state(v) { state = v; }, startMatch, step(dt) { step(dt); if (player) updateCamera(dt); }, keys, setMouse(l, r) { mouseL = l; mouseR = r; }, changeZoom, get aimT() { return aimT; }, get zoomCur() { return zoomCur; }, camera, S, Net, byId, get online() { return online; }, startOnline: async () => { await Net.start(); if (Net.c) startMatch(true); } };
-if (TEST) setTimeout(() => new URLSearchParams(location.search).has('online') ? window.__zs.startOnline() : startMatch(), 50);
+window.__zs = { get player() { return player; }, get bodies() { return bodies; }, get state() { return state; }, rayScene, raySphere, get colliders() { return colliders; }, burst, tracer, splat, set state(v) { state = v; }, startMatch, step(dt) { step(dt); if (player) updateCamera(dt); }, keys, setMouse(l, r) { mouseL = l; mouseR = r; }, changeZoom, get aimT() { return aimT; }, get zoomCur() { return zoomCur; }, camera, S, Net, byId, get online() { return online; }, get royale() { return royale; }, zone, loot, get nearGun() { return nearGun; }, pickNearGun, aliveCount, startOnline: async () => { await Net.start(); if (Net.c) startMatch(true); } };
+if (TEST) setTimeout(() => new URLSearchParams(location.search).has('online') ? window.__zs.startOnline() : (new URLSearchParams(location.search).has('royale') ? startMatch(false, true) : startMatch()), 50);

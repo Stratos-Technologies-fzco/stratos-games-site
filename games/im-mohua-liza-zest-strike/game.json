@@ -5,7 +5,7 @@
   "category": "arcade",
   "github": "im-mohua-liza",
   "how_to_play": "Type a nickname, pick your fruit and gun, then press PLAY ONLINE to join the live arena. Phone (held sideways): left thumb moves, right thumb looks, hold FIRE to shoot, tap AIM to aim or open the scope. Computer: WASD to move, mouse to look, left click to shoot, right click to aim, scroll or Z and X to zoom the sniper scope, G throws a juice bomb. Most squeezes when the 6 minute timer ends wins.",
-  "description": "Zest Strike is a juicy free-for-all shooter where fruit fight fruit. Pick your fruit, choose your gun and jump into a juice factory yard full of crates, shipping containers, a central tower and sniper perches.\n\nMove with WASD, look with the mouse, left click to shoot and right click to aim. Choose the Squeezer, the Pulper, the Seed Scatter or the Rind Ranger sniper, and you always carry the Peeler pistol too. With the Rind Ranger, right click opens a real scope: scroll or press Z and X to zoom from 2x to 12x, and hold Shift to steady your breath. Throw juice bombs with G, crouch with C and reload with R. There is one big arena for everyone and no room code: press PLAY ONLINE and you land in the match that is already running, with whoever else is playing. A live scoreboard shows who has the most squeezes, and when the 6 minute timer ends the winner is crowned and a fresh match starts. If only a few people are online, friendly bots fill the empty spots, and they step aside as more players join. You can also practise against bots on your own, where the first to 25 squeezes wins.\n\nThe fun is in the sniping: scope glint gives away enemy snipers, firing puts you on the minimap, and kill streaks keep the pressure on. Play it on a computer with a keyboard and mouse, or on a phone held sideways with on-screen thumb controls. It is for teens and grown-ups who love shooters but want something bright and silly.",
+  "description": "Zest Strike is a juicy free-for-all shooter where fruit fight fruit. Pick your fruit, choose your gun and jump into a juice factory yard full of crates, shipping containers, a central tower and sniper perches.\n\nMove with WASD, look with the mouse, left click to shoot and right click to aim. Choose the Squeezer, the Pulper, the Seed Scatter or the Rind Ranger sniper, and you always carry the Peeler pistol too. With the Rind Ranger, right click opens a real scope: scroll or press Z and X to zoom from 2x to 12x, and hold Shift to steady your breath. Throw juice bombs with G, crouch with C and reload with R. There is one big arena for everyone and no room code: press PLAY ONLINE and you land in the match that is already running, with whoever else is playing. A live scoreboard shows who has the most squeezes, and when the 6 minute timer ends the winner is crowned and a fresh match starts. If only a few people are online, friendly bots fill the empty spots, and they step aside as more players join. You can also practise against bots on your own, where the first to 25 squeezes wins.\n\nThe fun is in the sniping: scope glint gives away enemy snipers, firing puts you on the minimap, and kill streaks keep the pressure on. Play it on a computer with a keyboard and mouse, or on a phone held sideways with on-screen thumb controls. It is for teens and grown-ups who love shooters but want something bright and silly. There is also Juice Royale: float down onto an island on a fruit balloon with only a pistol, find guns, juice bombs and juice packs in the loot, and stay inside the shrinking juice storm. No respawns: the last fruit standing wins.",
   "controls": [
     "Phone: left thumb moves (push far to run), right thumb looks",
     "Phone: hold FIRE to shoot, tap AIM or SCOPE, then + and − to zoom",
@@ -17,8 +17,12 @@
     "Watch for scope glint. It means a sniper is looking your way.",
     "Every shot shows you on the minimap, so move after you fire.",
     "Hold Shift before a long shot to calm the sway.",
-    "Bots are marked on the scoreboard, so you always know who is a real player."
+    "Bots are marked on the scoreboard, so you always know who is a real player.",
+    "In Juice Royale, grab a gun first and keep an eye on the pink circle on the minimap"
   ],
   "story": "I wanted a fun shooter that is bright and silly, not dark, so the players are fruit. I made it with Claude and gave it a real sniper scope that zooms from 2x to 12x, because that was the part I wanted most.",
-  "resume": {"supported": false, "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"}
+  "resume": {
+    "supported": false,
+    "why": "an endless run: a half-finished run is not worth resuming, progress and best score are already kept"
+  }
 }
